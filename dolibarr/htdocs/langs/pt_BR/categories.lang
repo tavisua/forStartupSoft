@@ -1,0 +1,16 @@
+# Dolibarr language file - Source file is en_US - categories
+In=Em
+NoSubCat=Esta categoria não contém Nenhuma subcategoria.
+ErrForgotField=Esqueceu de atribuir um campo
+ErrCatAlreadyExists=Este nome esta sendo utilizado
+ContentsVisibleByAll=O Conteúdo Será Visivel por Todos?
+ContentsVisibleByAllShort=Conteúdo visivel por todos
+ContentsNotVisibleByAllShort=Conteúdo não visivel por todos
+ThisCategoryHasNoProduct=Esta categoria não contém nenhum produto.
+ThisCategoryHasNoSupplier=Esta categoria não contém a nenhum fornecedor.
+ThisCategoryHasNoCustomer=Esta categoria não contém a nenhum cliente.
+ThisCategoryHasNoMember=Esta categoria nao contem nenhum membro.
+ThisCategoryHasNoContact=Esta categoria nao contem nenhum contato.
+ExtraFieldsCategories=atributos complementares
+CategorieRecursivHelp=Se ativado, o produto também será ligada a categoria original quando adicionando em uma subcategoria
+AddProductServiceIntoCategory=Adicione o seguinte produto / serviço
