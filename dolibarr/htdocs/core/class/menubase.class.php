@@ -509,6 +509,7 @@ class Menubase
         $sql.= " AND m.menu_handler IN ('".$menu_handler."','all')";
         if ($type_user == 0) $sql.= " AND m.usertype IN (0,2)";
         if ($type_user == 1) $sql.= " AND m.usertype IN (1,2)";
+        $sql.= " AND(m.`show` = 1 AND m.`active`=1)";
         $sql.= " ORDER BY m.position, m.entity, m.rowid";
 		//print $sql;
 //        echo '<pre>';

@@ -300,6 +300,7 @@ if ($conf->use_javascript_ajax)
 	$sql.= " WHERE menu_handler = '".$menu_handler_to_search."'";
 	$sql.= " AND entity = ".$conf->entity;
 	$sql.= " AND fk_menu >= 0";
+    $sql.= " AND m.`show`=1 AND m.`active`=1";
 	$sql.= " ORDER BY m.position, m.rowid";		// Order is position then rowid (because we need a sort criteria when position is same)
 
 	$res  = $db->query($sql);

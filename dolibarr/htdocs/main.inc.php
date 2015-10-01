@@ -1604,6 +1604,7 @@ function left_menu($menu_array_before, $helppagename='', $moresearchform='', $me
 
 	    $menumanager->menu_array = $menu_array_before;
     	$menumanager->menu_array_after = $menu_array_after;
+
 	    $menumanager->showmenu('left'); // output menu_array and menu found in database
 
 

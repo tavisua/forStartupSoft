@@ -100,10 +100,10 @@ $sql = 'SELECT m.rowid, m.mainmenu, m.titre, m.url, m.position, m.show, m.active
 FROM llx_menu as m
 WHERE m.fk_menu = 0
 AND m.usertype IN (0,2) ORDER BY m.position, m.rowid';
-include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/db.php';
-$db = new dbMysqli();
-$table = $db->fShowTable($TableParam, $sql);
-
+include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
+$db = new dbBuilder();
+$table = $db->fShowTable($TableParam, $sql, "'llx_menu'", $conf->theme);
+$new_link = "http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/DBManager/dbManager.php?new=1&tablename='llx_menu'";
 ob_start();
 
 include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/admin/tools/template/menu_manager.html');
