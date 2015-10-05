@@ -1,13 +1,5 @@
-<form method="post" action="/dolibarr/htdocs/product/list.php">
-    <div class="tavis">
-        <input type="hidden" value="new" name="action">
-        <b>Назва меню</b>
-        <input id="menu_name" class="flat" type="text" size="10" name="menu_name" title="Назва меню" accesskey="P">
-    </div>
-    <div class="ulr_page">
-        <b>Ссылка на страницу меню</b>
-        <input id="url_action" class="flat" type="text" size="10" name="url_action" title="Ссылка на страницу меню" accesskey="P">
-    </div>
-        <input class="button" type="submit" value="Go" style="padding-top: 4px; padding-bottom: 4px; padding-left: 6px; padding-right: 6px">
-
-</form>
+<div id="modal_form"><!-- Сaмo oкнo -->
+    <span id="modal_close">X</span> <!-- Кнoпкa зaкрыть -->
+    <?$edit_form;?>
+</div>
+<div id="overlay"></div><!-- Пoдлoжкa -->
