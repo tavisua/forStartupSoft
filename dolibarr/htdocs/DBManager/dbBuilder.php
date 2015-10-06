@@ -33,6 +33,7 @@ class dbBuilder{
         return $edit_form;
     }
     public function fShowTable($title = array(), $sql, $tablename, $theme){
+        global $user, $conf, $langs, $db;
         $result = $this->mysqli->query($sql);
         $fields = $result->fetch_fields();
         $table ='<table width="100%" class="noborder">'."\r\n";
@@ -48,6 +49,7 @@ class dbBuilder{
 
 
         }
+
 //        echo '<pre>';
 //        var_dump($title);
 //        echo '</pre>';
@@ -65,7 +67,8 @@ class dbBuilder{
         $edit_form = "<a href='#x' class='overlay' id='editor'></a>
                      <div class='popup'>
                      <form>
-                     <input type='hidden' id='rowid' name='rowid' value='0'>
+                     <input type='hidden' id='user_id' name='user_id' value=".$user->id.">
+                     <input type='hidden' id='edit_rowid' name='rowid' value='0'>
                      <table>
                      <tbody>";
         while($row = $result->fetch_assoc()) {
@@ -107,7 +110,7 @@ class dbBuilder{
                                </form>
                             <a class='close' title='Закрыть' href='#close'></a>
                             </br>
-                            <button onclick='edit_item();'>Сохранить</button>
+                            <button onclick=save_item(".$tablename.");>Сохранить</button>
                             <button onclick='close_form();'>Закрыть</button>
                             </div>
                              ";
@@ -128,63 +131,6 @@ class dbBuilder{
         $table .= '</form>'."\r\n";
 
         $table .= $edit_form;
-        $table .= "<script>
-                    function load_info(){
-                        console.log('test');
-                    }
-                    function del_confirm(rowid, tablename) {
-                        if (confirm('Удалить пункт меню?'))
-                            location.href = 'http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/DBManager/dbManager.php?rowid='+rowid+'&del=1&tablename='+tablename;
-                    }
-                    function close_form(){
-                        location.href = '#close';
-                    }
-                    function edit_item(rowid){
-                        var sID=rowid.toString();
-                        var tr = document.getElementById(rowid);
-                        var elements = tr.getElementsByTagName('td');
-                        for(var i=0; i<elements.length; i++){
-                            if(elements[i].id.substr(0, sID.length) == sID){
-                                var fieldname = elements[i].id.substr(sID.length);
-                                var edit_field = document.getElementById('edit_'+fieldname);
-                                var source_field = document.getElementById(sID+fieldname);
-                                var img = source_field.getElementsByTagName('img');
-                                if(img.length == 1){
-                                    edit_field.src = img[0].src;
-                                }else
-                                    edit_field.value = source_field.innerHTML;
-                            }
-                        }
-                        location.href = '#editor';
-                    }
-                    function change_switch(rowid, tablename, col_name){
-                        var x;
-                        if(rowid != 0)
-                            x = document.getElementById('img'+rowid+col_name);
-                        else
-                            x = document.getElementById('#edit_'+col_name);
-                        var check = false;
-                        if(x.src == 'http://".$_SERVER["SERVER_NAME"].DOL_URL_ROOT."/theme/".$theme."/img/switch_on.png'){
-                            x.src = 'http://".$_SERVER["SERVER_NAME"].DOL_URL_ROOT."/theme/".$theme."/img/switch_off.png';
-                        }else{
-                            x.src = 'http://".$_SERVER["SERVER_NAME"].DOL_URL_ROOT."/theme/".$theme."/img/switch_on.png';
-                            check = true;
-                        }
-                        if(rowid != 0)
-                            update_data(rowid, tablename, col_name, check);
-                    }
-                    function update_data(rowid, tablename, col_name, check){
-                        $.ajax({
-                            url: 'http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/DBManager/dbManager.php?rowid='+rowid+'&edit=1&tablename='+tablename+'&col_name='+col_name+'&value='+check,
-                            cache: false,
-                            success: function (html) {
-                                console.log(html);
-                            }
-                        });
-
-                    };
-
-                    </script>";
         return $table;
     }
 }
