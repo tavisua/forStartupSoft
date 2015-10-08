@@ -2,6 +2,7 @@
 HRMArea=HRM area
 UserCard=User card
 ContactCard=Contact card
+Calculator=Калькулятор
 GroupCard=Group card
 NoContactCard=No card among contacts
 Permission=Permission
@@ -56,7 +57,7 @@ CreateGroup=Create group
 RemoveFromGroup=Remove from group
 PasswordChangedAndSentTo=Password changed and sent to <b>%s</b>.
 PasswordChangeRequestSent=Request to change password for <b>%s</b> sent to <b>%s</b>.
-MenuUsersAndGroups=Користувачі і групи
+MenuUsersAndGroups=Користувачі та групи
 LastGroupsCreated=Last %s created groups
 LastUsersCreated=Last %s users created
 ShowGroup=Show group

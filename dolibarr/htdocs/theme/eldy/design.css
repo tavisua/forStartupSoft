@@ -48,3 +48,60 @@
     cursor: pointer;
     display: none; /* в oбычнoм сoстoянии её нет) */
 }
+#icon{
+    vertical-align: middle;
+}
+#menu_item:hover div{
+    text-decoration:underline;
+}
+.edit_text{
+    width: 80%;
+    font-family: arial,tahoma,verdana,helvetica;
+    font-size: 14px;
+}
+#edit_table{
+    width: 100%;
+}
+a.vsmenu:link, a.vsmenu:visited, a.vsmenu, a.vsmenu:active {
+    margin: 1px 1px 1px 8px;
+    cursor: pointer;
+}
+a.vsmenu:link, a.vsmenu:visited, a.vsmenu:hover, a.vsmenu:active {
+    color: #202020;
+    font-family: arial,tahoma,verdana,helvetica;
+    font-size: 11px;
+    font-weight: normal;
+    margin: 1px 1px 1px 8px;
+    text-align: right;
+    cursor: pointer;
+}
+
+#menu_item div{width:200px;display:inline-block}
+#menu_item{
+    vertical-align: middle;
+    min-width: 230px;
+    background: #e3e6e8 -moz-linear-gradient(center bottom , rgb(255, 255, 255) 90%, rgb(240, 240, 240) 100%) repeat scroll 0 0;
+    border-color: #ccc #ccc #ccc #aaa;
+    border-radius: 5px;
+    border-style: solid;
+    border-width: 1px;
+    box-shadow: 3px 3px 4px #ddd;
+    color: #4a4a4a;
+    font-family: arial,tahoma,verdana,helvetica;
+    font-weight: bold;
+    margin-top: 4px;
+    text-decoration: none;
+    text-shadow: 1px 1px 2px #ffffff;
+    cursor: pointer;
+    width:90px;display:inline-block;
+}
+#users_action, #find_users{
+    vertical-align: top;
+    min-width: 200px;
+}
+.group_menu{
+    font-family: arial,tahoma,verdana,helvetica;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: left;
+}

@@ -15,9 +15,11 @@ function save_item(tablename){
         for(var i=0;i<input_field.length;i++){
             if(input_field[i].type != 'hidden'){
                 var fieldname = input_field[i].id.substring(5);
-                var send_field = document.getElementById(sID+fieldname);
-                send_field.innerHTML=input_field[i].value;
-                var value = send_field.innerHTML;//.replace(/\./gi, "&&");
+                if(sID != 0) {
+                    var send_field = document.getElementById(sID + fieldname);
+                    send_field.innerHTML = input_field[i].value;
+                }
+                var value = input_field[i].value;//.replace(/\./gi, "&&");
                 value = value.replace(/\&/gi, "@@");
                 if(fields != '') {
                     fields = fields + ',' + fieldname;
@@ -31,9 +33,11 @@ function save_item(tablename){
         var text_field = editor[0].getElementsByTagName('textarea');
         for(var i=0; i<text_field.length; i++){
             var fieldname = text_field[i].id.substring(5);
-            var send_field = document.getElementById(sID+fieldname);
-            send_field.innerHTML=text_field[i].value;
-            var value = send_field.innerHTML;//.replace(/\./gi, "&&");
+            if(sID != 0) {
+                var send_field = document.getElementById(sID + fieldname);
+                send_field.innerHTML = text_field[i].value;
+            }
+            var value = text_field[i].value;//.replace(/\./gi, "&&");
             value = value.replace(/\&/gi, "@@");
             if(fields != '') {
                 fields = fields + ',' + fieldname;
@@ -46,8 +50,10 @@ function save_item(tablename){
         var img_field = editor[0].getElementsByTagName('img');
         for(var i=0; i<img_field.length; i++){
             var fieldname = img_field[i].id.substring(5);
-            var send_field = document.getElementById('img'+sID+fieldname);
-            send_field.src=img_field[i].src;
+            if(sID != 0) {
+                var send_field = document.getElementById('img' + sID + fieldname);
+                send_field.src = img_field[i].src;
+            }
             var value ='';
             if(img_field[i].src == 'http://'+location.hostname+'/dolibarr/htdocs/theme/eldy/img/switch_on.png')
                 value = '1';
@@ -64,10 +70,56 @@ function save_item(tablename){
         var link = "tablename="+tablename+"&columns='"+fields+"'&values='"+values+"'&id_usr="+id_usr;
         if(sID != 0)
             link += "&rowid="+sID;
-        //console.log(link);
-        save_data(link);
+        //save_data(link);
+        add_item();
         location.href = '#close';
     }
+}
+function add_item(){
+    var title = document.getElementById('reference_title');
+    var table = document.getElementById('edit_table');
+    var td_list = table.getElementsByTagName('td');
+    document.getElementById('edit_rowid').value = 111;
+    var sRow='';
+    for(var i = 0; i<td_list.length; i++){
+        var td = td_list[i];
+        if(td.getElementsByTagName('input').length > 0) {
+            var elems = td.getElementsByTagName('input');
+            sRow +='<td>'+elems[0].value.trim()+'</td>'
+        }else if(td.getElementsByTagName('textarea').length > 0){
+            var elems = td.getElementsByTagName('textarea');
+            sRow +='<td>'+elems[0].value.trim()+'</td>'
+        }else if(td.getElementsByTagName('img').length > 0){
+            var html = td.innerHTML.replace(/change_switch\(0/gi, "change_switch("+document.getElementById('edit_rowid').value);
+            //console.log(html);
+            sRow +='<td>'+html+'</td>';
+        }
+    }
+    var img_src='http://'+location.hostname+'/dolibarr/htdocs/theme/eldy/img/edit.png';
+
+    var edit_icon='<td style="width: 20px" align="left"><img src="'+img_src+'" title="Редактировать" style="vertical-align: middle" onclick="edit_item('+document.getElementById('edit_rowid').value+');"></td>';
+    sRow +=edit_icon;
+    title.insertAdjacentHTML('afterend', '<tr>'+sRow+'</tr>')
+}
+function new_item(){
+    document.getElementById('edit_rowid').value=0;
+    var editor = document.getElementsByClassName('popup');
+    var input_field = editor[0].getElementsByTagName('input');
+
+    for(var i=0;i<input_field.length;i++){
+        if(input_field[i].type != 'hidden'){
+            input_field[i].value='';
+        }
+    }
+    var text_field = editor[0].getElementsByTagName('textarea');
+    for(var i=0; i<text_field.length; i++){
+        text_field[i].value='';
+    }
+    var img_field = editor[0].getElementsByTagName('img');
+    for(var i=0; i<img_field.length; i++){
+        img_field[i].src = 'http://'+location.hostname+'/dolibarr/htdocs/theme/eldy/img/switch_on.png';
+    }
+    location.href = '#editor';
 }
 function edit_item(rowid){
     if(rowid != 0){
@@ -130,7 +182,7 @@ function save_data(link){
         url: 'http://'+location.hostname+'/dolibarr/htdocs/DBManager/dbManager.php?save=1&'+link,
         cache: false,
         success: function (html) {
-            console.log(html);
+            document.getElementById('edit_rowid').value=html;
         }
     });
 

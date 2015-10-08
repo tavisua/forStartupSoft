@@ -1006,6 +1006,8 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
                 print '<link rel="stylesheet" type="text/css" href="'.DOL_URL_ROOT.'/theme/'.$conf->theme.'/design.css'.($ext?'?'.$ext:'').'"/>'."\n";          //Стиль для фор
                 print '<link rel="stylesheet" type="text/css" href="'.DOL_URL_ROOT.'/theme/'.$conf->theme.'/style-modal.css'.($ext?'?'.$ext:'').'"/>'."\n";     //Стиль модальной формы
             }
+            print '<link rel="stylesheet" type="text/css" href="'.DOL_URL_ROOT.'/admin/tools/template/design.css'.($ext?'?'.$ext:'').'"/>'."\n";//Стиль меню
+
             if (constant('JS_JQUERY_UI')) print '<link rel="stylesheet" type="text/css" href="'.JS_JQUERY_UI.'css/'.$jquerytheme.'/jquery-ui.min.css'.($ext?'?'.$ext:'').'" />'."\n";  // JQuery
             else print '<link rel="stylesheet" type="text/css" href="'.DOL_URL_ROOT.'/includes/jquery/css/'.$jquerytheme.'/jquery-ui-latest.custom.css'.($ext?'?'.$ext:'').'" />'."\n";    // JQuery
             print '<link rel="stylesheet" type="text/css" href="'.DOL_URL_ROOT.'/includes/jquery/plugins/tiptip/tipTip.css'.($ext?'?'.$ext:'').'" />'."\n";                           // Tooltip
@@ -1542,7 +1544,7 @@ function left_menu($menu_array_before, $helppagename='', $moresearchform='', $me
     $searchform='';
     $bookmarks='';
 
-    if (empty($conf->dol_hide_leftmenu))
+    if (empty($conf->dol_hide_leftmenu)&&$user->admin==1&&$_REQUEST['mainmenu']=='home')
     {
 	    // Instantiate hooks of thirdparty module
 	    $hookmanager->initHooks(array('searchform','leftblock'));

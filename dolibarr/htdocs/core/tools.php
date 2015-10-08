@@ -39,77 +39,34 @@ if ($user->societe_id > 0) $socid=$user->societe_id;
 
 $socstatic=new Societe($db);
 
-llxHeader("",$langs->trans("Tools"),"");
+$title = $langs->trans("Tools");
+llxHeader("",$title,"");
+print_fiche_titre($title);
+$MenuManager = $langs->trans('MenuManager');
+$MenuUsersAndGroups = $langs->trans('MenuUsersAndGroups');
+$Post = $langs->trans('aPost');
+$SphereOfResponsibility = $langs->trans('SphereOfResponsibility');
+$CategoryCustomer = $langs->trans('CategoryCustomer');
+$FormOfGovernment = $langs->trans('FormOfGovernment');
+$KindAddress = $langs->trans('KindAddress');
+$Country = $langs->trans('Country');
+$SubDisivion = $langs->trans('SubDisivion');
+$Region = $langs->trans('Region');
+$Area = $langs->trans('Area');
+$KindLocality = $langs->trans('KindOfLocality');
+$KindOfStreet = $langs->trans('KindOfStreet');
+$KindOfOffice = $langs->trans('KindOfOffice');
+$Location = $langs->trans('Location');
+$Currency = $langs->trans('Currency');
+$Trademark = $langs->trans('Trademark');
+$KindOfTransport = $langs->trans('KindOfTransport');
+$GroupOfMaterials = $langs->trans('GroupOfMaterials');
+$Unit = $langs->trans('Unit');
+$theme = $conf->theme;
 
-$text=$langs->trans("Tools");
 
-print_fiche_titre($text);
 
-// Show description of content
-//print $langs->trans("ToolsDesc").'<br><br>';
-$TableParam = array();
-$ColParam['title']='Название меню';
-$ColParam['width']='';
-$ColParam['align']='';
-$ColParam['class']='';
-$TableParam[]=$ColParam;
-
-$ColParam['title']='Отображение в браузере';
-$ColParam['width']='';
-$ColParam['align']='';
-$ColParam['class']='';
-$TableParam[]=$ColParam;
-
-$ColParam['title']='URL';
-$ColParam['width']='';
-$ColParam['align']='left';
-$ColParam['class']='';
-$TableParam[]=$ColParam;
-
-$ColParam['title']='Порядковый номер';
-$ColParam['width']='';
-$ColParam['align']='left';
-$ColParam['class']='';
-$TableParam[]=$ColParam;
-
-$ColParam['title']='Видимость';
-$ColParam['width']='100';
-$ColParam['align']='left';
-$ColParam['class']='';
-$TableParam[]=$ColParam;
-
-$ColParam['title']='Активное';
-$ColParam['width']='100';
-$ColParam['align']='left';
-$ColParam['class']='';
-$TableParam[]=$ColParam;
-
-$ColParam['title']='Действия';
-$ColParam['width']='250';
-$ColParam['align']='left';
-$ColParam['class']='';
-$TableParam[]=$ColParam;
-
-//$ColParam['title']='';
-//$ColParam['width']='50';
-//$ColParam['align']='right';
-//$ColParam['class']='';
-//$TableParam[]=$ColParam;
-
-$sql = 'SELECT m.rowid, m.mainmenu, m.titre, m.url, m.position, m.show, m.active
-FROM llx_menu as m
-WHERE m.fk_menu = 0
-AND m.usertype IN (0,2) ORDER BY m.position, m.rowid';
-include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
-$db = new dbBuilder();
-$table = $db->fShowTable($TableParam, $sql, "'llx_menu'", $conf->theme);
-$new_link = "http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/DBManager/dbManager.php?new=1&tablename='llx_menu'";
-ob_start();
-
-include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/admin/tools/template/menu_manager.html');
-
-echo ob_get_clean();
-
+include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/eldy/tools.html');
 
 llxFooter();
 

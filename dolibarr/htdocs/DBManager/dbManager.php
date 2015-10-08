@@ -48,8 +48,14 @@
 //        var_dump($db->mysqli->real_escape_string($sql));
 //        die();
         $res = $db->mysqli->query($sql);
-        if($res)
-            echo 'success';
-        else
+        if($res) {
+            if(!isset($_REQUEST['rowid'])){
+                $sql='select max(rowid)rowid from '.$_REQUEST['tablename'];
+                $res = $db->mysqli->query($sql);
+                $rowid = $res->fetch_assoc();
+                echo $rowid['rowid'];
+            }else
+                echo 'success';
+        }else
             echo $sql;
     }

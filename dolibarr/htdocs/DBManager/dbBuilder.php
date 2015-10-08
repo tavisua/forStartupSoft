@@ -21,9 +21,9 @@ class dbBuilder{
         $edit_form.="<td>";
         if($field->type != 16){
             if($field->length<=50)
-                $edit_form.='<input id = edit_'.$field->name.' class="text" maxlength="45" name="label" type="text" value="">';
+                $edit_form.='<input id = edit_'.$field->name.' class="edit_text" maxlength="45" name="label" type="text" value="">';
             else
-                $edit_form.='<textarea id = edit_'.$field->name.' class="text" name="description"></textarea>';
+                $edit_form.='<textarea id = edit_'.$field->name.' class="edit_text" name="description"></textarea>';
         }else{
             $field_name = "'".$field->name."'";
             $edit_form.='<img id="edit_' .$field->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png" onclick="change_switch(0, ' . $tablename . ', ' . $field_name . ');">';
@@ -35,11 +35,13 @@ class dbBuilder{
     public function fShowTable($title = array(), $sql, $tablename, $theme){
         global $user, $conf, $langs, $db;
         $result = $this->mysqli->query($sql);
+
         $fields = $result->fetch_fields();
-        $table ='<table width="100%" class="noborder">'."\r\n";
+        $table ='<table width="100%" id="reference" class="noborder">'."\r\n";
         $table .= '<tbody>'."\r\n";
-        $table .= '<tr class="liste_titre">'."\r\n";
+        $table .= '<tr id="reference_title" class="liste_titre">'."\r\n";
         $count = 0;
+
         foreach($title as $column){
             $table .= '<th ';
             $table .= $column['width']<>''?('width="'.$column['width'].'"'):(' ');//ширина
@@ -55,9 +57,8 @@ class dbBuilder{
 //        echo '</pre>';
 //        die();
         $table .= '<td class="nocellnopadd boxclose nowrap">
-        <img class="boxhandle hideonsmartphone" border="0" style="cursor:move;" title="Переместить поле 18" alt="" src="/dolibarr/htdocs/theme/eldy/img/grip_title.png">'."\r\n";
-        $table .= '<img id="imgclose18" class="boxclose" border="0" style="cursor:pointer;" rel="x:y" title="Закрыть" alt="" src="/dolibarr/htdocs/theme/eldy/img/close_title.png">
-        <input id="boxlabelentry18" type="hidden" value="Последние 5 изменённых предложений">
+        <img class="boxhandle hideonsmartphone" border="0" style="cursor:move;" title="" alt="" src="/dolibarr/htdocs/theme/eldy/img/grip_title.png">'."\r\n";
+        $table .= '<input id="boxlabelentry18" type="hidden" value="">
         </td>'."\r\n";
         $table .= '</tr>'."\r\n";
 
@@ -69,8 +70,33 @@ class dbBuilder{
                      <form>
                      <input type='hidden' id='user_id' name='user_id' value=".$user->id.">
                      <input type='hidden' id='edit_rowid' name='rowid' value='0'>
-                     <table>
+                     <table id='edit_table'>
                      <tbody>";
+        //Если запрос вернул пустой результат, дорисую одну строку
+        if($result->num_rows == 0){
+            $class = fmod($count,2)!=1?("impair"):("pair");
+            $table .= "<tr id = 0 class='".$class."'>\r\n";
+            $num_col = 0;
+            for($i = 0; $i<=$result->field_count;$i++){
+                if($fields[$i]->name != 'rowid') {
+                    if ($result->field_count != $i) {
+                        $table .= '<td id="0"></td>';
+                        $edit_form .= $this->fBuildEditForm($title[$num_col]['title'], $fields[$i], $theme, $tablename);
+                    } else
+                        $table .= '<td id="0" style="width: 70px"></td>';
+                    $num_col++;
+                }
+            }
+            $edit_form .="    </table>
+                               </form>
+                            <a class='close' title='Закрыть' href='#close'></a>
+                            </br>
+                            <button onclick=save_item(".$tablename.");>Сохранить</button>
+                            <button onclick='close_form();'>Закрыть</button>
+                            </div>
+            ";
+        }
+
         while($row = $result->fetch_assoc()) {
             $count++;
             $class = fmod($count,2)==1?("impair"):("pair");
@@ -113,9 +139,7 @@ class dbBuilder{
                             <button onclick=save_item(".$tablename.");>Сохранить</button>
                             <button onclick='close_form();'>Закрыть</button>
                             </div>
-                             ";
-//                var_dump($edit_form);
-//                die('tt');
+            ";
             }
 //
             $table .= '<td style="width: 20px" align="left">

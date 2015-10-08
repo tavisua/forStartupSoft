@@ -6,3 +6,27 @@
     font-size: larger !important;
     margin-bottom: 15px;
 }
+div.mainmenu.calculator {
+    background-image: url("/dolibarr/htdocs/theme/eldy/img/menus/pointofsale.png");
+}
+div.mainmenu.plan_of_days {
+    background-image: url("/dolibarr/htdocs/theme/eldy/img/menus/agenda.png");
+}
+div.mainmenu.hourly_plan {
+    background-image: url("/dolibarr/htdocs/theme/eldy/img/menus/pointofsale.png");
+}
+div.mainmenu.global_task {
+    background-image: url("/dolibarr/htdocs/theme/eldy/img/menus/pointofsale.png");
+}
+div.mainmenu.global_action {
+    background-image: url("/dolibarr/htdocs/theme/eldy/img/menus/pointofsale.png");
+}
+div.mainmenu.current_task {
+    background-image: url("/dolibarr/htdocs/theme/eldy/img/menus/pointofsale.png");
+}
+div.mainmenu.current_action {
+    background-image: url("/dolibarr/htdocs/theme/eldy/img/menus/pointofsale.png");
+}
+div.mainmenu.area {
+    background-image: url("/dolibarr/htdocs/theme/eldy/img/menus/pointofsale.png");
+}

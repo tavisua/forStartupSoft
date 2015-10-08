@@ -1,0 +1,49 @@
+ <!--Search User-->
+<a href="/dolibarr/htdocs/core/tools.php?mainmenu=tools"><?echo $Tools?></a>  /  <a href="/dolibarr/htdocs/core/users_manager.php"><?echo $MenuUsersAndGroups?></a>
+<table>
+    <tbody>
+        <td id="users_action">
+            <table  class="noborder" width="100%">
+                <tbody>
+                    <tr class="liste_titre">
+                        <td>
+                        <?echo $Action?>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class = "group_menu">
+                            <?echo $Users?>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            &nbsp;&nbsp;<a class="vsmenu" href="/dolibarr/htdocs/user/card.php?leftmenu=users&action=create&idmenu=5617&mainmenu=tools"><?echo $NewUser?></a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class = "group_menu">
+                            <?echo $UserGroup?>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            &nbsp;&nbsp;<a class="vsmenu" href="/dolibarr/htdocs/user/group/card.php?leftmenu=users&action=create&idmenu=5619&mainmenu=tools"><?echo $NewUserGroup?></a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </td>
+
+        <td id="find_users">
+            <form method="post" action="<?echo $action?>">
+                <input type="hidden" name="token" value="'<?echo $newtoken?>'">
+                <table class="noborder" width="100%">
+                    <tr class="liste_titre"><td colspan="3"><?echo $SearchUserTitle?></td></tr>
+                    <tr '<?echo $bc_var?>'><td>
+                        <?echo $Ref?>:</td><td><input class="flat" type="text" name="search_user" size="18"></td><td rowspan="2"><input type="submit" value="<?echo $SerchBtnTitle?>" class="button"></td></tr>
+                    <!--<tr '.$bc[$var].'><td class="nowrap">'.$langs->trans("Other").':</td><td><input type="text" class="flat" name="sall" size="18"></td></tr>-->
+                </table><br>
+            </form>
+        </td>
+    </tbody>
+</table>
