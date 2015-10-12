@@ -34,6 +34,8 @@ class dbBuilder{
     }
     public function fShowTable($title = array(), $sql, $tablename, $theme){
         global $user, $conf, $langs, $db;
+//        var_dump($sql);
+//        die();
         $result = $this->mysqli->query($sql);
 
         $fields = $result->fetch_fields();
