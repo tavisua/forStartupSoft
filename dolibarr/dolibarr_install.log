@@ -27,9 +27,9 @@
 2015-09-09 13:29:18 DEBUG   127.0.0.1       db_character_set=utf8 db_collation=utf8_general_ci
 2015-09-09 13:29:18 DEBUG   127.0.0.1       Choice for testpost = ok
 2015-09-09 13:29:18 DEBUG   127.0.0.1       Choice for action = set
-2015-09-09 13:29:18 DEBUG   127.0.0.1       Choice for main_dir = C:/OpenServer/domains/dolibarr.kr/dolibarr/htdocs
-2015-09-09 13:29:18 DEBUG   127.0.0.1       Choice for main_data_dir = c:/dolibarr/dolibarr_documents
-2015-09-09 13:29:18 DEBUG   127.0.0.1       Choice for main_url = http://dolibarr.kr/dolibarr/htdocs
+2015-09-09 13:29:18 DEBUG   127.0.0.1       Choice for main_dir = D:/OpenServer/domains/uspex2015.com/dolibarr/htdocs
+2015-09-09 13:29:18 DEBUG   127.0.0.1       Choice for main_data_dir = d:/dolibarr/dolibarr_documents
+2015-09-09 13:29:18 DEBUG   127.0.0.1       Choice for main_url = http://uspex2015.com/dolibarr/htdocs
 2015-09-09 13:29:18 DEBUG   127.0.0.1       Choice for db_name = dolibarr
 2015-09-09 13:29:18 DEBUG   127.0.0.1       Choice for db_type = mysqli
 2015-09-09 13:29:18 DEBUG   127.0.0.1       Choice for db_host = 127.0.0.1
@@ -40,7 +40,7 @@
 2015-09-09 13:29:18 DEBUG   127.0.0.1       Choice for db_create_user = on
 2015-09-09 13:29:18 DEBUG   127.0.0.1       Choice for db_user_root = root
 2015-09-09 13:29:18 DEBUG   127.0.0.1       Choice for selectlang = ru_RU
-2015-09-09 13:29:18 DEBUG   127.0.0.1       etape1: Directory 'C:/OpenServer/domains/dolibarr.kr/dolibarr/htdocs' exists
+2015-09-09 13:29:18 DEBUG   127.0.0.1       etape1: Directory 'D:/OpenServer/domains/uspex2015.com/dolibarr/htdocs' exists
 2015-09-09 13:29:18 DEBUG   127.0.0.1       functions.lib::dol_mkdir: dir=c:/dolibarr/dolibarr_documents
 2015-09-09 13:29:18 DEBUG   127.0.0.1       functions.lib::dol_mkdir: Directory 'c:/dolibarr/dolibarr_documents' does not exists or is outside open_basedir PHP setting.
 2015-09-09 13:29:18 DEBUG   127.0.0.1       functions.lib::dol_mkdir: Directory 'c:/dolibarr/dolibarr_documents' created
@@ -83,32 +83,32 @@
 2015-09-09 13:29:18 DEBUG   127.0.0.1       functions.lib::dol_mkdir: Directory 'c:/dolibarr/dolibarr_documents/doctemplates' created
 2015-09-09 13:29:18 DEBUG   127.0.0.1       functions.lib::dol_mkdir: Directory 'c:/dolibarr/dolibarr_documents/doctemplates/thirdparties' does not exists or is outside open_basedir PHP setting.
 2015-09-09 13:29:18 DEBUG   127.0.0.1       functions.lib::dol_mkdir: Directory 'c:/dolibarr/dolibarr_documents/doctemplates/thirdparties' created
-2015-09-09 13:29:18 DEBUG   127.0.0.1       files.lib.php::dol_copy srcfile=C:/OpenServer/domains/dolibarr.kr/dolibarr/htdocs/install/doctemplates/thirdparties/template_thirdparty.odt destfile=c:/dolibarr/dolibarr_documents/doctemplates/thirdparties/template_thirdparty.odt newmask=0 overwriteifexists=0
+2015-09-09 13:29:18 DEBUG   127.0.0.1       files.lib.php::dol_copy srcfile=D:/OpenServer/domains/uspex2015.com/dolibarr/htdocs/install/doctemplates/thirdparties/template_thirdparty.odt destfile=c:/dolibarr/dolibarr_documents/doctemplates/thirdparties/template_thirdparty.odt newmask=0 overwriteifexists=0
 2015-09-09 13:29:18 WARNING 127.0.0.1       Warning: dol_copy called with empty value for newmask and no default value defined
 2015-09-09 13:29:18 DEBUG   127.0.0.1       functions.lib::dol_mkdir: dir=c:/dolibarr/dolibarr_documents/doctemplates/proposals
 2015-09-09 13:29:18 DEBUG   127.0.0.1       functions.lib::dol_mkdir: Directory 'c:/dolibarr/dolibarr_documents/doctemplates/proposals' does not exists or is outside open_basedir PHP setting.
 2015-09-09 13:29:18 DEBUG   127.0.0.1       functions.lib::dol_mkdir: Directory 'c:/dolibarr/dolibarr_documents/doctemplates/proposals' created
-2015-09-09 13:29:18 DEBUG   127.0.0.1       files.lib.php::dol_copy srcfile=C:/OpenServer/domains/dolibarr.kr/dolibarr/htdocs/install/doctemplates/proposals/template_proposal.odt destfile=c:/dolibarr/dolibarr_documents/doctemplates/proposals/template_proposal.odt newmask=0 overwriteifexists=0
+2015-09-09 13:29:18 DEBUG   127.0.0.1       files.lib.php::dol_copy srcfile=D:/OpenServer/domains/uspex2015.com/dolibarr/htdocs/install/doctemplates/proposals/template_proposal.odt destfile=c:/dolibarr/dolibarr_documents/doctemplates/proposals/template_proposal.odt newmask=0 overwriteifexists=0
 2015-09-09 13:29:18 WARNING 127.0.0.1       Warning: dol_copy called with empty value for newmask and no default value defined
 2015-09-09 13:29:18 DEBUG   127.0.0.1       functions.lib::dol_mkdir: dir=c:/dolibarr/dolibarr_documents/doctemplates/orders
 2015-09-09 13:29:18 DEBUG   127.0.0.1       functions.lib::dol_mkdir: Directory 'c:/dolibarr/dolibarr_documents/doctemplates/orders' does not exists or is outside open_basedir PHP setting.
 2015-09-09 13:29:18 DEBUG   127.0.0.1       functions.lib::dol_mkdir: Directory 'c:/dolibarr/dolibarr_documents/doctemplates/orders' created
-2015-09-09 13:29:18 DEBUG   127.0.0.1       files.lib.php::dol_copy srcfile=C:/OpenServer/domains/dolibarr.kr/dolibarr/htdocs/install/doctemplates/orders/template_order.odt destfile=c:/dolibarr/dolibarr_documents/doctemplates/orders/template_order.odt newmask=0 overwriteifexists=0
+2015-09-09 13:29:18 DEBUG   127.0.0.1       files.lib.php::dol_copy srcfile=D:/OpenServer/domains/uspex2015.com/dolibarr/htdocs/install/doctemplates/orders/template_order.odt destfile=c:/dolibarr/dolibarr_documents/doctemplates/orders/template_order.odt newmask=0 overwriteifexists=0
 2015-09-09 13:29:18 WARNING 127.0.0.1       Warning: dol_copy called with empty value for newmask and no default value defined
 2015-09-09 13:29:18 DEBUG   127.0.0.1       functions.lib::dol_mkdir: dir=c:/dolibarr/dolibarr_documents/doctemplates/invoices
 2015-09-09 13:29:18 DEBUG   127.0.0.1       functions.lib::dol_mkdir: Directory 'c:/dolibarr/dolibarr_documents/doctemplates/invoices' does not exists or is outside open_basedir PHP setting.
 2015-09-09 13:29:18 DEBUG   127.0.0.1       functions.lib::dol_mkdir: Directory 'c:/dolibarr/dolibarr_documents/doctemplates/invoices' created
-2015-09-09 13:29:18 DEBUG   127.0.0.1       files.lib.php::dol_copy srcfile=C:/OpenServer/domains/dolibarr.kr/dolibarr/htdocs/install/doctemplates/invoices/template_invoice.odt destfile=c:/dolibarr/dolibarr_documents/doctemplates/invoices/template_invoice.odt newmask=0 overwriteifexists=0
+2015-09-09 13:29:18 DEBUG   127.0.0.1       files.lib.php::dol_copy srcfile=D:/OpenServer/domains/uspex2015.com/dolibarr/htdocs/install/doctemplates/invoices/template_invoice.odt destfile=c:/dolibarr/dolibarr_documents/doctemplates/invoices/template_invoice.odt newmask=0 overwriteifexists=0
 2015-09-09 13:29:18 WARNING 127.0.0.1       Warning: dol_copy called with empty value for newmask and no default value defined
 2015-09-09 13:29:18 DEBUG   127.0.0.1       functions.lib::dol_mkdir: dir=c:/dolibarr/dolibarr_documents/doctemplates/projects
 2015-09-09 13:29:18 DEBUG   127.0.0.1       functions.lib::dol_mkdir: Directory 'c:/dolibarr/dolibarr_documents/doctemplates/projects' does not exists or is outside open_basedir PHP setting.
 2015-09-09 13:29:18 DEBUG   127.0.0.1       functions.lib::dol_mkdir: Directory 'c:/dolibarr/dolibarr_documents/doctemplates/projects' created
-2015-09-09 13:29:18 DEBUG   127.0.0.1       files.lib.php::dol_copy srcfile=C:/OpenServer/domains/dolibarr.kr/dolibarr/htdocs/install/doctemplates/projects/template_project.odt destfile=c:/dolibarr/dolibarr_documents/doctemplates/projects/template_project.odt newmask=0 overwriteifexists=0
+2015-09-09 13:29:18 DEBUG   127.0.0.1       files.lib.php::dol_copy srcfile=D:/OpenServer/domains/uspex2015.com/dolibarr/htdocs/install/doctemplates/projects/template_project.odt destfile=c:/dolibarr/dolibarr_documents/doctemplates/projects/template_project.odt newmask=0 overwriteifexists=0
 2015-09-09 13:29:18 WARNING 127.0.0.1       Warning: dol_copy called with empty value for newmask and no default value defined
 2015-09-09 13:29:18 DEBUG   127.0.0.1       functions.lib::dol_mkdir: dir=c:/dolibarr/dolibarr_documents/doctemplates/tasks
 2015-09-09 13:29:18 DEBUG   127.0.0.1       functions.lib::dol_mkdir: Directory 'c:/dolibarr/dolibarr_documents/doctemplates/tasks' does not exists or is outside open_basedir PHP setting.
 2015-09-09 13:29:18 DEBUG   127.0.0.1       functions.lib::dol_mkdir: Directory 'c:/dolibarr/dolibarr_documents/doctemplates/tasks' created
-2015-09-09 13:29:18 DEBUG   127.0.0.1       files.lib.php::dol_copy srcfile=C:/OpenServer/domains/dolibarr.kr/dolibarr/htdocs/install/doctemplates/tasks/template_task_summary.odt destfile=c:/dolibarr/dolibarr_documents/doctemplates/tasks/template_task_summary.odt newmask=0 overwriteifexists=0
+2015-09-09 13:29:18 DEBUG   127.0.0.1       files.lib.php::dol_copy srcfile=D:/OpenServer/domains/uspex2015.com/dolibarr/htdocs/install/doctemplates/tasks/template_task_summary.odt destfile=c:/dolibarr/dolibarr_documents/doctemplates/tasks/template_task_summary.odt newmask=0 overwriteifexists=0
 2015-09-09 13:29:18 WARNING 127.0.0.1       Warning: dol_copy called with empty value for newmask and no default value defined
 2015-09-09 13:29:18 DEBUG   127.0.0.1       files.lib.php::dol_copy srcfile=../conf/conf.php destfile=../conf/conf.php.old newmask=0400 overwriteifexists=1
 2015-09-09 13:29:18 DEBUG   127.0.0.1       etape1: Create database user: dolibarrmysql

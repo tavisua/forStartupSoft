@@ -220,6 +220,7 @@ if (! empty($conf->dol_optimize_smallscreen)) $fontsize=11;
 
 
 body {
+height:100%;
 <?php if (GETPOST("optioncss") == 'print') {  ?>
 	background-color: #FFFFFF;
 <?php } else { ?>
@@ -240,7 +241,17 @@ a:link, a:visited, a:hover, a:active { font-family: <?php print $fontlist ?>; fo
 a:hover { text-decoration: underline; color: #000000;}
 
 <?php if (empty($dol_use_jmobile)) { ?>
-
+.footer{
+    bottom: 0;
+    height: 50px;
+    position: absolute;
+    align-content: flex-end;
+}
+.footer a{
+    /*font-size: 20px!important;*/
+    color: blue;
+    font-style: oblique;
+}
 input:focus, textarea:focus, button:focus, select:focus {
     box-shadow: 0 0 4px #8091BF;
 }

@@ -5,21 +5,21 @@
 // Take a look at conf.php.example file for an example of conf.php file
 // and explanations for all possibles parameters.
 //
-$dolibarr_main_url_root='http://dolibarr.kr/dolibarr/htdocs';
-$dolibarr_main_document_root='C:/OpenServer/domains/dolibarr.kr/dolibarr/htdocs';
+$dolibarr_main_url_root='http://uspex2015.com/dolibarr/htdocs';
+$dolibarr_main_document_root='D:/OpenServer/domains/uspex2015.com/dolibarr/htdocs';
 //$dolibarr_main_url_root_alt='/custom';
-//$dolibarr_main_document_root_alt='C:/OpenServer/domains/dolibarr.kr/dolibarr/htdocs/custom';
+//$dolibarr_main_document_root_alt='D:/OpenServer/domains/uspex2015.com/dolibarr/htdocs/custom';
 $dolibarr_main_data_root='c:/dolibarr/dolibarr_documents';
 $dolibarr_main_db_host='127.0.0.1';
 $dolibarr_main_db_port='3306';
-$dolibarr_main_db_name='dolibarr';
+$dolibarr_main_db_name='uspex2015';
 $dolibarr_main_db_prefix='llx_';
-$dolibarr_main_db_user='dolibarrmysql';
-$dolibarr_main_db_pass='root';
+$dolibarr_main_db_user='admin';
+$dolibarr_main_db_pass='Gjdeqs4wqpYxGnKm';
 $dolibarr_main_db_type='mysqli';
 $dolibarr_main_db_character_set='utf8';
 $dolibarr_main_db_collation='utf8_general_ci';
-$dolibarr_main_authentication='dolibarr';
+$dolibarr_main_authentication='uspex2015';
 
 // Specific settings
 $dolibarr_main_prod='0';

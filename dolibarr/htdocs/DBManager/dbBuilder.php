@@ -19,11 +19,30 @@ class dbBuilder{
         $edit_form ="<tr>
                         <td>".$title."</td>";
         $edit_form.="<td>";
+        echo '<pre>';
+        var_dump($title['title']);
+        echo '</pre>';
+//        die();
         if($field->type != 16){
-            if($field->length<=50)
-                $edit_form.='<input id = edit_'.$field->name.' class="edit_text" maxlength="45" name="label" type="text" value="">';
-            else
-                $edit_form.='<textarea id = edit_'.$field->name.' class="edit_text" name="description"></textarea>';
+            if(substr($field->name, 0,2) != 's_') {//Если поле из основной таблицы
+                if ($field->length <= 50)
+                    $edit_form .= '<input id = edit_' . $field->name . ' class="edit_text" maxlength="45" name="label" type="text" value="">';
+                else
+                    $edit_form .= '<textarea id = edit_' . $field->name . ' class="edit_text" name="description"></textarea>';
+            }else{//Если поле из подключенной таблицы
+                $s_table = substr($field->name, 2, strpos($field->name, '_', 3)-2);
+                $s_fieldname = substr($field->name, strpos($field->name, '_', 3)+1);
+                $edit_form .= "\r\n";
+                if(isset($title['detailfield']))
+                    $edit_form .= '<input id="detail_'.$s_table.'_'.$s_fieldname.'" type="hidden" value="'.$title['detailfield'].'">'."\r\n";
+                $edit_form .= '<select id="edit_'.$s_table.'_'.$s_fieldname.'" name="'.$s_table.'" class="edit_text" size="1">'."\r\n";
+                $sql="select rowid, ".$s_fieldname." from ".$s_table." where active = 1 order by ".$s_fieldname;
+                $result = $this->mysqli->query($sql);
+                while($row = $result->fetch_assoc()){
+                    $edit_form .= '<option value="'.$row['rowid'].'">'.$row[$s_fieldname].'</option>'."\r\n";
+                }
+                $edit_form .= '</select>';
+            }
         }else{
             $field_name = "'".$field->name."'";
             $edit_form.='<img id="edit_' .$field->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png" onclick="change_switch(0, ' . $tablename . ', ' . $field_name . ');">';
@@ -34,7 +53,9 @@ class dbBuilder{
     }
     public function fShowTable($title = array(), $sql, $tablename, $theme){
         global $user, $conf, $langs, $db;
-//        var_dump($sql);
+//        echo '<pre>';
+//        var_dump($title);
+//        echo '</pre>';
 //        die();
         $result = $this->mysqli->query($sql);
 
@@ -83,7 +104,7 @@ class dbBuilder{
                 if($fields[$i]->name != 'rowid') {
                     if ($result->field_count != $i) {
                         $table .= '<td id="0"></td>';
-                        $edit_form .= $this->fBuildEditForm($title[$num_col]['title'], $fields[$i], $theme, $tablename);
+                        $edit_form .= $this->fBuildEditForm($title[$num_col], $fields[$i], $theme, $tablename);
                     } else
                         $table .= '<td id="0" style="width: 70px"></td>';
                     $num_col++;
@@ -116,7 +137,7 @@ class dbBuilder{
                 $col_name = "'".$fields[$num_col]->name."'";
                 if($cell != 'rowid') {
                     if(!$create_edit_form)//Формирую форму для редактирования
-                        $edit_form.=$this->fBuildEditForm($title[$num_col-1]['title'], $fields[$num_col], $theme, $tablename);
+                        $edit_form.=$this->fBuildEditForm($title[$num_col-1], $fields[$num_col], $theme, $tablename);
                     if($fields[$num_col]->type == 16){
                         if($value == '1') {
                             $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '"><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');"> </td>';

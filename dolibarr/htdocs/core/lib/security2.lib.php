@@ -53,26 +53,30 @@ function checkLoginPassEntity($usertotest,$passwordtotest,$entitytotest,$authmod
 {
 	global $conf,$langs;
     //global $dolauthmode;    // To return authentication finally used
-
 	// Check parameters
 	if ($entitytotest == '') $entitytotest=1;
 
     dol_syslog("checkLoginPassEntity usertotest=".$usertotest." entitytotest=".$entitytotest." authmode=".join(',',$authmode));
 	$login = '';
 
+
 	// Validation of login/pass/entity with standard modules
 	if (empty($login))
 	{
 	    $test=true;
+
     	foreach($authmode as $mode)
     	{
+
     		if ($test && $mode && ! $login)
     		{
     		    // Validation of login/pass/entity for mode $mode
     		    $mode=trim($mode);
-        		$authfile='functions_'.$mode.'.php';
+//        		$authfile='functions_'.$mode.'.php';
+        		$authfile='functions_dolibarr.php';
         		$fullauthfile='';
-
+//                var_dump($authfile);
+//                die();
     		    $dirlogin=array_merge(array("/core/login"),(array) $conf->modules_parts['login']);
     		    foreach($dirlogin as $reldir)
     		    {

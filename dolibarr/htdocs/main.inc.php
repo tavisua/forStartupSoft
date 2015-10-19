@@ -1876,6 +1876,7 @@ if (! function_exists("llxFooter"))
      */
     function llxFooter($comment='',$zone='private')
     {
+//        print 'test';
         global $conf, $langs;
 
         // Global html output events ($mesgs, $errors, $warnings)
@@ -1913,7 +1914,7 @@ if (! function_exists("llxFooter"))
         printCommonFooter($zone);
 
         if (empty($conf->dol_hide_leftmenu) && empty($conf->dol_use_jmobile) && empty($conf->global->MAIN_MENU_USE_JQUERY_LAYOUT)) print '</div> <!-- End div id-container -->'."\n";	// End div container
-
+        print '<div class="footer">В разі виникнення запитань чи виявлення помилок в роботі програми, пишіть в службу підтримки <a href="mailto:tavis.ua@gmail.com?subject=TitSupport">tavis.ua@gmail.com</a></p></div>';
         print "</body>\n";
         print "</html>\n";
     }

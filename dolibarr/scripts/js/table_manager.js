@@ -67,11 +67,25 @@ function save_item(tablename){
                 values = value;
             }
         }
+        var select_field = editor[0].getElementsByTagName('select');
+        if(select_field.length>0) {
+            var detail_id = 'detail_' + select_field[0].id.substr(5);
+            var detail_field = document.getElementById(detail_id);
+            if(fields != '') {
+                fields = fields + ',' + detail_field.value;
+                values = values + ','+select_field[0].value;
+            }else {
+                fields = detail_field.value;
+                values = select_field[0].value;
+            }
+            //console.log(select_field[0].value + ' 111 ' + detail_field.value);
+        }
         if(sID == 0 && alrady_exist(fields, values)) {
             alert('Такая запись уже существует');
             location.href = '#close';
             return;
         }
+
         var link = "tablename="+tablename+"&columns='"+fields+"'&values='"+values+"'&id_usr="+id_usr+"&save=1";
         if(sID != 0)
             link += "&rowid="+sID;
@@ -79,7 +93,7 @@ function save_item(tablename){
             console.log('Добавление новой записи '+sID);
             add_item();
         }
-        //console.log(link);
+        console.log(link);
         save_data(link);
         location.href = '#close';
     }
@@ -177,16 +191,23 @@ function edit_item(rowid){
     for(var i=0; i<elements.length; i++){
         if(elements[i].id.substr(0, sID.length) == sID){
             var fieldname = elements[i].id.substr(sID.length);
-
+            var bSelectedField = false;
             var source_field = document.getElementById(sID+fieldname);
             var edit_field = document.getElementById('edit_'+fieldname);
-            //console.log(source_field.innerHTML);
+
+            if(edit_field == null&&fieldname.substr(0,2) == 's_'){
+                bSelectedField = true;
+                console.log(fieldname.substr(2));
+                edit_field = document.getElementById('edit_'+fieldname.substr(2));
+            }
             var img = source_field.getElementsByTagName('img');
             if(img.length > 0){
                 //console.log(edit_field.id);
                 edit_field.src = img[0].src;
-            }else
+            }else {
+                console.log(edit_field.id+' '+edit_field.tagName);
                 edit_field.value = source_field.innerHTML;
+            }
         }
     }
     location.href = '#editor';
