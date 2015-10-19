@@ -2,8 +2,9 @@
 <project version="4">
   <component name="BookmarkManager">
     <bookmark url="file://$PROJECT_DIR$/dolibarr/htdocs/DBManager/db.php" line="14" />
-    <bookmark url="file://$PROJECT_DIR$/dolibarr/scripts/js/table_manager.js" line="263" />
+    <bookmark url="file://$PROJECT_DIR$/dolibarr/scripts/js/table_manager.js" line="297" />
     <bookmark url="file://$PROJECT_DIR$/dolibarr/htdocs/DBManager/dbBuilder.php" line="37" />
+    <bookmark url="file://$PROJECT_DIR$/dolibarr/scripts/js/table_manager.js" line="127" />
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a85f7a61-d982-4d8a-b5c4-4e2daf287a74" name="Default" comment="" />
@@ -33,7 +34,7 @@
       <file leaf-file-name="main.inc.php" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/dolibarr/htdocs/main.inc.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="32125" max-vertical-offset="32776">
+            <state vertical-scroll-proportion="-21.461538" vertical-offset="32014" max-vertical-offset="32776">
               <caret line="1916" column="201" selection-start-line="1916" selection-start-column="201" selection-end-line="1916" selection-end-column="201" />
               <folding>
                 <element signature="e#6#1438#0#PHP" expanded="true" />
@@ -58,87 +59,46 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="style.css.php" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/dolibarr/htdocs/theme/eldy/style.css.php">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="4032" max-vertical-offset="52411">
-              <caret line="272" column="23" selection-start-line="272" selection-start-column="0" selection-end-line="272" selection-end-column="23" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="dbBuilder.php" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/dolibarr/htdocs/DBManager/dbBuilder.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="912" max-vertical-offset="3264">
-              <caret line="32" column="83" selection-start-line="32" selection-start-column="83" selection-end-line="32" selection-end-column="83" />
+            <state vertical-scroll-proportion="-25.076923" vertical-offset="1915" max-vertical-offset="3366">
+              <caret line="151" column="129" selection-start-line="151" selection-start-column="129" selection-end-line="151" selection-end-column="129" />
               <folding>
                 <element signature="e#6#87#0#PHP" expanded="true" />
-                <marker date="1445241601349" expanded="true" signature="359:403" placeholder="..." />
+                <marker date="1445276272603" expanded="true" signature="359:412" placeholder="..." />
+                <marker date="1445276272603" expanded="true" signature="3490:3647" placeholder="..." />
+                <marker date="1445276272603" expanded="false" signature="3558:3570" placeholder="..." />
+                <marker date="1445276272603" expanded="true" signature="3943:4218" placeholder="..." />
+                <marker date="1445276272603" expanded="true" signature="3971:4218" placeholder="..." />
+                <marker date="1445276272603" expanded="true" signature="4189:4218" placeholder="..." />
+                <marker date="1445276272603" expanded="false" signature="4878:4889" placeholder="..." />
+                <marker date="1445276272603" expanded="false" signature="8331:8342" placeholder="..." />
+                <marker date="1445276272603" expanded="true" signature="8356:8565" placeholder="..." />
+                <marker date="1445276272603" expanded="false" signature="8471:8493" placeholder="..." />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="table_manager.js" pinned="false" current-in-tab="false">
+      <file leaf-file-name="design.css" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/dolibarr/htdocs/theme/eldy/design.css">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0" vertical-offset="1270" max-vertical-offset="2210">
+              <caret line="108" column="110" selection-start-line="108" selection-start-column="110" selection-end-line="108" selection-end-column="110" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="table_manager.js" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/dolibarr/scripts/js/table_manager.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="1071" max-vertical-offset="5049">
-              <caret line="81" column="9" selection-start-line="81" selection-start-column="9" selection-end-line="81" selection-end-column="9" />
+            <state vertical-scroll-proportion="0.34241706" vertical-offset="1989" max-vertical-offset="5627">
+              <caret line="134" column="126" selection-start-line="134" selection-start-column="126" selection-end-line="134" selection-end-column="126" />
               <folding>
-                <marker date="1445242399614" expanded="false" signature="6034:6045" placeholder="..." />
+                <marker date="1445281972644" expanded="false" signature="7294:7305" placeholder="..." />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="dolibarr_install.log" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/dolibarr/dolibarr_install.log">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="285" max-vertical-offset="190910">
-              <caret line="32" column="62" selection-start-line="32" selection-start-column="55" selection-end-line="32" selection-end-column="62" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="conf.php" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/dolibarr/htdocs/conf/conf.php">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-7.8461537" vertical-offset="0" max-vertical-offset="799">
-              <caret line="17" column="40" selection-start-line="17" selection-start-column="24" selection-end-line="17" selection-end-column="40" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="security2.lib.php" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/dolibarr/htdocs/core/lib/security2.lib.php">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-16.653847" vertical-offset="587" max-vertical-offset="7803">
-              <caret line="76" column="33" selection-start-line="76" selection-start-column="33" selection-end-line="76" selection-end-column="33" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="functions_dolibarr.php" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/dolibarr/htdocs/core/login/functions_dolibarr.php">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.28781793" vertical-offset="193" max-vertical-offset="2431">
-              <caret line="40" column="26" selection-start-line="40" selection-start-column="26" selection-end-line="40" selection-end-column="26" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="index.php" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/index.php">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="22.884615" vertical-offset="4760" max-vertical-offset="10013">
-              <caret line="252" column="0" selection-start-line="252" selection-start-column="0" selection-end-line="252" selection-end-column="0" />
-              <folding />
             </state>
           </provider>
         </entry>
@@ -146,13 +106,23 @@
       <file leaf-file-name="region.php" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/dolibarr/htdocs/core/region.php">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="308" max-vertical-offset="918">
-              <caret line="29" column="36" selection-start-line="29" selection-start-column="36" selection-end-line="29" selection-end-column="36" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="143" max-vertical-offset="918">
+              <caret line="43" column="20" selection-start-line="43" selection-start-column="20" selection-end-line="43" selection-end-column="20" />
               <folding>
                 <marker date="1445241143419" expanded="true" signature="954:1043" placeholder="select regio..." />
                 <marker date="1445241143419" expanded="true" signature="954:1124" placeholder="select rowid.._tablename order..." />
                 <marker date="1445241143419" expanded="true" signature="954:1146" placeholder="select regio.._tablename left..." />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="region.html" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/dolibarr/htdocs/theme/eldy/region.html">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="374">
+              <caret line="0" column="173" selection-start-line="0" selection-start-column="173" selection-end-line="0" selection-end-column="173" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -209,15 +179,15 @@
         <option value="$PROJECT_DIR$/dolibarr/htdocs/core/lib/functions.lib.php" />
         <option value="$PROJECT_DIR$/dolibarr/htdocs/theme/eldy/style.css.php" />
         <option value="$PROJECT_DIR$/dolibarr/htdocs/theme/eldy/tools.html" />
-        <option value="$PROJECT_DIR$/dolibarr/htdocs/theme/eldy/design.css" />
         <option value="$PROJECT_DIR$/dolibarr/htdocs/main.inc.php" />
         <option value="$PROJECT_DIR$/dolibarr/htdocs/core/region.php" />
-        <option value="$PROJECT_DIR$/dolibarr/htdocs/DBManager/dbBuilder.php" />
-        <option value="$PROJECT_DIR$/dolibarr/scripts/js/table_manager.js" />
         <option value="$PROJECT_DIR$/dolibarr/dolibarr_install.log" />
         <option value="$PROJECT_DIR$/dolibarr/htdocs/conf/conf.php" />
         <option value="$PROJECT_DIR$/dolibarr/htdocs/core/lib/security2.lib.php" />
         <option value="$PROJECT_DIR$/dolibarr/htdocs/core/login/functions_dolibarr.php" />
+        <option value="$PROJECT_DIR$/dolibarr/htdocs/DBManager/dbBuilder.php" />
+        <option value="$PROJECT_DIR$/dolibarr/htdocs/theme/eldy/design.css" />
+        <option value="$PROJECT_DIR$/dolibarr/scripts/js/table_manager.js" />
       </list>
     </option>
   </component>
@@ -322,7 +292,7 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="core" />
+              <option name="myItemId" value="theme" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -344,11 +314,11 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="core" />
+              <option name="myItemId" value="theme" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="login" />
+              <option name="myItemId" value="eldy" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
@@ -362,6 +332,9 @@
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="DefaultHtmlFileTemplate" value="Html5" />
     <property name="FullScreen" value="false" />
+    <property name="options.lastSelected" value="editor.preferences.appearance" />
+    <property name="options.splitter.main.proportions" value="0.3" />
+    <property name="options.splitter.details.proportions" value="0.2" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -417,17 +390,17 @@
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.12552743" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.15520833" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.16204691" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.46963122" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.1323693" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
@@ -456,6 +429,14 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/dolibarr/htdocs/theme/eldy/region.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="374">
+          <caret line="0" column="173" selection-start-line="0" selection-start-column="173" selection-end-line="0" selection-end-column="173" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/dolibarr/htdocs/admin/tools/template/menu_editor.html">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-3.2692308" vertical-offset="0" max-vertical-offset="187">
@@ -470,18 +451,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/dolibarr/test.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="136">
-          <caret line="4" column="13" selection-start-line="4" selection-start-column="4" selection-end-line="4" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/dolibarr/htdocs/comm/propal/tpl/linkedobjectblock.tpl.php">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-9.153846" vertical-offset="0" max-vertical-offset="1173">
           <caret line="30" column="7" selection-start-line="30" selection-start-column="7" selection-end-line="30" selection-end-column="7" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -497,7 +470,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-13.730769" vertical-offset="0" max-vertical-offset="24565">
           <caret line="39" column="9" selection-start-line="39" selection-start-column="9" selection-end-line="39" selection-end-column="9" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -541,7 +513,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-0.9497076" vertical-offset="4824" max-vertical-offset="7837">
           <caret line="252" column="48" selection-start-line="252" selection-start-column="48" selection-end-line="252" selection-end-column="48" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -594,6 +565,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-10.730769" vertical-offset="656" max-vertical-offset="1479">
           <caret line="55" column="37" selection-start-line="55" selection-start-column="37" selection-end-line="55" selection-end-column="37" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -695,21 +667,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/dolibarr/htdocs/theme/eldy/region.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="868">
-          <caret line="0" column="173" selection-start-line="0" selection-start-column="173" selection-end-line="0" selection-end-column="173" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/dolibarr/htdocs/core/form_of_government.php">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="119" max-vertical-offset="731">
           <caret line="7" column="0" selection-start-line="7" selection-start-column="0" selection-end-line="37" selection-end-column="12" />
-          <folding>
-            <marker date="1444743333704" expanded="true" signature="-1:-1" placeholder="select rowid.._tablename order..." />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -717,7 +678,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.33252722" vertical-offset="1578" max-vertical-offset="82756">
           <caret line="136" column="26" selection-start-line="136" selection-start-column="24" selection-end-line="136" selection-end-column="26" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -742,17 +702,44 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/dolibarr/htdocs/theme/eldy/design.css">
+    <entry file="file://$PROJECT_DIR$/dolibarr/htdocs/core/tools.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="588" max-vertical-offset="1921">
-          <caret line="56" column="0" selection-start-line="56" selection-start-column="0" selection-end-line="56" selection-end-column="0" />
-          <folding />
+        <state vertical-scroll-proportion="1.2057335" vertical-offset="475" max-vertical-offset="1343">
+          <caret line="70" column="9" selection-start-line="70" selection-start-column="9" selection-end-line="70" selection-end-column="9" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/dolibarr/htdocs/core/login/functions_dolibarr.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.28781793" vertical-offset="193" max-vertical-offset="2431">
+          <caret line="40" column="26" selection-start-line="40" selection-start-column="26" selection-end-line="40" selection-end-column="26" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/dolibarr/htdocs/core/lib/security2.lib.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.5587097" vertical-offset="587" max-vertical-offset="7803">
+          <caret line="76" column="33" selection-start-line="76" selection-start-column="33" selection-end-line="76" selection-end-column="33" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/dolibarr/htdocs/conf/conf.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.2632258" vertical-offset="0" max-vertical-offset="799">
+          <caret line="17" column="40" selection-start-line="17" selection-start-column="24" selection-end-line="17" selection-end-column="40" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/dolibarr/dolibarr_install.log">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.32868022" vertical-offset="285" max-vertical-offset="190910">
+          <caret line="32" column="62" selection-start-line="32" selection-start-column="55" selection-end-line="32" selection-end-column="62" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/dolibarr/htdocs/main.inc.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="32125" max-vertical-offset="32776">
+        <state vertical-scroll-proportion="-21.461538" vertical-offset="32014" max-vertical-offset="32776">
           <caret line="1916" column="201" selection-start-line="1916" selection-start-column="201" selection-end-line="1916" selection-end-column="201" />
           <folding>
             <element signature="e#6#1438#0#PHP" expanded="true" />
@@ -776,25 +763,18 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/dolibarr/htdocs/core/tools.php">
+    <entry file="file://$PROJECT_DIR$/dolibarr/htdocs/theme/eldy/region.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="1.2057335" vertical-offset="475" max-vertical-offset="1343">
-          <caret line="70" column="9" selection-start-line="70" selection-start-column="9" selection-end-line="70" selection-end-column="9" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/dolibarr/htdocs/theme/eldy/style.css.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="4032" max-vertical-offset="52411">
-          <caret line="272" column="23" selection-start-line="272" selection-start-column="0" selection-end-line="272" selection-end-column="23" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="868">
+          <caret line="0" column="173" selection-start-line="0" selection-start-column="173" selection-end-line="0" selection-end-column="173" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/dolibarr/htdocs/core/region.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="308" max-vertical-offset="918">
-          <caret line="29" column="36" selection-start-line="29" selection-start-column="36" selection-end-line="29" selection-end-column="36" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="143" max-vertical-offset="918">
+          <caret line="43" column="20" selection-start-line="43" selection-start-column="20" selection-end-line="43" selection-end-column="20" />
           <folding>
             <marker date="1445241143419" expanded="true" signature="954:1043" placeholder="select regio..." />
             <marker date="1445241143419" expanded="true" signature="954:1124" placeholder="select rowid.._tablename order..." />
@@ -803,64 +783,57 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/dolibarr/htdocs/DBManager/dbBuilder.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="912" max-vertical-offset="3264">
-          <caret line="32" column="83" selection-start-line="32" selection-start-column="83" selection-end-line="32" selection-end-column="83" />
-          <folding>
-            <element signature="e#6#87#0#PHP" expanded="true" />
-            <marker date="1445241601349" expanded="true" signature="359:403" placeholder="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/dolibarr/scripts/js/table_manager.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="1071" max-vertical-offset="5049">
-          <caret line="81" column="9" selection-start-line="81" selection-start-column="9" selection-end-line="81" selection-end-column="9" />
-          <folding>
-            <marker date="1445242399614" expanded="false" signature="6034:6045" placeholder="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/index.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="22.884615" vertical-offset="4760" max-vertical-offset="10013">
+        <state vertical-scroll-proportion="-0.71428573" vertical-offset="4760" max-vertical-offset="10013">
           <caret line="252" column="0" selection-start-line="252" selection-start-column="0" selection-end-line="252" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/dolibarr/dolibarr_install.log">
+    <entry file="file://$PROJECT_DIR$/dolibarr/htdocs/DBManager/dbBuilder.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="285" max-vertical-offset="190910">
-          <caret line="32" column="62" selection-start-line="32" selection-start-column="55" selection-end-line="32" selection-end-column="62" />
+        <state vertical-scroll-proportion="-25.076923" vertical-offset="1915" max-vertical-offset="3366">
+          <caret line="151" column="129" selection-start-line="151" selection-start-column="129" selection-end-line="151" selection-end-column="129" />
+          <folding>
+            <element signature="e#6#87#0#PHP" expanded="true" />
+            <marker date="1445276272603" expanded="true" signature="359:412" placeholder="..." />
+            <marker date="1445276272603" expanded="true" signature="3490:3647" placeholder="..." />
+            <marker date="1445276272603" expanded="false" signature="3558:3570" placeholder="..." />
+            <marker date="1445276272603" expanded="true" signature="3943:4218" placeholder="..." />
+            <marker date="1445276272603" expanded="true" signature="3971:4218" placeholder="..." />
+            <marker date="1445276272603" expanded="true" signature="4189:4218" placeholder="..." />
+            <marker date="1445276272603" expanded="false" signature="4878:4889" placeholder="..." />
+            <marker date="1445276272603" expanded="false" signature="8331:8342" placeholder="..." />
+            <marker date="1445276272603" expanded="true" signature="8356:8565" placeholder="..." />
+            <marker date="1445276272603" expanded="false" signature="8471:8493" placeholder="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/dolibarr/htdocs/theme/eldy/style.css.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.33291924" vertical-offset="31845" max-vertical-offset="52411">
+          <caret line="1907" column="33" selection-start-line="1907" selection-start-column="19" selection-end-line="1907" selection-end-column="33" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/dolibarr/htdocs/conf/conf.php">
+    <entry file="file://$PROJECT_DIR$/dolibarr/htdocs/theme/eldy/design.css">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-7.8461537" vertical-offset="0" max-vertical-offset="799">
-          <caret line="17" column="40" selection-start-line="17" selection-start-column="24" selection-end-line="17" selection-end-column="40" />
+        <state vertical-scroll-proportion="0.0" vertical-offset="1270" max-vertical-offset="2210">
+          <caret line="108" column="110" selection-start-line="108" selection-start-column="110" selection-end-line="108" selection-end-column="110" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/dolibarr/htdocs/core/lib/security2.lib.php">
+    <entry file="file://$PROJECT_DIR$/dolibarr/scripts/js/table_manager.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-16.653847" vertical-offset="587" max-vertical-offset="7803">
-          <caret line="76" column="33" selection-start-line="76" selection-start-column="33" selection-end-line="76" selection-end-column="33" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/dolibarr/htdocs/core/login/functions_dolibarr.php">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.28781793" vertical-offset="193" max-vertical-offset="2431">
-          <caret line="40" column="26" selection-start-line="40" selection-start-column="26" selection-end-line="40" selection-end-column="26" />
-          <folding />
+        <state vertical-scroll-proportion="0.34241706" vertical-offset="1989" max-vertical-offset="5627">
+          <caret line="134" column="126" selection-start-line="134" selection-start-column="126" selection-end-line="134" selection-end-column="126" />
+          <folding>
+            <marker date="1445281972644" expanded="false" signature="7294:7305" placeholder="..." />
+          </folding>
         </state>
       </provider>
     </entry>

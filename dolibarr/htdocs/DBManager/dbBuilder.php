@@ -17,11 +17,11 @@ class dbBuilder{
     }
     function fBuildEditForm($title, $field, $theme, $tablename){
         $edit_form ="<tr>
-                        <td>".$title."</td>";
+                        <td>".$title['title']."</td>";
         $edit_form.="<td>";
-        echo '<pre>';
-        var_dump($title['title']);
-        echo '</pre>';
+//        echo '<pre>';
+//        var_dump($title['title']);
+//        echo '</pre>';
 //        die();
         if($field->type != 16){
             if(substr($field->name, 0,2) != 's_') {//Если поле из основной таблицы
@@ -39,7 +39,7 @@ class dbBuilder{
                 $sql="select rowid, ".$s_fieldname." from ".$s_table." where active = 1 order by ".$s_fieldname;
                 $result = $this->mysqli->query($sql);
                 while($row = $result->fetch_assoc()){
-                    $edit_form .= '<option value="'.$row['rowid'].'">'.$row[$s_fieldname].'</option>'."\r\n";
+                    $edit_form .= '<option id="'.$row['rowid'].'" class = "edit_'.$s_table.'_'.$s_fieldname.'" value="'.$row['rowid'].'">'.$row[$s_fieldname].'</option>'."\r\n";
                 }
                 $edit_form .= '</select>';
             }
@@ -145,8 +145,14 @@ class dbBuilder{
                             $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '"><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_off.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');"> </td>';
                         }
                     }
-                    else
-                        $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '">' . $value . '</td>';
+                    else {
+                        if(substr($fields[$num_col]->name,0,2)!='s_') {
+                            $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '">' . $value . '</td>';
+                        }else{
+                            $table .= '<td class = "combobox" id="' . $row['rowid'] . $fields[$num_col]->name . '">' . $value . '</td>';
+//                            $table .= '<td class = "combobox" id="' . $row['rowid'] . $fields[$num_col]->name . '">' . $value . '<img class= "combobox_btn" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/downarrow.png"></td>';
+                        }
+                    }
 
 
 

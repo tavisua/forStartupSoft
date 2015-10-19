@@ -105,3 +105,21 @@ a.vsmenu:link, a.vsmenu:visited, a.vsmenu:hover, a.vsmenu:active {
     font-weight: bold;
     text-align: left;
 }
+.combobox{
+    background: #ffc000 -moz-linear-gradient(center top , #ffc000 90%, rgb(240, 240, 240) 90%) repeat scroll 13px 0;
+    border-color: rgb(255, 255, 255);
+}
+/*.combobox{*/
+    /*background: #ffc000 -moz-linear-gradient(center bottom , #ffc000 90%, rgb(240, 240, 240) 100%) repeat scroll 0 0;*/
+    /*padding: 1px 2px 1px 7px!important;*/
+    /*vertical-align: middle;*/
+    /*border-radius: 3px;*/
+    /*border-style: solid;*/
+    /*border-width: 1px*/
+    /*border-color: rgb(255, 255, 255);*/
+/*}*/
+.combobox_btn{
+    float: right;
+    padding: 5px;
+    border-radius: 5px;
+}

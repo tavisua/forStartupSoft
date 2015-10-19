@@ -124,10 +124,25 @@ function add_item(){
     var sRow='';
     for(var i = 0; i<td_list.length; i++){
         var td = td_list[i];
-        if(td.getElementsByTagName('input').length > 0) {
-            var elems = td.getElementsByTagName('input');
-            var fieldname = elems[0].id.substr(5);
-            sRow +='<td id="'+document.getElementById('edit_rowid').value+fieldname+'">'+elems[0].value.trim()+'</td>'
+        if(td.getElementsByTagName('select').length > 0){
+            var elems = td.getElementsByTagName('select');
+            for(var el_index = 0; el_index<elems.length; el_index++) {
+                if(elems[el_index].type != 'hidden') {
+                    var fieldname = elems[el_index].id.substr(5);
+                    var optionlist = elems[el_index].getElementsByTagName('option');
+                    for(var index = 0; index<optionlist.length; index++){
+                        if(optionlist[index].value == elems[el_index].value) {
+                            sRow += '<td id="' + document.getElementById('edit_rowid').value + fieldname + '" class="combobox">' + optionlist[index].innerHTML.trim() + '</td>'
+                            break;
+                        }
+                    }
+                    //var text = $('option#'+elems[el_index].value).html();
+                    //console.log(text);
+
+                }
+
+                //return;
+            }
         }else if(td.getElementsByTagName('textarea').length > 0){
             var elems = td.getElementsByTagName('textarea');
             var fieldname = elems[0].id.substr(5);
@@ -138,6 +153,16 @@ function add_item(){
             var html = td.innerHTML.replace(/change_switch\(0/gi, "change_switch("+document.getElementById('edit_rowid').value);
             html = html.replace(/img id="edit_active"/gi, "img id='img"+document.getElementById('edit_rowid').value+fieldname+"'")
             sRow +='<td id="'+document.getElementById('edit_rowid').value+fieldname+'">'+html+'</td>';
+        }else if(td.getElementsByTagName('input').length > 0) {
+            var elems = td.getElementsByTagName('input');
+            for(var el_index = 0; el_index<elems.length; el_index++) {
+                if(elems[el_index].type != 'hidden') {
+                    var fieldname = elems[el_index].id.substr(5);
+                    sRow += '<td id="' + document.getElementById('edit_rowid').value + fieldname + '">' + elems[el_index].value.trim() + '</td>'
+                }
+                //console.log(elems[i].type);
+                //return;
+            }
         }
     }
 
@@ -197,16 +222,25 @@ function edit_item(rowid){
 
             if(edit_field == null&&fieldname.substr(0,2) == 's_'){
                 bSelectedField = true;
-                console.log(fieldname.substr(2));
-                edit_field = document.getElementById('edit_'+fieldname.substr(2));
+                var select_field = $('select#edit_'+fieldname.substr(2))
+                var listoptions = $('option.edit_'+fieldname.substr(2));
+                for(var i=0; i<listoptions.length; i++){
+                    if(source_field.innerHTML == listoptions[i].innerHTML){
+                        $('select#edit_'+fieldname.substr(2)+"  :contains('"+listoptions[i].innerHTML+"')").attr("selected", "selected");
+                    }
+
+                }
+                //var selectlist =$('select#edit_'+fieldname.substr(2));
             }
             var img = source_field.getElementsByTagName('img');
             if(img.length > 0){
                 //console.log(edit_field.id);
                 edit_field.src = img[0].src;
             }else {
-                console.log(edit_field.id+' '+edit_field.tagName);
-                edit_field.value = source_field.innerHTML;
+                if(edit_field != null) {
+                    console.log(edit_field.id + ' ' + edit_field.tagName);
+                    edit_field.value = source_field.innerHTML;
+                }
             }
         }
     }
