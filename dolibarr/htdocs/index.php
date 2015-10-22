@@ -64,7 +64,7 @@ if (GETPOST('addbox'))	// Add box (when submit is done from a form when ajax dis
  */
 
 // Title
-$title=$langs->trans("HomeArea").' - Dolibarr '.DOL_VERSION;
+$title=$langs->trans("HomeArea").' - TiT '.DOL_VERSION;
 if (! empty($conf->global->MAIN_APPLICATION_TITLE)) $title=$langs->trans("HomeArea").' - '.$conf->global->MAIN_APPLICATION_TITLE;
 
 llxHeader('',$title);

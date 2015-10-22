@@ -71,6 +71,7 @@ function save_item(tablename){
         if(select_field.length>0) {
             var detail_id = 'detail_' + select_field[0].id.substr(5);
             var detail_field = document.getElementById(detail_id);
+            //console.log(select_field[0].value + ' 111 ' + detail_field.value);
             if(fields != '') {
                 fields = fields + ',' + detail_field.value;
                 values = values + ','+select_field[0].value;
@@ -78,7 +79,6 @@ function save_item(tablename){
                 fields = detail_field.value;
                 values = select_field[0].value;
             }
-            //console.log(select_field[0].value + ' 111 ' + detail_field.value);
         }
         if(sID == 0 && alrady_exist(fields, values)) {
             alert('Такая запись уже существует');
@@ -120,10 +120,11 @@ function add_item(){
     var table = document.getElementById('reference');
     table = document.getElementById('edit_table');
     var td_list = table.getElementsByTagName('td');
-    //document.getElementById('edit_rowid').value = 111;
+    var th = title.getElementsByTagName('th');
     var sRow='';
     for(var i = 0; i<td_list.length; i++){
         var td = td_list[i];
+
         if(td.getElementsByTagName('select').length > 0){
             var elems = td.getElementsByTagName('select');
             for(var el_index = 0; el_index<elems.length; el_index++) {
@@ -132,7 +133,10 @@ function add_item(){
                     var optionlist = elems[el_index].getElementsByTagName('option');
                     for(var index = 0; index<optionlist.length; index++){
                         if(optionlist[index].value == elems[el_index].value) {
-                            sRow += '<td id="' + document.getElementById('edit_rowid').value + fieldname + '" class="combobox">' + optionlist[index].innerHTML.trim() + '</td>'
+                            var selectHTML = elems[el_index].outerHTML;
+                            selectHTML = selectHTML.replace('edit_'+fieldname, 'select'+document.getElementById('edit_rowid').value+fieldname);
+
+                            sRow += '<td  id="' + document.getElementById('edit_rowid').value + fieldname + '" >' + selectHTML + '</td>';
                             break;
                         }
                     }
@@ -158,7 +162,7 @@ function add_item(){
             for(var el_index = 0; el_index<elems.length; el_index++) {
                 if(elems[el_index].type != 'hidden') {
                     var fieldname = elems[el_index].id.substr(5);
-                    sRow += '<td id="' + document.getElementById('edit_rowid').value + fieldname + '">' + elems[el_index].value.trim() + '</td>'
+                    sRow += '<td  id="' + document.getElementById('edit_rowid').value + fieldname + '">' + elems[el_index].value.trim() + '</td>'
                 }
                 //console.log(elems[i].type);
                 //return;
@@ -211,26 +215,25 @@ function edit_item(rowid){
         edit_id.value = rowid;
     }
     var sID=rowid.toString();
-    var tr = document.getElementById(sID);
+
+    var tr = document.getElementById('tr'+sID);
+    //var tr = $('tr#'+sID);
     var elements = tr.getElementsByTagName('td');
+    //console.log(tr);
     for(var i=0; i<elements.length; i++){
         if(elements[i].id.substr(0, sID.length) == sID){
             var fieldname = elements[i].id.substr(sID.length);
             var bSelectedField = false;
             var source_field = document.getElementById(sID+fieldname);
             var edit_field = document.getElementById('edit_'+fieldname);
-
             if(edit_field == null&&fieldname.substr(0,2) == 's_'){
+                //alert(fieldname.substr(2));
                 bSelectedField = true;
                 var select_field = $('select#edit_'+fieldname.substr(2))
-                var listoptions = $('option.edit_'+fieldname.substr(2));
-                for(var i=0; i<listoptions.length; i++){
-                    if(source_field.innerHTML == listoptions[i].innerHTML){
-                        $('select#edit_'+fieldname.substr(2)+"  :contains('"+listoptions[i].innerHTML+"')").attr("selected", "selected");
-                    }
-
-                }
-                //var selectlist =$('select#edit_'+fieldname.substr(2));
+                var detail_id = 'detail_' + select_field[0].id.substr(5);
+                var detail_field = document.getElementById(detail_id);
+                console.log("select#edit_"+fieldname.substr(2));
+                $("select#edit_"+fieldname.substr(2)+"  [value="+$('select#select'+rowid+detail_field.value).val()+"]").attr("selected", "selected");
             }
             var img = source_field.getElementsByTagName('img');
             if(img.length > 0){
@@ -245,6 +248,15 @@ function edit_item(rowid){
         }
     }
     location.href = '#editor';
+}
+function change_select(rowid, tablename, col_name){
+    console.log('select#select'+rowid+col_name);
+    var value = $('select#select'+rowid+col_name+' option:selected').val();
+    if(rowid != 0) {
+        var link = 'http://'+location.hostname+'/dolibarr/htdocs/DBManager/dbManager.php?rowid='+rowid+'&edit=1&tablename='+tablename+'&col_name='+col_name+'&value='+value;
+        console.log(link);
+        update_data(link);
+    }
 }
 function change_switch(rowid, tablename, col_name, theme){
     var x;
@@ -264,17 +276,20 @@ function change_switch(rowid, tablename, col_name, theme){
         x.src =  x.src.substr(0, end+4)+'/switch_on.png';
         check = true;
     }
-    if(rowid != 0)
-        update_data(rowid, tablename, col_name, check);
+    if(rowid != 0) {
+        var link = 'http://'+location.hostname+'/dolibarr/htdocs/DBManager/dbManager.php?rowid='+rowid+'&edit=1&tablename='+tablename+'&col_name='+col_name+'&value='+check;
+        console.log(link);
+        update_data(link);
+    }
 }
 function strpos( haystack, needle, offset){ // Find position of first occurrence of a string
     var i = haystack.indexOf( needle, offset ); // returns -1
     return i >= 0 ? i : false;
 }
-function update_data(rowid, tablename, col_name, check){
+function update_data(link){
     var id_usr = document.getElementById('user_id').value;
     $.ajax({
-        url: 'http://'+location.hostname+'/dolibarr/htdocs/DBManager/dbManager.php?rowid='+rowid+'&edit=1&tablename='+tablename+'&col_name='+col_name+'&value='+check+'&id_usr='+id_usr,
+        url: link+'&id_usr='+id_usr,
         cache: false,
         success: function (html) {
             console.log(html);
@@ -318,7 +333,24 @@ function save_data(link){
                         }
                     }
                 }
+                if(tdlist[i].getElementsByTagName('select').length>0){
+                    //console.log($('select#edit_regions_name').val());
+                    var selectList = tdlist[i].getElementsByTagName('select');
+                    var select = selectList[0];
+                    var fieldname = select.id.substring(7);
+                    var select_field = $('select#edit_'+select.id.substring(7))
+                    var detail_id = 'detail_' + select_field[0].id.substr(5);
+                    var detail_field = document.getElementById(detail_id);
+                    console.log(select.id.substring(7));
+                    select.onchange = function(){
+                        change_select(rowid, tablename, detail_field.value);
+                    }
+                    //console.log(select.id.substring(7));
+                    select.id = 'select'+rowid+detail_field.value;
+                    $("select#select"+rowid+select.id.substring(7)+"  [value="+$('select#edit_'+tdlist[i].id.substr(html.length)+'').val()+"]").attr("selected", "selected");
+                }
             }
+            
             document.getElementById('edit_rowid').value=html;
         }
     });

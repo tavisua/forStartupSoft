@@ -9,6 +9,7 @@
 class dbBuilder{
     
     public $mysqli;
+    public $selectlist;
     public function __construct()
     {
         include 'db.php';
@@ -20,7 +21,7 @@ class dbBuilder{
                         <td>".$title['title']."</td>";
         $edit_form.="<td>";
 //        echo '<pre>';
-//        var_dump($title['title']);
+//        var_dump($field);
 //        echo '</pre>';
 //        die();
         if($field->type != 16){
@@ -35,13 +36,14 @@ class dbBuilder{
                 $edit_form .= "\r\n";
                 if(isset($title['detailfield']))
                     $edit_form .= '<input id="detail_'.$s_table.'_'.$s_fieldname.'" type="hidden" value="'.$title['detailfield'].'">'."\r\n";
-                $edit_form .= '<select id="edit_'.$s_table.'_'.$s_fieldname.'" name="'.$s_table.'" class="edit_text" size="1">'."\r\n";
+                $this->selectlist = '<select class = "combobox" id="edit_'.$s_table.'_'.$s_fieldname.'" name="'.$s_table.'" size="1">'."\r\n";
                 $sql="select rowid, ".$s_fieldname." from ".$s_table." where active = 1 order by ".$s_fieldname;
                 $result = $this->mysqli->query($sql);
                 while($row = $result->fetch_assoc()){
-                    $edit_form .= '<option id="'.$row['rowid'].'" class = "edit_'.$s_table.'_'.$s_fieldname.'" value="'.$row['rowid'].'">'.$row[$s_fieldname].'</option>'."\r\n";
+                    $this->selectlist .= '<option id="option'.$row['rowid'].'" class="edit_'.$s_table.'_'.$s_fieldname.'" value="'.$row['rowid'].'">'.$row[$s_fieldname].'</option>'."\r\n";
                 }
-                $edit_form .= '</select>';
+                $this->selectlist .= '</select>';
+                $edit_form .= $this->selectlist;
             }
         }else{
             $field_name = "'".$field->name."'";
@@ -54,7 +56,7 @@ class dbBuilder{
     public function fShowTable($title = array(), $sql, $tablename, $theme){
         global $user, $conf, $langs, $db;
 //        echo '<pre>';
-//        var_dump($title);
+//        var_dump($sql);
 //        echo '</pre>';
 //        die();
         $result = $this->mysqli->query($sql);
@@ -71,8 +73,6 @@ class dbBuilder{
             $table .= $column['align']<>''?('align="'.$column['align'].'"'):(' ');//выравнивание
             $table .= $column['class']<>''?('class="'.$column['class'].'"'):(' ');//класс
             $table .= '>'.$column['title'].'</th>';
-
-
         }
 
 //        echo '<pre>';
@@ -123,7 +123,7 @@ class dbBuilder{
         while($row = $result->fetch_assoc()) {
             $count++;
             $class = fmod($count,2)==1?("impair"):("pair");
-            $table .= "<tr id = ".$row['rowid']." class='".$class."'>\r\n";
+            $table .= "<tr id = tr".$row['rowid']." class='".$class."'>\r\n";
 //            $table .= "<tr id = $count class=".fmod($count,2)==1?('impair'):('pair').">\r\n";
             $id = $row['rowid'];
 //            $table .= '<td >'.$class.'</td>';
@@ -149,8 +149,20 @@ class dbBuilder{
                         if(substr($fields[$num_col]->name,0,2)!='s_') {
                             $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '">' . $value . '</td>';
                         }else{
-                            $table .= '<td class = "combobox" id="' . $row['rowid'] . $fields[$num_col]->name . '">' . $value . '</td>';
-//                            $table .= '<td class = "combobox" id="' . $row['rowid'] . $fields[$num_col]->name . '">' . $value . '<img class= "combobox_btn" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/downarrow.png"></td>';
+                            $selectlist = substr($this->selectlist, 0, strpos($this->selectlist, $value)-1).' selected = "selected" '.substr($this->selectlist, strpos($this->selectlist, $value)-1);
+                            $selectlist = str_replace('class="edit_'.substr($fields[$num_col]->name, 2).'"', '',$selectlist);
+
+                            if(isset($title[$num_col-1]["detailfield"])){
+                                $selectlist = str_replace('id="edit_'.substr($fields[$num_col]->name, 2).'"', 'id="select'.$row['rowid'].$title[$num_col-1]["detailfield"].'"',$selectlist);
+                                $detailfield = "'".$title[$num_col-1]["detailfield"]."'";
+                                $selectlist = str_replace('<select', '<select onChange="change_select('. $row['rowid'] .', ' . $tablename . ', ' . $detailfield . ');"', $selectlist);
+                            }
+//                            echo '<pre>';
+//                            var_dump(htmlspecialchars($selectlist));
+//                            echo '</pre>';
+//                            die();
+                            $table .= '<td  id="' . $row['rowid'] . $fields[$num_col]->name . '">' . $selectlist . '</td>';
+//                            $table .= '<td class = "combobox" id="' . $row['rowid'] . $fields[$num_col]->name . '">' . $value . '</td>';
                         }
                     }
 

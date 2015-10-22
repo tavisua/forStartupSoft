@@ -31,6 +31,7 @@ $ColParam['detailfield']='country_id';
 $TableParam[]=$ColParam;
 
 unset($ColParam['sourcetable']);
+unset($ColParam['detailfield']);
 $ColParam['title']=$langs->trans('Active');
 $ColParam['width']='';
 $ColParam['align']='';

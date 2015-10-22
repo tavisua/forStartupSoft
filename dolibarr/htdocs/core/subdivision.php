@@ -16,10 +16,22 @@ llxHeader("",$SubDisivion,"");
 print_fiche_titre($SubDisivion);
 $TableParam = array();
 $ColParam['title']=$langs->trans('Name');
-$ColParam['width']='300';
+$ColParam['width']='350';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
+
+$Region = $langs->trans('Region');
+$ColParam['title']=$Region;
+$ColParam['width']='300';
+$ColParam['align']='';
+$ColParam['class']='';
+$ColParam['sourcetable']='regions';
+$ColParam['detailfield']='region_id';
+$TableParam[]=$ColParam;
+
+unset($ColParam['sourcetable']);
+unset($ColParam['detailfield']);
 
 $ColParam['title']=$langs->trans('Active');
 $ColParam['width']='';
@@ -27,7 +39,7 @@ $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 $tablename='subdivision';
-$sql='select rowid, name, active from '.$tablename.' order by name';
+$sql='select subdivision.rowid, subdivision.name, regions.name s_regions_name, subdivision.active  from '.$tablename.' left join `regions` on `'.$tablename.'`.`region_id` = `regions`.rowid order by subdivision.name';
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
 $db = new dbBuilder();
 $table = $db->fShowTable($TableParam, $sql, "'".$tablename."'", $conf->theme);

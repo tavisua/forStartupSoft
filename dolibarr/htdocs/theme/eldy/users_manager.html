@@ -33,17 +33,21 @@
                 </tbody>
             </table>
         </td>
-
-        <td id="find_users">
-            <form method="post" action="<?echo $action?>">
-                <input type="hidden" name="token" value="'<?echo $newtoken?>'">
-                <table class="noborder" width="100%">
-                    <tr class="liste_titre"><td colspan="3"><?echo $SearchUserTitle?></td></tr>
-                    <tr '<?echo $bc_var?>'><td>
-                        <?echo $Ref?>:</td><td><input class="flat" type="text" name="search_user" size="18"></td><td rowspan="2"><input type="submit" value="<?echo $SerchBtnTitle?>" class="button"></td></tr>
-                    <!--<tr '.$bc[$var].'><td class="nowrap">'.$langs->trans("Other").':</td><td><input type="text" class="flat" name="sall" size="18"></td></tr>-->
-                </table><br>
-            </form>
-        </td>
+        <td>
+            <div class="list_menu">
+                <?echo $table?>
+            </div>
+            </td>
+        <!--<td id="find_users">-->
+            <!--<form method="post" action="<?echo $action?>">-->
+                <!--<input type="hidden" name="token" value="'<?echo $newtoken?>'">-->
+                <!--<table class="noborder" width="100%">-->
+                    <!--<tr class="liste_titre"><td colspan="3"><?echo $SearchUserTitle?></td></tr>-->
+                    <!--<tr '<?echo $bc_var?>'><td>-->
+                        <!--<?echo $Ref?>:</td><td><input class="flat" type="text" name="search_user" size="18"></td><td rowspan="2"><input type="submit" value="<?echo $SerchBtnTitle?>" class="button"></td></tr>-->
+                    <!--&lt;!&ndash;<tr '.$bc[$var].'><td class="nowrap">'.$langs->trans("Other").':</td><td><input type="text" class="flat" name="sall" size="18"></td></tr>&ndash;&gt;-->
+                <!--</table><br>-->
+            <!--</form>-->
+        <!--</td>-->
     </tbody>
 </table>

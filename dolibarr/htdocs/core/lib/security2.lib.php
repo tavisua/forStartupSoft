@@ -152,7 +152,7 @@ function dol_loginfunction($langs,$conf,$mysoc)
 	if (! preg_match('/mainmenu=/',$php_self)) $php_self.=(preg_match('/\?/',$php_self)?'&':'?').'mainmenu=home';
 
 	// Title
-	$title='Dolibarr '.DOL_VERSION;
+	$title='TiT '.DOL_VERSION;
 	if (! empty($conf->global->MAIN_APPLICATION_TITLE)) $title=$conf->global->MAIN_APPLICATION_TITLE;
 
 	// Note: $conf->css looks like '/theme/eldy/style.css.php'
@@ -241,7 +241,8 @@ function dol_loginfunction($langs,$conf,$mysoc)
 	}
 	elseif (is_readable(DOL_DOCUMENT_ROOT.'/theme/dolibarr_logo.png'))
 	{
-		$urllogo=DOL_URL_ROOT.'/theme/dolibarr_logo.png';
+		$urllogo='http://t-i-t.com.ua/image/data/all/logo.png';
+//		$urllogo=DOL_URL_ROOT.'/theme/dolibarr_logo.png';
 
 	}
 

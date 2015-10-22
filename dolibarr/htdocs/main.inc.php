@@ -980,13 +980,15 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
         print '<meta name="author" content="Dolibarr Development Team">'."\n";
         $favicon=dol_buildpath('/theme/'.$conf->theme.'/img/favicon.ico',1);
         if (! empty($conf->global->MAIN_FAVICON_URL)) $favicon=$conf->global->MAIN_FAVICON_URL;
-        print '<link rel="shortcut icon" type="image/x-icon" href="'.$favicon.'"/>'."\n";
+//        print '<link rel="shortcut icon" type="image/x-icon" href="'.$favicon.'"/>'."\n";
+        print '<link rel="shortcut icon" type="image/x-icon" href="/dolibarr/htdocs/theme/eldy/img/tit.ico"/>'."\n";
+//        die($favicon);
         if (empty($conf->global->MAIN_OPTIMIZEFORTEXTBROWSER)) print '<link rel="top" title="'.$langs->trans("Home").'" href="'.(DOL_URL_ROOT?DOL_URL_ROOT:'/').'">'."\n";
         if (empty($conf->global->MAIN_OPTIMIZEFORTEXTBROWSER)) print '<link rel="copyright" title="GNU General Public License" href="http://www.gnu.org/copyleft/gpl.html#SEC1">'."\n";
         if (empty($conf->global->MAIN_OPTIMIZEFORTEXTBROWSER)) print '<link rel="author" title="Dolibarr Development Team" href="http://www.dolibarr.org">'."\n";
 
         // Displays title
-        $appli='Dolibarr';
+        $appli='TiT';
         if (!empty($conf->global->MAIN_APPLICATION_TITLE)) $appli=$conf->global->MAIN_APPLICATION_TITLE;
 
         if ($title) print '<title>'.dol_htmlentities($appli.' - '.$title).'</title>';
@@ -1649,15 +1651,15 @@ function left_menu($menu_array_before, $helppagename='', $moresearchform='', $me
         print '<div id="blockvmenuhelp" class="blockvmenuhelp">'."\n";
 
         //Dolibarr version
-        $doliurl='http://www.dolibarr.org';
+        $doliurl='http://uspex2015.com.ua';
 		//local communities
-		if (preg_match('/fr/i',$langs->defaultlang)) $doliurl='http://www.dolibarr.fr';
-		if (preg_match('/es/i',$langs->defaultlang)) $doliurl='http://www.dolibarr.es';
-		if (preg_match('/de/i',$langs->defaultlang)) $doliurl='http://www.dolibarr.de';
-		if (preg_match('/it/i',$langs->defaultlang)) $doliurl='http://www.dolibarr.it';
-		if (preg_match('/gr/i',$langs->defaultlang)) $doliurl='http://www.dolibarr.gr';
+//		if (preg_match('/fr/i',$langs->defaultlang)) $doliurl='http://www.dolibarr.fr';
+//		if (preg_match('/es/i',$langs->defaultlang)) $doliurl='http://www.dolibarr.es';
+//		if (preg_match('/de/i',$langs->defaultlang)) $doliurl='http://www.dolibarr.de';
+//		if (preg_match('/it/i',$langs->defaultlang)) $doliurl='http://www.dolibarr.it';
+//		if (preg_match('/gr/i',$langs->defaultlang)) $doliurl='http://www.dolibarr.gr';
 
-	    $appli='Dolibarr';
+	    $appli='TiT';
 	    if (! empty($conf->global->MAIN_APPLICATION_TITLE))
 	    {
 	    	$appli=$conf->global->MAIN_APPLICATION_TITLE; $doliurl='';

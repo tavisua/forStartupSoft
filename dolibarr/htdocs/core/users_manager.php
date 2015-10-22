@@ -31,7 +31,49 @@ $UserGroup = $langs->trans('Groups');
 $NewUserGroup = $langs->trans('NewGroup');
 $NewUser = $langs->trans('NewUser');
 $MenuUsersAndGroups = $langs->trans('MenuUsersAndGroups');
+
+
+$table = 'test11';
 print_fiche_titre($MenuUsersAndGroups);
+
+$TableParam = array();
+$ColParam['title']=$langs->trans('Login');
+$ColParam['width']='150';
+$ColParam['align']='';
+$ColParam['class']='';
+$TableParam[]=$ColParam;
+
+$ColParam['title']=$langs->trans('LastName');
+$ColParam['width']='150';
+$ColParam['align']='';
+$ColParam['class']='';
+$TableParam[]=$ColParam;
+
+$ColParam['title']=$langs->trans('FirstName');
+$ColParam['width']='150';
+$ColParam['align']='';
+$ColParam['class']='';
+$TableParam[]=$ColParam;
+
+$ColParam['title']=$langs->trans('SubDisivion');
+$ColParam['width']='150';
+$ColParam['align']='';
+$ColParam['class']='';
+$ColParam['sourcetable']='subdivision';
+$ColParam['detailfield']='subdiv_id';
+$TableParam[]=$ColParam;
+
+unset($ColParam['sourcetable']);
+unset($ColParam['detailfield']);
+$ColParam['title']=$langs->trans('Active');
+$ColParam['width']='';
+$ColParam['align']='';
+$ColParam['class']='';
+$TableParam[]=$ColParam;
+
+$tablename='users';
+
+
 ob_start();
 include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/eldy/users_manager.html');
 echo ob_get_clean();
