@@ -1,53 +1,66 @@
  <!--Search User-->
-<a href="/dolibarr/htdocs/core/tools.php?mainmenu=tools"><?echo $Tools?></a>  /  <a href="/dolibarr/htdocs/core/users_manager.php"><?echo $MenuUsersAndGroups?></a>
-<table>
-    <tbody>
-        <td id="users_action">
-            <table  class="noborder" width="100%">
-                <tbody>
-                    <tr class="liste_titre">
-                        <td>
-                        <?echo $Action?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class = "group_menu">
-                            <?echo $Users?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            &nbsp;&nbsp;<a class="vsmenu" href="/dolibarr/htdocs/user/card.php?leftmenu=users&action=create&idmenu=5617&mainmenu=tools"><?echo $NewUser?></a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class = "group_menu">
-                            <?echo $UserGroup?>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            &nbsp;&nbsp;<a class="vsmenu" href="/dolibarr/htdocs/user/group/card.php?leftmenu=users&action=create&idmenu=5619&mainmenu=tools"><?echo $NewUserGroup?></a>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </td>
-        <td>
-            <div class="list_menu">
-                <?echo $table?>
-            </div>
-            </td>
-        <!--<td id="find_users">-->
-            <!--<form method="post" action="<?echo $action?>">-->
-                <!--<input type="hidden" name="token" value="'<?echo $newtoken?>'">-->
-                <!--<table class="noborder" width="100%">-->
-                    <!--<tr class="liste_titre"><td colspan="3"><?echo $SearchUserTitle?></td></tr>-->
-                    <!--<tr '<?echo $bc_var?>'><td>-->
-                        <!--<?echo $Ref?>:</td><td><input class="flat" type="text" name="search_user" size="18"></td><td rowspan="2"><input type="submit" value="<?echo $SerchBtnTitle?>" class="button"></td></tr>-->
-                    <!--&lt;!&ndash;<tr '.$bc[$var].'><td class="nowrap">'.$langs->trans("Other").':</td><td><input type="text" class="flat" name="sall" size="18"></td></tr>&ndash;&gt;-->
-                <!--</table><br>-->
-            <!--</form>-->
-        <!--</td>-->
-    </tbody>
-</table>
+ <a href="/dolibarr/htdocs/core/tools.php?mainmenu=tools"><?echo $Tools?></a>  /  <a href="/dolibarr/htdocs/core/users_and_group/groups_manager.php?mainmenu=tools"><?echo $MenuUsersAndGroups?></a>/  <a href="/dolibarr/htdocs/core/users_and_group/groups_manager.php?mainmenu=tools"><?echo $Users?></a>
+ <div class="tabs" data-type="horizontal" data-role="controlgroup">
+     <div class="inline-block tabsElem tabsElemActive">
+         <a id="user" class="tab inline-block" href="/dolibarr/htdocs/core/users_and_group/groups_manager.php?mainmenu=tools" data-role="button"><?echo$UserGroup?></a>
+     </div>
+     <div class="inline-block tabsElem">
+         <a id="rights" class="tabactive tab inline-block" href="/dolibarr/htdocs/core/users_and_group/users_manager.php?mainmenu=tools" data-role="button"><?echo$Users?></a>
+     </div>
+ </div>
+ <div class="tabPage">
+     <div class="vmenu">
+         <div class="blockvmenupair">
+             <div class="menu_titre">
+                 <b class="vmenu"><?echo $Control?></b>
+             </div>
+             <div class="menu_top"></div>
+             <div class="menu_contenu">
+                 <a class="vsmenu" onclick="new_item();" ><?echo $NewItem?></a>
+                 <br>
+             </div>
+             <div class="menu_end"></div>
+         </div>
+     </div>
+     <table >
+         <tbody>
+         <td>
+             <!--<table  class="noborder" width="100%">-->
+             <!--<tbody>-->
+             <!--<tr class="liste_titre">-->
+             <!--<td>-->
+             <!--<?echo $Action?>-->
+             <!--</td>-->
+             <!--</tr>-->
+             <!--<tr>-->
+             <!--<td class = "group_menu">-->
+             <!--<?echo $Users?>-->
+             <!--</td>-->
+             <!--</tr>-->
+             <!--<tr>-->
+             <!--<td>-->
+             <!--&nbsp;&nbsp;<a class="vsmenu" href="/dolibarr/htdocs/user/card.php?leftmenu=users&action=create&idmenu=5617&mainmenu=tools"><?echo $NewUser?></a>-->
+             <!--</td>-->
+             <!--</tr>-->
+             <!--<tr>-->
+             <!--<td class = "group_menu">-->
+             <!--<?echo $UserGroup?>-->
+             <!--</td>-->
+             <!--</tr>-->
+             <!--<tr>-->
+             <!--<td>-->
+             <!--&nbsp;&nbsp;<a class="vsmenu" href="/dolibarr/htdocs/user/group/card.php?leftmenu=users&action=create&idmenu=5619&mainmenu=tools"><?echo $NewUserGroup?></a>-->
+             <!--</td>-->
+             <!--</tr>-->
+             <!--</tbody>-->
+             <!--</table>-->
+
+         </td>
+         <td>
+             <div class="list_menu">
+                 <?echo $table?>
+             </div>
+         </td>
+         </tbody>
+     </table>
+ </div>

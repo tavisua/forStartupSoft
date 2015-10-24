@@ -559,6 +559,7 @@ Module59000Name=Margins
 Module59000Desc=Module to manage margins
 Module60000Name=Commissions
 Module60000Desc=Module to manage commissions
+Permission=Дозвіл
 Permission11=Read customer invoices
 Permission12=Create/modify customer invoices
 Permission13=Unvalidate customer invoices

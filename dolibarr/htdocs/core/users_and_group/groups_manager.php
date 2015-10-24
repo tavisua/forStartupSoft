@@ -1,11 +1,11 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: tavis
- * Date: 07.10.2015
- * Time: 13:18
+ * User: -tavis-
+ * Date: 22.10.2015
+ * Time: 17:56
  */
-require '../main.inc.php';
+require '../../main.inc.php';
 
 
 
@@ -31,49 +31,37 @@ $UserGroup = $langs->trans('Groups');
 $NewUserGroup = $langs->trans('NewGroup');
 $NewUser = $langs->trans('NewUser');
 $MenuUsersAndGroups = $langs->trans('MenuUsersAndGroups');
+$NewItem = $langs->trans('NewItem');
+$Control = $langs->trans('Control');
+$theme = $conf->theme;
 
 
-$table = 'test11';
+$tablename = 'llx_usergroup';
 print_fiche_titre($MenuUsersAndGroups);
 
 $TableParam = array();
-$ColParam['title']=$langs->trans('Login');
+$ColParam['title']=$langs->trans('Name');
 $ColParam['width']='150';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
-$ColParam['title']=$langs->trans('LastName');
-$ColParam['width']='150';
+
+$ColParam['title']=$langs->trans('Description');
+$ColParam['width']='750';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
-$ColParam['title']=$langs->trans('FirstName');
-$ColParam['width']='150';
-$ColParam['align']='';
-$ColParam['class']='';
-$TableParam[]=$ColParam;
-
-$ColParam['title']=$langs->trans('SubDisivion');
-$ColParam['width']='150';
-$ColParam['align']='';
-$ColParam['class']='';
-$ColParam['sourcetable']='subdivision';
-$ColParam['detailfield']='subdiv_id';
-$TableParam[]=$ColParam;
-
-unset($ColParam['sourcetable']);
-unset($ColParam['detailfield']);
 $ColParam['title']=$langs->trans('Active');
 $ColParam['width']='';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
-$tablename='users';
-
-
-ob_start();
-include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/eldy/users_manager.html');
-echo ob_get_clean();
+$sql = 'select rowid, nom, note, active from `'.$tablename.'` order by nom';
+include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
+$db = new dbBuilder();
+$table = $db->fShowTable($TableParam, $sql, "'".$tablename."'", $conf->theme);
+include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/eldy/groups_manager.html');
+llxFooter();

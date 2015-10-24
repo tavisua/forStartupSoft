@@ -9,7 +9,7 @@
 class dbBuilder{
     
     public $mysqli;
-    public $selectlist;
+    public $selectlist=array();
     public function __construct()
     {
         include 'db.php';
@@ -31,19 +31,26 @@ class dbBuilder{
                 else
                     $edit_form .= '<textarea id = edit_' . $field->name . ' class="edit_text" name="description"></textarea>';
             }else{//Если поле из подключенной таблицы
-                $s_table = substr($field->name, 2, strpos($field->name, '_', 3)-2);
-                $s_fieldname = substr($field->name, strpos($field->name, '_', 3)+1);
+                if(substr($field->name, 0,6)=='s_llx_'){
+                    $stpos=7;
+                }else
+                    $stpos=3;
+                $s_table = substr($field->name, 2, strpos($field->name, '_', $stpos)-2);
+                $s_fieldname = substr($field->name, strpos($field->name, '_', $stpos)+1);
                 $edit_form .= "\r\n";
                 if(isset($title['detailfield']))
                     $edit_form .= '<input id="detail_'.$s_table.'_'.$s_fieldname.'" type="hidden" value="'.$title['detailfield'].'">'."\r\n";
-                $this->selectlist = '<select class = "combobox" id="edit_'.$s_table.'_'.$s_fieldname.'" name="'.$s_table.'" size="1">'."\r\n";
-                $sql="select rowid, ".$s_fieldname." from ".$s_table." where active = 1 order by ".$s_fieldname;
-                $result = $this->mysqli->query($sql);
-                while($row = $result->fetch_assoc()){
-                    $this->selectlist .= '<option id="option'.$row['rowid'].'" class="edit_'.$s_table.'_'.$s_fieldname.'" value="'.$row['rowid'].'">'.$row[$s_fieldname].'</option>'."\r\n";
+                if(!$this->selectlist['edit_'.$s_table.'_'.$s_fieldname]) {
+                    $this->selectlist['edit_'.$s_table.'_'.$s_fieldname] = '<select class = "combobox" id="edit_' . $s_table . '_' . $s_fieldname . '" name="' . $s_table . '" size="1">' . "\r\n";
+                    $sql = "select rowid, " . $s_fieldname . " from " . $s_table . " where active = 1 order by " . $s_fieldname;
+
+                    $result = $this->mysqli->query($sql);
+                    while ($row = $result->fetch_assoc()) {
+                        $this->selectlist['edit_'.$s_table.'_'.$s_fieldname] .= '<option id="option' . $row['rowid'] . '" class="edit_' . $s_table . '_' . $s_fieldname . '" value="' . $row['rowid'] . '">' . $row[$s_fieldname] . '</option>' . "\r\n";
+                    }
+                    $this->selectlist['edit_'.$s_table.'_'.$s_fieldname] .= '</select>';
+                    $edit_form .= $this->selectlist['edit_'.$s_table.'_'.$s_fieldname];
                 }
-                $this->selectlist .= '</select>';
-                $edit_form .= $this->selectlist;
             }
         }else{
             $field_name = "'".$field->name."'";
@@ -149,7 +156,15 @@ class dbBuilder{
                         if(substr($fields[$num_col]->name,0,2)!='s_') {
                             $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '">' . $value . '</td>';
                         }else{
-                            $selectlist = substr($this->selectlist, 0, strpos($this->selectlist, $value)-1).' selected = "selected" '.substr($this->selectlist, strpos($this->selectlist, $value)-1);
+
+                            if(substr($fields[$num_col]->name, 0,6)=='s_llx_'){
+                                $stpos=7;
+                            }else
+                                $stpos=3;
+                            $s_table = substr($fields[$num_col]->name, 2, strpos($fields[$num_col]->name, '_', $stpos)-2);
+                            $s_fieldname = substr($fields[$num_col]->name, strpos($fields[$num_col]->name, '_', $stpos)+1);
+
+                            $selectlist = substr($this->selectlist['edit_'.$s_table.'_'.$s_fieldname], 0, strpos($this->selectlist['edit_'.$s_table.'_'.$s_fieldname], $value)-1).' selected = "selected" '.substr($this->selectlist['edit_'.$s_table.'_'.$s_fieldname], strpos($this->selectlist['edit_'.$s_table.'_'.$s_fieldname], $value)-1);
                             $selectlist = str_replace('class="edit_'.substr($fields[$num_col]->name, 2).'"', '',$selectlist);
 
                             if(isset($title[$num_col-1]["detailfield"])){

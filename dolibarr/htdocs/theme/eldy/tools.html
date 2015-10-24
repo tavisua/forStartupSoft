@@ -3,7 +3,7 @@
         <td id = "menu_item" class="boxstats" onclick='location.href="/dolibarr/htdocs/core/menu_manager.php?mainmenu=tools"'>
            <img id="icon" src="/dolibarr/htdocs/theme/<?echo $theme?>/img/menu_edit.png"><div><?echo $MenuManager?></div>
         </td>
-        <td id = "menu_item" class="boxstats" onclick='location.href="/dolibarr/htdocs/core/users_manager.php?mainmenu=tools"'>
+        <td id = "menu_item" class="boxstats" onclick='location.href="/dolibarr/htdocs/core/users_and_group/groups_manager.php?mainmenu=tools"'>
             <img id="icon" src="/dolibarr/htdocs/theme/<?echo $theme?>/img/GroupsUsers.png"><div><?echo $MenuUsersAndGroups?></div>
         </td>
         <td id = "menu_item" class="boxstats" onclick='location.href="/dolibarr/htdocs/core/post_manager.php?mainmenu=tools"'>
@@ -53,9 +53,10 @@
         <td id = "menu_item" class="boxstats" >
             <?echo $Location?>
         </td>
-        <td id = "menu_item" class="boxstats" >
-            <img src="/dolibarr/htdocs/theme/<?echo $theme?>/img/currency.png">&nbsp;&nbsp;&nbsp;<?echo $Currency?>
+        <td id = "menu_item" class="boxstats" onclick='location.href="/dolibarr/htdocs/core/users_and_group/perms.php?mainmenu=tools"'>
+            <img id="icon" src="/dolibarr/htdocs/theme/<?echo $theme?>/img/permission.png"><div><?echo $Permission?></div>
         </td>
+
     </tr>
     <tr>
         <td id = "menu_item" class="boxstats">
@@ -69,6 +70,20 @@
         </td>
         <td id = "menu_item" class="boxstats" >
             <?echo $Unit?>
+        </td>
+    </tr>
+    <tr>
+        <td id = "menu_item" class="boxstats" >
+            <img src="/dolibarr/htdocs/theme/<?echo $theme?>/img/currency.png">&nbsp;&nbsp;&nbsp;<?echo $Currency?>
+        </td>
+        <td id = "menu_item" class="boxstats" >
+
+        </td>
+        <td id = "menu_item" class="boxstats" >
+
+        </td>
+        <td id = "menu_item" class="boxstats" >
+
         </td>
     </tr>
 </table>

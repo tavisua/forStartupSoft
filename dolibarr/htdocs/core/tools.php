@@ -61,6 +61,7 @@
     $Trademark = $langs->trans('Trademark');
     $KindOfTransport = $langs->trans('KindOfTransport');
     $GroupOfMaterials = $langs->trans('GroupOfMaterials');
+    $Permission = $langs->trans('Permissions');
     $Unit = $langs->trans('Unit');
     $theme = $conf->theme;
 
