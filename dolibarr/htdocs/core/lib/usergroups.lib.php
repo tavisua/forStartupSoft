@@ -132,35 +132,35 @@ function group_prepare_head($object)
 	global $langs, $conf, $user;
 
 	$canreadperms=true;
-	if (! empty($conf->global->MAIN_USE_ADVANCED_PERMS))
-	{
-		$canreadperms=($user->admin || $user->rights->user->group_advance->readperms);
-	}
+//	if (! empty($conf->global->MAIN_USE_ADVANCED_PERMS))
+//	{
+//		$canreadperms=($user->admin || $user->rights->user->group_advance->readperms);
+//	}
 
-	$h = 0;
-	$head = array();
+//	$h = 0;
+//	$head = array();
+//
+//    $head[$h][0] = DOL_URL_ROOT.'/user/group/card.php?id='.$object->id;
+//    $head[$h][1] = $langs->trans("GroupCard");
+//    $head[$h][2] = 'group';
+//    $h++;
 
-    $head[$h][0] = DOL_URL_ROOT.'/user/group/card.php?id='.$object->id;
-    $head[$h][1] = $langs->trans("GroupCard");
-    $head[$h][2] = 'group';
-    $h++;
-
-	if (! empty($conf->ldap->enabled) && ! empty($conf->global->LDAP_SYNCHRO_ACTIVE))
-	{
-		$langs->load("ldap");
-	    $head[$h][0] = DOL_URL_ROOT.'/user/group/ldap.php?id='.$object->id;
-	    $head[$h][1] = $langs->trans("LDAPCard");
-	    $head[$h][2] = 'ldap';
-	    $h++;
-	}
-
-	if ($canreadperms)
-	{
-		$head[$h][0] = DOL_URL_ROOT.'/user/group/perms.php?id='.$object->id;
-		$head[$h][1] = $langs->trans("GroupRights");
-		$head[$h][2] = 'rights';
-		$h++;
-	}
+//	if (! empty($conf->ldap->enabled) && ! empty($conf->global->LDAP_SYNCHRO_ACTIVE))
+//	{
+//		$langs->load("ldap");
+//	    $head[$h][0] = DOL_URL_ROOT.'/user/group/ldap.php?id='.$object->id;
+//	    $head[$h][1] = $langs->trans("LDAPCard");
+//	    $head[$h][2] = 'ldap';
+//	    $h++;
+//	}
+//
+//	if ($canreadperms)
+//	{
+//		$head[$h][0] = DOL_URL_ROOT.'/user/group/perms.php?id='.$object->id;
+//		$head[$h][1] = $langs->trans("GroupRights");
+//		$head[$h][2] = 'rights';
+//		$h++;
+//	}
 
     // Show more tabs from modules
     // Entries must be declared in modules descriptor with line

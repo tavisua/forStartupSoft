@@ -4,9 +4,38 @@
         edit_item();
     }elseif(isset($_REQUEST['save'])){
         save_item();
+    }elseif(isset($_REQUEST['set_permission'])){
+        set_permission();
+    }
+
+    function set_permission(){
+        include 'db.php';
+        if(isset($_REQUEST['group_id'])){
+            $fieldname = 'fk_usergroup';
+            $ID = $_REQUEST['group_id'];
+        }else{
+            $fieldname = 'fk_user';
+            $ID = $_REQUEST['user_id'];
+        }
+
+        $db = new dbMysqli();
+        $sql = 'select count(*) iCount from `'.$_REQUEST['table'].'` where 1 and `'.$fieldname.'`='.$ID.' and fk_id='.$_REQUEST['perm_index'];
+        $res = $db->mysqli->query($sql);
+        $check = $_REQUEST['check'] == 'true'?1:0;
+        if($res->fetch_assoc()['iCount'] == 0){
+            $sql = 'insert into `'.$_REQUEST['table'].'` (`'.$fieldname.'`, fk_id, active, id_usr, dtChange) values ('.$ID.', '.$_REQUEST['perm_index'].', '.$check.', '.$_REQUEST['id_usr'].', Now())';
+        }else{
+            $sql = 'update `'.$_REQUEST['table'].'` set active = '.$check.', id_usr='.$_REQUEST['id_usr'].', dtChange=Now() where  `'.$fieldname.'`='.$ID.' and fk_id= '.$_REQUEST['perm_index'];
+        }
+        $res = $db->mysqli->query($sql);
+        if($res)
+            echo 'success';
+        else
+            echo $sql;
     }
 
     function edit_item(){
+        global $user;
         include 'db.php';
         $db = new dbMysqli();
         if($_REQUEST['value']=='true' || $_REQUEST['value']=='false'){

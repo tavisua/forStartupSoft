@@ -108,12 +108,12 @@ function alrady_exist(fields, values){//Проверка на идентичны
         var value = valuelist[i].trim();
         $td = $table.find('td:contains("'+value+'")');
         if($td.length > 0) {
-            if($td[0].id.substr($td[0].id.length-fieldslist[i].length) == fieldslist[i]){
-                return true;
+            if($td[0].id.substr($td[0].id.length-fieldslist[i].length) != fieldslist[i]){
+                return false;
             }
         }
     }
-    return false;
+    return true;
 }
 function add_item(){
     var title = document.getElementById('reference_title');
@@ -208,6 +208,9 @@ function new_item(){
     }
     location.href = '#editor';
 }
+function goto_link(link){
+    location.href = link;
+}
 function edit_item(rowid){
     //console.log('***'+rowid);
     if(rowid != 0){
@@ -256,6 +259,28 @@ function change_select(rowid, tablename, col_name){
         var link = 'http://'+location.hostname+'/dolibarr/htdocs/DBManager/dbManager.php?rowid='+rowid+'&edit=1&tablename='+tablename+'&col_name='+col_name+'&value='+value;
         console.log(link);
         update_data(link);
+    }
+}
+function changeAllPerms(group_id, module, theme, table, check){
+    var switchlist = document.getElementsByClassName(module);
+    for(var i = 0; i<switchlist.length; i++) {
+        if (check) {
+            switchlist[i].src = '/dolibarr/htdocs/theme/'+theme+'/img/switch_on.png';
+        }else{
+            switchlist[i].src = '/dolibarr/htdocs/theme/'+theme+'/img/switch_off.png';
+            //console.log(switchlist[i].id);
+        }
+        var id_usr = document.getElementById('user_id').value;
+        var link = 'http://'+location.hostname+'/dolibarr/htdocs/DBManager/dbManager.php?set_permission='+module+'&group_id='+group_id+
+            '&perm_index='+switchlist[i].id.substr(3)+'&check='+check+'&id_usr='+id_usr+'&table='+table;
+        //console.log(link);
+        $.ajax({
+            url: link,
+            cache: false,
+            success: function (html) {
+                console.log(html);
+            }
+        });
     }
 }
 function change_switch(rowid, tablename, col_name, theme){

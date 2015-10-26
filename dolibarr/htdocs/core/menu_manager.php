@@ -29,25 +29,25 @@ print_fiche_titre($text);
 
 $TableParam = array();
 $ColParam['title']=$langs->trans('Name');
-$ColParam['width']='';
+$ColParam['width']='120';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
 $ColParam['title']='Отображение в браузере';
-$ColParam['width']='';
+$ColParam['width']='170';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
 $ColParam['title']='URL';
-$ColParam['width']='';
+$ColParam['width']='450';
 $ColParam['align']='left';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
 $ColParam['title']='Порядковый номер';
-$ColParam['width']='';
+$ColParam['width']='50';
 $ColParam['align']='left';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
@@ -65,7 +65,7 @@ $ColParam['class']='';
 $TableParam[]=$ColParam;
 
 $ColParam['title']='Действия';
-$ColParam['width']='250';
+$ColParam['width']='50';
 $ColParam['align']='left';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
@@ -83,3 +83,4 @@ ob_start();
 include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/admin/tools/template/menu_manager.html');
 
 echo ob_get_clean();
+llxFooter();

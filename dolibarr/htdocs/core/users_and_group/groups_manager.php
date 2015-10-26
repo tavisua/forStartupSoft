@@ -46,20 +46,30 @@ $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
-
 $ColParam['title']=$langs->trans('Description');
 $ColParam['width']='750';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
+$ColParam['title']=$langs->trans('Permissions');
+$ColParam['width']='150';
+$ColParam['align']='';
+$ColParam['class']='';
+$ColParam['action']='/dolibarr/htdocs/user/group/perms.php?mainmenu=tools';
+$ColParam['param']='id';
+$ColParam['icon_src']='/dolibarr/htdocs/theme/'.$conf->theme.'/img/permission_14.png';
+$TableParam[]=$ColParam;
+unset($ColParam['action']);
+unset($ColParam['param']);
+unset($ColParam['icon_src']);
 $ColParam['title']=$langs->trans('Active');
 $ColParam['width']='';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
-$sql = 'select rowid, nom, note, active from `'.$tablename.'` order by nom';
+$sql = 'select rowid, nom, note, " " as permission, active from `'.$tablename.'` order by nom';
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
 $db = new dbBuilder();
 $table = $db->fShowTable($TableParam, $sql, "'".$tablename."'", $conf->theme);

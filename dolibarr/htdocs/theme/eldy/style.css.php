@@ -1886,7 +1886,7 @@ table.liste td {
 
 tr.liste_titre, tr.liste_titre_sel, form.liste_titre, form.liste_titre_sel, table.dataTable.tr
 {
-	height: 26px !important;
+	height: auto !important;
 }
 div.liste_titre, tr.liste_titre, tr.liste_titre_sel, form.liste_titre, form.liste_titre_sel, table.dataTable thead tr
 {
@@ -1909,7 +1909,7 @@ tr.liste_titre th, th.liste_titre, tr.liste_titre td, td.liste_titre, form.liste
 {
     font-family: <?php print $fontlist ?>;
     font-weight: bold;
-    border-bottom: 1px solid #FDFFFF;
+    border-bottom: 1px solid #bbb;
 	text-shadow: 1px 0px 1px #<?php echo $colorshadowtitle; ?>;
     vertical-align: middle;
 }

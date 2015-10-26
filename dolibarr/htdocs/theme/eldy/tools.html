@@ -31,15 +31,16 @@
         <td id = "menu_item" class="boxstats" onclick='location.href="/dolibarr/htdocs/core/subdivision.php?mainmenu=tools"'>
             <img id="icon" src="/dolibarr/htdocs/theme/<?echo $theme?>/img/subdivision.png"><div><?echo $SubDisivion?></div>
         </td>
-        <td id = "menu_item" class="boxstats" onclick='location.href="/dolibarr/htdocs/core/region.php?mainmenu=tools"'>
-            <!--<img id="icon" src="/dolibarr/htdocs/theme/<?echo $theme?>/img/region.png">-->
+        <td id = "menu_item" class="boxstats" onclick='location.href="/dolibarr/htdocs/core/states.php?mainmenu=tools"'>
+            <img id="icon" src="/dolibarr/htdocs/theme/<?echo $theme?>/img/state.png">
             <div><?echo $Region?></div>
 
         </td>
-        <td id = "menu_item" class="boxstats" >
-            <?echo $Area?>
+        <td id = "menu_item" class="boxstats" onclick='location.href="/dolibarr/htdocs/core/regions.php?mainmenu=tools"'>
+            <img id="icon" src="/dolibarr/htdocs/theme/<?echo $theme?>/img/regions.png">
+            <div><?echo $Area?></div>
         </td>
-        <td id = "menu_item" class="boxstats" >
+        <td id = "menu_item" class="boxstats">
             <?echo $KindLocality?>
         </td>
     </tr>

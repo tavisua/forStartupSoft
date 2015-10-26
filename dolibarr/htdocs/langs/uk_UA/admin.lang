@@ -418,6 +418,7 @@ NoBarcodeNumberingTemplateDefined=No numbering barcode template enabled into bar
 NoRecordWithoutBarcodeDefined=No record with no barcode value defined.
 
 # Modules
+subdivision=Підрозділи
 Module0Name=Users & groups
 Module0Desc=Users and groups management
 Module1Name=Third parties
@@ -559,7 +560,11 @@ Module59000Name=Margins
 Module59000Desc=Module to manage margins
 Module60000Name=Commissions
 Module60000Desc=Module to manage commissions
-Permission=Дозвіл
+ByDefault=По замовчанню
+subdivision=Підрозділ
+new_edit=Редагування довідника
+NewEditAction=Всі операції, що пов'язані з таблицею
+Permission=Дозволена дія
 Permission11=Read customer invoices
 Permission12=Create/modify customer invoices
 Permission13=Unvalidate customer invoices

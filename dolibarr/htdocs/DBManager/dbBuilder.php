@@ -60,6 +60,66 @@ class dbBuilder{
                     </tr>";
         return $edit_form;
     }
+    public function fShowPermission($id_group, $title = array(), $sql=array(), $tables=array(), $theme){
+        global $user, $conf, $langs, $db;
+        $table ='<table width="100%" id="reference" class="noborder">'."\r\n";
+        $table .= '<tbody>'."\r\n";
+        $table .= '<tr id="reference_title" class="liste_titre">'."\r\n";
+        $count = 0;
+
+        foreach($title as $column){
+            $table .= '<th ';
+            $table .= $column['width']<>''?('width="'.$column['width'].'"'):(' ');//ширина
+            $table .= $column['align']<>''?('align="'.$column['align'].'"'):(' ');//выравнивание
+            $table .= $column['class']<>''?('class="'.$column['class'].'"'):(' ');//класс
+            $table .= '>'.$column['title'].'</th>';
+        }
+        $detail = $this->mysqli->query($sql['detail'][0]);
+        $permission = array();
+        while($row = $detail->fetch_object()){
+            array_push($permission, $row->rowid);
+        }
+
+        $master = $this->mysqli->query($sql['master'][0]);
+        $oldmod = '';
+        $blockclass = 'pair';
+        while($row = $master->fetch_object()){
+            if($oldmod != $row->module){
+                if($blockclass == 'pair')
+                    $blockclass = 'impair';
+                else
+                    $blockclass = 'pair';
+                $oldmod = $row->module;
+                $classmod = "'".$row->module."'";
+                $detailtable = "'".$tables['detail'][0]."'";
+                $table .='<tr class="'.$blockclass.'" id="'.$row->module.'">
+                 <td class="perms_module">'.$langs->trans($row->module).'</td>
+                 <td  class="nowrap">
+                 <button onclick="changeAllPerms('.$id_group.','.$classmod.', '.$theme.', '.$detailtable.', true)">'.$langs->trans("All").'</button>
+                 /
+                 <button onclick="changeAllPerms('.$id_group.','.$classmod.', '.$theme.', '.$detailtable.', false)">'.$langs->trans("None").'</button>
+                 </td>
+                 <td></td><td></td>
+                 </tr>';
+            }
+            $col_name = "'action'";
+            if(in_array($row->rowid, $permission)){
+                $switch = '<img id="img' . $row->rowid. '" class = "'.$row->module.'" src="' . DOL_URL_ROOT . '/theme/' . $conf->theme . '/img/switch_on.png" onclick="change_switch(' . $row->rowid . ', ' . $tables['detail'][0] . ', ' . $col_name . ');">';
+            }else{
+                $switch ='<img id="img' . $row->rowid. '" class = "'.$row->module.'" src="' . DOL_URL_ROOT . '/theme/' . $conf->theme . '/img/switch_off.png" onclick="change_switch(' . $row->rowid . ', ' . $tables['detail'][0] . ', ' . $col_name . ');">';
+            }
+            $table .= '<tr class="'.$blockclass.'" id="'.$row->module.'">
+                <td></td>
+                <td>'.$switch.'</td>
+                <td>'.$langs->trans($row->perms).'</td>
+                <td>'.$langs->trans($row->title).'</td>
+                </tr>';
+
+
+        }
+        
+        return $table;
+    }
     public function fShowTable($title = array(), $sql, $tablename, $theme){
         global $user, $conf, $langs, $db;
 //        echo '<pre>';
@@ -69,7 +129,7 @@ class dbBuilder{
         $result = $this->mysqli->query($sql);
 
         $fields = $result->fetch_fields();
-        $table ='<table width="100%" id="reference" class="noborder">'."\r\n";
+        $table ='<table id="reference" >'."\r\n";
         $table .= '<tbody>'."\r\n";
         $table .= '<tr id="reference_title" class="liste_titre">'."\r\n";
         $count = 0;
@@ -86,8 +146,8 @@ class dbBuilder{
 //        var_dump($title);
 //        echo '</pre>';
 //        die();
-        $table .= '<td class="nocellnopadd boxclose nowrap">
-        <img class="boxhandle hideonsmartphone" border="0" style="cursor:move;" title="" alt="" src="/dolibarr/htdocs/theme/eldy/img/grip_title.png">'."\r\n";
+        $table .= '<td width="20px">
+        <img class="boxhandle hideonsmartphone" border="0" style="cursor:move;" title="" alt="" src="/dolibarr/htdocs/theme/'.$theme.'/img/grip_title.png">'."\r\n";
         $table .= '<input id="boxlabelentry18" type="hidden" value="">
         </td>'."\r\n";
         $table .= '</tr>'."\r\n";
@@ -110,10 +170,10 @@ class dbBuilder{
             for($i = 0; $i<=$result->field_count;$i++){
                 if($fields[$i]->name != 'rowid') {
                     if ($result->field_count != $i) {
-                        $table .= '<td id="0"></td>';
+                        $table .= '<td id="0" >&nbsp;</td>';
                         $edit_form .= $this->fBuildEditForm($title[$num_col], $fields[$i], $theme, $tablename);
                     } else
-                        $table .= '<td id="0" style="width: 70px"></td>';
+                        $table .= '<td id="0" style="width: 20px"></td>';
                     $num_col++;
                 }
             }
@@ -140,21 +200,28 @@ class dbBuilder{
 //            die();
             $num_col = 0;
             foreach($row as $cell=>$value){
-
+//                echo'<pre>';
+//                var_dump();
+//                echo'</pre>';
                 $col_name = "'".$fields[$num_col]->name."'";
                 if($cell != 'rowid') {
                     if(!$create_edit_form)//Формирую форму для редактирования
                         $edit_form.=$this->fBuildEditForm($title[$num_col-1], $fields[$num_col], $theme, $tablename);
                     if($fields[$num_col]->type == 16){
                         if($value == '1') {
-                            $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '"><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');"> </td>';
+                            $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '" width="'.$title[$num_col-1]['width'].'px"><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');"> </td>';
                         }else{
-                            $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '"><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_off.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');"> </td>';
+                            $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '" width="'.$title[$num_col-1]['width'].'px"><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_off.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');"> </td>';
                         }
-                    }
-                    else {
+                    }elseif(!empty($title[$num_col-1]['action'])){
+                        $link = "'".$title[$num_col-1]["action"].'&'.$title[$num_col-1]["param"].'='.$row['rowid']."'";
+                        $table .= '<td width="auto" id="' . $row['rowid'] . $fields[$num_col]->name . '">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' .$title[$num_col-1]["icon_src"] . '" onclick="goto_link('.$link.');"> </td>';
+//                        echo'<pre>';
+//                        var_dump($title[$num_col-1]["action"]);
+//                        echo'</pre>';
+                    }else {
                         if(substr($fields[$num_col]->name,0,2)!='s_') {
-                            $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '">' . $value . '</td>';
+                            $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '" width="'.($title[$num_col-1]['width']-20).'px">' .trim($langs->trans($value)) . '</td>';
                         }else{
 
                             if(substr($fields[$num_col]->name, 0,6)=='s_llx_'){
@@ -176,7 +243,7 @@ class dbBuilder{
 //                            var_dump(htmlspecialchars($selectlist));
 //                            echo '</pre>';
 //                            die();
-                            $table .= '<td  id="' . $row['rowid'] . $fields[$num_col]->name . '">' . $selectlist . '</td>';
+                            $table .= '<td  id="' . $row['rowid'] . $fields[$num_col]->name . '" width="'.$title[$num_col-1]['width'].'px">' . $selectlist . '</td>';
 //                            $table .= '<td class = "combobox" id="' . $row['rowid'] . $fields[$num_col]->name . '">' . $value . '</td>';
                         }
                     }
