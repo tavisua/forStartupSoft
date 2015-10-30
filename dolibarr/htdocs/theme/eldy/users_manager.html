@@ -26,3 +26,21 @@
          </div>
      </div>
  </div>
+ <script type="text/javascript">
+     $(document).ready(function(){
+         var tbody = document.getElementById('reference_body');
+         var trList = tbody.getElementsByTagName('tr');
+         for(var index = 0; index<trList.length; index++){
+             var tdList = trList[index].getElementsByTagName('td');
+             for(var tdIndex = 0; tdIndex<tdList.length; tdIndex++){
+                 if(tdList[tdIndex].id.substr(tdList[tdIndex].id.length-'login'.length) == 'login') {
+//                     http://uspex2015.com/dolibarr/htdocs/user/card.php?id=13
+                     var id = tdList[tdIndex].id.substr(0, (tdList[tdIndex].id.length - 'login'.length));
+                     tdList[tdIndex].innerHTML = '<a href="/dolibarr/htdocs/user/card.php?id='+id+'"> <img border="0" title="Show user" alt="" src="/dolibarr/htdocs/theme/eldy/img/object_user.png">' + (tdList[tdIndex].innerHTML) + '</a>';
+//                     console.log(tdList[tdIndex].id.substr(0, (tdList[tdIndex].id.length - 'login'.length)));
+                     console.log(id);
+                 }
+             }
+         }
+     })
+ </script>

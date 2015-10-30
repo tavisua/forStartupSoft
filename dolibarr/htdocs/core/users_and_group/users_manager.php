@@ -45,7 +45,7 @@ print_fiche_titre($MenuUsersAndGroups);
 
 $TableParam = array();
 $ColParam['title']=$langs->trans('Login');
-$ColParam['width']='200';
+$ColParam['width']='250';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
