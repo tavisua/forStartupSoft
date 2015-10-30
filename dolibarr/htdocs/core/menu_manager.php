@@ -47,7 +47,7 @@ $ColParam['class']='';
 $TableParam[]=$ColParam;
 
 $ColParam['title']='Порядковый номер';
-$ColParam['width']='50';
+$ColParam['width']='105';
 $ColParam['align']='left';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
@@ -59,13 +59,13 @@ $ColParam['class']='';
 $TableParam[]=$ColParam;
 
 $ColParam['title']='Активное';
-$ColParam['width']='100';
+$ColParam['width']='80';
 $ColParam['align']='left';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
-$ColParam['title']='Действия';
-$ColParam['width']='50';
+$ColParam['title']='';
+$ColParam['width']='20';
 $ColParam['align']='left';
 $ColParam['class']='';
 $TableParam[]=$ColParam;

@@ -50,7 +50,7 @@
     $FormOfGovernment = $langs->trans('FormOfGovernment');
     $KindAddress = $langs->trans('KindAddress');
     $Country = $langs->trans('Country');
-    $SubDisivion = $langs->trans('SubDisivion');
+    $SubDivision = $langs->trans('SubDivision');
     $Region = $langs->trans('Region');
     $Area = $langs->trans('Area');
     $KindLocality = $langs->trans('KindOfLocality');

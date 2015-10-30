@@ -84,6 +84,10 @@ $langs->load("companies");
 $langs->load("ldap");
 
 $object = new User($db);
+//echo '<pre>';
+//var_dump($object);
+//echo '</pre>';
+//die();
 $extrafields = new ExtraFields($db);
 
 // fetch optionals attributes and labels
@@ -159,6 +163,11 @@ if ($action == 'confirm_delete' && $confirm == "yes" && $candisableuser)
 if ($action == 'add' && $canadduser)
 {
 	$error = 0;
+//    echo "<pre>";
+//    var_dump($_POST);
+//    echo "</pre>";
+//    die();
+
 
     if (! $_POST["lastname"])
     {
@@ -200,6 +209,9 @@ if ($action == 'add' && $canadduser)
         $object->note			= GETPOST("note");
         $object->ldap_sid		= GETPOST("ldap_sid");
         $object->fk_user        = GETPOST("fk_user")>0?GETPOST("fk_user"):0;
+        $object->post_id        = GETPOST("post_id")>0?GETPOST("post_id"):0;
+        $object->usergroup_id   = GETPOST("usergroup_id")>0?GETPOST("usergroup_id"):0;
+        $object->subdiv_id      = GETPOST("subdiv_id")>0?GETPOST("subdiv_id"):0;
 
         $object->thm            = GETPOST("thm")!=''?GETPOST("thm"):'';
         $object->tjm            = GETPOST("tjm")!=''?GETPOST("tjm"):'';
@@ -247,7 +259,8 @@ if ($action == 'add' && $canadduser)
 
             $db->commit();
 
-            header("Location: ".$_SERVER['PHP_SELF'].'?id='.$id);
+            header("Location: /dolibarr/htdocs/core/users_and_group/users_manager.php?mainmenu=tools&usr_id=".$id);
+//            header("Location: ".$_SERVER['PHP_SELF'].'?id='.$id);
             exit;
         }
         else
@@ -612,7 +625,8 @@ if (($action == 'create') || ($action == 'adduserldap'))
 
     print_fiche_titre($langs->trans("NewUser"));
 
-    print $langs->trans("CreateInternalUserDesc");
+//    print $langs->trans("CreateInternalUserDesc");
+
     print "<br>";
     print "<br>";
 
@@ -682,8 +696,8 @@ if (($action == 'create') || ($action == 'adduserldap'))
 
         // If user list is full, we show drop-down list
        	print "\n\n<!-- Form liste LDAP debut -->\n";
-
-       	print '<form name="add_user_ldap" action="'.$_SERVER["PHP_SELF"].'" method="post">';
+       	print '<form name="add_user_ldap" action="'.$_SERVER["PHP_SELF"].'?mainmenu=tools" method="post">';
+        print '<input type="hidden" name="mainmenu" value="tools">';
        	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
        	print '<table width="100%" class="border"><tr>';
        	print '<td width="160">';
@@ -707,6 +721,7 @@ if (($action == 'create') || ($action == 'adduserldap'))
     print dol_set_focus('#lastname');
 
     print '<form action="'.$_SERVER['PHP_SELF'].'" method="POST" name="createuser">';
+    print '<input type="hidden" name="mainmenu" value="tools">';
     print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
     print '<input type="hidden" name="action" value="add">';
     if (! empty($ldap_sid)) print '<input type="hidden" name="ldap_sid" value="'.$ldap_sid.'">';
@@ -747,7 +762,20 @@ if (($action == 'create') || ($action == 'adduserldap'))
     // Position/Job
     print '<tr><td valign="top">'.$langs->trans("PostOrFunction").'</td>';
     print '<td>';
-    print '<input size="30" type="text" name="job" value="'.GETPOST('job').'">';
+    print $form->select_control('', 'post_id', 0, 'llx_post', 'postname');
+//    print '<input size="30" type="text" name="job" value="'.GETPOST('job').'">';
+    print '</td></tr>';
+
+    //SubDivision
+    print '<tr><td valign="top">'.$langs->trans("SubDivision").'</td>';
+    print '<td colspan="2">'.$form->select_control('', 'subdiv_id', 0, 'subdivision', 'name').'</td>';
+    print '</tr>'."\n";
+    print '</td></tr>';
+
+    //Groups
+    print '<tr><td valign="top">'.$langs->trans("Groups").'</td>';
+    print '<td colspan="2">'.$form->select_control('', 'usergroup_id', 0, 'llx_usergroup', 'nom').'</td>';
+    print '</tr>'."\n";
     print '</td></tr>';
 
     // Login
@@ -844,10 +872,10 @@ if (($action == 'create') || ($action == 'adduserldap'))
     }
 
     // Type
-    print '<tr><td valign="top">'.$langs->trans("Type").'</td>';
-    print '<td>';
-    print $form->textwithpicto($langs->trans("Internal"),$langs->trans("InternalExternalDesc"));
-    print '</td></tr>';
+//    print '<tr><td valign="top">'.$langs->trans("Type").'</td>';
+//    print '<td>';
+//    print $form->textwithpicto($langs->trans("Internal"),$langs->trans("InternalExternalDesc"));
+//    print '</td></tr>';
 
     // Tel
     print '<tr><td valign="top">'.$langs->trans("PhonePro").'</td>';
@@ -892,8 +920,10 @@ if (($action == 'create') || ($action == 'adduserldap'))
     print '</td></tr>';
 
     // Skype
-    if (! empty($conf->skype->enabled))
-    {
+//    var_dump('test'.$conf->skype->enabled);
+//    die();
+//    if (! empty($conf->skype->enabled))
+//    {
         print '<tr><td valign="top">'.$langs->trans("Skype").'</td>';
         print '<td>';
         if (! empty($ldap_skype))
@@ -906,7 +936,7 @@ if (($action == 'create') || ($action == 'adduserldap'))
             print '<input size="40" type="text" name="skype" value="'.GETPOST('skype').'">';
         }
         print '</td></tr>';
-    }
+//    }
 
     // EMail
     print '<tr><td valign="top"'.(! empty($conf->global->USER_MAIL_REQUIRED)?' class="fieldrequired"':'').'>'.$langs->trans("EMail").'</td>';
@@ -923,12 +953,12 @@ if (($action == 'create') || ($action == 'adduserldap'))
     print '</td></tr>';
 
     // Signature
-    print '<tr><td valign="top">'.$langs->trans("Signature").'</td>';
-    print '<td>';
-    require_once DOL_DOCUMENT_ROOT.'/core/class/doleditor.class.php';
-    $doleditor=new DolEditor('signature',GETPOST('signature'),'',138,'dolibarr_mailings','In',true,true,empty($conf->global->FCKEDITOR_ENABLE_USERSIGN)?0:1,ROWS_4,90);
-    print $doleditor->Create(1);
-    print '</td></tr>';
+//    print '<tr><td valign="top">'.$langs->trans("Signature").'</td>';
+//    print '<td>';
+//    require_once DOL_DOCUMENT_ROOT.'/core/class/doleditor.class.php';
+//    $doleditor=new DolEditor('signature',GETPOST('signature'),'',138,'dolibarr_mailings','In',true,true,empty($conf->global->FCKEDITOR_ENABLE_USERSIGN)?0:1,ROWS_4,90);
+//    print $doleditor->Create(1);
+//    print '</td></tr>';
 
     // Multicompany
     if (! empty($conf->multicompany->enabled))
@@ -979,11 +1009,11 @@ if (($action == 'create') || ($action == 'adduserldap'))
 	}
 
     // Weeklyhours
-    print '<tr><td valign="top">'.$langs->trans("WeeklyHours").'</td>';
-    print '<td>';
-    print '<input size="8" type="text" name="weeklyhours" value="'.GETPOST('weeklyhours').'">';
-    print '</td>';
-    print "</tr>\n";
+//    print '<tr><td valign="top">'.$langs->trans("WeeklyHours").'</td>';
+//    print '<td>';
+//    print '<input size="8" type="text" name="weeklyhours" value="'.GETPOST('weeklyhours').'">';
+//    print '</td>';
+//    print "</tr>\n";
 
 	// Accountancy code
 	if ($conf->salaries->enabled)
@@ -995,13 +1025,13 @@ if (($action == 'create') || ($action == 'adduserldap'))
 	}
 
 	// User color
-	if (! empty($conf->agenda->enabled))
-	{
-		print '<tr><td valign="top">'.$langs->trans("ColorUser").'</td>';
-		print '<td>';
-		print $formother->selectColor(GETPOST('color')?GETPOST('color'):$object->color, 'color', 'usercolorconfig', 1, '', 'hideifnotset');
-		print '</td></tr>';
-	}
+//	if (! empty($conf->agenda->enabled))
+//	{
+//		print '<tr><td valign="top">'.$langs->trans("ColorUser").'</td>';
+//		print '<td>';
+//		print $formother->selectColor(GETPOST('color')?GETPOST('color'):$object->color, 'color', 'usercolorconfig', 1, '', 'hideifnotset');
+//		print '</td></tr>';
+//	}
 
     // Note
     print '<tr><td valign="top">';
@@ -1172,9 +1202,13 @@ else
 
             // Position/Job
             print '<tr><td valign="top">'.$langs->trans("PostOrFunction").'</td>';
-            print '<td colspan="2">'.$object->job.'</td>';
+            print '<td colspan="2">'.$form->select_control('', 'post_id', 0, 'llx_post', 'postname').'</td>';
             print '</tr>'."\n";
 
+            //Subdivision
+            print '<tr><td valign="top">'.$langs->trans("SubDivision").'</td>';
+            print '<td colspan="2">'.$form->select_control('', 'post_id', 0, 'subdivision', 'name').'</td>';
+            print '</tr>'."\n";
             // Login
             print '<tr><td valign="top">'.$langs->trans("Login").'</td>';
             if (! empty($object->ldap_sid) && $object->statut==0)
@@ -1325,11 +1359,11 @@ else
             }
 
 		    // Weeklyhours
-		    print '<tr><td valign="top">'.$langs->trans("WeeklyHours").'</td>';
-		    print '<td colspan="2">';
-			print price2num($object->weeklyhours);
-		    print '</td>';
-		    print "</tr>\n";
+//		    print '<tr><td valign="top">'.$langs->trans("WeeklyHours").'</td>';
+//		    print '<td colspan="2">';
+//			print price2num($object->weeklyhours);
+//		    print '</td>';
+//		    print "</tr>\n";
 
 			// Accountancy code
 			if ($conf->salaries->enabled)
@@ -1744,6 +1778,8 @@ else
             }
             print '</td></tr>';
 
+
+
             // Login
             print "<tr>".'<td valign="top"><span class="fieldrequired">'.$langs->trans("Login").'</span></td>';
             print '<td>';
@@ -1920,6 +1956,7 @@ else
             print '</td></tr>';
 
             // Skype
+
             if (! empty($conf->skype->enabled))
             {
                 print '<tr><td valign="top">'.$langs->trans("Skype").'</td>';
@@ -2026,11 +2063,11 @@ else
             }
 
 		    // Weeklyhours
-		    print '<tr><td valign="top">'.$langs->trans("WeeklyHours").'</td>';
-		    print '<td>';
-		    print '<input size="8" type="text" name="weeklyhours" value="'.price2num(GETPOST('weeklyhours')?GETPOST('weeklyhours'):$object->weeklyhours).'">';
-		    print '</td>';
-		    print "</tr>\n";
+//		    print '<tr><td valign="top">'.$langs->trans("WeeklyHours").'</td>';
+//		    print '<td>';
+//		    print '<input size="8" type="text" name="weeklyhours" value="'.price2num(GETPOST('weeklyhours')?GETPOST('weeklyhours'):$object->weeklyhours).'">';
+//		    print '</td>';
+//		    print "</tr>\n";
 
 		    // Accountancy code
 			if ($conf->salaries->enabled)
@@ -2051,14 +2088,14 @@ else
 				print "</tr>";
 			}
 
-			// User color
-			if (! empty($conf->agenda->enabled))
-            {
-				print '<tr><td valign="top">'.$langs->trans("ColorUser").'</td>';
-				print '<td>';
-				print $formother->selectColor(GETPOST('color')?GETPOST('color'):$object->color, 'color', 'usercolorconfig', 1, '', 'hideifnotset');
-				print '</td></tr>';
-			}
+//			// User color
+//			if (! empty($conf->agenda->enabled))
+//            {
+//				print '<tr><td valign="top">'.$langs->trans("ColorUser").'</td>';
+//				print '<td>';
+//				print $formother->selectColor(GETPOST('color')?GETPOST('color'):$object->color, 'color', 'usercolorconfig', 1, '', 'hideifnotset');
+//				print '</td></tr>';
+//			}
 
             // Status
             print '<tr><td valign="top">'.$langs->trans("Status").'</td>';

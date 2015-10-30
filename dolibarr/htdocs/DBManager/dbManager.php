@@ -50,12 +50,18 @@
             echo $sql;
     }
     function save_item(){
+
         include 'db.php';
         $fields = str_replace(',',"`,`", $_REQUEST['columns']);
         $fields = str_replace("'","`", $fields);
         $fields .= ", `id_usr`, `dtChange`";
-        $values = str_replace('@@','&', $_REQUEST['values']);
+        $values = str_replace('$$','&#', $_REQUEST['values']);
+//        var_dump(htmlspecialchars($values).'</br>');
+        $values = str_replace('@@','&', $values);
+//        var_dump($values);
+//        die();
         $values = str_replace(',',"','", $values);
+//        $values = str_replace('__',',', $_REQUEST['values']);
         $values .= ', '.$_REQUEST['id_usr'].', Now()';
 
         $db = new dbMysqli();
@@ -83,12 +89,14 @@
                 }
 //                echo($field.' '.$datatype)."</br>";
                 if($datatype == 253 || $datatype == 12||$datatype == 3) {
-                    $sql .= $field . '=' . trim($values_array[$num++]);
+                    $sql .= $field . '=' . htmlspecialchars((str_replace('__', ',', trim($values_array[$num++]))));
                 }else {
-                    $sql .= $field . '=' .  substr($values_array[$num], 1, strlen(trim($values_array[$num++])) - 2);
+                    $sql .= $field . '=' .  htmlspecialchars(substr($values_array[$num], 1, strlen(trim($values_array[$num++])) - 2));
                 }
             }
             $sql .= " where rowid=".$_REQUEST['rowid'];
+//            var_dump($sql);
+//            die();
         }
 
 //        echo '<pre>';

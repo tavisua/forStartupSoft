@@ -7,7 +7,7 @@
  */
 require '../main.inc.php';
 $Tools = $langs->trans("Tools");
-$SubDisivion = $langs->trans('SubDisivion');
+$SubDisivion = $langs->trans('SubDivision');
 $NewItem = $langs->trans('NewItem');
 $Control = $langs->trans('Control');
 $theme = $conf->theme;
@@ -26,8 +26,8 @@ $ColParam['title']=$Region;
 $ColParam['width']='150';
 $ColParam['align']='';
 $ColParam['class']='';
-$ColParam['sourcetable']='regions';
-$ColParam['detailfield']='region_id';
+$ColParam['sourcetable']='states';
+$ColParam['detailfield']='state_id';
 $TableParam[]=$ColParam;
 
 unset($ColParam['sourcetable']);

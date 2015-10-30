@@ -129,27 +129,33 @@ class dbBuilder{
         $result = $this->mysqli->query($sql);
 
         $fields = $result->fetch_fields();
-        $table ='<table id="reference" >'."\r\n";
-        $table .= '<tbody>'."\r\n";
-        $table .= '<tr id="reference_title" class="liste_titre">'."\r\n";
+        $table ='<table class="scrolling-table"" >'."\r\n";
+        $table .= '<thead >'."\r\n";
+        $table .= '<tr class="liste_titre">'."\r\n";
         $count = 0;
-
+        $widthtable = 0;
         foreach($title as $column){
-            $table .= '<th ';
-            $table .= $column['width']<>''?('width="'.$column['width'].'"'):(' ');//ширина
+            $table .= '<th class="liste_titre"';
+            $table .= $column['width']<>''?('width="'.$column['width'].'px"'):('auto');//ширина
             $table .= $column['align']<>''?('align="'.$column['align'].'"'):(' ');//выравнивание
             $table .= $column['class']<>''?('class="'.$column['class'].'"'):(' ');//класс
             $table .= '>'.$column['title'].'</th>';
+            $widthtable +=  $column['width'];
         }
-
+        $widthtable += 55;
+//        var_dump($widthtable);
+//        die();
+        $table .= '<th width="20px">
+        <img class="boxhandle hideonsmartphone" border="0" style="cursor:move;" title="" alt="" src="/dolibarr/htdocs/theme/'.$theme.'/img/grip_title.png">'."\r\n";
+        $table .= '<input id="boxlabelentry18" type="hidden" value="">
+        </th>'."\r\n";
+        $table .= '</thead>'."\r\n";
 //        echo '<pre>';
 //        var_dump($title);
 //        echo '</pre>';
 //        die();
-        $table .= '<td width="20px">
-        <img class="boxhandle hideonsmartphone" border="0" style="cursor:move;" title="" alt="" src="/dolibarr/htdocs/theme/'.$theme.'/img/grip_title.png">'."\r\n";
-        $table .= '<input id="boxlabelentry18" type="hidden" value="">
-        </td>'."\r\n";
+        $table .= '<tbody id="reference_body" style="width: '.$widthtable.'">'."\r\n";
+
         $table .= '</tr>'."\r\n";
 
 
@@ -191,6 +197,7 @@ class dbBuilder{
             $count++;
             $class = fmod($count,2)==1?("impair"):("pair");
             $table .= "<tr id = tr".$row['rowid']." class='".$class."'>\r\n";
+//            $table .= "<tr id = tr".$row['rowid']." class='".$class."'>\r\n";
 //            $table .= "<tr id = $count class=".fmod($count,2)==1?('impair'):('pair').">\r\n";
             $id = $row['rowid'];
 //            $table .= '<td >'.$class.'</td>';
@@ -203,25 +210,26 @@ class dbBuilder{
 //                echo'<pre>';
 //                var_dump();
 //                echo'</pre>';
+                $width = $title[$num_col-1]['width']!=''?($title[$num_col-1]['width'].'px'):('auto');
                 $col_name = "'".$fields[$num_col]->name."'";
                 if($cell != 'rowid') {
                     if(!$create_edit_form)//Формирую форму для редактирования
                         $edit_form.=$this->fBuildEditForm($title[$num_col-1], $fields[$num_col], $theme, $tablename);
                     if($fields[$num_col]->type == 16){
                         if($value == '1') {
-                            $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '" width="'.$title[$num_col-1]['width'].'px"><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');"> </td>';
+                            $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: '.$width.'" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');" > </td>';
                         }else{
-                            $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '" width="'.$title[$num_col-1]['width'].'px"><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_off.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');"> </td>';
+                            $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: '.$width.'" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_off.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');"> </td>';
                         }
                     }elseif(!empty($title[$num_col-1]['action'])){
                         $link = "'".$title[$num_col-1]["action"].'&'.$title[$num_col-1]["param"].'='.$row['rowid']."'";
-                        $table .= '<td width="auto" id="' . $row['rowid'] . $fields[$num_col]->name . '">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' .$title[$num_col-1]["icon_src"] . '" onclick="goto_link('.$link.');"> </td>';
+                        $table .= '<td style="width: '.$width.'" id="' . $row['rowid'] . $fields[$num_col]->name . '">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' .$title[$num_col-1]["icon_src"] . '" onclick="goto_link('.$link.');" > </td>';
 //                        echo'<pre>';
 //                        var_dump($title[$num_col-1]["action"]);
 //                        echo'</pre>';
                     }else {
                         if(substr($fields[$num_col]->name,0,2)!='s_') {
-                            $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '" width="'.($title[$num_col-1]['width']-20).'px">' .trim($langs->trans($value)) . '</td>';
+                            $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: '.$width.'" >' .htmlspecialchars_decode(trim($langs->trans($value))) . ' </td>';
                         }else{
 
                             if(substr($fields[$num_col]->name, 0,6)=='s_llx_'){
@@ -243,7 +251,7 @@ class dbBuilder{
 //                            var_dump(htmlspecialchars($selectlist));
 //                            echo '</pre>';
 //                            die();
-                            $table .= '<td  id="' . $row['rowid'] . $fields[$num_col]->name . '" width="'.$title[$num_col-1]['width'].'px">' . $selectlist . '</td>';
+                            $table .= '<td  id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: '.$width.'" >' . $selectlist . '</td>';
 //                            $table .= '<td class = "combobox" id="' . $row['rowid'] . $fields[$num_col]->name . '">' . $value . '</td>';
                         }
                     }

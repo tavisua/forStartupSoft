@@ -111,6 +111,12 @@ a.vsmenu:link, a.vsmenu:visited, a.vsmenu:hover, a.vsmenu:active {
     padding: 9px 8px 8px;
     width: auto;
 }
+#fk_user, #admin, #post_id,#usergroup_id{
+    background: #ffc000 none repeat scroll 0 0;
+}
+#fk_user, #post_id,#usergroup_id {
+    width: 80%;
+}
 .page_vmenu{
     width: 150px;
     /*height:1px; clear:both;*/
@@ -127,21 +133,57 @@ a.vsmenu:link, a.vsmenu:visited, a.vsmenu:hover, a.vsmenu:active {
 .perms_module{
     width: 250px;
 }
-#group_permission #reference_title{
-    display:block !important;
-    overflow:auto!important;
+/*.switch{*/
+    /*padding-right: 20px;*/
+/*}*/
+/*#group_permission #reference_title{*/
+    /*width: 110%;*/
+    /*display:block !important;*/
+    /*overflow:auto!important;*/
+/*}*/
+/*#reference_title th, #reference_title td{*/
+    /*border-bottom: none !important;*/
+/*}*/
+#reference tr{
+    display: table;
+    /*width: 1400px;*/
+    table-layout: fixed;
 }
-#reference_title th, #reference_title td{
-    border-bottom: none !important;
+
+.scrolling-table tbody {
+    display: block;
+    /*height: 150px;*/
+    /*width: 600px;*/
+    overflow: hidden;
+    overflow-y: auto;
 }
-#reference{
-    width: 100%;
+
+.scrolling-table tr {
+    display: table;
+    width: 400px;
+    table-layout: fixed;
 }
+/*використовувати при відладці зовнішнього вигляду таблиці*/
+/*.scrolling-table td, .scrolling-table th{*/
+    /*border-right: 1px solid #E90E8B;*/
+/*}*/
+
+/*#reference_body{*/
+    /*display: block;*/
+    /*width: 450px;*/
+    /*height: 450px;*/
+    /*overflow: hidden;*/
+    /*overflow-y: auto;*/
+/*}*/
+/*#reference{*/
+    /*width: 100%;*/
+/*}*/
 /*#reference_title{*/
     /*width:auto; position: fixed; height: auto; top: 60px;*/
 /*}*/
 .vmenu{
-    top: -450px;
+    /*top: -630px;*/
+    width: 120px;
     left: -10px;
 }
 /*table#reference{*/
@@ -151,8 +193,8 @@ a.vsmenu:link, a.vsmenu:visited, a.vsmenu:hover, a.vsmenu:active {
     padding-left: 200px;
     top: 50px;
     width: 100%;
-    height:450px!important;
-    overflow:auto!important;
+    /*height:450px!important;*/
+    /*overflow:auto!important;*/
 
 }
 #group_permission{

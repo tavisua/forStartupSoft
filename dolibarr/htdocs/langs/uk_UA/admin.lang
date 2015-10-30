@@ -229,7 +229,7 @@ AvailableOnlyIfJavascriptAndAjaxNotDisabled=Available only if JavaScript is not 
 Required=Required
 UsedOnlyWithTypeOption=Used by some agenda option only
 Security=Security
-Passwords=Passwords
+Passwords=Пароль
 DoNotStoreClearPassword=Do no store clear passwords in database but store only encrypted value (Activated recommended)
 MainDbPasswordFileConfEncrypted=Database password encrypted in conf.php (Activated recommended)
 InstrucToEncodePass=To have password encoded into the <b>conf.php</b> file, replace the line <br><b>$dolibarr_main_db_pass="..."</b><br>by<br><b>$dolibarr_main_db_pass="crypted:%s"</b>

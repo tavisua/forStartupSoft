@@ -1207,6 +1207,37 @@ class Form
      * 	@return	string					HTML select string
      *  @see select_dolgroups
      */
+    function select_control($selected='', $htmlname, $disabled=0, $tablename, $fieldname)
+    {
+        global $conf, $user, $langs;
+        $sql = $sql = 'select rowid, `' . $fieldname . '` as name, active from `' . $tablename . '` where active = 1 order by `' . $fieldname . '`';
+//        if('usergroup_id'==$htmlname)
+//        die($sql);
+        $resql = $this->db->query($sql);
+//        if ('subdivision' == $tablename) {
+//            var_dump($resql);
+//            die();
+//        }
+        $out = '';
+        if ($resql) {
+            $num = $this->db->num_rows($resql);
+            $i = 0;
+//            var_dump($num);
+//            die();
+            if ($num) {
+                $out .= '<select class="flat" id="' . $htmlname . '" name="' . $htmlname . '"' . ($disabled ? ' disabled="disabled"' : '') . '>';
+                $out .= '<option value="0">&nbsp;</option>';
+                while ($i < $num){
+                    $obj = $this->db->fetch_object($resql);
+                    $out .= '<option value="'.$obj->rowid.'">'.$obj->name.'</option>';
+                    $i++;
+                }
+                    $out .= '</select>';
+            }else
+                $out = $langs->trans('NotData');
+        }
+        return $out;
+    }
     function select_dolusers($selected='', $htmlname='userid', $show_empty=0, $exclude='', $disabled=0, $include='', $enableonly='', $force_entity=0, $maxlength=0, $showstatus=0, $morefilter='')
     {
         global $conf,$user,$langs;

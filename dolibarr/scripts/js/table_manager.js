@@ -23,10 +23,10 @@ function save_item(tablename){
                 value = value.replace(/\&/gi, "@@");
                 if(fields != '') {
                     fields = fields + ',' + fieldname;
-                    values = values + ','+value;
+                    values = values + ','+escapeHtml(value);
                 }else {
                     fields = fieldname;
-                    values = value;
+                    values = escapeHtml(value);
                 }
             }
         }
@@ -38,15 +38,16 @@ function save_item(tablename){
                 send_field.innerHTML = text_field[i].value;
             }
             var value = text_field[i].value;//.replace(/\./gi, "&&");
-            value = value.replace(/\&/gi, "@@");
+            //value = value.replace(/\&/gi, "@@");
             if(fields != '') {
                 fields = fields + ',' + fieldname;
-                values = values + ','+value;
+                values = values + ','+escapeHtml(value);
             }else {
                 fields = fieldname;
-                values = value;
+                values = escapeHtml(value);
             }
         }
+        console.log(values);
         var img_field = editor[0].getElementsByTagName('img');
         for(var i=0; i<img_field.length; i++){
             var fieldname = img_field[i].id.substring(5);
@@ -60,11 +61,11 @@ function save_item(tablename){
             else
                 value = '0';
             if(fields != '') {
-                fields = fields + ',' + fieldname;
-                values = values + ','+value;
+                fields += (',' + fieldname);
+                values += (',' + escapeHtml(value));
             }else {
                 fields = fieldname;
-                values = value;
+                values = escapeHtml(value);
             }
         }
         var select_field = editor[0].getElementsByTagName('select');
@@ -74,12 +75,14 @@ function save_item(tablename){
             //console.log(select_field[0].value + ' 111 ' + detail_field.value);
             if(fields != '') {
                 fields = fields + ',' + detail_field.value;
-                values = values + ','+select_field[0].value;
+                values = values + ','+escapeHtml(select_field[0].value);
             }else {
                 fields = detail_field.value;
-                values = select_field[0].value;
+                values = escapeHtml(select_field[0].value);
             }
         }
+        //console.log(values);
+        //return;
         if(sID == 0 && alrady_exist(fields, values)) {
             alert('Такая запись уже существует');
             location.href = '#close';
@@ -87,30 +90,103 @@ function save_item(tablename){
         }
 
         var link = "tablename="+tablename+"&columns='"+fields+"'&values='"+values+"'&id_usr="+id_usr+"&save=1";
+        //console.log(link);
+        //return;
         if(sID != 0)
             link += "&rowid="+sID;
         else {
             console.log('Добавление новой записи '+sID);
             add_item();
         }
-        console.log(link);
+
         save_data(link);
         location.href = '#close';
     }
 }
+function setHightTable(table){
+    var tbody = document.getElementById(table);
+    if(tbody!=null){
+        tbody.style.height = window.innerHeight*.78;
+        //console.log(document.getElementsByClassName('tabPage').length);
+        if(document.getElementsByClassName('tabPage').length>0) {
+            tbody.style.height = window.innerHeight - 270;
+            console.log(tbody.style.width);
+            tbody.style.width = Number(tbody.style.width.substr(0, tbody.style.width.length-2))+20;
+            console.log('.tabPage');
+        }
+    }
+    var menu = $('.vmenu')
+    if(menu != null) {
+        if(document.getElementsByClassName('tabPage').length>0) {
+            menu.offset({top: 155, left: 30});
+        }else
+            menu.offset({top: 110, left: 30});
+    }
+
+
+    //if(('.tabPage')){
+    //    console.log('tabPage');
+    //
+    //    //$('.page_vmenu').offset({top: 20, left: 30});
+    //}
+
+    var tabPage = $('.tabPage');
+}
+function escapeHtml(text) {
+    return text
+        .replace(/&/g, "@@")
+        .replace(/'/g, "$$$39;")
+        .replace(/,/g, "__");
+}
 function alrady_exist(fields, values){//Проверка на идентичные записи
+    return false;
     var $table = $('#reference');
     var fieldslist = fields.split(',');
     var valuelist = values.split(',');
+    //console.log(valuelist);
+
     var i = 0;
     var $td = null;
+    //console.log(valuelist.length);
+    var exits = false;
     for(i; i<valuelist.length; i++) {
         var value = valuelist[i].trim();
-        $td = $table.find('td:contains("'+value+'")');
-        if($td.length > 0) {
-            if($td[0].id.substr($td[0].id.length-fieldslist[i].length) != fieldslist[i]){
-                return false;
+        var tdlist = $table.find('td:contains("'+value+'")');
+        //console.log(value);
+        //return false;
+        for(var row=0; row<tdlist.length;row++) {
+            //return true;
+            var rowid = tdlist[row].id.substr(0, fieldslist[i].length-1)
+            var tr = document.getElementById('tr'+rowid);
+            var Tdlist = tr.getElementsByTagName('td');
+            //console.log(Tdlist.length);
+            for(var index = 0; index<Tdlist.length; index++){
+                var type = '';
+                var fieldname = Tdlist[index].id.substr(rowid.length);
+
+                if(Tdlist[index].getElementsByTagName('select').length>0){
+                    exits =  $('#'+Tdlist[index].getElementsByTagName('select')[0].id).val()!= $('#edit_'+fieldname.substr(2)).val();
+                    console.log('selector '+($('#'+Tdlist[index].getElementsByTagName('select')[0].id).val()!= $('#edit_'+fieldname.substr(2)).val()));
+                }else if(Tdlist[index].getElementsByTagName('img').length>0){
+
+                }else{
+                    exits =  console.log(Tdlist[index].innerHTML.trim()!=$('#edit_'+fieldname).val().trim());
+                    console.log('text '+(Tdlist[index].innerHTML.trim()!=$('#edit_'+fieldname).val().trim()));
+                }
+                if(exits) {
+                    console.log('Есть различия');
+                    return false;
+                }
             }
+
+            //for(var f_index=0;f_index<valuelist.length; f_index++)
+            //{
+            //    //console.log($('td#' + rowid + fieldslist[f_index]).html() != value);
+            //    if ($('td#' + rowid + fieldslist[f_index]).html() !=  valuelist[f_index].trim()) {
+            //        console.log('Разбежность td#' + rowid + fieldslist[f_index]+' '+$('td#' + rowid + fieldslist[f_index]).html()+' edit '+valuelist[f_index].trim());
+            //        //return false;
+            //    }
+            //}
         }
     }
     return true;
@@ -235,7 +311,7 @@ function edit_item(rowid){
                 var select_field = $('select#edit_'+fieldname.substr(2))
                 var detail_id = 'detail_' + select_field[0].id.substr(5);
                 var detail_field = document.getElementById(detail_id);
-                console.log("select#edit_"+fieldname.substr(2));
+                //console.log("select#edit_"+fieldname.substr(2));
                 $("select#edit_"+fieldname.substr(2)+"  [value="+$('select#select'+rowid+detail_field.value).val()+"]").attr("selected", "selected");
             }
             var img = source_field.getElementsByTagName('img');
@@ -244,7 +320,7 @@ function edit_item(rowid){
                 edit_field.src = img[0].src;
             }else {
                 if(edit_field != null) {
-                    console.log(edit_field.id + ' ' + edit_field.tagName);
+                    //console.log(edit_field.id + ' ' + edit_field.tagName);
                     edit_field.value = source_field.innerHTML;
                 }
             }
@@ -323,16 +399,18 @@ function update_data(link){
 
 };
 function save_data(link){
+    //console.log('http://'+location.hostname+'/dolibarr/htdocs/DBManager/dbManager.php?save=1&'+link);
+    //return;
     $.ajax({
         url: 'http://'+location.hostname+'/dolibarr/htdocs/DBManager/dbManager.php?save=1&'+link,
         cache: false,
         success: function (html) {
-            //console.log(html);
+            console.log('***'+html+'***');
             var rowid = html;
             var tr = document.getElementById("0");
             if(tr == null)
-                tr = document.getElementById(rowid);
-            tr.id=rowid;
+                tr = document.getElementById('tr'+rowid);
+            tr.id='tr'+rowid;
             var tdlist = tr.getElementsByTagName('td');
             for(var i=0; i<tdlist.length;i++){
                 if(tdlist[i].id.substr(0,1)=='0'){
@@ -362,17 +440,18 @@ function save_data(link){
                     //console.log($('select#edit_regions_name').val());
                     var selectList = tdlist[i].getElementsByTagName('select');
                     var select = selectList[0];
-                    var fieldname = select.id.substring(7);
+                    var fieldname = select.id.substring(6);
                     var select_field = $('select#edit_'+select.id.substring(7))
                     var detail_id = 'detail_' + select_field[0].id.substr(5);
+
                     var detail_field = document.getElementById(detail_id);
-                    console.log(select.id.substring(7));
+                    console.log(detail_field.id);
                     select.onchange = function(){
                         change_select(rowid, tablename, detail_field.value);
                     }
-                    //console.log(select.id.substring(7));
                     select.id = 'select'+rowid+detail_field.value;
-                    $("select#select"+rowid+select.id.substring(7)+"  [value="+$('select#edit_'+tdlist[i].id.substr(html.length)+'').val()+"]").attr("selected", "selected");
+                    //console.log("select#"+select.id+"  [value="+$('select#edit_'+tdlist[i].id.substr(html.length)+'').val()+"]");
+                    $("select#"+select.id+"  [value="+$('select#edit_'+tdlist[i].id.substr(html.length)+'').val()+"]").attr("selected", "selected");
                 }
             }
             

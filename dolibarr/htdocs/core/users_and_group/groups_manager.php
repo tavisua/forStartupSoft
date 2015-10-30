@@ -41,30 +41,31 @@ print_fiche_titre($MenuUsersAndGroups);
 
 $TableParam = array();
 $ColParam['title']=$langs->trans('Name');
-$ColParam['width']='150';
+$ColParam['width']='250';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
 $ColParam['title']=$langs->trans('Description');
-$ColParam['width']='750';
+$ColParam['width']='350';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
 $ColParam['title']=$langs->trans('Permissions');
-$ColParam['width']='150';
+$ColParam['width']='250';
 $ColParam['align']='';
 $ColParam['class']='';
 $ColParam['action']='/dolibarr/htdocs/user/group/perms.php?mainmenu=tools';
 $ColParam['param']='id';
 $ColParam['icon_src']='/dolibarr/htdocs/theme/'.$conf->theme.'/img/permission_14.png';
 $TableParam[]=$ColParam;
+
 unset($ColParam['action']);
 unset($ColParam['param']);
 unset($ColParam['icon_src']);
 $ColParam['title']=$langs->trans('Active');
-$ColParam['width']='';
+$ColParam['width']='70';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;

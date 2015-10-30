@@ -79,6 +79,9 @@ class User extends CommonObject
 
 	var $fk_member;
 	var $fk_user;
+    var $post_id;
+    var $subdiv_id;
+    var $usergroup_id;
 
 	var $clicktodial_url;
 	var $clicktodial_login;
@@ -844,8 +847,11 @@ class User extends CommonObject
 			}
 			else
 			{
-				$sql = "INSERT INTO ".MAIN_DB_PREFIX."user (datec,login,ldap_sid,entity)";
-				$sql.= " VALUES('".$this->db->idate($this->datec)."','".$this->db->escape($this->login)."','".$this->ldap_sid."',".$this->db->escape($this->entity).")";
+				$sql = "INSERT INTO ".MAIN_DB_PREFIX."user (datec,login,ldap_sid,entity,subdiv_id,skype,usergroup_id,post_id,active,id_usr,dtChange)";
+				$sql.= " VALUES('".$this->db->idate($this->datec)."','".$this->db->escape($this->login)."','".$this->ldap_sid."',".$this->db->escape($this->entity).",".
+                    $this->subdiv_id.",'".$this->skype."',".$this->usergroup_id.", ".$this->post_id.",1,".$user->id.",Now())";
+//                var_dump($sql);
+//                die();
 				$result=$this->db->query($sql);
 
 				dol_syslog(get_class($this)."::create", LOG_DEBUG);
@@ -854,12 +860,12 @@ class User extends CommonObject
 					$this->id = $this->db->last_insert_id(MAIN_DB_PREFIX."user");
 
 					// Set default rights
-					if ($this->set_default_rights() < 0)
-					{
-						$this->error='ErrorFailedToSetDefaultRightOfUser';
-						$this->db->rollback();
-						return -5;
-					}
+//					if ($this->set_default_rights() < 0)
+//					{
+//						$this->error='ErrorFailedToSetDefaultRightOfUser';
+//						$this->db->rollback();
+//						return -5;
+//					}
 
 					// Update minor fields
 					$result = $this->update($user,1,1);

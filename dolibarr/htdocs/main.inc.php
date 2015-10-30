@@ -1105,6 +1105,8 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
             }
         }
         print '<script src="http://code.jquery.com/jquery-1.8.3.js"></script>'."\n";
+
+
         // Output standard javascript links
         if (! defined('DISABLE_JQUERY') && ! $disablejs && ! empty($conf->use_javascript_ajax))
         {
@@ -1201,6 +1203,11 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
             {
             	$tmpplugin=empty($conf->global->MAIN_USE_JQUERY_MULTISELECT)?constant('REQUIRE_JQUERY_MULTISELECT'):$conf->global->MAIN_USE_JQUERY_MULTISELECT;
             	print '<script type="text/javascript" src="'.DOL_URL_ROOT.'/includes/jquery/plugins/'.$tmpplugin.'/'.$tmpplugin.'.js'.($ext?'?'.$ext:'').'" ></script>'."\n";
+            }
+            if($_REQUEST['mainmenu'] == 'tools'){
+                print '<script type="text/javascript"> $(document).ready(function(){
+                    setHightTable("reference_body");
+                })</script>'."\n";
             }
             // jQuery jMobile
             if (! empty($conf->global->MAIN_USE_JQUERY_JMOBILE) || defined('REQUIRE_JQUERY_JMOBILE') || (! empty($conf->dol_use_jmobile) && $conf->dol_use_jmobile > 0))

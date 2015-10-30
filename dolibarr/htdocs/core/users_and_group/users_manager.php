@@ -7,7 +7,8 @@
  */
 require '../../main.inc.php';
 
-
+//var_dump($_SERVER["PHP_SELF"]);
+//die();
 
 global $hookmanager, $menumanager;
 
@@ -44,7 +45,7 @@ print_fiche_titre($MenuUsersAndGroups);
 
 $TableParam = array();
 $ColParam['title']=$langs->trans('Login');
-$ColParam['width']='150';
+$ColParam['width']='200';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
@@ -61,26 +62,26 @@ $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
-$ColParam['title']=$langs->trans('LastConnexion');
-$ColParam['width']='250';
-$ColParam['align']='';
-$ColParam['class']='';
-$TableParam[]=$ColParam;
+//$ColParam['title']=$langs->trans('LastConnexion');
+//$ColParam['width']='70';
+//$ColParam['align']='';
+//$ColParam['class']='';
+//$TableParam[]=$ColParam;
 
 $ColParam['title']=$langs->trans('OfficePhone');
-$ColParam['width']='150';
+$ColParam['width']='100';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
 $ColParam['title']=$langs->trans('Skype');
-$ColParam['width']='150';
+$ColParam['width']='130';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
-$ColParam['title']=$langs->trans('SubDisivion');
-$ColParam['width']='250';
+$ColParam['title']=$langs->trans('SubDivision');
+$ColParam['width']='200';
 $ColParam['align']='';
 $ColParam['class']='';
 $ColParam['sourcetable']='subdivision';
@@ -98,17 +99,18 @@ $TableParam[]=$ColParam;
 unset($ColParam['sourcetable']);
 unset($ColParam['detailfield']);
 $ColParam['title']=$langs->trans('Active');
-$ColParam['width']='';
+$ColParam['width']='70';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
 $tablename='llx_user';
 
-$sql='select `'.$tablename.'`.rowid, `'.$tablename.'`.login, `'.$tablename.'`.lastname, `'.$tablename.'`.firstname, `'.$tablename.'`.datelastlogin,  `'.$tablename.'`.`office_phone`, `'.$tablename.'`.`skype`,
+$sql='select `'.$tablename.'`.rowid, `'.$tablename.'`.login, `'.$tablename.'`.lastname, `'.$tablename.'`.firstname,  `'.$tablename.'`.`office_phone`, `'.$tablename.'`.`skype`,
 `subdivision`.`name` as s_subdivision_name, `llx_usergroup`.`nom` as s_llx_usergroup_nom, `'.$tablename.'`.active
 from `'.$tablename.'` left join `subdivision` on `'.$tablename.'`.`subdiv_id`= `subdivision`.rowid
 left join `llx_usergroup` on `'.$tablename.'`.`usergroup_id`=`llx_usergroup`.rowid
+where `'.$tablename.'`.active=1
 order by login';
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
 $db = new dbBuilder();
@@ -117,3 +119,4 @@ $new_link = "http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/DBManager/dbMana
 ob_start();
 include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/eldy/users_manager.html');
 echo ob_get_clean();
+llxFooter();

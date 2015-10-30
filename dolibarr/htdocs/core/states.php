@@ -33,7 +33,7 @@ $TableParam[]=$ColParam;
 unset($ColParam['sourcetable']);
 unset($ColParam['detailfield']);
 $ColParam['title']=$langs->trans('Active');
-$ColParam['width']='30';
+$ColParam['width']='70';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
