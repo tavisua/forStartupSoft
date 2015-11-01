@@ -22,7 +22,7 @@ $ColParam['class']='';
 $TableParam[]=$ColParam;
 
 $ColParam['title']=$langs->trans('Active');
-$ColParam['width']='';
+$ColParam['width']='100';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
@@ -30,7 +30,10 @@ $TableParam[]=$ColParam;
 $sql='select rowid, name, active from responsibility order by name';
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
 $db = new dbBuilder();
-$table = $db->fShowTable($TableParam, $sql, "'responsibility'", $conf->theme);
+if(!isset($_REQUEST['sortfield']))
+    $table = $db->fShowTable($TableParam, $sql, "'".$tablename."'", $conf->theme);
+else
+    $table = $db->fShowTable($TableParam, $sql, "'".$tablename."'", $conf->theme, $_REQUEST['sortfield'], $_REQUEST['sortorder']);
 $new_link = "http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/DBManager/dbManager.php?new=1&tablename='responsibility'";
 ob_start();
 
