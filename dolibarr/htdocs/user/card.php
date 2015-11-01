@@ -1272,11 +1272,12 @@ else
             print '</td></tr>'."\n";
 
             // Type
-            print '<tr><td valign="top">'.$langs->trans("Type").'</td><td colspan="2">';
-            $type=$langs->trans("Internal");
-            if ($object->societe_id) $type=$langs->trans("External");
-            print $form->textwithpicto($type,$langs->trans("InternalExternalDesc"));
-            if ($object->ldap_sid) print ' ('.$langs->trans("DomainUser").')';
+            print '<tr><td valign="top">'.$langs->trans('SphereOfResponsibility').'</td><td colspan="2">';
+            print $form->select_control('', 'post_id', 0, 'llx_post', 'postname');
+//            $type=$langs->trans("Internal");
+//            if ($object->societe_id) $type=$langs->trans("External");
+//            print $form->textwithpicto($type,$langs->trans("InternalExternalDesc"));
+//            if ($object->ldap_sid) print ' ('.$langs->trans("DomainUser").')';
             print '</td></tr>'."\n";
 
             // Ldap sid

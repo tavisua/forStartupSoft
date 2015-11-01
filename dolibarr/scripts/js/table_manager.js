@@ -4,7 +4,7 @@
 function close_form(){
     location.href = '#close';
 }
-function save_item(tablename){
+function save_item(tablename, paramfield, sendtable){
     if(confirm('Зберегти данні?')){
         var sID = document.getElementById('edit_rowid').value;
         var id_usr = document.getElementById('user_id').value;
@@ -13,7 +13,7 @@ function save_item(tablename){
         var fields='', values ='';
 
         for(var i=0;i<input_field.length;i++){
-            if(input_field[i].type != 'hidden'){
+            if(input_field[i].type != 'hidden' && input_field[i].id.substr(0, 5) == 'edit_'){
                 var fieldname = input_field[i].id.substring(5);
                 if(sID != 0) {
                     var send_field = document.getElementById(sID + fieldname);
@@ -35,7 +35,11 @@ function save_item(tablename){
             var fieldname = text_field[i].id.substring(5);
             if(sID != 0) {
                 var send_field = document.getElementById(sID + fieldname);
-                send_field.innerHTML = text_field[i].value;
+                if(send_field.getElementsByTagName('a').length>0){
+                    send_field.innerHTML = '<a id = "'+send_field.getElementsByTagName('a')[0].id+'" href="'+send_field.getElementsByTagName('a')[0].href+'">' +
+                    '<img border="0" src="/dolibarr/htdocs/theme/eldy/img/object_user.png" alt="" title="Show user">'+text_field[i].value+'</a>';
+                }else
+                    send_field.innerHTML = text_field[i].value;
             }
             var value = text_field[i].value;//.replace(/\./gi, "&&");
             //value = value.replace(/\&/gi, "@@");
@@ -47,7 +51,7 @@ function save_item(tablename){
                 values = escapeHtml(value);
             }
         }
-        console.log(values);
+
         var img_field = editor[0].getElementsByTagName('img');
         for(var i=0; i<img_field.length; i++){
             var fieldname = img_field[i].id.substring(5);
@@ -90,8 +94,33 @@ function save_item(tablename){
         }
 
         var link = "tablename="+tablename+"&columns='"+fields+"'&values='"+values+"'&id_usr="+id_usr+"&save=1";
-        //console.log(link);
-        //return;
+
+        if(paramfield != ''){//Зберігаю додаткові параметри
+            //console.log($('#'+paramfield).find('input').length);
+            //return;
+
+            var fields='', values ='';
+            var input_field = $('#'+paramfield).find('input');
+            for(var i=0;i<input_field.length;i++){
+                if(input_field[i].className=='param') {
+                    console.log(input_field[i].value);
+                    var value = input_field[i].value;
+                    value = value.replace(/\&/gi, "@@");
+                    if (fields != '') {
+                        fields = fields + ',' + input_field[i].id;
+                        values = values + ',' + value;
+                    } else {
+                        fields = input_field[i].id;
+                        values = value;
+                    }
+                }
+            }
+            //paramfield, sendtable
+            link += "&param="+fields+"&pvalues="+values+"&paramtable="+sendtable+"&paramfield="+paramfield;
+            //console.log(link);
+            //return;
+        }
+
         if(sID != 0)
             link += "&rowid="+sID;
         else {
@@ -110,9 +139,9 @@ function setHightTable(table){
         //console.log(document.getElementsByClassName('tabPage').length);
         if(document.getElementsByClassName('tabPage').length>0) {
             tbody.style.height = window.innerHeight - 270;
-            console.log(tbody.style.width);
+            //console.log(tbody.style.width);
             tbody.style.width = Number(tbody.style.width.substr(0, tbody.style.width.length-2))+20;
-            console.log('.tabPage');
+            //console.log('.tabPage');
         }
     }
     var menu = $('.vmenu')
@@ -192,15 +221,17 @@ function alrady_exist(fields, values){//Проверка на идентичны
     return true;
 }
 function add_item(){
+
     var title = document.getElementById('reference_title');
-    var table = document.getElementById('reference');
-    table = document.getElementById('edit_table');
+    var table = document.getElementById('edit_table');
     var td_list = table.getElementsByTagName('td');
     var th = title.getElementsByTagName('th');
     var sRow='';
+    var colindex = 0;
     for(var i = 0; i<td_list.length; i++){
         var td = td_list[i];
-
+        //console.log(th[i]);
+        //console.log(td.getElementsByTagName('textarea').length);
         if(td.getElementsByTagName('select').length > 0){
             var elems = td.getElementsByTagName('select');
             for(var el_index = 0; el_index<elems.length; el_index++) {
@@ -212,7 +243,7 @@ function add_item(){
                             var selectHTML = elems[el_index].outerHTML;
                             selectHTML = selectHTML.replace('edit_'+fieldname, 'select'+document.getElementById('edit_rowid').value+fieldname);
 
-                            sRow += '<td  id="' + document.getElementById('edit_rowid').value + fieldname + '" >' + selectHTML + '</td>';
+                            sRow += '<td  id="' + document.getElementById('edit_rowid').value + fieldname + '" style="width: '+th[colindex++].width+'">' + selectHTML + '</td>';
                             break;
                         }
                     }
@@ -223,35 +254,36 @@ function add_item(){
 
                 //return;
             }
-        }else if(td.getElementsByTagName('textarea').length > 0){
+        }else if(td.getElementsByTagName('textarea').length > 0 || td.getElementsByTagName('a').length > 0){
             var elems = td.getElementsByTagName('textarea');
             var fieldname = elems[0].id.substr(5);
-            sRow +='<td id="'+document.getElementById('edit_rowid').value+fieldname+'">'+elems[0].value.trim()+'</td>'
+
+            sRow +='<td id="'+document.getElementById('edit_rowid').value+fieldname+'" style="width: '+th[colindex++].width+'">'+elems[0].value.trim()+'</td>'
         }else if(td.getElementsByTagName('img').length > 0){
             var img = td.getElementsByTagName('img');
             var fieldname = img[0].id.substr(5);
             var html = td.innerHTML.replace(/change_switch\(0/gi, "change_switch("+document.getElementById('edit_rowid').value);
             html = html.replace(/img id="edit_active"/gi, "img id='img"+document.getElementById('edit_rowid').value+fieldname+"'")
-            sRow +='<td id="'+document.getElementById('edit_rowid').value+fieldname+'">'+html+'</td>';
+            sRow +='<td id="'+document.getElementById('edit_rowid').value+fieldname+'" style="width: '+th[colindex++].width+'">'+html+'</td>';
         }else if(td.getElementsByTagName('input').length > 0) {
             var elems = td.getElementsByTagName('input');
             for(var el_index = 0; el_index<elems.length; el_index++) {
                 if(elems[el_index].type != 'hidden') {
                     var fieldname = elems[el_index].id.substr(5);
-                    sRow += '<td  id="' + document.getElementById('edit_rowid').value + fieldname + '">' + elems[el_index].value.trim() + '</td>'
+                    sRow += '<td  id="' + document.getElementById('edit_rowid').value + fieldname + '" style="width: '+th[colindex++].width+'">' + elems[el_index].value.trim() + '</td>'
                 }
                 //console.log(elems[i].type);
                 //return;
             }
         }
     }
-
+    //console.log(sRow);
     var img_src='http://'+location.hostname+'/dolibarr/htdocs/theme/eldy/img/edit.png';
 
     var edit_icon='<td style="width: 20px" align="left"><img src="'+img_src+'" title="Редактировать" style="vertical-align: middle" onclick="edit_item('+document.getElementById('edit_rowid').value+');"></td>';
     sRow +=edit_icon;
     var class_name;
-    table = document.getElementById('reference');
+    table = document.getElementById('reference_body');
     var tr = table.getElementsByTagName('tr');
     for(var i=0;i<tr.length;i++){
         if('impair' == tr[i].className || 'pair' == tr[i].className){
@@ -262,7 +294,9 @@ function add_item(){
             break;
         }
     }
-    title.insertAdjacentHTML('afterend', '<tr id="'+document.getElementById('edit_rowid').value+'" class="'+class_name+'">'+sRow+'</tr>')
+    //console.log(sRow);
+    var sendtable = document.getElementById('reference_body').getElementsByTagName('tr')[0];
+    sendtable.insertAdjacentHTML('beforebegin', '<tr id="'+document.getElementById('edit_rowid').value+'" class="'+class_name+'">'+sRow+'</tr>')
 }
 function new_item(){
     document.getElementById('edit_rowid').value=0;
@@ -305,6 +339,8 @@ function edit_item(rowid){
             var bSelectedField = false;
             var source_field = document.getElementById(sID+fieldname);
             var edit_field = document.getElementById('edit_'+fieldname);
+            //if(fieldname == 'login')
+
             if(edit_field == null&&fieldname.substr(0,2) == 's_'){
                 //alert(fieldname.substr(2));
                 bSelectedField = true;
@@ -316,11 +352,14 @@ function edit_item(rowid){
             }
             var img = source_field.getElementsByTagName('img');
             if(img.length > 0){
-                //console.log(edit_field.id);
-                edit_field.src = img[0].src;
+                if(source_field.getElementsByTagName('a').length>0){
+                    edit_field.value = $('#'+fieldname+'_'+sID).text();
+                }else {
+                    //console.log(edit_field.id);
+                    edit_field.src = img[0].src;
+                }
             }else {
                 if(edit_field != null) {
-                    //console.log(edit_field.id + ' ' + edit_field.tagName);
                     edit_field.value = source_field.innerHTML;
                 }
             }
@@ -399,8 +438,8 @@ function update_data(link){
 
 };
 function save_data(link){
-    //console.log('http://'+location.hostname+'/dolibarr/htdocs/DBManager/dbManager.php?save=1&'+link);
-    //return;
+    console.log('http://'+location.hostname+'/dolibarr/htdocs/DBManager/dbManager.php?save=1&'+link);
+    return;
     $.ajax({
         url: 'http://'+location.hostname+'/dolibarr/htdocs/DBManager/dbManager.php?save=1&'+link,
         cache: false,
@@ -440,14 +479,15 @@ function save_data(link){
                     //console.log($('select#edit_regions_name').val());
                     var selectList = tdlist[i].getElementsByTagName('select');
                     var select = selectList[0];
-                    var fieldname = select.id.substring(6);
-                    var select_field = $('select#edit_'+select.id.substring(7))
-                    var detail_id = 'detail_' + select_field[0].id.substr(5);
-
-                    var detail_field = document.getElementById(detail_id);
-                    console.log(detail_field.id);
+                    var detail_field = select.id.substring(6+rowid.length);
+                    //var select_field = $('select#edit_'+select.id.substring(6+rowid.length));
+                    console.log(detail_field);
+                    //var detail_id = 'detail_' + select_field[0].id.substr(5);
+                    //
+                    //var detail_field = document.getElementById(detail_id);
+                    //console.log(detail_field.id);
                     select.onchange = function(){
-                        change_select(rowid, tablename, detail_field.value);
+                        change_select(rowid, tablename, detail_field);
                     }
                     select.id = 'select'+rowid+detail_field.value;
                     //console.log("select#"+select.id+"  [value="+$('select#edit_'+tdlist[i].id.substr(html.length)+'').val()+"]");

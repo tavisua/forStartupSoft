@@ -36,9 +36,9 @@
                  if(tdList[tdIndex].id.substr(tdList[tdIndex].id.length-'login'.length) == 'login') {
 //                     http://uspex2015.com/dolibarr/htdocs/user/card.php?id=13
                      var id = tdList[tdIndex].id.substr(0, (tdList[tdIndex].id.length - 'login'.length));
-                     tdList[tdIndex].innerHTML = '<a href="/dolibarr/htdocs/user/card.php?id='+id+'"> <img border="0" title="Show user" alt="" src="/dolibarr/htdocs/theme/eldy/img/object_user.png">' + (tdList[tdIndex].innerHTML) + '</a>';
+                     tdList[tdIndex].innerHTML = '<a id = "login_'+id+'" href="/dolibarr/htdocs/user/card.php?id='+id+'"> <img border="0" title="Show user" alt="" src="/dolibarr/htdocs/theme/eldy/img/object_user.png">' + (tdList[tdIndex].innerHTML) + '</a>';
 //                     console.log(tdList[tdIndex].id.substr(0, (tdList[tdIndex].id.length - 'login'.length)));
-                     console.log(id);
+//                     console.log(id);
                  }
              }
          }

@@ -62,6 +62,7 @@
     $KindOfTransport = $langs->trans('KindOfTransport');
     $GroupOfMaterials = $langs->trans('GroupOfMaterials');
     $Permission = $langs->trans('Permissions');
+    $Classifycation = $langs->trans('Classifycation');
     $Unit = $langs->trans('Unit');
     $theme = $conf->theme;
 

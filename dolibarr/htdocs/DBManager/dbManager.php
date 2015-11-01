@@ -1,5 +1,6 @@
 <?php
-
+//    var_dump($_SERVER['PHP_SELF']);
+//    die();
     if(isset($_REQUEST['edit'])){
         edit_item();
     }elseif(isset($_REQUEST['save'])){
@@ -111,6 +112,29 @@
                 $res = $db->mysqli->query($sql);
                 $rowid = $res->fetch_assoc();
                 $_REQUEST['rowid']=$rowid['rowid'];
+            }
+            //Зберігаю додаткові параметри
+            if(isset($_REQUEST["paramtable"])){
+//                echo '<pre>';
+//                var_dump($_REQUEST);
+//                echo '</pre>';
+//                die();
+                $param_array = explode(',', $_REQUEST["param"]);
+                $values_array = explode(',', $_REQUEST["pvalues"]);
+                for($i=0;$i<count($param_array);$i++){
+                    $sql = 'select rowid from `'.$_REQUEST["paramtable"].'` where `'.$_REQUEST["tablename"].'_id`='.$_REQUEST['rowid'].' and `'.$_REQUEST["paramfield"].'` = '.$param_array[$i].' limit 1';
+                    $res = $db->mysqli->query($sql);
+                    if($res->num_rows == 0){
+                        $sql = 'insert into `'.$_REQUEST["paramtable"].'` (`'.$_REQUEST["tablename"].'_id`,`'.$_REQUEST["paramfield"].'`, `value`, id_usr, dtChange)
+                         values('.$_REQUEST['rowid'].', '.$param_array[$i].', '.$values_array[$i].', '.$_REQUEST["id_usr"].', Now())';
+                    }else{
+                        $sql = 'update `'.$_REQUEST["paramtable"].'` set value='.$values_array[$i].', id_usr='.$_REQUEST["id_usr"].', dtChange=Now()
+                            where `'.$_REQUEST["tablename"].'_id`='.$_REQUEST['rowid'].' and `'.$_REQUEST["paramfield"].'` = '.$param_array[$i];
+                    }
+                    $db->mysqli->query($sql);
+                }
+
+
             }
             echo $_REQUEST['rowid'];
         }else

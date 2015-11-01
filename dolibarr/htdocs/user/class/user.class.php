@@ -356,6 +356,8 @@ class User extends CommonObject
 			else if (! empty($perms)) $whereforadd.=" OR (module='$module' AND (perms='lire' OR perms='read') AND subperms IS NULL)";
 		}
 		else {
+
+
 			// On a pas demande un droit en particulier mais une liste de droits
 			// sur la base d'un nom de module de de perms
 			// Where pour la liste des droits a ajouter
@@ -385,6 +387,8 @@ class User extends CommonObject
 					$sql = "DELETE FROM ".MAIN_DB_PREFIX."user_rights WHERE fk_user = ".$this->id." AND fk_id=".$nid;
 					if (! $this->db->query($sql)) $err++;
 					$sql = "INSERT INTO ".MAIN_DB_PREFIX."user_rights (fk_user, fk_id) VALUES (".$this->id.", ".$nid.")";
+//                    var_dump($sql);
+//                    die();
 					if (! $this->db->query($sql)) $err++;
 
 					$i++;

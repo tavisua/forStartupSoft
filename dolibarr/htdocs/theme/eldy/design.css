@@ -181,6 +181,10 @@ a.vsmenu:link, a.vsmenu:visited, a.vsmenu:hover, a.vsmenu:active {
 /*#reference_title{*/
     /*width:auto; position: fixed; height: auto; top: 60px;*/
 /*}*/
+.param{
+    /*border: 1px solid #007700;*/
+    vertical-align: top;
+}
 .vmenu{
     /*top: -630px;*/
     width: 120px;
@@ -190,7 +194,7 @@ a.vsmenu:link, a.vsmenu:visited, a.vsmenu:hover, a.vsmenu:active {
     /*padding-top: 150px;*/
 /*}*/
 .reference{
-    padding-left: 180px;
+    padding-left: 190px;
     top: 50px;
     width: 100%;
     /*height:450px!important;*/

@@ -76,9 +76,13 @@ if ($action == 'addrights' && $caneditperms)
 {
     $edituser = new User($db);
 	$edituser->fetch($id);
+
     //$edituser->addrights($rights, $module, '', $entity); // TODO unused for the moment
     $edituser->addrights($rights, $module);
-
+//    echo '<pre>';
+//    var_dump($edituser);
+//    echo '</pre>';
+//    die();
 	// Si on a touche a ses propres droits, on recharge
 	if ($id == $user->id)
 	{
