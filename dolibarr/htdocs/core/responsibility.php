@@ -27,7 +27,8 @@ $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
-$sql='select rowid, name, active from responsibility order by name';
+$tablename = "responsibility";
+$sql='select rowid, name, active from '.$tablename.' order by name';
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
 $db = new dbBuilder();
 if(!isset($_REQUEST['sortfield']))

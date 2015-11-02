@@ -183,6 +183,7 @@ class dbBuilder{
         $hiddenfield = "''";
         $sendtable = "''";
         $num_col = 0;
+        $additionparam = false;
         foreach($title as $column){
             if(!isset($column['hidden'])) {
                 $table .= '<th class="liste_titre"';
@@ -209,6 +210,7 @@ class dbBuilder{
             }else{
                 $hiddenfield = $column['detailfield'];
                 $sendtable = $column['hidden'];
+                $additionparam = true;
             }
             $num_col++; 
         }
@@ -346,13 +348,21 @@ class dbBuilder{
                                </form>
                             <a class="close" title="Закрыть" href="#close"></a>
                             </br>';
-
-                $edit_form .="<script>
-                                var tablename = ".$tablename.";
-                                var fieldname = '".$hiddenfield."';
-                                var sendtable = '".$sendtable."';
+                if($additionparam) {
+                    $edit_form .= "<script>
+                                var tablename = " . $tablename . ";
+                                var fieldname = '" . $hiddenfield . "';
+                                var sendtable = '" . $sendtable . "';
                             </script>";
-                $edit_form .='<button onclick="save_item(tablename, fieldname, sendtable)">Сохранить</button>
+
+                }else{
+                    $edit_form .= "<script>
+                                var tablename = " . $tablename . ";
+                                var fieldname = '';
+                                var sendtable = '';
+                            </script>";
+                }
+                $edit_form .= '<button onclick="save_item(tablename, fieldname, sendtable)">Сохранить</button>
                             <button onclick="close_form();">Закрыть</button>
                             </div>';
             }
