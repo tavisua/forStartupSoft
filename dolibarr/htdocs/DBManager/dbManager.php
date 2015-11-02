@@ -1,14 +1,38 @@
 <?php
 //    var_dump($_SERVER['PHP_SELF']);
 //    die();
+
     if(isset($_REQUEST['edit'])){
         edit_item();
     }elseif(isset($_REQUEST['save'])){
         save_item();
     }elseif(isset($_REQUEST['set_permission'])){
         set_permission();
+    }elseif(isset($_REQUEST['loadparam'])){
+        load_param();
     }
-
+    function load_param(){
+//        echo '<pre>';
+//        var_dump($_REQUEST);
+//        echo '</pre>';
+//        die();
+        include 'db.php';
+        $db = new dbMysqli();
+        $sql = 'select `'.$_REQUEST['loadfield'].'`, `value` from `'.$_REQUEST['tablename'].'` where `'.$_REQUEST['col_name'].'`='.$_REQUEST['rowid'];
+        $res = $db->mysqli->query($sql);
+//        die($sql);
+        $param=''; $values='';
+        while($row = $res->fetch_assoc()){
+            if(empty($param)) {
+                $param = $row[$_REQUEST['loadfield']];
+                $values = $row['value'];
+            }else {
+                $param .= ',' . $row[$_REQUEST['loadfield']];
+                $values .= ','.$row['value'];
+            }
+        }
+        echo 'param='.$param.'; values='.$values;
+    }
     function set_permission(){
         include 'db.php';
         if(isset($_REQUEST['group_id'])){

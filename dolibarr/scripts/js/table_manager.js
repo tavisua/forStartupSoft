@@ -328,6 +328,36 @@ function edit_item(rowid){
         edit_id.value = rowid;
     }
     var sID=rowid.toString();
+    var paramList = $('td.param').find('.param');
+    if(paramList.length>0){
+
+        //console.log(tablename);
+        var link = 'http://'+location.hostname+'/dolibarr/htdocs/DBManager/dbManager.php?loadparam=1&rowid='+rowid+'&tablename='+tablename+'_param&col_name='+tablename+'_id&loadfield='+$('td.param').attr('id');
+        //console.log(link);
+        $.ajax({
+            url: link,
+            cache: false,
+            success: function (html) {
+                var param = html.substr(strpos(html, '=')+1, (strpos(html, ';')-strpos(html, '=')-1));
+                var values = html.substr(strpos(html, '=', strpos(html, ';'))+1);
+                var paramlist = param.split(',');
+                var valuelist = values.split(',');
+                var inputList = $('td.param').find('input');
+                for(var i=0; i<inputList.length;i++){
+                    inputList[i].value='';
+                }
+                for(var i=0; i<paramlist.length;i++){
+                    $('td.param').find('input#'+paramlist[i]).attr('value',valuelist[i]);
+                    //console.log($('td.param').find('input#'+paramlist[i]).attr('value',valuelist[i]));
+                    //console.log(paramlist[i]);
+                    //console.log(valuelist[i]);
+                }
+                //console.log(param, values);
+                return;
+            }
+        });
+    }
+
 
     var tr = document.getElementById('tr'+sID);
     //var tr = $('tr#'+sID);
@@ -438,8 +468,8 @@ function update_data(link){
 
 };
 function save_data(link){
-    console.log('http://'+location.hostname+'/dolibarr/htdocs/DBManager/dbManager.php?save=1&'+link);
-    return;
+    //console.log('http://'+location.hostname+'/dolibarr/htdocs/DBManager/dbManager.php?save=1&'+link);
+    //return;
     $.ajax({
         url: 'http://'+location.hostname+'/dolibarr/htdocs/DBManager/dbManager.php?save=1&'+link,
         cache: false,
