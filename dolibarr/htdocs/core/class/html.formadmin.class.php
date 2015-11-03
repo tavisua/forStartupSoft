@@ -64,7 +64,7 @@ class FormAdmin
 
 		$out='';
 
-		$out.= '<select class="flat" id="'.$htmlname.'" name="'.$htmlname.'"'.($disabled?' disabled="disabled"':'').'>';
+		$out.= '<select class="combobox" id="'.$htmlname.'" name="'.$htmlname.'"'.($disabled?' disabled="disabled"':'').'>';
 		if ($showempty)
 		{
 			$out.= '<option value=""';

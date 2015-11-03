@@ -220,36 +220,41 @@ class FormCompany
 		$langs->load("dict");
 
 		$out='';
-
+//    var_dump($country_codeid);
+//        die();
 		// On recherche les departements/cantons/province active d'une region et pays actif
-		$sql = "SELECT d.rowid, d.code_departement as code, d.nom as name, d.active, c.label as country, c.code as country_code FROM";
-		$sql .= " ".MAIN_DB_PREFIX ."c_departements as d, ".MAIN_DB_PREFIX."c_regions as r,".MAIN_DB_PREFIX."c_country as c";
-		$sql .= " WHERE d.fk_region=r.code_region and r.fk_pays=c.rowid";
-		$sql .= " AND d.active = 1 AND r.active = 1 AND c.active = 1";
-		if ($country_codeid && is_numeric($country_codeid))   $sql .= " AND c.rowid = '".$country_codeid."'";
-		if ($country_codeid && ! is_numeric($country_codeid)) $sql .= " AND c.code = '".$country_codeid."'";
-		$sql .= " ORDER BY c.code, d.code_departement";
+//		$sql = "SELECT d.rowid, d.code_departement as code, d.nom as name, d.active, c.label as country, c.code as country_code FROM";
+//		$sql .= " ".MAIN_DB_PREFIX ."c_departements as d, regions as r,countries as c";
+//		$sql .= " WHERE d.fk_region=r.code_region and r.fk_pays=c.rowid";
+//		$sql .= " AND d.active = 1 AND r.active = 1 AND c.active = 1";
+//		if ($country_codeid && is_numeric($country_codeid))   $sql .= " AND c.rowid = '".$country_codeid."'";
+//		if ($country_codeid && ! is_numeric($country_codeid)) $sql .= " AND c.code = '".$country_codeid."'";
+//		$sql .= " ORDER BY c.code, d.code_departement";
+//
+//		dol_syslog(get_class($this)."::select_departement", LOG_DEBUG);
+        $sql = "select states.rowid, name, countries.label as country, countries.code as country_code from states, countries where code = '".$country_codeid."' and states.active=1 and states.country_id = countries.rowid";
+        $result=$this->db->query($sql);
 
-		dol_syslog(get_class($this)."::select_departement", LOG_DEBUG);
-		$result=$this->db->query($sql);
 		if ($result)
 		{
-			if (!empty($htmlname)) $out.= '<select id="'.$htmlname.'" class="flat" name="'.$htmlname.'">';
+			if (!empty($htmlname)) $out.= '<select id="'.$htmlname.'" class="combobox" name="'.$htmlname.'">';
 			if ($country_codeid) $out.= '<option value="0">&nbsp;</option>';
 			$num = $this->db->num_rows($result);
 			$i = 0;
 			dol_syslog(get_class($this)."::select_departement num=".$num,LOG_DEBUG);
+
 			if ($num)
 			{
 				$country='';
 				while ($i < $num)
 				{
 					$obj = $this->db->fetch_object($result);
-					if ($obj->code == '0')		// Le code peut etre une chaine
-					{
-						$out.= '<option value="0">&nbsp;</option>';
-					}
-					else {
+
+//					if ($obj->code == '0')		// Le code peut etre une chaine
+//					{
+//						$out.= '<option value="0">&nbsp;</option>';
+//					}
+//					else {
 						if (! $country || $country != $obj->country)
 						{
 							// Affiche la rupture si on est en mode liste multipays
@@ -270,14 +275,18 @@ class FormCompany
 							$out.= '<option value="'.$obj->rowid.'">';
 						}
 						// Si traduction existe, on l'utilise, sinon on prend le libelle par defaut
-						$out.= $obj->code . ' - ' . ($langs->trans($obj->code)!=$obj->code?$langs->trans($obj->code):($obj->name!='-'?$obj->name:''));
+						$out.= $obj->name;
+//						$out.= $obj->code . ' - ' . ($langs->trans($obj->code)!=$obj->code?$langs->trans($obj->code):($obj->name!='-'?$obj->name:''));
 						$out.= '</option>';
-					}
+
+//					}
 					$i++;
 				}
+
 			}
 			if (! empty($htmlname)) $out.= '</select>';
-			if (! empty($htmlname) && $user->admin) $out.= info_admin($langs->trans("YouCanChangeValuesForThisListFromDictionarySetup"),1);
+
+			if (! empty($htmlname) && $user->admin) $out.= info_admin($langs->trans("SelectState"),1);
 		}
 		else
 		{
@@ -442,7 +451,7 @@ class FormCompany
 
 		// On recherche les formes juridiques actives des pays actifs
 		$sql  = "SELECT f.rowid, f.code as code , f.libelle as label, f.active, c.label as country, c.code as country_code";
-		$sql .= " FROM ".MAIN_DB_PREFIX."c_forme_juridique as f, ".MAIN_DB_PREFIX."c_country as c";
+		$sql .= " FROM ".MAIN_DB_PREFIX."c_forme_juridique as f, countries as c";
 		$sql .= " WHERE f.fk_pays=c.rowid";
 		$sql .= " AND f.active = 1 AND c.active = 1";
 		if ($country_codeid) $sql .= " AND c.code = '".$country_codeid."'";

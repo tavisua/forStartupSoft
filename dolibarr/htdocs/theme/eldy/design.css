@@ -181,6 +181,21 @@ a.vsmenu:link, a.vsmenu:visited, a.vsmenu:hover, a.vsmenu:active {
 /*#reference_title{*/
     /*width:auto; position: fixed; height: auto; top: 60px;*/
 /*}*/
+#inactiveTab{
+    cursor:no-drop;
+    background-image: none !important;
+    border-color: #ccc #bbb -moz-use-text-color;
+    border-radius: 6px 6px 0 0;
+    border-style: solid solid none;
+    border-width: 1px 1px medium;
+    box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.1);
+    font-family: arial,tahoma,verdana,helvetica;
+    margin: 0 0.2em;
+    padding: 5px 12px;
+    color: #bfbfbf;
+    text-decoration: none;
+    white-space: nowrap;
+}
 .param{
     /*border: 1px solid #007700;*/
     vertical-align: top;

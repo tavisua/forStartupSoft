@@ -34,7 +34,9 @@
 //@ini_set('memory_limit', '64M');	// This may be useless if memory is hard limited by your PHP
 
 // For optional tuning. Enabled if environment variable DOL_TUNING is defined.
-// A call first. Is the equivalent function dol_microtime_float not yet loaded.
+// A call first. Is the equivalent function dol_microtime_float not yet loaded..
+//var_dump($_SESSION["mainmenu"]);
+//die();
 $micro_start_time=0;
 if (! empty($_SERVER['DOL_TUNING']))
 {
@@ -1004,7 +1006,7 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
             $jquerytheme = 'smoothness';
             if (!empty($conf->global->MAIN_USE_JQUERY_THEME)) $jquerytheme = $conf->global->MAIN_USE_JQUERY_THEME;
             //Если открывается панель инструментов, подключаю стили форм
-            if($_REQUEST['mainmenu'] == 'tools'){
+            if($_REQUEST['mainmenu'] == 'tools' || $_REQUEST['mainmenu']=='area'){
                 print '<link rel="stylesheet" type="text/css" href="'.DOL_URL_ROOT.'/theme/'.$conf->theme.'/design.css'.($ext?'?'.$ext:'').'"/>'."\n";          //Стиль для фор
                 print '<link rel="stylesheet" type="text/css" href="'.DOL_URL_ROOT.'/theme/'.$conf->theme.'/style-modal.css'.($ext?'?'.$ext:'').'"/>'."\n";     //Стиль модальной формы
             }
@@ -1413,8 +1415,10 @@ function top_menu($head, $title='', $target='', $disablejs=0, $disablehead=0, $a
     {
 	    // Show menu entries
     	print '<div id="tmenu_tooltip'.(empty($conf->global->MAIN_MENU_INVERT)?'':'invert').'" class="tmenu">'."\n";
+
 	    $menumanager->atarget=$target;
 	    $menumanager->showmenu('top');      // This contains a \n
+
 	    print "</div>\n";
 
 	    $form=new Form($db);

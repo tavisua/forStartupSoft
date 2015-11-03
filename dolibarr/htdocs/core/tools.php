@@ -47,6 +47,8 @@
     $Post = $langs->trans('aPost');
     $SphereOfResponsibility = $langs->trans('SphereOfResponsibility');
     $CategoryCustomer = $langs->trans('CategoryCustomer');
+    $KindOfCustomer = $langs->trans('KindOfCustomer');
+    $TitleKindOfCustomer = $langs->trans('TitleKindOfCustomer');
     $FormOfGovernment = $langs->trans('FormOfGovernment');
     $KindAddress = $langs->trans('KindAddress');
     $Country = $langs->trans('Country');

@@ -17,8 +17,7 @@ class dbMysqli {
         }
         else
             $config = include $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/conf/conf.php';
-//        var_dump($dolibarr_main_db_host);
-//        die('test');
+        global $dolibarr_main_db_host, $dolibarr_main_db_name, $dolibarr_main_db_user, $dolibarr_main_db_pass;
         $server = $dolibarr_main_db_host;
         $username = $dolibarr_main_db_user;
         $password = $dolibarr_main_db_pass;

@@ -1,5 +1,7 @@
 <?php
-//    var_dump($_SERVER['PHP_SELF']);
+//    echo '<pre>';
+//    var_dump($_REQUEST);
+//    echo '</pre>';
 //    die();
 
     if(isset($_REQUEST['edit'])){
@@ -79,15 +81,18 @@
         include 'db.php';
         $fields = str_replace(',',"`,`", $_REQUEST['columns']);
         $fields = str_replace("'","`", $fields);
-        $fields .= ", `id_usr`, `dtChange`";
+        $fields .= ",`id_usr`,`dtChange`";
+
         $values = str_replace('$$','&#', $_REQUEST['values']);
-//        var_dump(htmlspecialchars($values).'</br>');
+        //        var_dump(htmlspecialchars($values).'</br>');
         $values = str_replace('@@','&', $values);
-//        var_dump($values);
-//        die();
+
         $values = str_replace(',',"','", $values);
+
+
 //        $values = str_replace('__',',', $_REQUEST['values']);
-        $values .= ', '.$_REQUEST['id_usr'].', Now()';
+
+        $values .= ','.$_REQUEST['id_usr'].', Now()';
 
         $db = new dbMysqli();
         $sql = "select * from `". $_REQUEST['tablename'] ."` limit 1";
@@ -98,9 +103,13 @@
             $sql = "insert `" . $_REQUEST['tablename'] . "`(" . $fields . ") values(" . $values . ")";
         }else{
             $sql = "update `" . $_REQUEST['tablename'] . "` set ";
+//            $values = str_replace("'1'", "1", $values);
             $fields_array = explode(',', $fields);
             $values_array = explode(',', $values);
+//            var_dump($values);
+//            die();
             $num=0;
+
             foreach($fields_array as $field){
                 if($num != 0)
                     $sql .= ", ";
@@ -113,11 +122,14 @@
                     }
                 }
 //                echo($field.' '.$datatype)."</br>";
-                if($datatype == 253 || $datatype == 12||$datatype == 3) {
-                    $sql .= $field . '=' . htmlspecialchars((str_replace('__', ',', trim($values_array[$num++]))));
-                }else {
-                    $sql .= $field . '=' .  htmlspecialchars(substr($values_array[$num], 1, strlen(trim($values_array[$num++])) - 2));
-                }
+
+                    if ($datatype == 253 || $datatype == 12 || $datatype == 3) {
+                        $sql .= $field . '=' . htmlspecialchars((str_replace('__', ',', trim($values_array[$num]))));
+                    } else {
+                        $sql .= $field . '=' . htmlspecialchars(substr($values_array[$num], 1, strlen(trim($values_array[$num])) - 2));
+                    }
+
+                $num++;
             }
             $sql .= " where rowid=".$_REQUEST['rowid'];
 //            var_dump($sql);

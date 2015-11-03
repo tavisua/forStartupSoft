@@ -44,6 +44,7 @@ function print_auguria_menu($db,$atarget,$type_user,&$tabMenu,&$menu,$noout=0)
 //    echo '</pre>';
 //    die();
 	$mainmenu=$_SESSION["mainmenu"];
+
 	$leftmenu=$_SESSION["leftmenu"];
 
 	$id='mainmenu';
@@ -52,14 +53,17 @@ function print_auguria_menu($db,$atarget,$type_user,&$tabMenu,&$menu,$noout=0)
 	// Show personalized menus
 	$menuArbo = new Menubase($db,'auguria');
 	$newTabMenu = $menuArbo->menuTopCharger('', '', $type_user, 'auguria',$tabMenu);
-
+//    echo '<pre>';
+//    var_dump($newTabMenu);
+//    echo '</pre>';
+//    die('test');
 	if (empty($noout)) print_start_menu_array_auguria();
 
 	$num = count($newTabMenu);
 	for($i = 0; $i < $num; $i++)
 	{
 		$idsel=(empty($newTabMenu[$i]['mainmenu'])?'none':$newTabMenu[$i]['mainmenu']);
-
+//        var_dump($idsel.'</br>');
 		$showmode=dol_auguria_showmenu($type_user,$newTabMenu[$i],$listofmodulesforexternal);
 		if ($showmode == 1)
 		{

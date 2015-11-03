@@ -482,6 +482,8 @@ class Form
      *  @param	string	$maxlength		Max length for labels (0=no limit)
      *  @return string           		HTML string with select
      */
+
+
     function select_country($selected='',$htmlname='country_id',$htmloption='',$maxlength=0)
     {
         global $conf,$langs;
@@ -495,7 +497,7 @@ class Form
 		$atleastonefavorite=0;
 
         $sql = "SELECT rowid, code as code_iso, code_iso as code_iso3, label, favorite";
-        $sql.= " FROM ".MAIN_DB_PREFIX."c_country";
+        $sql.= " FROM countries";
         $sql.= " WHERE active = 1";
         //$sql.= " ORDER BY code ASC";
 
@@ -503,7 +505,7 @@ class Form
         $resql=$this->db->query($sql);
         if ($resql)
         {
-            $out.= '<select id="select'.$htmlname.'" class="flat selectcountry" name="'.$htmlname.'" '.$htmloption.'>';
+            $out.= '<select id="select'.$htmlname.'" class="combobox" name="'.$htmlname.'" '.$htmloption.'>';
             $num = $this->db->num_rows($resql);
             $i = 0;
             if ($num)
@@ -1310,7 +1312,7 @@ class Form
             $i = 0;
             if ($num)
             {
-                $out.= '<select class="flat" id="'.$htmlname.'" name="'.$htmlname.'"'.($disabled?' disabled="disabled"':'').'>';
+                $out.= '<select class="combobox" id="'.$htmlname.'" name="'.$htmlname.'"'.($disabled?' disabled="disabled"':'').'>';
                 if ($show_empty) $out.= '<option value="-1"'.((empty($selected) || $selected==-1)?' selected="selected"':'').'>&nbsp;</option>'."\n";
 
                 $userstatic=new User($this->db);
@@ -4353,6 +4355,44 @@ class Form
      *  @param  int		$useempty          Affiche valeur vide dans liste
      *  @return	void
      */
+    function select_categorycustomer($selected = ''){
+        $sql ="select rowid, name from `category_counterparty` where active = 1 order by name";
+        $result= $this->db->query($sql);
+        if($result){
+            $out = '<select id="categoryofcustomer" class="combobox" size="1" name="categoryofcustomer">';
+            $out .= '<option value="0">&nbsp;</option>';
+            while($row = $result->fetch_assoc()){
+                if($selected == trim($row['name'])){
+                    $out .= '<option value="'.$row['rowid'].'"> selected = "selected"'.trim($row['name']).'</option>';
+                }else{
+                    $out .= '<option value="'.$row['rowid'].'"> '.trim($row['name']).'</option>';
+                }
+            }
+            $out.='</select>';
+            return $out;
+        }else {
+            dol_print_error($this->db);
+        }
+    }
+    function select_formofgoverment($selected = ''){
+        $sql ="select rowid, name from `formofgavernment` where active = 1 order by name";
+        $result= $this->db->query($sql);
+        if($result){
+            $out = '<select id="formofgoverment" class="combobox" size="1" name="formofgoverment">';
+            $out .= '<option value="0">&nbsp;</option>';
+            while($row = $result->fetch_assoc()){
+                if($selected == trim($row['name'])){
+                    $out .= '<option value="'.$row['rowid'].'"> selected = "selected"'.trim($row['name']).'</option>';
+                }else{
+                    $out .= '<option value="'.$row['rowid'].'"> '.trim($row['name']).'</option>';
+                }
+            }
+            $out.='</select>';
+            return $out;
+        }else {
+            dol_print_error($this->db);
+        }
+    }
     function select_export_model($selected='',$htmlname='exportmodelid',$type='',$useempty=0)
     {
 

@@ -10,6 +10,7 @@
 //echo'</pre>';
 //die();
 $dolibarr_main_url_root='http://uspex2015.com/dolibarr/htdocs';
+global $dolibarr_main_db_name, $dolibarr_main_db_user, $dolibarr_main_db_pass, $dolibarr_main_db_host;
 
 $dolibarr_main_db_host='127.0.0.1';
 $dolibarr_main_db_port='3306';

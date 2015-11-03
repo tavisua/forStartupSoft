@@ -1,34 +1,22 @@
 <?php
 /**
  * Created by PhpStorm.
- * User: tavis
- * Date: 13.10.2015
- * Time: 16:51
+ * User: -tavis-
+ * Date: 03.11.2015
+ * Time: 13:21
  */
 require '../main.inc.php';
 $Tools = $langs->trans("Tools");
-$Country = $langs->trans('Country');
+$KindOfCustomer = $langs->trans('KindOfCustomer');
 $NewItem = $langs->trans('NewItem');
 $Control = $langs->trans('Control');
 $theme = $conf->theme;
 
-llxHeader("",$Country,"");
-print_fiche_titre($Country);
+llxHeader("",$KindOfCustomer,"");
+print_fiche_titre($KindOfCustomer);
 $TableParam = array();
 $ColParam['title']=$langs->trans('Name');
 $ColParam['width']='300';
-$ColParam['align']='';
-$ColParam['class']='';
-$TableParam[]=$ColParam;
-
-$ColParam['title']=$langs->trans('Code');
-$ColParam['width']='80';
-$ColParam['align']='';
-$ColParam['class']='';
-$TableParam[]=$ColParam;
-
-$ColParam['title']=$langs->trans('CodeIso');
-$ColParam['width']='100';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
@@ -38,8 +26,8 @@ $ColParam['width']='100';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
-$tablename='llx_c_country';
-$sql='select rowid, label, code, code_iso, active from '.$tablename.' where active=1 order by label';
+$tablename='kindofcustomer';
+$sql='select rowid, name, active from '.$tablename.' order by name';
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
 $db = new dbBuilder();
 if(!isset($_REQUEST['sortfield']))
@@ -48,6 +36,6 @@ else
     $table = $db->fShowTable($TableParam, $sql, "'".$tablename."'", $conf->theme, $_REQUEST['sortfield'], $_REQUEST['sortorder']);
 $new_link = "http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/DBManager/dbManager.php?new=1&tablename='".$tablename."'";
 ob_start();
-include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/countries.html');
+include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/kindofcustomer.html');
 echo ob_get_clean();
 llxFooter();

@@ -12,7 +12,7 @@ class dbBuilder{
     public $selectlist=array();
     public function __construct()
     {
-        include 'db.php';
+        include $_SERVER['DOCUMENT_ROOT'] .'/dolibarr/htdocs/DBManager/db.php';
         $db = new dbMysqli();
         $this->mysqli = $db->mysqli;
     }
@@ -20,10 +20,7 @@ class dbBuilder{
         $edit_form ="<tr>
                         <td>".$title['title']."</td>";
 
-//        echo '<pre>';
-//        var_dump($field);
-//        echo '</pre>';
-//        die();
+
         if(isset($title['hidden'])){
             $sql = "select rowid, name from `".$title['sourcetable']."` where active = 1 and calc = 0";
             $result = $this->mysqli->query($sql);
@@ -49,6 +46,10 @@ class dbBuilder{
                     else
                         $edit_form .= '<textarea id = edit_' . $field->name . ' class="edit_text" name="description"></textarea>';
                 } else {//Если поле из подключенной таблицы
+//                    echo '<pre>';
+//                    var_dump($title['selrow']);
+//                    echo '</pre>';
+//                    die();
                     if (substr($field->name, 0, 6) == 's_llx_') {
                         $stpos = 7;
                     } else
@@ -61,10 +62,10 @@ class dbBuilder{
                     if (!$this->selectlist['edit_' . $s_table . '_' . $s_fieldname]) {
                         $this->selectlist['edit_' . $s_table . '_' . $s_fieldname] = '<select class = "combobox" id="edit_' . $s_table . '_' . $s_fieldname . '" name="' . $s_table . '" size="1">' . "\r\n";
                         $sql = "select rowid, " . $s_fieldname . " from " . $s_table . " where active = 1 order by " . $s_fieldname;
-
+//                        die($sql);
                         $result = $this->mysqli->query($sql);
                         while ($row = $result->fetch_assoc()) {
-                            $this->selectlist['edit_' . $s_table . '_' . $s_fieldname] .= '<option id="option' . $row['rowid'] . '" class="edit_' . $s_table . '_' . $s_fieldname . '" value="' . $row['rowid'] . '">' . $row[$s_fieldname] . '</option>' . "\r\n";
+                            $this->selectlist['edit_' . $s_table . '_' . $s_fieldname] .= '<option id="option' . $row['rowid'] . '" class="edit_' . $s_table . '_' . $s_fieldname . '" value="' . $row['rowid'] . '" '.(($title['selrow'] == $row['rowid'])?'selected = "selected"':'').'>' . $row[$s_fieldname] . '</option>' . "\r\n";
                         }
                         $this->selectlist['edit_' . $s_table . '_' . $s_fieldname] .= '</select>';
                         $edit_form .= $this->selectlist['edit_' . $s_table . '_' . $s_fieldname];
@@ -146,8 +147,9 @@ class dbBuilder{
             $result = $this->mysqli->query($sql);
         else{
 //            echo '<pre>';
-//            var_dump($sortfield);
+//            var_dump($sql);
 //            echo '</pre>';
+//            die();
 //            echo '<pre>';
 //            var_dump($sql);
 //            echo '</pre>';
@@ -309,7 +311,10 @@ class dbBuilder{
 //                        echo'</pre>';
                         } else {
                             if (substr($fields[$num_col]->name, 0, 2) != 's_') {
-                                $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" >' . htmlspecialchars_decode(trim($langs->trans($value))) . ' </td>';
+                                if(!empty($value))
+                                    $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" >' . (trim($langs->trans($value))) . ' </td>';
+                                else
+                                    $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" > </td>';
                             } else {
 
                                 if (substr($fields[$num_col]->name, 0, 6) == 's_llx_') {

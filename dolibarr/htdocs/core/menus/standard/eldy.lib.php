@@ -224,7 +224,8 @@ function print_eldy_menu($db,$atarget,$type_user,&$tabMenu,&$menu,$noout=0)
 	if ($showmode)
 	{
 		$langs->load("other");
-
+//        var_dump();
+//        die();
 		$classname="";
 		if ($_SESSION["mainmenu"] && $_SESSION["mainmenu"] == "tools") { $classname='class="tmenusel"'; $_SESSION['idmenu']=''; }
 		else $classname = 'class="tmenu"';

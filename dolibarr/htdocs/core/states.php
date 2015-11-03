@@ -28,8 +28,12 @@ $ColParam['align']='';
 $ColParam['class']='';
 $ColParam['sourcetable']='countries';
 $ColParam['detailfield']='country_id';
+$CountryParam = explode(':', $conf->global->MAIN_INFO_SOCIETE_COUNTRY);
+
+$ColParam['selrow']=$CountryParam[0];
 $TableParam[]=$ColParam;
 
+unset($ColParam['selrow']);
 unset($ColParam['sourcetable']);
 unset($ColParam['detailfield']);
 
@@ -40,7 +44,8 @@ $ColParam['class']='';
 $TableParam[]=$ColParam;
 
 $tablename='states';
-$sql='select `'.$tablename.'`.rowid, `'.$tablename.'`.name, countries.name s_countries_name, `'.$tablename.'`.active  from `'.$tablename.'` left join countries on `'.$tablename.'`.`country_id` = `countries`.rowid order by `'.$tablename.'`.name';
+$sql='select `'.$tablename.'`.rowid, `'.$tablename.'`.name, countries.label s_countries_label, `'.$tablename.'`.active  from `'.$tablename.'` left join countries on `'.$tablename.'`.`country_id` = `countries`.rowid order by `'.$tablename.'`.name';
+
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
 $db = new dbBuilder();
 if(!isset($_REQUEST['sortfield']))

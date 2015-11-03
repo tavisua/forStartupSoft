@@ -218,6 +218,8 @@ class Societe extends CommonObject
     var $cond_reglement_supplier_id;
 	var $fk_prospectlevel;
 	var $name_bis;
+    var $remark;
+    var $founder;
 
 	//Log data
 

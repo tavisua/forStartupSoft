@@ -23,10 +23,10 @@ function save_item(tablename, paramfield, sendtable){
                 value = value.replace(/\&/gi, "@@");
                 if(fields != '') {
                     fields = fields + ',' + fieldname;
-                    values = values + ','+escapeHtml(value);
+                    values = values + ','+escapeHtml(value).trim();
                 }else {
                     fields = fieldname;
-                    values = escapeHtml(value);
+                    values = escapeHtml(value).trim();
                 }
             }
         }
@@ -45,10 +45,10 @@ function save_item(tablename, paramfield, sendtable){
             //value = value.replace(/\&/gi, "@@");
             if(fields != '') {
                 fields = fields + ',' + fieldname;
-                values = values + ','+escapeHtml(value);
+                values = values + ','+escapeHtml(value).trim();
             }else {
                 fields = fieldname;
-                values = escapeHtml(value);
+                values = escapeHtml(value).trim();
             }
         }
 
@@ -66,10 +66,10 @@ function save_item(tablename, paramfield, sendtable){
                 value = '0';
             if(fields != '') {
                 fields += (',' + fieldname);
-                values += (',' + escapeHtml(value));
+                values += (',' + escapeHtml(value).trim());
             }else {
                 fields = fieldname;
-                values = escapeHtml(value);
+                values = escapeHtml(value).trim();
             }
         }
         var select_field = editor[0].getElementsByTagName('select');
@@ -79,10 +79,10 @@ function save_item(tablename, paramfield, sendtable){
             //console.log(select_field[0].value + ' 111 ' + detail_field.value);
             if(fields != '') {
                 fields = fields + ',' + detail_field.value;
-                values = values + ','+escapeHtml(select_field[0].value);
+                values = values + ','+escapeHtml(select_field[0].value).trim();
             }else {
                 fields = detail_field.value;
-                values = escapeHtml(select_field[0].value);
+                values = escapeHtml(select_field[0].value).trim();
             }
         }
         //console.log(values);
@@ -108,10 +108,10 @@ function save_item(tablename, paramfield, sendtable){
                     value = value.replace(/\&/gi, "@@");
                     if (fields != '') {
                         fields = fields + ',' + input_field[i].id;
-                        values = values + ',' + value;
+                        values = values + ',' + value.trim();
                     } else {
                         fields = input_field[i].id;
-                        values = value;
+                        values = value.trim();
                     }
                 }
             }
