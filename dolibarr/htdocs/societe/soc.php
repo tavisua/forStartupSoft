@@ -864,6 +864,10 @@ else
             print $formcompany->select_civility($object->civility_id).'</td>';
             print '<td colspan=2>&nbsp;</td></tr>';
         }
+        //Форма правління
+        print '<tr><td><label for="status">'.$langs->trans('FormOfGovernment').'</label></td><td colspan="3">';
+        print $form->select_formofgoverment('');
+        print '</td></tr>';
 
         // Prospect/Customer
 //        print '<tr><td width="25%"><span class="fieldrequired"><label for="customerprospect">'.$langs->trans('ProspectCustomer').'</label></span></td>';
@@ -892,10 +896,10 @@ else
 //            var_dump($object->fournisseur);
 //            die();
             // Supplier
-            print '<tr>';
-            print '<td><span class="fieldrequired"><label for="fournisseur">'.$langs->trans('Supplier').'</label></span></td><td>';
-            print $form->selectyesno("fournisseur",(isset($_POST['fournisseur'])?GETPOST('fournisseur'):$object->fournisseur),1);
-            print '</td>';
+//            print '<tr>';
+//            print '<td><span class="fieldrequired"><label for="fournisseur">'.$langs->trans('Supplier').'</label></span></td><td>';
+//            print $form->selectyesno("fournisseur",(isset($_POST['fournisseur'])?GETPOST('fournisseur'):$object->fournisseur),1);
+//            print '</td>';
 //            print '<td><label for="supplier_code">'.$langs->trans('SupplierCode').'</label></td><td>';
 //            print '<table class="nobordernopadding"><tr><td>';
 //            $tmpcode=$object->code_fournisseur;
@@ -907,6 +911,11 @@ else
 //            print '</td></tr></table>';
 //            print '</td></tr>';
         }
+        //Категорія контрагента
+        print '<tr><td><label for="status">'.$langs->trans('CategoryCustomer').'</label></td><td colspan="3">';
+        print $form->select_categorycustomer('');
+        print '</td></tr>';
+
         //Засновник
         if ($object->particulier || $private){}
         else {
@@ -922,15 +931,9 @@ else
             print '</tr>';
         }
 
-        //Категорія контрагента
-        print '<tr><td><label for="status">'.$langs->trans('CategoryCustomer').'</label></td><td colspan="3">';
-        print $form->select_categorycustomer('');
-        print '</td></tr>';
 
-        //Форма правління
-        print '<tr><td><label for="status">'.$langs->trans('FormOfGovernment').'</label></td><td colspan="3">';
-        print $form->select_formofgoverment('');
-        print '</td></tr>';
+
+
 //        // Status
 //        print '<tr><td><label for="status">'.$langs->trans('Status').'</label></td><td colspan="3">';
 //        print $form->selectarray('status', array('0'=>$langs->trans('ActivityCeased'),'1'=>$langs->trans('InActivity')),1);
@@ -1118,7 +1121,11 @@ else
             print '</tr>';
         }
 
-        if ($user->rights->societe->client->voir)
+//        echo '<pre>';
+//        var_dump($user);
+//        echo '</pre>';
+//        die();
+        if ($user->rights->societe->client->voir || $user->admin)
         {
             // Assign a Name
             print '<tr id="assign_name">';
@@ -1127,20 +1134,26 @@ else
             $form->select_users((! empty($object->commercial_id)?$object->commercial_id:$user->id),'commercial_id',1); // Add current user by default
             print '</td></tr>';
         }
-
+        //Класифікація
+        print '<tr id="classifycation">';
+        print '<td><label for="classifycation">'.$langs->trans("AllocateCommercial").'</label></td>';
+        print '<td colspan="3" class="maxwidthonsmartphone">';
+        $form->select_users((! empty($object->commercial_id)?$object->commercial_id:$user->id),'commercial_id',1); // Add current user by default
+        print '</td></tr>';
 
         // Discription
         print '<tr><td valign="top"><label for="remark">'.$langs->trans('Remark').'</label></td>';
         print '<td colspan="3"><textarea name="remark" id="remark" cols="40" rows="3" wrap="soft">';
         print $object->remark;
         print '</textarea></td></tr>';
-        // Other attributes
-        $parameters=array('colspan' => ' colspan="3"', 'colspanvalue' => '3');
-        $reshook=$hookmanager->executeHooks('formObjectOptions',$parameters,$object,$action);    // Note that $action and $object may have been modified by hook
-        if (empty($reshook) && ! empty($extrafields->attribute_label))
-        {
-        	print $object->showOptionals($extrafields,'edit');
-        }
+
+//        // Other attributes
+//        $parameters=array('colspan' => ' colspan="3"', 'colspanvalue' => '3');
+//        $reshook=$hookmanager->executeHooks('formObjectOptions',$parameters,$object,$action);    // Note that $action and $object may have been modified by hook
+//        if (empty($reshook) && ! empty($extrafields->attribute_label))
+//        {
+//        	print $object->showOptionals($extrafields,'edit');
+//        }
 
         // Ajout du logo
         print '<tr class="hideonsmartphone">';

@@ -100,6 +100,9 @@ print '<div class="fichecenter"><div class="fichethirdleft">';
 /*
  * Informations area
  */
+//$user = $user->fetch($user->id);
+//var_dump($user);
+//die();
 
 print '<table class="noborder" width="100%">';
 print '<tr class="liste_titre"><th class="liste_titre" colspan="2">'.$langs->trans("Informations").'</th></tr>';

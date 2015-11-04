@@ -21,6 +21,12 @@ $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
+$ColParam['title']=$langs->trans('Alias');
+$ColParam['width']='150';
+$ColParam['align']='';
+$ColParam['class']='';
+$TableParam[]=$ColParam;
+
 $ColParam['title']=$langs->trans('Active');
 $ColParam['width']='100';
 $ColParam['align']='';
@@ -28,7 +34,7 @@ $ColParam['class']='';
 $TableParam[]=$ColParam;
 
 $tablename = "responsibility";
-$sql='select rowid, name, active from '.$tablename.' order by name';
+$sql='select rowid, name, alias, active from '.$tablename.' order by name';
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
 $db = new dbBuilder();
 if(!isset($_REQUEST['sortfield']))

@@ -720,6 +720,9 @@ class FormCompany
 	 *    @param    int			$disableautocomplete    1 To disable autocomplete features
 	 *    @return	string
 	 */
+    function classifycation($id_cus=0, $id_mng=0){
+
+    }
 	function select_ziptown($selected='', $htmlname='zipcode', $fields='', $fieldsize=0, $disableautocomplete=0)
 	{
 		global $conf;

@@ -58,6 +58,17 @@ function print_auguria_menu($db,$atarget,$type_user,&$tabMenu,&$menu,$noout=0)
 //    echo '</pre>';
 //    die('test');
 	if (empty($noout)) print_start_menu_array_auguria();
+    if($user->respon_id !=0) {
+//        echo '<pre>';
+//        var_dump($user->respon_id);
+//        echo '</pre>';
+//        die();
+        $sql = 'select alias from responsibility where rowid='.$user->respon_id;
+        include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/db.php';
+        $db = new dbMysqli();
+        $res = $db->mysqli->query($sql);
+        $alias = $res->fetch_object();
+    }
 
 	$num = count($newTabMenu);
 	for($i = 0; $i < $num; $i++)
@@ -65,6 +76,7 @@ function print_auguria_menu($db,$atarget,$type_user,&$tabMenu,&$menu,$noout=0)
 		$idsel=(empty($newTabMenu[$i]['mainmenu'])?'none':$newTabMenu[$i]['mainmenu']);
 //        var_dump($idsel.'</br>');
 		$showmode=dol_auguria_showmenu($type_user,$newTabMenu[$i],$listofmodulesforexternal);
+
 		if ($showmode == 1)
 		{
 			$url = $shorturl = $newTabMenu[$i]['url'];
@@ -90,13 +102,16 @@ function print_auguria_menu($db,$atarget,$type_user,&$tabMenu,&$menu,$noout=0)
 			else $classname='class="tmenu"';
 		}
 		else if ($showmode == 2) $classname='class="tmenu"';
-
+        if(!empty($alias->alias)) {
+            $shorturl = str_replace('%s', trim($alias->alias), $shorturl);
+            $url = str_replace('%s', trim($alias->alias), $url);
+//            var_dump($i.' '.$shorturl.'</br>');
+        }
 		if (empty($noout)) print_start_menu_entry_auguria($idsel,$classname,$showmode);
 		if (empty($noout)) print_text_menu_entry_auguria($newTabMenu[$i]['titre'], $showmode, $url, $id, $idsel, $classname, ($newTabMenu[$i]['target']?$newTabMenu[$i]['target']:$atarget));
 		if (empty($noout)) print_end_menu_entry_auguria($showmode);
 		$menu->add($shorturl, $newTabMenu[$i]['titre'], 0, $showmode, ($newTabMenu[$i]['target']?$newTabMenu[$i]['target']:$atarget), ($newTabMenu[$i]['mainmenu']?$newTabMenu[$i]['mainmenu']:$newTabMenu[$i]['rowid']), '');
 	}
-
 	$showmode=1;
 	if (empty($noout)) print_start_menu_entry_auguria('','class="tmenuend"',$showmode);
 	if (empty($noout)) print_end_menu_entry_auguria($showmode);

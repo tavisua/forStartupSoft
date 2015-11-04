@@ -1209,12 +1209,22 @@ class Form
      * 	@return	string					HTML select string
      *  @see select_dolgroups
      */
-    function select_control($selected='', $htmlname, $disabled=0, $tablename, $fieldname)
+    function select_control($selected='', $htmlname, $disabled=0, $tablename, $fieldname, $userinfo, $readonly = true)
     {
         global $conf, $user, $langs;
-        $sql = $sql = 'select rowid, `' . $fieldname . '` as name, active from `' . $tablename . '` where active = 1 order by `' . $fieldname . '`';
-//        if('usergroup_id'==$htmlname)
-//        die($sql);
+//        echo '<pre>';
+//        var_dump($userinfo->id);
+//        echo '</pre>';
+//        die('1216');
+        $sql = 'select rowid, `' . $fieldname . '` as name, active from `' . $tablename . '`';
+        if(!$readonly)
+            $sql .=' where active = 1 order by `' . $fieldname . '`';
+        else
+            $sql .=' where rowid='.get_object_vars($userinfo)[$htmlname];
+//        echo '<pre>';
+//        var_dump($sql);
+//        echo '</pre>';
+//        die($htmlname);
         $resql = $this->db->query($sql);
 //        if ('subdivision' == $tablename) {
 //            var_dump($resql);
@@ -1226,15 +1236,24 @@ class Form
             $i = 0;
 //            var_dump($num);
 //            die();
-            if ($num) {
-                $out .= '<select class="flat" id="' . $htmlname . '" name="' . $htmlname . '"' . ($disabled ? ' disabled="disabled"' : '') . '>';
-                $out .= '<option value="0">&nbsp;</option>';
-                while ($i < $num){
+            if ($num>0) {
+                if($readonly){
                     $obj = $this->db->fetch_object($resql);
-                    $out .= '<option value="'.$obj->rowid.'">'.$obj->name.'</option>';
-                    $i++;
-                }
+                    $out .= $obj->name;
+                }else {
+                    $out .= '<select class="combobox" id="' . $htmlname . '" name="' . $htmlname . '"' . ($disabled ? ' disabled="disabled"' : '') . '>';
+                    $out .= '<option value="0">&nbsp;</option>';
+//                    var_dump(get_object_vars($userinfo)[$htmlname]);
+//                    die();
+                    while ($i < $num) {
+                        $obj = $this->db->fetch_object($resql);
+                        $selected = get_object_vars($userinfo)[$htmlname] == $obj->rowid;
+
+                        $out .= '<option value="' . $obj->rowid . '" '.($selected?'selected="selected"':'').'>' . $obj->name . '</option>';
+                        $i++;
+                    }
                     $out .= '</select>';
+                }
             }else
                 $out = $langs->trans('NotData');
         }

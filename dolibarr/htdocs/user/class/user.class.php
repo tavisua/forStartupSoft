@@ -81,6 +81,7 @@ class User extends CommonObject
 	var $fk_user;
     var $post_id;
     var $subdiv_id;
+    var $respon_id;
     var $usergroup_id;
 
 	var $clicktodial_url;
@@ -166,8 +167,9 @@ class User extends CommonObject
 		$sql.= " u.openid as openid,";
 		$sql.= " u.accountancy_code,";
 		$sql.= " u.thm,";
+        $sql.=" u.subdiv_id, u.respon_id, u.usergroup_id, u.post_id, ";
 		$sql.= " u.tjm,";
-		$sql.= " u.salary,";
+//		$sql.= " u.salary,";
 		$sql.= " u.salaryextra,";
 		$sql.= " u.weeklyhours,";
 		$sql.= " u.color,";
@@ -203,6 +205,7 @@ class User extends CommonObject
 			$obj = $this->db->fetch_object($result);
 			if ($obj)
 			{
+
 				$this->id 			= $obj->rowid;
 				$this->ref 			= $obj->rowid;
 
@@ -240,6 +243,11 @@ class User extends CommonObject
 				$this->weeklyhours	= $obj->weeklyhours;
 				$this->color		= $obj->color;
 
+                $this->usergroup_id = $obj->usergroup_id;
+                $this->respon_id    = $obj->respon_id;
+                $this->subdiv_id    = $obj->subdiv_id;
+                $this->post_id      = $obj->post_id;
+
 				$this->datec				= $this->db->jdate($obj->datec);
 				$this->datem				= $this->db->jdate($obj->datem);
 				$this->datelastlogin		= $this->db->jdate($obj->datel);
@@ -251,6 +259,7 @@ class User extends CommonObject
 				$this->contactid            = $obj->fk_socpeople;
 				$this->fk_member            = $obj->fk_member;
 				$this->fk_user        		= $obj->fk_user;
+
 
 				// Retreive all extrafield for thirdparty
 				// fetch optionals attributes and labels

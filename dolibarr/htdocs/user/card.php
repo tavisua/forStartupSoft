@@ -160,6 +160,7 @@ if ($action == 'confirm_delete' && $confirm == "yes" && $candisableuser)
 }
 
 // Action Add user
+
 if ($action == 'add' && $canadduser)
 {
 	$error = 0;
@@ -361,6 +362,8 @@ if ($action == 'update' && ! $_POST["cancel"])
             $object->accountancy_code	= GETPOST("accountancy_code");
             $object->openid		= GETPOST("openid");
             $object->fk_user    = GETPOST("fk_user")>0?GETPOST("fk_user"):0;
+            $object->post_id    = GETPOST("post_id");
+            $object->respon_id  = GETPOST("respon_id");
 
 	        $object->thm            = GETPOST("thm")!=''?GETPOST("thm"):'';
 	        $object->tjm            = GETPOST("tjm")!=''?GETPOST("tjm"):'';
@@ -1064,6 +1067,7 @@ else
     /*                                                                            */
     /* ************************************************************************** */
 
+
     if ($id > 0)
     {
         $object->fetch($id);
@@ -1170,12 +1174,12 @@ else
 
             print '<table class="border" width="100%">';
 
-            // Ref
-            print '<tr><td width="25%" valign="top">'.$langs->trans("Ref").'</td>';
-            print '<td colspan="3">';
-            print $form->showrefnav($object,'id','',$user->rights->user->user->lire || $user->admin);
-            print '</td>';
-            print '</tr>'."\n";
+//            // Ref
+//            print '<tr><td width="25%" valign="top">'.$langs->trans("Ref").'</td>';
+//            print '<td colspan="3">';
+//            print $form->showrefnav($object,'id','',$user->rights->user->user->lire || $user->admin);
+//            print '</td>';
+//            print '</tr>'."\n";
 
             if (isset($conf->file->main_authentication) && preg_match('/openid/',$conf->file->main_authentication) && ! empty($conf->global->MAIN_OPENIDURL_PERUSER)) $rowspan++;
             if (! empty($conf->societe->enabled)) $rowspan++;
@@ -1202,13 +1206,14 @@ else
 
             // Position/Job
             print '<tr><td valign="top">'.$langs->trans("PostOrFunction").'</td>';
-            print '<td colspan="2">'.$form->select_control('', 'post_id', 0, 'llx_post', 'postname').'</td>';
+            print '<td colspan="2">'.$form->select_control('', 'post_id', 0, 'llx_post', 'postname',$object, true).'</td>';
             print '</tr>'."\n";
 
             //Subdivision
             print '<tr><td valign="top">'.$langs->trans("SubDivision").'</td>';
-            print '<td colspan="2">'.$form->select_control('', 'post_id', 0, 'subdivision', 'name').'</td>';
+            print '<td colspan="2">'.$form->select_control('', 'post_id', 0, 'subdivision', 'name',$object, true).'</td>';
             print '</tr>'."\n";
+
             // Login
             print '<tr><td valign="top">'.$langs->trans("Login").'</td>';
             if (! empty($object->ldap_sid) && $object->statut==0)
@@ -1273,7 +1278,7 @@ else
 
             // Type
             print '<tr><td valign="top">'.$langs->trans('SphereOfResponsibility').'</td><td colspan="2">';
-            print $form->select_control('', 'post_id', 0, 'llx_post', 'postname');
+            print $form->select_control('', 'respon_id', 0, 'responsibility', 'name', $object, true);
 //            $type=$langs->trans("Internal");
 //            if ($object->societe_id) $type=$langs->trans("External");
 //            print $form->textwithpicto($type,$langs->trans("InternalExternalDesc"));
@@ -1569,131 +1574,131 @@ else
              * Liste des groupes dans lequel est l'utilisateur
              */
 
-            if ($canreadgroup)
-            {
-                print_fiche_titre($langs->trans("ListOfGroupsForUser"),'','');
-
-                // On selectionne les groupes auquel fait parti le user
-                $exclude = array();
-
-                $usergroup=new UserGroup($db);
-                $groupslist = $usergroup->listGroupsForUser($object->id);
-
-                if (! empty($groupslist))
-                {
-                    if (! (! empty($conf->multicompany->enabled) && ! empty($conf->multicompany->transverse_mode)))
-                    {
-                        foreach($groupslist as $groupforuser)
-                        {
-                            $exclude[]=$groupforuser->id;
-                        }
-                    }
-                }
-
-                if ($caneditgroup)
-                {
-                    print '<form action="'.$_SERVER['PHP_SELF'].'?id='.$id.'" method="POST">'."\n";
-                    print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
-                    print '<input type="hidden" name="action" value="addgroup" />';
-                    print '<table class="noborder" width="100%">'."\n";
-                    print '<tr class="liste_titre"><th class="liste_titre" width="25%">'.$langs->trans("GroupsToAdd").'</th>'."\n";
-                    print '<th>';
-                    print $form->select_dolgroups('', 'group', 1, $exclude, 0, '', '', $object->entity);
-                    print ' &nbsp; ';
-                    // Multicompany
-                    if (! empty($conf->multicompany->enabled))
-                    {
-                        if ($conf->entity == 1 && $conf->multicompany->transverse_mode)
-                        {
-                            print '</td><td valign="top">'.$langs->trans("Entity").'</td>';
-                            print "<td>".$mc->select_entities($conf->entity);
-                        }
-                        else
-                        {
-                            print '<input type="hidden" name="entity" value="'.$conf->entity.'" />';
-                        }
-                    }
-                    else
-                    {
-                    	print '<input type="hidden" name="entity" value="'.$conf->entity.'" />';
-                    }
-                    print '<input type="submit" class="button" value="'.$langs->trans("Add").'" />';
-                    print '</th></tr>'."\n";
-                    print '</table></form>'."\n";
-
-                    print '<br>';
-                }
-
-                /*
-                 * Groups assigned to user
-                 */
-                print '<table class="noborder" width="100%">';
-                print '<tr class="liste_titre">';
-                print '<td class="liste_titre" width="25%">'.$langs->trans("Groups").'</td>';
-                if(! empty($conf->multicompany->enabled) && !empty($conf->multicompany->transverse_mode) && $conf->entity == 1 && $user->admin && ! $user->entity)
-                {
-                	print '<td class="liste_titre" width="25%">'.$langs->trans("Entity").'</td>';
-                }
-                print "<td>&nbsp;</td></tr>\n";
-
-                if (! empty($groupslist))
-                {
-                    $var=true;
-
-                    foreach($groupslist as $group)
-                    {
-                        $var=!$var;
-
-                        print "<tr ".$bc[$var].">";
-                        print '<td>';
-                        if ($caneditgroup)
-                        {
-                            print '<a href="'.DOL_URL_ROOT.'/user/group/card.php?id='.$group->id.'">'.img_object($langs->trans("ShowGroup"),"group").' '.$group->name.'</a>';
-                        }
-                        else
-                        {
-                            print img_object($langs->trans("ShowGroup"),"group").' '.$group->name;
-                        }
-                        print '</td>';
-                        if (! empty($conf->multicompany->enabled) && ! empty($conf->multicompany->transverse_mode) && $conf->entity == 1 && $user->admin && ! $user->entity)
-                        {
-                        	print '<td class="valeur">';
-                        	if (! empty($group->usergroup_entity))
-                        	{
-                        		$nb=0;
-                        		foreach($group->usergroup_entity as $group_entity)
-                        		{
-                        			$mc->getInfo($group_entity);
-                        			print ($nb > 0 ? ', ' : '').$mc->label;
-                        			print '<a href="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&amp;action=removegroup&amp;group='.$group->id.'&amp;entity='.$group_entity.'">';
-                        			print img_delete($langs->trans("RemoveFromGroup"));
-                        			print '</a>';
-                        			$nb++;
-                        		}
-                        	}
-                        }
-                        print '<td align="right">';
-                        if ($caneditgroup && empty($conf->multicompany->transverse_mode))
-                        {
-                            print '<a href="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&amp;action=removegroup&amp;group='.$group->id.'">';
-                            print img_delete($langs->trans("RemoveFromGroup"));
-                            print '</a>';
-                        }
-                        else
-                        {
-                            print "&nbsp;";
-                        }
-                        print "</td></tr>\n";
-                    }
-                }
-                else
-                {
-                    print '<tr '.$bc[false].'><td colspan="3">'.$langs->trans("None").'</td></tr>';
-                }
-
-                print "</table>";
-                print "<br>";
-            }
+//            if ($canreadgroup)
+//            {
+//                print_fiche_titre($langs->trans("ListOfGroupsForUser"),'','');
+//
+//                // On selectionne les groupes auquel fait parti le user
+//                $exclude = array();
+//
+//                $usergroup=new UserGroup($db);
+//                $groupslist = $usergroup->listGroupsForUser($object->id);
+//
+//                if (! empty($groupslist))
+//                {
+//                    if (! (! empty($conf->multicompany->enabled) && ! empty($conf->multicompany->transverse_mode)))
+//                    {
+//                        foreach($groupslist as $groupforuser)
+//                        {
+//                            $exclude[]=$groupforuser->id;
+//                        }
+//                    }
+//                }
+//
+//                if ($caneditgroup)
+//                {
+//                    print '<form action="'.$_SERVER['PHP_SELF'].'?id='.$id.'" method="POST">'."\n";
+//                    print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'" />';
+//                    print '<input type="hidden" name="action" value="addgroup" />';
+//                    print '<table class="noborder" width="100%">'."\n";
+//                    print '<tr class="liste_titre"><th class="liste_titre" width="25%">'.$langs->trans("GroupsToAdd").'</th>'."\n";
+//                    print '<th>';
+//                    print $form->select_dolgroups('', 'group', 1, $exclude, 0, '', '', $object->entity);
+//                    print ' &nbsp; ';
+//                    // Multicompany
+//                    if (! empty($conf->multicompany->enabled))
+//                    {
+//                        if ($conf->entity == 1 && $conf->multicompany->transverse_mode)
+//                        {
+//                            print '</td><td valign="top">'.$langs->trans("Entity").'</td>';
+//                            print "<td>".$mc->select_entities($conf->entity);
+//                        }
+//                        else
+//                        {
+//                            print '<input type="hidden" name="entity" value="'.$conf->entity.'" />';
+//                        }
+//                    }
+//                    else
+//                    {
+//                    	print '<input type="hidden" name="entity" value="'.$conf->entity.'" />';
+//                    }
+//                    print '<input type="submit" class="button" value="'.$langs->trans("Add").'" />';
+//                    print '</th></tr>'."\n";
+//                    print '</table></form>'."\n";
+//
+//                    print '<br>';
+//                }
+//
+//                /*
+//                 * Groups assigned to user
+//                 */
+//                print '<table class="noborder" width="100%">';
+//                print '<tr class="liste_titre">';
+//                print '<td class="liste_titre" width="25%">'.$langs->trans("Groups").'</td>';
+//                if(! empty($conf->multicompany->enabled) && !empty($conf->multicompany->transverse_mode) && $conf->entity == 1 && $user->admin && ! $user->entity)
+//                {
+//                	print '<td class="liste_titre" width="25%">'.$langs->trans("Entity").'</td>';
+//                }
+//                print "<td>&nbsp;</td></tr>\n";
+//
+//                if (! empty($groupslist))
+//                {
+//                    $var=true;
+//
+//                    foreach($groupslist as $group)
+//                    {
+//                        $var=!$var;
+//
+//                        print "<tr ".$bc[$var].">";
+//                        print '<td>';
+//                        if ($caneditgroup)
+//                        {
+//                            print '<a href="'.DOL_URL_ROOT.'/user/group/card.php?id='.$group->id.'">'.img_object($langs->trans("ShowGroup"),"group").' '.$group->name.'</a>';
+//                        }
+//                        else
+//                        {
+//                            print img_object($langs->trans("ShowGroup"),"group").' '.$group->name;
+//                        }
+//                        print '</td>';
+//                        if (! empty($conf->multicompany->enabled) && ! empty($conf->multicompany->transverse_mode) && $conf->entity == 1 && $user->admin && ! $user->entity)
+//                        {
+//                        	print '<td class="valeur">';
+//                        	if (! empty($group->usergroup_entity))
+//                        	{
+//                        		$nb=0;
+//                        		foreach($group->usergroup_entity as $group_entity)
+//                        		{
+//                        			$mc->getInfo($group_entity);
+//                        			print ($nb > 0 ? ', ' : '').$mc->label;
+//                        			print '<a href="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&amp;action=removegroup&amp;group='.$group->id.'&amp;entity='.$group_entity.'">';
+//                        			print img_delete($langs->trans("RemoveFromGroup"));
+//                        			print '</a>';
+//                        			$nb++;
+//                        		}
+//                        	}
+//                        }
+//                        print '<td align="right">';
+//                        if ($caneditgroup && empty($conf->multicompany->transverse_mode))
+//                        {
+//                            print '<a href="'.$_SERVER['PHP_SELF'].'?id='.$object->id.'&amp;action=removegroup&amp;group='.$group->id.'">';
+//                            print img_delete($langs->trans("RemoveFromGroup"));
+//                            print '</a>';
+//                        }
+//                        else
+//                        {
+//                            print "&nbsp;";
+//                        }
+//                        print "</td></tr>\n";
+//                    }
+//                }
+//                else
+//                {
+//                    print '<tr '.$bc[false].'><td colspan="3">'.$langs->trans("None").'</td></tr>';
+//                }
+//
+//                print "</table>";
+//                print "<br>";
+//            }
         }
 
         /*
@@ -1715,11 +1720,11 @@ else
             print '<input type="hidden" name="entity" value="'.$object->entity.'">';
             print '<table width="100%" class="border">';
 
-            print '<tr><td width="25%" valign="top">'.$langs->trans("Ref").'</td>';
-            print '<td colspan="2">';
-            print $object->id;
-            print '</td>';
-            print '</tr>';
+//            print '<tr><td width="25%" valign="top">'.$langs->trans("Ref").'</td>';
+//            print '<td colspan="2">';
+//            print $object->id;
+//            print '</td>';
+//            print '</tr>';
 
             // Lastname
             print "<tr>";
@@ -1765,21 +1770,25 @@ else
             }
             print '</td></tr>';
 
+//            // Position/Job
+//            print '<tr><td valign="top">'.$langs->trans("PostOrFunction").'</td>';
+//            print '<td>';
+//            if ($caneditfield)
+//            {
+//            	print '<input size="30" type="text" name="job" value="'.$object->job.'">';
+//            }
+//            else
+//			{
+//                print '<input type="hidden" name="job" value="'.$object->job.'">';
+//          		print $object->job;
+//            }
+//            print '</td></tr>';
+
             // Position/Job
             print '<tr><td valign="top">'.$langs->trans("PostOrFunction").'</td>';
             print '<td>';
-            if ($caneditfield)
-            {
-            	print '<input size="30" type="text" name="job" value="'.$object->job.'">';
-            }
-            else
-			{
-                print '<input type="hidden" name="job" value="'.$object->job.'">';
-          		print $object->job;
-            }
+            print $form->select_control('', 'post_id', 0, 'llx_post', 'postname', $object, false);
             print '</td></tr>';
-
-
 
             // Login
             print "<tr>".'<td valign="top"><span class="fieldrequired">'.$langs->trans("Login").'</span></td>';
@@ -1895,25 +1904,31 @@ else
                 print '</td></tr>';
             }
 
-           	// Type
-           	print '<tr><td width="25%" valign="top">'.$langs->trans("Type").'</td>';
-           	print '<td>';
-           	if ($user->id == $object->id || ! $user->admin)
-           	{
-	           	$type=$langs->trans("Internal");
-    	       	if ($object->societe_id) $type=$langs->trans("External");
-        	   	print $form->textwithpicto($type,$langs->trans("InternalExternalDesc"));
-	           	if ($object->ldap_sid) print ' ('.$langs->trans("DomainUser").')';
-           	}
-           	else
-			{
-				$type=0;
-	            if ($object->contact_id) $type=$object->contact_id;
-	            print $form->selectcontacts(0,$type,'contactid',2,'','',1,'',false,1);
-	           	if ($object->ldap_sid) print ' ('.$langs->trans("DomainUser").')';
-            }
-           	print '</td></tr>';
-
+//           	// Type
+//           	print '<tr><td width="25%" valign="top">'.$langs->trans("Type").'</td>';
+//           	print '<td>';
+//           	if ($user->id == $object->id || ! $user->admin)
+//           	{
+//	           	$type=$langs->trans("Internal");
+//    	       	if ($object->societe_id) $type=$langs->trans("External");
+//        	   	print $form->textwithpicto($type,$langs->trans("InternalExternalDesc"));
+//	           	if ($object->ldap_sid) print ' ('.$langs->trans("DomainUser").')';
+//           	}
+//           	else
+//			{
+//				$type=0;
+//	            if ($object->contact_id) $type=$object->contact_id;
+//	            print $form->selectcontacts(0,$type,'contactid',2,'','',1,'',false,1);
+//	           	if ($object->ldap_sid) print ' ('.$langs->trans("DomainUser").')';
+//            }
+//           	print '</td></tr>';
+            print '<tr><td valign="top">'.$langs->trans('SphereOfResponsibility').'</td><td>';
+            print $form->select_control('', 'respon_id', 0, 'responsibility', 'name', $object, false);
+//            $type=$langs->trans("Internal");
+//            if ($object->societe_id) $type=$langs->trans("External");
+//            print $form->textwithpicto($type,$langs->trans("InternalExternalDesc"));
+//            if ($object->ldap_sid) print ' ('.$langs->trans("DomainUser").')';
+            print '</td></tr>'."\n";
             // Tel pro
             print "<tr>".'<td valign="top">'.$langs->trans("PhonePro").'</td>';
             print '<td>';
