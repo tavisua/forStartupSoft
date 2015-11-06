@@ -58,17 +58,7 @@ function print_auguria_menu($db,$atarget,$type_user,&$tabMenu,&$menu,$noout=0)
 //    echo '</pre>';
 //    die('test');
 	if (empty($noout)) print_start_menu_array_auguria();
-    if($user->respon_id !=0) {
-//        echo '<pre>';
-//        var_dump($user->respon_id);
-//        echo '</pre>';
-//        die();
-        $sql = 'select alias from responsibility where rowid='.$user->respon_id;
-        include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/db.php';
-        $db = new dbMysqli();
-        $res = $db->mysqli->query($sql);
-        $alias = $res->fetch_object();
-    }
+
 
 	$num = count($newTabMenu);
 	for($i = 0; $i < $num; $i++)
@@ -102,9 +92,9 @@ function print_auguria_menu($db,$atarget,$type_user,&$tabMenu,&$menu,$noout=0)
 			else $classname='class="tmenu"';
 		}
 		else if ($showmode == 2) $classname='class="tmenu"';
-        if(!empty($alias->alias)) {
-            $shorturl = str_replace('%s', trim($alias->alias), $shorturl);
-            $url = str_replace('%s', trim($alias->alias), $url);
+        if(!empty($user->respon_alias)) {
+            $shorturl = str_replace('%s', trim($user->respon_alias), $shorturl);
+            $url = str_replace('%s', trim($user->respon_alias), $url);
 //            var_dump($i.' '.$shorturl.'</br>');
         }
 		if (empty($noout)) print_start_menu_entry_auguria($idsel,$classname,$showmode);

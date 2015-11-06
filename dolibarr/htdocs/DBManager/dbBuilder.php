@@ -140,7 +140,7 @@ class dbBuilder{
         
         return $table;
     }
-    public function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $sortorder=''){
+    public function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $sortorder='', $readonly = array()){
         global $user, $conf, $langs, $db;
 
         if(empty($sortorder))
@@ -154,6 +154,7 @@ class dbBuilder{
 //            var_dump($sql);
 //            echo '</pre>';
             $result = $this->mysqli->query($sql.' limit 1');
+
             $fields = $result->fetch_fields();
             $num_col=0;
             for($i=1;$i<count($fields);$i++){
@@ -167,8 +168,11 @@ class dbBuilder{
                             $t_name = substr($fields[$i]->name, 2, strpos($fields[$i]->name, '_', 3)-2);//
                             $fieldname = substr($fields[$i]->name, strpos($fields[$i]->name, '_', 3)+1);
                         }
-                        $result = $this->mysqli->query(substr($sql, 0, strpos($sql, 'order by')).' order by trim(`'.$t_name.'`.`'.$fieldname.'`) '.$sortorder);
-//                        var_dump(substr($sql, 0, strpos($sql, 'order by')).' order by trim(`'.$t_name.'`.`'.$fieldname.'`)');
+                        if(count($readonly) == 0)
+                            $result = $this->mysqli->query(substr($sql, 0, strpos($sql, 'order by')).' order by trim(`'.$t_name.'`.`'.$fieldname.'`) '.$sortorder);
+                        else {
+                            $result = $this->mysqli->query(substr($sql, 0, strpos($sql, 'order by')) . ' order by trim(`' . $fieldname . '`) ' . $sortorder);
+                        }
                         break;
                     }
                 }
@@ -186,9 +190,10 @@ class dbBuilder{
         $sendtable = "''";
         $num_col = 0;
         $additionparam = false;
+        $colindex = 0;
         foreach($title as $column){
             if(!isset($column['hidden'])) {
-                $table .= '<th class="liste_titre"';
+                $table .= '<th id = "th'.$colindex++.'" class="liste_titre"';
                 $table .= $column['width'] <> '' ? ('width="' . $column['width'] . 'px"') : ('auto');//ширина
                 $table .= $column['align'] <> '' ? ('align="' . $column['align'] . '"') : (' ');//выравнивание
                 $table .= $column['class'] <> '' ? ('class="' . $column['class'] . '"') : (' ');//класс
@@ -219,52 +224,59 @@ class dbBuilder{
         $widthtable += 55;
 //        var_dump($hiddenfield);
 //        die();
-        $table .= '<th width="20px">
-        <img class="boxhandle hideonsmartphone" border="0" style="cursor:move;" title="" alt="" src="/dolibarr/htdocs/theme/'.$theme.'/img/grip_title.png">'."\r\n";
-        $table .= '<input id="boxlabelentry18" type="hidden" value="">
-        </th>'."\r\n";
+        if(count($readonly)==0){
+            $table .= '<th width="20px">
+                <img class="boxhandle hideonsmartphone" border="0" style="cursor:move;" title="" alt="" src="/dolibarr/htdocs/theme/' . $theme . '/img/grip_title.png">' . "\r\n";
+                    $table .= '<input id="boxlabelentry18" type="hidden" value="">
+                </th>' . "\r\n";
+        }
         $table .= '</thead>'."\r\n";
 //        echo '<pre>';
 //        var_dump($title);
 //        echo '</pre>';
 //        die();
-        $table .= '<tbody id="reference_body" style="width: '.$widthtable.'">'."\r\n";
+        $table .= '<tbody id="reference_body" style="width: '.(count($readonly)==0?$widthtable:$widthtable-40).'">'."\r\n";
 
         $table .= '</tr>'."\r\n";
 
 
         $count = 0;
-        $create_edit_form = false;
-        $edit_form = "<a href='#x' class='overlay' id='editor'></a>
+        if(count($readonly)==0) {
+            $create_edit_form = false;
+            $edit_form = "<a href='#x' class='overlay' id='editor'></a>
                      <div class='popup'>
                      <form>
-                     <input type='hidden' id='user_id' name='user_id' value=".$user->id.">
+                     <input type='hidden' id='user_id' name='user_id' value=" . $user->id . ">
                      <input type='hidden' id='edit_rowid' name='rowid' value='0'>
                      <table id='edit_table'>
                      <tbody>";
+        }
         //Если запрос вернул пустой результат, дорисую одну строку
-        if($result->num_rows == 0){
-            $class = fmod($count,2)!=1?("impair"):("pair");
-            $table .= "<tr id = 0 class='".$class."'>\r\n";
+        if ($result->num_rows == 0) {
+            $class = fmod($count, 2) != 1 ? ("impair") : ("pair");
+            $table .= "<tr id = 0 class='" . $class . "'>\r\n";
             $num_col = 0;
-            for($i = 0; $i<=$result->field_count;$i++){
-                if($fields[$i]->name != 'rowid') {
+            for ($i = 0; $i <= $result->field_count; $i++) {
+                if ($fields[$i]->name != 'rowid') {
                     if ($result->field_count != $i) {
                         $table .= '<td id="0" >&nbsp;</td>';
-                        $edit_form .= $this->fBuildEditForm($title[$num_col], $fields[$i], $theme, $tablename);
+                        if(count($readonly)==0)
+                            $edit_form .= $this->fBuildEditForm($title[$num_col], $fields[$i], $theme, $tablename);
                     } else
                         $table .= '<td id="0" style="width: 20px"></td>';
                     $num_col++;
                 }
             }
-            $edit_form .="    </table>
-                               </form>
-                            <a class='close' title='Закрыть' href='#close'></a>
-                            </br>
-                            <button onclick=save_item(".$tablename.");>Сохранить</button>
-                            <button onclick='close_form();'>Закрыть</button>
-                            </div>
-            ";
+
+            if(count($readonly)==0) {
+                $edit_form .= "    </table>
+                           </form>
+                        <a class='close' title='Закрыть' href='#close'></a>
+                        </br>
+                        <button onclick=save_item(".$tablename.", '', '');>Сохранить</button>
+                        <button onclick='close_form();'>Закрыть</button>
+                        </div>";
+            }
         }
 
         while($row = $result->fetch_assoc()) {
@@ -288,7 +300,7 @@ class dbBuilder{
 
                 $col_name = "'".$fields[$num_col]->name."'";
                 if($cell != 'rowid') {
-                    if(!$create_edit_form)//Формирую форму для редактирования
+                    if(!$create_edit_form && count($readonly)==0)//Формирую форму для редактирования
                         $edit_form.=$this->fBuildEditForm($title[$num_col-1], $fields[$num_col], $theme, $tablename);
 //                    var_dump($title[$num_col-1]['title'].' '.$cell.' '.!isset($title[$num_col-1]['hidden']).'</br>');
                     if(!isset($title[$num_col-1]['hidden'])) {
@@ -298,10 +310,18 @@ class dbBuilder{
                         $width = ($title[$num_col-1]['width'])!=''?($title[$num_col-1]['width'].'px'):('auto');
 
                         if ($fields[$num_col]->type == 16) {
-                            if ($value == '1') {
-                                $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');" > </td>';
-                            } else {
-                                $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_off.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');"> </td>';
+                            if(count($readonly)==0) {
+                                if ($value == '1') {
+                                    $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');" > </td>';
+                                } else {
+                                    $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_off.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');"> </td>';
+                                }
+                            }else{
+                                if(in_array($row['rowid'], $readonly)){
+                                    $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png"> </td>';
+                                }else{
+                                    $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_off.png"> </td>';
+                                }
                             }
                         } elseif (!empty($title[$num_col - 1]['action'])) {
                             $link = "'" . $title[$num_col - 1]["action"] . '&' . $title[$num_col - 1]["param"] . '=' . $row['rowid'] . "'";
@@ -315,7 +335,8 @@ class dbBuilder{
                                     $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" >' . (trim($langs->trans($value))) . ' </td>';
                                 else
                                     $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" > </td>';
-                            } else {
+                            }
+                            else {
 
                                 if (substr($fields[$num_col]->name, 0, 6) == 's_llx_') {
                                     $stpos = 7;
@@ -344,7 +365,7 @@ class dbBuilder{
                 }
                 $num_col++;
             }
-            if(!$create_edit_form) {
+            if(!$create_edit_form && count($readonly)==0) {
                 $create_edit_form = true;
                 $save_item ="save_item(".$tablename.",'".$hiddenfield;
 //                var_dump();
@@ -372,17 +393,20 @@ class dbBuilder{
                             </div>';
             }
 //
-            $table .= '<td style="width: 20px" align="left">
+            if(count($readonly)==0) {
+                $table .= '<td style="width: 20px" align="left">
 
-                <img  src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/edit.png" title="Редактировать" style="vertical-align: middle" onclick="edit_item('.$row['rowid'].');">
+                <img  src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/edit.png" title="Редактировать" style="vertical-align: middle" onclick="edit_item(' . $row['rowid'] . ');">
 
 
                        </td>';
+            }
             $table .= '</tr>';
         }
         $table .= '</tbody>'."\r\n";
         $table .= '</table>'."\r\n";
-        $table .= '</form>'."\r\n";
+        if(count($readonly)==0)
+            $table .= '</form>'."\r\n";
 
         $table .= $edit_form;
         return $table;

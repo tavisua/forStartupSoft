@@ -196,6 +196,16 @@ a.vsmenu:link, a.vsmenu:visited, a.vsmenu:hover, a.vsmenu:active {
     text-decoration: none;
     white-space: nowrap;
 }
+#headercontrol{
+    font-family: arial,tahoma,verdana,helvetica;
+    font-size: 10;
+    border-collapse: collapse;
+}
+#headercontrol td{
+    padding: 5px; /* Поля вокруг текста */
+    border: 1px solid #000; /* Рамка вокруг ячеек */
+    /*height: 50px;*/
+}
 .param{
     /*border: 1px solid #007700;*/
     vertical-align: top;

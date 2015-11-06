@@ -22,6 +22,7 @@ TaskRDV=Meetings
 TaskRDVWith=Meeting with %s
 ShowTask=Show task
 ShowAction=Show event
+Areas=Райони
 ActionsReport=Events report
 BasicInfo=Основна інформація
 EconomicData=Господарські дані
@@ -53,6 +54,8 @@ SendOrderRef=Submission of order %s
 StatusNotApplicable=Not applicable
 StatusActionToDo=To do
 StatusActionDone=Complete
+TitleToday=Сьогодні
+
 MyActionsAsked=Events I have recorded
 MyActionsToDo=Events I have to do
 MyActionsDone=Events assigned to me

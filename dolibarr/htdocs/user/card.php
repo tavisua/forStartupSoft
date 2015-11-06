@@ -1121,7 +1121,10 @@ else
 
         // Show tabs
         $head = user_prepare_head($object);
-
+//        echo '<pre>';
+//        var_dump($head);
+//        echo '</pre>';
+//        die();
         $title = $langs->trans("User");
         dol_fiche_head($head, 'user', $title, 0, 'user');
 

@@ -173,8 +173,8 @@ class User extends CommonObject
 		$sql.= " u.salaryextra,";
 		$sql.= " u.weeklyhours,";
 		$sql.= " u.color,";
-		$sql.= " u.ref_int, u.ref_ext";
-		$sql.= " FROM ".MAIN_DB_PREFIX."user as u";
+		$sql.= " u.ref_int, u.ref_ext, responsibility.alias as respon_alias";
+		$sql.= " FROM ".MAIN_DB_PREFIX."user as u left join responsibility on u.respon_id=responsibility.rowid";
 
 		if ((empty($conf->multicompany->enabled) || empty($conf->multicompany->transverse_mode)) && (! empty($user->entity)))
 		{
@@ -199,13 +199,13 @@ class User extends CommonObject
 		}
 
 		dol_syslog(get_class($this)."::fetch", LOG_DEBUG);
+
 		$result = $this->db->query($sql);
 		if ($result)
 		{
 			$obj = $this->db->fetch_object($result);
 			if ($obj)
 			{
-
 				$this->id 			= $obj->rowid;
 				$this->ref 			= $obj->rowid;
 
@@ -245,6 +245,7 @@ class User extends CommonObject
 
                 $this->usergroup_id = $obj->usergroup_id;
                 $this->respon_id    = $obj->respon_id;
+                $this->respon_alias = $obj->respon_alias;
                 $this->subdiv_id    = $obj->subdiv_id;
                 $this->post_id      = $obj->post_id;
 
@@ -542,6 +543,20 @@ class User extends CommonObject
 	 *	@return	void
 	 *  @see	clearrights
 	 */
+    function getregions($id)
+    {
+        $sql = "select fk_id as id from " . MAIN_DB_PREFIX . "user_regions as ur where ur.fk_user= ".$id." and active = 1";
+//        $sql = 'select rowid as id from regions limit 10';
+        dol_syslog(get_class($this) . '::getregions', LOG_DEBUG);
+        $resql = $this->db->query($sql);
+        $setting = array();
+        while($row = $this->db->fetch_array($resql)){
+            $setting[]=$row['id'];
+        }
+//        var_dump($setting);
+//        die();
+        return $setting;
+    }
 	function getrights($moduletag='')
 	{
 		global $conf;
@@ -2046,7 +2061,7 @@ class User extends CommonObject
 	function info($id)
 	{
 		$sql = "SELECT u.rowid, u.login as ref, u.datec,";
-		$sql.= " u.tms as date_modification, u.entity";
+		$sql.= " u.tms as date_modification, u.entity, u.lastname, u.firstname";
 		$sql.= " FROM ".MAIN_DB_PREFIX."user as u";
 		$sql.= " WHERE u.rowid = ".$id;
 
@@ -2063,6 +2078,8 @@ class User extends CommonObject
 				$this->date_creation     = $this->db->jdate($obj->datec);
 				$this->date_modification = $this->db->jdate($obj->date_modification);
 				$this->entity            = $obj->entity;
+                $this->lastname          = $obj->lastname;
+                $this->firstname         = $obj->firstname;
 			}
 
 			$this->db->free($result);
