@@ -1,44 +1,137 @@
-<div>
-    <table id="headercontrol" >
-        <tr id="today">
-            <td>
-                <?echo $TitleToday?>
-            </td>
-            <td>
-                <?echo $Today?>
-            </td>
+<div style=" width:100%; height:1px; clear:both;">.</div>
+<div class="areas_header" id = "lefttable">
+        <table id="headercontrol" >
+            <tr id="today">
+                <td>
+                    <?echo $TitleToday?>
+                </td>
+                <td class="autoinsert">
+                    <?echo $Today?>
+                </td>
+            </tr>
+            <tr id="worker">
+                <td>
+                    <?echo $Worker?>
+                </td>
+                <td class="autoinsert">
+                    <?echo $user->lastname?>
+                </td>
+            </tr>
+            <tr id="area" >
+                <td>
+                    <?echo $Area?>
+                </td>
+                <td style="width: 200px">
+                    <?echo $AreaList?>
+                </td>
+            </tr>
+            <tr id="action" style="text-align: center">
+                <td colspan="2">
+                    <form action="/dolibarr/htdocs/societe/soc.php?mainmenu=area&idmenu=10425" method="post">
+                        <input id="state_id" name="state_id" type="hidden" value="<?echo $state_id?>">
+                        <input id="region_id" name="region_id" type="hidden" value="<?echo $region_id?>">
+                        <button type="submit">&nbsp;&nbsp;&nbsp;&nbsp;<?echo $CreateCompany?>&nbsp;&nbsp;&nbsp;&nbsp;</button>
+                    </form>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+<div class="areas_header">
+    <?echo $Classifycation?>
+</div>
+        <style>
+            #areas_header_action{
+                padding-top: -1px;
+            }
+        </style>
+<div class="areas_header">
+    <table class="classifycation" width="150px">
+        <tr>
+            <td>Менеджер</td>
+            <td colspan="2" class="autoinsert"><?echo $user->lastname?></td>
         </tr>
-        <tr id="worker">
-            <td>
-                <?echo $Worker?>
-            </td>
-            <td>
-                <?echo $user->lastname?>
-            </td>
+        <tr>
+            <td colspan="3" align="center">Дії на сьогодні</td>
         </tr>
-        <tr id="state">
-            <td>
-                <?echo $State?>
-            </td>
-            <td>
-                <?echo $StateList?>
-            </td>
+
+    <tr>
+        <td style="width: 33%">по факту</td>
+        <td style="width: 33%">по плану</td>
+        <td style="width: 33%">прострочено</td>
+    </tr>
+    <tr>
+        <td class="autoinsert">3835</td>
+        <td class="autoinsert">7482</td>
+        <td class="autoinsert">7482</td>
+    </tr>
+    </table>
+
+</div>
+<div class="areas_header">
+    <table class="classifycation" width="150px">
+        <tr>
+            <td>Сервісник</td>
+            <td colspan="2" class="autoinsert">&nbsp;</td>
         </tr>
-        <tr id="area">
-            <td>
-                <?echo $Area?>
-            </td>
-            <td>
-                <?echo $AreaList?>
-            </td>
+        <tr>
+            <td colspan="3" align="center">Дії на сьогодні</td>
         </tr>
-        <tr id="AsOfTheDate">
-            <td>
-                <?echo $AsOfTheDate?>
-            </td>
-            <td>
-                <?echo $AreaList?>
-            </td>
+
+        <tr>
+            <td style="width: 33%">по факту</td>
+            <td style="width: 33%">по плану</td>
+            <td style="width: 33%">прострочено</td>
+        </tr>
+        <tr>
+            <td class="autoinsert">&nbsp;</td>
+            <td class="autoinsert">&nbsp;</td>
+            <td class="autoinsert">&nbsp;</td>
         </tr>
     </table>
 </div>
+<div class="areas_header">
+    <table class="classifycation" width="150px">
+        <tr>
+            <td>Бухгалтер</td>
+            <td colspan="2" class="autoinsert">&nbsp;</td>
+        </tr>
+        <tr>
+            <td colspan="3" align="center">Дії на сьогодні</td>
+        </tr>
+
+        <tr>
+            <td style="width: 33%">по факту</td>
+            <td style="width: 33%">по плану</td>
+            <td style="width: 33%">прострочено</td>
+        </tr>
+        <tr>
+            <td class="autoinsert">&nbsp;</td>
+            <td class="autoinsert">&nbsp;</td>
+            <td class="autoinsert">&nbsp;</td>
+        </tr>
+    </table>
+</div>
+<div class="areas_header">
+    <table class="classifycation" width="150px">
+        <tr>
+            <td>Наставник</td>
+            <td colspan="2" class="autoinsert">&nbsp;</td>
+        </tr>
+        <tr>
+            <td colspan="3" align="center">Дії на сьогодні</td>
+        </tr>
+
+        <tr>
+            <td style="width: 33%">по факту</td>
+            <td style="width: 33%">по плану</td>
+            <td style="width: 33%">прострочено</td>
+        </tr>
+        <tr>
+            <td class="autoinsert">&nbsp;</td>
+            <td class="autoinsert">&nbsp;</td>
+            <td class="autoinsert">&nbsp;</td>
+        </tr>
+    </table>
+</div>
+<div style=" width:100%; height:1px; clear:both;">.</div>

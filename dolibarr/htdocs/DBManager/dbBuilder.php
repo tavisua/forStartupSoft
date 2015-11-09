@@ -140,7 +140,7 @@ class dbBuilder{
         
         return $table;
     }
-    public function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $sortorder='', $readonly = array()){
+    public function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $sortorder='', $readonly = array(), $showtitle=true){
         global $user, $conf, $langs, $db;
 
         if(empty($sortorder))
@@ -181,9 +181,13 @@ class dbBuilder{
         }
 
         $fields = $result->fetch_fields();
-        $table ='<table class="scrolling-table"" >'."\r\n";
-        $table .= '<thead >'."\r\n";
-        $table .= '<tr class="liste_titre" id="reference_title">'."\r\n";
+//        var_dump($showtitle);
+//        die();
+        if($showtitle) {
+            $table = '<table class="scrolling-table"" >' . "\r\n";
+            $table .= '<thead >' . "\r\n";
+            $table .= '<tr class="liste_titre" id="reference_title">' . "\r\n";
+        }
         $count = 0;
         $widthtable = 0;
         $hiddenfield = "''";
@@ -191,50 +195,54 @@ class dbBuilder{
         $num_col = 0;
         $additionparam = false;
         $colindex = 0;
-        foreach($title as $column){
-            if(!isset($column['hidden'])) {
-                $table .= '<th id = "th'.$colindex++.'" class="liste_titre"';
-                $table .= $column['width'] <> '' ? ('width="' . $column['width'] . 'px"') : ('auto');//ширина
-                $table .= $column['align'] <> '' ? ('align="' . $column['align'] . '"') : (' ');//выравнивание
-                $table .= $column['class'] <> '' ? ('class="' . $column['class'] . '"') : (' ');//класс
-                $table .= '>' . $column['title'] . '
-                 <span class="nowrap">
-                <a href="'.$_SERVER['PHP_SELF'].'?mainmenu=tools&sortfield='.$num_col.'&sortorder=asc">';
-                if(isset($_REQUEST['sortfield']) && $_REQUEST['sortfield'] == $num_col && isset($_REQUEST['sortorder']) && $_REQUEST['sortorder'] == "asc")
-                    $table .= '<img class="imgup" border="0" title="Я-A" alt="" src="/dolibarr/htdocs/theme/'.$conf->theme.'/img/1uparrow_selected.png">';
-                else
-                    $table .= '<img class="imgup" border="0" title="Я-A" alt="" src="/dolibarr/htdocs/theme/'.$conf->theme.'/img/1uparrow.png">';
-                $table .= '</a>
-                <a href="'.$_SERVER['PHP_SELF'].'?mainmenu=tools&sortfield='.$num_col.'&sortorder=desc">';
-                if(isset($_REQUEST['sortfield']) && $_REQUEST['sortfield'] == $num_col && isset($_REQUEST['sortorder']) && $_REQUEST['sortorder'] == "desc")
-                    $table .= '<img class="imgdown" border="0" title="A-Я" alt="" src="/dolibarr/htdocs/theme/'.$conf->theme.'/img/1downarrow_selected.png">';
-                else
-                    $table .= '<img class="imgdown" border="0" title="A-Я" alt="" src="/dolibarr/htdocs/theme/'.$conf->theme.'/img/1downarrow.png">';
-                $table .= '</a>
-                </span>
-                </th>';
+        foreach ($title as $column) {
+            if (!isset($column['hidden'])) {
+                if($showtitle) {
+                    $table .= '<th id = "th' . $colindex++ . '" class="liste_titre"';
+                    $table .= $column['width'] <> '' ? ('width="' . $column['width'] . 'px"') : ('auto');//ширина
+                    $table .= $column['align'] <> '' ? ('align="' . $column['align'] . '"') : (' ');//выравнивание
+                    $table .= $column['class'] <> '' ? ('class="' . $column['class'] . '"') : (' ');//класс
+                    $table .= '>' . $column['title'] . '
+                     <span class="nowrap">
+                    <a href="' . $_SERVER['PHP_SELF'] . '?mainmenu=tools&sortfield=' . $num_col . '&sortorder=asc">';
+                    if (isset($_REQUEST['sortfield']) && $_REQUEST['sortfield'] == $num_col && isset($_REQUEST['sortorder']) && $_REQUEST['sortorder'] == "asc")
+                        $table .= '<img class="imgup" border="0" title="Я-A" alt="" src="/dolibarr/htdocs/theme/' . $conf->theme . '/img/1uparrow_selected.png">';
+                    else
+                        $table .= '<img class="imgup" border="0" title="Я-A" alt="" src="/dolibarr/htdocs/theme/' . $conf->theme . '/img/1uparrow.png">';
+                    $table .= '</a>
+                    <a href="' . $_SERVER['PHP_SELF'] . '?mainmenu=tools&sortfield=' . $num_col . '&sortorder=desc">';
+                            if (isset($_REQUEST['sortfield']) && $_REQUEST['sortfield'] == $num_col && isset($_REQUEST['sortorder']) && $_REQUEST['sortorder'] == "desc")
+                                $table .= '<img class="imgdown" border="0" title="A-Я" alt="" src="/dolibarr/htdocs/theme/' . $conf->theme . '/img/1downarrow_selected.png">';
+                            else
+                                $table .= '<img class="imgdown" border="0" title="A-Я" alt="" src="/dolibarr/htdocs/theme/' . $conf->theme . '/img/1downarrow.png">';
+                            $table .= '</a>
+                    </span>
+                    </th>';
+                }
                 $widthtable += $column['width'];
-            }else{
+            } else {
                 $hiddenfield = $column['detailfield'];
                 $sendtable = $column['hidden'];
                 $additionparam = true;
             }
-            $num_col++; 
+            $num_col++;
         }
-        $widthtable += 55;
+            $widthtable += 55;
 //        var_dump($hiddenfield);
 //        die();
-        if(count($readonly)==0){
-            $table .= '<th width="20px">
+        if($showtitle) {
+            if (count($readonly) == 0) {
+                $table .= '<th width="20px">
                 <img class="boxhandle hideonsmartphone" border="0" style="cursor:move;" title="" alt="" src="/dolibarr/htdocs/theme/' . $theme . '/img/grip_title.png">' . "\r\n";
-                    $table .= '<input id="boxlabelentry18" type="hidden" value="">
+                $table .= '<input id="boxlabelentry18" type="hidden" value="">
                 </th>' . "\r\n";
-        }
-        $table .= '</thead>'."\r\n";
+            }
+            $table .= '</thead>' . "\r\n";
 //        echo '<pre>';
 //        var_dump($title);
 //        echo '</pre>';
 //        die();
+        }
         $table .= '<tbody id="reference_body" style="width: '.(count($readonly)==0?$widthtable:$widthtable-40).'">'."\r\n";
 
         $table .= '</tr>'."\r\n";
@@ -307,7 +315,7 @@ class dbBuilder{
 //                        echo '<pre>';
 //                        var_dump($title[$num_col-1]['title']);
 //                        echo '</pre>';
-                        $width = ($title[$num_col-1]['width'])!=''?($title[$num_col-1]['width'].'px'):('auto');
+                        $width = ($title[$num_col-1]['width'])!=''?($title[$num_col-1]['width']+(($num_col-1)*1.5).'px'):('auto');
 
                         if ($fields[$num_col]->type == 16) {
                             if(count($readonly)==0) {

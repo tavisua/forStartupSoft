@@ -390,6 +390,7 @@ SupplierCategory=Supplier category
 JuridicalStatus200=Independant
 DeleteFile=Delete file
 ConfirmDeleteFile=Are you sure you want to delete this file?
+CreateCompany=Додати клієнта/контрагента
 AllocateCommercial=Закріплено за
 Remark=Особливі примітки
 SelectCountry=Select a country

@@ -237,7 +237,7 @@ class FormCompany
 
 		if ($result)
 		{
-			if (!empty($htmlname)) $out.= '<select id="'.$htmlname.'" class="combobox" name="'.$htmlname.'">';
+			if (!empty($htmlname)) $out.= '<select id="'.$htmlname.'" class="combobox" name="'.$htmlname.'" onchange="loadareas()">';
 			if ($country_codeid) $out.= '<option value="0">&nbsp;</option>';
 			$num = $this->db->num_rows($result);
 			$i = 0;
@@ -307,60 +307,48 @@ class FormCompany
 	 *   @param		string		$htmlname		Name of HTML select field
 	 *   @return	void
 	 */
-	function select_region($selected='',$htmlname='region_id')
+	function select_region($state_id, $htmlname='region_id', $region_id='')
 	{
-		global $conf,$langs;
-		$langs->load("dict");
+        if(empty($state_id)){
+            print '<select class="combobox" name="'.$htmlname.'">';
+            print '<option value="0">&nbsp;</option>';
+            print '</select>';
 
-		$sql = "SELECT r.rowid, r.code_region as code, r.nom as label, r.active, c.code as country_code, c.label as country";
-		$sql.= " FROM ".MAIN_DB_PREFIX."c_regions as r, ".MAIN_DB_PREFIX."c_country as c";
-		$sql.= " WHERE r.fk_pays=c.rowid AND r.active = 1 and c.active = 1";
-		$sql.= " ORDER BY c.code, c.label ASC";
+        }else {
 
-		dol_syslog(get_class($this)."::select_region", LOG_DEBUG);
-		$resql=$this->db->query($sql);
-		if ($resql)
-		{
-			print '<select class="flat" name="'.$htmlname.'">';
-			$num = $this->db->num_rows($resql);
-			$i = 0;
-			if ($num)
-			{
-				$country='';
-				while ($i < $num)
-				{
-					$obj = $this->db->fetch_object($resql);
-					if ($obj->code == 0) {
-						print '<option value="0">&nbsp;</option>';
-					}
-					else {
-						if ($country == '' || $country != $obj->country)
-						{
-							// Show break
-							$key=$langs->trans("Country".strtoupper($obj->country_code));
-							$valuetoshow=($key != "Country".strtoupper($obj->country_code))?$obj->country_code." - ".$key:$obj->country;
-							print '<option value="-1" disabled="disabled">----- '.$valuetoshow." -----</option>\n";
-							$country=$obj->country;
-						}
+            global $conf, $langs;
+            $langs->load("dict");
 
-						if ($selected > 0 && $selected == $obj->code)
-						{
-							print '<option value="'.$obj->code.'" selected="selected">'.$obj->label.'</option>';
-						}
-						else
-						{
-							print '<option value="'.$obj->code.'">'.$obj->label.'</option>';
-						}
-					}
-					$i++;
-				}
-			}
-			print '</select>';
-		}
-		else
-		{
-			dol_print_error($this->db);
-		}
+            $sql = "select rowid, name from regions where 1";
+            if (!empty($state_id))
+                $sql .= " and state_id = " . $state_id;
+            $sql .= " and active = 1 order by trim(name)";
+
+
+            dol_syslog(get_class($this) . "::select_region", LOG_DEBUG);
+            $resql = $this->db->query($sql);
+            if ($resql) {
+                print '<select id = "'.$htmlname.'" class="combobox" name="' . $htmlname . '">';
+                $num = $this->db->num_rows($resql);
+                $i = 0;
+                if ($num) {
+                    $country = '';
+                    print '<option value="0">&nbsp;</option>';
+                    while ($i < $num) {
+                        $obj = $this->db->fetch_object($resql);
+                        if (!empty($region_id) && $region_id == $obj->rowid) {
+                            print '<option value="' . $obj->rowid . '" selected="selected">' .$obj->name . '</option>';
+                        } else {
+                            print '<option value="' . $obj->rowid . '">' . $obj->name . '</option>';
+                        }
+                        $i++;
+                    }
+                }
+                print '</select>';
+            } else {
+                dol_print_error($this->db);
+            }
+        }
 	}
 
 	/**
@@ -721,7 +709,21 @@ class FormCompany
 	 *    @return	string
 	 */
     function classifycation($id_cus=0, $id_mng=0){
+        $sql = 'select rowid, name from `classifycation` where calc = 1 and active = 1';
+        $res=$this->db->query($sql);
+        if($this->db->num_rows($res)>0) {
+            $out='<table class="param" width="100%">';
+            while ($param = $this->db->fetch_object($res)) {
+                $out.='<tr><td class="param_title">'.$param->name.'</td>';
+                $out.='<td width="auto"><input class="param_item" type="text" value="" size="6" name="param_'.$param->rowid.'"></td></tr>';
+            }
+            $out.='</table>';
+        }else{
+            return '';
+        }
 
+//        <tr><td>1</td><td>2</td></tr></table>';
+        return $out;
     }
 	function select_ziptown($selected='', $htmlname='zipcode', $fields='', $fieldsize=0, $disableautocomplete=0)
 	{

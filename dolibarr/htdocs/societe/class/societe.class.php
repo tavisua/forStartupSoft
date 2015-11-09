@@ -79,6 +79,10 @@ class Societe extends CommonObject
     var $state_id;
     var $state_code;
     var $state;
+    var $region_id;
+    var $formofgoverment_id;
+    var $categoryofcustomer_id;
+
     /**
      * @deprecated Use state_code instead
      */
@@ -220,6 +224,8 @@ class Societe extends CommonObject
 	var $name_bis;
     var $remark;
     var $founder;
+    var $holding;
+    var $param = array();
 
 	//Log data
 
@@ -426,7 +432,8 @@ class Societe extends CommonObject
 
         if ($result >= 0)
         {
-            $sql = "INSERT INTO ".MAIN_DB_PREFIX."societe (nom, entity, datec, fk_user_creat, canvas, status, ref_int, ref_ext, fk_stcomm, import_key)";
+            $sql = "INSERT INTO ".MAIN_DB_PREFIX."societe (nom, entity, datec, fk_user_creat, canvas, status, ref_int, ref_ext, fk_stcomm, import_key,
+            state_id, region_id, remark, founder, holding, town, formofgoverment_id, categoryofcustomer_id, dtChange)";
             $sql.= " VALUES ('".$this->db->escape($this->name)."', ".$conf->entity.", '".$this->db->idate($now)."'";
             $sql.= ", ".(! empty($user->id) ? "'".$user->id."'":"null");
             $sql.= ", ".(! empty($this->canvas) ? "'".$this->canvas."'":"null");
@@ -434,14 +441,29 @@ class Societe extends CommonObject
             $sql.= ", ".(! empty($this->ref_int) ? "'".$this->ref_int."'":"null");
             $sql.= ", ".(! empty($this->ref_ext) ? "'".$this->ref_ext."'":"null");
             $sql.= ", 0";
-            $sql.= ", ".(! empty($this->import_key) ? "'".$this->import_key."'":"null").")";
-
+            $sql.= ", ".(! empty($this->import_key) ? "'".$this->import_key."'":"null");
+            $sql.= ", ".(! empty($this->state_id) ? "'".$this->state_id."'":"null");
+            $sql.= ", ".(! empty($this->region_id) ? "'".$this->region_id."'":"null");
+            $sql.= ", '".$this->db->escape($this->remark)."'";
+            $sql.= ", '".$this->db->escape($this->founder)."'";
+            $sql.= ", '".$this->db->escape($this->holding)."'";
+            $sql.= ", '".$this->db->escape($this->town)."'";
+            $sql.= ", ".(! empty($this->formofgoverment_id) ? "'".$this->formofgoverment_id."'":"null");
+            $sql.= ", ".(! empty($this->categoryofcustomer_id) ? "'".$this->categoryofcustomer_id."'":"null");
+            $sql.=", Now())";
+//            die($sql);
             dol_syslog(get_class($this)."::create", LOG_DEBUG);
             $result=$this->db->query($sql);
+
             if ($result)
             {
                 $this->id = $this->db->last_insert_id(MAIN_DB_PREFIX."societe");
+                $this->db->commit();
 
+                //Зберігаю параметри класифікациї
+                $this->setclassification();
+//                var_dump($result);
+//                die();
                 $ret = $this->update($this->id,$user,0,1,1,'add');
 
                 // Ajout du commercial affecte
@@ -509,6 +531,26 @@ class Societe extends CommonObject
      * @param 	User	$user		Object user
      * @return 	int					<0 if KO, >0 if OK
      */
+    function setclassification(){
+        global $user;
+        $sql = 'select classifycation_id, value, active from `llx_societe_classificator` where soc_id='.$this->id;
+        $keylist = array_keys($this->param);
+        foreach($keylist as $key){
+            $check_sql = $sql.' and classifycation_id = '.substr($key, 6).' limit 1';
+
+            $res = $this->db->query($check_sql);
+
+            if($this->db->num_rows($res) == 0){
+                $set = 'insert into `llx_societe_classificator`(soc_id, classifycation_id, value, active, id_usr, dtChange)';
+                $set .=' values('.$this->id.', '.substr($key, 6).', '.$this->param[$key].', 1, '.$user->id.', Now())';
+            }else{
+                $set = 'update `llx_societe_classificator` set value = '.$this->param[$key].', active=1 where soc_id='.$this->id.
+                    ' and classifycation_id = '.substr($key, 6).' limit 1';
+            }
+        }
+        $this->db->query($set);
+        $this->db->commit();
+    }
     function create_individual(User $user)
     {
         require_once DOL_DOCUMENT_ROOT.'/contact/class/contact.class.php';

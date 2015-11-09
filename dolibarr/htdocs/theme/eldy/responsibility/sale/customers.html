@@ -1,0 +1,32 @@
+<div class="contant_tble">
+    <table class="scrolling-table">
+        <thead>
+        <tr class="header_table">
+            <th class="header_table" width="130px">Категорія контрагента</th>
+            <th class="header_table" width="150px">Засновник, інвестор, холдинг</th>
+            <th class="header_table" width="180px">Назва контрагента</th>
+            <th class="header_table" width="80px">Форма власності</th>
+            <th class="header_table" width="130px">Місце знаходження</th>
+            <th class="header_table" width="130px">П.І.Б. засновника</th>
+            <th class="header_table" width="130px">№ тел.офісу</th>
+            <th class="header_table" width="80px">Орної землі, га</th>
+            <th class="header_table" width="180px">Особливі відмітки, резюме перемовин</th>
+        </tr>
+        </thead>
+        <tbody id="reference_body">
+            <?echo $table?>
+        </tbody>
+    </table>
+</div>
+        <script>
+            $(document).ready(function(){
+                $('#reference_body').attr('height', window.innerHeight - 330);
+            })
+            var tbody = document.getElementById('reference_body');
+            var tdList = $('#reference_body').find('td');
+            for(var i=0; i<tdList.length; i++){
+                if(tdList[i].id.substr(tdList[i].id.length-('width').length) == 'width') {
+                    tdList[i].innerHTML = tdList[i].innerHTML.substr(0, tdList[i].innerHTML.length-4);
+                }
+            }
+        </script>

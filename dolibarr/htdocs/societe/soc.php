@@ -40,6 +40,13 @@ require_once DOL_DOCUMENT_ROOT.'/contact/class/contact.class.php';
 if (! empty($conf->adherent->enabled)) require_once DOL_DOCUMENT_ROOT.'/adherents/class/adherent.class.php';
 
 
+if(isset($_REQUEST['getregion'])){
+    $formcompany = new FormCompany($db);
+    echo $formcompany->select_region($_REQUEST['getregion'],'region_id');
+    exit();
+}
+
+
 $langs->load("companies");
 $langs->load("commercial");
 $langs->load("bills");
@@ -51,6 +58,11 @@ if (! empty($conf->notification->enabled)) $langs->load("mails");
 $mesg=''; $error=0; $errors=array();
 
 $action		= (GETPOST('action') ? GETPOST('action') : 'view');
+//for($i=0; $i<count($_POST); $i++) {
+//    echo $_POST[$i].'</br>';
+//}
+
+
 $backtopage = GETPOST('backtopage','alpha');
 $confirm	= GETPOST('confirm');
 $socid		= GETPOST('socid','int');
@@ -58,6 +70,7 @@ if ($user->societe_id) $socid=$user->societe_id;
 if (empty($socid) && $action == 'view') $action='create';
 
 $object = new Societe($db);
+
 $extrafields = new ExtraFields($db);
 
 // fetch optionals attributes and labels
@@ -122,8 +135,9 @@ if (empty($reshook))
 
     // Add new or update third party
     if ((! GETPOST('getcustomercode') && ! GETPOST('getsuppliercode'))
-    && ($action == 'add' || $action == 'update') && $user->rights->societe->creer)
+    && ($action == 'add' || $action == 'update')/* && $user->rights->societe->creer*/)
     {
+
         require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
 
         if ($action == 'update')
@@ -168,6 +182,13 @@ if (empty($reshook))
         $object->code_fournisseur      = GETPOST('code_fournisseur', 'alpha');
         $object->capital               = GETPOST('capital', 'alpha');
         $object->barcode               = GETPOST('barcode', 'alpha');
+        $object->state_id			   = GETPOST('state_id', 'int');
+        $object->region_id             = GETPOST('region_id', 'int');
+        $object->remark                = GETPOST('remark', 'alpha');
+        $object->founder               = GETPOST('founder', 'alpha');
+        $object->holding               = GETPOST('holding', 'alpha');
+        $object->formofgoverment_id    = GETPOST('formofgoverment', 'int');
+        $object->categoryofcustomer_id = GETPOST('categoryofcustomer', 'int');
 
         $object->tva_intra             = GETPOST('tva_intra', 'alpha');
         $object->tva_assuj             = GETPOST('assujtva_value', 'alpha');
@@ -194,7 +215,16 @@ if (empty($reshook))
         $object->webservices_url       = GETPOST('webservices_url', 'custom', 0, FILTER_SANITIZE_URL);
         $object->webservices_key       = GETPOST('webservices_key', 'san_alpha');
 
-
+        $PostList = array_keys($_POST);
+        $ParamList = array();
+        foreach($PostList as $Key){
+            if(substr($Key, 0, 6) == 'param_'){
+                $ParamList[]=$Key;
+            }
+        }
+        foreach($ParamList as $Key){
+            $object->param[$Key] = GETPOST($Key);
+        }
 
         // Fill array 'array_options' with data from add form
         $ret = $extrafields->setOptionalsFromPost($extralabels,$object);
@@ -355,20 +385,21 @@ if (empty($reshook))
                 {
                     $db->commit();
 
-                	if (! empty($backtopage))
-                	{
-               		    header("Location: ".$backtopage);
+//                	if (! empty($backtopage))
+//                	{
+               		    header("Location: /dolibarr/htdocs/responsibility/sale/area.php?idmenu=10425&mainmenu=area&leftmenu=#tr".$object->id);
+//               		    header("Location: ".$backtopage);
                     	exit;
-                	}
-                	else
-                	{
-                    	$url=$_SERVER["PHP_SELF"]."?socid=".$object->id;
-                    	if (($object->client == 1 || $object->client == 3) && empty($conf->global->SOCIETE_DISABLE_CUSTOMERS)) $url=DOL_URL_ROOT."/comm/card.php?socid=".$object->id;
-                    	else if ($object->fournisseur == 1) $url=DOL_URL_ROOT."/fourn/card.php?socid=".$object->id;
-
-                		header("Location: ".$url);
-                    	exit;
-                	}
+//                	}
+//                	else
+//                	{
+//                    	$url=$_SERVER["PHP_SELF"]."?socid=".$object->id;
+//                    	if (($object->client == 1 || $object->client == 3) && empty($conf->global->SOCIETE_DISABLE_CUSTOMERS)) $url=DOL_URL_ROOT."/comm/card.php?socid=".$object->id;
+//                    	else if ($object->fournisseur == 1) $url=DOL_URL_ROOT."/fourn/card.php?socid=".$object->id;
+//
+//                		header("Location: ".$url);
+//                    	exit;
+//                	}
                 }
                 else
                 {
@@ -673,6 +704,7 @@ else
         $object->zip				= GETPOST('zipcode', 'alpha');
         $object->town				= GETPOST('town', 'alpha');
         $object->state_id			= GETPOST('state_id', 'int');
+        $object->region_id          = GETPOST('region_id', 'int');
         $object->skype				= GETPOST('skype', 'alpha');
         $object->phone				= GETPOST('phone', 'alpha');
         $object->fax				= GETPOST('fax', 'alpha');
@@ -689,6 +721,12 @@ else
         $object->typent_id			= GETPOST('typent_id', 'int');
         $object->effectif_id		= GETPOST('effectif_id', 'int');
         $object->civility_id		= GETPOST('civility_id', 'int');
+        $object->state_id			   = GETPOST('state_id', 'int');
+        $object->region_id             = GETPOST('region_id', 'int');
+        $object->remark                = GETPOST('remark', 'alpha');
+        $object->founder               = GETPOST('founder', 'alpha');
+        $object->formofgoverment_id    = GETPOST('formofgoverment', 'int');
+        $object->categoryofcustomer_id = GETPOST('categoryofcustomer', 'int');
 
         $object->tva_assuj			= GETPOST('assujtva_value', 'int');
         $object->status				= GETPOST('status', 'int');
@@ -847,7 +885,7 @@ else
 			print '<span span id="TypeName" class="fieldrequired"><label for="name">'.$langs->trans('ThirdPartyName').'</label></span>';
         }
 	    print '</td><td'.(empty($conf->global->SOCIETE_USEPREFIX)?' colspan="3"':'').'>';
-	    print '<input type="text" style="width:100%" size="60" maxlength="128" name="nom" id="name" value="'.$object->name.'" autofocus="autofocus"></td>';
+	    print '<input type="text" size="60" maxlength="128" name="nom" id="name" value="'.$object->name.'" autofocus="autofocus"></td>';
 	    if (! empty($conf->global->SOCIETE_USEPREFIX))  // Old not used prefix field
 	    {
 		    print '<td>'.$langs->trans('Prefix').'</td><td><input type="text" size="5" maxlength="5" name="prefix_comm" value="'.$object->prefix_comm.'"></td>';
@@ -916,23 +954,20 @@ else
         print $form->select_categorycustomer('');
         print '</td></tr>';
 
-        //Засновник
+        //Структура
         if ($object->particulier || $private){}
         else {
             print '<tr><td>';
-            print '<label for="founder">' . $langs->trans('Founder') . '</label>';
+            print '<label for="holding">' . $langs->trans('Holding') . '</label>';
 
             print '</td><td' . (empty($conf->global->SOCIETE_USEPREFIX) ? ' colspan="3"' : '') . '>';
-            print '<input type="text" style="width:100%" size="60" maxlength="128" name="nom" id="founder" value="' . $object->name . '" autofocus="autofocus"></td>';
+            print '<input type="text" style="width:100%" size="60" maxlength="128" name="holding" id="holding" value="' . $object->holding . '" autofocus="autofocus"></td>';
             if (!empty($conf->global->SOCIETE_USEPREFIX))  // Old not used prefix field
             {
                 print '<td>' . $langs->trans('Prefix') . '</td><td><input type="text" size="5" maxlength="5" name="prefix_comm" value="' . $object->prefix_comm . '"></td>';
             }
             print '</tr>';
         }
-
-
-
 
 //        // Status
 //        print '<tr><td><label for="status">'.$langs->trans('Status').'</label></td><td colspan="3">';
@@ -961,6 +996,12 @@ else
             else print $countrynotdefined;
             print '</td></tr>';
         }
+        if (empty($conf->global->SOCIETE_DISABLE_STATE))
+        {
+            print '<tr><td><label for="state_id">'.$langs->trans('Areas').'</label></td><td colspan="3" class="maxwidthonsmartphone">';
+            print $formcompany->select_region($object->state_id,'region_id', $object->region_id);
+            print '</td></tr>';
+        }
 
         // Zip / Town
         print '<tr><td><label for="zipcode">'.$langs->trans('Zip').'</label></td><td>';
@@ -974,6 +1015,20 @@ else
         print '<td colspan="3"><textarea name="address" id="address" cols="40" rows="3" wrap="soft">';
         print $object->address;
         print '</textarea></td></tr>';
+        //Засновник
+        if ($object->particulier || $private){}
+        else {
+            print '<tr><td>';
+            print '<label for="founder">' . $langs->trans('Founder') . '</label>';
+
+            print '</td><td' . (empty($conf->global->SOCIETE_USEPREFIX) ? ' colspan="3"' : '') . '>';
+            print '<input type="text" style="width:100%" size="60" maxlength="128" name="founder" id="founder" value="' . $object->founder . '" autofocus="autofocus"></td>';
+            if (!empty($conf->global->SOCIETE_USEPREFIX))  // Old not used prefix field
+            {
+                print '<td>' . $langs->trans('Prefix') . '</td><td><input type="text" size="5" maxlength="5" name="prefix_comm" value="' . $object->prefix_comm . '"></td>';
+            }
+            print '</tr>';
+        }
 
         // Email web
         print '<tr><td><label for="email">'.$langs->trans('EMail').(! empty($conf->global->SOCIETE_MAIL_REQUIRED)?'*':'').'</label></td>';
@@ -1136,9 +1191,9 @@ else
         }
         //Класифікація
         print '<tr id="classifycation">';
-        print '<td><label for="classifycation">'.$langs->trans("AllocateCommercial").'</label></td>';
+        print '<td><label for="classifycation">'.$langs->trans("Classifycation").'</label></td>';
         print '<td colspan="3" class="maxwidthonsmartphone">';
-        $form->select_users((! empty($object->commercial_id)?$object->commercial_id:$user->id),'commercial_id',1); // Add current user by default
+        print $formcompany->classifycation();
         print '</td></tr>';
 
         // Discription
@@ -1483,7 +1538,13 @@ else
                 print $formcompany->select_state($object->state_id,$object->country_code);
                 print '</td></tr>';
             }
-
+            // Area
+            if (empty($conf->global->SOCIETE_DISABLE_STATE))
+            {
+                print '<tr><td><label for="area_id">'.$langs->trans('Area').'</label></td><td colspan="3">';
+                print $formcompany->select_state($object->state_id,$object->country_code);
+                print '</td></tr>';
+            }
             // EMail / Web
             print '<tr><td><label for="email">'.$langs->trans('EMail').(! empty($conf->global->SOCIETE_MAIL_REQUIRED)?'*':'').'</label></td>';
 	        print '<td colspan="3"><input type="text" name="email" id="email" size="32" value="'.$object->email.'"></td></tr>';
@@ -1696,8 +1757,14 @@ else
          */
         $object = new Societe($db);
         $res=$object->fetch($socid);
-        if ($res < 0) { dol_print_error($db,$object->error); exit; }
-        $res=$object->fetch_optionals($object->id,$extralabels);
+//        var_dump($socid);
+//        die();
+        if ($res < 0) {
+            dol_print_error($db,$object->error);
+            exit;
+        }
+
+            $res=$object->fetch_optionals($object->id,$extralabels);
         //if ($res < 0) { dol_print_error($db); exit; }
 
 
@@ -2323,8 +2390,8 @@ print '
             //Передаём запрос на сервер
             $.getJSON("autocomplete.php?callback=?", req, function(data) {
                 if(data == null){
-                    $("#name").value = req["term"];
-//                    console.log();
+                    $("#name").val(req["term"]);
+//                    console.log($("#name").val());
                     add(null);
                     return;
                 }
@@ -2383,7 +2450,7 @@ print '
 //                });
 			});
 		</script>';
-
+//print'<div>test</div>';
 // End of page
 llxFooter();
 $db->close();

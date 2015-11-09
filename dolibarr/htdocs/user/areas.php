@@ -70,6 +70,8 @@ $user->info($id);
 //echo '</pre>';
 //die();
 $setting = $user->getregions($id);
+if(count($setting) == 0)
+    $setting[]=-1;
 print '<a href="/dolibarr/htdocs/core/tools.php?mainmenu=tools&idmenu=5223">'.$langs->trans("Tools").'</a>  /
     <a href="/dolibarr/htdocs/core/users_and_group/groups_manager.php?mainmenu=tools">'.$langs->trans('MenuUsersAndGroups').'</a>/
     <a href="/dolibarr/htdocs/core/users_and_group/groups_manager.php?mainmenu=tools">'.$langs->trans('Users').'</a> /

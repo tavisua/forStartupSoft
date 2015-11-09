@@ -487,6 +487,7 @@ td.showDragHandle {
 	margin-bottom: 8px;
 	display: table;
 	table-layout: fixed;
+    width: 100%;
 }
 #id-right, #id-left {
 	display: table-cell;

@@ -1263,8 +1263,14 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
 
             // Add datepicker default options
             print '<script type="text/javascript" src="'.DOL_URL_ROOT.'/core/js/datepicker.js.php?lang='.$langs->defaultlang.($ext?'&amp;'.$ext:'').'"></script>'."\n";
-
-            print '<script type="text/javascript" src="/dolibarr/scripts/js/table_manager.js'.($ext?'?'.$ext:'').'"></script>'."\n";
+//            echo '<pre>';
+//            var_dump();
+//            echo '</pre>';
+//            die();
+            if(strpos($_SERVER["SCRIPT_NAME"],'soc.php')){
+                print '<script type="text/javascript" src="/dolibarr/htdocs/societe/js/soc.js'.($ext?'?'.$ext:'').'"></script>'."\n";
+            }else
+                print '<script type="text/javascript" src="/dolibarr/scripts/js/table_manager.js'.($ext?'?'.$ext:'').'"></script>'."\n";
 
             // JS forced by modules (relative url starting with /)
             if (! empty($conf->modules_parts['js']))		// $conf->modules_parts['js'] is array('module'=>array('file1','file2'))

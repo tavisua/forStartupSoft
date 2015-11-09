@@ -847,6 +847,7 @@ abstract class CommonObject
         if (is_object($user)) $sql.=", fk_user_modif = ".$user->id;
         $sql.= " WHERE ".$id_field." = ".$id;
 
+
         dol_syslog(get_class($this)."::".__FUNCTION__."", LOG_DEBUG);
         $resql = $this->db->query($sql);
         if ($resql)
