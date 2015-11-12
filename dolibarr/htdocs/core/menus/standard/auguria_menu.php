@@ -182,6 +182,10 @@ class MenuManager
 
         if ($mode == 'top')  print_auguria_menu($this->db,$this->atarget,$this->type_user,$this->tabMenu,$this->menu,0);
         if ($mode == 'left') print_left_auguria_menu($this->db,$this->menu_array,$this->menu_array_after,$this->tabMenu,$this->menu,0);
+//        echo '<pre>';
+//        var_dump($this->menu);
+//        echo '</pre>';
+//        die();
         if ($mode == 'jmobile')
         {
         	print_auguria_menu($this->db,$this->atarget,$this->type_user,$this->tabMenu,$this->menu,1);

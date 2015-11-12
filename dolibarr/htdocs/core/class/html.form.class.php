@@ -4378,7 +4378,7 @@ class Form
         $sql ="select rowid, name from `category_counterparty` where active = 1 order by name";
         $result= $this->db->query($sql);
         if($result){
-            $out = '<select id="categoryofcustomer" class="combobox" size="1" name="categoryofcustomer">';
+            $out = '<select id="categoryofcustomer" class="combobox" size="1" name="categoryofcustomer" onchange="setvisiblbloks();">';
             $out .= '<option value="0">&nbsp;</option>';
             while($row = $result->fetch_assoc()){
                 if($selected == trim($row['name'])){

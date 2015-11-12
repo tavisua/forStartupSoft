@@ -1006,7 +1006,7 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
             $jquerytheme = 'smoothness';
             if (!empty($conf->global->MAIN_USE_JQUERY_THEME)) $jquerytheme = $conf->global->MAIN_USE_JQUERY_THEME;
             //Если открывается панель инструментов, подключаю стили форм
-            if($_REQUEST['mainmenu'] == 'tools' || $_REQUEST['mainmenu']=='area'){
+            if($_REQUEST['mainmenu'] == 'tools' || $_REQUEST['mainmenu']=='area' || $_REQUEST['mainmenu']=='companies'){
                 print '<link rel="stylesheet" type="text/css" href="'.DOL_URL_ROOT.'/theme/'.$conf->theme.'/design.css'.($ext?'?'.$ext:'').'"/>'."\n";          //Стиль для фор
                 print '<link rel="stylesheet" type="text/css" href="'.DOL_URL_ROOT.'/theme/'.$conf->theme.'/style-modal.css'.($ext?'?'.$ext:'').'"/>'."\n";     //Стиль модальной формы
             }
@@ -1206,9 +1206,10 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
             	$tmpplugin=empty($conf->global->MAIN_USE_JQUERY_MULTISELECT)?constant('REQUIRE_JQUERY_MULTISELECT'):$conf->global->MAIN_USE_JQUERY_MULTISELECT;
             	print '<script type="text/javascript" src="'.DOL_URL_ROOT.'/includes/jquery/plugins/'.$tmpplugin.'/'.$tmpplugin.'.js'.($ext?'?'.$ext:'').'" ></script>'."\n";
             }
-            if($_REQUEST['mainmenu'] == 'tools'){
+            if($_REQUEST['mainmenu'] == 'tools' || $_REQUEST['mainmenu']=='companies'){
                 print '<script type="text/javascript"> $(document).ready(function(){
-                    setHightTable("reference_body");
+                        if(document.getElementById("reference_body") != null)
+                            setHightTable("reference_body");
                 })</script>'."\n";
             }
             // jQuery jMobile

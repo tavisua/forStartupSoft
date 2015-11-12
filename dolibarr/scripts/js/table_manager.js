@@ -225,55 +225,59 @@ function add_item(){
     var title = document.getElementById('reference_title');
     var table = document.getElementById('edit_table');
     var td_list = table.getElementsByTagName('td');
+    //console.log('***', td_list);
+    //return;
     var th = title.getElementsByTagName('th');
     var sRow='';
-    var colindex = 0;
     for(var i = 0; i<td_list.length; i++){
+        var colindex = 0;
         var td = td_list[i];
-        //console.log(th[i]);
-        //console.log(td.getElementsByTagName('textarea').length);
-        if(td.getElementsByTagName('select').length > 0){
-            var elems = td.getElementsByTagName('select');
-            for(var el_index = 0; el_index<elems.length; el_index++) {
-                if(elems[el_index].type != 'hidden') {
-                    var fieldname = elems[el_index].id.substr(5);
-                    var optionlist = elems[el_index].getElementsByTagName('option');
-                    for(var index = 0; index<optionlist.length; index++){
-                        if(optionlist[index].value == elems[el_index].value) {
-                            var selectHTML = elems[el_index].outerHTML;
-                            selectHTML = selectHTML.replace('edit_'+fieldname, 'select'+document.getElementById('edit_rowid').value+fieldname);
+        //console.log();
+        if(td.className != "param") {
+            if (td.getElementsByTagName('select').length > 0) {
+                var elems = td.getElementsByTagName('select');
+                for (var el_index = 0; el_index < elems.length; el_index++) {
+                    if (elems[el_index].type != 'hidden') {
+                        var fieldname = elems[el_index].id.substr(5);
+                        var optionlist = elems[el_index].getElementsByTagName('option');
+                        for (var index = 0; index < optionlist.length; index++) {
+                            if (optionlist[index].value == elems[el_index].value) {
+                                var selectHTML = elems[el_index].outerHTML;
+                                selectHTML = selectHTML.replace('edit_' + fieldname, 'select' + document.getElementById('edit_rowid').value + fieldname);
 
-                            sRow += '<td  id="' + document.getElementById('edit_rowid').value + fieldname + '" style="width: '+th[colindex++].width+'">' + selectHTML + '</td>';
-                            break;
+                                sRow += '<td  id="' + document.getElementById('edit_rowid').value + fieldname + '" style="width: ' + th[colindex++].width + '">' + selectHTML + '</td>';
+                                break;
+                            }
                         }
+                        //var text = $('option#'+elems[el_index].value).html();
+                        //console.log(text);
+
                     }
-                    //var text = $('option#'+elems[el_index].value).html();
-                    //console.log(text);
 
+                    //return;
                 }
+            } else if (td.getElementsByTagName('textarea').length > 0 || td.getElementsByTagName('a').length > 0) {
+                var elems = td.getElementsByTagName('textarea');
+                var fieldname = elems[0].id.substr(5);
 
-                //return;
-            }
-        }else if(td.getElementsByTagName('textarea').length > 0 || td.getElementsByTagName('a').length > 0){
-            var elems = td.getElementsByTagName('textarea');
-            var fieldname = elems[0].id.substr(5);
-
-            sRow +='<td id="'+document.getElementById('edit_rowid').value+fieldname+'" style="width: '+th[colindex++].width+'">'+elems[0].value.trim()+'</td>'
-        }else if(td.getElementsByTagName('img').length > 0){
-            var img = td.getElementsByTagName('img');
-            var fieldname = img[0].id.substr(5);
-            var html = td.innerHTML.replace(/change_switch\(0/gi, "change_switch("+document.getElementById('edit_rowid').value);
-            html = html.replace(/img id="edit_active"/gi, "img id='img"+document.getElementById('edit_rowid').value+fieldname+"'")
-            sRow +='<td id="'+document.getElementById('edit_rowid').value+fieldname+'" style="width: '+th[colindex++].width+'">'+html+'</td>';
-        }else if(td.getElementsByTagName('input').length > 0) {
-            var elems = td.getElementsByTagName('input');
-            for(var el_index = 0; el_index<elems.length; el_index++) {
-                if(elems[el_index].type != 'hidden') {
-                    var fieldname = elems[el_index].id.substr(5);
-                    sRow += '<td  id="' + document.getElementById('edit_rowid').value + fieldname + '" style="width: '+th[colindex++].width+'">' + elems[el_index].value.trim() + '</td>'
+                sRow += '<td id="' + document.getElementById('edit_rowid').value + fieldname + '" style="width: ' + th[colindex++].width + '">' + elems[0].value.trim() + '</td>'
+            } else if (td.getElementsByTagName('img').length > 0) {
+                var img = td.getElementsByTagName('img');
+                var fieldname = img[0].id.substr(5);
+                var html = td.innerHTML.replace(/change_switch\(0/gi, "change_switch(" + document.getElementById('edit_rowid').value);
+                html = html.replace(/img id="edit_active"/gi, "img id='img" + document.getElementById('edit_rowid').value + fieldname + "'")
+                sRow += '<td id="' + document.getElementById('edit_rowid').value + fieldname + '" style="width: ' + th[colindex++].width + '">' + html + '</td>';
+            } else if (td.getElementsByTagName('input').length > 0) {
+                var elems = td.getElementsByTagName('input');
+                for (var el_index = 0; el_index < elems.length; el_index++) {
+                    if (elems[el_index].type != 'hidden') {
+                        var fieldname = elems[el_index].id.substr(5);
+                        console.log(th.length, colindex);
+                        sRow += '<td  id="' + document.getElementById('edit_rowid').value + fieldname + '" style="width: ' + th[colindex++].width + '">' + elems[el_index].value.trim() + '</td>'
+                    }
+                    //console.log(elems[i].type);
+                    //return;
                 }
-                //console.log(elems[i].type);
-                //return;
             }
         }
     }

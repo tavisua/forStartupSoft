@@ -357,6 +357,7 @@ class Societe extends CommonObject
     var $logo;
     var $logo_small;
     var $logo_mini;
+    var $active;
 
     var $array_options;
 
@@ -433,7 +434,7 @@ class Societe extends CommonObject
         if ($result >= 0)
         {
             $sql = "INSERT INTO ".MAIN_DB_PREFIX."societe (nom, entity, datec, fk_user_creat, canvas, status, ref_int, ref_ext, fk_stcomm, import_key,
-            state_id, region_id, remark, founder, holding, town, formofgoverment_id, categoryofcustomer_id, dtChange)";
+            state_id, region_id, remark, founder, holding, town, formofgoverment_id, categoryofcustomer_id, active, dtChange)";
             $sql.= " VALUES ('".$this->db->escape($this->name)."', ".$conf->entity.", '".$this->db->idate($now)."'";
             $sql.= ", ".(! empty($user->id) ? "'".$user->id."'":"null");
             $sql.= ", ".(! empty($this->canvas) ? "'".$this->canvas."'":"null");
@@ -450,7 +451,7 @@ class Societe extends CommonObject
             $sql.= ", '".$this->db->escape($this->town)."'";
             $sql.= ", ".(! empty($this->formofgoverment_id) ? "'".$this->formofgoverment_id."'":"null");
             $sql.= ", ".(! empty($this->categoryofcustomer_id) ? "'".$this->categoryofcustomer_id."'":"null");
-            $sql.=", Now())";
+            $sql.=", 1, Now())";
 //            die($sql);
             dol_syslog(get_class($this)."::create", LOG_DEBUG);
             $result=$this->db->query($sql);

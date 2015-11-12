@@ -186,6 +186,7 @@ if (empty($reshook))
         $object->region_id             = GETPOST('region_id', 'int');
         $object->remark                = GETPOST('remark', 'alpha');
         $object->founder               = GETPOST('founder', 'alpha');
+        $object->active                = 1;
         $object->holding               = GETPOST('holding', 'alpha');
         $object->formofgoverment_id    = GETPOST('formofgoverment', 'int');
         $object->categoryofcustomer_id = GETPOST('categoryofcustomer', 'int');
@@ -537,7 +538,10 @@ if (empty($reshook))
 
         if ($result > 0)
         {
-            header("Location: ".DOL_URL_ROOT."/societe/societe.php?delsoc=".urlencode($object->name));
+            if($_REQUEST['mainmenu'] == 'companies')
+                header("Location: ".DOL_URL_ROOT."/societe//index.php?mainmenu=companies&amp;amp;leftmenu=&idmenu=5217&mainmenu=companies&leftmenu=");
+            else
+                header("Location: ".DOL_URL_ROOT."/societe/societe.php?delsoc=".urlencode($object->name));
             exit;
         }
         else
@@ -742,7 +746,7 @@ else
 
         $object->commercial_id		= GETPOST('commercial_id', 'int');
         $object->default_lang		= GETPOST('default_lang');
-
+        $object->active             = 1;
         $object->logo = (isset($_FILES['photo'])?dol_sanitizeFileName($_FILES['photo']['name']):'');
 
         // Gestion du logo de la société

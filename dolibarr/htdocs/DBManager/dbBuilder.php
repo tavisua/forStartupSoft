@@ -18,7 +18,7 @@ class dbBuilder{
     }
     function fBuildEditForm($title, $field, $theme, $tablename){
         $edit_form ="<tr>
-                        <td>".$title['title']."</td>";
+                        <td class='param'>".$title['title']."</td>";
 
 
         if(isset($title['hidden'])){
@@ -30,8 +30,8 @@ class dbBuilder{
             while($row = $result->fetch_assoc()){
 //                for($i=0;$i<100;$i++) { //Нужно сделать прокрутку в случае с большим количеством параметров
                     $param_t .= "<tr>
-                    <td>" . $row['name'] . "</td>
-                    <td>" . '<input id = ' . $row['rowid'] . ' class="param" maxlength="11" name="label" type="text" value="">' . "</td>
+                    <td class='param'>" . $row['name'] . "</td>
+                    <td class='param'>" . '<input id = ' . $row['rowid'] . ' class="param" maxlength="11" name="label" type="text" value="">' . "</td>
                 </tr>";
 //                }
             }
@@ -228,8 +228,7 @@ class dbBuilder{
             $num_col++;
         }
             $widthtable += 55;
-//        var_dump($hiddenfield);
-//        die();
+
         if($showtitle) {
             if (count($readonly) == 0) {
                 $table .= '<th width="20px">
@@ -315,7 +314,10 @@ class dbBuilder{
 //                        echo '<pre>';
 //                        var_dump($title[$num_col-1]['title']);
 //                        echo '</pre>';
-                        $width = ($title[$num_col-1]['width'])!=''?($title[$num_col-1]['width']+(($num_col-1)*1.5).'px'):('auto');
+                        if(count($readonly)==0)
+                            $width = ($title[$num_col-1]['width'])!=''?($title[$num_col-1]['width'].'px'):('auto');
+                        else
+                            $width = ($title[$num_col-1]['width'])!=''?($title[$num_col-1]['width']+(($num_col-1)*1.5).'px'):('auto');
 
                         if ($fields[$num_col]->type == 16) {
                             if(count($readonly)==0) {
@@ -401,6 +403,8 @@ class dbBuilder{
                             </div>';
             }
 //
+//            var_dump(count($readonly)==0);
+//            die();
             if(count($readonly)==0) {
                 $table .= '<td style="width: 20px" align="left">
 

@@ -35,6 +35,9 @@ if ($user->societe_id) $socid=$user->societe_id;
 // Security check
 $result=restrictedArea($user,'societe',0,'','','','');
 
+
+
+
 $thirdparty_static = new Societe($db);
 
 
@@ -49,6 +52,78 @@ llxHeader("",$langs->trans("ThirdParties"),$helpurl);
 
 print_fiche_titre($transAreaType);
 
+$NewItem = $langs->trans('NewItem');
+$Control = $langs->trans('Control');
+
+$sql = 'select `llx_societe`.rowid, `category_counterparty`.name as category_name, `llx_societe`.`holding`, `llx_societe`.nom, `formofgavernment`.name as goverment_name,
+`llx_societe`.`town`, `llx_societe`.`founder`, `llx_societe`.`phone`, `llx_societe`.`remark`, `llx_societe`.active
+from `llx_societe` left join `category_counterparty` on `llx_societe`.`categoryofcustomer_id` = `category_counterparty`.rowid
+left join `formofgavernment` on `llx_societe`.`formofgoverment_id` = `formofgavernment`.rowid
+order by nom';
+
+$TableParam = array();
+$ColParam['title']=$langs->trans('CategoryCustomer');;
+$ColParam['width']='130';
+$ColParam['align']='';
+$ColParam['class']='';
+$TableParam[]=$ColParam;
+
+$ColParam['title']=$langs->trans('Holding');
+$ColParam['width']='100';
+$ColParam['align']='';
+$ColParam['class']='';
+$TableParam[]=$ColParam;
+
+$ColParam['title']=$langs->trans('ThirdPartyName');
+$ColParam['width']='180';
+$ColParam['align']='';
+$ColParam['class']='';
+$TableParam[]=$ColParam;
+
+$ColParam['title']=$langs->trans('FormOfGovernmentAbriv');
+$ColParam['width']='80';
+$ColParam['align']='';
+$ColParam['class']='';
+$TableParam[]=$ColParam;
+
+$ColParam['title']=$langs->trans('Town');
+$ColParam['width']='130';
+$ColParam['align']='';
+$ColParam['class']='';
+$TableParam[]=$ColParam;
+
+$ColParam['title']=$langs->trans('Founder');
+$ColParam['width']='130';
+$ColParam['align']='';
+$ColParam['class']='';
+$TableParam[]=$ColParam;
+
+$ColParam['title']=$langs->trans('Phone');
+$ColParam['width']='130';
+$ColParam['align']='';
+$ColParam['class']='';
+$TableParam[]=$ColParam;
+
+$ColParam['title']=$langs->trans('Remark');
+$ColParam['width']='180';
+$ColParam['align']='';
+$ColParam['class']='';
+$TableParam[]=$ColParam;
+
+$ColParam['title']=$langs->trans('Active');
+$ColParam['width']='100';
+$ColParam['align']='';
+$ColParam['class']='';
+$TableParam[]=$ColParam;
+
+$tablename = "llx_societe";
+include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
+$db_mysql = new dbBuilder();
+$table = $db_mysql->fShowTable($TableParam, $sql, "'" . $tablename . "'", $conf->theme, $_REQUEST['sortfield'], $_REQUEST['sortorder']);
+
+include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/societe.html';
+llxFooter();
+exit();
 
 //print '<table border="0" width="100%" class="notopnoleftnoright">';
 //print '<tr><td valign="top" width="30%" class="notopnoleft">';
