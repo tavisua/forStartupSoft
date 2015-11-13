@@ -380,9 +380,11 @@ function edit_item(rowid){
                 bSelectedField = true;
                 var select_field = $('select#edit_'+fieldname.substr(2))
                 var detail_id = 'detail_' + select_field[0].id.substr(5);
+                console.log('***'+detail_id, fieldname, detail_id);
                 var detail_field = document.getElementById(detail_id);
                 //console.log("select#edit_"+fieldname.substr(2));
-                $("select#edit_"+fieldname.substr(2)+"  [value="+$('select#select'+rowid+detail_field.value).val()+"]").attr("selected", "selected");
+                if(detail_field != null)
+                    $("select#edit_"+fieldname.substr(2)+"  [value="+$('select#select'+rowid+detail_field.value).val()+"]").attr("selected", "selected");
             }
             var img = source_field.getElementsByTagName('img');
             if(img.length > 0){

@@ -45,7 +45,12 @@ if(isset($_REQUEST['getregion'])){
     echo $formcompany->select_region($_REQUEST['getregion'],'region_id');
     exit();
 }
-
+if(isset($_REQUEST['action'])) {
+    $action = $_REQUEST['action'];
+    $socid = $_REQUEST['socid'];
+    var_dump($action);
+    die('test');
+}
 
 $langs->load("companies");
 $langs->load("commercial");
@@ -58,14 +63,16 @@ if (! empty($conf->notification->enabled)) $langs->load("mails");
 $mesg=''; $error=0; $errors=array();
 
 $action		= (GETPOST('action') ? GETPOST('action') : 'view');
-//for($i=0; $i<count($_POST); $i++) {
-//    echo $_POST[$i].'</br>';
-//}
+
+
 
 
 $backtopage = GETPOST('backtopage','alpha');
 $confirm	= GETPOST('confirm');
 $socid		= GETPOST('socid','int');
+
+
+
 if ($user->societe_id) $socid=$user->societe_id;
 if (empty($socid) && $action == 'view') $action='create';
 

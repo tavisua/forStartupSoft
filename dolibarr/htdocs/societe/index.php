@@ -55,7 +55,7 @@ print_fiche_titre($transAreaType);
 $NewItem = $langs->trans('NewItem');
 $Control = $langs->trans('Control');
 
-$sql = 'select `llx_societe`.rowid, `category_counterparty`.name as category_name, `llx_societe`.`holding`, `llx_societe`.nom, `formofgavernment`.name as goverment_name,
+$sql = 'select `llx_societe`.rowid, `category_counterparty`.name as s_category_counterparty_name, `llx_societe`.`holding`, `llx_societe`.nom, `formofgavernment`.name as s_formofgavernment_name,
 `llx_societe`.`town`, `llx_societe`.`founder`, `llx_societe`.`phone`, `llx_societe`.`remark`, `llx_societe`.active
 from `llx_societe` left join `category_counterparty` on `llx_societe`.`categoryofcustomer_id` = `category_counterparty`.rowid
 left join `formofgavernment` on `llx_societe`.`formofgoverment_id` = `formofgavernment`.rowid
@@ -66,8 +66,12 @@ $ColParam['title']=$langs->trans('CategoryCustomer');;
 $ColParam['width']='130';
 $ColParam['align']='';
 $ColParam['class']='';
+$ColParam['sourcetable']='category_counterparty';
+$ColParam['detailfield']='categoryofcustomer_id';
 $TableParam[]=$ColParam;
 
+unset($ColParam['sourcetable']);
+unset($ColParam['detailfield']);
 $ColParam['title']=$langs->trans('Holding');
 $ColParam['width']='100';
 $ColParam['align']='';
@@ -84,8 +88,12 @@ $ColParam['title']=$langs->trans('FormOfGovernmentAbriv');
 $ColParam['width']='80';
 $ColParam['align']='';
 $ColParam['class']='';
+$ColParam['sourcetable']='formofgavernment';
+$ColParam['detailfield']='formofgoverment_id';
 $TableParam[]=$ColParam;
 
+unset($ColParam['sourcetable']);
+unset($ColParam['detailfield']);
 $ColParam['title']=$langs->trans('Town');
 $ColParam['width']='130';
 $ColParam['align']='';

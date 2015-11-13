@@ -54,8 +54,8 @@ class dbBuilder{
                         $stpos = 7;
                     } else
                         $stpos = 3;
-                    $s_table = substr($field->name, 2, strpos($field->name, '_', $stpos) - 2);
-                    $s_fieldname = substr($field->name, strpos($field->name, '_', $stpos) + 1);
+                    $s_table = substr($field->name, 2, strrpos($field->name, '_', $stpos) - 2);
+                    $s_fieldname = substr($field->name, strrpos($field->name, '_', $stpos) + 1);
                     $edit_form .= "\r\n";
                     if (isset($title['detailfield']))
                         $edit_form .= '<input id="detail_' . $s_table . '_' . $s_fieldname . '" type="hidden" value="' . $title['detailfield'] . '">' . "\r\n";
@@ -408,7 +408,7 @@ class dbBuilder{
             if(count($readonly)==0) {
                 $table .= '<td style="width: 20px" align="left">
 
-                <img  src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/edit.png" title="Редактировать" style="vertical-align: middle" onclick="edit_item(' . $row['rowid'] . ');">
+                <img  id="img_'. $row['rowid'].'" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/edit.png" title="Редактировать" style="vertical-align: middle" onclick="edit_item(' . $row['rowid'] . ');">
 
 
                        </td>';
