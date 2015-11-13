@@ -686,7 +686,14 @@ class Societe extends CommonObject
         $this->address		= $this->address?trim($this->address):trim($this->address);
         $this->zip			= $this->zip?trim($this->zip):trim($this->zip);
         $this->town			= $this->town?trim($this->town):trim($this->town);
-        $this->state_id		= trim($this->state_id);
+        $this->state_id		= ($this->state_id > 0)?$this->state_id:0;
+        $this->region_id	= ($this->region_id > 0)?$this->region_id:0;
+        $this->remark       = trim($this->remark);
+        $this->founder      = trim($this->founder);
+        $this->holding      = trim($this->holding);
+        $this->formofgoverment_id = ($this->formofgoverment_id > 0)?$this->formofgoverment_id:0;
+        $this->categoryofcustomer_id = ($this->categoryofcustomer_id > 0)?$this->categoryofcustomer_id:0;
+
         $this->country_id	= ($this->country_id > 0)?$this->country_id:0;
         $this->phone		= trim($this->phone);
         $this->phone		= preg_replace("/\s/","",$this->phone);
@@ -732,19 +739,19 @@ class Societe extends CommonObject
         $this->code_compta=trim($this->code_compta);
         $this->code_compta_fournisseur=trim($this->code_compta_fournisseur);
 
-        // Check parameters
-        if (! empty($conf->global->SOCIETE_MAIL_REQUIRED) && ! isValidEMail($this->email))
-        {
-            $langs->load("errors");
-            $this->error = $langs->trans("ErrorBadEMail",$this->email);
-            return -1;
-        }
-        if (! is_numeric($this->client) && ! is_numeric($this->fournisseur))
-        {
-            $langs->load("errors");
-            $this->error = $langs->trans("BadValueForParameterClientOrSupplier");
-            return -1;
-        }
+//        // Check parameters
+//        if (! empty($conf->global->SOCIETE_MAIL_REQUIRED) && ! isValidEMail($this->email))
+//        {
+//            print $langs->load("errors");
+//            $this->error = $langs->trans("ErrorBadEMail",$this->email);
+//            return -1;
+//        }
+//        if (! is_numeric($this->client) && ! is_numeric($this->fournisseur))
+//        {
+//            print $langs->load("errors");
+//            $this->error = $langs->trans("BadValueForParameterClientOrSupplier");
+//            return -1;
+//        }
 
         $customer=false;
         if (! empty($allowmodcodeclient) && ! empty($this->client))
@@ -775,7 +782,10 @@ class Societe extends CommonObject
         //Web services
         $this->webservices_url = $this->webservices_url?clean_url($this->webservices_url,0):'';
         $this->webservices_key = trim($this->webservices_key);
-
+//        echo '<pre>';
+//        var_dump($this);
+//        echo '</pre>';
+//        die('dolibarr/htdocs/societe/class/societe.class.php 788');
         $this->db->begin();
 
         // Check name is required and codes are ok or unique.
@@ -810,6 +820,21 @@ class Societe extends CommonObject
             $sql .= ",idprof4 = '". $this->db->escape($this->idprof4) ."'";
             $sql .= ",idprof5 = '". $this->db->escape($this->idprof5) ."'";
             $sql .= ",idprof6 = '". $this->db->escape($this->idprof6) ."'";
+
+//            $this->state_id		= ($this->state_id > 0)?$this->state_id:0;
+//            $this->region_id	= ($this->region_id > 0)?$this->region_id:0;
+//            $this->remark       = trim($this->remark);
+//            $this->founder      = trim($this->founder);
+//            $this->holding      = trim($this->holding_;
+//            $this->formofgoverment_id = ($this->formofgoverment_id > 0)?$this->formofgoverment_id:0;
+//            $this->categoryofcustomer_id = ($this->categoryofcustomer_id > 0)?$this->categoryofcustomer_id:0;
+            $sql .= ", state_id=".(! empty($this->state_id)?"'".$this->state_id."'":"null");
+            $sql .= ", region_id=".(! empty($this->region_id)?"'".$this->region_id."'":"null");
+            $sql .= ", remark   = '". $this->db->escape($this->remark) ."'";
+            $sql .= ", founder   = '". $this->db->escape($this->founder) ."'";
+            $sql .= ", holding   = '". $this->db->escape($this->holding) ."'";
+            $sql .= ", formofgoverment_id=".(! empty($this->formofgoverment_id)?"'".$this->formofgoverment_id."'":"null");
+            $sql .= ", categoryofcustomer_id=".(! empty($this->categoryofcustomer_id)?"'".$this->categoryofcustomer_id."'":"null");
 
             $sql .= ",tva_assuj = ".($this->tva_assuj!=''?"'".$this->tva_assuj."'":"null");
             $sql .= ",tva_intra = '" . $this->db->escape($this->tva_intra) ."'";
@@ -871,9 +896,8 @@ class Societe extends CommonObject
                 $sql .= ", code_compta_fournisseur = ".(! empty($this->code_compta_fournisseur)?"'".$this->db->escape($this->code_compta_fournisseur)."'":"null");
             }
             $sql .= ", fk_user_modif = ".(! empty($user->id)?"'".$user->id."'":"null");
-            $sql .= " WHERE rowid = '" . $id ."'";
-
-
+            $sql .= " WHERE rowid = '" . $this->id ."'";
+//            die($sql);
             dol_syslog(get_class($this)."::Update", LOG_DEBUG);
             $resql=$this->db->query($sql);
             if ($resql)
@@ -1012,7 +1036,7 @@ class Societe extends CommonObject
         $sql .= ', s.price_level';
         $sql .= ', s.tms as date_modification';
         $sql .= ', s.phone, s.fax, s.email, s.skype, s.url, s.zip, s.town, s.note_private, s.note_public, s.client, s.fournisseur';
-        $sql .= ', s.siren as idprof1, s.siret as idprof2, s.ape as idprof3, s.idprof4, s.idprof5, s.idprof6';
+        $sql .= ', s.siren as idprof1, s.siret as idprof2, s.ape as idprof3, s.idprof4, s.idprof5, s.idprof6, s.state_id, s.region_id, s.remark, s.founder, s.holding, s.formofgoverment_id, s.categoryofcustomer_id';
         $sql .= ', s.capital, s.tva_intra';
         $sql .= ', s.fk_typent as typent_id';
         $sql .= ', s.fk_effectif as effectif_id';
@@ -1045,6 +1069,7 @@ class Societe extends CommonObject
         if ($idprof4) $sql .= " WHERE s.idprof4 = '".$this->db->escape($idprof4)."' AND s.entity IN (".getEntity($this->element, 1).")";
 
         $resql=$this->db->query($sql);
+
         dol_syslog(get_class($this)."::fetch ".$sql);
         if ($resql)
         {
@@ -1080,7 +1105,8 @@ class Societe extends CommonObject
                 $this->country_code = $obj->country_id?$obj->country_code:'';
                 $this->country 		= $obj->country_id?($langs->trans('Country'.$obj->country_code)!='Country'.$obj->country_code?$langs->transnoentities('Country'.$obj->country_code):$obj->country):'';
 
-                $this->state_id     = $obj->fk_departement;
+                $this->state_id     = $obj->state_id;
+                $this->region_id    = $obj->region_id;
                 $this->state_code   = $obj->state_code;
                 $this->state        = ($obj->state!='-'?$obj->state:'');
 
@@ -1103,6 +1129,12 @@ class Societe extends CommonObject
                 $this->idprof4		= $obj->idprof4;
                 $this->idprof5		= $obj->idprof5;
                 $this->idprof6		= $obj->idprof6;
+                //s.state_id, s.region_id, s.remark, s.founder, s.holding, s.formofgoverment_id, s.categoryofcustomer_id
+                $this->remark       = $obj->remark;
+                $this->founder      = $obj->founder;
+                $this->holding      = $obj->holding;
+                $this->formofgoverment_id = $obj->formofgoverment_id;
+                $this->categoryofcustomer_id = $obj->categoryofcustomer_id;
 
                 $this->capital   = $obj->capital;
 

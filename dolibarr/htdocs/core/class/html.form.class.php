@@ -4381,8 +4381,8 @@ class Form
             $out = '<select id="categoryofcustomer" class="combobox" size="1" name="categoryofcustomer" onchange="setvisiblbloks();">';
             $out .= '<option value="0">&nbsp;</option>';
             while($row = $result->fetch_assoc()){
-                if($selected == trim($row['name'])){
-                    $out .= '<option value="'.$row['rowid'].'"> selected = "selected"'.trim($row['name']).'</option>';
+                if($selected == trim($row['rowid'])){
+                    $out .= '<option value="'.$row['rowid'].'" selected = "selected">'.trim($row['name']).'</option>';
                 }else{
                     $out .= '<option value="'.$row['rowid'].'"> '.trim($row['name']).'</option>';
                 }
@@ -4400,8 +4400,8 @@ class Form
             $out = '<select id="formofgoverment" class="combobox" size="1" name="formofgoverment">';
             $out .= '<option value="0">&nbsp;</option>';
             while($row = $result->fetch_assoc()){
-                if($selected == trim($row['name'])){
-                    $out .= '<option value="'.$row['rowid'].'"> selected = "selected"'.trim($row['name']).'</option>';
+                if($selected == trim($row['rowid'])){
+                    $out .= '<option value="'.$row['rowid'].'" selected = "selected">'.trim($row['name']).'</option>';
                 }else{
                     $out .= '<option value="'.$row['rowid'].'"> '.trim($row['name']).'</option>';
                 }
