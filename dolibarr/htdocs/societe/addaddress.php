@@ -12,14 +12,34 @@ require '../main.inc.php';
 //echo '</pre>';
 
 require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/societe/SocAddress.php';
+require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 $soc_address = new SocAddress();
+$form = new Form($db);
+$formcompany = new FormCompany($db);
 $action = GETPOST('action', 'alpha');
-if($action =='cancel'){
-    header('Location: '.$_REQUEST['url']);
+$action_url = str_replace('edit', 'save',$_SERVER['REQUEST_URI']);
+//var_dump($action_url);
+//die();
+if($action =='cancel') {
+    header('Location: ' . $_REQUEST['url']);
     exit;
-}elseif($_POST['action'] == 'save'){
+}elseif($_REQUEST['action'] == 'edit'){
+    $soc_address->fetch($_REQUEST['rowid']);
 
+    $action      = 'save';
+    $socid       = $soc_address->socid;
+    $url         = $_SERVER["HTTP_REFERER"];
+//    die($url);
+    $EditAddress = $langs->trans('EditAddress');
+    llxHeader('', $EditAddress, $help_url);
+    print_fiche_titre($EditAddress);
+    include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/addaddress.html');
+    echo ob_get_clean();
+    llxFooter();
+    exit;
+}elseif(GETPOST('action', 'alpha') == 'save'){
+    $url                        = htmlspecialchars(GETPOST('url', 'alpha'));
     $soc_address->rowid         = GETPOST('rowid');
     $soc_address->whom          = GETPOST('whom');
     $soc_address->kindaddress   = GETPOST('kindaddress');
@@ -54,31 +74,29 @@ if($action =='cancel'){
     if(empty($soc_address->NumberOfHouse))$error++;
     if(empty($soc_address->NumberOfOffice))$error++;
     if($soc_address->kindoffice_id == 0)$error++;
-
     if($error > 0) {
         $action = 'error';
     }else {
-//        echo '<pre>';
-//        var_dump($soc_address);
-//        var_dump($_POST);
-//        echo '</pre>';
         if(empty($soc_address->rowid)){
             $soc_address->createAddress(GETPOST('socid'));
+        }else{
+            $soc_address->updateAddress();
         }
+        header('Location: ' . GETPOST('url', 'alpha'));
         exit();
     }
+//    echo ('<pre>');
+//    var_dump($soc_address);
+//    echo ('</pre>');
+//    die();
 }
 
 $socid = GETPOST('socid', 'int');
 if(empty($socid))
     $socid = $_REQUEST['socid'];
 
+$url = $_SERVER["HTTP_REFERER"];
 
-
-require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
-
-$form = new Form($db);
-$formcompany = new FormCompany($db);
 //echo '<pre>';
 //var_dump($soc_address);
 //echo '</pre>';

@@ -270,7 +270,7 @@ class dbBuilder{
                         $table .= '<td id="0" >&nbsp;</td>';
                         if(count($readonly)==0)
                             $edit_form .= $this->fBuildEditForm($title[$num_col], $fields[$i], $theme, $tablename);
-                    } else
+                    } elseif($showtitle)
                         $table .= '<td id="0" style="width: 20px"></td>';
                     $num_col++;
                 }

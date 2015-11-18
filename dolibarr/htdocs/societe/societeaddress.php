@@ -42,10 +42,11 @@ print '
                 <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/soc.php?mainmenu=companies&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('EconomicData').'</a>
             </div>
         </div>';
-
+//var_dump();
+//die();
 $TableParam = array();
 $ColParam['title']=$langs->trans('Whom');
-$ColParam['width']='150';
+$ColParam['width']='450';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
@@ -191,4 +192,5 @@ $db = new dbBuilder();
 $table = $db->fShowTable($TableParam, $sql, "'" . $tablename . "'", $conf->theme, '', '', $readonly = array(), false);
 
 include DOL_DOCUMENT_ROOT.'/theme/eldy/societeaddress.html';
+
 llxFooter();

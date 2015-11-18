@@ -28,6 +28,7 @@ class SocAddress {
     var $WorkerCount;
     var $SendPost;
     var $SendEmail;
+    var $socid;
 
 
     public function __construct()
@@ -41,17 +42,73 @@ class SocAddress {
 //        var_dump($this);
 //        echo '</pre>';
 //        die();
-        $sql="insert into llx_societe_address(fk_soc, whom,kindaddress,country_id,state_id,region_id,kindlocality_id,location,
-              kindofstreet_id,street_name,numberofhouse,numberofoffice,gps,email,site,workercount,sendpost,sendemail,
+        $sql="insert into llx_societe_address(fk_soc,zip,whom,kindaddress,country_id,state_id,region_id,kindlocality_id,location,
+              kindofstreet_id,street_name,numberofhouse,kindoffice_id,numberofoffice,gps,email,site,workercount,sendpost,sendemail,
               active,id_usr,dtChange)
         values(
-        ".$socid.",'".$this->whom."',".$this->kindaddress.",".$this->country_id.",".$this->state_id.",".$this->region_id.",
+        ".$socid.",".$this->Zip.",'".$this->whom."',".$this->kindaddress.",".$this->country_id.",".$this->state_id.",".$this->region_id.",
         ".$this->kindlocality_id.",'".$this->location."',".$this->kindofstreet_id.",'".$this->street_name."','".$this->NumberOfHouse."',
-        '".$this->NumberOfOffice."','".$this->GPS."','".$this->e_mail."','".$this->site."',".$this->WorkerCount.",
+        ".$this->kindoffice_id.", '".$this->NumberOfOffice."','".$this->GPS."','".$this->e_mail."','".$this->site."',".$this->WorkerCount.",
         ".$this->SendPost.",".$this->SendEmail.",1,".$user->id.", Now())";
         $res = $db->query($sql);
         if(!$res)
             dol_print_error($db);
+    }
+    public function updateAddress(){
+        global $db, $user;
+        $sql = 'update llx_societe_address set ';
+        $sql .= 'zip = '.(!empty($this->Zip)?"'".trim($this->Zip)."'":"null");
+        $sql .= ', whom = '.(!empty($this->whom)?"'".trim($this->whom)."'":"null");
+        $sql .= ', kindaddress = '.(!empty($this->kindaddress)?$this->kindaddress:"null");
+        $sql .= ', country_id = '.(!empty($this->country_id)?$this->country_id:"null");
+        $sql .= ', state_id = '.(!empty($this->state_id)?$this->state_id:"null");
+        $sql .= ', kindlocality_id = '.(!empty($this->kindlocality_id)?$this->kindlocality_id:"null");
+        $sql .= ', location = '.(!empty($this->location)?"'".$this->location."'":"null");
+        $sql .= ', kindofstreet_id = '.(!empty($this->kindofstreet_id)?$this->kindofstreet_id:"null");
+        $sql .= ', street_name = '.(!empty($this->street_name)?"'".$this->street_name."'":"null");
+        $sql .= ', numberofhouse = '.(!empty($this->NumberOfHouse)?"'".$this->NumberOfHouse."'":"null");
+        $sql .= ', kindoffice_id = '.(!empty($this->kindoffice_id)?$this->kindoffice_id:"null");
+        $sql .= ', numberofoffice = '.(!empty($this->NumberOfOffice)?"'".$this->NumberOfOffice."'":"null");
+        $sql .= ', gps = '.(!empty($this->GPS)?"'".$this->GPS."'":"null");
+        $sql .= ', email = '.(!empty($this->e_mail)?"'".$this->e_mail."'":"null");
+        $sql .= ', site = '.(!empty($this->site)?"'".$this->site."'":"null");
+        $sql .= ', workercount = '.(!empty($this->WorkerCount)?$this->WorkerCount:"null");
+        $sql .= ', sendpost = '.(!empty($this->SendPost)?$this->SendPost:"0");
+        $sql .= ', sendemail = '.(!empty($this->SendEmail)?$this->SendEmail:"0");
+        $sql .= ', id_usr = '.$user->id;
+        $sql .= ', dtChange = Now() where rowid='.$this->rowid;
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+    }
+    public function fetch($rowid){
+        global $db, $user;
+        $sql = 'select zip, fk_soc, whom,kindaddress,country_id,state_id,region_id,kindlocality_id,location,kindofstreet_id,
+        street_name,numberofhouse,kindoffice_id,numberofoffice,gps,email,site,workercount,sendpost,sendemail
+        from `llx_societe_address` where rowid = '.$rowid;
+        $res = $db->query($sql);
+        $obj = $db->fetch_object($res);
+        $this->rowid          = $rowid;
+        $this->socid          = $obj->fk_soc;
+        $this->Zip            = $obj->zip;
+        $this->whom           = $obj->whom;
+        $this->kindaddress    = $obj->kindaddress;
+        $this->country_id     = $obj->country_id;
+        $this->state_id       = $obj->state_id;
+        $this->region_id      = $obj->region_id;
+        $this->kindlocality_id= $obj->kindlocality_id;
+        $this->location       = $obj->location;
+        $this->kindofstreet_id= $obj->kindofstreet_id;
+        $this->street_name    = $obj->street_name;
+        $this->NumberOfHouse  = $obj->numberofhouse;
+        $this->kindoffice_id  = $obj->kindoffice_id;
+        $this->NumberOfOffice = $obj->numberofoffice;
+        $this->GPS            = $obj->gps;
+        $this->e_mail         = $obj->email;
+        $this->site           = $obj->site;
+        $this->WorkerCount    = $obj->workercount;
+        $this->SendPost       = $obj->sendpost;
+        $this->SendEmail      = $obj->sendemail;
     }
     public function selectKindAddress($htmlname, $kind=''){
         global $db;

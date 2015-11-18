@@ -1949,6 +1949,20 @@ if (! function_exists("llxFooter"))
         print '    });';
         print '';
         print '</script>';
+        if($conf->browser->name == chrome){
+            print '
+                <script type="text/javascript">
+                    $(document).ready(function(){
+                        $(".header_table").attr("id", "societeaddress_header");
+                    })
+                </script>
+                <style>
+                    #societeaddress_header{
+                        background: rgb(218, 150, 148);
+                    }
+                </style>
+            ';
+        }
         print "</body>\n";
         print "</html>\n";
     }

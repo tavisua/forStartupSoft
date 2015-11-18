@@ -35,13 +35,16 @@ function setvisiblbloks(){
 function setHightTable(table){
     var tbody = document.getElementById(table);
     if(tbody!=null){
-        tbody.style.height = window.innerHeight*.78;
-        //console.log(document.getElementsByClassName('tabPage').length);
-        if(document.getElementsByClassName('tabPage').length>0) {
-            tbody.style.height = window.innerHeight - 270;
-            //console.log(tbody.style.width);
-            tbody.style.width = Number(tbody.style.width.substr(0, tbody.style.width.length-2))+20;
-            //console.log('.tabPage');
+        var tdlist = $('#reference_body').find('td');
+        if((tdlist.length/22)>20) {
+            tbody.style.height = window.innerHeight * .78;
+            //console.log(document.getElementsByClassName('tabPage').length);
+            if (document.getElementsByClassName('tabPage').length > 0) {
+                tbody.style.height = window.innerHeight - 370;
+                //console.log(tbody.style.width);
+                tbody.style.width = Number(tbody.style.width.substr(0, tbody.style.width.length - 2)) + 20;
+                //console.log('.tabPage');
+            }
         }
     }
     var menu = $('.vmenu')

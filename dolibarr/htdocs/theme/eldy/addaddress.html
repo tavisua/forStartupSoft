@@ -18,15 +18,15 @@
         </table>
     </div>
 
-    <form id="addaddress" action="<?echo $_SERVER['REQUEST_URI']?>" method="post">
-        <input id="rowid" name="rowid" type="hidden" value="<?echo $rowid?>">
-        <input id="url" name="url" type="hidden" value="<?echo htmlspecialchars(GETPOST('url', 'alpha'))?>">
-        <input id="action" name="action" type="hidden" value="<?echo GETPOST('action', 'alpha')?>">
+    <form id="addaddress" action="<?echo $action_url?>" method="post">
+        <input id="rowid" name="rowid" type="hidden" value="<?echo $soc_address->rowid?>">
+        <input id="url" name="url" type="hidden" value="<?echo $url?>">
+        <input id="action" name="action" type="hidden" value="<?echo $action?>">
         <input id="mainmenu" name="mainmenu" type="hidden" value="<?echo GETPOST('mainmenu', 'alpha')?>">
         <input id="idmenu" name="idmenu" type="hidden" value="<?echo GETPOST('idmenu', 'alpha')?>">
-        <input id="socid" name="socid" type="hidden" value="<?echo GETPOST('socid', 'alpha')?>">
-        <input id="SendPost" name="SendPost" type="hidden" value="1">
-        <input id="SendEmail" name="SendEmail" type="hidden" value="1">
+        <input id="socid" name="socid" type="hidden" value="<?echo $socid?>">
+        <input id="SendPost" name="SendPost" type="hidden" value="<?echo $soc_address->SendPost?>">
+        <input id="SendEmail" name="SendEmail" type="hidden" value="<?echo $soc_address->SendEmail?>">
         <table class="border" width="100%">
             <tr>
                 <td class="<?if($action == 'error' && empty($soc_address->whom)){echo 'fielderror';}else{echo 'fieldrequired';}?>">
@@ -137,7 +137,7 @@
                     <?echo $langs->trans('GPS')?>
                 </td>
                 <td>
-                    <input id="GPS" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_address->whom?>" name="GPS" maxlength="20" size="60" autocomplete="off">
+                    <input id="GPS" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_address->GPS?>" name="GPS" maxlength="20" size="60" autocomplete="off">
                 </td>
             </tr>
             <tr>
@@ -153,7 +153,7 @@
                     <?echo $langs->trans('site')?>
                 </td>
                 <td>
-                    <input id="site" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_address->whom?>" name="site" maxlength="50" size="60" autocomplete="off">
+                    <input id="site" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_address->site?>" name="site" maxlength="50" size="60" autocomplete="off">
                 </td>
             </tr>
             <tr>
@@ -161,7 +161,7 @@
                     <?echo $langs->trans('WorkerCount')?>
                 </td>
                 <td>
-                    <input id="WorkerCount" class="param" type="text" autofocus="autofocus" value="<?echo $soc_address->whom?>" name="WorkerCount" maxlength="6" size="60" autocomplete="off">
+                    <input id="WorkerCount" class="param" type="text" autofocus="autofocus" value="<?echo $soc_address->WorkerCount?>" name="WorkerCount" maxlength="6" size="60" autocomplete="off">
                 </td>
             </tr>
             <tr>
@@ -169,7 +169,7 @@
                     <?echo $langs->trans('SendPost')?>
                 </td>
                 <td>
-                    <img id="imgSendPost" onclick="change_switchPost();" src="<?if($soc_address->SendPost == 1 || empty($soc_address->SendPost)) echo '/dolibarr/htdocs/theme/eldy/img/switch_on.png'; else echo '/dolibarr/htdocs/theme/eldy/img/switch_off.png'; ?>">
+                    <img id="imgSendPost" onclick="change_switchPost();" src="<?if($soc_address->SendPost == 1 || (empty($soc_address->SendPost)&&$soc_address->SendPost!=0)) echo '/dolibarr/htdocs/theme/eldy/img/switch_on.png'; else echo '/dolibarr/htdocs/theme/eldy/img/switch_off.png'; ?>">
                 </td>
             </tr>
             <tr>
@@ -177,7 +177,7 @@
                     <?echo $langs->trans('SendEmail')?>
                 </td>
                 <td >
-                    <img id="imgSendEmail"  onclick="change_switchEmail();" src="<?if($soc_address->SendEmail == 1 || empty($soc_address->SendEmail)) echo '/dolibarr/htdocs/theme/eldy/img/switch_on.png'; else echo '/dolibarr/htdocs/theme/eldy/img/switch_off.png'; ?>">
+                    <img id="imgSendEmail"  onclick="change_switchEmail();" src="<?if($soc_address->SendEmail == 1 || (empty($soc_address->SendEmail)&&$soc_address->SendEmail!=0)) echo '/dolibarr/htdocs/theme/eldy/img/switch_on.png'; else echo '/dolibarr/htdocs/theme/eldy/img/switch_off.png'; ?>">
                 </td>
             </tr>
         </table>
@@ -191,6 +191,7 @@
 <script type="text/javascript">
     function back(){
         $('#action').val('cancel');
+        $('#addaddress').attr('action', $('#url').val());
     }
     function save(){
         $('#action').val('save');
