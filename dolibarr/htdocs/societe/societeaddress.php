@@ -10,10 +10,7 @@ require_once DOL_DOCUMENT_ROOT.'/contact/class/contact.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
-//echo '<pre>';
-//var_dump($_SERVER);
-//echo '</pre>';
-//die();
+
 $socid = GETPOST('socid', 'int');
 if(empty($socid))
     $socid = $_REQUEST['socid'];
@@ -36,7 +33,7 @@ print '
                 <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societeaddress.php?mainmenu=companies&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('AddressList').'</a>
             </div>
             <div class="inline-block tabsElem">
-                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/soc.php?mainmenu=companies&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('ContactList').'</a>
+                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societecontact.php?mainmenu=companies&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('ContactList').'</a>
             </div>
             <div class="inline-block tabsElem">
                 <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/soc.php?mainmenu=companies&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('EconomicData').'</a>
