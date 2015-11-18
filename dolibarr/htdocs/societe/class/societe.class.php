@@ -532,6 +532,18 @@ class Societe extends CommonObject
      * @param 	User	$user		Object user
      * @return 	int					<0 if KO, >0 if OK
      */
+    function getFormOfGoverment(){
+        $sql = 'select name from `formofgavernment` where rowid = '.$this->formofgoverment_id;
+        $res = $this->db->query($sql);
+        $obj = $this->db->fetch_object($res);
+        return $obj->name;
+    }
+    function getCategoryOfCustomer(){
+        $sql = 'select name from `category_counterparty` where rowid = '.$this->categoryofcustomer_id;
+        $res = $this->db->query($sql);
+        $obj = $this->db->fetch_object($res);
+        return $obj->name;
+    }
     function setclassification(){
         global $user;
         $sql = 'select classifycation_id, value, active from `llx_societe_classificator` where soc_id='.$this->id;

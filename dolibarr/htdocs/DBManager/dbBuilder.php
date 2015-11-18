@@ -184,7 +184,7 @@ class dbBuilder{
 //        var_dump($showtitle);
 //        die();
         if($showtitle) {
-            $table = '<table class="scrolling-table"" >' . "\r\n";
+            $table = '<table class="scrolling-table" >' . "\r\n";
             $table .= '<thead >' . "\r\n";
             $table .= '<tr class="liste_titre" id="reference_title">' . "\r\n";
         }
@@ -198,10 +198,10 @@ class dbBuilder{
         foreach ($title as $column) {
             if (!isset($column['hidden'])) {
                 if($showtitle) {
-                    $table .= '<th id = "th' . $colindex++ . '" class="liste_titre"';
-                    $table .= $column['width'] <> '' ? ('width="' . $column['width'] . 'px"') : ('auto');//ширина
-                    $table .= $column['align'] <> '' ? ('align="' . $column['align'] . '"') : (' ');//выравнивание
-                    $table .= $column['class'] <> '' ? ('class="' . $column['class'] . '"') : (' ');//класс
+                    $table .= '<th id = "th' . $colindex++ . '" class="liste_titre" ';
+                    $table .= $column['width'] <> '' ? ('style="width:' . $column['width'] . 'px"') : ('auto');//ширина
+                    $table .= $column['align'] <> '' ? ('align=' . $column['align'] . '"') : (' ');//выравнивание
+                    $table .= $column['class'] <> '' ? ('class=' . $column['class'] . '"') : (' ');//класс
                     $table .= '>' . $column['title'] . '
                      <span class="nowrap">
                     <a href="' . $_SERVER['PHP_SELF'] . '?mainmenu=tools&sortfield=' . $num_col . '&sortorder=asc">';
@@ -236,6 +236,7 @@ class dbBuilder{
                 $table .= '<input id="boxlabelentry18" type="hidden" value="">
                 </th>' . "\r\n";
             }
+            $table .= '</tr>'."\r\n";
             $table .= '</thead>' . "\r\n";
 //        echo '<pre>';
 //        var_dump($title);
@@ -244,7 +245,7 @@ class dbBuilder{
         }
         $table .= '<tbody id="reference_body" style="width: '.(count($readonly)==0?$widthtable:$widthtable-40).'">'."\r\n";
 
-        $table .= '</tr>'."\r\n";
+
 
 
         $count = 0;
@@ -276,11 +277,14 @@ class dbBuilder{
             }
 
             if(count($readonly)==0) {
-                $edit_form .= "    </table>
+                $param = "'',''";
+                $edit_form .= "    </tbody>
+                                    </table>
                            </form>
                         <a class='close' title='Закрыть' href='#close'></a>
-                        </br>
-                        <button onclick=save_item(".$tablename.", '', '');>Сохранить</button>
+
+
+                        <button onclick=save_item(".$tablename.",".$param."); >Сохранить</button>
                         <button onclick='close_form();'>Закрыть</button>
                         </div>";
             }
@@ -405,7 +409,7 @@ class dbBuilder{
 //
 //            var_dump(count($readonly)==0);
 //            die();
-            if(count($readonly)==0) {
+            if(count($readonly)==0 && $showtitle) {
                 $table .= '<td style="width: 20px" align="left">
 
                 <img  id="img_'. $row['rowid'].'" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/edit.png" title="Редактировать" style="vertical-align: middle" onclick="edit_item(' . $row['rowid'] . ');">
@@ -417,8 +421,8 @@ class dbBuilder{
         }
         $table .= '</tbody>'."\r\n";
         $table .= '</table>'."\r\n";
-        if(count($readonly)==0)
-            $table .= '</form>'."\r\n";
+//        if(count($readonly)==0)
+//            $table .= '</form>'."\r\n";
 
         $table .= $edit_form;
         return $table;

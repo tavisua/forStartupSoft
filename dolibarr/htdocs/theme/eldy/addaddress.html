@@ -1,0 +1,217 @@
+
+
+<div class="tabPage">
+    <div class="address_header">
+        <table id="headercontrol" style="background-color: #ffffff">
+            <tr>
+                <td><b>Категорія контрагента</b></td>
+                <td><?echo $CategoryOfCustomer?></td>
+            </tr>
+            <tr>
+                <td><b>Назва контрагента</b></td>
+                <td><?echo $object->name?></td>
+            </tr>
+            <tr>
+                <td><b>Форма правління</b></td>
+                <td><?echo $FormOfGoverment?></td>
+            </tr>
+        </table>
+    </div>
+
+    <form id="addaddress" action="<?echo $_SERVER['REQUEST_URI']?>" method="post">
+        <input id="rowid" name="rowid" type="hidden" value="<?echo $rowid?>">
+        <input id="url" name="url" type="hidden" value="<?echo htmlspecialchars(GETPOST('url', 'alpha'))?>">
+        <input id="action" name="action" type="hidden" value="<?echo GETPOST('action', 'alpha')?>">
+        <input id="mainmenu" name="mainmenu" type="hidden" value="<?echo GETPOST('mainmenu', 'alpha')?>">
+        <input id="idmenu" name="idmenu" type="hidden" value="<?echo GETPOST('idmenu', 'alpha')?>">
+        <input id="socid" name="socid" type="hidden" value="<?echo GETPOST('socid', 'alpha')?>">
+        <input id="SendPost" name="SendPost" type="hidden" value="1">
+        <input id="SendEmail" name="SendEmail" type="hidden" value="1">
+        <table class="border" width="100%">
+            <tr>
+                <td class="<?if($action == 'error' && empty($soc_address->whom)){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                    <?echo $langs->trans('Whom')?>
+                </td>
+                <td>
+                    <input id="whom" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_address->whom?>" name="whom" maxlength="128" size="60" autocomplete="off">
+                </td>
+            </tr>
+            <tr>
+                <td class="<?if($action == 'error' && empty($soc_address->kindaddress)){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                    <?echo $langs->trans('KindAddress')?>
+                </td>
+                <td>
+                    <?echo $soc_address->selectKindAddress('kindaddress', $soc_address->kindaddress)?>
+                </td>
+            </tr>
+            <tr>
+                <td class="<?if($action == 'error' && empty($soc_address->Zip)){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                    <?echo $langs->trans('Zip')?>
+                </td>
+                <td>
+                    <input id="zip" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_address->Zip?>" name="zip" maxlength="5" size="60" autocomplete="off">
+                </td>
+            </tr>
+            <tr>
+                <td class="<?if($action == 'error' && $soc_address->country_id == 0){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                    <?echo $langs->trans('Country')?>
+                </td>
+                <td>
+                    <?echo $form->select_country(GETPOST('country_id')!=''?GETPOST('country_id'):'UA')?>
+                </td>
+            </tr>
+            <tr>
+                <td class="<?if($action == 'error' && $soc_address->state_id == 0){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                    <?echo $langs->trans('State')?>
+                </td>
+                <td>
+                    <?echo $formcompany->select_state($soc_address->state_id, $soc_address->country_id)?>
+                </td>
+            </tr>
+            <tr>
+                <td class="<?if($action == 'error' && $soc_address->region_id == 0){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                    <?echo $langs->trans('Areas')?>
+                </td>
+                <td>
+                    <?echo $formcompany->select_region($soc_address->state_id,'region_id', $soc_address->region_id)?>
+                </td>
+            </tr>
+            <tr>
+                <td class="<?if($action == 'error' && $soc_address->kindlocality_id == 0){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                    <?echo $langs->trans('KindOfLocality')?>
+                </td>
+                <td>
+                    <?echo $soc_address->selectKindLocality('kindlocality_id', $soc_address->kindlocality_id)?>
+                </td>
+            </tr>
+            <tr>
+                <td class="<?if($action == 'error' && empty($soc_address->location)){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                    <?echo $langs->trans('Location')?>
+                </td>
+                <td>
+                    <input id="location" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_address->location?>" name="location" maxlength="55" size="60" autocomplete="off">
+                </td>
+            </tr>
+            <tr>
+                <td class="<?if($action == 'error' && $soc_address->kindlocality_id == 0){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                    <?echo $langs->trans('KindOfStreet')?>
+                </td>
+                <td>
+                    <?echo $soc_address->selectKindStreet('kindofstreet_id', $soc_address->kindofstreet_id)?>
+                </td>
+            </tr>
+            <tr>
+                <td class="<?if($action == 'error' && empty($soc_address->street_name)){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                    <?echo $langs->trans('Street')?>
+                </td>
+                <td>
+                    <input id="street_name" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_address->street_name?>" name="street_name" maxlength="55" size="60" autocomplete="off">
+                </td>
+            </tr>
+            <tr>
+                <td class="<?if($action == 'error' && empty($soc_address->NumberOfHouse)){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                    <?echo $langs->trans('NumberOfHouse')?>
+                </td>
+                <td>
+                    <input id="numberofhouse" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_address->NumberOfHouse?>" name="numberofhouse" maxlength="10" size="60" autocomplete="off">
+                </td>
+            </tr>
+            <tr>
+                <td class="<?if($action == 'error' && $soc_address->kindoffice_id == 0){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                    <?echo $langs->trans('KindOfOffice')?>
+                </td>
+                <td>
+                    <?echo $soc_address->selectKindOffice('kindoffice_id', $soc_address->kindoffice_id)?>
+                </td>
+            </tr>
+            <tr>
+                <td class="<?if($action == 'error' && empty($soc_address->NumberOfOffice)){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                    <?echo $langs->trans('NumberOfOffice')?>
+                </td>
+                <td>
+                    <input id="numberofoffice" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_address->NumberOfOffice?>" name="numberofoffice" maxlength="10" size="60" autocomplete="off">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <?echo $langs->trans('GPS')?>
+                </td>
+                <td>
+                    <input id="GPS" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_address->whom?>" name="GPS" maxlength="20" size="60" autocomplete="off">
+                </td>
+            </tr>
+            <tr>
+                <td class="<?if($action == 'error' && (empty($soc_address->e_mail) || !isValidEMail($soc_address->e_mail))){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                    <?echo $langs->trans('e-mail')?>
+                </td>
+                <td>
+                    <input id="e_mail" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_address->e_mail?>" name="e_mail" maxlength="20" size="60" autocomplete="off">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <?echo $langs->trans('site')?>
+                </td>
+                <td>
+                    <input id="site" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_address->whom?>" name="site" maxlength="50" size="60" autocomplete="off">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <?echo $langs->trans('WorkerCount')?>
+                </td>
+                <td>
+                    <input id="WorkerCount" class="param" type="text" autofocus="autofocus" value="<?echo $soc_address->whom?>" name="WorkerCount" maxlength="6" size="60" autocomplete="off">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <?echo $langs->trans('SendPost')?>
+                </td>
+                <td>
+                    <img id="imgSendPost" onclick="change_switchPost();" src="<?if($soc_address->SendPost == 1 || empty($soc_address->SendPost)) echo '/dolibarr/htdocs/theme/eldy/img/switch_on.png'; else echo '/dolibarr/htdocs/theme/eldy/img/switch_off.png'; ?>">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <?echo $langs->trans('SendEmail')?>
+                </td>
+                <td >
+                    <img id="imgSendEmail"  onclick="change_switchEmail();" src="<?if($soc_address->SendEmail == 1 || empty($soc_address->SendEmail)) echo '/dolibarr/htdocs/theme/eldy/img/switch_on.png'; else echo '/dolibarr/htdocs/theme/eldy/img/switch_off.png'; ?>">
+                </td>
+            </tr>
+        </table>
+        <div align="center">
+        <button onclick="save();">Зберегти</button>
+            <button onclick="back();">Відмінити</button>
+        </div>
+    </form>
+
+</div>
+<script type="text/javascript">
+    function back(){
+        $('#action').val('cancel');
+    }
+    function save(){
+        $('#action').val('save');
+    }
+    function change_switchPost(){
+        if($('#SendPost').val() == 0){
+            $('#SendPost').val(1);
+            $('#imgSendPost').attr('src',"/dolibarr/htdocs/theme/eldy/img/switch_on.png");
+        }else{
+            $('#SendPost').val(0);
+            $('#imgSendPost').attr('src',"/dolibarr/htdocs/theme/eldy/img/switch_off.png");
+        }
+    }    
+    function change_switchEmail(){
+        if($('#SendEmail').val() == 0){
+            $('#SendEmail').val(1);
+            $('#imgSendEmail').attr('src',"/dolibarr/htdocs/theme/eldy/img/switch_on.png");
+        }else{
+            $('#SendEmail').val(0);
+            $('#imgSendEmail').attr('src',"/dolibarr/htdocs/theme/eldy/img/switch_off.png");
+        }
+    }
+    $(".param").keypress(function( b ){        var C = /[0-9\x25\x27\x24\x23]/;        var a = b.which;        var c = String.fromCharCode(a);        return !!(a==0||a==8||a==9||a==13||c.match(C));    });
+</script>

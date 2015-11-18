@@ -1,0 +1,71 @@
+<div class="tabPage" id="AddressPage">
+
+        <div class="address_header">
+            <table id="headercontrol" style="background-color: #ffffff">
+                <tr>
+                    <td><b>Категорія контрагента</b></td>
+                    <td><?echo $CategoryOfCustomer?></td>
+                </tr>
+                <tr>
+                    <td><b>Назва контрагента</b></td>
+                    <td><?echo $object->name?></td>
+                </tr>
+                <tr>
+                    <td><b>Форма правління</b></td>
+                    <td><?echo $FormOfGoverment?></td>
+                </tr>
+            </table>
+        </div>
+        <div class="address_header">
+            <div class="blockvmenupair">
+                <div class="menu_titre">
+                    <b><?echo $Control?></b>
+                </div>
+                <div class="menu_top"></div>
+                <div class="menu_contenu">
+                    <form action="/dolibarr/htdocs/societe/addaddress.php" method="post">
+                        <input id="url" name="url" type="hidden" value="<?echo $_SERVER['REQUEST_URI']?>">
+                        <input id="mainmenu" name="mainmenu" type="hidden" value="<?echo $_REQUEST['mainmenu']?>">
+                        <input id="idmenu" name="idmenu" type="hidden" value="<?echo $_REQUEST['idmenu']?>">
+                        <input id="socid" name="socid" type="hidden" value="<?echo $socid?>">
+                        <input id="action" name="action" type="hidden" value="add">
+                        <button type="submit">&nbsp;&nbsp;&nbsp;&nbsp;<?echo $AddAddress?>&nbsp;&nbsp;&nbsp;&nbsp;</button>
+                    </form>
+                </div>
+                <div class="menu_end"></div>
+            </div>
+        </div>
+
+
+    <table>
+        <thead>
+            <tr class="header_table">
+                <th>Кому/куди</th>
+                <th>Вид адреси</th>
+                <th>Індекс</th>
+                <th>Країна</th>
+                <th>Область</th>
+                <th>Район</th>
+                <th>Вид нас. пункту</th>
+                <th>Нас.пункт</th>
+                <th>Вид вулиці</th>
+                <th>Назва вулиці</th>
+                <th>№ будинку</th>
+                <th>Назва офісу</th>
+                <th>№офісу</th>
+                <th>Координати GPS</th>
+                <th>e-mail</th>
+                <th>сайт</th>
+                <th>&nbsp;</th>
+                <th><?echo $langs->trans('WorkerCount')?></th>
+                <th>&nbsp;</th>
+                <th><?echo $langs->trans('SendPost')?></th>
+                <th><?echo $langs->trans('SendEmail')?></th>
+                <th><?echo $langs->trans('Active')?></th>
+            </tr>
+        </thead>
+        <tbody id="reference_body">
+            <?echo $table?>
+        </tbody>
+    </table>
+</div>

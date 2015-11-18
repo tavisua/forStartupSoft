@@ -1268,7 +1268,7 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
 //            var_dump();
 //            echo '</pre>';
 //            die();
-            if(strpos($_SERVER["SCRIPT_NAME"],'soc.php')){
+            if(strpos($_SERVER["SCRIPT_NAME"],'soc.php') || strpos($_SERVER["SCRIPT_NAME"],'address.php')){
                 print '<script type="text/javascript" src="/dolibarr/htdocs/societe/js/soc.js'.($ext?'?'.$ext:'').'"></script>'."\n";
             }else
                 print '<script type="text/javascript" src="/dolibarr/scripts/js/table_manager.js'.($ext?'?'.$ext:'').'"></script>'."\n";

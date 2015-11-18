@@ -211,8 +211,9 @@ class FormCompany
 	 *    @param    string	$htmlname			Id of department
 	 * 	  @return	string						String with HTML select
 	 */
-	function select_state($selected='',$country_codeid=0, $htmlname='state_id')
+	function select_state($selected='',$country_codeid='', $htmlname='state_id')
 	{
+
 		global $conf,$langs,$user;
 
 		dol_syslog(get_class($this)."::select_departement selected=".$selected.", country_codeid=".$country_codeid,LOG_DEBUG);
@@ -232,13 +233,21 @@ class FormCompany
 //		$sql .= " ORDER BY c.code, d.code_departement";
 //
 //		dol_syslog(get_class($this)."::select_departement", LOG_DEBUG);
-        $sql = "select states.rowid, name, countries.label as country, countries.code as country_code from states, countries where code = '".$country_codeid."' and states.active=1 and states.country_id = countries.rowid";
+        if(!empty($country_codeid)) {
+            if(is_numeric($country_codeid)){
+                $sql = "select states.rowid, name, countries.label as country, countries.code as country_code from states, countries where countries.rowid = " . $country_codeid . " and states.active=1 and states.country_id = countries.rowid";
+            }else
+                $sql = "select states.rowid, name, countries.label as country, countries.code as country_code from states, countries where code = '" . $country_codeid . "' and states.active=1 and states.country_id = countries.rowid";
+        }else
+            $sql = "select states.rowid, name, countries.label as country, countries.code as country_code from states, countries where 1 and states.active=1 and states.country_id = countries.rowid";
+//        die($sql);
         $result=$this->db->query($sql);
 
 		if ($result)
 		{
 			if (!empty($htmlname)) $out.= '<select id="'.$htmlname.'" class="combobox" name="'.$htmlname.'" onchange="loadareas()">';
-			if ($country_codeid) $out.= '<option value="0">&nbsp;</option>';
+
+			$out.= '<option value="0">&nbsp;</option>';
 			$num = $this->db->num_rows($result);
 			$i = 0;
 			dol_syslog(get_class($this)."::select_departement num=".$num,LOG_DEBUG);
@@ -246,6 +255,7 @@ class FormCompany
 			if ($num)
 			{
 				$country='';
+
 				while ($i < $num)
 				{
 					$obj = $this->db->fetch_object($result);
@@ -310,7 +320,7 @@ class FormCompany
 	function select_region($state_id, $htmlname='region_id', $region_id='')
 	{
         if(empty($state_id)){
-            print '<select class="combobox" name="'.$htmlname.'">';
+            print '<select id = "region_id" class="combobox" name="'.$htmlname.'">';
             print '<option value="0">&nbsp;</option>';
             print '</select>';
 

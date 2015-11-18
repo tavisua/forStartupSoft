@@ -1,0 +1,98 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * User: -tavis-
+ * Date: 16.11.2015
+ * Time: 9:55
+ */
+
+require '../main.inc.php';
+//echo '<pre>';
+//var_dump($_POST);
+//echo '</pre>';
+
+require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/societe/SocAddress.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
+$soc_address = new SocAddress();
+$action = GETPOST('action', 'alpha');
+if($action =='cancel'){
+    header('Location: '.$_REQUEST['url']);
+    exit;
+}elseif($_POST['action'] == 'save'){
+
+    $soc_address->rowid         = GETPOST('rowid');
+    $soc_address->whom          = GETPOST('whom');
+    $soc_address->kindaddress   = GETPOST('kindaddress');
+    $soc_address->Zip           = GETPOST('zip');
+    $soc_address->country_id    = GETPOST('country_id');
+    $soc_address->state_id      = GETPOST('state_id');
+    $soc_address->region_id     = GETPOST('region_id');
+    $soc_address->kindlocality_id = GETPOST('kindlocality_id');
+    $soc_address->location        = GETPOST('location');
+    $soc_address->kindofstreet_id = GETPOST('kindofstreet_id');
+    $soc_address->street_name     = GETPOST('street_name');
+    $soc_address->NumberOfHouse   = GETPOST('numberofhouse');
+    $soc_address->kindoffice_id   = GETPOST('kindoffice_id');
+    $soc_address->NumberOfOffice  = GETPOST('numberofoffice');
+    $soc_address->GPS           = GETPOST('GPS');
+    $soc_address->e_mail        = GETPOST('e_mail');
+    $soc_address->site          = GETPOST('site');
+    $soc_address->WorkerCount   = GETPOST('WorkerCount');
+    $soc_address->SendEmail     = GETPOST('SendEmail');
+    $soc_address->SendPost      = GETPOST('SendPost');
+    $error = 0;
+    if(empty($soc_address->whom))$error++;
+    if(empty($soc_address->kindaddress))$error++;
+    if(empty($soc_address->Zip))$error++;
+    if($soc_address->country_id == 0)$error++;
+    if($soc_address->state_id == 0)$error++;
+    if($soc_address->region_id == 0)$error++;
+    if($soc_address->kindlocality_id == 0)$error++;
+    if(empty($soc_address->location))$error++;
+    if($soc_address->kindofstreet_id == 0)$error++;
+    if(empty($soc_address->street_name))$error++;
+    if(empty($soc_address->NumberOfHouse))$error++;
+    if(empty($soc_address->NumberOfOffice))$error++;
+    if($soc_address->kindoffice_id == 0)$error++;
+
+    if($error > 0) {
+        $action = 'error';
+    }else {
+//        echo '<pre>';
+//        var_dump($soc_address);
+//        var_dump($_POST);
+//        echo '</pre>';
+        if(empty($soc_address->rowid)){
+            $soc_address->createAddress(GETPOST('socid'));
+        }
+        exit();
+    }
+}
+
+$socid = GETPOST('socid', 'int');
+if(empty($socid))
+    $socid = $_REQUEST['socid'];
+
+
+
+require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
+
+$form = new Form($db);
+$formcompany = new FormCompany($db);
+//echo '<pre>';
+//var_dump($soc_address);
+//echo '</pre>';
+$object = new  Societe($db);
+$object->fetch($socid);
+$CategoryOfCustomer = $object->getCategoryOfCustomer();
+$FormOfGoverment = $object->getFormOfGoverment();
+if(GETPOST('action', 'alpha') == 'add' ||$action == 'error') {
+    $AddAddress = $langs->trans('AddAddress');
+    llxHeader('', $AddAddress, $help_url);
+    print_fiche_titre($AddAddress);
+    include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/addaddress.html');
+    echo ob_get_clean();
+    llxFooter();
+}
+
+

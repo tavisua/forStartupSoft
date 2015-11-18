@@ -111,6 +111,9 @@ a.vsmenu:link, a.vsmenu:visited, a.vsmenu:hover, a.vsmenu:active {
     padding: 9px 8px 8px;
     width: 600px;
 }
+#AddressPage{
+    width: 1350px!important;
+}
 
 .combobox {
     background: #ffc000 none repeat scroll 0 0;
@@ -309,13 +312,21 @@ tr.header_table th, th.header_table, tr.header_table td, td.header_table, form.h
 .contant_tble{
     margin-top: 20px;
 }
-.areas_header{
+.fielderror{
+    color: red;
+    font-weight: bold;
+}
+.areas_header, .address_header{
     width:auto;
     height:100px;
     /*background:#669900;*/
     float:left;
     margin-left:15px;
     text-align:center;
+}
+.address_header{
+    height:80px!important;
+    margin-left:15px!important;
 }
 
 .reference{

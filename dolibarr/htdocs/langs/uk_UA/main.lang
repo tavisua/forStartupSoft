@@ -87,6 +87,7 @@ Area=Район
 KindOfLocality=Вид населеного пункту
 KindOfStreet=Вид вулиці
 KindOfOffice=Вид офісу
+
 LastConnexion=Дата останнього відвідування
 PreviousConnexion=Previous connection
 ConnectedOnMultiCompany=Connected on environment
@@ -546,6 +547,7 @@ Keyword=Mot clé
 Legend=Legend
 FillTownFromZip=Fill city from zip
 Fill=Fill
+site=сайт
 Reset=Reset
 ShowLog=Show log
 File=File

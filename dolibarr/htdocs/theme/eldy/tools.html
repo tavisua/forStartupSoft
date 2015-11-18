@@ -40,19 +40,23 @@
             <img id="icon" src="/dolibarr/htdocs/theme/<?echo $theme?>/img/regions.png">
             <div><?echo $Area?></div>
         </td>
-        <td id = "menu_item" class="boxstats">
-            <?echo $KindLocality?>
+        <td id = "menu_item" class="boxstats" onclick='location.href="/dolibarr/htdocs/core/kindlocality.php?mainmenu=tools"'>
+            <img id="icon" src="/dolibarr/htdocs/theme/<?echo $theme?>/img/kindlocality.png">
+            <div><?echo $KindLocality?></div>
         </td>
     </tr>
     <tr>
-        <td id = "menu_item" class="boxstats">
-            <?echo $KindOfStreet?>
+        <td id = "menu_item" class="boxstats" onclick='location.href="/dolibarr/htdocs/core/kindstreet.php?mainmenu=tools"'>
+            <img id="icon" src="/dolibarr/htdocs/theme/<?echo $theme?>/img/kindstreet.png">
+            <div><?echo $KindOfStreet?></div>
+        </td>
+        <td id = "menu_item" class="boxstats" onclick='location.href="/dolibarr/htdocs/core/kindoffice.php?mainmenu=tools"'>
+            <img id="icon" src="/dolibarr/htdocs/theme/<?echo $theme?>/img/kindoffice.png">
+            <div><?echo $KindOfOffice?></div>
         </td>
         <td id = "menu_item" class="boxstats" >
-            <?echo $KindOfOffice?>
-        </td>
-        <td id = "menu_item" class="boxstats" >
-            <?echo $Location?>
+            <img id="icon" src="/dolibarr/htdocs/theme/<?echo $theme?>/img/location.png">
+            <div><?echo $Location?></div>
         </td>
         <td id = "menu_item" class="boxstats" onclick='location.href="/dolibarr/htdocs/core/users_and_group/perms.php?mainmenu=tools"'>
             <img id="icon" src="/dolibarr/htdocs/theme/<?echo $theme?>/img/permission.png"><div><?echo $Permission?></div>

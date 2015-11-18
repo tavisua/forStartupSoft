@@ -817,7 +817,7 @@ else
         print '
         <div class="tabs" data-role="controlgroup" data-type="horizontal">
         <div class="inline-block tabsElem tabsElemActive">
-        <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/core/users_and_group/groups_manager.php?mainmenu=tools">'.$langs->trans('BasicInfo').'</a>
+        <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/soc.php?mainmenu=companies&idmenu=5217&action=edit&socid='.$object->id.'">'.$langs->trans('BasicInfo').'</a>
         </div>
         <div class="inline-block tabsElem" id="inactiveTab">
             <b class="tab inline-block" data-role="button">'.$langs->trans('AddressList').'</b>
@@ -1773,18 +1773,18 @@ else
 //            print '</form>';
             print '
         <div class="tabs" data-role="controlgroup" data-type="horizontal">
-        <div class="inline-block tabsElem tabsElemActive">
-        <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/core/users_and_group/groups_manager.php?mainmenu=tools">'.$langs->trans('BasicInfo').'</a>
-        </div>
-        <div class="inline-block tabsElem" id="inactiveTab">
-            <b class="tab inline-block" data-role="button">'.$langs->trans('AddressList').'</b>
-        </div>
-        <div class="inline-block tabsElem" id="inactiveTab">
-            <b class="tab inline-block" data-role="button">'.$langs->trans('ContactList').'</b>
-        </div>
-        <div class="inline-block tabsElem" id="inactiveTab">
-            <b class="tab inline-block" data-role="button">'.$langs->trans('EconomicData').'</b>
-        </div>
+            <div class="inline-block tabsElem tabsElemActive">
+                <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/soc.php?mainmenu=companies&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('BasicInfo').'</a>
+            </div>
+            <div class="inline-block tabsElem">
+                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societeaddress.php?mainmenu=companies&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('AddressList').'</a>
+            </div>
+            <div class="inline-block tabsElem">
+                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/soc.php?mainmenu=companies&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('ContactList').'</a>
+            </div>
+            <div class="inline-block tabsElem">
+                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/soc.php?mainmenu=companies&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('EconomicData').'</a>
+            </div>
         </div>
         <div class="tabPage">';
             if (! empty($conf->use_javascript_ajax))
