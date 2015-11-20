@@ -40,7 +40,7 @@ $ColParam['class']='';
 $TableParam[]=$ColParam;
 
 $tablename = 'llx_post';
-$sql='select rowid, postname, active from llx_post order by postname';
+$sql='select rowid, postname, active from llx_post where active = 1 order by postname';
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
 $db = new dbBuilder();
 if(!isset($_REQUEST['sortfield']))

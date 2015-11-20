@@ -244,10 +244,11 @@ function displayBox($selectedDate,$month,$year)
 		}
 
 		// Sur click dans calendrier, appelle fonction dpClickDay
-		echo "<TD class=\"".$dayclass."\"";
-		echo " onMouseOver=\"dpHighlightDay(".$mydate["year"].",parseInt('".dol_print_date($thedate,"%m")."',10),".$mydate["mday"].",tradMonths)\"";
-		echo " onClick=\"dpClickDay(".$mydate["year"].",parseInt('".dol_print_date($thedate,"%m")."',10),".$mydate["mday"].",'".$langs->trans("FormatDateShortJavaInput")."')\"";
-		echo ">".sprintf("%02s",$mydate["mday"])."</TD>";
+		$td= "<TD class=\"".$dayclass."\"";
+        $td.= " onMouseOver=\"dpHighlightDay(".$mydate["year"].",parseInt('".dol_print_date($thedate,"%m")."',10),".$mydate["mday"].",tradMonths)\"";
+        $td.= " onClick=\"dpClickDay(".$mydate["year"].",parseInt('".dol_print_date($thedate,"%m")."',10),".$mydate["mday"].",'".$langs->trans("FormatDateShortJavaInput")."')\"";
+        $td.= ">".sprintf("%02s",$mydate["mday"])."</TD>";
+        echo($td);
 		$cols++;
 
 		if (($mydate["wday"] + 1) % 7 == $startday) echo "</TR>\n";
@@ -277,9 +278,9 @@ function displayBox($selectedDate,$month,$year)
 		if($selDate)
 		{
 			$tempDate=dol_getdate($selDate);
-			print $langs->trans("Month".$selectMonth)." ";
-			print sprintf("%02s",$tempDate["mday"]);
-			print ", ".$selectYear;
+            print sprintf("%02s",$tempDate["mday"])." ";
+            print $langs->trans("Month".$selectMonth)." ";
+			print " ".$selectYear;
 		}
 		else
 		{

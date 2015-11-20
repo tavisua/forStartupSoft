@@ -1212,30 +1212,19 @@ class Form
     function select_control($selected='', $htmlname, $disabled=0, $tablename, $fieldname, $userinfo, $readonly = true)
     {
         global $conf, $user, $langs;
-//        echo '<pre>';
-//        var_dump($userinfo->id);
-//        echo '</pre>';
-//        die('1216');
+
         $sql = 'select rowid, `' . $fieldname . '` as name, active from `' . $tablename . '`';
         if(!$readonly)
             $sql .=' where active = 1 order by `' . $fieldname . '`';
         else
             $sql .=' where rowid='.get_object_vars($userinfo)[$htmlname];
-//        echo '<pre>';
-//        var_dump($sql);
-//        echo '</pre>';
-//        die($htmlname);
         $resql = $this->db->query($sql);
-//        if ('subdivision' == $tablename) {
-//            var_dump($resql);
-//            die();
-//        }
+
         $out = '';
         if ($resql) {
             $num = $this->db->num_rows($resql);
             $i = 0;
-//            var_dump($num);
-//            die();
+
             if ($num>0) {
                 if($readonly){
                     $obj = $this->db->fetch_object($resql);

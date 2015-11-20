@@ -39,3 +39,12 @@ llxHeader('',$ContactList,$help_url);
 print_fiche_titre($ContactList);
 $object = new Societe($db);
 $object->fetch($socid);
+$CategoryOfCustomer = $object->getCategoryOfCustomer();
+$FormOfGoverment = $object->getFormOfGoverment();
+$NewItem = $langs->trans('NewItem');
+$Control = $langs->trans('Control');
+$AddContact = $langs->trans('AddContact');
+
+include DOL_DOCUMENT_ROOT.'/theme/eldy/societecontact.html';
+
+llxFooter();

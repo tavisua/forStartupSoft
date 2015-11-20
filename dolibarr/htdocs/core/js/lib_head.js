@@ -170,29 +170,34 @@ function dpChangeDay(dateFieldID,format)
 
 function dpClickDay(year,month,day,format)
 {
+
 	var thefield=getObjectFromID(showDP.datefieldID);
 	var thefieldday=getObjectFromID(showDP.datefieldID+"day");
 	var thefieldmonth=getObjectFromID(showDP.datefieldID+"month");
 	var thefieldyear=getObjectFromID(showDP.datefieldID+"year");
 
-	var dt = new Date(year, month-1, day); 
+	var dt = new Date(year, month-1, day);
 
-	thefield.value=formatDate(dt,format);
-	if(thefield.onchange) thefield.onchange.call(thefield);
+    if(thefieldday != null) {
+        thefield.value = formatDate(dt, format);
+        if (thefield.onchange) thefield.onchange.call(thefield);
 
-	thefieldday.value=day;
-	if(thefieldday.onchange) thefieldday.onchange.call(thefieldday);
-	thefieldmonth.value=month;
-	if(thefieldmonth.onchange) thefieldmonth.onchange.call(thefieldmonth);
-	thefieldyear.value=year;
-	if(thefieldyear.onchange) thefieldyear.onchange.call(thefieldyear);
-
-	closeDPBox();
+        thefieldday.value = day;
+        if (thefieldday.onchange) thefieldday.onchange.call(thefieldday);
+        thefieldmonth.value = month;
+        if (thefieldmonth.onchange) thefieldmonth.onchange.call(thefieldmonth);
+        thefieldyear.value = year;
+        if (thefieldyear.onchange) thefieldyear.onchange.call(thefieldyear);
+    }else{
+        console.log(format);
+        $('#'+showDP.datefieldID).val(formatDate(dt, format));
+    }
+    closeDPBox();
 }
 
 function dpHighlightDay(year,month,day,months){
 	var displayinfo=getObjectFromID("dpExp");
-	displayinfo.innerHTML=months[month-1]+" "+day+", "+year;
+	displayinfo.innerHTML=day+" "+months[month-1]+", "+year;
 }
 
 // Returns an object given an id

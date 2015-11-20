@@ -111,9 +111,15 @@ a.vsmenu:link, a.vsmenu:visited, a.vsmenu:hover, a.vsmenu:active {
     padding: 9px 8px 8px;
     width: 600px;
 }
+#BirthdayDate{
+    width: 150px;
+}
+.switcher{
+   margin: 3 0 0 5;
 
+}
 #AddressPage{
-    width: 1450px!important;
+    width: 1500px!important;
 }
 
 .combobox {

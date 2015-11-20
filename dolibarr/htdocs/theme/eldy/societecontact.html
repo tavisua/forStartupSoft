@@ -1,0 +1,97 @@
+<div class="tabPage" id="AddressPage">
+
+        <div class="address_header">
+            <table id="headercontrol" style="background-color: #ffffff">
+                <tr>
+                    <td><b>Категорія контрагента</b></td>
+                    <td><?echo $CategoryOfCustomer?></td>
+                </tr>
+                <tr>
+                    <td><b>Назва контрагента</b></td>
+                    <td><?echo $object->name?></td>
+                </tr>
+                <tr>
+                    <td><b>Форма правління</b></td>
+                    <td><?echo $FormOfGoverment?></td>
+                </tr>
+            </table>
+        </div>
+        <div class="address_header">
+            <div class="blockvmenupair">
+                <div class="menu_titre">
+                    <b><?echo $Control?></b>
+                </div>
+                <div class="menu_top"></div>
+                <div class="menu_contenu">
+                    <form action="/dolibarr/htdocs/societe/addcontact.php" method="post">
+                        <input id="url" name="url" type="hidden" value="<?echo $_SERVER['REQUEST_URI']?>">
+                        <input id="mainmenu" name="mainmenu" type="hidden" value="<?echo $_REQUEST['mainmenu']?>">
+                        <input id="idmenu" name="idmenu" type="hidden" value="<?echo $_REQUEST['idmenu']?>">
+                        <input id="socid" name="socid" type="hidden" value="<?echo $socid?>">
+                        <input id="action" name="action" type="hidden" value="add">
+                        <button type="submit">&nbsp;&nbsp;&nbsp;&nbsp;<?echo $AddContact?>&nbsp;&nbsp;&nbsp;&nbsp;</button>
+                    </form>
+                </div>
+                <div class="menu_end"></div>
+            </div>
+        </div>
+
+
+    <table>
+        <thead>
+            <tr class="header_table">
+                <th><?echo $langs->trans('SubDivision')?></th>
+                <th><?echo $langs->trans('Location')?></th>
+                <th><?echo $langs->trans('aPost')?></th>
+                <th><?echo $langs->trans('SphereOfResponsibility')?></th>
+                <th><?echo $langs->trans('Lastname')?></th>
+                <th><?echo $langs->trans('Firstname')?></th>
+                <th><?echo $langs->trans('PhonePro')?></th>
+                <th><?echo $langs->trans('YesNo')?></th>
+                <th><?echo $langs->trans('Fax')?></th>
+                <th><?echo $langs->trans('YesNo')?></th>
+                <th><?echo $langs->trans('PhoneMobile')?> 1</th>
+                <th><?echo $langs->trans('YesNo')?></th>
+                <th><?echo $langs->trans('PhoneMobile')?> 2</th>
+                <th><?echo $langs->trans('YesNo')?></th>
+                <th><?echo $langs->trans('Email')?> 1</th>
+                <th><?echo $langs->trans('YesNo')?></th>
+                <th><?echo $langs->trans('Email')?> 2</th>
+                <th><?echo $langs->trans('YesNo')?></th>
+                <th><?echo $langs->trans('Skype')?></th>
+                <th><?echo $langs->trans('YesNo')?></th>
+                <th><?echo $langs->trans('BirthdayDate')?></th>
+                <th><?echo $langs->trans('YesNo')?></th>
+
+
+                <th><?echo $langs->trans('Active')?></th>
+            </tr>
+        </thead>
+        <!--<tbody id="reference_body">-->
+            <?echo $table?>
+        <!--</tbody>-->
+    </table>
+</div>
+        <style>
+            #reference_body td{
+                font-size: 12;
+            }
+        </style>
+<script type="text/javascript">
+    $(document).ready(function(){
+        var tbody = document.getElementById('reference_body');
+        var trList = tbody.getElementsByTagName('tr');
+        for(var index = 0; index<trList.length; index++){
+            var tdList = trList[index].getElementsByTagName('td');
+            for(var tdIndex = 0; tdIndex<tdList.length; tdIndex++){
+                if(tdList[tdIndex].id.substr(tdList[tdIndex].id.length-'whom'.length) == 'whom') {
+//                     http://uspex2015.com/dolibarr/htdocs/user/card.php?id=13
+                    var id = tdList[tdIndex].id.substr(0, (tdList[tdIndex].id.length - 'whom'.length));
+                    tdList[tdIndex].innerHTML = '<a id = "login_'+id+'" href="/dolibarr/htdocs/societe/addaddress.php?mainmenu=companies&idmenu=<?echo $_REQUEST["idmenu"]?>&action=edit&rowid='+id+'"> <img border="0"  alt="" src="/dolibarr/htdocs/theme/eldy/img/object_address.png">' +' '+ (tdList[tdIndex].innerHTML) + '</a>';
+//                     console.log(tdList[tdIndex].id.substr(0, (tdList[tdIndex].id.length - 'login'.length)));
+//                     console.log(id);
+                }
+            }
+        }
+    })
+</script>

@@ -1,0 +1,224 @@
+<script type="text/javascript" src="/dolibarr/htdocs/societe/js/jquery.maskedinput-1.2.2.js"></script>
+
+<div class="tabPage">
+    <div class="address_header">
+        <table id="headercontrol" style="background-color: #ffffff">
+            <tr>
+                <td><b>Категорія контрагента</b></td>
+                <td><?echo $CategoryOfCustomer?></td>
+            </tr>
+            <tr>
+                <td><b>Назва контрагента</b></td>
+                <td><?echo $object->name?></td>
+            </tr>
+            <tr>
+                <td><b>Форма правління</b></td>
+                <td><?echo $FormOfGoverment?></td>
+            </tr>
+        </table>
+    </div>
+
+    <form id="addaddress" action="<?echo $action_url?>" method="post">
+        <input id="rowid" name="rowid" type="hidden" value="<?echo $soc_contact->rowid?>">
+        <input id="url" name="url" type="hidden" value="<?echo $url?>">
+        <input id="action" name="action" type="hidden" value="<?echo $action?>">
+        <input id="call_work_phone" name="call_work_phone" type="hidden" value="<?echo $soc_contact->call_work_phone?>">
+        <input id="mainmenu" name="mainmenu" type="hidden" value="<?echo GETPOST('mainmenu', 'alpha')?>">
+        <input id="socid" name="socid" type="hidden" value="<?echo $socid?>">
+        <input id="call_fax" name="call_fax" type="hidden" value="<?echo $soc_contact->call_fax?>">
+        <input id="call_mobile_phone1" name="call_mobile_phone1" type="hidden" value="<?echo $soc_contact->call_mobile_phone1?>">
+        <input id="call_mobile_phone2" name="call_mobile_phone2" type="hidden" value="<?echo $soc_contact->call_mobile_phone2?>">
+        <input id="send_email1" name="send_email1" type="hidden" value="<?echo $soc_contact->send_email1?>">
+        <input id="send_email2" name="send_email2" type="hidden" value="<?echo $soc_contact->send_email2?>">
+        <input id="call_skype" name="call_skype" type="hidden" value="<?echo $soc_contact->call_skype?>">
+        <input id="send_birthdaydate" name="send_birthdaydate" type="hidden" value="<?echo $soc_contact->send_birthdaydate?>">
+
+        <table class="border" width="100%">
+            <tr>
+                <td>
+                    <?echo $langs->trans('SubDivision')?>
+                </td>
+                <td>
+                    <input id="subdivision" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_contact->subdivision?>" name="subdivision" maxlength="128" size="60" autocomplete="off">
+                </td>
+            </tr>
+            <tr>
+                <td class="<?if($action == 'error' && empty($soc_contact->post)){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                    <?echo $langs->trans('aPost')?>
+                </td>
+                <td>
+                    <?echo $soc_contact->selectPost('post', $soc_contact->post)?>
+                </td>
+            </tr>
+            <tr>
+                <td class="<?if($action == 'error' && empty($soc_contact->SphereOfResponsibility)){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                    <?echo $langs->trans('SphereOfResponsibility')?>
+                </td>
+                <td>
+                    <?echo $soc_contact->selectResponsibility('SphereOfResponsibility',$soc_contact->SphereOfResponsibility);?>
+                </td>
+            </tr>
+            <tr>
+                <td class="<?if($action == 'error' && $soc_contact->lastname == 0){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                    <?echo $langs->trans('Lastname')?>
+                </td>
+                <td>
+                    <input id="lastname" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_contact->lastname?>" name="lastname" maxlength="128" size="60" autocomplete="off">
+                </td>
+            </tr>
+            <tr>
+                <td class="<?if($action == 'error' && $soc_contact->firstname == 0){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                    <?echo $langs->trans('Firstname')?>
+                </td>
+                <td>
+                    <input id="firstname" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_contact->firstname?>" name="firstname" maxlength="128" size="60" autocomplete="off">
+                </td>
+            </tr>
+            <tr>
+                <td class="<?if($action == 'error' && $soc_contact->work_phone == 0){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                    <?echo $langs->trans('PhonePro')?>
+                </td>
+                <td style="vertical-align: middle">
+                    <div style="height: 30px" >
+                        <div style="float: left;"><input id="work_phone" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_contact->work_phone?>" name="work_phone" maxlength="60" size="60" autocomplete="off"></div>
+                        <div style="float: left;"><img class="switcher" onclick="change_switch(1, 'llx_societe_contact', 'call_work_phone');" src="/dolibarr/htdocs/theme/eldy/img/switch_on.png" id="callwork_phone"></div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <?echo $langs->trans('Fax')?>
+                </td>
+                <td style="vertical-align: middle">
+                    <div style="height: 30px" >
+                        <div style="float: left;"><input id="fax" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_contact->fax?>" name="fax" maxlength="60" size="60" autocomplete="off"></div>
+                        <div style="float: left;"><img class="switcher" onclick="change_switch(1, 'llx_societe_contact', 'call_work_phone');" src="/dolibarr/htdocs/theme/eldy/img/switch_on.png" id="callfax"></div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="<?if($action == 'error' && $soc_contact->mobile_phone1 == 0){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                    <?echo $langs->trans('PhoneMobile')?> 1
+                </td>
+                <td style="vertical-align: middle">
+                    <div style="height: 30px" >
+                        <div style="float: left;"><input id="mobile_phone1" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_contact->mobile_phone1?>" name="mobile_phone1" maxlength="60" size="60" autocomplete="off"></div>
+                        <div style="float: left;"><img class="switcher" onclick="change_switch(1, 'llx_societe_contact', 'call_work_phone');" src="/dolibarr/htdocs/theme/eldy/img/switch_on.png" id="callmobile_phone1"></div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <?echo $langs->trans('PhoneMobile')?> 2
+                </td>
+                <td style="vertical-align: middle">
+                    <div style="height: 30px" >
+                        <div style="float: left;"><input id="mobile_phone2" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_contact->mobile_phone2?>" name="mobile_phone2" maxlength="60" size="60" autocomplete="off"></div>
+                        <div style="float: left;"><img class="switcher" onclick="change_switch(1, 'llx_societe_contact', 'call_work_phone');" src="/dolibarr/htdocs/theme/eldy/img/switch_on.png" id="callmobile_phone2"></div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td class="<?if($action == 'error' && $soc_contact->email1 == 0){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                    <?echo $langs->trans('Email')?> 1
+                </td>
+                <td style="vertical-align: middle">
+                    <div style="height: 30px" >
+                        <div style="float: left;"><input id="email1" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_contact->email1?>" name="email1" maxlength="60" size="60" autocomplete="off"></div>
+                        <div style="float: left;"><img class="switcher" onclick="change_switch(1, 'llx_societe_contact', 'call_work_phone');" src="/dolibarr/htdocs/theme/eldy/img/switch_on.png" id="sendemail1"></div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <?echo $langs->trans('Email')?> 2
+                </td>
+                <td style="vertical-align: middle">
+                    <div style="height: 30px" >
+                        <div style="float: left;"><input id="email2" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_contact->email2?>" name="email2" maxlength="60" size="60" autocomplete="off"></div>
+                        <div style="float: left;"><img class="switcher" onclick="change_switch(1, 'llx_societe_contact', 'call_work_phone');" src="/dolibarr/htdocs/theme/eldy/img/switch_on.png" id="sendemail2"></div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <?echo $langs->trans('Skype')?>
+                </td>
+                <td style="vertical-align: middle">
+                    <div style="height: 30px" >
+                        <div style="float: left;"><input id="skype" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_contact->skype?>" name="skype" maxlength="60" size="60" autocomplete="off"></div>
+                        <div style="float: left;"><img class="switcher" onclick="change_switch(1, 'llx_societe_contact', 'call_work_phone');" src="/dolibarr/htdocs/theme/eldy/img/switch_on.png" id="callskype"></div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <?echo $langs->trans('BirthdayDate')?>
+                </td>
+                <td style="vertical-align: middle">
+                    <div style="height: 30px" >
+                        <div style="float: left;"><input id="BirthdayDate" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_contact->birthdaydate?>" name="BirthdayDate" maxlength="60" size="60" autocomplete="off">
+                            <button onclick="showDP('/dolibarr/htdocs/core/','BirthdayDate','dd/MM/yyyy','uk_UA');" class="dpInvisibleButtons" type="button" id="apButton"><img border="0" class="datecallink" title="Select a date" alt="" src="/dolibarr/htdocs/theme/eldy/img/object_calendarday.png"></button>
+                        </div>
+                        <div style="float: left;"><img class="switcher" onclick="change_switch(1, 'llx_societe_contact', 'call_work_phone');" src="/dolibarr/htdocs/theme/eldy/img/switch_on.png" id="sendBirthdayDate"></div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+        <div align="center">
+        <button onclick="save();">Зберегти</button>
+            <button onclick="back();">Відмінити</button>
+        </div>
+    </form>
+
+</div>
+<script>
+    jQuery(function($) {
+        $.mask.definitions['~']='[+-]';
+        $('#BirthdayDate').mask('99.99.9999');
+        $('#mobile_phone1').mask('(999) 999-9999');
+        $('#mobile_phone2').mask('(999) 999-9999');
+        $('#phoneext').mask("(999) 999-9999? x99999");
+        $("#tin").mask("99-9999999");
+        $("#ssn").mask("999-99-9999");
+        $("#product").mask("a*-999-a999");
+        $("#eyescript").mask("~9.99 ~9.99 999");
+    });
+</script>
+<script type="text/javascript">
+    function back(){
+        $('#action').val('cancel');
+        $('#addaddress').attr('action', $('#url').val());
+    }
+    function save(){
+        $('#action').val('save');
+    }
+    function change_switchPost(){
+        if($('#SendPost').val() == 0){
+            $('#SendPost').val(1);
+            $('#imgSendPost').attr('src',"/dolibarr/htdocs/theme/eldy/img/switch_on.png");
+        }else{
+            $('#SendPost').val(0);
+            $('#imgSendPost').attr('src',"/dolibarr/htdocs/theme/eldy/img/switch_off.png");
+        }
+    }    
+    function change_switchEmail(){
+        if($('#SendEmail').val() == 0){
+            $('#SendEmail').val(1);
+            $('#imgSendEmail').attr('src',"/dolibarr/htdocs/theme/eldy/img/switch_on.png");
+        }else{
+            $('#SendEmail').val(0);
+            $('#imgSendEmail').attr('src',"/dolibarr/htdocs/theme/eldy/img/switch_off.png");
+        }
+    }
+    $(".param").keypress(function( b ){        var C = /[0-9\x25\x27\x24\x23]/;        var a = b.which;        var c = String.fromCharCode(a);        return !!(a==0||a==8||a==9||a==13||c.match(C));    });
+</script>
+<script type="text/javascript">
+ $(document).ready(function(){
+     console.log($('#addaddress').innerHeight());
+     if(window.innerHeight<$('#addaddress').innerHeight()+50){
+         $('.footer').hide();
+     }
+ })
+</script>
+

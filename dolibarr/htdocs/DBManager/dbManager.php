@@ -22,6 +22,7 @@
         $db = new dbMysqli();
         $sql = 'select `'.$_REQUEST['loadfield'].'`, `value` from `'.$_REQUEST['tablename'].'` where `'.$_REQUEST['col_name'].'`='.$_REQUEST['rowid'];
         $res = $db->mysqli->query($sql);
+
 //        die($sql);
         $param=''; $values='';
         while($row = $res->fetch_assoc()){

@@ -1006,7 +1006,7 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
             $jquerytheme = 'smoothness';
             if (!empty($conf->global->MAIN_USE_JQUERY_THEME)) $jquerytheme = $conf->global->MAIN_USE_JQUERY_THEME;
             //Если открывается панель инструментов, подключаю стили форм
-            if($_REQUEST['mainmenu'] == 'tools' || $_REQUEST['mainmenu']=='area' || $_REQUEST['mainmenu']=='companies'){
+            if($_REQUEST['mainmenu'] == 'tools' || $_REQUEST['mainmenu']=='area' || $_REQUEST['mainmenu']=='companies' || GETPOST('mainmenu')=='companies'){
                 print '<link rel="stylesheet" type="text/css" href="'.DOL_URL_ROOT.'/theme/'.$conf->theme.'/design.css'.($ext?'?'.$ext:'').'"/>'."\n";          //Стиль для фор
                 print '<link rel="stylesheet" type="text/css" href="'.DOL_URL_ROOT.'/theme/'.$conf->theme.'/style-modal.css'.($ext?'?'.$ext:'').'"/>'."\n";     //Стиль модальной формы
             }
@@ -1108,7 +1108,7 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
         }
         print '<script src="http://code.jquery.com/jquery-1.8.3.js"></script>'."\n";
 
-
+//        print '<script type="text/javascript" src="'.$_SERVER['DOCUMENT_ROOT'].'/dolibarr/scripts/js/jquery.maskedinput-1.2.2.js"></script>';
         // Output standard javascript links
         if (! defined('DISABLE_JQUERY') && ! $disablejs && ! empty($conf->use_javascript_ajax))
         {
