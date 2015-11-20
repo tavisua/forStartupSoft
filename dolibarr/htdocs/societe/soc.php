@@ -66,11 +66,13 @@ if (! empty($conf->notification->enabled)) $langs->load("mails");
 $mesg=''; $error=0; $errors=array();
 
 $action		= (GETPOST('action') ? GETPOST('action') : 'view');
+//echo '<pre>';
+//var_dump($_SERVER);
+//echo '</pre>';
+//die();
 
-
-
-
-$backtopage = GETPOST('backtopage','alpha');
+$backtopage = $_POST['backtopage'];
+//die($backtopage);
 $confirm	= GETPOST('confirm');
 $socid		= GETPOST('socid','int');
 
@@ -150,6 +152,11 @@ if (empty($reshook))
 
         require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
 
+//        echo '<pre>';
+//        var_dump($_POST['name']?$_POST['name']:$_POST['nom']);
+//        echo '</pre>';
+//        die();
+
         if ($action == 'update')
         {
         	$ret=$object->fetch($socid);
@@ -164,12 +171,13 @@ if (empty($reshook))
             $object->name              = dolGetFirstLastname(GETPOST('firstname','alpha'),GETPOST('nom','alpha')?GETPOST('nom','alpha'):GETPOST('name','alpha'));
             $object->civility_id       = GETPOST('civility_id', 'int');
             // Add non official properties
-            $object->name_bis          = GETPOST('name','alpha')?GETPOST('name','alpha'):GETPOST('nom','alpha');
+            $object->name_bis          = $_POST['name']?$_POST['name']:$_POST['nom'];
             $object->firstname         = GETPOST('firstname','alpha');
         }
         else
         {
-            $object->name              = GETPOST('name', 'alpha')?GETPOST('name', 'alpha'):GETPOST('nom', 'alpha');
+//            $object->name              = GETPOST('name', 'alpha')?GETPOST('name', 'alpha'):GETPOST('nom', 'alpha');
+            $object->name              = $_POST['name']?$_POST['name']:$_POST['nom'];
         }
         $object->address               = GETPOST('address', 'alpha');
         $object->zip                   = GETPOST('zipcode', 'alpha');
@@ -323,6 +331,10 @@ if (empty($reshook))
         {
             if ($action == 'add')
             {
+//                echo '<pre>';
+//                var_dump($object);
+//                echo '</pre>';
+//                die();
                 $db->begin();
 
                 if (empty($object->client))      $object->code_client='';
@@ -395,22 +407,25 @@ if (empty($reshook))
                 if ($result >= 0)
                 {
                     $db->commit();
-
-//                	if (! empty($backtopage))
-//                	{
-               		    header("Location: /dolibarr/htdocs/responsibility/sale/area.php?idmenu=10425&mainmenu=area&leftmenu=#tr".$object->id);
+//                    var_dump(!empty($backtopage));
+//                    die($backtopage);
+                	if (!empty($backtopage))
+                	{
+                        header("Location: ".$backtopage."=#tr".$object->id);
+                        exit;
+                	}
+                	else
+                	{
+                        header("Location: /dolibarr/htdocs/responsibility/sale/area.php?idmenu=10425&mainmenu=area&leftmenu=#tr".$object->id);
 //               		    header("Location: ".$backtopage);
-                    	exit;
-//                	}
-//                	else
-//                	{
+                        exit;
 //                    	$url=$_SERVER["PHP_SELF"]."?socid=".$object->id;
 //                    	if (($object->client == 1 || $object->client == 3) && empty($conf->global->SOCIETE_DISABLE_CUSTOMERS)) $url=DOL_URL_ROOT."/comm/card.php?socid=".$object->id;
 //                    	else if ($object->fournisseur == 1) $url=DOL_URL_ROOT."/fourn/card.php?socid=".$object->id;
 //
 //                		header("Location: ".$url);
 //                    	exit;
-//                	}
+                	}
                 }
                 else
                 {

@@ -44,6 +44,10 @@ $thirdparty_static = new Societe($db);
 /*
  * View
  */
+//echo '<pre>';
+//var_dump($_SERVER);
+//echo '</pre>';
+//die();
 
 $transAreaType = $langs->trans("ThirdPartiesArea");
 $helpurl='EN:Module_Third_Parties|FR:Module_Tiers|ES:M&oacute;dulo_Terceros';

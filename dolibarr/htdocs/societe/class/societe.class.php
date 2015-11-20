@@ -429,6 +429,10 @@ class Societe extends CommonObject
 
         // Check more parameters
         // If error, this->errors[] is filled
+//        echo '<pre>';
+//        var_dump($this);
+//        echo '</pre>';
+//        die();
         $result = $this->verify();
 
         if ($result >= 0)
