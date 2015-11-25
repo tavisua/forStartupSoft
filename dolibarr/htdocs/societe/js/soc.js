@@ -32,6 +32,17 @@ function setvisiblbloks(){
         $('#classifycation').hide();
     }
 }
+function addtownitem(val){
+    var item = '<input id="'+val.name+'" class="townitem" type="hidden" name="action" value="'+val.rowid+'">'
+    var  newitem = document.createElement('input');
+
+    newitem.id = val.name;
+    newitem.type = "hidden"
+    newitem.value = val.rowid;
+    newitem.class = "townitem";
+    $('#formsoc').add(newitem);
+
+}
 function setHightTable(table){
     var tbody = document.getElementById(table);
     if(tbody!=null){
@@ -64,29 +75,24 @@ function setHightTable(table){
 
     var tabPage = $('.tabPage');
 }
-function change_switch(rowid, tablename, col_name, theme){
-    var x;
-    if(rowid != 0) {
-        x = document.getElementById('img' + rowid + col_name);
-    }else {
-        x = document.getElementById('edit_' + col_name);
+function change_switch(obj){
+    console.log(obj.attr('src'));
+
+    var check = 0;
+    var end = strpos(obj.attr('src'), '/img/');
+    var id = '';
+    if (obj.attr('src') == obj.attr('src').substr(0, end + 4) + '/switch_on.png') {
+        obj.attr('src', obj.attr('src').substr(0, end + 4) + '/switch_off.png');
+    } else {
+        obj.attr('src', obj.attr('src').substr(0, end + 4) + '/switch_on.png');
+        check = 1;
     }
-    //console.log('img' + rowid + col_name);
-    var check = false;
-    var end = strpos(x.src, '/img/');
-    //console.log(x.src);
-    //console.log(x.src.substr(0, end+4)+'/switch_on.png');
-    if(x.src == x.src.substr(0, end+4)+'/switch_on.png'){
-        x.src = x.src.substr(0, end+4)+'/switch_off.png';
-    }else{
-        x.src =  x.src.substr(0, end+4)+'/switch_on.png';
-        check = true;
-    }
-    if(rowid != 0) {
-        var link = 'http://'+location.hostname+'/dolibarr/htdocs/DBManager/dbManager.php?rowid='+rowid+'&edit=1&tablename='+tablename+'&col_name='+col_name+'&value='+check;
-        console.log(link);
-        update_data(link);
-    }
+    if(obj.attr('id').substr(0, 4)=='call')
+        id = obj.attr('id').replace('call', 'call_');
+    else if(obj.attr('id').substr(0, 4)=='send')
+        id = obj.attr('id').replace('send', 'send_');
+    $('#'+id).val(check);
+    console.log('#'+id, $('#'+id).val());
 }
 function update_data(link){
     var id_usr = document.getElementById('user_id').value;

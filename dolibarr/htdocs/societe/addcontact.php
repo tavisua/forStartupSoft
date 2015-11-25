@@ -28,22 +28,25 @@ if($action =='cancel') {
 }elseif($_REQUEST['action'] == 'edit'){
     $soc_contact->fetch($_REQUEST['rowid']);
     $action      = 'save';
-    $socid       = $soc_address->socid;
-
-    $EditAddress = $langs->trans('EditAddress');
+    $socid       = $soc_contact->socid;
+    $object = new  Societe($db);
+    $object->fetch($socid);
+    $CategoryOfCustomer = $object->getCategoryOfCustomer();
+    $FormOfGoverment = $object->getFormOfGoverment();
+    $EditAddress = $langs->trans('EditContact');
     llxHeader('', $EditAddress, $help_url);
     print_fiche_titre($EditAddress);
-    include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/addaddress.html');
+    include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/addcontact.html');
     echo ob_get_clean();
     llxFooter();
     exit;
 }elseif(GETPOST('action', 'alpha') == 'save'){
-
     $url                        = htmlspecialchars(GETPOST('url', 'alpha'));
     $soc_contact->rowid                     = GETPOST('rowid');
     $soc_contact->subdivision               = GETPOST('subdivision');
     $soc_contact->post                      = GETPOST('post');
     $soc_contact->SphereOfResponsibility    = GETPOST('SphereOfResponsibility');
+    $soc_contact->town_id                   = GETPOST('town_id');
     $soc_contact->lastname                  = GETPOST('lastname');
     $soc_contact->firstname                 = GETPOST('firstname');
     $soc_contact->work_phone                = GETPOST('work_phone');
@@ -63,7 +66,10 @@ if($action =='cancel') {
     $soc_contact->birthdaydate              = GETPOST('BirthdayDate');
     $soc_contact->send_birthdaydate         = GETPOST('send_birthdaydate');
     $soc_contact->socid                     = GETPOST('socid');
-
+//    echo '<pre>';
+//    var_dump($soc_contact);
+//    echo '</pre>';
+//    die();
     $error = 0;
     if(empty($soc_contact->post))$error++;
     if(empty($soc_contact->SphereOfResponsibility))$error++;

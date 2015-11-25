@@ -26,7 +26,7 @@
  */
 
 require '../main.inc.php';
-require_once DOL_DOCUMENT_ROOT.'/contact/class/contact.class.php';
+require_once DOL_DOCUMENT_ROOT.'/societe/societecontact_class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
@@ -39,12 +39,129 @@ llxHeader('',$ContactList,$help_url);
 print_fiche_titre($ContactList);
 $object = new Societe($db);
 $object->fetch($socid);
+print '
+        <div class="tabs" data-role="controlgroup" data-type="horizontal">
+            <div class="inline-block tabsElem tabsElemActive">
+                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/soc.php?mainmenu=companies&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('BasicInfo').'</a>
+            </div>
+            <div class="inline-block tabsElem">
+                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societeaddress.php?mainmenu=companies&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('AddressList').'</a>
+            </div>
+            <div class="inline-block tabsElem">
+                <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societecontact.php?mainmenu=companies&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('ContactList').'</a>
+            </div>
+            <div class="inline-block tabsElem">
+                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/soc.php?mainmenu=companies&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('EconomicData').'</a>
+            </div>
+        </div>';
+
+
 $CategoryOfCustomer = $object->getCategoryOfCustomer();
 $FormOfGoverment = $object->getFormOfGoverment();
 $NewItem = $langs->trans('NewItem');
 $Control = $langs->trans('Control');
 $AddContact = $langs->trans('AddContact');
 
-include DOL_DOCUMENT_ROOT.'/theme/eldy/societecontact.html';
+$TableParam = array();
+$ColParam['title']='';
+$ColParam['width']='';
+$ColParam['align']='';
+$ColParam['class']='';
+$TableParam[]=$ColParam;
+
+$ColParam['title']='';
+$ColParam['width']='';
+$ColParam['align']='';
+$ColParam['class']='';
+$TableParam[]=$ColParam;
+
+$ColParam['title']='';
+$ColParam['width']='';
+$ColParam['align']='';
+$ColParam['class']='';
+$TableParam[]=$ColParam;
+
+$ColParam['title']='';
+$ColParam['width']='';
+$ColParam['align']='';
+$ColParam['class']='';
+$TableParam[]=$ColParam;
+
+$ColParam['title']='';
+$ColParam['width']='';
+$ColParam['align']='';
+$ColParam['class']='';
+$TableParam[]=$ColParam;
+
+$ColParam['title']='';
+$ColParam['width']='';
+$ColParam['align']='';
+$ColParam['class']='';
+$TableParam[]=$ColParam;
+
+$ColParam['title']='';
+$ColParam['width']='';
+$ColParam['align']='';
+$ColParam['class']='';
+$TableParam[]=$ColParam;
+
+$ColParam['title']='';
+$ColParam['width']='';
+$ColParam['align']='';
+$ColParam['class']='';
+$TableParam[]=$ColParam;
+
+$ColParam['title']='';
+$ColParam['width']='100px';
+$ColParam['align']='';
+$ColParam['class']='';
+$TableParam[]=$ColParam;
+
+$ColParam['title']='';
+$ColParam['width']='';
+$ColParam['align']='';
+$ColParam['class']='';
+$TableParam[]=$ColParam;
+
+$ColParam['title']='';
+$ColParam['width']='';
+$ColParam['align']='';
+$ColParam['class']='';
+$TableParam[]=$ColParam;
+
+$ColParam['title']='';
+$ColParam['width']='';
+$ColParam['align']='';
+$ColParam['class']='';
+$TableParam[]=$ColParam;
+
+$ColParam['title']='';
+$ColParam['width']='';
+$ColParam['align']='';
+$ColParam['class']='';
+$TableParam[]=$ColParam;
+
+$sql = 'select `llx_societe_contact`.rowid, subdivision,  concat(trim(nametown), " ", trim(regions.name), " р-н. ", trim(states.name), " обл.") as nametown,
+`llx_post`.`postname`,`responsibility`.`name` as respon_name,lastname,firstname,work_phone,
+call_work_phone,fax,call_fax,mobile_phone1,call_mobile_phone1,mobile_phone2,
+call_mobile_phone2,email1,send_email1,email2,send_email2,skype,call_skype,
+birthdaydate,send_birthdaydate, `llx_societe_contact`.`active`
+from `llx_societe_contact`
+left join `llx_c_ziptown` on `llx_c_ziptown`.rowid = `llx_societe_contact`.`town_id`
+        left join states on states.rowid = llx_c_ziptown.fk_state
+        left join regions on regions.rowid =  llx_c_ziptown.`fk_region`
+left join `llx_post` on `llx_post`.`rowid`= `llx_societe_contact`.`post_id`
+left join `responsibility` on `responsibility`.`rowid` = `llx_societe_contact`.`respon_id`
+where `llx_societe_contact`.`socid`='.$socid.'
+and `llx_societe_contact`.`active` = 1';
+
+$contacttable = new societecontact();
+//var_dump($_REQUEST['sortfield']);
+if(!isset($_REQUEST['sortfield']))
+    $table = $contacttable->fShowTable($TableParam, $sql, "'".$tablename."'", $conf->theme, null, null, $readonly = array(), false);
+else
+    $table = $contacttable->fShowTable($TableParam, $sql, "'".$tablename."'", $conf->theme, $_REQUEST['sortfield'], $_REQUEST['sortorder']);
+
+include DOL_DOCUMENT_ROOT.'/theme/'.$conf->theme.'/societecontact.html';
 
 llxFooter();

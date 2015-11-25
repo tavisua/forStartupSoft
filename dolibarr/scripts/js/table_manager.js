@@ -73,16 +73,16 @@ function save_item(tablename, paramfield, sendtable){
             }
         }
         var select_field = editor[0].getElementsByTagName('select');
-        if(select_field.length>0) {
-            var detail_id = 'detail_' + select_field[0].id.substr(5);
+
+        for(var s = 0; s<select_field.length; s++) {
+            var detail_id = 'detail_' + select_field[s].id.substr(5);
             var detail_field = document.getElementById(detail_id);
-            //console.log(select_field[0].value + ' 111 ' + detail_field.value);
             if(fields != '') {
                 fields = fields + ',' + detail_field.value;
-                values = values + ','+escapeHtml(select_field[0].value).trim();
+                values = values + ','+escapeHtml(select_field[s].value).trim();
             }else {
                 fields = detail_field.value;
-                values = escapeHtml(select_field[0].value).trim();
+                values = escapeHtml(select_field[s].value).trim();
             }
         }
         //console.log(values);
@@ -95,6 +95,8 @@ function save_item(tablename, paramfield, sendtable){
 
         var link = "tablename="+tablename+"&columns='"+fields+"'&values='"+values+"'&id_usr="+id_usr+"&save=1";
 
+        //console.log(link);
+        //return;
         if(paramfield != ''){//Зберігаю додаткові параметри
             //console.log($('#'+paramfield).find('input').length);
             //return;
@@ -103,7 +105,7 @@ function save_item(tablename, paramfield, sendtable){
             var input_field = $('#'+paramfield).find('input');
             for(var i=0;i<input_field.length;i++){
                 if(input_field[i].className=='param') {
-                    console.log(input_field[i].value);
+                    //console.log(input_field[i].value);
                     var value = input_field[i].value;
                     value = value.replace(/\&/gi, "@@");
                     if (fields != '') {
@@ -380,7 +382,7 @@ function edit_item(rowid){
                 bSelectedField = true;
                 var select_field = $('select#edit_'+fieldname.substr(2))
                 var detail_id = 'detail_' + select_field[0].id.substr(5);
-                console.log('***'+detail_id, fieldname, detail_id);
+                //console.log('***'+detail_id, fieldname, detail_id);
                 var detail_field = document.getElementById(detail_id);
                 //console.log("select#edit_"+fieldname.substr(2));
                 if(detail_field != null)
@@ -473,6 +475,42 @@ function update_data(link){
     });
 
 };
+function change_switch_callfield(obj){
+    //console.log(obj.attr('src'));
+
+    var check = 0;
+    var end = strpos(obj.attr('src'), '/img/');
+    var id = '';
+    if (obj.attr('src') == obj.attr('src').substr(0, end + 4) + '/check.png') {
+        obj.attr('src', obj.attr('src').substr(0, end + 4) + '/uncheck.png');
+    } else {
+        obj.attr('src', obj.attr('src').substr(0, end + 4) + '/check.png');
+        check = 1;
+    }
+    var tablename = 'llx_societe_contact';
+    var callfields = ['work_phone', 'fax', 'mobile_phone', 'email', 'skype', 'birthdaydate'];
+    var begin = false;
+    var index = 0;
+    while(!begin) {
+        begin = strpos(obj.attr('id'), callfields[index++]);
+    }
+    var fieldname = '';
+    index--;
+    if(callfields[index] == 'email' || callfields[index] == 'birthdaydate')
+        fieldname = 'send_'+obj.attr('id').substr(begin);
+    else
+        fieldname = 'call_'+obj.attr('id').substr(begin);
+    var ID = obj.attr('id').substr(3, begin-3);
+    //console.log(fieldname);
+    $.ajax({
+        url: 'http://'+location.hostname+'/dolibarr/htdocs/DBManager/dbManager.php?edit=1&tablename='+tablename+'&col_name='+fieldname+'&value='+check+'&id_usr='+$('#user_id').val()+'&rowid='+ID,
+        cache: false,
+        success: function (html) {
+            //console.log('***'+html+'***');
+        }
+    });
+
+}
 function save_data(link){
     //console.log('http://'+location.hostname+'/dolibarr/htdocs/DBManager/dbManager.php?save=1&'+link);
     //return;
@@ -514,21 +552,25 @@ function save_data(link){
                 if(tdlist[i].getElementsByTagName('select').length>0){
                     //console.log($('select#edit_regions_name').val());
                     var selectList = tdlist[i].getElementsByTagName('select');
+
                     var select = selectList[0];
-                    var detail_field = select.id.substring(6+rowid.length);
+                    //console.log(select);
+                    var detail_field = select.id.substring(6 + rowid.length);
                     //var select_field = $('select#edit_'+select.id.substring(6+rowid.length));
-                    console.log(detail_field);
+                    //console.log(detail_field, 522);
                     //var detail_id = 'detail_' + select_field[0].id.substr(5);
                     //
                     //var detail_field = document.getElementById(detail_id);
-                    //console.log(detail_field.id);
-                    select.onchange = function(){
+                    //console.log($('select#edit_' + tdlist[i].id.substr(html.length+2)).val());
+                    select.onchange = function () {
                         change_select(rowid, tablename, detail_field);
                     }
-                    select.id = 'select'+rowid+detail_field.value;
-                    //console.log("select#"+select.id+"  [value="+$('select#edit_'+tdlist[i].id.substr(html.length)+'').val()+"]");
-                    $("select#"+select.id+"  [value="+$('select#edit_'+tdlist[i].id.substr(html.length)+'').val()+"]").attr("selected", "selected");
+                    if (select.id == null)
+                        select.id = 'select' + rowid + detail_field.value;
+                    //console.log("select#" + select.id + "  [value=" + $('select#edit_' + tdlist[i].id.substr(html.length) + '').val() + "]", 531);
+                    $("select#" + select.id + "  [value=" + $('select#edit_' + tdlist[i].id.substr(html.length+2)).val() + "]").attr("selected", "selected");
                 }
+
             }
             
             document.getElementById('edit_rowid').value=html;

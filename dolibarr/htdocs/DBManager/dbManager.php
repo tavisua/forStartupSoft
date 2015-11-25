@@ -70,7 +70,7 @@
             $value = ($_REQUEST['value']=='true')?'1':'0';
         }else
             $value = $_REQUEST['value'];
-        $sql = 'update `'.$_REQUEST['tablename'].'` set `'.$_REQUEST['col_name'].'`='.$value.', `id_usr`='.$_REQUEST['id_usr'].', dtChange=Now() where `rowid`='.$_REQUEST['rowid'];
+        $sql = 'update `'.$_REQUEST['tablename'].'` set `'.$_REQUEST['col_name'].'`='.$value.', `id_usr`='.$_REQUEST['id_usr'].' where `rowid`='.$_REQUEST['rowid'];
         $res = $db->mysqli->query($sql);
         if($res)
             echo 'success';
@@ -82,7 +82,7 @@
         include 'db.php';
         $fields = str_replace(',',"`,`", $_REQUEST['columns']);
         $fields = str_replace("'","`", $fields);
-        $fields .= ",`id_usr`,`dtChange`";
+        $fields .= ",`id_usr`";
 
         $values = str_replace('$$','&#', $_REQUEST['values']);
         //        var_dump(htmlspecialchars($values).'</br>');
@@ -93,7 +93,7 @@
 
 //        $values = str_replace('__',',', $_REQUEST['values']);
 
-        $values .= ','.$_REQUEST['id_usr'].', Now()';
+        $values .= ','.$_REQUEST['id_usr'];
 
         $db = new dbMysqli();
         $sql = "select * from `". $_REQUEST['tablename'] ."` limit 1";
@@ -107,7 +107,7 @@
 //            $values = str_replace("'1'", "1", $values);
             $fields_array = explode(',', $fields);
             $values_array = explode(',', $values);
-//            var_dump($values);
+//            var_dump($values_array);
 //            die();
             $num=0;
 

@@ -27,6 +27,7 @@
                         <input id="url" name="url" type="hidden" value="<?echo $_SERVER['REQUEST_URI']?>">
                         <input id="mainmenu" name="mainmenu" type="hidden" value="<?echo $_REQUEST['mainmenu']?>">
                         <input id="idmenu" name="idmenu" type="hidden" value="<?echo $_REQUEST['idmenu']?>">
+                        <input id="user_id" name="user_id" type="hidden" value="<?echo $user->id?>">
                         <input id="socid" name="socid" type="hidden" value="<?echo $socid?>">
                         <input id="action" name="action" type="hidden" value="add">
                         <button type="submit">&nbsp;&nbsp;&nbsp;&nbsp;<?echo $AddContact?>&nbsp;&nbsp;&nbsp;&nbsp;</button>
@@ -40,31 +41,20 @@
     <table>
         <thead>
             <tr class="header_table">
-                <th><?echo $langs->trans('SubDivision')?></th>
-                <th><?echo $langs->trans('Location')?></th>
-                <th><?echo $langs->trans('aPost')?></th>
-                <th><?echo $langs->trans('SphereOfResponsibility')?></th>
-                <th><?echo $langs->trans('Lastname')?></th>
-                <th><?echo $langs->trans('Firstname')?></th>
-                <th><?echo $langs->trans('PhonePro')?></th>
-                <th><?echo $langs->trans('YesNo')?></th>
-                <th><?echo $langs->trans('Fax')?></th>
-                <th><?echo $langs->trans('YesNo')?></th>
-                <th><?echo $langs->trans('PhoneMobile')?> 1</th>
-                <th><?echo $langs->trans('YesNo')?></th>
-                <th><?echo $langs->trans('PhoneMobile')?> 2</th>
-                <th><?echo $langs->trans('YesNo')?></th>
-                <th><?echo $langs->trans('Email')?> 1</th>
-                <th><?echo $langs->trans('YesNo')?></th>
-                <th><?echo $langs->trans('Email')?> 2</th>
-                <th><?echo $langs->trans('YesNo')?></th>
-                <th><?echo $langs->trans('Skype')?></th>
-                <th><?echo $langs->trans('YesNo')?></th>
-                <th><?echo $langs->trans('BirthdayDate')?></th>
-                <th><?echo $langs->trans('YesNo')?></th>
-
-
-                <th><?echo $langs->trans('Active')?></th>
+                <th id="th_subdivision"><?echo $langs->trans('SubDivision')?></th>
+                <th id="th_location"><?echo $langs->trans('Location')?></th>
+                <th id="th_post"><?echo $langs->trans('aPost')?></th>
+                <th id="th_responsibility"><?echo $langs->trans('SphereOfResponsibility')?></th>
+                <th id="th_lastname"><?echo $langs->trans('Lastname')?></th>
+                <th id="th_firstname"><?echo $langs->trans('Firstname')?></th>
+                <th id="th_phonepro"><?echo $langs->trans('PhonePro')?></th>
+                <th id="th_fax"><?echo $langs->trans('Fax')?></th>
+                <th id="th_phonemobile" style="width: 100px"><?echo $langs->trans('PhoneMobile')?></th>
+                <th id="th_email"><?echo $langs->trans('Email')?></th>
+                <th id="th_skype"><?echo $langs->trans('Skype')?></th>
+                <th id="th_birthdate"><?echo $langs->trans('BirthdayDate')?></th>
+                <th id="th_active"><?echo $langs->trans('Active')?></th>
+                <th ></th>
             </tr>
         </thead>
         <!--<tbody id="reference_body">-->
@@ -79,15 +69,15 @@
         </style>
 <script type="text/javascript">
     $(document).ready(function(){
-        var tbody = document.getElementById('reference_body');
+        var tbody = document.getElementById('contactlist_body');
         var trList = tbody.getElementsByTagName('tr');
         for(var index = 0; index<trList.length; index++){
             var tdList = trList[index].getElementsByTagName('td');
             for(var tdIndex = 0; tdIndex<tdList.length; tdIndex++){
-                if(tdList[tdIndex].id.substr(tdList[tdIndex].id.length-'whom'.length) == 'whom') {
+                if(tdList[tdIndex].id.substr(tdList[tdIndex].id.length-'lastname'.length) == 'lastname') {
 //                     http://uspex2015.com/dolibarr/htdocs/user/card.php?id=13
-                    var id = tdList[tdIndex].id.substr(0, (tdList[tdIndex].id.length - 'whom'.length));
-                    tdList[tdIndex].innerHTML = '<a id = "login_'+id+'" href="/dolibarr/htdocs/societe/addaddress.php?mainmenu=companies&idmenu=<?echo $_REQUEST["idmenu"]?>&action=edit&rowid='+id+'"> <img border="0"  alt="" src="/dolibarr/htdocs/theme/eldy/img/object_address.png">' +' '+ (tdList[tdIndex].innerHTML) + '</a>';
+                    var id = tdList[tdIndex].id.substr(0, (tdList[tdIndex].id.length - 'lastname'.length));
+                    tdList[tdIndex].innerHTML = '<a id = "login_'+id+'" href="/dolibarr/htdocs/societe/addcontact.php?action=edit&mainmenu=companies&idmenu=<?echo $_REQUEST["idmenu"]?>&rowid='+id+'"> <img border="0"  alt="" src="/dolibarr/htdocs/theme/eldy/img/object_contact.png">' +' '+ (tdList[tdIndex].innerHTML) + '</a>';
 //                     console.log(tdList[tdIndex].id.substr(0, (tdList[tdIndex].id.length - 'login'.length)));
 //                     console.log(id);
                 }

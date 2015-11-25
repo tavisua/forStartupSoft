@@ -359,7 +359,13 @@ class dbBuilder{
                                 $s_table = substr($fields[$num_col]->name, 2, strpos($fields[$num_col]->name, '_', $stpos) - 2);
                                 $s_fieldname = substr($fields[$num_col]->name, strpos($fields[$num_col]->name, '_', $stpos) + 1);
 
+//                                $selectlist = str_replace('selected=\"selected\"', '', $this->selectlist['edit_' . $s_table . '_' . $s_fieldname]);
+//                                if('regions' == $s_table) {
+//                                    var_dump($selectlist);
+//                                    die($value);
+//                                }
                                 $selectlist = substr($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], 0, strpos($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], $value) - 1) . ' selected = "selected" ' . substr($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], strpos($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], $value) - 1);
+
                                 $selectlist = str_replace('class="edit_' . substr($fields[$num_col]->name, 2) . '"', '', $selectlist);
 
                                 if (isset($title[$num_col - 1]["detailfield"])) {

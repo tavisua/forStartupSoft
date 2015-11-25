@@ -22,9 +22,10 @@
         <input id="rowid" name="rowid" type="hidden" value="<?echo $soc_contact->rowid?>">
         <input id="url" name="url" type="hidden" value="<?echo $url?>">
         <input id="action" name="action" type="hidden" value="<?echo $action?>">
+        <input id="town_id" name="town_id" type="hidden" value="<?echo $soc_contact->town_id?>">
         <input id="call_work_phone" name="call_work_phone" type="hidden" value="<?echo $soc_contact->call_work_phone?>">
-        <input id="mainmenu" name="mainmenu" type="hidden" value="<?echo GETPOST('mainmenu', 'alpha')?>">
-        <input id="socid" name="socid" type="hidden" value="<?echo $socid?>">
+        <input id="mainmenu" name="mainmenu" type="hidden" value="companies">
+        <input id="socid" name="socid" type="hidden" value="<?echo $soc_contact->socid?>">
         <input id="call_fax" name="call_fax" type="hidden" value="<?echo $soc_contact->call_fax?>">
         <input id="call_mobile_phone1" name="call_mobile_phone1" type="hidden" value="<?echo $soc_contact->call_mobile_phone1?>">
         <input id="call_mobile_phone2" name="call_mobile_phone2" type="hidden" value="<?echo $soc_contact->call_mobile_phone2?>">
@@ -40,6 +41,14 @@
                 </td>
                 <td>
                     <input id="subdivision" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_contact->subdivision?>" name="subdivision" maxlength="128" size="60" autocomplete="off">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <?echo $langs->trans('Location')?>
+                </td>
+                <td>
+                    <input id="location" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_contact->location?>" name="location" maxlength="128" size="60" autocomplete="off">
                 </td>
             </tr>
             <tr>
@@ -81,7 +90,7 @@
                 <td style="vertical-align: middle">
                     <div style="height: 30px" >
                         <div style="float: left;"><input id="work_phone" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_contact->work_phone?>" name="work_phone" maxlength="60" size="60" autocomplete="off"></div>
-                        <div style="float: left;"><img class="switcher" onclick="change_switch(1, 'llx_societe_contact', 'call_work_phone');" src="/dolibarr/htdocs/theme/eldy/img/switch_on.png" id="callwork_phone"></div>
+                        <div style="float: left;"><img class="switcher" onclick="change_switch($('#callwork_phone'));" src="<?echo($soc_contact->call_work_phone==1?('/dolibarr/htdocs/theme/eldy/img/switch_on.png'):('/dolibarr/htdocs/theme/eldy/img/switch_off.png'))?>" id="callwork_phone"></div>
                     </div>
                 </td>
             </tr>
@@ -92,7 +101,7 @@
                 <td style="vertical-align: middle">
                     <div style="height: 30px" >
                         <div style="float: left;"><input id="fax" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_contact->fax?>" name="fax" maxlength="60" size="60" autocomplete="off"></div>
-                        <div style="float: left;"><img class="switcher" onclick="change_switch(1, 'llx_societe_contact', 'call_work_phone');" src="/dolibarr/htdocs/theme/eldy/img/switch_on.png" id="callfax"></div>
+                        <div style="float: left;"><img class="switcher" onclick="change_switch($('#callfax'));" src="<?echo($soc_contact->call_fax==1?('/dolibarr/htdocs/theme/eldy/img/switch_on.png'):('/dolibarr/htdocs/theme/eldy/img/switch_off.png'))?>" id="callfax"></div>
                     </div>
                 </td>
             </tr>
@@ -103,7 +112,7 @@
                 <td style="vertical-align: middle">
                     <div style="height: 30px" >
                         <div style="float: left;"><input id="mobile_phone1" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_contact->mobile_phone1?>" name="mobile_phone1" maxlength="60" size="60" autocomplete="off"></div>
-                        <div style="float: left;"><img class="switcher" onclick="change_switch(1, 'llx_societe_contact', 'call_work_phone');" src="/dolibarr/htdocs/theme/eldy/img/switch_on.png" id="callmobile_phone1"></div>
+                        <div style="float: left;"><img class="switcher" onclick="change_switch($('#callmobile_phone1'));" src="<?echo($soc_contact->call_mobile_phone1==1?('/dolibarr/htdocs/theme/eldy/img/switch_on.png'):('/dolibarr/htdocs/theme/eldy/img/switch_off.png'))?>" id="callmobile_phone1"></div>
                     </div>
                 </td>
             </tr>
@@ -114,7 +123,7 @@
                 <td style="vertical-align: middle">
                     <div style="height: 30px" >
                         <div style="float: left;"><input id="mobile_phone2" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_contact->mobile_phone2?>" name="mobile_phone2" maxlength="60" size="60" autocomplete="off"></div>
-                        <div style="float: left;"><img class="switcher" onclick="change_switch(1, 'llx_societe_contact', 'call_work_phone');" src="/dolibarr/htdocs/theme/eldy/img/switch_on.png" id="callmobile_phone2"></div>
+                        <div style="float: left;"><img class="switcher" onclick="change_switch($('#callmobile_phone2'));" src="<?echo($soc_contact->call_mobile_phone2==1?('/dolibarr/htdocs/theme/eldy/img/switch_on.png'):('/dolibarr/htdocs/theme/eldy/img/switch_off.png'))?>" id="callmobile_phone2"></div>
                     </div>
                 </td>
             </tr>
@@ -125,7 +134,7 @@
                 <td style="vertical-align: middle">
                     <div style="height: 30px" >
                         <div style="float: left;"><input id="email1" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_contact->email1?>" name="email1" maxlength="60" size="60" autocomplete="off"></div>
-                        <div style="float: left;"><img class="switcher" onclick="change_switch(1, 'llx_societe_contact', 'call_work_phone');" src="/dolibarr/htdocs/theme/eldy/img/switch_on.png" id="sendemail1"></div>
+                        <div style="float: left;"><img class="switcher" onclick="change_switch($('#sendemail1'));" src="<?echo($soc_contact->send_email1==1?('/dolibarr/htdocs/theme/eldy/img/switch_on.png'):('/dolibarr/htdocs/theme/eldy/img/switch_off.png'))?>" id="sendemail1"></div>
                     </div>
                 </td>
             </tr>
@@ -136,7 +145,7 @@
                 <td style="vertical-align: middle">
                     <div style="height: 30px" >
                         <div style="float: left;"><input id="email2" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_contact->email2?>" name="email2" maxlength="60" size="60" autocomplete="off"></div>
-                        <div style="float: left;"><img class="switcher" onclick="change_switch(1, 'llx_societe_contact', 'call_work_phone');" src="/dolibarr/htdocs/theme/eldy/img/switch_on.png" id="sendemail2"></div>
+                        <div style="float: left;"><img class="switcher" onclick="change_switch($('#sendemail2'));" src="<?echo($soc_contact->send_email2==1?('/dolibarr/htdocs/theme/eldy/img/switch_on.png'):('/dolibarr/htdocs/theme/eldy/img/switch_off.png'))?>" id="sendemail2"></div>
                     </div>
                 </td>
             </tr>
@@ -147,7 +156,7 @@
                 <td style="vertical-align: middle">
                     <div style="height: 30px" >
                         <div style="float: left;"><input id="skype" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_contact->skype?>" name="skype" maxlength="60" size="60" autocomplete="off"></div>
-                        <div style="float: left;"><img class="switcher" onclick="change_switch(1, 'llx_societe_contact', 'call_work_phone');" src="/dolibarr/htdocs/theme/eldy/img/switch_on.png" id="callskype"></div>
+                        <div style="float: left;"><img class="switcher" onclick="change_switch($('#callskype'));" src="<?echo($soc_contact->call_skype==1?('/dolibarr/htdocs/theme/eldy/img/switch_on.png'):('/dolibarr/htdocs/theme/eldy/img/switch_off.png'))?>" id="callskype"></div>
                     </div>
                 </td>
             </tr>
@@ -160,7 +169,7 @@
                         <div style="float: left;"><input id="BirthdayDate" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_contact->birthdaydate?>" name="BirthdayDate" maxlength="60" size="60" autocomplete="off">
                             <button onclick="showDP('/dolibarr/htdocs/core/','BirthdayDate','dd/MM/yyyy','uk_UA');" class="dpInvisibleButtons" type="button" id="apButton"><img border="0" class="datecallink" title="Select a date" alt="" src="/dolibarr/htdocs/theme/eldy/img/object_calendarday.png"></button>
                         </div>
-                        <div style="float: left;"><img class="switcher" onclick="change_switch(1, 'llx_societe_contact', 'call_work_phone');" src="/dolibarr/htdocs/theme/eldy/img/switch_on.png" id="sendBirthdayDate"></div>
+                        <div style="float: left;"><img class="switcher" onclick="change_switch($('#sendbirthdaydate'));" src="<?echo($soc_contact->send_birthdaydate==1?('/dolibarr/htdocs/theme/eldy/img/switch_on.png'):('/dolibarr/htdocs/theme/eldy/img/switch_off.png'))?>" id="sendbirthdaydate"></div>
                     </div>
                 </td>
             </tr>
@@ -220,5 +229,56 @@
          $('.footer').hide();
      }
  })
+</script>
+<script>
+    var townlist = [];
+    $("#location").autocomplete({
+        //Определяем обратный вызов к результатам форматирования
+
+        source: function(req, add){
+            req["tablename"]="llx_c_ziptown";
+            req["fieldname"]="nametown";
+            //Передаём запрос на сервер
+            $.getJSON("autocomplete.php?callback=?", req, function(data) {
+                if(data == null){
+                    $("#location").val(req["term"]);
+                    //                    console.log($("#name").val());
+                    add(null);
+                    return;
+                }
+                //Создаем массив для объектов ответа
+                var suggestions = [];
+                //Обрабатываем ответ
+                $.each(data, function(i, val){
+                    townlist.push({"rowid":val.rowid, "name":val.name});
+                    suggestions.push(val.name);
+
+                });
+
+                //Передаем массив обратному вызову
+                add(suggestions);
+
+            });
+        },
+
+        //Определяем обработчик селектора
+        select: function(e, ui) {
+            $("#location").value = ui.item.value;
+            for(var i = 0; i<townlist.length; i++){
+                if(townlist[i].name == ui.item.value){
+                    $("#town_id").val(townlist[i].rowid);
+                    console.log($("#town_id").val());
+                    break;
+                }
+            }
+
+        },
+
+        //Определяем обработчик выбора
+        change: function() {
+            //Сохраняем поле "Наименование" без изменений и в правильной позиции
+//                        $("#name").val("").css("top", 2);
+        }
+    });
 </script>
 

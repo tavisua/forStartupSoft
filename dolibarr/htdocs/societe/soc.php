@@ -182,6 +182,7 @@ if (empty($reshook))
         $object->address               = GETPOST('address', 'alpha');
         $object->zip                   = GETPOST('zipcode', 'alpha');
         $object->town                  = GETPOST('town', 'alpha');
+        $object->townid                = GETPOST('townid', 'int');
         $object->country_id            = GETPOST('country_id', 'int');
         $object->state_id              = GETPOST('state_id', 'int');
         $object->skype                 = GETPOST('skype', 'alpha');
@@ -331,10 +332,10 @@ if (empty($reshook))
         {
             if ($action == 'add')
             {
-//                echo '<pre>';
-//                var_dump($object);
-//                echo '</pre>';
-//                die();
+                echo '<pre>';
+                var_dump($object);
+                echo '</pre>';
+                die();
                 $db->begin();
 
                 if (empty($object->client))      $object->code_client='';
@@ -743,6 +744,7 @@ else
         $object->address			= GETPOST('address', 'alpha');
         $object->zip				= GETPOST('zipcode', 'alpha');
         $object->town				= GETPOST('town', 'alpha');
+        $object->townid             = GETPOST('townid', 'int');
         $object->state_id			= GETPOST('state_id', 'int');
         $object->region_id          = GETPOST('region_id', 'int');
         $object->skype				= GETPOST('skype', 'alpha');
@@ -904,6 +906,7 @@ else
         print '<form enctype="multipart/form-data" action="'.$_SERVER["PHP_SELF"].'" method="post" name="formsoc">';
 
         print '<input type="hidden" name="action" value="add">';
+        print '<input id ="townid" type="hidden" name="townid" value="'.$object->townid.'">';
         print '<input type="hidden" name="backtopage" value="'.$backtopage.'">';
         print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
         print '<input type="hidden" name="private" value='.$object->particulier.'>';
@@ -1859,8 +1862,8 @@ else
 
             dol_htmloutput_mesg(is_numeric($error)?'':$error, $errors, 'error');
 
-            print '<form enctype="multipart/form-data" action="'.$_SERVER["PHP_SELF"].'?socid='.$object->id.'" method="post" name="formsoc">';
-            print '<input type="hidden" name="action" value="update">';
+            print '<form id="formsoc" enctype="multipart/form-data" action="'.$_SERVER["PHP_SELF"].'?socid='.$object->id.'" method="post" name="formsoc">';
+            print '<input id="update" type="hidden" name="action" value="update">';
             print '<input type="hidden" name="mainmenu" value="'.$_REQUEST['mainmenu'].'">';
             print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
             print '<input type="hidden" name="socid" value="'.$object->id.'">';
@@ -2863,6 +2866,7 @@ print '
         $("#name").autocomplete({
             //Определяем обратный вызов к результатам форматирования
             source: function(req, add){
+            req["tablename"]="kindofcustomer";
             //Передаём запрос на сервер
             $.getJSON("autocomplete.php?callback=?", req, function(data) {
                 if(data == null){
@@ -2905,7 +2909,64 @@ print '
 //                        $("#name").val("").css("top", 2);
                     }
 				});
-				
+        var townlist = [];
+        $("#town").autocomplete({
+            //Определяем обратный вызов к результатам форматирования
+
+            source: function(req, add){
+                req["tablename"]="llx_c_ziptown";
+                //Передаём запрос на сервер
+                $.getJSON("autocomplete.php?callback=?", req, function(data) {
+                    if(data == null){
+                        $("#town").val(req["term"]);
+    //                    console.log($("#name").val());
+                        add(null);
+                        return;
+                    }
+                    //Создаем массив для объектов ответа
+                    var suggestions = [];
+                    //Обрабатываем ответ
+                    $.each(data, function(i, val){
+                        townlist.push({"rowid":val.rowid, "name":val.name});
+                        suggestions.push(val.name);
+
+                    });
+
+                    //Передаем массив обратному вызову
+                    add(suggestions);
+
+                });
+            },
+
+					//Определяем обработчик селектора
+					select: function(e, ui) {
+					    $("#town").value = ui.item.value;
+					    for(var i = 0; i<townlist.length; i++){
+					        if(townlist[i].name == ui.item.value){
+					            $("#townid").val(townlist[i].rowid);
+					            console.log($("#townid").val());
+					            break;
+                            }
+					    }
+
+//                        //Создаем форматированную переменную cust_name
+//                        var cust_name = ui.item.value,
+//                                        span = $("<span>").text(cust_name),
+//                                        a = $("<a>").addClass("remove").attr({
+//                                            href: "javascript:",
+//                                            title: "Remove " + cust_name
+//                                        }).text("x").appendTo(span);
+//
+//                                    //Добавляем cust_name к div cust_name
+//                                    span.insertBefore("#name");
+					},
+
+					//Определяем обработчик выбора
+					change: function() {
+                        //Сохраняем поле "Наименование" без изменений и в правильной позиции
+//                        $("#name").val("").css("top", 2);
+                    }
+				});
 //				//Добавляем обработчки события click для div cust_names
 //				$("#cust_names").click(function(){
 //
@@ -2925,7 +2986,9 @@ print '
 //                    }
 //                });
 			});
-		</script>';
+		</script>
+';
+
 //print'<div>test</div>';
 // End of page
 llxFooter();

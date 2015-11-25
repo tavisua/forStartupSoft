@@ -66,6 +66,7 @@ class Societe extends CommonObject
     var $address;
     var $zip;
     var $town;
+    var $townid;
 
     /**
      * 0=activity ceased, 1= in activity

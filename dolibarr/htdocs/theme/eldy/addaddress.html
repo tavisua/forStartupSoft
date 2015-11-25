@@ -216,3 +216,64 @@
     }
     $(".param").keypress(function( b ){        var C = /[0-9\x25\x27\x24\x23]/;        var a = b.which;        var c = String.fromCharCode(a);        return !!(a==0||a==8||a==9||a==13||c.match(C));    });
 </script>
+<script>
+    var townlist = [];
+    $("#location").autocomplete({
+        //Определяем обратный вызов к результатам форматирования
+
+        source: function(req, add){
+            req["tablename"]="llx_c_ziptown";
+            req["fieldname"]="nametown";
+            //Передаём запрос на сервер
+            $.getJSON("autocomplete.php?callback=?", req, function(data) {
+                if(data == null){
+                    $("#location").val(req["term"]);
+                    //                    console.log($("#name").val());
+                    add(null);
+                    return;
+                }
+                //Создаем массив для объектов ответа
+                var suggestions = [];
+                //Обрабатываем ответ
+                $.each(data, function(i, val){
+                    townlist.push({"rowid":val.rowid, "name":val.name});
+                    suggestions.push(val.name);
+
+                });
+
+                //Передаем массив обратному вызову
+                add(suggestions);
+
+            });
+        },
+
+        //Определяем обработчик селектора
+        select: function(e, ui) {
+            $("#location").value = ui.item.value;
+            for(var i = 0; i<townlist.length; i++){
+                if(townlist[i].name == ui.item.value){
+                    $("#townid").val(townlist[i].rowid);
+                    console.log($("#townid").val());
+                    break;
+                }
+            }
+
+//                        //Создаем форматированную переменную cust_name
+//                        var cust_name = ui.item.value,
+//                                        span = $("<span>").text(cust_name),
+//                                        a = $("<a>").addClass("remove").attr({
+//                                            href: "javascript:",
+//                                            title: "Remove " + cust_name
+//                                        }).text("x").appendTo(span);
+//
+//                                    //Добавляем cust_name к div cust_name
+//                                    span.insertBefore("#name");
+        },
+
+        //Определяем обработчик выбора
+        change: function() {
+            //Сохраняем поле "Наименование" без изменений и в правильной позиции
+//                        $("#name").val("").css("top", 2);
+        }
+    });
+</script>

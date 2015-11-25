@@ -188,6 +188,6 @@ $db = new dbBuilder();
 
 $table = $db->fShowTable($TableParam, $sql, "'" . $tablename . "'", $conf->theme, '', '', $readonly = array(), false);
 
-include DOL_DOCUMENT_ROOT.'/theme/eldy/societeaddress.html';
+include DOL_DOCUMENT_ROOT.'/theme/'.$conf->theme.'/societeaddress.html';
 
 llxFooter();
