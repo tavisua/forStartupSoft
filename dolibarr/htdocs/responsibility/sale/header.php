@@ -22,16 +22,19 @@ $sql = 'select regions.rowid, regions.state_id, trim(states.name) as states_name
 //die($sql);
 $res = $db->query($sql);
 $region_id = 0;
+
 if(strlen(GETPOST('state_filter'))>0) {//Если изменялся регион
     $region_id = GETPOST('state_filter');
+//    var_dump(GETPOST('state_filter'), 'all');
 }
 if($db->num_rows($res)>0) {
     $AreaList =  '<form action="'.$_SERVER["REQUEST_URI"].'" method="post"><select name = "state_filter" id="state_filter" class="combobox" onchange="this.form.submit()">';
+    $AreaList .='<option value="0" class="multiple_header_table">Відобразити все</option>\r\n';
     for ($i = 0; $i < $db->num_rows($res); $i++) {
         $obj = $db->fetch_object($res);
-        if($region_id == 0) {
-            $region_id = $obj->rowid;
-        }
+//        if($region_id == 0) {
+//            $region_id = $obj->rowid;
+//        }
         $selected = $region_id == $obj->rowid;
         if(!$selected)
             $AreaList .= '<option value="'.$obj->rowid.'" >'.trim($obj->regions_name).' ('.decrease_word($obj->states_name).')</option>';
@@ -46,11 +49,14 @@ if($db->num_rows($res)>0) {
 $_SESSION['region_id'] = $region_id;
 
 //$region_id = 210;
-$sql = "select `classifycation`.name, b.value from `classifycation` left join
+$sql = "select `classifycation`.name, SUM(b.value) value from `classifycation` left join
 (select `classifycation_id`, `value`
-from `regions_param`
-where `regions_param`.`regions_id` = ".$region_id.") b on `classifycation`.rowid = b.`classifycation_id`
-where `classifycation`.calc=0 and `classifycation`.active = 1";
+from `regions_param`";
+if($region_id != 0)
+    $sql .=" where `regions_param`.`regions_id` = ".$region_id.") b on `classifycation`.rowid = b.`classifycation_id`";
+else
+    $sql .=" where 1) b on `classifycation`.rowid = b.`classifycation_id`";
+$sql .=" where `classifycation`.calc=0 and `classifycation`.active = 1 group by `classifycation`.name";
 //var_dump(GETPOST('state_filter'));
 //die($sql);
 $res = $db->query($sql);
@@ -65,9 +71,12 @@ if($db->num_rows($res) > 0) {
     //Визначаю загальну кількість земель у клієнтів в районі
         $sql = 'select `classifycation`.`name`,SUM(`statistic`.`value`) value from `classifycation` left join
     (select `llx_societe_classificator`.`classifycation_id`, `llx_societe_classificator`.value
-    from `llx_societe`, `llx_societe_classificator`
-    where `llx_societe`.region_id = '.$region_id.'
-    and `llx_societe_classificator`.`soc_id` = `llx_societe`.rowid) statistic on `classifycation`.rowid = statistic.`classifycation_id`
+    from `llx_societe`, `llx_societe_classificator`';
+    if($region_id != 0)
+        $sql .=' where `llx_societe`.region_id = '.$region_id;
+    else
+        $sql .=' where 1 ';
+    $sql .='and `llx_societe_classificator`.`soc_id` = `llx_societe`.rowid) statistic on `classifycation`.rowid = statistic.`classifycation_id`
     where `classifycation`.calc = 1 and `classifycation`.active = 1
     group by `classifycation`.`name`';
     $res = $db->query($sql);

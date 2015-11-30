@@ -332,10 +332,10 @@ if (empty($reshook))
         {
             if ($action == 'add')
             {
-                echo '<pre>';
-                var_dump($object);
-                echo '</pre>';
-                die();
+//                echo '<pre>';
+//                var_dump($object);
+//                echo '</pre>';
+//                die();
                 $db->begin();
 
                 if (empty($object->client))      $object->code_client='';

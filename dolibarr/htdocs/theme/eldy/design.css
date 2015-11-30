@@ -99,6 +99,9 @@ a.vsmenu:link, a.vsmenu:visited, a.vsmenu:hover, a.vsmenu:active {
     vertical-align: top;
     min-width: 200px;
 }
+#select_respon{
+    width: 100%;
+}
 .tabPage{
     background-image: -moz-linear-gradient(center bottom , rgba(110, 110, 110, 0.5) 25%, rgba(210, 210, 210, 0.5) 100%);
     border-color: #ccc #bbb #bbb;
@@ -170,6 +173,22 @@ body {
     direction: ltr;
     font-family: arial,tahoma,verdana,helvetica;
     font-size: 12px;
+}
+.midle_size{
+    font-size: 12px;
+}
+.small_size{
+    font-size: 10px;
+}
+.multiple_header_table{
+    background: #da9694;
+    border-bottom: 1px solid #fdffff;
+    border-color: #d2d1d1;
+    color: #fff;
+    font-family: arial,tahoma,verdana,helvetica;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
 }
 div.header_table, tr.header_table, tr.header_table_sel, form.header_table, form.header_table_sel, table.dataTable thead tr {
     background: rgb(218, 150, 148) -moz-linear-gradient(center bottom , rgba(0, 0, 0, 0.3) 0%, rgba(250, 250, 250, 0.3) 100%) repeat-x scroll 0 0;
@@ -255,13 +274,9 @@ tr.header_table th, th.header_table, tr.header_table td, td.header_table, form.h
     /*border-right: 1px solid #E90E8B;*/
 /*}*/
 
-/*#reference_body{*/
-    /*display: block;*/
-    /*width: 450px;*/
-    /*height: 450px;*/
-    /*overflow: hidden;*/
-    /*overflow-y: auto;*/
-/*}*/
+#reference_body{
+    font-size: 12;
+}
 /*#reference{*/
     /*width: 100%;*/
 /*}*/

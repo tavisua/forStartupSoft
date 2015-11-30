@@ -68,8 +68,11 @@ $title=$langs->trans("HomeArea").' - TiT '.DOL_VERSION;
 if (! empty($conf->global->MAIN_APPLICATION_TITLE)) $title=$langs->trans("HomeArea").' - '.$conf->global->MAIN_APPLICATION_TITLE;
 
 llxHeader('',$title);
-
 print_fiche_titre($langs->trans("HomeArea"));
+include DOL_DOCUMENT_ROOT.'/core/homepage.php';
+
+
+exit();
 
 if (! empty($conf->global->MAIN_MOTD))
 {

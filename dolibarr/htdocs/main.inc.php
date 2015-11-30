@@ -912,10 +912,11 @@ if (! function_exists("llxHeader"))
 		{
 			top_menu($head, $title, $target, $disablejs, $disablehead, $arrayofjs, $arrayofcss, $morequerystring);
 		}
-		if (empty($conf->dol_hide_leftmenu))
-		{
-			left_menu('', $help_url, '', '', 1, $title);
-		}
+        //tavis Закментував ліве меню
+//		if (empty($conf->dol_hide_leftmenu))
+//		{
+//			left_menu('', $help_url, '', '', 1, $title);
+//		}
 
 		// main area
 		main_area($title);
@@ -1006,7 +1007,7 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
             $jquerytheme = 'smoothness';
             if (!empty($conf->global->MAIN_USE_JQUERY_THEME)) $jquerytheme = $conf->global->MAIN_USE_JQUERY_THEME;
             //Если открывается панель инструментов, подключаю стили форм
-            if($_REQUEST['mainmenu'] == 'tools' || $_REQUEST['mainmenu']=='area' || $_REQUEST['mainmenu']=='companies' || GETPOST('mainmenu')=='companies'){
+            if($_REQUEST['mainmenu'] == 'tools' || $_REQUEST['mainmenu']=='area' || $_REQUEST['mainmenu'] == 'home' || $_REQUEST['mainmenu']=='companies' || GETPOST('mainmenu')=='companies'){
                 print '<link rel="stylesheet" type="text/css" href="'.DOL_URL_ROOT.'/theme/'.$conf->theme.'/design.css'.($ext?'?'.$ext:'').'"/>'."\n";          //Стиль для фор
                 print '<link rel="stylesheet" type="text/css" href="'.DOL_URL_ROOT.'/theme/'.$conf->theme.'/style-modal.css'.($ext?'?'.$ext:'').'"/>'."\n";     //Стиль модальной формы
             }

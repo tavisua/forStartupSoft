@@ -1,0 +1,60 @@
+<div><a href="/dolibarr/htdocs/core/tools.php?mainmenu=tools"><?echo $Tools?></a>  /  <a href="/dolibarr/htdocs/core/responsibility.php?mainmenu=tools"><?echo $SphereOfResponsibility?></a></div>
+</br>
+<div class="tabPage">
+
+
+    <form id="addaddress" action="/dolibarr/htdocs/core/responsibility_editor.php" method="post">
+        <input id="rowid" name="rowid" type="hidden" value="<?echo $rowid?>">
+        <input id="id_respon" name="id_respon" type="hidden" value="<?echo implode(',', $id_respon)?>">
+        <input id="url" name="url" type="hidden" value="<?echo $url?>">
+        <table class="border" width="100%">
+            <tr>
+                <td class="<?if($action == 'error' && empty($soc_address->whom)){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                    <?echo $langs->trans('Name')?>
+                </td>
+                <td>
+                    <input id="name" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $Name?>" name="name" maxlength="128" size="60" autocomplete="off">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <?echo $langs->trans('Alias')?>
+                </td>
+                <td>
+                    <input id="alias" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $Alias?>" name="alias" maxlength="128" size="60" autocomplete="off">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <?echo $langs->trans('SelectKindCustomersWhoShowAreasPage')?>
+                </td>
+                <td>
+                    <?echo $selector?>
+                </td>
+            </tr>
+
+        </table>
+        <div align="center">
+        <button onclick="save();">Зберегти</button>
+            <button onclick="back();">Відмінити</button>
+        </div>
+    </form>
+
+</div>
+<script type="text/javascript">
+    function back(){
+        $('#action').val('cancel');
+        $('#addaddress').attr('action', $('#url').val());
+    }
+    function save(){
+        $('#action').val('save');
+    }
+    $(".param").keypress(function( b ){        var C = /[0-9\x25\x27\x24\x23]/;        var a = b.which;        var c = String.fromCharCode(a);        return !!(a==0||a==8||a==9||a==13||c.match(C));    });
+</script>
+<script>
+    $('select').change(setVals);
+    function setVals(){
+        var multipleValues = $("#select_respon").val() || [];
+        $('#id_respon').val(multipleValues.join(";"));
+    }
+</script>

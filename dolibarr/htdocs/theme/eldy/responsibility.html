@@ -2,6 +2,7 @@
 <div class="reference">
     <?echo $table?>
 </div>
+
 <div class="vmenu">
     <div class="blockvmenupair">
         <div class="menu_titre">
@@ -15,3 +16,33 @@
         <div class="menu_end"></div>
     </div>
 </div>
+<script>
+    $(document).ready(function(){
+        var imglist = $('#reference_body').find('img');
+        for(var index = 0; index<imglist.length; index++){
+            if(imglist[index].id.substr(0, 4) == 'img_'){
+                var ID = imglist[index].id.substr(4);
+                document.getElementById(imglist[index].id).onclick = function(){edit_respon(ID)};
+//                console.log(ID);
+            }
+        }
+        var tbody = document.getElementById('reference_body');
+        var trList = tbody.getElementsByTagName('tr');
+        for(var index = 0; index<trList.length; index++){
+            var tdList = trList[index].getElementsByTagName('td');
+            for(var tdIndex = 0; tdIndex<tdList.length; tdIndex++){
+                if(tdList[tdIndex].id.substr(tdList[tdIndex].id.length-'name'.length) == 'name') {
+//                     http://uspex2015.com/dolibarr/htdocs/user/card.php?id=13
+                    var id = tdList[tdIndex].id.substr(0, (tdList[tdIndex].id.length - 'name'.length));
+                    tdList[tdIndex].innerHTML = '<a id = "login_'+id+'" href="/dolibarr/htdocs/core/responsibility_editor.php?rowid='+id+'&mainmenu=tools"><img border="0"  alt="" src="/dolibarr/htdocs/theme/eldy/img/object_responsibility.png">' +' '+ (tdList[tdIndex].innerHTML) + '</a>';
+//                     console.log(tdList[tdIndex].id.substr(0, (tdList[tdIndex].id.length - 'login'.length)));
+//                     console.log(id);object_responsibility
+                }
+            }
+        }
+    })
+    function edit_respon(ID){
+        location.href = 'http://'+location.hostname+'/dolibarr/htdocs/core/responsibility_editor.php?rowid='+ID+'&mainmenu=tools';
+    }
+
+</script>

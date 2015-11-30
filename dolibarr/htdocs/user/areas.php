@@ -114,6 +114,7 @@ $TableParam[]=$ColParam;
 $tablename='regions';
 $sql='select `'.$tablename.'`.rowid, `'.$tablename.'`.name regions_name, states.name states_name, null, `'.$tablename.'`.active
 from `'.$tablename.'` left join states on `'.$tablename.'`.`state_id` = `states`.rowid';
+
 if(GETPOST('state_filter') != 0){
     $sql.= ' where state_id = '. GETPOST('state_filter');
 }
@@ -134,14 +135,15 @@ $res = $db->query($sql);
 //var_dump(GETPOST('state_filter'));
 //echo '</pre>';
 //die();
-$filter_selector = '<form action="'.$_SERVER["REQUEST_URI"].'" method="post"><select name = "state_filter" id="state_filter" class="combobox" onchange="this.form.submit()">
-<option value="0">&nbsp;</option>';
+$filter_selector = '<form action="'.$_SERVER["REQUEST_URI"].'" method="post"><select name = "state_filter" id="state_filter" class="combobox" onchange="this.form.submit()">\r\n';
+$filter_selector .='<option value="0">&nbsp;</option>\r\n';
 for($i=0; $i<$db->num_rows($res); $i++){
     $obj = $db->fetch_object($res);
     $selected = GETPOST('state_filter') == $obj->rowid;
     $filter_selector .='<option value="'.$obj->rowid.'" '.($selected?('selected="selected"'):('')).'>'.$obj->name.'</option>\r\n';
 }
 $filter_selector .='</select></form>';
+
 print '<div>&nbsp;</div>';
 print '<div class="liste_titre"><table><td id="filtercol0" style="color: #ffffff">Фильтр</td><td id="filtercol1">'.$filter_selector.'</td><td id="filtercol2">&nbsp;</td></table></div>';
 print '<div class="reference_without_control">
