@@ -318,37 +318,37 @@ class dbBuilder{
 //                        echo '<pre>';
 //                        var_dump($title[$num_col-1]['title']);
 //                        echo '</pre>';
-                        if(count($readonly)==0)
-                            $width = ($title[$num_col-1]['width'])!=''?($title[$num_col-1]['width'].'px'):('auto');
-                        else
-                            $width = ($title[$num_col-1]['width'])!=''?($title[$num_col-1]['width']+(($num_col-1)*1.5).'px'):('auto');
+//                        if(count($readonly)==0)
+//                            $width = ($title[$num_col-1]['width'])!=''?($title[$num_col-1]['width'].'px'):('auto');
+//                        else
+//                            $width = ($title[$num_col-1]['width'])!=''?($title[$num_col-1]['width']+(($num_col-1)).'px'):('auto');
 
                         if ($fields[$num_col]->type == 16) {
                             if(count($readonly)==0) {
                                 if ($value == '1') {
-                                    $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');" > </td>';
+                                    $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');" > </td>';
                                 } else {
-                                    $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_off.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');"> </td>';
+                                    $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_off.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');"> </td>';
                                 }
                             }else{
                                 if(in_array($row['rowid'], $readonly)){
-                                    $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png"> </td>';
+                                    $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png"> </td>';
                                 }else{
-                                    $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_off.png"> </td>';
+                                    $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_off.png"> </td>';
                                 }
                             }
                         } elseif (!empty($title[$num_col - 1]['action'])) {
                             $link = "'" . $title[$num_col - 1]["action"] . '&' . $title[$num_col - 1]["param"] . '=' . $row['rowid'] . "'";
-                            $table .= '<td style="width: ' . $width . '" id="' . $row['rowid'] . $fields[$num_col]->name . '">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . $title[$num_col - 1]["icon_src"] . '" onclick="goto_link(' . $link . ');" > </td>';
+                            $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . $title[$num_col - 1]["icon_src"] . '" onclick="goto_link(' . $link . ');" > </td>';
 //                        echo'<pre>';
 //                        var_dump($title[$num_col-1]["action"]);
 //                        echo'</pre>';
                         } else {
                             if (substr($fields[$num_col]->name, 0, 2) != 's_') {
                                 if(!empty($value))
-                                    $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" >' . (trim($langs->trans($value))) . ' </td>';
+                                    $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '"  >' . (trim($langs->trans($value))) . ' </td>';
                                 else
-                                    $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" > </td>';
+                                    $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '"  > </td>';
                             }
                             else {
 

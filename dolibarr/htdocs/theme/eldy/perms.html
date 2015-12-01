@@ -15,3 +15,26 @@
 <div class="list_menu">
     <?echo $table?>
 </div>
+<script>
+    $(document).ready(function(){
+        var th = document.getElementsByTagName('th');
+        var left = 30;
+        var widths = [];
+        for(var i=0; i<th.length; i++){
+//                    console.log(th[i].offsetWidth);
+            var iWidth = th[i].offsetWidth;
+            if(th[i].className == 'header_table')
+                left += parseInt(iWidth);
+
+            widths.push(parseInt(iWidth));
+        }
+        var tr = document.getElementById('reference_body').getElementsByTagName('tr');
+        for(var t = 0; t<tr.length; t++) {
+            var td = tr[t].getElementsByTagName('td');
+            for (var i = 0; i < td.length; i++) {
+                td[i].style.width = widths[i] - 1;
+                console.log(td[i].offsetWidth);
+            }
+        }
+    })
+</script>

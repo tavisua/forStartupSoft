@@ -605,6 +605,7 @@ CloseWindow=Close window
 Question=Question
 Response=Response
 SphereOfResponsibility=Сфера відповідальності
+SphereOfResponsibilityShort=Сфера відпов.
 EditSphereOfResponsibility=Редагувати сферу відповідальності
 SelectKindCustomersWhoShowAreasPage=Категорії, що будуть відображатись на вкладці "Район"
 CategoryCustomer=Категорія контрагента

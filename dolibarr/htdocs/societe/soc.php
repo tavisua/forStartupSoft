@@ -833,18 +833,18 @@ else
         print_fiche_titre($langs->trans("NewThirdParty"));
         print '
         <div class="tabs" data-role="controlgroup" data-type="horizontal">
-        <div class="inline-block tabsElem tabsElemActive">
-        <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/soc.php?mainmenu=companies&idmenu=5217&action=edit&socid='.$object->id.'">'.$langs->trans('BasicInfo').'</a>
-        </div>
-        <div class="inline-block tabsElem" id="inactiveTab">
-            <b class="tab inline-block" data-role="button">'.$langs->trans('AddressList').'</b>
-        </div>
-        <div class="inline-block tabsElem" id="inactiveTab">
-            <b class="tab inline-block" data-role="button">'.$langs->trans('ContactList').'</b>
-        </div>
-        <div class="inline-block tabsElem" id="inactiveTab">
-            <b class="tab inline-block" data-role="button">'.$langs->trans('EconomicData').'</b>
-        </div>
+            <div class="inline-block tabsElem tabsElemActive">
+            <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/soc.php?mainmenu=companies&idmenu=5217&action=edit&socid='.$object->id.'">'.$langs->trans('BasicInfo').'</a>
+            </div>
+            <div class="inline-block tabsElem" id="inactiveTab">
+                <b class="tab inline-block" data-role="button">'.$langs->trans('AddressList').'</b>
+            </div>
+            <div class="inline-block tabsElem" id="inactiveTab">
+                <b class="tab inline-block" data-role="button">'.$langs->trans('ContactList').'</b>
+            </div>
+            <div class="inline-block tabsElem" id="inactiveTab">
+                <b class="tab inline-block" data-role="button">'.$langs->trans('EconomicData').'</b>
+            </div>
         </div>
         <div class="tabPage">';
         if (! empty($conf->use_javascript_ajax))
