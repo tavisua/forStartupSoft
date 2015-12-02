@@ -143,6 +143,7 @@ class dbBuilder{
     public function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $sortorder='', $readonly = array(), $showtitle=true){
         global $user, $conf, $langs, $db;
 
+
         if(empty($sortorder))
             $result = $this->mysqli->query($sql);
         else{
@@ -150,9 +151,7 @@ class dbBuilder{
 //            var_dump($sql);
 //            echo '</pre>';
 //            die();
-//            echo '<pre>';
-//            var_dump($sql);
-//            echo '</pre>';
+
             $result = $this->mysqli->query($sql.' limit 1');
 
             $fields = $result->fetch_fields();
@@ -219,7 +218,7 @@ class dbBuilder{
                     </span>
                     </th>';
                 }
-                $widthtable += $column['width'];
+                $widthtable += $column['width']+3;
             } else {
                 $hiddenfield = $column['detailfield'];
                 $sendtable = $column['hidden'];
@@ -243,6 +242,11 @@ class dbBuilder{
 //        echo '</pre>';
 //        die();
         }
+        $col_width = array();
+        foreach($title as $column){
+            $col_width[]=$column['width'];
+        }
+
         $table .= '<tbody id="reference_body" style="width: '.(count($readonly)==0?$widthtable:$widthtable-40).'">'."\r\n";
 
 
@@ -326,15 +330,15 @@ class dbBuilder{
                         if ($fields[$num_col]->type == 16) {
                             if(count($readonly)==0) {
                                 if ($value == '1') {
-                                    $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');" > </td>';
+                                    $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:'.($col_width[$num_col-1]+2).'px" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');" > </td>';
                                 } else {
-                                    $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_off.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');"> </td>';
+                                    $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:'.($col_width[$num_col-1]+2).'px" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_off.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');"> </td>';
                                 }
                             }else{
                                 if(in_array($row['rowid'], $readonly)){
-                                    $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png"> </td>';
+                                    $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:'.($col_width[$num_col-1]+2).'px"><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png"> </td>';
                                 }else{
-                                    $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_off.png"> </td>';
+                                    $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:'.($col_width[$num_col-1]+2).'px"><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_off.png"> </td>';
                                 }
                             }
                         } elseif (!empty($title[$num_col - 1]['action'])) {
@@ -346,9 +350,9 @@ class dbBuilder{
                         } else {
                             if (substr($fields[$num_col]->name, 0, 2) != 's_') {
                                 if(!empty($value))
-                                    $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '"  >' . (trim($langs->trans($value))) . ' </td>';
+                                    $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:'.($col_width[$num_col-1]+2).'px" >'.(trim($langs->trans($value))) . ' </td>';
                                 else
-                                    $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '"  > </td>';
+                                    $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '"  style="width:'.($col_width[$num_col-1]+2).'px"> </td>';
                             }
                             else {
 
@@ -377,7 +381,7 @@ class dbBuilder{
 //                            var_dump(htmlspecialchars($selectlist));
 //                            echo '</pre>';
 //                            die();
-                                $table .= '<td  id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" >' . $selectlist . '</td>';
+                                $table .= '<td  id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:'.($col_width[$num_col-1]+2).'px" >' . $selectlist . '</td>';
 //                            $table .= '<td class = "combobox" id="' . $row['rowid'] . $fields[$num_col]->name . '">' . $value . '</td>';
                             }
                         }

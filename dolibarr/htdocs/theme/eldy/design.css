@@ -258,7 +258,10 @@ div.header_page, th.header_page, tr.header_table_sel, form.header_page, form.hea
     /*width: 1400px;*/
     table-layout: fixed;
 }
-
+#comerc td, #service td, #accounts td, #mentor td{
+    /*max-width: 20!important;*/
+    min-width: 20!important;
+}
 .scrolling-table tbody {
     display: block;
     /*height: 150px;*/

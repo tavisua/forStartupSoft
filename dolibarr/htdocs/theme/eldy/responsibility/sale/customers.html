@@ -4,27 +4,41 @@
             <div class="inline-block tabsElem tabsElemActive">
                 <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/soc.php?mainmenu=companies&idmenu=5217&action=edit&socid=<? echo $object->id?>"><? echo $langs->trans('BasicInfo')?></a>
             </div>
-            <div  class="inline-block tabsElem" id="Action">
-                <a href="/"class="tab inline-block" data-role="button"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<? echo $langs->trans('Action')?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b></a>
-            </div>
             <div  class="inline-block tabsElem" id="Calculator">
                 <a href="/"class="tab inline-block" data-role="button"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<? echo $langs->trans('Calculator')?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b></a>
             </div>
 
         </div>
 
-    <table class="scrolling-table">
+    <table  cellspacing="1">
         <thead>
-        <tr>
-            <th class="header_table" width="130px">Категорія контрагента</th>
-            <th class="header_table" width="150px">Засновник, інвестор, холдинг</th>
-            <th class="header_table" width="180px">Назва контрагента</th>
-            <th class="header_page" width="80px">Форма власності</th>
-            <th class="header_page" width="130px">Місце знаходження</th>
-            <th class="header_page" width="130px">П.І.Б. засновника</th>
-            <th class="header_page" width="130px">№ тел.офісу</th>
-            <th class="header_page" width="80px">Орної землі, га</th>
-            <th class="header_page" width="180px">Особливі відмітки, резюме перемовин</th>
+        <tr class="multiple_header_table">
+            <!--<th class="header_table" width="130px">Категорія контрагента</th>-->
+            <!--<th class="header_table" width="150px">Засновник, інвестор, холдинг</th>-->
+            <th width="180px" rowspan="2">Назва контрагента</th>
+            <!--<th class="header_page" width="80px">Форма власності</th>-->
+            <th width="100px" rowspan="2">Місце знаходження</th>
+            <!--<th class="header_page" width="130px">П.І.Б. засновника</th>-->
+            <!--<th class="header_page" width="130px">№ тел.офісу</th>-->
+            <th width="50px" rowspan="2">Орної землі, га</th>
+            <th width="130px" rowspan="2">Особливі відмітки, резюме перемовин</th>
+            <th width="100px" rowspan="2">Наявна потреба</th>
+            <th width="100px" rowspan="2">Завдання</th>
+            <th width="80px" rowspan="2">Дата ост. співпраці</th>
+            <th colspan="2" id="comerc_action">Дії комерц. служби</th>
+            <th colspan="2" id="service_action">Дії сервісн. служби</th>
+            <th colspan="2" id="accounts_action">Дії бухгалтерії</th>
+            <th colspan="2" id="mentor_action">Перевірки наставником</th>
+        </tr>
+        <tr class="multiple_header_table">
+            <th width="75px" class="midle_size">Останні</th>
+            <th width="75px" class="midle_size">Майбутні</th>
+            <th width="75px" class="midle_size">Останні</th>
+            <th width="75px" class="midle_size">Майбутні</th>
+            <th width="75px" class="midle_size">Останні</th>
+            <th width="75px" class="midle_size">Майбутні</th>
+            <th width="75px" class="midle_size">Останні</th>
+            <th width="75px" class="midle_size">Майбутні</th>
         </tr>
         </thead>
 
@@ -47,16 +61,14 @@
                     TotalWidth += iWidth;
                     widths.push(parseInt(iWidth));
                 }
-                var tr = document.getElementById('reference_body').getElementsByTagName('tr');
-                for(var t = 0; t<tr.length; t++) {
-                    var td = tr[t].getElementsByTagName('td');
-                    for (var i = 0; i < td.length; i++) {
-                        td[i].style.width = widths[i] - 1;
-                        console.log(td[i].offsetWidth);
-                    }
-                }
 
-                $('.tabs').offset({top:220, left:left});
+                $('.tabs').offset({top:215, left:left});
+                console.log($('#comerc_action').width());
+                $('#comerc').offset({top:150, left:$('#comerc_action').offset().left});
+                $('#service').offset({top:150, left:$('#service_action').offset().left});
+                $('#accounts').offset({top:150, left:$('#accounts_action').offset().left});
+                $('#mentor').offset({top:150, left:$('#mentor_action').offset().left});
+
                 $('#tabs_area').width(600);
                 $('#reference_body').offset({left:22});
 

@@ -9,8 +9,8 @@
 //var_dump($_SESSION['region_id']);
 //die();
 
-$sql = 'select `llx_societe`.rowid, `category_counterparty`.name as category_name, `llx_societe`.`holding`, `llx_societe`.nom, `formofgavernment`.name as goverment_name,
-`llx_societe`.`town`, `llx_societe`.`founder`, `llx_societe`.`phone`, `llx_societe_classificator`.`value` as width, `llx_societe`.`remark`
+$sql = 'select `llx_societe`.rowid, `llx_societe`.nom,
+`llx_societe`.`town`, `llx_societe_classificator`.`value` as width, `llx_societe`.`remark`
 from `llx_societe` left join `category_counterparty` on `llx_societe`.`categoryofcustomer_id` = `category_counterparty`.rowid
 left join `formofgavernment` on `llx_societe`.`formofgoverment_id` = `formofgavernment`.rowid
 left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`';
@@ -25,37 +25,7 @@ $sql .= 'order by width desc, nom';
 //var_dump($sql);
 $TableParam = array();
 $ColParam['title']='';
-$ColParam['width']='130';
-$ColParam['align']='';
-$ColParam['class']='';
-$TableParam[]=$ColParam;
-
-$ColParam['title']='';
-$ColParam['width']='150';
-$ColParam['align']='';
-$ColParam['class']='';
-$TableParam[]=$ColParam;
-
-$ColParam['title']='';
 $ColParam['width']='180';
-$ColParam['align']='';
-$ColParam['class']='';
-$TableParam[]=$ColParam;
-
-$ColParam['title']='';
-$ColParam['width']='80';
-$ColParam['align']='';
-$ColParam['class']='';
-$TableParam[]=$ColParam;
-
-$ColParam['title']='';
-$ColParam['width']='130';
-$ColParam['align']='';
-$ColParam['class']='';
-$TableParam[]=$ColParam;
-
-$ColParam['title']='';
-$ColParam['width']='130';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;

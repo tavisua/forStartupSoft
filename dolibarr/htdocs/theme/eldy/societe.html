@@ -66,13 +66,14 @@
 
             widths.push(parseInt(iWidth));
         }
-        var tr = document.getElementById('reference_body').getElementsByTagName('tr');
-        for(var t = 0; t<tr.length; t++) {
-            var td = tr[t].getElementsByTagName('td');
-            for (var i = 0; i < td.length; i++) {
-                td[i].style.width = widths[i] - 1;
-                console.log(td[i].offsetWidth);
-            }
-        }
+        console.log(widths);
+//        var tr = document.getElementById('reference_body').getElementsByTagName('tr');
+//        for(var t = 0; t<tr.length; t++) {
+//            var td = tr[t].getElementsByTagName('td');
+//            for (var i = 0; i < td.length; i++) {
+//                td[i].style.width = widths[i] - 1;
+//                console.log(td[i].offsetWidth);
+//            }
+//        }
     })
 </script>
