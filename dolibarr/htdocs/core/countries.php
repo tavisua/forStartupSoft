@@ -33,13 +33,19 @@ $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
+$ColParam['title']=$langs->trans('PhoneCode');
+$ColParam['width']='120';
+$ColParam['align']='';
+$ColParam['class']='';
+$TableParam[]=$ColParam;
+
 $ColParam['title']=$langs->trans('Active');
 $ColParam['width']='100';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 $tablename='countries';
-$sql='select rowid, label, code, code_iso, active from '.$tablename.' where active=1 order by label';
+$sql='select rowid, label, code, code_iso, phonecode, active from '.$tablename.' where active=1 order by label';
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
 $db = new dbBuilder();
 if(!isset($_REQUEST['sortfield']))
