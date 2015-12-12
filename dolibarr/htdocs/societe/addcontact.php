@@ -20,6 +20,8 @@ $form = new Form($db);
 $formcompany = new FormCompany($db);
 $action = GETPOST('action', 'alpha');
 $url         = $_SERVER["HTTP_REFERER"];
+if($action == 'save')
+    $url = GETPOST('url', 'alpha');
 $action_url = str_replace('edit', 'save',$_SERVER['REQUEST_URI']);
 
 if($action =='cancel') {
@@ -33,6 +35,9 @@ if($action =='cancel') {
     $object->fetch($socid);
     $CategoryOfCustomer = $object->getCategoryOfCustomer();
     $FormOfGoverment = $object->getFormOfGoverment();
+    $countrycode = $object->getCountryCode();
+    if(!empty($countrycode))
+        $countrycode = '+'.$countrycode;
     $EditAddress = $langs->trans('EditContact');
     llxHeader('', $EditAddress, $help_url);
     print_fiche_titre($EditAddress);
@@ -41,6 +46,10 @@ if($action =='cancel') {
     llxFooter();
     exit;
 }elseif(GETPOST('action', 'alpha') == 'save'){
+//    echo '<pre>';
+//    var_dump($_POST);
+//    echo '</pre>';
+//    die();
     $url                        = htmlspecialchars(GETPOST('url', 'alpha'));
     $soc_contact->rowid                     = GETPOST('rowid');
     $soc_contact->subdivision               = GETPOST('subdivision');
@@ -87,6 +96,7 @@ if($action =='cancel') {
 //            die();
             $soc_contact->createContact(GETPOST('socid'));
         }else{
+//            die('update 92');
             $soc_contact->updateContact();
         }
 //        die(GETPOST('url', 'alpha'));
@@ -98,11 +108,14 @@ if($action =='cancel') {
 $socid = GETPOST('socid', 'int');
 if(empty($socid))
     $socid = $_REQUEST['socid'];
-$url = $_SERVER["HTTP_REFERER"];
+//$url = $_SERVER["HTTP_REFERER"];
 $object = new  Societe($db);
 $object->fetch($socid);
 $CategoryOfCustomer = $object->getCategoryOfCustomer();
 $FormOfGoverment = $object->getFormOfGoverment();
+$countrycode = $object->getCountryCode();
+if(!empty($countrycode))
+    $countrycode = '+'.$countrycode;
 if(GETPOST('action', 'alpha') == 'add' ||$action == 'error') {
     $AddContact = $langs->trans('AddContact');
     llxHeader('', $AddContact, $help_url);

@@ -244,11 +244,11 @@ function dol_json_decode($json, $assoc=false)
 	// Return an array
 	if ($out != '') eval('$array = '.$out.';');
 	else $array=array();
-
+    return $array;
 	// Return an object
 	if (! $assoc)
 	{
-		if (! empty($array))
+		if (!empty($array))
 		{
 			$object = false;
 
@@ -256,7 +256,6 @@ function dol_json_decode($json, $assoc=false)
 			{
 				if ($key) $object->{$key} = $value;
 			}
-
 			return $object;
 		}
 

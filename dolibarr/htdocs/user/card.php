@@ -765,19 +765,19 @@ if (($action == 'create') || ($action == 'adduserldap'))
     // Position/Job
     print '<tr><td valign="top">'.$langs->trans("PostOrFunction").'</td>';
     print '<td>';
-    print $form->select_control('', 'post_id', 0, 'llx_post', 'postname');
+    print $form->select_control('', 'post_id', 0, 'llx_post', 'postname',$object, false);
 //    print '<input size="30" type="text" name="job" value="'.GETPOST('job').'">';
     print '</td></tr>';
 
     //SubDivision
     print '<tr><td valign="top">'.$langs->trans("SubDivision").'</td>';
-    print '<td colspan="2">'.$form->select_control('', 'subdiv_id', 0, 'subdivision', 'name').'</td>';
+    print '<td colspan="2">'.$form->select_control('', 'subdiv_id', 0, 'subdivision', 'name', $object, false).'</td>';
     print '</tr>'."\n";
     print '</td></tr>';
 
     //Groups
     print '<tr><td valign="top">'.$langs->trans("Groups").'</td>';
-    print '<td colspan="2">'.$form->select_control('', 'usergroup_id', 0, 'llx_usergroup', 'nom').'</td>';
+    print '<td colspan="2">'.$form->select_control('', 'usergroup_id', 0, 'llx_usergroup', 'nom', $object, false).'</td>';
     print '</tr>'."\n";
     print '</td></tr>';
 

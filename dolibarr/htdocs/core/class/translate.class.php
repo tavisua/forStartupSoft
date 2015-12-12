@@ -397,6 +397,8 @@ class Translate
 	 */
 	function trans($key, $param1='', $param2='', $param3='', $param4='', $maxsize=0)
 	{
+        if(empty($key))
+            return $key;
         global $conf;
 
 	    if (! empty($this->tab_translate[$key]))	// Translation is available

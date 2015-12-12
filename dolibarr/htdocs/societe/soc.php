@@ -43,7 +43,7 @@ if (! empty($conf->adherent->enabled)) require_once DOL_DOCUMENT_ROOT.'/adherent
 
 if(isset($_REQUEST['getregion'])){
     $formcompany = new FormCompany($db);
-    echo $formcompany->select_region($_REQUEST['getregion'],'region_id');
+    echo $formcompany->select_region($_REQUEST['getregion'],'region_id', $_REQUEST['region_id']);
     exit();
 }
 
@@ -67,7 +67,7 @@ $mesg=''; $error=0; $errors=array();
 
 $action		= (GETPOST('action') ? GETPOST('action') : 'view');
 //echo '<pre>';
-//var_dump($_SERVER);
+//var_dump($action);
 //echo '</pre>';
 //die();
 
@@ -153,7 +153,7 @@ if (empty($reshook))
         require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
 
 //        echo '<pre>';
-//        var_dump($_POST['name']?$_POST['name']:$_POST['nom']);
+//        var_dump($_POST);
 //        echo '</pre>';
 //        die();
 
@@ -179,6 +179,7 @@ if (empty($reshook))
 //            $object->name              = GETPOST('name', 'alpha')?GETPOST('name', 'alpha'):GETPOST('nom', 'alpha');
             $object->name              = $_POST['name']?$_POST['name']:$_POST['nom'];
         }
+
         $object->address               = GETPOST('address', 'alpha');
         $object->zip                   = GETPOST('zipcode', 'alpha');
         $object->town                  = GETPOST('town', 'alpha');
@@ -342,6 +343,7 @@ if (empty($reshook))
                 if (empty($object->fournisseur)) $object->code_fournisseur='';
 
                 $result = $object->create($user);
+
                 if ($result >= 0)
                 {
                     if ($object->particulier)
@@ -691,6 +693,7 @@ else
     // -----------------------------------------
     // When used in standard mode
     // -----------------------------------------
+
     if ($action == 'create')
     {
         /*
@@ -907,6 +910,7 @@ else
 
         print '<input type="hidden" name="action" value="add">';
         print '<input id ="townid" type="hidden" name="townid" value="'.$object->townid.'">';
+        print '<input type="hidden" name="mainmenu" value="'.$_REQUEST['mainmenu'].'">';
         print '<input type="hidden" name="backtopage" value="'.$backtopage.'">';
         print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
         print '<input type="hidden" name="private" value='.$object->particulier.'>';
@@ -993,7 +997,7 @@ else
 //            print '</td></tr>';
         }
         //Категорія контрагента
-        print '<tr><td><label for="status">'.$langs->trans('CategoryCustomer').'</label></td><td colspan="3">';
+        print '<tr><td><span id="CategoryCustomer" class="fieldrequired" span=""><label for="status">'.$langs->trans('CategoryCustomer').'</label></span></td><td colspan="3">';
         print $form->select_categorycustomer('');
         print '</td></tr>';
 
@@ -1024,6 +1028,12 @@ else
 	        print '<td colspan="3"><input type="text" name="barcode" id="barcode" value="'.$object->barcode.'">';
             print '</td></tr>';
         }
+        // Zip / Town
+        print '<tr><td><label for="zipcode">'.$langs->trans('Zip').'</label></td><td>';
+        print $formcompany->select_ziptown($object->zip,'zipcode',array('town','selectcountry_id','state_id'),6);
+        print '</td><td><label for="town">'.$langs->trans('Town').'</label></td><td>';
+        print $formcompany->select_ziptown($object->town,'town',array('zipcode','selectcountry_id','state_id'));
+        print '</td></tr>';
 
         // Country
         print '<tr><td width="25%"><label for="selectcountry_id">'.$langs->trans('Country').'</label></td><td colspan="3" class="maxwidthonsmartphone">';
@@ -1046,12 +1056,7 @@ else
             print '</td></tr>';
         }
 
-        // Zip / Town
-        print '<tr><td><label for="zipcode">'.$langs->trans('Zip').'</label></td><td>';
-        print $formcompany->select_ziptown($object->zip,'zipcode',array('town','selectcountry_id','state_id'),6);
-        print '</td><td><label for="town">'.$langs->trans('Town').'</label></td><td>';
-        print $formcompany->select_ziptown($object->town,'town',array('zipcode','selectcountry_id','state_id'));
-        print '</td></tr>';
+
 
         // Address
         print '<tr><td valign="top"><label for="address">'.$langs->trans('Address').'</label></td>';
@@ -1236,7 +1241,7 @@ else
         print '<tr id="classifycation">';
         print '<td><label for="classifycation">'.$langs->trans("Classifycation").'</label></td>';
         print '<td colspan="3" class="maxwidthonsmartphone">';
-        print $formcompany->classifycation();
+        print $formcompany->classifycation($object->id);
         print '</td></tr>';
 
         // Discription
@@ -1274,13 +1279,17 @@ else
         /*
          * Edition
          */
-
+//        echo '<pre>';
+//        var_dump($_REQUEST);
+//        echo '</pre>';
+//        die();
         //print_fiche_titre($langs->trans("EditCompany"));
 
         if ($socid)
         {
             $object = new Societe($db);
             $res=$object->fetch($socid);
+
             if ($res < 0) { dol_print_error($db,$object->error); exit; }
             $res=$object->fetch_optionals($object->id,$extralabels);
             //if ($res < 0) { dol_print_error($db); exit; }
@@ -2196,7 +2205,7 @@ else
             print '<tr id="classifycation">';
             print '<td><label for="classifycation">'.$langs->trans("Classifycation").'</label></td>';
             print '<td colspan="3" class="maxwidthonsmartphone">';
-            print $formcompany->classifycation();
+            print $formcompany->classifycation($object->id);
             print '</td></tr>';
 
             // Discription
@@ -2915,7 +2924,9 @@ print '
 
             source: function(req, add){
                 req["tablename"]="llx_c_ziptown";
-                //Передаём запрос на сервер
+                req["fieldname"]="nametown";
+                            //Передаём запрос на сервер
+//                console.log(req);
                 $.getJSON("autocomplete.php?callback=?", req, function(data) {
                     if(data == null){
                         $("#town").val(req["term"]);
@@ -2927,7 +2938,7 @@ print '
                     var suggestions = [];
                     //Обрабатываем ответ
                     $.each(data, function(i, val){
-                        townlist.push({"rowid":val.rowid, "name":val.name});
+                        townlist.push({"rowid":val.rowid, "name":val.name, "state_id":val.state_id, "region_id":val.region_id});
                         suggestions.push(val.name);
 
                     });
@@ -2944,7 +2955,9 @@ print '
 					    for(var i = 0; i<townlist.length; i++){
 					        if(townlist[i].name == ui.item.value){
 					            $("#townid").val(townlist[i].rowid);
-					            console.log($("#townid").val());
+					            $("select#state_id  [value=" + townlist[i].state_id + "]").attr("selected", "selected");
+                                loadareas(townlist[i].region_id);
+                                $("#address").focus();
 					            break;
                             }
 					    }

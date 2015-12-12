@@ -485,8 +485,10 @@ class Societe extends CommonObject
 
                 if ($ret >= 0)
                 {
+
                     // Call trigger
                     $result=$this->call_trigger('COMPANY_CREATE',$user);
+
                     if ($result < 0) $error++;
                     // End call triggers
                 }
@@ -494,6 +496,7 @@ class Societe extends CommonObject
 
                 if (! $error)
                 {
+
                     dol_syslog(get_class($this)."::Create success id=".$this->id);
                     $this->db->commit();
                     return $this->id;
@@ -537,6 +540,12 @@ class Societe extends CommonObject
      * @param 	User	$user		Object user
      * @return 	int					<0 if KO, >0 if OK
      */
+    function getCountryCode(){
+        $sql = 'select phonecode from countries where rowid='.$this->country_id;
+        $res = $this->db->query($sql);
+        $obj = $this->db->fetch_object($res);
+        return $obj->phonecode;
+    }
     function getFormOfGoverment(){
         $sql = 'select name from `formofgavernment` where rowid = '.$this->formofgoverment_id;
         $res = $this->db->query($sql);
@@ -616,6 +625,10 @@ class Societe extends CommonObject
         if (! $this->name)
         {
             $this->errors[] = 'ErrorBadThirdPartyName';
+            $result = -2;
+        }
+        if(!$this->categoryofcustomer_id){
+            $this->errors[] = 'ErrorBadCategoriID';
             $result = -2;
         }
 
@@ -1069,6 +1082,7 @@ class Societe extends CommonObject
         $sql .= ', d.code_departement as state_code, d.nom as state';
         $sql .= ', st.libelle as stcomm';
         $sql .= ', te.code as typent_code';
+        $sql .= ', '.MAIN_DB_PREFIX.'societe_commerciaux.fk_user as commercial_id';
         $sql .= ' FROM '.MAIN_DB_PREFIX.'societe as s';
         $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'c_effectif as e ON s.fk_effectif = e.id';
         $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'c_country as c ON s.fk_pays = c.rowid';
@@ -1076,6 +1090,7 @@ class Societe extends CommonObject
         $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'c_forme_juridique as fj ON s.fk_forme_juridique = fj.code';
         $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'c_departements as d ON s.fk_departement = d.rowid';
         $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'c_typent as te ON s.fk_typent = te.id';
+        $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'societe_commerciaux on s.rowid = '.MAIN_DB_PREFIX.'societe_commerciaux.fk_soc';
         if ($rowid) $sql .= ' WHERE s.rowid = '.$rowid;
         if ($ref)   $sql .= " WHERE s.nom = '".$this->db->escape($ref)."' AND s.entity IN (".getEntity($this->element, 1).")";
         if ($ref_ext) $sql .= " WHERE s.ref_ext = '".$this->db->escape($ref_ext)."' AND s.entity IN (".getEntity($this->element, 1).")";
@@ -1152,6 +1167,7 @@ class Societe extends CommonObject
                 $this->holding      = $obj->holding;
                 $this->formofgoverment_id = $obj->formofgoverment_id;
                 $this->categoryofcustomer_id = $obj->categoryofcustomer_id;
+                $this->commercial_id    = $obj->commercial_id;
 
                 $this->capital   = $obj->capital;
 

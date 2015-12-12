@@ -43,6 +43,7 @@ if (! empty($conf->projet->enabled))
 }
 require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
 
+
 $langs->load("companies");
 $langs->load("commercial");
 $langs->load("other");
@@ -56,7 +57,12 @@ $backtopage=GETPOST('backtopage','alpha');
 $contactid=GETPOST('contactid','int');
 $origin=GETPOST('origin','alpha');
 $originid=GETPOST('originid','int');
-
+if ($cancel)
+{
+    $Location = "Location: ".str_replace("'",'', $backtopage);
+    header($Location);
+    exit;
+}
 $fulldayevent=GETPOST('fullday');
 $datep=dol_mktime($fulldayevent?'00':GETPOST("aphour"), $fulldayevent?'00':GETPOST("apmin"), 0, GETPOST("apmonth"), GETPOST("apday"), GETPOST("apyear"));
 $datef=dol_mktime($fulldayevent?'23':GETPOST("p2hour"), $fulldayevent?'59':GETPOST("p2min"), $fulldayevent?'59':'0', GETPOST("p2month"), GETPOST("p2day"), GETPOST("p2year"));
@@ -78,9 +84,10 @@ $extrafields = new ExtraFields($db);
 
 // fetch optionals attributes and labels
 $extralabels=$extrafields->fetch_name_optionals_label($object->table_element);
-
+//echo '<pre>';
 //var_dump($_POST);
-
+//echo '</pre>';
+//die();
 // Initialize technical object to manage hooks of thirdparties. Note that conf->hooks_modules contains array array
 $hookmanager->initHooks(array('actioncard','globalcard'));
 
@@ -130,6 +137,7 @@ if (GETPOST('addassignedtouser') || GETPOST('updateassignedtouser'))
 // Add event
 if ($action == 'add')
 {
+
 	$error=0;
 
     if (empty($backtopage))
@@ -145,8 +153,9 @@ if ($action == 'add')
 
 	if ($cancel)
 	{
-		header("Location: ".$backtopage);
-		exit;
+        $Location = "Location: ".str_replace("'",'', $backtopage);
+        header($Location);
+        exit;
 	}
 
     $percentage=in_array(GETPOST('status'),array(-1,100))?GETPOST('status'):(in_array(GETPOST('complete'),array(-1,100))?GETPOST('complete'):GETPOST("percentage"));	// If status is -1 or 100, percentage is not defined and we must use status
@@ -184,6 +193,7 @@ if ($action == 'add')
 
 	if (! $error)
 	{
+
 		// Initialisation objet actioncomm
 		$object->priority = GETPOST("priority")?GETPOST("priority"):0;
 		$object->fulldayevent = (! empty($fulldayevent)?1:0);
@@ -206,6 +216,7 @@ if ($action == 'add')
 				else $object->label = $cactioncomm->libelle;
 			}
 		}
+
 		$object->fk_project = isset($_POST["projectid"])?$_POST["projectid"]:0;
 		$object->datep = $datep;
 		$object->datef = $datef;
@@ -213,7 +224,10 @@ if ($action == 'add')
 		$object->duree=((float) (GETPOST('dureehour') * 60) + (float) GETPOST('dureemin')) * 60;
 
 		$listofuserid=array();
-		if (! empty($_SESSION['assignedtouser'])) $listofuserid=dol_json_decode($_SESSION['assignedtouser']);
+
+		if (! empty($_SESSION['assignedtouser'])) {
+            $listofuserid = dol_json_decode($_SESSION['assignedtouser']);
+        }
 		$i=0;
 		foreach($listofuserid as $key => $value)
 		{
@@ -227,6 +241,7 @@ if ($action == 'add')
 
 			$i++;
 		}
+
 	}
 
 	if (! $error && ! empty($conf->global->AGENDA_ENABLE_DONEBY))
@@ -278,6 +293,7 @@ if ($action == 'add')
 
 	if (! $error)
 	{
+
 		$db->begin();
 
 		// On cree l'action
@@ -296,7 +312,9 @@ if ($action == 'add')
 				if (! empty($backtopage))
 				{
 					dol_syslog("Back to ".$backtopage.($moreparam?(preg_match('/\?/',$backtopage)?'&'.$moreparam:'?'.$moreparam):''));
-					header("Location: ".$backtopage.($moreparam?(preg_match('/\?/',$backtopage)?'&'.$moreparam:'?'.$moreparam):''));
+//					header("Location: ".$backtopage.($moreparam?(preg_match('/\?/',$backtopage)?'&'.$moreparam:'?'.$moreparam):''));
+                    $Location = "Location: ".str_replace("'",'', $backtopage);
+                    header($Location);
 				}
 				elseif($idaction)
 				{
@@ -547,7 +565,7 @@ $formactions = new FormActions($db);
 if ($action == 'create')
 {
 	$contact = new Contact($db);
-
+    print '<div class="tabPage">';
 	if (GETPOST("contactid"))
 	{
 		$result=$contact->fetch(GETPOST("contactid"));
@@ -602,7 +620,7 @@ if ($action == 'create')
 	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
 	print '<input type="hidden" name="action" value="add">';
 	print '<input type="hidden" name="donotclearsession" value="1">';
-	if ($backtopage) print '<input type="hidden" name="backtopage" value="'.($backtopage != '1' ? $backtopage : $_SERVER["HTTP_REFERER"]).'">';
+	print '<input type="hidden" name="backtopage" value="'.($backtopage != '1' ? $backtopage : $_SERVER["HTTP_REFERER"]).'">';
 	if (empty($conf->global->AGENDA_USE_EVENT_TYPE)) print '<input type="hidden" name="actioncode" value="'.dol_getIdFromCode($db, 'AC_OTH', 'c_actioncomm').'">';
 
 	if (GETPOST("actioncode") == 'AC_RDV') print_fiche_titre($langs->trans("AddActionRendezVous"));
@@ -610,16 +628,16 @@ if ($action == 'create')
 
 	print '<table class="border" width="100%">';
 
-	// Type of event
-	if (! empty($conf->global->AGENDA_USE_EVENT_TYPE))
-	{
-		print '<tr><td width="30%"><span class="fieldrequired">'.$langs->trans("Type").'</span></b></td><td>';
-		$formactions->select_type_actions(GETPOST("actioncode")?GETPOST("actioncode"):$object->type_code, "actioncode","systemauto");
-		print '</td></tr>';
-	}
-
-	// Title
+    // Title
 	print '<tr><td'.(empty($conf->global->AGENDA_USE_EVENT_TYPE)?' class="fieldrequired"':'').'>'.$langs->trans("Title").'</td><td><input type="text" id="label" name="label" size="60" value="'.GETPOST('label').'"></td></tr>';
+
+    // Type of event
+//	if (! empty($conf->global->AGENDA_USE_EVENT_TYPE))
+//	{
+    print '<tr><td width="30%"><span class="fieldrequired">'.$langs->trans("ActionType").'</span></b></td><td>';
+    $formactions->select_type_actions(GETPOST("actioncode")?GETPOST("actioncode"):$object->type_code, "actioncode","systemauto");
+    print '</td></tr>';
+//	}
 
     // Full day
     print '<tr><td>'.$langs->trans("EventOnFullDay").'</td><td><input type="checkbox" id="fullday" name="fullday" '.(GETPOST('fullday')?' checked="checked"':'').'></td></tr>';
@@ -660,11 +678,11 @@ if ($action == 'create')
 	$formactions->form_select_status_action('formaction',$percent,1,'complete');
 	print '</td></tr>';
 
-    // Location
-    if (empty($conf->global->AGENDA_DISABLE_LOCATION))
-    {
-		print '<tr><td>'.$langs->trans("Location").'</td><td colspan="3"><input type="text" name="location" size="50" value="'.(GETPOST('location')?GETPOST('location'):$object->location).'"></td></tr>';
-    }
+//    // Location
+//    if (empty($conf->global->AGENDA_DISABLE_LOCATION))
+//    {
+//		print '<tr><td>'.$langs->trans("Location").'</td><td colspan="3"><input type="text" name="location" size="50" value="'.(GETPOST('location')?GETPOST('location'):$object->location).'"></td></tr>';
+//    }
 
 	// Assigned to
 	print '<tr><td class="nowrap">'.$langs->trans("ActionAffectedTo").'</td><td>';
@@ -790,6 +808,28 @@ if ($action == 'create')
 	print '</center>';
 
 	print "</form>";
+    print '</div>';
+    print '<style>
+            .tabPage{
+                width: 800px;
+                background-image: -moz-linear-gradient(center bottom , rgba(110, 110, 110, 0.5) 25%, rgba(210, 210, 210, 0.5) 100%);
+                border-color: #ccc #bbb #bbb;
+                border-radius: 6px;
+                border-style: solid;
+                border-width: 1px;
+                box-shadow: 3px 3px 4px #ddd;
+                color: #444;
+                margin: 0 0 14px;
+                padding: 9px 8px 8px;
+            }
+           </style>
+    <script>
+        $(document).ready(function(){
+            $("#actioncode").removeClass("flat");
+            $("#actioncode").addClass("combobox");
+//            console.log($("#actioncode").class());
+        });
+    </script>';
 }
 
 // View or edit

@@ -154,7 +154,7 @@ left join `llx_post` on `llx_post`.`rowid`= `llx_societe_contact`.`post_id`
 left join `responsibility` on `responsibility`.`rowid` = `llx_societe_contact`.`respon_id`
 where `llx_societe_contact`.`socid`='.$socid.'
 and `llx_societe_contact`.`active` = 1';
-
+//die($sql);
 $contacttable = new societecontact();
 //var_dump($_REQUEST['sortfield']);
 if(!isset($_REQUEST['sortfield']))

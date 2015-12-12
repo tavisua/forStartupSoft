@@ -10,7 +10,7 @@
 
         </div>
 
-    <table  cellspacing="1">
+    <table  cellspacing="1" class="WidthScroll">
         <thead>
         <tr class="multiple_header_table">
             <!--<th class="header_table" width="130px">Категорія контрагента</th>-->
@@ -31,14 +31,14 @@
             <th colspan="2" id="mentor_action">Перевірки наставником</th>
         </tr>
         <tr class="multiple_header_table">
-            <th width="75px" class="midle_size">Останні</th>
-            <th width="75px" class="midle_size">Майбутні</th>
-            <th width="75px" class="midle_size">Останні</th>
-            <th width="75px" class="midle_size">Майбутні</th>
-            <th width="75px" class="midle_size">Останні</th>
-            <th width="75px" class="midle_size">Майбутні</th>
-            <th width="75px" class="midle_size">Останні</th>
-            <th width="75px" class="midle_size">Майбутні</th>
+            <th width="75px" class="middle_size">Останні</th>
+            <th width="75px" class="middle_size">Майбутні</th>
+            <th width="75px" class="middle_size">Останні</th>
+            <th width="75px" class="middle_size">Майбутні</th>
+            <th width="75px" class="middle_size">Останні</th>
+            <th width="75px" class="middle_size">Майбутні</th>
+            <th width="75px" class="middle_size">Останні</th>
+            <th width="75px" class="middle_size">Майбутні</th>
         </tr>
         </thead>
 
@@ -54,31 +54,44 @@
                 var widths = [];
                 var TotalWidth = 0;
                 for(var i=0; i<th.length; i++){
+                    if(th[i].className == "middle_size" || th[i].id == '') {
 //                    console.log(th[i].offsetWidth);
-                    var iWidth = th[i].offsetWidth;
-                    if(th[i].className == 'header_table')
-                        left += parseInt(iWidth);
-                    TotalWidth += iWidth;
-                    widths.push(parseInt(iWidth));
+                        var iWidth = th[i].offsetWidth;
+                        if (th[i].className == 'header_table')
+                            left += parseInt(iWidth);
+                        TotalWidth += iWidth;
+                        widths.push(parseInt(iWidth));
+                    }
                 }
 
                 $('.tabs').offset({top:215, left:left});
-                console.log($('#comerc_action').width());
+//                console.log($('#comerc_action').width());
                 $('#comerc').offset({top:150, left:$('#comerc_action').offset().left});
                 $('#service').offset({top:150, left:$('#service_action').offset().left});
                 $('#accounts').offset({top:150, left:$('#accounts_action').offset().left});
                 $('#mentor').offset({top:150, left:$('#mentor_action').offset().left});
-
                 $('#tabs_area').width(600);
                 $('#reference_body').offset({left:22});
-
-                $('#reference_body').width(TotalWidth+35);
+////console.log(TotalWidth, widths);
+                $('#reference_body').width(TotalWidth+30);
             })
-//            var tbody = document.getElementById('reference_body');
-//            var tdList = $('#reference_body').find('td');
-//            for(var i=0; i<tdList.length; i++){
-//                if(tdList[i].id.substr(tdList[i].id.length-('width').length) == 'width') {
-//                    tdList[i].innerHTML = tdList[i].innerHTML.substr(0, tdList[i].innerHTML.length-4);
-//                }
-//            }
+
         </script>
+<script type="text/javascript">
+    $(document).ready(function(){
+        var tbody = document.getElementById('reference_body');
+        var trList = tbody.getElementsByTagName('tr');
+        for(var index = 0; index<trList.length; index++){
+            var tdList = trList[index].getElementsByTagName('td');
+            for(var tdIndex = 0; tdIndex<tdList.length; tdIndex++){
+                if(tdList[tdIndex].id.substr(tdList[tdIndex].id.length-'nom'.length) == 'nom') {
+//                     http://uspex2015.com/dolibarr/htdocs/user/card.php?id=13
+                    var id = tdList[tdIndex].id.substr(0, (tdList[tdIndex].id.length - 'nom'.length));
+                    tdList[tdIndex].innerHTML = '<a id = "login_'+id+'" href="/dolibarr/htdocs/societe/soc.php?mainmenu=companies&idmenu=5217&action=edit&socid='+id+'"> <img border="0"  alt="" src="/dolibarr/htdocs/theme/eldy/img/object_contact.png">' + (tdList[tdIndex].innerHTML) + '</a>';
+//                     console.log(tdList[tdIndex].id.substr(0, (tdList[tdIndex].id.length - 'login'.length)));
+//                     console.log(id);
+                }
+            }
+        }
+    })
+</script>

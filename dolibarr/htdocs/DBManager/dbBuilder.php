@@ -310,7 +310,7 @@ class dbBuilder{
             $num_col = 0;
             foreach($row as $cell=>$value){
 //                echo'<pre>';
-//                var_dump();
+//                var_dump($title["substr"]);
 //                echo'</pre>';
 
                 $col_name = "'".$fields[$num_col]->name."'";
@@ -350,7 +350,9 @@ class dbBuilder{
                         } else {
                             if (substr($fields[$num_col]->name, 0, 2) != 's_') {
                                 if(!empty($value))
-                                    $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:'.($col_width[$num_col-1]+2).'px" >'.(trim($langs->trans($value))) . ' </td>';
+                                    $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:'.($col_width[$num_col-1]+2).'px;">'.
+                                        (isset($title[$num_col-1]["substr"])?mb_substr(trim($langs->trans($value)),0,$title[$num_col-1]["substr"], 'UTF-8')
+                                            :trim($langs->trans($value))). '</td>';
                                 else
                                     $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '"  style="width:'.($col_width[$num_col-1]+2).'px"> </td>';
                             }
@@ -422,7 +424,7 @@ class dbBuilder{
             if(count($readonly)==0 && $showtitle) {
                 $table .= '<td style="width: 20px" align="left">
 
-                <img  id="img_'. $row['rowid'].'" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/edit.png" title="Редактировать" style="vertical-align: middle" onclick="edit_item(' . $row['rowid'] . ');">
+                <img  id="img_'. $row['rowid'].'" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/edit.png" title="'.$langs->trans('Edit').'" style="vertical-align: middle" onclick="edit_item(' . $row['rowid'] . ');">
 
 
                        </td>';

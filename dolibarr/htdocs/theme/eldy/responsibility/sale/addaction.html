@@ -1,0 +1,112 @@
+<div><a href="/dolibarr/htdocs/responsibility/sale/area.php?idmenu=10425&mainmenu=area&leftmenu="><?echo $langs->trans('Area')?></a>  /  <a href="<?echo $_SERVER['HTTP_REFERER']?>"><?echo $langs->trans('ActionArea')?></a></div>
+
+<script type="text/javascript" src="/dolibarr/htdocs/societe/js/jquery.maskedinput-1.2.2.js"></script>
+
+<div class="tabPage" id="ActionList">
+    <form id="addaction" action="<?echo $action_url?>" method="post">
+        <!--<div class="address_header">-->
+            <table id="headercontrol" style="background-color: #ffffff">
+                <tr>
+                    <td><b>Категорія контрагента</b></td>
+                    <td><?echo $CategoryOfCustomer?></td>
+                    <td><b>З ким діяли</b></td>
+                    <td><?echo $selectcountact?></td>
+                </tr>
+                <tr>
+                    <td><b>Назва контрагента</b></td>
+                    <td><?echo $object->name?></td>
+                    <td><b>Вид дії</b></td>
+                    <td><select class="combobox" id="contactlist" name="contactlist"></select></td>
+                </tr>
+                <tr>
+                    <td><b>Форма правління</b></td>
+                    <td><?echo $FormOfGoverment?></td>
+
+                </tr>
+            </table>
+        <!--</div>-->
+
+        <input id="rowid" name="rowid" type="hidden" value="">
+        <input id="master_action" name="master_action" type="hidden" value="">
+        <input id="url" name="url" type="hidden" value="<?echo $url?>">
+        <input id="action" name="action" type="hidden" value="<?echo $action?>">
+
+        </br>
+        <table class="border" width="100%">
+            <tr>
+                <td>
+                    &nbsp;&nbsp;&nbsp;<?echo $langs->trans('WhatSaidHim')?>
+                    <textarea id="said" class="edit_text" name="said" maxlength="255"></textarea>
+                </td>
+                <td>
+                    &nbsp;&nbsp;&nbsp;<?echo $langs->trans('WhatAnswer')?>
+                    <textarea id="answer" class="edit_text" name="answer" maxlength="255"></textarea>
+                </td>
+                <td>
+                    &nbsp;&nbsp;&nbsp;<?echo $langs->trans('HerArgument')?>
+                    <textarea id="argument" class="edit_text" name="argument" maxlength="255"></textarea>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    &nbsp;&nbsp;&nbsp;<?echo $langs->trans('SaidImportant')?>
+                    <textarea id="said_important" class="edit_text" name="said_important" maxlength="255"></textarea>
+                </td>
+                <td>
+                    &nbsp;&nbsp;&nbsp;<?echo $langs->trans('ResultAction')?>
+                    <textarea id="result_of_action" class="edit_text" name="result_of_action" maxlength="255"></textarea>
+                </td>
+                <td>
+                    &nbsp;&nbsp;&nbsp;<?echo $langs->trans('WorkBeforeAction')?>
+                    <textarea id="work_before_the_next_action" class="edit_text" name="work_before_the_next_action" maxlength="255"></textarea>
+                </td>
+            </tr>
+            <tr>
+                <td>Дата наступної дії
+                <div style="float: inherit;"><input id="date_next_action" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="" name="date_next_action" maxlength="60" size="60" autocomplete="off">
+                    <button onclick="showDP('/dolibarr/htdocs/core/','date_next_action','dd/MM/yyyy','uk_UA');" class="dpInvisibleButtons" type="button" id="apButton"><img border="0" class="datecallink" title="Select a date" alt="" src="/dolibarr/htdocs/theme/eldy/img/object_calendarday.png"></button>
+                </div></td>
+            </tr>
+        </table>
+        <div align="center">
+            <button onclick="save();">Зберегти</button>
+            <button onclick="back();">Відмінити</button>
+        </div>
+    </form>
+
+</div>
+<script>
+    jQuery(function($) {
+        $.mask.definitions['~']='[+-]';
+        $('#date_next_action').mask('99.99.9999');
+        $('#mobile_phone1').mask('(999) 999-9999');
+        $('#mobile_phone2').mask('(999) 999-9999');
+        $('#phoneext').mask("(999) 999-9999? x99999");
+        $("#tin").mask("99-9999999");
+        $("#ssn").mask("999-99-9999");
+        $("#product").mask("a*-999-a999");
+        $("#eyescript").mask("~9.99 ~9.99 999");
+    });
+</script>
+<script type="text/javascript">
+    $(document).ready(function(){
+        var  opt =$('select#contact').find('option');
+        if(opt.length<=2)
+            loadcontactlist();
+//        console.log(opt.length);
+    })
+    function loadcontactlist(){
+        $('select#contactlist').find('option').remove();
+//        console.log('/dolibarr/htdocs/responsibility/sale/action.php?action=loadcontactlist&contactid='+$('select#contact').val());
+        $.ajax({
+            url: '/dolibarr/htdocs/responsibility/sale/action.php?action=loadcontactlist&contactid='+$('select#contact').val(),
+            cache: false,
+            success: function (html) {
+//                console.log(html);
+                $('select#contactlist').append(html);
+
+            }
+        });
+    }
+
+</script>

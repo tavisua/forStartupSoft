@@ -4563,7 +4563,10 @@ function dol_eval($s,$returnvalue=0)
 
 	//print $s."<br>\n";
 	if ($returnvalue) return @eval('return '.$s.';');
-	else @eval($s);
+	else{
+//        die('test');
+        @eval($s);
+    }
 }
 
 /**

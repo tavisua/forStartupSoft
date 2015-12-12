@@ -79,10 +79,10 @@ function ShowTable(){
         $out.='<tr  class="'.($pair?('pair'):('impair')).'">
                     <td>'.trim($row->states_name).'</td>
                     <td>'.trim($row->regions_name).'</td>
-                    <td class="midle_size">'.(isset($regions_param[$row->rowid.'_3'])?$regions_param[$row->rowid.'_3']:'').'</td>
-                    <td class="midle_size">'.(isset($regions_param[$row->rowid.'_4'])?$regions_param[$row->rowid.'_4']:'').'</td>
-                    <td class="midle_size">'.(isset($client_param[$row->rowid.'_5'])?$client_param[$row->rowid.'_5']:'').'</td>
-                    <td class="midle_size" style="background:'.$color.' ">'.$procent.'%</td>
+                    <td class="middle_size">'.(isset($regions_param[$row->rowid.'_3'])?$regions_param[$row->rowid.'_3']:'').'</td>
+                    <td class="middle_size">'.(isset($regions_param[$row->rowid.'_4'])?$regions_param[$row->rowid.'_4']:'').'</td>
+                    <td class="middle_size">'.(isset($client_param[$row->rowid.'_5'])?$client_param[$row->rowid.'_5']:'').'</td>
+                    <td class="middle_size" style="background:'.$color.' ">'.$procent.'%</td>
                </tr>';
         $pair = !$pair;
     }

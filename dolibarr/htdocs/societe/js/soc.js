@@ -1,15 +1,19 @@
 /**
  * Created by -tavis- on 07.11.2015.
  */
-function loadareas(){
+function loadareas(region_id){
     $('select#region_id').find('option').remove();
     $.ajax({
-        url: '/dolibarr/htdocs/societe/soc.php?getregion='+$('select#state_id').val(),
+        url: '/dolibarr/htdocs/societe/soc.php?getregion='+$('select#state_id').val()+'&region_id='+region_id,
         cache: false,
         success: function (html) {
+            console.log(region_id);
             var optionList = html.substr(strpos(html, '<option value="0">'));
             optionList = optionList.substr(0, strpos(optionList, '</select>'));
             $('select#region_id').append(optionList);
+            //if(region_id != 0){
+            //    $("select#region_id  [value=" + region_id + "]").attr("selected", "selected");
+            //}
         }
     });
 }

@@ -1,0 +1,98 @@
+<table>
+    <tr>
+        <td>
+            <div style="float: left" xmlns="http://www.w3.org/1999/html">
+                <form id="seldate" action='<?echo $_SERVER["REQUEST_URI"]?>' method="post" >
+                    <table>
+                        <tr>
+                            <td>
+                                На дату
+                            </td>
+                            <td style="vertical-align: middle">
+                                <div style="height: 30px" >
+                                    <div style="float: left;"><input id="date" class="ui-autocomplete-input" type="text" readonly="true" autofocus="autofocus" value="<?echo $date?>" name="date" autocomplete="off" size="10" maxlength="10">
+                                        <button onclick="setdate();" class="dpInvisibleButtons" type="button" id="apButton"><img border="0" class="datecallink" title="Select a date" alt="" src="/dolibarr/htdocs/theme/eldy/img/object_calendarday.png"></button>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+            </div>
+            <div><form id="addaction" action="/dolibarr/htdocs/comm/action/card.php" method="post">
+                <input type="hidden" name="backtopage" value="'<?echo $backtopage?>'">
+                <input type="hidden" name="action" value="create">
+                <input type="hidden" name="mainmenu" value="hourly_plan">
+                <input type="hidden" name="datep" value="20151130100000">
+                <button type="submit" title="Додати запис в таблицю 'Дії'"> Додати дію </button>
+            </form> </div>
+            <div></br></div>
+        </td>
+    </tr>
+    <tr>
+        <td>
+    <?echo $table?>
+        </td>
+    </tr>
+</table>
+    <script>
+        $(document).ready(function(){
+            $('#schedule_body').attr('height', window.innerHeight - 230);
+//            $('.fiche').attr('height', window.innerHeight - 250);
+            $('#date').change(function(){
+                $('#seldate').submit();
+            });
+        })
+
+        var basic_top =$('#taskfield').offset().top;
+        $('div.split').hide();
+
+        var dt = new Date();
+        if(dt.getHours()>=8 && dt.getHours()<=18) {
+            var time = dt.getHours() + ":" + dt.getMinutes() + ":" + dt.getSeconds();
+            var td = $('td#' + dt.getHours() + 'h' + (Math.floor(dt.getMinutes() / 10) * 10) + 'm');
+
+            var min_height = (dt.getMinutes() - Math.floor(dt.getMinutes() / 10) * 10) / 10 * td.outerHeight();
+            //    console.log();
+            $('div#currenttime').offset({top: td.offset().top + min_height});
+            $('div#11').offset({top: basic_top});
+            var div1 = $('div#11').find('div');
+            var ua = navigator.userAgent;
+            var bName = function () {
+                if (ua.search(/MSIE/) > -1) return "ie";
+                if (ua.search(/Firefox/) > -1) return "firefox";
+                if (ua.search(/Opera/) > -1) return "opera";
+                if (ua.search(/Chrome/) > -1) return "chrome";
+                if (ua.search(/Safari/) > -1) return "safari";
+                if (ua.search(/Konqueror/) > -1) return "konqueror";
+                if (ua.search(/Iceweasel/) > -1) return "iceweasel";
+                if (ua.search(/SeaMonkey/) > -1) return "seamonkey";}();
+//            if(bName == 'chrome'){
+//                div1[0].style.outerWidth='55px';
+//                alert(div1[div1.length-1].style.outerWidth);
+//            }
+        }else{
+            $('div#currenttime').hide();
+
+        }
+    </script>
+    <!--<script>-->
+        <!--jQuery(function($) {-->
+<!--//            $.mask.definitions['~']='[+-]';-->
+            <!--$('#date').mask('99.99.9999');-->
+            <!--$('#mobile_phone1').mask('(999) 999-9999');-->
+            <!--$('#mobile_phone2').mask('(999) 999-9999');-->
+            <!--$('#phoneext').mask("(999) 999-9999? x99999");-->
+            <!--$("#tin").mask("99-9999999");-->
+            <!--$("#ssn").mask("999-99-9999");-->
+            <!--$("#product").mask("a*-999-a999");-->
+            <!--$("#eyescript").mask("~9.99 ~9.99 999");-->
+        <!--});-->
+    <!--</script>-->
+    <script>
+        function setdate(){
+            showDP('/dolibarr/htdocs/core/','date','dd/MM/yyyy','uk_UA');
+        }
+
+    </script>
+</div>

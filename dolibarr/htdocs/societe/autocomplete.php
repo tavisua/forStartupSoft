@@ -11,12 +11,13 @@
 
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
 $db = new dbBuilder();
-//echo $_GET;
+//var_dump($_GET);
+//die();
 if($_GET['tablename'] == 'kindofcustomer')
     $sql="SELECT name FROM kindofcustomer where name like '%".trim($_GET["term"])."%' order by name";
 elseif($_GET['tablename'] == 'llx_c_ziptown') {
     if($_GET['fieldname'] == 'nametown')
-    $sql = 'SELECT llx_c_ziptown.rowid, trim(llx_c_ziptown.nametown) as nametown, concat(trim(nametown), " ", trim(regions.name), " р-н. ", trim(states.name), " обл.") as name
+    $sql = 'SELECT llx_c_ziptown.rowid, llx_c_ziptown.fk_state, llx_c_ziptown.`fk_region`, trim(llx_c_ziptown.nametown) as nametown, concat(trim(nametown), " ", trim(regions.name), " р-н. ", trim(states.name), " обл.") as name
         FROM llx_c_ziptown
         left join states on states.rowid = llx_c_ziptown.fk_state
         left join regions on regions.rowid =  llx_c_ziptown.`fk_region`
@@ -36,7 +37,7 @@ for ($x = 0, $numrows = $query->num_rows; $x < $numrows; $x++) {
     if($_GET['tablename'] == 'kindofcustomer')
         $friends[$x] = array("name" => $row["name"]);
     elseif($_GET['tablename'] == 'llx_c_ziptown') {
-        $friends[$x] = array("rowid" => $row["rowid"], "name" => $row["name"]);
+        $friends[$x] = array("rowid" => $row["rowid"], "name" => $row["name"], "state_id"=>$row["fk_state"], "region_id"=>$row["fk_region"]);
     }
 }
 //echo '<pre>';

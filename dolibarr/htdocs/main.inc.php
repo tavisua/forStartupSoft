@@ -445,7 +445,8 @@ if (! defined('NOLOGIN'))
 
         if ($test && $goontestloop)
         {
-        	$login = checkLoginPassEntity($usertotest,$passwordtotest,$entitytotest,$authmode);
+            $login = checkLoginPassEntity($usertotest,$passwordtotest,$entitytotest,$authmode);
+
         	if ($login)
             {
                 $dol_authmode=$conf->authmode;	// This properties is defined only when logged, to say what mode was successfully used
@@ -1007,7 +1008,8 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
             $jquerytheme = 'smoothness';
             if (!empty($conf->global->MAIN_USE_JQUERY_THEME)) $jquerytheme = $conf->global->MAIN_USE_JQUERY_THEME;
             //Если открывается панель инструментов, подключаю стили форм
-            if($_REQUEST['mainmenu'] == 'tools' || $_REQUEST['mainmenu']=='area' || $_REQUEST['mainmenu'] == 'home' || $_REQUEST['mainmenu']=='companies' || GETPOST('mainmenu')=='companies'){
+
+            if($_REQUEST['mainmenu'] == 'hourly_plan' || $_REQUEST['mainmenu'] == 'tools' || $_REQUEST['mainmenu']=='hourly_plan' || $_REQUEST['mainmenu']=='area' || $_REQUEST['mainmenu'] == 'home' || $_REQUEST['mainmenu']=='companies' || GETPOST('mainmenu')=='companies'){
                 print '<link rel="stylesheet" type="text/css" href="'.DOL_URL_ROOT.'/theme/'.$conf->theme.'/design.css'.($ext?'?'.$ext:'').'"/>'."\n";          //Стиль для фор
                 print '<link rel="stylesheet" type="text/css" href="'.DOL_URL_ROOT.'/theme/'.$conf->theme.'/style-modal.css'.($ext?'?'.$ext:'').'"/>'."\n";     //Стиль модальной формы
             }

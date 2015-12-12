@@ -1218,8 +1218,8 @@ class Form
             $sql .=' where active = 1 order by `' . $fieldname . '`';
         else
             $sql .=' where rowid='.get_object_vars($userinfo)[$htmlname];
+//        die($sql);
         $resql = $this->db->query($sql);
-
         $out = '';
         if ($resql) {
             $num = $this->db->num_rows($resql);

@@ -178,11 +178,12 @@ class ActionComm extends CommonObject
      */
     function add($user,$notrigger=0)
     {
+//        var_dump($this);
+//        die();
         global $langs,$conf,$hookmanager;
 
         $error=0;
         $now=dol_now();
-
         // Check parameters
         if (empty($this->userownerid))
         {

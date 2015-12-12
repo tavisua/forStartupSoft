@@ -36,7 +36,7 @@ class societecontact {
 
     public function createContact($socid){
 //        echo '<pre>';
-//        var_dump($this);
+//        var_dump(empty($this->birthdaydate));
 //        echo '</pre>';
 //        var_dump(empty($this->lastname)?"null":"'".trim($this->lastname));
 //        die();
@@ -264,6 +264,8 @@ class societecontact {
 //                     <table id='edit_table'>
 //                     <tbody>";
 //        }
+        $ignorfields = array('rowid','call_work_phone','call_fax', 'call_mobile_phone1', 'call_mobile_phone2', 'send_email1', 'send_email2', 'call_skype', 'send_birthdaydate');
+        $duplexfields = array('mobile_phone2', 'email2');
         //Если запрос вернул пустой результат, дорисую одну строку
         if ($result->num_rows == 0) {
             $class = fmod($count, 2) != 1 ? ("impair") : ("pair");
@@ -272,28 +274,19 @@ class societecontact {
             for ($i = 0; $i <= $result->field_count; $i++) {
                 if ($fields[$i]->name != 'rowid') {
                     if ($result->field_count != $i) {
-                        $table .= '<td id="0" >&nbsp;</td>';
-                    } elseif($showtitle)
+                        if(in_array($fields[$i]->name, $ignorfields) || in_array($fields[$i]->name, $duplexfields)){}
+                        else {
+                            $num_col++;
+                            $table .= '<td id="0" >&nbsp;</td>';
+                        }
+                    } elseif($showtitle) {
                         $table .= '<td id="0" style="width: 20px"></td>';
-                    $num_col++;
+                        $num_col++;
+                    }
                 }
             }
-
-//            if(count($readonly)==0) {
-//                $param = "'',''";
-//                $edit_form .= "    </tbody>
-//                                    </table>
-//                           </form>
-//                        <a class='close' title='Закрыть' href='#close'></a>
-//
-//
-//                        <button onclick=save_item(".$tablename.",".$param."); >Сохранить</button>
-//                        <button onclick='close_form();'>Закрыть</button>
-//                        </div>";
-//            }
+            $table .= '<td id="0" >&nbsp;</td>';
         }
-        $ignorfields = array('rowid','call_work_phone','call_fax', 'call_mobile_phone1', 'call_mobile_phone2', 'send_email1', 'send_email2', 'call_skype', 'send_birthdaydate');
-        $duplexfields = array('mobile_phone2', 'email2');
         while($row = $result->fetch_assoc()) {
 //            var_dump($row);
 //            die();
@@ -312,8 +305,10 @@ class societecontact {
             $num_col = 0;
             foreach($row as $cell=>$value){
                 if($fields[$num_col]->type == 10) {//Якщо тип поля - дата - перетворюю на правильний формат
-                    $date = new DateTime($value);
-                    $value = $date->format('d.m.Y');
+                    if(!empty($value)) {
+                        $date = new DateTime($value);
+                        $value = $date->format('d.m.Y');
+                    }
                 }
 
                 $col_name = "'".$fields[$num_col]->name."'";
@@ -363,26 +358,32 @@ class societecontact {
                                             $call_pref = 'call';
                                         elseif(substr($fields[$num_col]->name, 0, 5) == 'email' || $fields[$num_col]->name == 'birthdaydate')
                                             $call_pref = 'send';
-
+//                                        if($fields[$num_col]->name == 'birthdaydate'){
+//                                            var_dump($value);
+//                                            die();
+//                                        }
                                         $table .= '<table class="contactlist_contact"><tr><td>'.(trim($langs->trans($value))) . '</td>';
-                                        $ID = "'#img".$row['rowid'] . $fields[$num_col]->name."'";
-                                        if ($row[$call_pref . "_".$fields[$num_col]->name] == 0)
-                                            $table .= '<td><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/uncheck.png" onclick = "change_switch_callfield($('.$ID.'));">';
-                                        else
-                                            $table .= '<td><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/check.png" onclick = "change_switch_callfield($('.$ID.'));">';
-                                        $table .='</td></tr>';
-                                        if($fields[$num_col]->name == 'mobile_phone1' || $fields[$num_col]->name =='email1') {
-                                            $ID = "'#img".$row['rowid'] . $fields[$num_col+2]->name."'";
-                                            $table .= '<tr><td>'.$row[$fields[$num_col+2]->name]. '</td>';
-                                            if ($row[$call_pref . "_".$fields[$num_col+2]->name] == 0)
-                                                $table .= '<td><img id="img' . $row['rowid'] . $fields[$num_col+2]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/uncheck.png" onclick = "change_switch_callfield($('.$ID.'));">';
+                                        if(!empty($value)) {
+                                            $ID = "'#img" . $row['rowid'] . $fields[$num_col]->name . "'";
+                                            if ($row[$call_pref . "_" . $fields[$num_col]->name] == 0)
+                                                $table .= '<td><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/uncheck.png" onclick = "change_switch_callfield($(' . $ID . '));">';
                                             else
-                                                $table .= '<td><img id="img' . $row['rowid'] . $fields[$num_col+2]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/check.png" onclick = "change_switch_callfield($('.$ID.'));">';
+                                                $table .= '<td><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/check.png" onclick = "change_switch_callfield($(' . $ID . '));">';
+                                            $table .= '</td></tr>';
+                                            if (($fields[$num_col]->name == 'mobile_phone1' || $fields[$num_col]->name == 'email1') && !empty($row[$fields[$num_col + 2]->name])) {
+                                                $ID = "'#img" . $row['rowid'] . $fields[$num_col + 2]->name . "'";
+                                                $table .= '<tr><td>' . $row[$fields[$num_col + 2]->name] . '</td>';
+                                                if ($row[$call_pref . "_" . $fields[$num_col + 2]->name] == 0)
+                                                    $table .= '<td><img id="img' . $row['rowid'] . $fields[$num_col + 2]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/uncheck.png" onclick = "change_switch_callfield($(' . $ID . '));">';
+                                                else
+                                                    $table .= '<td><img id="img' . $row['rowid'] . $fields[$num_col + 2]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/check.png" onclick = "change_switch_callfield($(' . $ID . '));">';
 //                                            echo '<pre>';
 //                                            var_dump($cell, $row[$fields[$num_col+2]->name]) . '</br>';
 //                                            echo '</pre>';
-                                            $table .='</td></tr>';
+                                                $table .= '</td>';
+                                            }
                                         }
+                                        $table .= '</tr>';
                                         $table .= '</table>';
                                     }else
                                         $table .= (trim($langs->trans($value))) . ' </td>';
@@ -452,7 +453,7 @@ class societecontact {
             $click_link = "/dolibarr/htdocs/societe/addcontact.php?action=edit&mainmenu=companies&rowid=".$row['rowid'];
                 $table .= '<td style="width: 20px" align="left">
                 <script> var click_event = "'.$click_link.'";</script>
-                <img  id="img_'. $row['rowid'].'" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/edit.png" title="Редактировать" style="vertical-align: middle" onclick="location.href=click_event"">
+                <img  id="img_'. $row['rowid'].'" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/edit.png" title="'.$langs->trans('Edit').'" style="vertical-align: middle" onclick="location.href=click_event"">
 
 
                        </td>';
@@ -547,8 +548,10 @@ class societecontact {
         $this->send_email2              = $obj->send_email2;//дозвіл відправляти повідомлення
         $this->skype                    = $obj->skype;//логін скайпу
         $this->call_skype               = $obj->call_skype;//дозвіл дзвонити на скайп
-        $date = new DateTime($obj->birthdaydate);
-        $this->birthdaydate             = $date->format('d.m.Y');//дата народження
+        if(!empty($obj->birthdaydate)) {
+            $date = new DateTime($obj->birthdaydate);
+            $this->birthdaydate = $date->format('d.m.Y');//дата народження
+        }
         $this->send_birthdaydate        = $obj->send_birthdaydate;//дозвіл поздоровляти
         $this->socid                    = $obj->socid;
 

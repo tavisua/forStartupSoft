@@ -319,6 +319,8 @@ class FormCompany
 	 */
 	function select_region($state_id, $htmlname='region_id', $region_id='')
 	{
+//        var_dump($region_id);
+//        die();
         if(empty($state_id)){
             print '<select id = "region_id" class="combobox" name="'.$htmlname.'">';
             print '<option value="0">&nbsp;</option>';
@@ -719,17 +721,37 @@ class FormCompany
 	 *    @return	string
 	 */
     function classifycation($id_cus=0, $id_mng=0){
-        $sql = 'select rowid, name from `classifycation` where calc = 1 and active = 1';
-        $res=$this->db->query($sql);
-        if($this->db->num_rows($res)>0) {
-            $out='<table class="param" width="100%">';
-            while ($param = $this->db->fetch_object($res)) {
-                $out.='<tr><td class="param_title">'.$param->name.'</td>';
-                $out.='<td width="auto"><input class="param_item" type="text" value="" size="6" name="param_'.$param->rowid.'"></td></tr>';
+        $out = '';
+        if($id_cus == 0) {
+            $sql = 'select rowid, name from `classifycation` where calc = 1 and active = 1';
+            $res = $this->db->query($sql);
+            if ($this->db->num_rows($res) > 0) {
+                $out = '<table class="param" width="100%">';
+                while ($param = $this->db->fetch_object($res)) {
+                    $out .= '<tr><td class="param_title">' . $param->name . '</td>';
+                    $out .= '<td width="auto"><input class="param_item" type="text" value="" size="6" name="param_' . $param->rowid . '"></td></tr>';
+                }
+                $out .= '</table>';
+            } else {
+                return '';
             }
-            $out.='</table>';
         }else{
-            return '';
+            $sql='select `classifycation`.`rowid`, `classifycation`.`name`, `llx_societe_classificator`.`value`
+                from `classifycation`
+                left join `llx_societe_classificator` on `llx_societe_classificator`.`classifycation_id`=`classifycation`.`rowid`
+                where `llx_societe_classificator`.`soc_id`='.$id_cus.'
+                and `classifycation`.`calc` = 1 and `classifycation`.`active` = 1';
+            $res = $this->db->query($sql);
+            if ($this->db->num_rows($res) > 0) {
+                $out = '<table class="param" width="100%">';
+                while ($param = $this->db->fetch_object($res)) {
+                    $out .= '<tr><td class="param_title">' . $param->name . '</td>';
+                    $out .= '<td width="auto"><input class="param_item" type="text" value="'.$param->value.'" size="6" name="param_' . $param->rowid . '"></td></tr>';
+                }
+                $out .= '</table>';
+            } else {
+                return '';
+            }
         }
 
 //        <tr><td>1</td><td>2</td></tr></table>';

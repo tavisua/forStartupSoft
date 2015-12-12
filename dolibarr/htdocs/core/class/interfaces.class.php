@@ -150,19 +150,23 @@ class Interfaces
             if (empty($modName)) continue;
 
             $objMod = new $modName($this->db);
+//            echo '<pre>';
+//            var_dump();
+//            echo '</pre>';
             if ($objMod)
             {
             	$result=0;
 
 				if (method_exists($objMod, 'runTrigger'))	// New method to implement
 				{
-	                dol_syslog(get_class($this)."::run_triggers action=".$action." Launch runTrigger for file '".$files[$key]."'", LOG_INFO);
-	                $result=$objMod->runTrigger($action,$object,$user,$langs,$conf);
+                    dol_syslog(get_class($this)."::run_triggers action=".$action." Launch runTrigger for file '".$files[$key]."'", LOG_INFO);
+                    $result=$objMod->runTrigger($action,$object,$user,$langs,$conf);
 				}
 				elseif (method_exists($objMod, 'run_trigger'))	// Deprecated method
 				{
 	                dol_syslog(get_class($this)."::run_triggers action=".$action." Launch run_trigger for file '".$files[$key]."'", LOG_INFO);
-					$result=$objMod->run_trigger($action,$object,$user,$langs,$conf);
+                    $result=$objMod->run_trigger($action,$object,$user,$langs,$conf);
+
 				}
 				else
 				{
@@ -188,6 +192,7 @@ class Interfaces
                     if (! empty($objMod->errors)) $this->errors=array_merge($this->errors,$objMod->errors);
                     else if (! empty($objMod->error))  $this->errors[]=$objMod->error;
                 }
+
             }
             else
 			{
@@ -205,6 +210,7 @@ class Interfaces
             //dol_syslog(get_class($this)."::run_triggers Files found: ".$nbfile.", Files launched: ".$nbtotal.", Done: ".$nbok.", Failed: ".$nbko, LOG_DEBUG);
             return $nbok;
         }
+
     }
 
     /**

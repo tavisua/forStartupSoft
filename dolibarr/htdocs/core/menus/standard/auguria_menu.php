@@ -168,7 +168,10 @@ class MenuManager
 	{
 
     	global $conf, $langs, $user;
-
+//        echo '<pre>';
+//        var_dump($this->type_user);
+//        echo '</pre>';
+//        die();
         require_once DOL_DOCUMENT_ROOT.'/core/menus/standard/auguria.lib.php';
 
         if ($this->type_user == 1)
@@ -179,13 +182,13 @@ class MenuManager
 
 		require_once DOL_DOCUMENT_ROOT.'/core/class/menu.class.php';
         $this->menu=new Menu();
-
-        if ($mode == 'top')  print_auguria_menu($this->db,$this->atarget,$this->type_user,$this->tabMenu,$this->menu,0);
-        if ($mode == 'left') print_left_auguria_menu($this->db,$this->menu_array,$this->menu_array_after,$this->tabMenu,$this->menu,0);
 //        echo '<pre>';
-//        var_dump($this->menu);
+//        var_dump($this->tabMenu);
 //        echo '</pre>';
 //        die();
+        if ($mode == 'top')  print_auguria_menu($this->db,$this->atarget,$this->type_user,$this->tabMenu,$this->menu,0);
+        if ($mode == 'left') print_left_auguria_menu($this->db,$this->menu_array,$this->menu_array_after,$this->tabMenu,$this->menu,0);
+
         if ($mode == 'jmobile')
         {
         	print_auguria_menu($this->db,$this->atarget,$this->type_user,$this->tabMenu,$this->menu,1);

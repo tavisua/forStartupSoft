@@ -392,6 +392,10 @@ class Menubase
         {
             if ($val['type']=='top') $newTabMenu[]=$val;
         }
+//        echo '<pre>';
+//        var_dump($newTabMenu);
+//        echo '</pre>';
+//        die();
         return $newTabMenu;
     }
 
@@ -533,11 +537,13 @@ class Menubase
                 //$objm = $this->db->fetch_object($resql);
                 $menu = $this->db->fetch_array($resql);
 
+
                 // Define $right
                 $perms = true;
                 if ($menu['perms'])
                 {
                 	$tmpcond=$menu['perms'];
+
                 	if ($leftmenu == 'all') $tmpcond=preg_replace('/\$leftmenu\s*==\s*["\'a-zA-Z_]+/','1==1',$tmpcond);	// Force part of condition to true
                 	$perms = verifCond($tmpcond);
                     //print "verifCond rowid=".$menu['rowid']." ".$tmpcond.":".$perms."<br>\n";
@@ -556,6 +562,7 @@ class Menubase
                 if ($enabled)
                 {
                 	$title = $langs->trans($menu['titre']);
+
                     if ($title == $menu['titre'])   // Translation not found
                     {
                         if (! empty($menu['langs']))    // If there is a dedicated translation file
@@ -575,12 +582,14 @@ class Menubase
                         	$alt_title = explode("@",$tab_title[1]);
                         	$title_enabled = verifCond($alt_title[1]);
                         	$title = ($title_enabled ? $langs->trans($alt_title[0]) : $langs->trans($tab_title[0]));
+
                         }
                         else
                         {
                             $title = $langs->trans($menu['titre']);
                         }
                     }
+
 //$tmp4=dol_microtime_float();
 //print '>>> 3 '.($tmp4 - $tmp3).'<br>';
 
@@ -594,6 +603,8 @@ class Menubase
                         if (preg_match('/\?/',$tabMenu[$b]['url'])) $tabMenu[$b]['url'].='&amp;idmenu='.$menu['rowid'];
                         else $tabMenu[$b]['url'].='?idmenu='.$menu['rowid'];
                     }
+
+
                     $tabMenu[$b]['titre']       = $title;
                     $tabMenu[$b]['target']      = $menu['target'];
                     $tabMenu[$b]['mainmenu']    = $menu['mainmenu'];

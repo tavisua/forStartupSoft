@@ -23,16 +23,16 @@
         <input id="url" name="url" type="hidden" value="<?echo $url?>">
         <input id="action" name="action" type="hidden" value="<?echo $action?>">
         <input id="town_id" name="town_id" type="hidden" value="<?echo $soc_contact->town_id?>">
-        <input id="call_work_phone" name="call_work_phone" type="hidden" value="<?echo $soc_contact->call_work_phone?>">
+        <input id="call_work_phone" name="call_work_phone" type="hidden" value="<?echo ($action == 'add'|| $action == 'error'?1:$soc_contact->call_work_phone)?>">
         <input id="mainmenu" name="mainmenu" type="hidden" value="companies">
-        <input id="socid" name="socid" type="hidden" value="<?echo $soc_contact->socid?>">
-        <input id="call_fax" name="call_fax" type="hidden" value="<?echo $soc_contact->call_fax?>">
-        <input id="call_mobile_phone1" name="call_mobile_phone1" type="hidden" value="<?echo $soc_contact->call_mobile_phone1?>">
-        <input id="call_mobile_phone2" name="call_mobile_phone2" type="hidden" value="<?echo $soc_contact->call_mobile_phone2?>">
-        <input id="send_email1" name="send_email1" type="hidden" value="<?echo $soc_contact->send_email1?>">
-        <input id="send_email2" name="send_email2" type="hidden" value="<?echo $soc_contact->send_email2?>">
-        <input id="call_skype" name="call_skype" type="hidden" value="<?echo $soc_contact->call_skype?>">
-        <input id="send_birthdaydate" name="send_birthdaydate" type="hidden" value="<?echo $soc_contact->send_birthdaydate?>">
+        <input id="socid" name="socid" type="hidden" value="<?echo($action == 'add'|| $action == 'error'?$socid:$soc_contact->socid)?>">
+        <input id="call_fax" name="call_fax" type="hidden" value="<?echo ($action == 'add'|| $action == 'error'?1:$soc_contact->call_fax)?>">
+        <input id="call_mobile_phone1" name="call_mobile_phone1" type="hidden" value="<?echo ($action == 'add'|| $action == 'error'?1:$soc_contact->call_mobile_phone1)?>">
+        <input id="call_mobile_phone2" name="call_mobile_phone2" type="hidden" value="<?echo ($action == 'add'|| $action == 'error'?1:$soc_contact->call_mobile_phone2)?>">
+        <input id="send_email1" name="send_email1" type="hidden" value="<?echo ($action == 'add'|| $action == 'error'?1:$soc_contact->send_email1)?>">
+        <input id="send_email2" name="send_email2" type="hidden" value="<?echo ($action == 'add'|| $action == 'error'?1:$soc_contact->send_email2)?>">
+        <input id="call_skype" name="call_skype" type="hidden" value="<?echo ($action == 'add'|| $action == 'error'?1:$soc_contact->call_skype)?>">
+        <input id="send_birthdaydate" name="send_birthdaydate" type="hidden" value="<?echo ($action == 'add'|| $action == 'error'?1:$soc_contact->send_birthdaydate)?>">
 
         <table class="border" width="100%">
             <tr>
@@ -90,7 +90,7 @@
                 <td style="vertical-align: middle">
                     <div style="height: 30px" >
                         <div style="float: left;"><input id="work_phone" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_contact->work_phone?>" name="work_phone" maxlength="60" size="60" autocomplete="off"></div>
-                        <div style="float: left;"><img class="switcher" onclick="change_switch($('#callwork_phone'));" src="<?echo($soc_contact->call_work_phone==1?('/dolibarr/htdocs/theme/eldy/img/switch_on.png'):('/dolibarr/htdocs/theme/eldy/img/switch_off.png'))?>" id="callwork_phone"></div>
+                        <div style="float: left;"><img class="switcher" onclick="change_switch($('#callwork_phone'));" src="<?echo($soc_contact->call_work_phone==1 || $action == 'add'|| $action == 'error'?('/dolibarr/htdocs/theme/eldy/img/switch_on.png'):('/dolibarr/htdocs/theme/eldy/img/switch_off.png'))?>" id="callwork_phone"></div>
                     </div>
                 </td>
             </tr>
@@ -101,7 +101,7 @@
                 <td style="vertical-align: middle">
                     <div style="height: 30px" >
                         <div style="float: left;"><input id="fax" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_contact->fax?>" name="fax" maxlength="60" size="60" autocomplete="off"></div>
-                        <div style="float: left;"><img class="switcher" onclick="change_switch($('#callfax'));" src="<?echo($soc_contact->call_fax==1?('/dolibarr/htdocs/theme/eldy/img/switch_on.png'):('/dolibarr/htdocs/theme/eldy/img/switch_off.png'))?>" id="callfax"></div>
+                        <div style="float: left;"><img class="switcher" onclick="change_switch($('#callfax'));" src="<?echo($soc_contact->call_fax==1 || $action == 'add'|| $action == 'error'?('/dolibarr/htdocs/theme/eldy/img/switch_on.png'):('/dolibarr/htdocs/theme/eldy/img/switch_off.png'))?>" id="callfax"></div>
                     </div>
                 </td>
             </tr>
@@ -112,7 +112,7 @@
                 <td style="vertical-align: middle">
                     <div style="height: 30px" >
                         <div style="float: left;"><input id="mobile_phone1" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_contact->mobile_phone1?>" name="mobile_phone1" maxlength="60" size="60" autocomplete="off"></div>
-                        <div style="float: left;"><img class="switcher" onclick="change_switch($('#callmobile_phone1'));" src="<?echo($soc_contact->call_mobile_phone1==1?('/dolibarr/htdocs/theme/eldy/img/switch_on.png'):('/dolibarr/htdocs/theme/eldy/img/switch_off.png'))?>" id="callmobile_phone1"></div>
+                        <div style="float: left;"><img class="switcher" onclick="change_switch($('#callmobile_phone1'));" src="<?echo($soc_contact->call_mobile_phone1==1 || $action == 'add'|| $action == 'error'?('/dolibarr/htdocs/theme/eldy/img/switch_on.png'):('/dolibarr/htdocs/theme/eldy/img/switch_off.png'))?>" id="callmobile_phone1"></div>
                     </div>
                 </td>
             </tr>
@@ -123,7 +123,7 @@
                 <td style="vertical-align: middle">
                     <div style="height: 30px" >
                         <div style="float: left;"><input id="mobile_phone2" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_contact->mobile_phone2?>" name="mobile_phone2" maxlength="60" size="60" autocomplete="off"></div>
-                        <div style="float: left;"><img class="switcher" onclick="change_switch($('#callmobile_phone2'));" src="<?echo($soc_contact->call_mobile_phone2==1?('/dolibarr/htdocs/theme/eldy/img/switch_on.png'):('/dolibarr/htdocs/theme/eldy/img/switch_off.png'))?>" id="callmobile_phone2"></div>
+                        <div style="float: left;"><img class="switcher" onclick="change_switch($('#callmobile_phone2'));" src="<?echo($soc_contact->call_mobile_phone2==1 || $action == 'add'|| $action == 'error'?('/dolibarr/htdocs/theme/eldy/img/switch_on.png'):('/dolibarr/htdocs/theme/eldy/img/switch_off.png'))?>" id="callmobile_phone2"></div>
                     </div>
                 </td>
             </tr>
@@ -134,7 +134,7 @@
                 <td style="vertical-align: middle">
                     <div style="height: 30px" >
                         <div style="float: left;"><input id="email1" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_contact->email1?>" name="email1" maxlength="60" size="60" autocomplete="off"></div>
-                        <div style="float: left;"><img class="switcher" onclick="change_switch($('#sendemail1'));" src="<?echo($soc_contact->send_email1==1?('/dolibarr/htdocs/theme/eldy/img/switch_on.png'):('/dolibarr/htdocs/theme/eldy/img/switch_off.png'))?>" id="sendemail1"></div>
+                        <div style="float: left;"><img class="switcher" onclick="change_switch($('#sendemail1'));" src="<?echo($soc_contact->send_email1==1 || $action == 'add'|| $action == 'error'?('/dolibarr/htdocs/theme/eldy/img/switch_on.png'):('/dolibarr/htdocs/theme/eldy/img/switch_off.png'))?>" id="sendemail1"></div>
                     </div>
                 </td>
             </tr>
@@ -145,7 +145,7 @@
                 <td style="vertical-align: middle">
                     <div style="height: 30px" >
                         <div style="float: left;"><input id="email2" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_contact->email2?>" name="email2" maxlength="60" size="60" autocomplete="off"></div>
-                        <div style="float: left;"><img class="switcher" onclick="change_switch($('#sendemail2'));" src="<?echo($soc_contact->send_email2==1?('/dolibarr/htdocs/theme/eldy/img/switch_on.png'):('/dolibarr/htdocs/theme/eldy/img/switch_off.png'))?>" id="sendemail2"></div>
+                        <div style="float: left;"><img class="switcher" onclick="change_switch($('#sendemail2'));" src="<?echo($soc_contact->send_email2==1 || $action == 'add'|| $action == 'error'?('/dolibarr/htdocs/theme/eldy/img/switch_on.png'):('/dolibarr/htdocs/theme/eldy/img/switch_off.png'))?>" id="sendemail2"></div>
                     </div>
                 </td>
             </tr>
@@ -156,7 +156,7 @@
                 <td style="vertical-align: middle">
                     <div style="height: 30px" >
                         <div style="float: left;"><input id="skype" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_contact->skype?>" name="skype" maxlength="60" size="60" autocomplete="off"></div>
-                        <div style="float: left;"><img class="switcher" onclick="change_switch($('#callskype'));" src="<?echo($soc_contact->call_skype==1?('/dolibarr/htdocs/theme/eldy/img/switch_on.png'):('/dolibarr/htdocs/theme/eldy/img/switch_off.png'))?>" id="callskype"></div>
+                        <div style="float: left;"><img class="switcher" onclick="change_switch($('#callskype'));" src="<?echo($soc_contact->call_skype==1 || $action == 'add'|| $action == 'error'?('/dolibarr/htdocs/theme/eldy/img/switch_on.png'):('/dolibarr/htdocs/theme/eldy/img/switch_off.png'))?>" id="callskype"></div>
                     </div>
                 </td>
             </tr>
@@ -169,7 +169,7 @@
                         <div style="float: left;"><input id="BirthdayDate" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_contact->birthdaydate?>" name="BirthdayDate" maxlength="60" size="60" autocomplete="off">
                             <button onclick="showDP('/dolibarr/htdocs/core/','BirthdayDate','dd/MM/yyyy','uk_UA');" class="dpInvisibleButtons" type="button" id="apButton"><img border="0" class="datecallink" title="Select a date" alt="" src="/dolibarr/htdocs/theme/eldy/img/object_calendarday.png"></button>
                         </div>
-                        <div style="float: left;"><img class="switcher" onclick="change_switch($('#sendbirthdaydate'));" src="<?echo($soc_contact->send_birthdaydate==1?('/dolibarr/htdocs/theme/eldy/img/switch_on.png'):('/dolibarr/htdocs/theme/eldy/img/switch_off.png'))?>" id="sendbirthdaydate"></div>
+                        <div style="float: left;"><img class="switcher" onclick="change_switch($('#sendbirthdaydate'));" src="<?echo($soc_contact->send_birthdaydate==1 || $action == 'add'|| $action == 'error'?('/dolibarr/htdocs/theme/eldy/img/switch_on.png'):('/dolibarr/htdocs/theme/eldy/img/switch_off.png'))?>" id="sendbirthdaydate"></div>
                     </div>
                 </td>
             </tr>
@@ -185,8 +185,8 @@
     jQuery(function($) {
         $.mask.definitions['~']='[+-]';
         $('#BirthdayDate').mask('99.99.9999');
-        $('#mobile_phone1').mask('(999) 999-9999');
-        $('#mobile_phone2').mask('(999) 999-9999');
+        $('#mobile_phone1').mask('<?echo $countrycode?>(99) 999-9999');
+        $('#mobile_phone2').mask('<?echo $countrycode?>(99) 999-9999');
         $('#phoneext').mask("(999) 999-9999? x99999");
         $("#tin").mask("99-9999999");
         $("#ssn").mask("999-99-9999");

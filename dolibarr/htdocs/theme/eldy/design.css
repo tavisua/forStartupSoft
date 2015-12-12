@@ -168,13 +168,19 @@ table.border, table.dataTable, .table-border, .table-border-col, .table-key-bord
 .tabPage {
     color: #444;
 }
+#ActionList{
+    width: 1000px;
+}
+#date_next_action{
+    width: 160px;
+}
 body {
     color: #101010;
     direction: ltr;
     font-family: arial,tahoma,verdana,helvetica;
     font-size: 12px;
 }
-.midle_size{
+.middle_size{
     font-size: 12px;
 }
 .small_size{
@@ -242,17 +248,10 @@ div.header_page, th.header_page, tr.header_table_sel, form.header_page, form.hea
 .perms_module{
     width: 250px;
 }
-/*.switch{*/
-    /*padding-right: 20px;*/
-/*}*/
-/*#group_permission #reference_title{*/
-    /*width: 110%;*/
-    /*display:block !important;*/
-    /*overflow:auto!important;*/
-/*}*/
-/*#reference_title th, #reference_title td{*/
-    /*border-bottom: none !important;*/
-/*}*/
+#customerinfo{
+    margin-left: 0px !important;
+}
+
 #reference tr{
     display: table;
     /*width: 1400px;*/
@@ -262,15 +261,22 @@ div.header_page, th.header_page, tr.header_table_sel, form.header_page, form.hea
     /*max-width: 20!important;*/
     min-width: 20!important;
 }
-.scrolling-table tbody {
+.scrolling-table tbody, .WidthScroll tbody, .WidthScroll thead {
     display: block;
     /*height: 150px;*/
     /*width: 600px;*/
     overflow: hidden;
     overflow-y: auto;
 }
+.word_wrap{
+    /*white-space: nowrap; *//* Запрещаем перенос строк */
+    overflow: hidden; /* Обрезаем все, что не помещается в область */
+    /*background: #fc0; *//* Цвет фона */
+    /*padding: 5px; *//* Поля вокруг текста */
+    text-overflow: ellipsis; /* Добавляем многоточие */
 
-.scrolling-table tr {
+}
+.scrolling-table tr{
     display: table;
     width: 400px;
     table-layout: fixed;
@@ -283,12 +289,54 @@ div.header_page, th.header_page, tr.header_table_sel, form.header_page, form.hea
 #reference_body{
     font-size: 12;
 }
-/*#reference{*/
-    /*width: 100%;*/
-/*}*/
-/*#reference_title{*/
-    /*width:auto; position: fixed; height: auto; top: 60px;*/
-/*}*/
+#schedule_table{
+    font-size: 10;
+}
+#currenttime{
+  height: 2px;
+  background-color: #ff7f6e;
+}
+#8h0m{
+    max-height: 24px;
+}
+#taskfield{
+    padding: 0!important;
+}
+.global_taskitem{
+    font-size: 6;
+    height: 5px;
+    position: relative;
+    padding: 0 0 0!important;
+    border-radius: 8px;
+    background: #f4c63f;
+    border: solid 1px;
+    border-color: #396b9e;
+    z-index: 1;
+    cursor: pointer;
+}
+.taskitem{
+    font-size: 6;
+    height: 5px;
+    position: relative;
+    padding: 0 0 0!important;
+    border-radius: 8px;
+    background: #bebedc;
+    border: solid 1px;
+    border-color: #396b9e;
+    z-index: 1;
+    cursor: pointer;
+    /*background: -webkit-gradient(linear, left top, left bottom, from(#bebedc), to(#aeaecc)); -moz-border-radius:4px;*/
+}
+.lanch{
+    background:#f1f1e3;
+}
+.task_cell{
+    font-size: 10px;
+    border-color: #307fd7;
+    border-right: solid 1px;
+    height: 100%;
+    text-align: center;
+}
 #inactiveTab{
     cursor:no-drop;
     background-image: none !important;
@@ -304,12 +352,12 @@ div.header_page, th.header_page, tr.header_table_sel, form.header_page, form.hea
     text-decoration: none;
     white-space: nowrap;
 }
-#headercontrol, .classifycation{
+#headercontrol, .classifycation, #schedule_body{
     font-family: arial,tahoma,verdana,helvetica;
     font-size: 10;
     border-collapse: collapse;
 }
-#headercontrol td, .classifycation td{
+#headercontrol td, .classifycation td, #schedule_body td{
     padding: 5px; /* Поля вокруг текста */
     border: 1px solid #000; /* Рамка вокруг ячеек */
     min-width: 50px;

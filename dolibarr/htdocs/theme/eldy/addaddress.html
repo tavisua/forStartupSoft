@@ -25,8 +25,8 @@
         <input id="mainmenu" name="mainmenu" type="hidden" value="<?echo GETPOST('mainmenu', 'alpha')?>">
         <input id="idmenu" name="idmenu" type="hidden" value="<?echo GETPOST('idmenu', 'alpha')?>">
         <input id="socid" name="socid" type="hidden" value="<?echo $socid?>">
-        <input id="SendPost" name="SendPost" type="hidden" value="<?echo $soc_address->SendPost?>">
-        <input id="SendEmail" name="SendEmail" type="hidden" value="<?echo $soc_address->SendEmail?>">
+        <input id="SendPost" name="SendPost" type="hidden" value="<? if($action == 'add'){echo 1;}else{echo $soc_address->SendPost;}?>">
+        <input id="SendEmail" name="SendEmail" type="hidden" value="<?if($action == 'add'){ echo 1;} else{ echo $soc_address->SendEmail;}?>">
         <table class="border" width="100%">
             <tr>
                 <td class="<?if($action == 'error' && empty($soc_address->whom)){echo 'fielderror';}else{echo 'fieldrequired';}?>">
@@ -169,7 +169,7 @@
                     <?echo $langs->trans('SendPost')?>
                 </td>
                 <td>
-                    <img id="imgSendPost" onclick="change_switchPost();" src="<?if($soc_address->SendPost == 1 || (empty($soc_address->SendPost)&&$soc_address->SendPost!=0)) echo '/dolibarr/htdocs/theme/eldy/img/switch_on.png'; else echo '/dolibarr/htdocs/theme/eldy/img/switch_off.png'; ?>">
+                    <img id="imgSendPost" onclick="change_switchPost();" src="<?if($soc_address->SendPost == 1 || (empty($soc_address->SendPost)&&$soc_address->SendPost!=0) || $action == 'add') echo '/dolibarr/htdocs/theme/eldy/img/switch_on.png'; else echo '/dolibarr/htdocs/theme/eldy/img/switch_off.png'; ?>">
                 </td>
             </tr>
             <tr>
@@ -177,7 +177,7 @@
                     <?echo $langs->trans('SendEmail')?>
                 </td>
                 <td >
-                    <img id="imgSendEmail"  onclick="change_switchEmail();" src="<?if($soc_address->SendEmail == 1 || (empty($soc_address->SendEmail)&&$soc_address->SendEmail!=0)) echo '/dolibarr/htdocs/theme/eldy/img/switch_on.png'; else echo '/dolibarr/htdocs/theme/eldy/img/switch_off.png'; ?>">
+                    <img id="imgSendEmail"  onclick="change_switchEmail();" src="<?if($soc_address->SendEmail == 1 || (empty($soc_address->SendEmail)&&$soc_address->SendEmail!=0) || $action == 'add') echo '/dolibarr/htdocs/theme/eldy/img/switch_on.png'; else echo '/dolibarr/htdocs/theme/eldy/img/switch_off.png'; ?>">
                 </td>
             </tr>
         </table>
