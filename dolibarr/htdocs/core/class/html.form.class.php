@@ -4183,6 +4183,39 @@ class Form
      * 	@return	string					HTML select string.
      *  @see multiselectarray
      */
+    function selecttrademark($htmlname, $id=''){
+        global $conf, $langs;
+        $sql='select rowid, trademark from `llx_c_trademark` where active=1';
+        $out = '<select id="'.$htmlname.'" class="combobox" name="'.$htmlname.'" size=1>';
+        $res = $this->db->query($sql);
+        while($row = $this->db->fetch_object($res)){
+            $out .= '<option value="'.$row->rowid.'">'.$langs->trans($row->trademark).'</option>';
+        }
+        $out.='</select>';
+        return $out;
+    }
+    function selectlineactive($htmlname, $id=''){
+        global $conf, $langs;
+        $sql='select rowid, line from `llx_c_line_active` where active=1';
+        $out = '<select id="'.$htmlname.'" class="combobox" name="'.$htmlname.'" size=1>';
+        $res = $this->db->query($sql);
+        while($row = $this->db->fetch_object($res)){
+            $out .= '<option value="'.$row->rowid.'">'.$langs->trans($row->line).'</option>';
+        }
+        $out.='</select>';
+        return $out;
+    }
+    function selecttypeeconomicindicator($htmlname, $id=''){
+        global $conf, $langs;
+        $sql='select rowid, type from `llx_c_type_economic_indicators` where active=1';
+        $out = '<select id="'.$htmlname.'" class="combobox" name="'.$htmlname.'" size=1>';
+        $res = $this->db->query($sql);
+        while($row = $this->db->fetch_object($res)){
+            $out .= '<option value="'.$row->rowid.'">'.$langs->trans($row->type).'</option>';
+        }
+        $out.='</select>';
+        return $out;
+    }
     static function selectarray($htmlname, $array, $id='', $show_empty=0, $key_in_label=0, $value_as_key=0, $moreparam='', $translate=0, $maxlen=0, $disabled=0, $sort='', $morecss='')
     {
         global $conf, $langs;

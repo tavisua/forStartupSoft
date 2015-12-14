@@ -63,24 +63,21 @@
         </td>
 
     </tr>
+    <!--<tr>-->
+        <!--<td id = "menu_item" class="boxstats">-->
+            <!--<?echo $KindOfTransport?>-->
+        <!--</td>-->
+        <!--<td id = "menu_item" class="boxstats" >-->
+            <!--<?echo $Trademark?>-->
+        <!--</td>-->
+        <!--<td id = "menu_item" class="boxstats" >-->
+            <!--<?echo $GroupOfMaterials?>-->
+        <!--</td>-->
+        <!--<td id = "menu_item" class="boxstats" >-->
+            <!--<?echo $Unit?>-->
+        <!--</td>-->
+    <!--</tr>-->
     <tr>
-        <td id = "menu_item" class="boxstats">
-            <?echo $KindOfTransport?>
-        </td>
-        <td id = "menu_item" class="boxstats" >
-            <?echo $Trademark?>
-        </td>
-        <td id = "menu_item" class="boxstats" >
-            <?echo $GroupOfMaterials?>
-        </td>
-        <td id = "menu_item" class="boxstats" >
-            <?echo $Unit?>
-        </td>
-    </tr>
-    <tr>
-        <td id = "menu_item" class="boxstats" >
-            <img src="/dolibarr/htdocs/theme/<?echo $theme?>/img/currency.png"><div><?echo $Currency?></div>
-        </td>
         <td id = "menu_item" class="boxstats"onclick='location.href="/dolibarr/htdocs/user/classifycation.php?mainmenu=tools"' >
             <img id="icon" src="/dolibarr/htdocs/theme/<?echo $theme?>/img/classifycation.png"><div><?echo $Classifycation?></div>
         </td>
@@ -88,7 +85,10 @@
             <img id="icon" src="/dolibarr/htdocs/theme/<?echo $theme?>/img/countries.png"><div><?echo $Country?></div>
         </td>
         <td id = "menu_item" class="boxstats" onclick='location.href="/dolibarr/htdocs/admin/dict.php?mainmenu=tools"'>
-            <div><?echo $langs->trans('Dictionary setup')?></div>
+            <img id="icon" src="/dolibarr/htdocs/theme/<?echo $theme?>/img/dictionary.png"><div><?echo $langs->trans('DictionarySetup')?></div>
+        </td>
+        <td id = "menu_item" class="boxstats" >
+        <img id="icon" src="/dolibarr/htdocs/theme/<?echo $theme?>/img/fixed_assets.png"><div><?echo $langs->trans('EconomicIndicators')?></div>
         </td>
     </tr>
 </table>

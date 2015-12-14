@@ -397,6 +397,7 @@ class Translate
 	 */
 	function trans($key, $param1='', $param2='', $param3='', $param4='', $maxsize=0)
 	{
+//        echo $key.' ';
         if(empty($key))
             return $key;
         global $conf;

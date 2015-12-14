@@ -70,7 +70,7 @@ $hookmanager->initHooks(array('admin'));
 // Put here declaration of dictionaries properties
 
 // Sort order to show dictionary (0 is space). All other dictionaries (added by modules) will be at end of this.
-$taborder=array(9,0,4,3,2,0,1,8,19,16,0,5,11,0,6,0,10,23,12,13,0,14,0,7,17,0,22,20,18,21,0,15,0,24,0,25);
+$taborder=array(26,27,28,29,30,0,9,4,3,2,0,1,8,19,16,0,5,11,0,6,0,10,23,12,13,0,14,0,7,17,0,22,20,18,21,0,15,0,24,0,25);
 
 // Name of SQL tables of dictionaries
 $tabname=array();
@@ -99,6 +99,11 @@ $tabname[22]= MAIN_DB_PREFIX."c_input_reason";
 $tabname[23]= MAIN_DB_PREFIX."c_revenuestamp";
 $tabname[24]= MAIN_DB_PREFIX."c_type_resource";
 $tabname[25]= MAIN_DB_PREFIX."c_email_templates";
+$tabname[26]= MAIN_DB_PREFIX."c_type_economic_indicators";
+$tabname[27]= MAIN_DB_PREFIX."c_line_active";
+$tabname[28]= MAIN_DB_PREFIX."c_kind_assets";
+$tabname[29]= MAIN_DB_PREFIX."c_trademark";
+$tabname[30]= MAIN_DB_PREFIX."c_model";
 
 // Dictionary labels
 $tablib=array();
@@ -127,6 +132,11 @@ $tablib[22]= "DictionarySource";
 $tablib[23]= "DictionaryRevenueStamp";
 $tablib[24]= "DictionaryResourceType";
 $tablib[25]= "DictionaryEMailTemplates";
+$tablib[26]= "TypeEconomicIndicators";
+$tablib[27]= "LineActive";
+$tablib[28]= "KindAssets";
+$tablib[29]= "Trademark";
+$tablib[30]= "Model";
 
 // Requests to extract data
 $tabsql=array();
@@ -155,6 +165,16 @@ $tabsql[22]= "SELECT rowid   as rowid, code, label, active FROM ".MAIN_DB_PREFIX
 $tabsql[23]= "SELECT t.rowid, t.taux, c.label as country, c.code as country_code, t.fk_pays as country_id, t.note, t.active, t.accountancy_code_sell, t.accountancy_code_buy FROM ".MAIN_DB_PREFIX."c_revenuestamp as t, ".MAIN_DB_PREFIX."c_country as c WHERE t.fk_pays=c.rowid";
 $tabsql[24]= "SELECT rowid   as rowid, code, label, active FROM ".MAIN_DB_PREFIX."c_type_resource";
 $tabsql[25]= "SELECT rowid   as rowid, label, type_template, private, position, topic, content, active FROM ".MAIN_DB_PREFIX."c_email_templates";
+$tabsql[26]= "SELECT rowid, type label, active FROM ".MAIN_DB_PREFIX."c_type_economic_indicators";
+$tabsql[27]= "select `llx_c_line_active`.rowid, `llx_c_type_economic_indicators`.type as TypeEconomicIndicators, `llx_c_line_active`.line as LineActive,`llx_c_line_active`.active from `llx_c_line_active`,`llx_c_type_economic_indicators`
+where `llx_c_line_active`.`fx_type_indicator`=`llx_c_type_economic_indicators`.`rowid`";
+$tabsql[28]= "select `llx_c_kind_assets`.rowid, `llx_c_line_active`.line as LineActive, `llx_c_kind_assets`.kind_assets as KindAssets, `llx_c_kind_assets`.active
+from `llx_c_line_active`,`llx_c_kind_assets`
+where `llx_c_line_active`.`rowid`=`llx_c_kind_assets`.`fx_line_active`";
+$tabsql[29]= "select rowid,trademark as Trademark,active from ".MAIN_DB_PREFIX."c_trademark";
+$tabsql[30]= "select `llx_c_model`.rowid, `llx_c_model`.model as Model, `llx_c_model`.`Description`, `llx_c_trademark`.trademark as Trademark, `llx_c_model`.active
+from `llx_c_model`,`llx_c_trademark`
+where `llx_c_trademark`.`rowid`=`llx_c_model`.`fx_trademark`";
 
 // Criteria to sort dictionaries
 $tabsqlsort=array();
@@ -183,6 +203,11 @@ $tabsqlsort[22]="code ASC, label ASC";
 $tabsqlsort[23]="country ASC, taux ASC";
 $tabsqlsort[24]="code ASC,label ASC";
 $tabsqlsort[25]="label ASC";
+$tabsqlsort[26]="type ASC";
+$tabsqlsort[27]="TypeEconomicIndicators ASC,`llx_c_line_active`.line ASC";
+$tabsqlsort[28]="KindAssets ASC";
+$tabsqlsort[29]="trademark ASC";
+$tabsqlsort[30]="Trademark ASC,Model ASC";
 
 // Nom des champs en resultat de select pour affichage du dictionnaire
 $tabfield=array();
@@ -211,6 +236,11 @@ $tabfield[22]= "code,label";
 $tabfield[23]= "country_id,country,taux,accountancy_code_sell,accountancy_code_buy,note";
 $tabfield[24]= "code,label";
 $tabfield[25]= "label,type_template,private,position,topic,content";
+$tabfield[26]= "label";
+$tabfield[27]= "TypeEconomicIndicators,LineActive";
+$tabfield[28]= "LineActive,KindAssets";
+$tabfield[29]= "Trademark";
+$tabfield[30]= "Trademark,Model,Description";
 
 // Nom des champs d'edition pour modification d'un enregistrement
 $tabfieldvalue=array();
@@ -239,6 +269,11 @@ $tabfieldvalue[22]= "code,label";
 $tabfieldvalue[23]= "country,taux,accountancy_code_sell,accountancy_code_buy,note";
 $tabfieldvalue[24]= "code,label";
 $tabfieldvalue[25]= "label,type_template,private,position,topic,content";
+$tabfieldvalue[26]= "label";
+$tabfieldvalue[27]= "TypeEconomicIndicators,LineActive";
+$tabfieldvalue[28]= "LineActive,KindAssets";
+$tabfieldvalue[29]= "Trademark";
+$tabfieldvalue[30]= "Trademark,Model,Description";
 
 // Nom des champs dans la table pour insertion d'un enregistrement
 $tabfieldinsert=array();
@@ -267,6 +302,11 @@ $tabfieldinsert[22]= "code,label";
 $tabfieldinsert[23]= "fk_pays,taux,accountancy_code_sell,accountancy_code_buy,note";
 $tabfieldinsert[24]= "code,label";
 $tabfieldinsert[25]= "label,type_template,private,position,topic,content";
+$tabfieldinsert[26]= "type";
+$tabfieldinsert[27]= "fx_type_indicator,line";
+$tabfieldinsert[28]= "fx_line_active,kind_assets";
+$tabfieldinsert[29]= "trademark";
+$tabfieldinsert[30]= "fx_trademark,model,description";
 
 // Nom du rowid si le champ n'est pas de type autoincrement
 // Example: "" if id field is "rowid" and has autoincrement on
@@ -297,6 +337,11 @@ $tabrowid[22]= "rowid";
 $tabrowid[23]= "";
 $tabrowid[24]= "";
 $tabrowid[25]= "";
+$tabrowid[26]= "rowid";
+$tabrowid[27]= "rowid";
+$tabrowid[28]= "rowid";
+$tabrowid[29]= "rowid";
+$tabrowid[30]= "rowid";
 
 // Condition to show dictionary in setup page
 $tabcond=array();
@@ -325,6 +370,11 @@ $tabcond[22]= (! empty($conf->commande->enabled) || ! empty($conf->propal->enabl
 $tabcond[23]= true;
 $tabcond[24]= ! empty($conf->resource->enabled);
 $tabcond[25]= true; // && ! empty($conf->global->MAIN_EMAIL_EDIT_TEMPLATE_FROM_DIC);
+$tabcond[26]= true;
+$tabcond[27]= true;
+$tabcond[28]= true;
+$tabcond[29]= true;
+$tabcond[30]= true;
 
 // List of help for fields
 $tabhelp=array();
@@ -353,6 +403,11 @@ $tabhelp[22] = array();
 $tabhelp[23] = array();
 $tabhelp[24] = array();
 $tabhelp[25] = array();
+$tabhelp[26] = array();
+$tabhelp[27] = array();
+$tabhelp[28] = array();
+$tabhelp[29] = array();
+$tabhelp[30] = array();
 
 // List of check for fields (NOT USED YET)
 $tabfieldcheck=array();
@@ -381,6 +436,11 @@ $tabfieldcheck[22] = array();
 $tabfieldcheck[23] = array();
 $tabfieldcheck[24] = array();
 $tabfieldcheck[25] = array();
+$tabfieldcheck[26] = array();
+$tabfieldcheck[27] = array();
+$tabfieldcheck[28] = array();
+$tabfieldcheck[29] = array();
+$tabfieldcheck[30] = array();
 
 // Complete all arrays with entries found into modules
 complete_dictionary_with_modules($taborder,$tabname,$tablib,$tabsql,$tabsqlsort,$tabfield,$tabfieldvalue,$tabfieldinsert,$tabrowid,$tabcond,$tabhelp,$tabfieldcheck);
@@ -451,8 +511,10 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
 
     // Check that all fields are filled
     $ok=1;
+
     foreach ($listfield as $f => $value)
     {
+//        echo $value.'</br>';
         if ($value == 'country_id' && in_array($tablib[$id],array('DictionaryVAT','DictionaryRegion','DictionaryCompanyType'))) continue;		// For some pages, country is not mandatory
     	if ($value == 'country' && in_array($tablib[$id],array('DictionaryCanton','DictionaryCompanyType'))) continue;		// For some pages, country is not mandatory
         if ($value == 'localtax1' && empty($_POST['localtax1_type'])) continue;
@@ -542,7 +604,7 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
         if ($tabrowid[$id] && ! in_array($tabrowid[$id],$listfieldinsert))
         	$sql.= $tabrowid[$id].",";
         $sql.= $tabfieldinsert[$id];
-        $sql.=",active)";
+        $sql.=",active".($id>=25?(",id_usr"):"").")";
         $sql.= " VALUES(";
 
         // List of values
@@ -562,8 +624,8 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
             else $sql.="'".$db->escape($_POST[$listfieldvalue[$i]])."'";
             $i++;
         }
-        $sql.=",1)";
-
+        $sql.=",1".($id>=25?(",".$user->id):"").")";
+//        die($sql);
         dol_syslog("actionadd", LOG_DEBUG);
         $result = $db->query($sql);
         if ($result)	// Add is ok
@@ -610,6 +672,9 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
             if ($_POST[$listfieldvalue[$i]] == '') $sql.="null";
             else $sql.="'".$db->escape($_POST[$listfieldvalue[$i]])."'";
             $i++;
+        }
+        if($id>=25){
+            $sql.=",id_usr=".$user->id;
         }
         $sql.= " WHERE ".$rowidcol." = '".$rowid."'";
 
@@ -794,6 +859,7 @@ if ($id)
     $sql.=$tabsqlsort[$id];
     $sql.=$db->plimit($listlimit+1,$offset);
     //print $sql;
+//    die($sql);
 
     $fieldlist=explode(',',$tabfield[$id]);
 
@@ -815,8 +881,9 @@ if ($id)
         {
             // Determine le nom du champ par rapport aux noms possibles
             // dans les dictionnaires de donnees
-            $valuetoshow=ucfirst($fieldlist[$field]);   // Par defaut
-            $valuetoshow=$langs->trans($valuetoshow);   // try to translate
+
+            $valuetoshow=$langs->trans(trim($value));   // try to translate
+            $valuetoshow=ucfirst($valuetoshow);   // Par defaut
             $align="left";
             if ($fieldlist[$field]=='source')          { $valuetoshow=$langs->trans("Contact"); }
             if ($fieldlist[$field]=='price')           { $valuetoshow=$langs->trans("PriceUHT"); }
@@ -873,6 +940,7 @@ if ($id)
             	else print $valuetoshow;
                 print '</td>';
              }
+
              if ($fieldlist[$field]=='libelle' || $fieldlist[$field]=='label') $alabelisused=1;
         }
 
@@ -1200,7 +1268,7 @@ if ($id)
 							}
 
 							// Show value for field
-							if ($showfield) print '<td align="'.$align.'">'.$valuetoshow.'</td>';
+							if ($showfield) print '<td align="'.$align.'">'.$langs->trans($valuetoshow).'</td>';
                         }
                     }
 
@@ -1449,6 +1517,27 @@ function fieldList($fieldlist,$obj='',$tabname='')
 			print $form->selectarray($fieldlist[$field], $localtax_typeList, (! empty($obj->$fieldlist[$field])?$obj->$fieldlist[$field]:''));
 			print '</td>';
 		}
+		// Type economic indicator
+        elseif ($fieldlist[$field] == 'TypeEconomicIndicators')
+        {
+            print '<td align="left">';
+            print $form->selecttypeeconomicindicator($fieldlist[$field]);
+            print '</td>';
+        }
+        //торгівельна марка
+        elseif ($fieldlist[$field] == 'Trademark')
+        {
+            print '<td align="left">';
+            print $form->selecttrademark($fieldlist[$field]);
+            print '</td>';
+        }
+        //напрямок
+        elseif ($fieldlist[$field] == 'LineActive')
+        {
+            print '<td align="left">';
+            print $form->selectlineactive($fieldlist[$field]);
+            print '</td>';
+        }
 		else
 		{
 			print '<td>';
