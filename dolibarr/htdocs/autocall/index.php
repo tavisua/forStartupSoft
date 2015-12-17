@@ -23,6 +23,7 @@ if(GETPOST('action', 'alpha') == 'auth'){
     }else{
         $answer = array('answer'=>'error', 'error'=>"401", 'accessToken'=>"");
     }
+    http_response_code($answer['error']);
     $obj = json_encode($answer);
     print $obj;
     exit();
@@ -49,10 +50,17 @@ if(GETPOST('action', 'alpha') == 'auth'){
                     }
                 }
             }else{
-                $answer = array('answer' => 'ok', 'error' => "", 'accessToken' => "", 'job' => "null");
+                $answer = array('answer' => 'ok', 'error' => "200", 'accessToken' => "", 'job' => "null");
             }
         }break;
     }
+    http_response_code($answer['error']);
+    $obj = json_encode($answer);
+    print $obj;
+    exit();
+}elseif(GETPOST('action', 'alpha') == 'progress' || GETPOST('action', 'alpha') == 'finished'){
+    $answer = array('answer'=>'ok', 'error'=>"200", 'accessToken'=>"f5633f5a05d61091249ac7d4746eeff0");
+    http_response_code($answer['error']);
     $obj = json_encode($answer);
     print $obj;
     exit();
@@ -109,6 +117,24 @@ print '<form method="post" action="'.$_SERVER["PHP_SELF"].'">';
 print '<input id="action" type="hidden" value="poling" name="action">';
 print '<input id="hex" type="hidden" value="2" name="job">';
 print '<tr><td colspan="2" style="align: center">Poling с действительным HEX и заданием отправить смс рассылку</td></tr>';
+print '<tr><td></td><td><button id="send" type="submit">    Отправить    </button></td>';
+print '</form>';
+print '</table>';
+
+print '<table style="border: solid 1px; width: 500px">';
+print '<form method="post" action="'.$_SERVER["PHP_SELF"].'">';
+print '<input id="action" type="hidden" value="progress" name="action">';
+print '<input id="hex" type="hidden" value="52f9d618ef8dbde98bcde61a084f7987" name="job">';
+print '<tr><td colspan="2" style="align: center">Принято в работу</td></tr>';
+print '<tr><td></td><td><button id="send" type="submit">    Отправить    </button></td>';
+print '</form>';
+print '</table>';
+
+print '<table style="border: solid 1px; width: 500px">';
+print '<form method="post" action="'.$_SERVER["PHP_SELF"].'">';
+print '<input id="action" type="hidden" value="finished" name="action">';
+print '<input id="hex" type="hidden" value="52f9d618ef8dbde98bcde61a084f7987" name="job">';
+print '<tr><td colspan="2" style="align: center">Задача выполнена</td></tr>';
 print '<tr><td></td><td><button id="send" type="submit">    Отправить    </button></td>';
 print '</form>';
 print '</table>';
