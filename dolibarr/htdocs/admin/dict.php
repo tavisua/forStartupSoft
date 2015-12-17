@@ -40,6 +40,15 @@ $langs->load("admin");
 $langs->load("companies");
 
 $action=GETPOST('action','alpha')?GETPOST('action','alpha'):'view';
+
+if($action == 'get_kindassets'){
+
+    require_once DOL_DOCUMENT_ROOT.'/societe/economic_indicator_class.php';
+    $Econom = new EconomicIndicator();
+    print $Econom->kind_assets($_REQUEST['fx_lineactive']);
+    exit();
+}
+
 $confirm=GETPOST('confirm','alpha');
 $id=GETPOST('id','int');
 $rowid=GETPOST('rowid','alpha');
@@ -172,9 +181,12 @@ $tabsql[28]= "select `llx_c_kind_assets`.rowid, `llx_c_line_active`.line as Line
 from `llx_c_line_active`,`llx_c_kind_assets`
 where `llx_c_line_active`.`rowid`=`llx_c_kind_assets`.`fx_line_active`";
 $tabsql[29]= "select rowid,trademark as Trademark,active from ".MAIN_DB_PREFIX."c_trademark";
-$tabsql[30]= "select `llx_c_model`.rowid, `llx_c_model`.model as Model, `llx_c_model`.`Description`, `llx_c_trademark`.trademark as Trademark, `llx_c_model`.active
-from `llx_c_model`,`llx_c_trademark`
-where `llx_c_trademark`.`rowid`=`llx_c_model`.`fx_trademark`";
+$tabsql[30]= "select `llx_c_model`.rowid, llx_c_line_active.line LineActive, llx_c_kind_assets.kind_assets KindAssets, `llx_c_model`.model as Model,
+`llx_c_model`.`Description`, `llx_c_trademark`.trademark as Trademark, `llx_c_model`.active
+from `llx_c_model`
+inner join `llx_c_trademark` on `llx_c_trademark`.`rowid`=`llx_c_model`.`fx_trademark`
+left join llx_c_kind_assets on `llx_c_model`.fx_kind_assets = `llx_c_kind_assets`.`rowid`
+left join llx_c_line_active on `llx_c_kind_assets`.`fx_line_active` = `llx_c_line_active`.`rowid`";
 
 // Criteria to sort dictionaries
 $tabsqlsort=array();
@@ -205,7 +217,7 @@ $tabsqlsort[24]="code ASC,label ASC";
 $tabsqlsort[25]="label ASC";
 $tabsqlsort[26]="type ASC";
 $tabsqlsort[27]="TypeEconomicIndicators ASC,`llx_c_line_active`.line ASC";
-$tabsqlsort[28]="KindAssets ASC";
+$tabsqlsort[28]="LineActive ASC,KindAssets ASC";
 $tabsqlsort[29]="trademark ASC";
 $tabsqlsort[30]="Trademark ASC,Model ASC";
 
@@ -240,7 +252,7 @@ $tabfield[26]= "label";
 $tabfield[27]= "TypeEconomicIndicators,LineActive";
 $tabfield[28]= "LineActive,KindAssets";
 $tabfield[29]= "Trademark";
-$tabfield[30]= "Trademark,Model,Description";
+$tabfield[30]= "LineActive,KindAssets,Trademark,Model,Description";
 
 // Nom des champs d'edition pour modification d'un enregistrement
 $tabfieldvalue=array();
@@ -273,7 +285,7 @@ $tabfieldvalue[26]= "label";
 $tabfieldvalue[27]= "TypeEconomicIndicators,LineActive";
 $tabfieldvalue[28]= "LineActive,KindAssets";
 $tabfieldvalue[29]= "Trademark";
-$tabfieldvalue[30]= "Trademark,Model,Description";
+$tabfieldvalue[30]= "LineActive,KindAssets,Trademark,Model,Description";
 
 // Nom des champs dans la table pour insertion d'un enregistrement
 $tabfieldinsert=array();
@@ -306,7 +318,7 @@ $tabfieldinsert[26]= "type";
 $tabfieldinsert[27]= "fx_type_indicator,line";
 $tabfieldinsert[28]= "fx_line_active,kind_assets";
 $tabfieldinsert[29]= "trademark";
-$tabfieldinsert[30]= "fx_trademark,model,description";
+$tabfieldinsert[30]= ",fx_kind_assets,fx_trademark,Model,Description";
 
 // Nom du rowid si le champ n'est pas de type autoincrement
 // Example: "" if id field is "rowid" and has autoincrement on
@@ -504,6 +516,7 @@ if ($id == 10)
 // Actions ajout ou modification d'une entree dans un dictionnaire de donnee
 if (GETPOST('actionadd') || GETPOST('actionmodify'))
 {
+
     $listfield=explode(',',$tabfield[$id]);
     $listfieldinsert=explode(',',$tabfieldinsert[$id]);
     $listfieldmodify=explode(',',$tabfieldinsert[$id]);
@@ -520,6 +533,7 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
         if ($value == 'localtax1' && empty($_POST['localtax1_type'])) continue;
         if ($value == 'localtax2' && empty($_POST['localtax2_type'])) continue;
         if ($value == 'color' && empty($_POST['color'])) continue;
+        if ($id == 30 && ($value == 'Model' || $value == 'Description'))continue;
         if ((! isset($_POST[$value]) || $_POST[$value]=='')
         	&& (! in_array($listfield[$f], array('decalage','module','accountancy_code','accountancy_code_sell','accountancy_code_buy')))  // Fields that are not mandatory
 		)
@@ -603,29 +617,48 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
         // List of fields
         if ($tabrowid[$id] && ! in_array($tabrowid[$id],$listfieldinsert))
         	$sql.= $tabrowid[$id].",";
-        $sql.= $tabfieldinsert[$id];
+            if(substr($tabfieldinsert[$id],0,1)==",")
+                $sql.= substr($tabfieldinsert[$id],1);
+            else
+                $sql.= $tabfieldinsert[$id];
         $sql.=",active".($id>=25?(",id_usr"):"").")";
         $sql.= " VALUES(";
 
         // List of values
         if ($tabrowid[$id] && ! in_array($tabrowid[$id],$listfieldinsert))
         	$sql.= $newid.",";
+
         $i=0;
+        $added=0;
+//        var_dump($_POST, $listfieldvalue,$listfieldinsert);
+//        die();
         foreach ($listfieldinsert as $f => $value)
         {
-            if ($value == 'price' || preg_match('/^amount/i',$value)) {
-            	$_POST[$listfieldvalue[$i]] = price2num($_POST[$listfieldvalue[$i]],'MU');
+
+            if($id == 30 && ($listfieldvalue[$i] == 'LineActive')){
+            }else {
+                if ($value == 'price' || preg_match('/^amount/i', $value)) {
+                    $_POST[$listfieldvalue[$i]] = price2num($_POST[$listfieldvalue[$i]], 'MU');
+                } else if ($value == 'entity') {
+                    $_POST[$listfieldvalue[$i]] = $conf->entity;
+                }
+
+                if ($added) $sql .= ",";
+//                var_dump($listfieldvalue[$i], empty($_POST[$listfieldvalue[$i]])).'</br>';
+                if ($_POST[$listfieldvalue[$i]] == '' || empty($_POST[$listfieldvalue[$i]])) {
+//                    echo $listfieldvalue[$i].'</br>';
+                    $sql .= "null";
+                }
+                else {
+//                    $sql .= "'" . $value . "'";
+                    $sql .= "'" . $db->escape($_POST[$listfieldvalue[$i]]) . "'";
+                }
+                $added=1;
             }
-            else if ($value == 'entity') {
-            	$_POST[$listfieldvalue[$i]] = $conf->entity;
-            }
-            if ($i) $sql.=",";
-            if ($_POST[$listfieldvalue[$i]] == '') $sql.="null";
-            else $sql.="'".$db->escape($_POST[$listfieldvalue[$i]])."'";
             $i++;
         }
         $sql.=",1".($id>=25?(",".$user->id):"").")";
-//        die($sql);
+//die($sql);
         dol_syslog("actionadd", LOG_DEBUG);
         $result = $db->query($sql);
         if ($result)	// Add is ok
@@ -857,6 +890,9 @@ if ($id)
         $sql.=" ORDER BY ";
     }
     $sql.=$tabsqlsort[$id];
+//    if($id == 28){
+//        die($sql);
+//    }
     $sql.=$db->plimit($listlimit+1,$offset);
     //print $sql;
 //    die($sql);
@@ -974,7 +1010,7 @@ if ($id)
         	unset($fieldlist[2]);
         }
 
-        if (empty($reshook)) fieldList($fieldlist,$obj);
+        if (empty($reshook)) fieldList($fieldlist,$obj,$tabname[$id]);
 
         if ($id == 4) print '<td></td>';
         print '<td colspan="3" align="right"><input type="submit" class="button" name="actionadd" value="'.$langs->trans("Add").'"></td>';
@@ -1395,6 +1431,13 @@ else
 
 print '<br>';
 
+if($id == 30){
+    print '<script>
+        $(document).ready(function(){
+            loadkind_assets();
+        })
+    </script>';
+}
 
 llxFooter();
 $db->close();
@@ -1525,17 +1568,38 @@ function fieldList($fieldlist,$obj='',$tabname='')
             print '</td>';
         }
         //торгівельна марка
-        elseif ($fieldlist[$field] == 'Trademark')
+        elseif ($fieldlist[$field] == 'Trademark' && ($tabname ==  MAIN_DB_PREFIX."c_model"))
         {
+//            print '<td align="left">';
+//            print $form->selectlineactive('fx_line_active');
+//            print '</td>';
+//            print '<td align="left">';
+//            print $form->selectkindassets('fx_kind_assets');
+//            print '</td>';
             print '<td align="left">';
             print $form->selecttrademark($fieldlist[$field]);
             print '</td>';
         }
+        //напрямок в моделі
+        elseif ($fieldlist[$field] == 'LineActive' && ($tabname ==  MAIN_DB_PREFIX."c_model"))
+        {
+            print '<td align="left">';
+            print $form->selectlineactive('LineActive');
+            print '</td>';
+        }
+        //напрямок в моделі
+        elseif ($fieldlist[$field] == 'KindAssets' && ($tabname ==  MAIN_DB_PREFIX."c_model"))
+        {
+            print '<td align="left">';
+            print $form->selectkindassets('KindAssets');
+            print '</td>';
+        }
         //напрямок
-        elseif ($fieldlist[$field] == 'LineActive')
+        elseif ($fieldlist[$field] == 'LineActive' && ($tabname == MAIN_DB_PREFIX."c_kind_assets"))
         {
             print '<td align="left">';
             print $form->selectlineactive($fieldlist[$field]);
+//            print '*'.$tabname.'*';
             print '</td>';
         }
 		else

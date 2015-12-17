@@ -1,0 +1,43 @@
+<div class="tabPage" id="AddressPage">
+
+    <div class="address_header">
+        <table id="headercontrol" style="background-color: #ffffff">
+            <tr>
+                <td><b>Категорія контрагента</b></td>
+                <td><?echo $CategoryOfCustomer?></td>
+            </tr>
+            <tr>
+                <td><b>Назва контрагента</b></td>
+                <td><?echo $object->name?></td>
+            </tr>
+            <tr>
+                <td><b>Форма правління</b></td>
+                <td><?echo $FormOfGoverment?></td>
+            </tr>
+        </table>
+    </div>
+    <div class="address_header">
+        <div class="blockvmenupair">
+            <div class="menu_titre">
+                <b><?echo $langs->trans('Control')?></b>
+            </div>
+            <div class="menu_top"></div>
+            <div class="menu_contenu">
+                <form action="<?echo $_SERVER['PHP_SELF']?>" method="post">
+                    <input id="url" name="url" type="hidden" value="<?echo $_SERVER['REQUEST_URI']?>">
+                    <input id="mainmenu" name="mainmenu" type="hidden" value="<?echo $_REQUEST['mainmenu']?>">
+                    <input id="idmenu" name="idmenu" type="hidden" value="<?echo $_REQUEST['idmenu']?>">
+                    <input id="user_id" name="user_id" type="hidden" value="<?echo $user->id?>">
+                    <input id="socid" name="socid" type="hidden" value="<?echo $socid?>">
+                    <input id="action" name="action" type="hidden" value="add">
+                    <button type="submit">&nbsp;&nbsp;&nbsp;&nbsp;<?echo $langs->trans('AddParameters')?>&nbsp;&nbsp;&nbsp;&nbsp;</button>
+                </form>
+            </div>
+            <div class="menu_end"></div>
+        </div>
+    </div>
+
+    <?echo $EconomicIndicators->fixed_assets()?>
+    </br>
+    <?echo $EconomicIndicators->materials()?>
+</div>

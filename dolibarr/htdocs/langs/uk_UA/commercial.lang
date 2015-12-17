@@ -109,7 +109,9 @@ CommercialDashboard=Commercial summary
 FixedAssets=Основні засоби
 Materials=Матеріали
 EconomicIndicators=Господарські дані
+AddParameters=Додати показники
 LineActive=Напрямок
 KindAssets=Вид засобів/матеріалів
+SelectMonth=Вкажіть місяць
 TypeEconomicIndicators=Види господарських даних
 

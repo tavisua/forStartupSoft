@@ -1,0 +1,37 @@
+    <div>
+        <table class="WidthScroll" cellspacing="1" style="width: 100%">
+        <thead>
+            <tr class="multiple_header_table">
+                <th id="Materials" colspan="19" ><?echo $langs->trans('Materials')?></th>
+            </tr>
+            <tr class="multiple_header_table">
+                <th>Напрямок</th>
+                <th>Вид</th>
+                <th>Виробник</th>
+                <th>Назва</th>
+                <th>Для чого</th>
+                <th class="middle_size">Скільки</th>
+                <th class="middle_size" style="width: 30px">Од. виміру</th>
+                <th class="middle_size">Тара</th>
+                <th class="middle_size" style="width: 30px">Од. виміру</th>
+                <th class="middle_size">Час закупки</th>
+                <th class="middle_size" style="width: 30px">% закупки від потреби</th>
+                <th class="middle_size">Нестан. час закупки</th>
+                <th class="middle_size" style="width: 30px">% закупки від потреби</th>
+                
+                <th>Позитивні відгуки</th>
+                <th>Негативні відгуки</th>
+                <th width="70px">Хто дав</th>
+                <th>Дата</th>
+                <th width="70px">Вартість на сьогодні</th>
+                <th width="70px">Вся вартість</th>
+            </tr>
+        </thead>
+        <?echo $materials?>
+    </table>
+    </div>
+    <script>
+        $(document).ready(function(){
+            $('td#emptyrow_materials').width($('th#Materials').width());
+        })
+    </script>

@@ -1,0 +1,35 @@
+    <div>
+        <table class="WidthScroll" cellspacing="1" style="width: 100%">
+        <thead>
+            <tr class="multiple_header_table">
+                <th id="FixedAssets" colspan="<?echo $YearCount+13?>" ><?echo $langs->trans('FixedAssets')?></th>
+            </tr>
+            <tr class="multiple_header_table">
+                <th rowspan="2">Напрямок</th>
+                <th rowspan="2">Вид</th>
+                <th rowspan="2">Марка</th>
+                <th rowspan="2">Особливості</th>
+                <th rowspan="2">Рік випуску</th>
+                <th colspan="2">Технічні параметри</th>
+                <th colspan="<?echo $YearCount?>"<?if($YearCount==0) echo 'style= display:none';?> >Кількість/рік</th>
+                <th rowspan="2">Позитивні відгуки</th>
+                <th rowspan="2">Негативні відгуки</th>
+                <th rowspan="2"width="70px">Хто дав</th>
+                <th rowspan="2">Дата</th>
+                <th rowspan="2" width="70px">Вартість на сьогодні</th>
+                <th rowspan="2" width="70px">Вся вартість</th>
+            </tr>
+            <tr class="multiple_header_table">
+                <th class="small_size">основні</th>
+                <th class="small_size">продуктивн.</th>
+                <?echo $TitleYears?>
+            </tr>
+        </thead>
+        <?echo $fixed_assets?>
+    </table>
+    </div>
+    <script>
+        $(document).ready(function(){
+            $('td#emptyrow_fixed_assets').width($('th#FixedAssets').width());
+        })
+    </script>

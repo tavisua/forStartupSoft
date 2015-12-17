@@ -1,0 +1,157 @@
+<script type="text/javascript" src="/dolibarr/htdocs/societe/js/jquery.maskedinput-1.2.2.js"></script>
+
+<div class="tabPage">
+    <div class="address_header">
+        <table id="headercontrol" style="background-color: #ffffff">
+            <tr>
+                <td><b>Категорія контрагента</b></td>
+                <td><?echo $CategoryOfCustomer?></td>
+            </tr>
+            <tr>
+                <td><b>Назва контрагента</b></td>
+                <td><?echo $object->name?></td>
+            </tr>
+            <tr>
+                <td><b>Форма правління</b></td>
+                <td><?echo $FormOfGoverment?></td>
+            </tr>
+        </table>
+    </div>
+
+    <form id="addaddress" action="<?echo $action_url?>" method="post">
+        <input id="rowid" name="rowid" type="hidden" value="<?echo $soc_contact->rowid?>">
+        <input id="url" name="url" type="hidden" value="<?echo $url?>">
+        <input id="action" name="action" type="hidden" value="<?echo $action?>">
+        <input id="line_active" name="line_active" type="hidden" value="<?echo $soc_contact->town_id?>">
+        <input id="call_work_phone" name="call_work_phone" type="hidden" value="<?echo ($action == 'add'|| $action == 'error'?1:$soc_contact->call_work_phone)?>">
+        <input id="mainmenu" name="mainmenu" type="hidden" value="companies">
+        <input id="socid" name="socid" type="hidden" value="<?echo($action == 'add'|| $action == 'error'?$socid:$soc_contact->socid)?>">
+
+        <table class="border" width="100%">
+            <tr>
+                <td>
+                    <?echo $langs->trans('LineActive')?>
+                </td>
+                <td>
+                    <?echo $EconomicIndicators->lineactive()?>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <?echo $langs->trans('KindAssets')?>
+                </td>
+                <td>
+                    <?echo $EconomicIndicators->kind_assets()?>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <?echo $langs->trans('Trademark')?>
+                </td>
+                <td>
+                    <?echo $EconomicIndicators->trademark()?>
+                </td>
+            </tr>
+            <tr class="additional">
+                <td width="50%">
+                    Для чого?
+                </td>
+                <td>
+                    <input id="for_what" type="text" value="" maxlength="50" name="for_what">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Кількість
+                </td>
+                <td>
+                    <input id="count" name="count" type="text" value="0">
+                </td>
+            </tr>
+            <tr class="additional">
+                <td>
+                    Тара
+                </td>
+                <td>
+                    <input id="container" name="container" type="text" value="0">
+                </td>
+            </tr>
+            <tr class="additional">
+                <td>
+                    Час закупки
+                </td>
+                <td>
+                    <?echo $EconomicIndicators->select_month('time_purchase');?>
+                </td>
+            </tr>
+            <tr class="additional">
+                <td>
+                    % закупки від потреби
+                </td>
+                <td>
+                    <input id="rate" name="rate" type="text" value="0">
+                </td>
+            </tr>
+            <tr class="additional">
+                <td>
+                    Нестандартний час закупки
+                </td>
+                <td>
+                    <?echo $EconomicIndicators->select_month('time_purchase2');?>
+                </td>
+            </tr>
+            <tr class="additional">
+                <td>
+                    % закупки від потреби
+                </td>
+                <td>
+                    <input id="rate2" name="rate2" type="text" value="0">
+                </td>
+            </tr>
+        </table>
+        <div align="center">
+            <button onclick="save();">Додати ще</button>
+            <button onclick="save();">Зберегти</button>
+            <button onclick="back();">Відмінити</button>
+        </div>
+    </form>
+
+</div>
+<script>
+    jQuery(function($) {
+        $.mask.definitions['~']='[+-]';
+        $('#BirthdayDate').mask('99.99.9999');
+        $('#mobile_phone1').mask('<?echo $countrycode?>(99) 999-9999');
+        $('#mobile_phone2').mask('<?echo $countrycode?>(99) 999-9999');
+        $('#phoneext').mask("(999) 999-9999? x99999");
+        $("#tin").mask("99-9999999");
+        $("#ssn").mask("999-99-9999");
+        $("#product").mask("a*-999-a999");
+        $("#eyescript").mask("~9.99 ~9.99 999");
+    });
+</script>
+<script type="text/javascript">
+    $(".param").keypress(function( b ){        var C = /[0-9\x25\x27\x24\x23]/;        var a = b.which;        var c = String.fromCharCode(a);        return !!(a==0||a==8||a==9||a==13||c.match(C));    });
+
+    function back(){
+        $('#action').val('cancel');
+        $('#addaddress').attr('action', $('#url').val());
+    }
+    function save(){
+        $('#action').val('save');
+    }
+    function hide_emptyrow(){
+        $("select#lineactive [value='0' ]"). remove();
+    }
+</script>
+
+
+<script type="text/javascript">
+ $(document).ready(function(){
+     $('tr.additional').hide();
+     if(window.innerHeight<$('#addaddress').innerHeight()+50){
+         $('.footer').hide();
+     }
+ })
+</script>
+

@@ -1273,6 +1273,8 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
 //            die();
             if(strpos($_SERVER["SCRIPT_NAME"],'soc.php') || strpos($_SERVER["SCRIPT_NAME"],'address.php')|| strpos($_SERVER["SCRIPT_NAME"],'addcontact.php')){
                 print '<script type="text/javascript" src="/dolibarr/htdocs/societe/js/soc.js'.($ext?'?'.$ext:'').'"></script>'."\n";
+            }elseif(strpos($_SERVER["SCRIPT_NAME"],'dict.php')){
+                print '<script type="text/javascript" src="/dolibarr/htdocs/admin/js/dict.js'.($ext?'?'.$ext:'').'"></script>'."\n";
             }else
                 print '<script type="text/javascript" src="/dolibarr/scripts/js/table_manager.js'.($ext?'?'.$ext:'').'"></script>'."\n";
 
