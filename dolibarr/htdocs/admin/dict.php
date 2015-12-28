@@ -45,9 +45,11 @@ if($action == 'get_kindassets'){
 
     require_once DOL_DOCUMENT_ROOT.'/societe/economic_indicator_class.php';
     $Econom = new EconomicIndicator();
-    print $Econom->kind_assets($_REQUEST['fx_lineactive']);
+    print $Econom->selectkind_assets($_REQUEST['fx_lineactive']);
     exit();
 }
+//var_dump($_POST);
+//die();
 
 $confirm=GETPOST('confirm','alpha');
 $id=GETPOST('id','int');
@@ -79,7 +81,7 @@ $hookmanager->initHooks(array('admin'));
 // Put here declaration of dictionaries properties
 
 // Sort order to show dictionary (0 is space). All other dictionaries (added by modules) will be at end of this.
-$taborder=array(26,27,28,29,30,0,9,4,3,2,0,1,8,19,16,0,5,11,0,6,0,10,23,12,13,0,14,0,7,17,0,22,20,18,21,0,15,0,24,0,25);
+$taborder=array(26,27,28,29,30,31,0,9,4,3,2,0,1,8,19,16,0,5,11,0,6,0,10,23,12,13,0,14,0,7,17,0,22,20,18,21,0,15,0,24,0,25);
 
 // Name of SQL tables of dictionaries
 $tabname=array();
@@ -113,6 +115,7 @@ $tabname[27]= MAIN_DB_PREFIX."c_line_active";
 $tabname[28]= MAIN_DB_PREFIX."c_kind_assets";
 $tabname[29]= MAIN_DB_PREFIX."c_trademark";
 $tabname[30]= MAIN_DB_PREFIX."c_model";
+$tabname[31]= MAIN_DB_PREFIX."c_measurement";
 
 // Dictionary labels
 $tablib=array();
@@ -146,6 +149,7 @@ $tablib[27]= "LineActive";
 $tablib[28]= "KindAssets";
 $tablib[29]= "Trademark";
 $tablib[30]= "Model";
+$tablib[31]= "UnitsOfMeasurement";
 
 // Requests to extract data
 $tabsql=array();
@@ -184,10 +188,10 @@ $tabsql[29]= "select rowid,trademark as Trademark,active from ".MAIN_DB_PREFIX."
 $tabsql[30]= "select `llx_c_model`.rowid, llx_c_line_active.line LineActive, llx_c_kind_assets.kind_assets KindAssets, `llx_c_model`.model as Model,
 `llx_c_model`.`Description`, `llx_c_trademark`.trademark as Trademark, `llx_c_model`.active
 from `llx_c_model`
-inner join `llx_c_trademark` on `llx_c_trademark`.`rowid`=`llx_c_model`.`fx_trademark`
+left join `llx_c_trademark` on `llx_c_trademark`.`rowid`=`llx_c_model`.`fx_trademark`
 left join llx_c_kind_assets on `llx_c_model`.fx_kind_assets = `llx_c_kind_assets`.`rowid`
 left join llx_c_line_active on `llx_c_kind_assets`.`fx_line_active` = `llx_c_line_active`.`rowid`";
-
+$tabsql[31]= "select rowid, name, active from ".MAIN_DB_PREFIX."c_measurement";
 // Criteria to sort dictionaries
 $tabsqlsort=array();
 $tabsqlsort[1] ="country ASC, code ASC";
@@ -220,6 +224,7 @@ $tabsqlsort[27]="TypeEconomicIndicators ASC,`llx_c_line_active`.line ASC";
 $tabsqlsort[28]="LineActive ASC,KindAssets ASC";
 $tabsqlsort[29]="trademark ASC";
 $tabsqlsort[30]="Trademark ASC,Model ASC";
+$tabsqlsort[31]="name ASC";
 
 // Nom des champs en resultat de select pour affichage du dictionnaire
 $tabfield=array();
@@ -253,6 +258,7 @@ $tabfield[27]= "TypeEconomicIndicators,LineActive";
 $tabfield[28]= "LineActive,KindAssets";
 $tabfield[29]= "Trademark";
 $tabfield[30]= "LineActive,KindAssets,Trademark,Model,Description";
+$tabfield[31]= "name";
 
 // Nom des champs d'edition pour modification d'un enregistrement
 $tabfieldvalue=array();
@@ -286,6 +292,7 @@ $tabfieldvalue[27]= "TypeEconomicIndicators,LineActive";
 $tabfieldvalue[28]= "LineActive,KindAssets";
 $tabfieldvalue[29]= "Trademark";
 $tabfieldvalue[30]= "LineActive,KindAssets,Trademark,Model,Description";
+$tabfieldvalue[31]= "name";
 
 // Nom des champs dans la table pour insertion d'un enregistrement
 $tabfieldinsert=array();
@@ -319,6 +326,7 @@ $tabfieldinsert[27]= "fx_type_indicator,line";
 $tabfieldinsert[28]= "fx_line_active,kind_assets";
 $tabfieldinsert[29]= "trademark";
 $tabfieldinsert[30]= ",fx_kind_assets,fx_trademark,Model,Description";
+$tabfieldinsert[31]= "name";
 
 // Nom du rowid si le champ n'est pas de type autoincrement
 // Example: "" if id field is "rowid" and has autoincrement on
@@ -354,6 +362,7 @@ $tabrowid[27]= "rowid";
 $tabrowid[28]= "rowid";
 $tabrowid[29]= "rowid";
 $tabrowid[30]= "rowid";
+$tabrowid[31]= "rowid";
 
 // Condition to show dictionary in setup page
 $tabcond=array();
@@ -387,6 +396,7 @@ $tabcond[27]= true;
 $tabcond[28]= true;
 $tabcond[29]= true;
 $tabcond[30]= true;
+$tabcond[31]= true;
 
 // List of help for fields
 $tabhelp=array();
@@ -420,6 +430,7 @@ $tabhelp[27] = array();
 $tabhelp[28] = array();
 $tabhelp[29] = array();
 $tabhelp[30] = array();
+$tabhelp[31] = array();
 
 // List of check for fields (NOT USED YET)
 $tabfieldcheck=array();
@@ -453,6 +464,7 @@ $tabfieldcheck[27] = array();
 $tabfieldcheck[28] = array();
 $tabfieldcheck[29] = array();
 $tabfieldcheck[30] = array();
+$tabfieldcheck[31] = array();
 
 // Complete all arrays with entries found into modules
 complete_dictionary_with_modules($taborder,$tabname,$tablib,$tabsql,$tabsqlsort,$tabfield,$tabfieldvalue,$tabfieldinsert,$tabrowid,$tabcond,$tabhelp,$tabfieldcheck);
@@ -522,6 +534,9 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
     $listfieldmodify=explode(',',$tabfieldinsert[$id]);
     $listfieldvalue=explode(',',$tabfieldvalue[$id]);
 
+    while(substr($tabfieldinsert[$id],0,1)==",")
+        $tabfieldinsert[$id]= substr($tabfieldinsert[$id],1);
+
     // Check that all fields are filled
     $ok=1;
 
@@ -533,7 +548,12 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
         if ($value == 'localtax1' && empty($_POST['localtax1_type'])) continue;
         if ($value == 'localtax2' && empty($_POST['localtax2_type'])) continue;
         if ($value == 'color' && empty($_POST['color'])) continue;
-        if ($id == 30 && ($value == 'Model' || $value == 'Description'))continue;
+//        echo $value.'</br>';
+//        if($id == 30 && $value =='Trademark'){
+//            var_dump(($value == 'Trademark'&&!isset($_POST['Trademark'])));
+//            die();
+//        }
+        if ($id == 30 && ($value == 'Model' || $value == 'Description'||($value == 'Trademark'&&!isset($_POST['Trademark']))))continue;
         if ((! isset($_POST[$value]) || $_POST[$value]=='')
         	&& (! in_array($listfield[$f], array('decalage','module','accountancy_code','accountancy_code_sell','accountancy_code_buy')))  // Fields that are not mandatory
 		)
@@ -592,7 +612,8 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
 	// Clean some parameters
     if (isset($_POST["localtax1"]) && empty($_POST["localtax1"])) $_POST["localtax1"]='0';	// If empty, we force to 0
     if (isset($_POST["localtax2"]) && empty($_POST["localtax2"])) $_POST["localtax2"]='0';	// If empty, we force to 0
-
+//    var_dump($ok, 'перевірка');
+//    die();
     // Si verif ok et action add, on ajoute la ligne
     if ($ok && GETPOST('actionadd'))
     {
@@ -617,10 +638,7 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
         // List of fields
         if ($tabrowid[$id] && ! in_array($tabrowid[$id],$listfieldinsert))
         	$sql.= $tabrowid[$id].",";
-            if(substr($tabfieldinsert[$id],0,1)==",")
-                $sql.= substr($tabfieldinsert[$id],1);
-            else
-                $sql.= $tabfieldinsert[$id];
+            $sql.= $tabfieldinsert[$id];
         $sql.=",active".($id>=25?(",id_usr"):"").")";
         $sql.= " VALUES(";
 
@@ -630,8 +648,8 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
 
         $i=0;
         $added=0;
-//        var_dump($_POST, $listfieldvalue,$listfieldinsert);
-//        die();
+//        var_dump( $listfieldvalue,$listfieldinsert);
+//        die($sql);
         foreach ($listfieldinsert as $f => $value)
         {
 
@@ -1435,11 +1453,12 @@ if($id == 30){
     print '<script>
         $(document).ready(function(){
             loadkind_assets();
+            $("select#KindAssets").on("change", SetEnableTrademark);
         })
     </script>';
 }
 
-llxFooter();
+//llxFooter();
 $db->close();
 
 
