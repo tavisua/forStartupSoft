@@ -31,10 +31,13 @@
     </tr>
     <tr>
         <td>
-    <?echo $table?>
+    <div style="position: relative; z-index: 0;"><?echo $table?></div>
+
+
         </td>
     </tr>
 </table>
+
     <script>
         $(document).ready(function(){
             $('#schedule_body').attr('height', window.innerHeight - 230);
@@ -42,21 +45,8 @@
             $('#date').change(function(){
                 $('#seldate').submit();
             });
-        })
-
-        var basic_top =$('#taskfield').offset().top;
-        $('div.split').hide();
-
-        var dt = new Date();
-        if(dt.getHours()>=8 && dt.getHours()<=18) {
-            var time = dt.getHours() + ":" + dt.getMinutes() + ":" + dt.getSeconds();
-            var td = $('td#' + dt.getHours() + 'h' + (Math.floor(dt.getMinutes() / 10) * 10) + 'm');
-
-            var min_height = (dt.getMinutes() - Math.floor(dt.getMinutes() / 10) * 10) / 10 * td.outerHeight();
-            //    console.log();
-            $('div#currenttime').offset({top: td.offset().top + min_height});
-            $('div#11').offset({top: basic_top});
-            var div1 = $('div#11').find('div');
+            var basic_top =$('#taskfield').offset().top;
+            $('div.split').hide();
             var ua = navigator.userAgent;
             var bName = function () {
                 if (ua.search(/MSIE/) > -1) return "ie";
@@ -67,13 +57,58 @@
                 if (ua.search(/Konqueror/) > -1) return "konqueror";
                 if (ua.search(/Iceweasel/) > -1) return "iceweasel";
                 if (ua.search(/SeaMonkey/) > -1) return "seamonkey";}();
+            var dt = new Date();
+            var taskfield = document.getElementById('tasklist');
+            var task = taskfield.getElementsByTagName('tr');
+            var zIndex = -100;
+            for(var i = 0; i<task.length; i++){
+                if(task[i].id.substr(0,5)!="empty"){
+                    SetTaskParam(i>0?task[i-1]:null, task[i]);
+                }
+                if(i+1 == task.length ){
+                    var div = task[i].getElementsByTagName('div');
+                    for(var d = 0; d<div.length; d++)
+                        div[d].style.height = task[i].style.height;
+                }
+            }
+
+            if(dt.getHours()>=8 && dt.getHours()<=18) {
+                var time = dt.getHours() + ":" + dt.getMinutes() + ":" + dt.getSeconds();
+                var td = $('td#' + dt.getHours() + 'h' + (Math.floor(dt.getMinutes() / 10) * 10) + 'm');
+
+                var min_height = (dt.getMinutes() - Math.floor(dt.getMinutes() / 10) * 10) / 10 * td.outerHeight();
+                //    console.log();
+//                $('div#currenttime').offset({top: 50});
+                $('div#currenttime').offset({top: td.offset().top + min_height});
+
 //            if(bName == 'chrome'){
 //                div1[0].style.outerWidth='55px';
 //                alert(div1[div1.length-1].style.outerWidth);
 //            }
-        }else{
-            $('div#currenttime').hide();
+            }else{
+                $('div#currenttime').hide();
 
+            }
+        })
+        function SetTaskParam(prev, task){
+//            console.log($("#"+prev.id).offset().top, task);
+//            if(prev == null)return;
+            var div = task.getElementsByTagName('div');
+            if(prev.id.substr(0,5)=="empty") {
+                var start_time = div[1].innerHTML;
+                td = $('td#' + parseInt(start_time.substr(0, 2)) + 'h' + (Math.floor(parseInt(start_time.substr(3, 2)) / 10) * 10) + 'm');
+                start_time = parseInt(start_time.substr(3, 2));
+                var min_height = (start_time - Math.floor(start_time / 10) * 10) / 10 * td.outerHeight();
+                var top = td.offset().top + min_height;
+                $("#" + prev.id).height(top - $("#" + prev.id).offset().top);
+            }
+
+            var end_time = div[3].innerHTML;
+            td = $('td#' + parseInt(end_time.substr(0,2)) + 'h' + (Math.floor(parseInt(end_time.substr(3,2)) / 10) * 10) + 'm');
+            end_time = parseInt(end_time.substr(3, 2));
+            min_height = (end_time - Math.floor(end_time / 10) * 10) / 10 * td.outerHeight();
+            var button = td.offset().top+min_height ;
+            $("#" + task.id).height(button - $("#" + task.id).offset().top);
         }
     </script>
     <!--<script>-->
@@ -96,3 +131,4 @@
 
     </script>
 </div>
+

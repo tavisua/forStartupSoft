@@ -28,6 +28,30 @@
  */
 
 require '../../main.inc.php';
+
+if($_GET['action']=='get_exectime'){
+    global $db;
+    $sql = "select exec_time from llx_c_actioncomm where active = 1 and code='".$_GET['code']."' limit 1";
+    $res = $db->query($sql);
+    if(!$res){
+        var_dump($sql);
+        dol_print_error($db);
+    }
+    $obj = $db->fetch_object($res);
+    $exec_time = $obj->exec_time;
+    if(empty($exec_time))
+        $exec_time = 0;
+    echo $exec_time;
+    exit();
+}elseif($_GET['action']=='get_contactlist'){
+    require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
+    $form = new Form($db);
+    $list = $form->select_contacts($_GET['socid'], '','contactid',1);
+    echo $list;
+    exit();
+}
+
+
 require_once DOL_DOCUMENT_ROOT.'/core/lib/agenda.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/contact/class/contact.class.php';
@@ -194,6 +218,10 @@ if ($action == 'add')
 	if (! $error)
 	{
 
+//        echo '<pre>';
+//        var_dump($_POST);
+//        echo '</pre>';
+//        die();
 		// Initialisation objet actioncomm
 		$object->priority = GETPOST("priority")?GETPOST("priority"):0;
 		$object->fulldayevent = (! empty($fulldayevent)?1:0);
@@ -201,6 +229,7 @@ if ($action == 'add')
 		$object->label = trim(GETPOST('label'));
 		$object->fk_element = GETPOST("fk_element");
 		$object->elementtype = GETPOST("elementtype");
+        $object->period = GETPOST("selperiod");
 		if (! GETPOST('label'))
 		{
 			if (GETPOST('actioncode') == 'AC_RDV' && $contact->getFullName($langs))
@@ -250,6 +279,7 @@ if ($action == 'add')
 	}
 
 	$object->note = trim($_POST["note"]);
+	$object->confirmdoc = trim($_POST["confirmdoc"]);
 
 	if (isset($_POST["contactid"])) $object->contact = $contact;
 
@@ -257,7 +287,14 @@ if ($action == 'add')
 	{
 		$object->socid=GETPOST('socid','int');
 		$object->fetch_thirdparty();
-
+        $object->contactid = GETPOST("contactid", 'int');
+//        if(count($_POST)) {
+//            echo '<pre>';
+//            var_dump(GETPOST("contactid", 'int'));
+//            var_dump($_POST);
+//            echo '</pre>';
+//            die('test');
+//        }
 		$object->societe = $object->thirdparty;	// For backward compatibility
 	}
 
@@ -295,7 +332,10 @@ if ($action == 'add')
 	{
 
 		$db->begin();
-
+//        echo '<pre>';
+//        var_dump($object);
+//        echo '</pre>';
+//        die();
 		// On cree l'action
 		$idaction=$object->add($user);
 
@@ -348,6 +388,7 @@ if ($action == 'add')
 /*
  * Action update event
  */
+
 if ($action == 'update')
 {
 	if (empty($cancel))
@@ -380,7 +421,9 @@ if ($action == 'update')
         $object->fulldayevent= GETPOST("fullday")?1:0;
 		$object->location    = GETPOST('location');
 		$object->socid       = GETPOST("socid");
-		$object->contactid   = GETPOST("contactid",'int');
+
+        $object->contactid   = GETPOST("contactid",'int');
+
 		//$object->societe->id = $_POST["socid"];			// deprecated
 		//$object->contact->id = $_POST["contactid"];		// deprecated
 		$object->fk_project  = GETPOST("projectid",'int');
@@ -556,7 +599,7 @@ if ($action == 'mupdate')
  */
 
 $help_url='EN:Module_Agenda_En|FR:Module_Agenda|ES:M&omodulodulo_Agenda';
-llxHeader('',$langs->trans("Agenda"),$help_url);
+llxHeader('',$langs->trans("AddAction"),$help_url);
 
 $form = new Form($db);
 $formfile = new FormFile($db);
@@ -619,9 +662,11 @@ if ($action == 'create')
 	print '<form name="formaction" action="'.$_SERVER['PHP_SELF'].'" method="POST">';
 	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
 	print '<input type="hidden" name="action" value="add">';
+	print '<input type="hidden" name="mainmenu" value="hourly_plan">';
 	print '<input type="hidden" name="donotclearsession" value="1">';
 	print '<input type="hidden" name="backtopage" value="'.($backtopage != '1' ? $backtopage : $_SERVER["HTTP_REFERER"]).'">';
-	if (empty($conf->global->AGENDA_USE_EVENT_TYPE)) print '<input type="hidden" name="actioncode" value="'.dol_getIdFromCode($db, 'AC_OTH', 'c_actioncomm').'">';
+
+	if (empty($conf->global->AGENDA_USE_EVENT_TYPE)) print '<input type="hidden" name="actioncode" value="'.dol_getIdFromCode($db, GETPOST("actioncode"), 'c_actioncomm').'">';
 
 	if (GETPOST("actioncode") == 'AC_RDV') print_fiche_titre($langs->trans("AddActionRendezVous"));
 	else print_fiche_titre($langs->trans("AddAnAction"));
@@ -665,7 +710,7 @@ if ($action == 'create')
 	print '</td></tr>';
 
 	// Status
-	print '<tr><td width="10%">'.$langs->trans("Status").' / '.$langs->trans("Percentage").'</td>';
+	print '<tr><td width="10%">'.$langs->trans("Status").'</td>';
 	print '<td>';
 	$percent=-1;
 	if (isset($_GET['status']) || isset($_POST['status'])) $percent=GETPOST('status');
@@ -678,10 +723,12 @@ if ($action == 'create')
 	$formactions->form_select_status_action('formaction',$percent,1,'complete');
 	print '</td></tr>';
 
-//    // Location
-//    if (empty($conf->global->AGENDA_DISABLE_LOCATION))
+    // Period
+//    if (GETPOST("actioncode") == "AC_GLOBAL")
 //    {
-//		print '<tr><td>'.$langs->trans("Location").'</td><td colspan="3"><input type="text" name="location" size="50" value="'.(GETPOST('location')?GETPOST('location'):$object->location).'"></td></tr>';
+//    var_dump((GETPOST("actioncode") != "AC_GLOBAL"));
+//        die(GETPOST("actioncode"));
+		print '<tr id="period"><td>'.$langs->trans("Period").'</td><td colspan="3">'.$form->select_period().'</td></tr>';
 //    }
 
 	// Assigned to
@@ -716,6 +763,7 @@ if ($action == 'create')
 	print '<br><br>';
 	print '<table class="border" width="100%">';
 
+
 	// Societe, contact
 	print '<tr><td width="30%" class="nowrap">'.$langs->trans("ActionOnCompany").'</td><td>';
 	if (GETPOST('socid','int') > 0)
@@ -732,11 +780,13 @@ if ($action == 'create')
 		$events[]=array('method' => 'getContacts', 'url' => dol_buildpath('/core/ajax/contacts.php',1), 'htmlname' => 'contactid', 'params' => array('add-customer-contact' => 'disabled'));
 		//For external user force the company to user company
 		if (!empty($user->societe_id)) {
-			print $form->select_thirdparty_list($user->societe_id,'socid','',1,1,0,$events);
+			$thirdparty_list = $form->select_thirdparty_list($user->societe_id,'socid','',1,1,0,$events);
 		} else {
-			print $form->select_thirdparty_list('','socid','',1,1,0,$events);
+            $thirdparty_list = $form->select_thirdparty_list('','socid','',1,1,0,$events);
 		}
-
+        $thirdparty_list = substr($thirdparty_list, 0, strpos($thirdparty_list, 'name')).' onchange="SocIdChange();" '.substr($thirdparty_list, strpos($thirdparty_list, 'name'));
+//        var_dump(htmlspecialchars($thirdparty_list));
+        print $thirdparty_list;
 	}
 	print '</td></tr>';
 
@@ -777,17 +827,75 @@ if ($action == 'create')
 	}
 
 	// Priority
-	print '<tr><td class="nowrap">'.$langs->trans("Priority").'</td><td colspan="3">';
-	print '<input type="text" name="priority" value="'.(GETPOST('priority')?GETPOST('priority'):($object->priority?$object->priority:'')).'" size="5">';
-	print '</td></tr>';
+//	print '<tr><td class="nowrap">'.$langs->trans("Priority").'</td><td colspan="3">';
+//	print '<input type="text" name="priority" value="'.(GETPOST('priority')?GETPOST('priority'):($object->priority?$object->priority:'')).'" size="5">';
+//	print '</td></tr>';
 
-    // Description
-    print '<tr><td valign="top">'.$langs->trans("Description").'</td><td>';
+    // ActionDescription
+    print '<tr><td valign="top">'.$langs->trans("ActionDescription").'</td><td>';
     require_once DOL_DOCUMENT_ROOT.'/core/class/doleditor.class.php';
     $doleditor=new DolEditor('note',(GETPOST('note')?GETPOST('note'):$object->note),'',180,'dolibarr_notes','In',true,true,$conf->fckeditor->enabled,ROWS_6,90);
     $doleditor->Create();
     print '</td></tr>';
 
+    // Note
+    print '<tr><td valign="top">'.$langs->trans("Note").': що зробить, кінцева мета, підтвердження</td><td>';
+//    print '<script>
+//        $(function(){
+//                $("#confirmdoc").autocomplete({
+//                //Определяем обратный вызов к результатам форматирования
+//                source: function(req, add){
+//
+//                    //Передаём запрос на сервер
+//                    $.getJSON("autocomplete.php?callback=?", req, function(data) {
+//                        if(data == null){
+//                            $("#confirmdoc").val(req["term"]);
+//        //                    console.log($("#confirmdoc").val());
+//                            add(null);
+//                            return;
+//                        }
+//                        //Создаем массив для объектов ответа
+//                        var suggestions = [];
+//                        //Обрабатываем ответ
+//                        $.each(data, function(i, val){
+//                            suggestions.push(val.name);
+//                        });
+//
+//                        //Передаем массив обратному вызову
+//                        add(suggestions);
+//                    });
+//                },
+//
+//                //Определяем обработчик селектора
+//                select: function(e, ui) {
+//                    $("#confirmdoc").value = ui.item.value;
+//                    console.log($("#confirmdoc").val());
+//                    $(".ui-helper-hidden-accessible").remove();
+//    //                        //Создаем форматированную переменную cust_name
+//    //                        var cust_name = ui.item.value,
+//    //                                        span = $("<span>").text(cust_name),
+//    //                                        a = $("<a>").addClass("remove").attr({
+//    //                                            href: "javascript:",
+//    //                                            title: "Remove " + cust_name
+//    //                                        }).text("x").appendTo(span);
+//    //
+//    //                                    //Добавляем cust_name к div cust_name
+//    //                                    span.insertBefore("#confirmdoc");
+//                },
+//
+//                //Определяем обработчик выбора
+//                change: function() {
+//                    //Сохраняем поле "Наименование" без изменений и в правильной позиции
+//    //                        $("#confirmdoc").val("").css("top", 2);
+//                }
+//            });
+//        });
+//		</script>
+//    ';
+//    print '<input type="text" id="confirmdoc" name="confirmdoc" size="50" value="">
+//        <img class="hideonsmartphone" border="0" title="" alt="" src="/dolibarr/htdocs/theme/eldy/img/info.png">';
+    print $form->select_confirmdoc();
+    print '</td></tr>';
 
     // Other attributes
     $parameters=array('id'=>$object->id);
@@ -827,8 +935,121 @@ if ($action == 'create')
         $(document).ready(function(){
             $("#actioncode").removeClass("flat");
             $("#actioncode").addClass("combobox");
-//            console.log($("#actioncode").class());
+            $("#actioncode").unbind("change");
+            $("#contactid").removeClass("flat");
+            $("#contactid").addClass("combobox");
+            $("#socid").removeClass("flat");
+            $("#socid").addClass("combobox");
+            if($("#actioncode").val() != "AC_GLOBAL")
+                $("#period").hide();
+            else
+                $("#period").show();
         });
+
+        function SocIdChange(){
+            if($("select#socid").val() == -1) return;
+            var link = "http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=get_contactlist&socid="+$("select#socid").val();
+            console.log(link);
+            $.ajax({
+                url: link,
+                cahce: false,
+                success: function(html){
+                    $("select#contactid").find("option").remove();
+                    var optionList = html.substr(strpos(html, "<option value="));
+                    optionList = optionList.substr(0, strpos(optionList, "</select>"));
+                    $("select#contactid").append(optionList);
+                }
+            })
+        }
+        function strpos( haystack, needle, offset){ // Find position of first occurrence of a string
+            var i = haystack.indexOf( needle, offset ); // returns -1
+            return i >= 0 ? i : false;
+        }
+        function dpChangeDay(id, format){
+            if(id == "ap"){
+                $("#p2").val($("#ap").val())
+                $("#p2day").val($("#apday").val());
+                $("#p2month").val($("#apmonth").val());
+                $("#p2year").val($("#apyear").val());
+            }
+        }
+        function setP2(){
+            console.log($("select#apmin").val());
+            if($("select#apmin").val() == -1) return;
+            else if($("select#apmin").val() != "-1") {
+                if($("select#actioncode").val()!=0){
+                    if($("#actioncode").val() != "AC_GLOBAL")
+                        $("#period").hide();
+                    else
+                        $("#period").show();
+                    var link = "http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=get_exectime&code="+$("#actioncode").val();
+                    console.log(link);
+                    $.ajax({
+                        url:link,
+                        cache: false,
+                        success: function(html){
+                            var hour = parseInt(document.getElementById("aphour").value)+Math.floor(html/60);
+                            document.getElementById("p2hour").value = hour<10?("0"+hour):hour;
+                            var p2min = 0;
+
+                            if(parseInt(html)%60){
+                                p2min = parseInt(document.getElementById("apmin").value)+parseInt(html);
+                                document.getElementById("p2hour").value =
+                                    parseInt(document.getElementById("aphour").value)+Math.floor(p2min/60);
+                            }else{
+                               p2min = parseInt(document.getElementById("apmin").value);
+                               var hour = parseInt(html)+parseInt(document.getElementById("aphour").value);
+                               document.getElementById("p2hour").value = hour<10?("0"+hour):hour;
+                            }
+                            var min="";
+                            if(p2min%60<10)
+                                min = "0"+(p2min%60).toString();
+                            else
+                                min = (p2min%60).toString();
+
+                            document.getElementById("p2min").value = min;
+//                            if(Math.floor(p2min/60)>0){
+////                                var min="";
+////                                if(p2min%60<10)
+////                                    min = "0"+(p2min%60).toString();
+////                                else
+////                                    min = (p2min%60).toString();
+//                                document.getElementById("p2min").value = min;
+//                            }else{
+//
+//                                document.getElementById("p2min").value = min;
+//                            }
+//                            console.log(p2min%60);
+                        }
+                    })
+                }else{
+                    alert("Будь ласка вкажіть тип дії");
+                }
+            }
+        }
+        function ActionCodeChanged(){
+            if(!$("#ap").val()){
+                var date = new Date();
+                var month = date.getMonth()+1;
+                var day = date.getDate();
+                var year = date.getFullYear();
+                $("#apday").val(day);
+                $("#apmonth").val(month);
+                $("#apyear").val(year);
+
+
+                $("#ap").val((day<10 ? "0" : "") + day+"."+(month<10 ? "0" : "") + month+"."+year);
+            }
+//            console.log($("#aphour").val() ,$("#apmin").val());
+            if($("#aphour").val() == -1 || $("#apmin").val() == -1){
+                document.getElementById("aphour").value=formatDate(new Date(), "HH");
+                document.getElementById("apmin").value=formatDate(new Date(), "mm");
+            }
+            dpChangeDay("ap","dd.MM.yyyy");
+            setP2();
+
+//            console.log($("#actioncode").val());
+        }
     </script>';
 }
 
@@ -1358,7 +1579,6 @@ if ($id > 0)
 	    }
 	}
 }
-
 
 llxFooter();
 

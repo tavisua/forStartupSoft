@@ -34,7 +34,7 @@
  *					This file contains all frequently used functions.
  */
 
-include_once DOL_DOCUMENT_ROOT .'/core/lib/json.lib.php';
+include_once $_SERVER["DOCUMENT_ROOT"] . '/dolibarr/htdocs/core/lib/json.lib.php';
 
 /**
  * Function to return value of a static property when class

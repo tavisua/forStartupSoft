@@ -16,13 +16,15 @@ $sql = 'select `llx_societe`.rowid, `llx_societe`.nom,
 from `llx_societe` left join `category_counterparty` on `llx_societe`.`categoryofcustomer_id` = `category_counterparty`.rowid
 left join `formofgavernment` on `llx_societe`.`formofgoverment_id` = `formofgavernment`.rowid
 left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`';
+
 if($region_id != 0) {
     $sql .= 'where `region_id` = ' . $region_id . ' ';
     $sql .= 'and `llx_societe`.`categoryofcustomer_id` in
 (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = '.$user->respon_id.')';
 }else
     $sql .= 'where 1 ';
-
+if(!$user->admin)
+    $sql .= ' and `llx_societe`.`fk_user_creat`='.$user->id;
 $sql .= 'order by width desc, nom';
 //var_dump($sql);
 $TableParam = array();
@@ -125,7 +127,7 @@ $table = fShowTable($TableParam, $sql, "'" . $tablename . "'", $conf->theme, $_R
 
 //$row = $db_mysql->fShowTable($TableParam, $sql, "'" . $tablename . "'", $conf->theme, $_REQUEST['sortfield'], $_REQUEST['sortorder'], $readonly = array(-1), false);
 
-include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/customers.html');
+include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/area/customers.html');
 return;
 function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $sortorder='', $readonly = array(), $showtitle=true){
     global $user, $conf, $langs, $db;
@@ -166,6 +168,8 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
         }
     }
     $actionfields = array('lastdatecomerc'=>'sale',  'lastdateservice'=>'service', 'lastdateaccounts'=>'accounts',  'lastdatementor'=>'mentor');
+    if(!$result)return;
+//    if()return;
     $fields = $result->fetch_fields();
 //        var_dump($showtitle);
 //        die();

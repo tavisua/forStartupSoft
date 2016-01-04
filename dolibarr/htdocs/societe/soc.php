@@ -235,6 +235,7 @@ if (empty($reshook))
         // Webservices url/key
         $object->webservices_url       = GETPOST('webservices_url', 'custom', 0, FILTER_SANITIZE_URL);
         $object->webservices_key       = GETPOST('webservices_key', 'san_alpha');
+        $object->prehistoric_actions   = GETPOST('prehistoric_actions', 'alpha');
 
         $PostList = array_keys($_POST);
         $ParamList = array();
@@ -1250,6 +1251,12 @@ else
         print $object->remark;
         print '</textarea></td></tr>';
 
+        // Prehistoric action
+        print '<tr><td valign="top"><label for="prehistoric_actions">'.$langs->trans('Prehistoric_actions').'</label></td>';
+        print '<td colspan="3"><textarea name="prehistoric_actions" id="prehistoric_actions" cols="40" rows="3" wrap="soft">';
+        print $object->prehistoric_actions;
+        print '</textarea></td></tr>';
+
 //        // Other attributes
 //        $parameters=array('colspan' => ' colspan="3"', 'colspanvalue' => '3');
 //        $reshook=$hookmanager->executeHooks('formObjectOptions',$parameters,$object,$action);    // Note that $action and $object may have been modified by hook
@@ -1376,6 +1383,7 @@ else
                 // Webservices url/key
                 $object->webservices_url        = GETPOST('webservices_url', 'custom', 0, FILTER_SANITIZE_URL);
                 $object->webservices_key        = GETPOST('webservices_key', 'san_alpha');
+                $object->prehistoric_actions    = GETPOST('prehistoric_actions', 'alpha');
 
                 //Local Taxes
                 $object->localtax1_assuj		= GETPOST('localtax1assuj_value');
@@ -2214,6 +2222,11 @@ else
             print $object->remark;
             print '</textarea></td></tr>';
 
+            // Prehistoric action
+            print '<tr><td valign="top"><label for="prehistoric_actions">'.$langs->trans('Prehistoric_actions').'</label></td>';
+            print '<td colspan="3"><textarea name="prehistoric_actions" id="prehistoric_actions" cols="40" rows="3" wrap="soft">';
+            print $object->prehistoric_actions;
+            print '</textarea></td></tr>';
 //        // Other attributes
 //        $parameters=array('colspan' => ' colspan="3"', 'colspanvalue' => '3');
 //        $reshook=$hookmanager->executeHooks('formObjectOptions',$parameters,$object,$action);    // Note that $action and $object may have been modified by hook
@@ -2875,31 +2888,31 @@ print '
         $("#name").autocomplete({
             //Определяем обратный вызов к результатам форматирования
             source: function(req, add){
-            req["tablename"]="kindofcustomer";
-            //Передаём запрос на сервер
-            $.getJSON("autocomplete.php?callback=?", req, function(data) {
-                if(data == null){
-                    $("#name").val(req["term"]);
-//                    console.log($("#name").val());
-                    add(null);
-                    return;
-                }
-                //Создаем массив для объектов ответа
-                var suggestions = [];
-                //Обрабатываем ответ
-                $.each(data, function(i, val){
-                    suggestions.push(val.name);
-                });
+                req["tablename"]="kindofcustomer";
+                //Передаём запрос на сервер
+                $.getJSON("autocomplete.php?callback=?", req, function(data) {
+                    if(data == null){
+                        $("#name").val(req["term"]);
+    //                    console.log($("#name").val());
+                        add(null);
+                        return;
+                    }
+                    //Создаем массив для объектов ответа
+                    var suggestions = [];
+                    //Обрабатываем ответ
+                    $.each(data, function(i, val){
+                        suggestions.push(val.name);
+                    });
 
-                //Передаем массив обратному вызову
-                add(suggestions);
-            });
-        },
+                    //Передаем массив обратному вызову
+                    add(suggestions);
+                });
+            },
 					
-					//Определяем обработчик селектора
-					select: function(e, ui) {
-					    $("#name").value = ui.item.value;
-                        console.log($("#name").val());
+            //Определяем обработчик селектора
+            select: function(e, ui) {
+                $("#name").value = ui.item.value;
+                console.log($("#name").val());
 //                        //Создаем форматированную переменную cust_name
 //                        var cust_name = ui.item.value,
 //                                        span = $("<span>").text(cust_name),
@@ -2910,14 +2923,14 @@ print '
 //
 //                                    //Добавляем cust_name к div cust_name
 //                                    span.insertBefore("#name");
-					},
-					
-					//Определяем обработчик выбора
-					change: function() {
-                        //Сохраняем поле "Наименование" без изменений и в правильной позиции
+            },
+
+            //Определяем обработчик выбора
+            change: function() {
+                //Сохраняем поле "Наименование" без изменений и в правильной позиции
 //                        $("#name").val("").css("top", 2);
-                    }
-				});
+            }
+        });
         var townlist = [];
         $("#town").autocomplete({
             //Определяем обратный вызов к результатам форматирования

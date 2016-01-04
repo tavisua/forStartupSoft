@@ -100,10 +100,12 @@ class ActionComm extends CommonObject
     var $punctual = 1;
     var $percentage;    // Percentage
     var $location;      // Location
+    var $period;        //Period ReExecution
 
 	var $transparency;	// Transparency (ical standard). Used to say if people assigned to event are busy or not by event. 0=available, 1=busy, 2=busy (refused events)
     var $priority;      // Small int (0 By default)
     var $note;          // Description
+    var $confirmdoc;          // Description
 
 	var $userassigned = array();	// Array of user ids
     var $userownerid;		// Id of user owner
@@ -272,7 +274,9 @@ class ActionComm extends CommonObject
         $sql.= "transparency,";
         $sql.= "fk_element,";
         $sql.= "elementtype,";
-        $sql.= "entity";
+        $sql.= "entity,";
+        $sql.= "confirmdoc,";
+        $sql.= "period";
         $sql.= ") VALUES (";
         $sql.= "'".$this->db->idate($now)."',";
         $sql.= (strval($this->datep)!=''?"'".$this->db->idate($this->datep)."'":"null").",";
@@ -291,9 +295,11 @@ class ActionComm extends CommonObject
         $sql.= "'".$this->transparency."',";
         $sql.= (! empty($this->fk_element)?$this->fk_element:"null").",";
         $sql.= (! empty($this->elementtype)?"'".$this->elementtype."'":"null").",";
-        $sql.= $conf->entity;
+        $sql.= $conf->entity.",";
+        $sql.= "'".$this->confirmdoc."',";
+        $sql.= "'".$this->period."'";
         $sql.= ")";
-
+//        die($sql);
         dol_syslog(get_class($this)."::add", LOG_DEBUG);
         $resql=$this->db->query($sql);
         if ($resql)

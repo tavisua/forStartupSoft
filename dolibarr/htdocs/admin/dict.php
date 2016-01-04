@@ -81,7 +81,7 @@ $hookmanager->initHooks(array('admin'));
 // Put here declaration of dictionaries properties
 
 // Sort order to show dictionary (0 is space). All other dictionaries (added by modules) will be at end of this.
-$taborder=array(26,27,28,29,30,31,0,9,4,3,2,0,1,8,19,16,0,5,11,0,6,0,10,23,12,13,0,14,0,7,17,0,22,20,18,21,0,15,0,24,0,25);
+$taborder=array(26,27,28,29,30,31,32,33,34,6,0,9,4,3,2,0,1,8,19,16,0,5,11,0,0,10,23,12,13,0,14,0,7,17,0,22,20,18,21,0,15,0,24,0,25);
 
 // Name of SQL tables of dictionaries
 $tabname=array();
@@ -116,6 +116,9 @@ $tabname[28]= MAIN_DB_PREFIX."c_kind_assets";
 $tabname[29]= MAIN_DB_PREFIX."c_trademark";
 $tabname[30]= MAIN_DB_PREFIX."c_model";
 $tabname[31]= MAIN_DB_PREFIX."c_measurement";
+$tabname[32]= MAIN_DB_PREFIX."c_kinddoc";
+$tabname[33]= MAIN_DB_PREFIX."c_period";
+$tabname[34]= MAIN_DB_PREFIX."c_groupoftask";
 
 // Dictionary labels
 $tablib=array();
@@ -150,6 +153,9 @@ $tablib[28]= "KindAssets";
 $tablib[29]= "Trademark";
 $tablib[30]= "Model";
 $tablib[31]= "UnitsOfMeasurement";
+$tablib[32]= "KindDoc";
+$tablib[33]= "Periods";
+$tablib[34]= "GroupOfTask";
 
 // Requests to extract data
 $tabsql=array();
@@ -158,7 +164,7 @@ $tabsql[2] = "SELECT d.rowid as rowid, d.code_departement as code, d.nom as libe
 $tabsql[3] = "SELECT r.rowid as rowid, r.code_region as code, r.nom as libelle, r.fk_pays as country_id, c.code as country_code, c.label as country, r.active FROM ".MAIN_DB_PREFIX."c_regions as r, ".MAIN_DB_PREFIX."c_country as c WHERE r.fk_pays=c.rowid and c.active=1";
 $tabsql[4] = "SELECT rowid   as rowid, code, label, active, favorite FROM ".MAIN_DB_PREFIX."c_country";
 $tabsql[5] = "SELECT c.rowid as rowid, c.code as code, c.label, c.active FROM ".MAIN_DB_PREFIX."c_civility AS c";
-$tabsql[6] = "SELECT a.id    as rowid, a.code as code, a.libelle AS libelle, a.type, a.active, a.module, a.color, a.position FROM ".MAIN_DB_PREFIX."c_actioncomm AS a";
+$tabsql[6] = "SELECT a.id    as rowid, a.code as code, a.libelle AS libelle, a.type, a.active, a.module, a.color, a.position, a.exec_time FROM ".MAIN_DB_PREFIX."c_actioncomm AS a";
 $tabsql[7] = "SELECT a.id    as rowid, a.code as code, a.libelle AS libelle, a.accountancy_code as accountancy_code, a.deductible, c.code as country_code, c.label as country, a.fk_pays as country_id, a.active FROM ".MAIN_DB_PREFIX."c_chargesociales AS a, ".MAIN_DB_PREFIX."c_country as c WHERE a.fk_pays=c.rowid and c.active=1";
 $tabsql[8] = "SELECT t.id    as rowid, t.code as code, t.libelle, t.fk_country as country_id, c.code as country_code, c.label as country, t.active FROM ".MAIN_DB_PREFIX."c_typent as t LEFT JOIN ".MAIN_DB_PREFIX."c_country as c ON t.fk_country=c.rowid";
 $tabsql[9] = "SELECT code_iso as code, label, unicode, active FROM ".MAIN_DB_PREFIX."c_currencies";
@@ -192,6 +198,9 @@ left join `llx_c_trademark` on `llx_c_trademark`.`rowid`=`llx_c_model`.`fx_trade
 left join llx_c_kind_assets on `llx_c_model`.fx_kind_assets = `llx_c_kind_assets`.`rowid`
 left join llx_c_line_active on `llx_c_kind_assets`.`fx_line_active` = `llx_c_line_active`.`rowid`";
 $tabsql[31]= "select rowid, name, active from ".MAIN_DB_PREFIX."c_measurement";
+$tabsql[32]= "select rowid, name, active from ".MAIN_DB_PREFIX."c_kinddoc";
+$tabsql[33]= "select rowid, name, active from ".MAIN_DB_PREFIX."c_period";
+$tabsql[34]= "select rowid, name, active from ".MAIN_DB_PREFIX."c_groupoftask";
 // Criteria to sort dictionaries
 $tabsqlsort=array();
 $tabsqlsort[1] ="country ASC, code ASC";
@@ -225,6 +234,9 @@ $tabsqlsort[28]="LineActive ASC,KindAssets ASC";
 $tabsqlsort[29]="trademark ASC";
 $tabsqlsort[30]="Trademark ASC,Model ASC";
 $tabsqlsort[31]="name ASC";
+$tabsqlsort[32]="name ASC";
+$tabsqlsort[33]="rowid ASC";
+$tabsqlsort[34]="rowid ASC";
 
 // Nom des champs en resultat de select pour affichage du dictionnaire
 $tabfield=array();
@@ -233,7 +245,7 @@ $tabfield[2] = "code,libelle,region_id,region,country";   // "code,libelle,regio
 $tabfield[3] = "code,libelle,country_id,country";
 $tabfield[4] = "code,label";
 $tabfield[5] = "code,label";
-$tabfield[6] = "code,libelle,type,color,position";
+$tabfield[6] = "code,libelle,type,color,position,exec_time";
 $tabfield[7] = "code,libelle,country,accountancy_code,deductible";
 $tabfield[8] = "code,libelle,country_id,country";
 $tabfield[9] = "code,label,unicode";
@@ -259,6 +271,9 @@ $tabfield[28]= "LineActive,KindAssets";
 $tabfield[29]= "Trademark";
 $tabfield[30]= "LineActive,KindAssets,Trademark,Model,Description";
 $tabfield[31]= "name";
+$tabfield[32]= "name";
+$tabfield[33]= "name";
+$tabfield[34]= "name";
 
 // Nom des champs d'edition pour modification d'un enregistrement
 $tabfieldvalue=array();
@@ -267,7 +282,7 @@ $tabfieldvalue[2] = "code,libelle,region";   // "code,libelle,region"
 $tabfieldvalue[3] = "code,libelle,country";
 $tabfieldvalue[4] = "code,label";
 $tabfieldvalue[5] = "code,label";
-$tabfieldvalue[6] = "code,libelle,type,color,position";
+$tabfieldvalue[6] = "code,libelle,type,color,position,exec_time";
 $tabfieldvalue[7] = "code,libelle,country,accountancy_code,deductible";
 $tabfieldvalue[8] = "code,libelle,country";
 $tabfieldvalue[9] = "code,label,unicode";
@@ -293,6 +308,9 @@ $tabfieldvalue[28]= "LineActive,KindAssets";
 $tabfieldvalue[29]= "Trademark";
 $tabfieldvalue[30]= "LineActive,KindAssets,Trademark,Model,Description";
 $tabfieldvalue[31]= "name";
+$tabfieldvalue[32]= "name";
+$tabfieldvalue[33]= "name";
+$tabfieldvalue[34]= "name";
 
 // Nom des champs dans la table pour insertion d'un enregistrement
 $tabfieldinsert=array();
@@ -301,7 +319,7 @@ $tabfieldinsert[2] = "code_departement,nom,fk_region";
 $tabfieldinsert[3] = "code_region,nom,fk_pays";
 $tabfieldinsert[4] = "code,label";
 $tabfieldinsert[5] = "code,label";
-$tabfieldinsert[6] = "code,libelle,type,color,position";
+$tabfieldinsert[6] = "code,libelle,type,color,position,exec_time";
 $tabfieldinsert[7] = "code,libelle,fk_pays,accountancy_code,deductible";
 $tabfieldinsert[8] = "code,libelle,fk_country";
 $tabfieldinsert[9] = "code_iso,label,unicode";
@@ -327,6 +345,9 @@ $tabfieldinsert[28]= "fx_line_active,kind_assets";
 $tabfieldinsert[29]= "trademark";
 $tabfieldinsert[30]= ",fx_kind_assets,fx_trademark,Model,Description";
 $tabfieldinsert[31]= "name";
+$tabfieldinsert[32]= "name";
+$tabfieldinsert[33]= "name";
+$tabfieldinsert[34]= "name";
 
 // Nom du rowid si le champ n'est pas de type autoincrement
 // Example: "" if id field is "rowid" and has autoincrement on
@@ -363,6 +384,9 @@ $tabrowid[28]= "rowid";
 $tabrowid[29]= "rowid";
 $tabrowid[30]= "rowid";
 $tabrowid[31]= "rowid";
+$tabrowid[32]= "rowid";
+$tabrowid[33]= "rowid";
+$tabrowid[34]= "rowid";
 
 // Condition to show dictionary in setup page
 $tabcond=array();
@@ -397,6 +421,9 @@ $tabcond[28]= true;
 $tabcond[29]= true;
 $tabcond[30]= true;
 $tabcond[31]= true;
+$tabcond[32]= true;
+$tabcond[33]= true;
+$tabcond[34]= true;
 
 // List of help for fields
 $tabhelp=array();
@@ -431,6 +458,9 @@ $tabhelp[28] = array();
 $tabhelp[29] = array();
 $tabhelp[30] = array();
 $tabhelp[31] = array();
+$tabhelp[32] = array();
+$tabhelp[33] = array();
+$tabhelp[34] = array();
 
 // List of check for fields (NOT USED YET)
 $tabfieldcheck=array();
@@ -465,6 +495,9 @@ $tabfieldcheck[28] = array();
 $tabfieldcheck[29] = array();
 $tabfieldcheck[30] = array();
 $tabfieldcheck[31] = array();
+$tabfieldcheck[32] = array();
+$tabfieldcheck[33] = array();
+$tabfieldcheck[34] = array();
 
 // Complete all arrays with entries found into modules
 complete_dictionary_with_modules($taborder,$tabname,$tablib,$tabsql,$tabsqlsort,$tabfield,$tabfieldvalue,$tabfieldinsert,$tabrowid,$tabcond,$tabhelp,$tabfieldcheck);

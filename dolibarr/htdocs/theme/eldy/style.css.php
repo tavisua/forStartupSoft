@@ -914,7 +914,9 @@ div.login_block {
 	<?php print $right; ?>: 5px;
 	top: 3px;
 	font-weight: bold;
-	max-width: 110px;
+	max-width: 220px;
+    width: 220px;
+    float:right;
 	<?php if (GETPOST("optioncss") == 'print') { ?>
 	display: none;
 	<?php } ?>

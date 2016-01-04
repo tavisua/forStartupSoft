@@ -33,7 +33,7 @@
                     <?echo $langs->trans('LineActive')?>
                 </td>
                 <td>
-                    <?echo $EconomicIndicators->lineactive()?>
+                    <?echo $EconomicIndicators->lineactive($EconomicIndicators->line_active)?>
                 </td>
             </tr>
             <tr>
@@ -41,7 +41,7 @@
                     <?echo $langs->trans('KindAssets')?>
                 </td>
                 <td>
-                    <?echo $EconomicIndicators->kind_assets()?>
+                    <?echo $EconomicIndicators->selectkind_assets($EconomicIndicators->line_active, $EconomicIndicators->kindassets)?>
                 </td>
             </tr>
             <tr>
@@ -49,7 +49,15 @@
                     <?echo $langs->trans('Trademark')?>
                 </td>
                 <td>
-                    <?echo $EconomicIndicators->trademark()?>
+                    <?echo $EconomicIndicators->selecttrademark($EconomicIndicators->trademark)?>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <?echo $langs->trans('Model')?>
+                </td>
+                <td>
+                    <?echo $EconomicIndicators->selectmodel($EconomicIndicators->trademark, $EconomicIndicators->kindassets)?>
                 </td>
             </tr>
             <tr class="additional">
@@ -65,7 +73,16 @@
                     Кількість
                 </td>
                 <td>
-                    <input id="count" name="count" type="text" value="0">
+                    <input id="count" name="count" type="text" value="0" style="width: 50px">
+                    <?echo $EconomicIndicators->selectMeasurement('UnMeasurement', $EconomicIndicators->UnMeasurement)?>
+                </td>
+            </tr>
+            <tr class="fixed_assets">
+                <td>
+                    Рік випуску
+                </td>
+                <td>
+                    <input id="Year" name="year" type="text" value="0">
                 </td>
             </tr>
             <tr class="additional">
@@ -73,7 +90,8 @@
                     Тара
                 </td>
                 <td>
-                    <input id="container" name="container" type="text" value="0">
+                    <input id="container" name="container" type="text" value="0" style="width: 50px">
+                    <?echo $EconomicIndicators->selectMeasurement('ContainerUnMeasurement', $EconomicIndicators->ContainerUnMeasurement)?>
                 </td>
             </tr>
             <tr class="additional">
@@ -108,9 +126,33 @@
                     <input id="rate2" name="rate2" type="text" value="0">
                 </td>
             </tr>
+            <tr>
+                <td>
+                    Позитивні відгуки
+                </td>
+                <td>
+                    <textarea maxlength="250" id="PositiveResponse" name="PositiveResponse"></textarea>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Негативні відгуки
+                </td>
+                <td>
+                    <textarea maxlength="250" id="NegativeResponse" name="NegativeResponse"></textarea>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Хто залишив відгук
+                </td>
+                <td>
+                    <?echo $EconomicIndicators->select_contact('contact', $EconomicIndicators->contact)?>
+                </td>
+            </tr>
         </table>
         <div align="center">
-            <button onclick="save();">Додати ще</button>
+            <button onclick="save_and_add();">Додати ще</button>
             <button onclick="save();">Зберегти</button>
             <button onclick="back();">Відмінити</button>
         </div>
@@ -120,7 +162,7 @@
 <script>
     jQuery(function($) {
         $.mask.definitions['~']='[+-]';
-        $('#BirthdayDate').mask('99.99.9999');
+        $('#Year').mask('9999');
         $('#mobile_phone1').mask('<?echo $countrycode?>(99) 999-9999');
         $('#mobile_phone2').mask('<?echo $countrycode?>(99) 999-9999');
         $('#phoneext').mask("(999) 999-9999? x99999");
@@ -140,8 +182,56 @@
     function save(){
         $('#action').val('save');
     }
+    function save_and_add(){
+        $('#action').val('save_and_add');
+    }
     function hide_emptyrow(){
         $("select#lineactive [value='0' ]"). remove();
+    }
+    function get_model(){
+        console.log('/dolibarr/htdocs/societe/economin_indicator.php?action=get_model&trademark='+$('select#trademark').val()+'&kindassets='+$('select#KindAssets').val()+'&socid='+$('#socid').val());
+        $.ajax({
+            url:'/dolibarr/htdocs/societe/economin_indicator.php?action=get_model&trademark='+$('select#trademark').val()+'&kindassets='+$('select#KindAssets').val()+'&socid='+$('#socid').val(),
+            cache:false,
+            success: function(html){
+                $('select#model').find('option').remove();
+                var optionList = html.substr(strpos(html, '<option value="0"'));
+                optionList = optionList.substr(0, strpos(optionList, '</select>'));
+                console.log(optionList);
+                $('select#model').append(optionList);
+            }
+        })
+    }
+    function lineactive(update){
+        $.ajax({
+            url: '/dolibarr/htdocs/societe/economin_indicator.php?action=get_economic_indicators&line_active='+$('select#lineactive').val()+'&socid='+$('input#socid').val(),
+            cache: false,
+            success: function(html){
+                switch (html){
+                    case '1':{
+                        $('.additional').hide();
+                        $('tr.fixed_assets').show();
+                    }break;
+                    case '2':{
+                        $('.additional').show();
+                        $('tr.fixed_assets').hide();
+                    }break;
+                }
+                if(update) {
+                    $.ajax({
+                        url: '/dolibarr/htdocs/societe/economin_indicator.php?action=get_kind_assets&line_active=' + $('select#lineactive').val() + '&socid=' + $('input#socid').val(),
+                        cache: false,
+                        success: function (html) {
+                            $('select#KindAssets').find('option').remove();
+                            var optionList = html.substr(strpos(html, '<option value="0"'));
+                            optionList = optionList.substr(0, strpos(optionList, '</select>'));
+                            console.log(optionList);
+                            $('select#KindAssets').append(optionList);
+                        }
+                    })
+                }
+            }
+        })
     }
 </script>
 
@@ -149,9 +239,14 @@
 <script type="text/javascript">
  $(document).ready(function(){
      $('tr.additional').hide();
+     $('tr.fixed_assets').show();
+     lineactive(false);
      if(window.innerHeight<$('#addaddress').innerHeight()+50){
          $('.footer').hide();
      }
+     $('select#lineactive').on('change', lineactive);
+     $('select#trademark').on('change', get_model);
+
  })
 </script>
 

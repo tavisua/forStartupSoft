@@ -83,6 +83,9 @@ class User extends CommonObject
     var $subdiv_id;
     var $respon_id;
     var $usergroup_id;
+    var $accessToken;
+    var $id_connect;
+    var $timePhoneConnect;
 
 	var $clicktodial_url;
 	var $clicktodial_login;
@@ -201,6 +204,7 @@ class User extends CommonObject
 		dol_syslog(get_class($this)."::fetch", LOG_DEBUG);
 
 		$result = $this->db->query($sql);
+
 		if ($result)
 		{
 			$obj = $this->db->fetch_object($result);
@@ -260,6 +264,20 @@ class User extends CommonObject
 				$this->contactid            = $obj->fk_socpeople;
 				$this->fk_member            = $obj->fk_member;
 				$this->fk_user        		= $obj->fk_user;
+
+                $sql = 'select rowid, Hex, UNIX_TIMESTAMP(dtChange) dtChange from phone_connect where id_usr='.$this->id.' order by dtChange desc limit 1';
+                $result = $this->db->query($sql);
+
+                if($this->db->num_rows($result)>0){
+                    $obj = $this->db->fetch_object($result);
+                    if(dol_now()-3600<=$obj->dtChange){
+                        $this->timePhoneConnect = $obj->dtChange;
+                        $this->accessToken = $obj->Hex;
+                        $this->id_connect = $obj->rowid;
+//                        var_dump($this->id_connect);
+//                        die('$this->id_connect');
+                    }
+                }
 
 
 				// Retreive all extrafield for thirdparty

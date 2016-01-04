@@ -270,8 +270,11 @@ class FormActions
        	if ($selected == 'auto')   $selected='AC_OTH_AUTO';
 
        	if (! empty($conf->global->AGENDA_ALWAYS_HIDE_AUTO)) unset($arraylist['AC_OTH_AUTO']);
-
-        print $form->selectarray($htmlname, $arraylist, $selected);
+        $selector = $form->selectarray($htmlname, $arraylist, $selected);
+        if(strpos($selector, 'name')){
+            print substr($selector, 0, strpos($selector, 'name')).' onchange="ActionCodeChanged();" '.substr($selector, strpos($selector, 'name'));
+        }else
+            print $selector;
         if ($user->admin && empty($onlyautoornot) && empty($hideinfohelp)) print info_admin($langs->trans("YouCanChangeActionList"),1);
     }
 

@@ -125,8 +125,8 @@ a.vsmenu:link, a.vsmenu:visited, a.vsmenu:hover, a.vsmenu:active {
    margin: 3 0 0 5;
 
 }
-#AddressPage{
-    width: 1350px!important;
+#phone_indicator{
+    cursor: pointer;
 }
 #th_responsibility{
     max-width: 150px;
@@ -296,6 +296,7 @@ div.header_page, th.header_page, tr.header_table_sel, form.header_page, form.hea
 #currenttime{
   height: 2px;
   background-color: #ff7f6e;
+    position: relative;
 }
 #8h0m{
     max-height: 24px;
@@ -303,7 +304,18 @@ div.header_page, th.header_page, tr.header_table_sel, form.header_page, form.hea
 #taskfield{
     padding: 0!important;
 }
-.global_taskitem{
+.current_taskitem{
+    font-size: 6;
+    height: 5px;
+    position: relative;
+    padding: 0 0 0!important;
+    border-radius: 8px;
+    background: #79b7e7;
+    border: solid 1px;
+    border-color: #396b9e;
+    z-index: 1;
+    cursor: pointer;
+}.global_taskitem{
     font-size: 6;
     height: 5px;
     position: relative;
@@ -315,13 +327,69 @@ div.header_page, th.header_page, tr.header_table_sel, form.header_page, form.hea
     z-index: 1;
     cursor: pointer;
 }
-.taskitem{
+.office_meetting_taskitem{
     font-size: 6;
     height: 5px;
     position: relative;
     padding: 0 0 0!important;
     border-radius: 8px;
-    background: #bebedc;
+    background: #88be14;
+    border: solid 1px;
+    border-color: #396b9e;
+    z-index: 1;
+    cursor: pointer;
+}
+.office_callphone_taskitem{
+    font-size: 6;
+    height: 5px;
+    position: relative;
+    padding: 0 0 0!important;
+    border-radius: 8px;
+    background: #e2ddcf;
+    border: solid 1px;
+    border-color: #396b9e;
+    z-index: 1;
+    cursor: pointer;
+}
+.departure_taskitem{
+    font-size: 6;
+    height: 100%;
+    /*position: relative;*/
+    padding: 0 0 0!important;
+    border-radius: 8px;
+    background: #a6c9e2;
+    border: solid 1px;
+    border-color: #396b9e;
+    z-index: 1;
+    cursor: pointer;
+
+}
+.emptyitem{
+    padding: 0 0 0!important;
+    border-collapse: collapse;
+}
+#tasklist{
+    position: relative;
+}
+.tasklist, .tasklist tbody{
+    width: 957px;
+    vertical-align: top;
+    border-collapse: collapse;
+    border: none;
+    /*overflow: hidden !important;*/
+}
+.tasklist td{
+    border: none !important;
+}
+.taskitem{
+    font-size: 6;
+    height: 5px;
+    position: relative;
+    padding: 0 0 0!important;
+
+    /*border-radius: 8px;*/
+    /*background: #bebedc;*/
+    width: 800px;
     border: solid 1px;
     border-color: #396b9e;
     z-index: 1;

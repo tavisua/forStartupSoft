@@ -37,6 +37,7 @@
 // A call first. Is the equivalent function dol_microtime_float not yet loaded..
 //var_dump($_SESSION["mainmenu"]);
 //die();
+
 $micro_start_time=0;
 if (! empty($_SERVER['DOL_TUNING']))
 {
@@ -117,6 +118,7 @@ function test_sql_and_script_inject($val, $type)
  * @param		string		$type		1=GET, 0=POST, 2=PHP_SELF
  * @return		boolean					true if there is an injection
  */
+
 function analyse_sql_and_script(&$var, $type)
 {
     if (is_array($var))
@@ -192,6 +194,7 @@ $sessiontimeout='DOLSESSTIMEOUT_'.$prefix;
 if (! empty($_COOKIE[$sessiontimeout])) ini_set('session.gc_maxlifetime',$_COOKIE[$sessiontimeout]);
 session_name($sessionname);
 session_start();
+
 if (ini_get('register_globals'))    // To solve bug in using $_SESSION
 {
     foreach ($_SESSION as $key=>$value)
@@ -335,6 +338,13 @@ if (! empty($_SESSION["disablemodules"]))
  * Phase authentication / login
  */
 $login='';
+
+if($_SERVER['PHP_SELF'] =='/dolibarr/htdocs/autocall/index.php') {
+    define("NOLOGIN",1);
+//    var_dump(defined('NOLOGIN'));
+//    die();
+}
+//die($_SERVER['PHP_SELF']);
 if (! defined('NOLOGIN'))
 {
     // $authmode lists the different means of identification to be tested in order of preference.
@@ -904,7 +914,6 @@ if (! function_exists("llxHeader"))
 	function llxHeader($head = '', $title='', $help_url='', $target='', $disablejs=0, $disablehead=0, $arrayofjs='', $arrayofcss='', $morequerystring='')
 	{
 	    global $conf;
-
 	    // html header
 		top_htmlhead($head, $title, $disablejs, $disablehead, $arrayofjs, $arrayofcss);
 
@@ -1009,7 +1018,7 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
             if (!empty($conf->global->MAIN_USE_JQUERY_THEME)) $jquerytheme = $conf->global->MAIN_USE_JQUERY_THEME;
             //Если открывается панель инструментов, подключаю стили форм
 
-            if($_REQUEST['mainmenu'] == 'hourly_plan' || $_REQUEST['mainmenu'] == 'tools' || $_REQUEST['mainmenu']=='hourly_plan' || $_REQUEST['mainmenu']=='area' || $_REQUEST['mainmenu'] == 'home' || $_REQUEST['mainmenu']=='companies' || GETPOST('mainmenu')=='companies'){
+            if($_REQUEST['mainmenu'] == 'hourly_plan' || $_REQUEST['mainmenu'] == 'tools' || $_REQUEST['mainmenu']=='hourly_plan' || $_REQUEST['mainmenu']== 'global_task'|| $_REQUEST['mainmenu']=='area' || $_REQUEST['mainmenu'] == 'home' || $_REQUEST['mainmenu']=='companies' || GETPOST('mainmenu')=='companies'){
                 print '<link rel="stylesheet" type="text/css" href="'.DOL_URL_ROOT.'/theme/'.$conf->theme.'/design.css'.($ext?'?'.$ext:'').'"/>'."\n";          //Стиль для фор
                 print '<link rel="stylesheet" type="text/css" href="'.DOL_URL_ROOT.'/theme/'.$conf->theme.'/style-modal.css'.($ext?'?'.$ext:'').'"/>'."\n";     //Стиль модальной формы
             }
@@ -1499,10 +1508,10 @@ function top_menu($head, $title='', $target='', $disablejs=0, $disablehead=0, $a
 	    	$logouthtmltext.=$langs->trans("NoLogoutProcessWithAuthMode",$_SESSION["dol_authmode"]);
 	        $logouttext .= img_picto($langs->trans('Logout').":".$langs->trans('Logout'), 'logout.png', 'class="login"', 0, 0, 1);
 	    }
+        print '<div class="login_block">'."\n";
 
-	    print '<div class="login_block">'."\n";
-
-	    $toprightmenu.='<div class="login_block_user">';
+        print '<div style="width: 40px; float: right">';
+        $toprightmenu.='<div class="login_block_user">';
 	    // Add login user link
 	    $toprightmenu.=$form->textwithtooltip('',$loginhtmltext,2,1,$logintext,'login_block_elem2',2);	// This include div class="login"
 		$toprightmenu.='</div>';
@@ -1532,11 +1541,16 @@ function top_menu($head, $title='', $target='', $disablejs=0, $disablehead=0, $a
 	        $toprightmenu.=$form->textwithtooltip('',$langs->trans("PrintContentArea"),2,1,$text,'login_block_elem',2);
 	    }
 		$toprightmenu.='</div>';
-
+//        print '<div class="login_phone_block">test</div>';
 	    print $toprightmenu;
 
 	    print "</div>\n";
 
+        if(empty($user->timePhoneConnect)||dol_now()-3600>=$user->timePhoneConnect)
+            print '<div style="width: 40px; float: right; padding-right: 5px"><img id="phone_indicator" src="/dolibarr/htdocs/theme/eldy/img/unactive_phone.png" title="'.$langs->trans('RegisterPhone').'" onclick="registerphone();"></div>';
+        else
+            print '<div style="width: 40px; float: right; padding-right: 5px"><img id="phone_indicator" src="/dolibarr/htdocs/theme/eldy/img/active_phone.png" title="'.$langs->trans('PhoneRegistered').'"></div>';
+        print "</div>";
 	    unset($form);
     }
 
@@ -1901,8 +1915,20 @@ if (! function_exists("llxFooter"))
      */
     function llxFooter($comment='',$zone='private')
     {
-//        print 'test';
-        global $conf, $langs;
+        global $conf, $langs, $user;
+
+        $loginphone_form = "<a href='#x' class='overlay' id='login_phone'></a>
+                     <div class='popup' style='width: 300px;'>
+                     <form >
+                     <input type='hidden' id='user_id' name='user_id' value=" . $user->id . ">
+                     <b>".$langs->trans('RegisterPhone')."</b>
+                     <input class='param' type='text' placeholder='Телефон' id='registerphone' maxlength='13' tabindex='1' value='+380' name='registerphone' data-name='phone'>
+                    </form>
+                    <button onclick='save_registeredphone();'>".$langs->trans('Register')."</button>
+                    <button onclick='close_registerform();'>".$langs->trans('Cancel')."</button>
+                        <a class='close' title='Закрыть' href='#close'></a>
+                     </div>";
+        print $loginphone_form;
 
         // Global html output events ($mesgs, $errors, $warnings)
         dol_htmloutput_events();
@@ -1954,6 +1980,34 @@ if (! function_exists("llxFooter"))
         print '    });';
         print '';
         print '</script>';
+        print '<script type="text/javascript">
+                function registerphone(){
+                    $("input#registerphone").val("+380");
+                    location.href = "#login_phone";
+                }
+                function close_registerform(){
+                    location.href ="#close";
+                }
+                function save_registeredphone(){
+                    if($("input#registerphone").val().length!=13){
+                        alert("Перевірте правильність номера телефону");
+                        return;
+                    }
+                    if(confirm("Зареєструвати телефон?")){
+                        var link = "http://"+location.hostname+"/dolibarr/htdocs/autocall/index.php?action=registerphone&phonenumber="+$("input#registerphone").val()+"&id_usr="+$("input#user_id").val();
+                        console.log(link);
+                        $.ajax({
+                            url: link,
+                            cache: false,
+                            success: function (html) {
+                                $("img#phone_indicator").attr("src", "http://"+location.hostname+"/dolibarr/htdocs/theme/eldy/img/active_phone.png")
+                                $("img#phone_indicator").attr("title", "'.$langs->trans('PhoneRegistered').'");
+                            }
+                        })
+                    }
+                    location.href ="#close";
+                }
+            </script>';
         if($conf->browser->name == chrome){
             print '
                 <script type="text/javascript">

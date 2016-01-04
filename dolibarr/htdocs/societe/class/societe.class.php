@@ -226,6 +226,7 @@ class Societe extends CommonObject
     var $remark;
     var $founder;
     var $holding;
+    var $prehistoric_actions;
     var $param = array();
 
 	//Log data
@@ -439,7 +440,7 @@ class Societe extends CommonObject
         if ($result >= 0)
         {
             $sql = "INSERT INTO ".MAIN_DB_PREFIX."societe (nom, entity, datec, fk_user_creat, canvas, status, ref_int, ref_ext, fk_stcomm, import_key,
-            state_id, region_id, remark, founder, holding, town, formofgoverment_id, categoryofcustomer_id, active, dtChange)";
+            state_id, region_id, remark, founder, holding, town, formofgoverment_id, categoryofcustomer_id, active, dtChange,prehistoric_actions)";
             $sql.= " VALUES ('".$this->db->escape($this->name)."', ".$conf->entity.", '".$this->db->idate($now)."'";
             $sql.= ", ".(! empty($user->id) ? "'".$user->id."'":"null");
             $sql.= ", ".(! empty($this->canvas) ? "'".$this->canvas."'":"null");
@@ -456,7 +457,7 @@ class Societe extends CommonObject
             $sql.= ", '".$this->db->escape($this->town)."'";
             $sql.= ", ".(! empty($this->formofgoverment_id) ? "'".$this->formofgoverment_id."'":"null");
             $sql.= ", ".(! empty($this->categoryofcustomer_id) ? "'".$this->categoryofcustomer_id."'":"null");
-            $sql.=", 1, Now())";
+            $sql.=", 1, Now(), '".$this->db->escape($this->prehistoric_actions)."')";
 //            die($sql);
             dol_syslog(get_class($this)."::create", LOG_DEBUG);
             $result=$this->db->query($sql);
@@ -926,6 +927,7 @@ class Societe extends CommonObject
                 $sql .= ", code_compta_fournisseur = ".(! empty($this->code_compta_fournisseur)?"'".$this->db->escape($this->code_compta_fournisseur)."'":"null");
             }
             $sql .= ", fk_user_modif = ".(! empty($user->id)?"'".$user->id."'":"null");
+            $sql .= ", prehistoric_actions = '".$this->db->escape($this->prehistoric_actions)."'";
             $sql .= " WHERE rowid = '" . $this->id ."'";
 //            die($sql);
             dol_syslog(get_class($this)."::Update", LOG_DEBUG);
@@ -1082,6 +1084,7 @@ class Societe extends CommonObject
         $sql .= ', d.code_departement as state_code, d.nom as state';
         $sql .= ', st.libelle as stcomm';
         $sql .= ', te.code as typent_code';
+        $sql .= ', s.prehistoric_actions';
         $sql .= ', '.MAIN_DB_PREFIX.'societe_commerciaux.fk_user as commercial_id';
         $sql .= ' FROM '.MAIN_DB_PREFIX.'societe as s';
         $sql .= ' LEFT JOIN '.MAIN_DB_PREFIX.'c_effectif as e ON s.fk_effectif = e.id';
@@ -1141,6 +1144,7 @@ class Societe extends CommonObject
                 $this->region_id    = $obj->region_id;
                 $this->state_code   = $obj->state_code;
                 $this->state        = ($obj->state!='-'?$obj->state:'');
+                $this->prehistoric_actions = $obj->prehistoric_actions;
 
                 $transcode=$langs->trans('StatusProspect'.$obj->fk_stcomm);
                 $libelle=($transcode!='StatusProspect'.$obj->fk_stcomm?$transcode:$obj->stcomm);

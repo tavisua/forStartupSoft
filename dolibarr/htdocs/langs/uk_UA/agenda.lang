@@ -78,7 +78,7 @@ AgendaUrlOptions4=<b>logint=%s</b> to restrict output to actions assigned to use
 AgendaUrlOptionsProject=<b>project=PROJECT_ID</b> to restrict output to actions associated to project <b>PROJECT_ID</b>.
 AgendaShowBirthdayEvents=Show birthday's contacts
 AgendaHideBirthdayEvents=Hide birthday's contacts
-Busy=Busy
+Busy=зайнятий
 ExportDataset_event1=List of agenda events
 DefaultWorkingDays=Default working days range in week (Example: 1-5, 1-6)
 DefaultWorkingHours=Default working hours in day (Example: 9-18)
@@ -93,6 +93,6 @@ ExtSiteNoLabel=No Description
 WorkingTimeRange=Working time range
 WorkingDaysRange=Working days range
 AddEvent=Create event
-MyAvailability=My availability
+MyAvailability=Мій статус
 ActionType=Тип дії
 DateActionBegin=Start event date

@@ -13,28 +13,28 @@
     <table  cellspacing="1" class="WidthScroll">
         <thead>
         <tr class="multiple_header_table">
-            <!--<th class="header_table" width="130px">Категорія контрагента</th>-->
-            <!--<th class="header_table" width="150px">Засновник, інвестор, холдинг</th>-->
-            <th width="180px" rowspan="2">Назва контрагента</th>
-            <!--<th class="header_page" width="80px">Форма власності</th>-->
-            <th width="100px" rowspan="2">Місце знаходження</th>
-            <!--<th class="header_page" width="130px">П.І.Б. засновника</th>-->
-            <!--<th class="header_page" width="130px">№ тел.офісу</th>-->
-            <th width="50px" rowspan="2">Орної землі, га</th>
-            <th width="130px" rowspan="2">Особливі відмітки, резюме перемовин</th>
-            <th width="100px" rowspan="2">Наявна потреба</th>
-            <th width="100px" rowspan="2">Завдання</th>
-            <th width="80px" rowspan="2">Дата ост. співпраці</th>
-            <th colspan="2" id="comerc_action">Дії комерц. служби</th>
-            <th colspan="2" id="service_action">Дії сервісн. служби</th>
-            <th colspan="2" id="accounts_action">Дії бухгалтерії</th>
+            <th width="50px"  rowspan="2">№ п/п</th>
+            <th width="50px"  class="small_size" rowspan="2">№ п/п у замов. / викон.</th>
+            <th width="50px" class="small_size" rowspan="2">Дата запису</th>
+            <th width="100px" class="middle_size"rowspan="2">Структурний підрозділ "ХТО"</th>
+            <th width="100px" class="middle_size" rowspan="2">ПІБ "ХТО"</th>
+            <th width="100px" class="middle_size"rowspan="2">Структурний підрозділ "КОМУ"</th>
+            <th width="100px" class="middle_size" rowspan="2">ПІБ "КОМУ"</th>
+            <th width="80px" class="middle_size" rowspan="2">Група завдань</th>
+            <th width="100px" class="middle_size" rowspan="2">Задача</th>
+            <th width="80px" class="small_size" rowspan="2">Примітка: Що зробить, кінцева мета, підтвердження</th>
+            <th width="50px" class="small_size" rowspan="2">Виконати попередньо до</th>
+            <th width="50px" class="small_size" rowspan="2">Виконати  кінцево до</th>
+            <th width="50px" class="small_size" rowspan="2">Задачу отримано</th>
+
+            <th colspan="2" id="comerc_action">Дії відповідального</th>
             <th colspan="2" id="mentor_action">Перевірки наставником</th>
+            <th width="50px" class="small_size" rowspan="2">Відмітка : особливе, важливе</th>
+            <th width="50px" class="small_size" rowspan="2">Статус завдання</th>
+            <th width="50px" class="small_size" rowspan="2" title="Підтвердження про виконання">Підтв. про викон.</th>
+
         </tr>
         <tr class="multiple_header_table">
-            <th width="75px" class="middle_size">Останні</th>
-            <th width="75px" class="middle_size">Майбутні</th>
-            <th width="75px" class="middle_size">Останні</th>
-            <th width="75px" class="middle_size">Майбутні</th>
             <th width="75px" class="middle_size">Останні</th>
             <th width="75px" class="middle_size">Майбутні</th>
             <th width="75px" class="middle_size">Останні</th>
@@ -67,8 +67,8 @@
                 $('.tabs').offset({top:215, left:left});
 //                console.log($('#comerc_action').width());
                 $('#comerc').offset({top:150, left:$('#comerc_action').offset().left});
-                $('#service').offset({top:150, left:$('#service_action').offset().left});
-                $('#accounts').offset({top:150, left:$('#accounts_action').offset().left});
+//                $('#service').offset({top:150, left:$('#service_action').offset().left});
+//                $('#accounts').offset({top:150, left:$('#accounts_action').offset().left});
                 $('#mentor').offset({top:150, left:$('#mentor_action').offset().left});
                 $('#tabs_area').width(600);
                 $('#reference_body').offset({left:22});

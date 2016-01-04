@@ -839,57 +839,57 @@ class Form
 	            }
 	            else
 				{
-					if (count($events))		// Add management of event
-					{
-						$out.='<script type="text/javascript">
-								$(document).ready(function() {
-									jQuery("#'.$htmlname.'").change(function () {
-										var obj = '.json_encode($events).';
-							   			$.each(obj, function(key,values) {
-						    				if (values.method.length) {
-						    					runJsCodeForEvent'.$htmlname.'(values);
-						    				}
-										});
-									});
-
-								function runJsCodeForEvent'.$htmlname.'(obj) {
-									var id = $("#'.$htmlname.'").val();
-									var method = obj.method;
-									var url = obj.url;
-									var htmlname = obj.htmlname;
-									var showempty = obj.showempty;
-						    		$.getJSON(url,
-											{
-												action: method,
-												id: id,
-												htmlname: htmlname,
-												showempty: showempty
-											},
-											function(response) {
-												$.each(obj.params, function(key,action) {
-													if (key.length) {
-														var num = response.num;
-														if (num > 0) {
-															$("#" + key).removeAttr(action);
-														} else {
-															$("#" + key).attr(action, action);
-														}
-													}
-												});
-												$("select#" + htmlname).html(response.value);
-												if (response.num) {
-													var selecthtml_str = response.value;
-													var selecthtml_dom=$.parseHTML(selecthtml_str);
-													$("#inputautocomplete"+htmlname).val(selecthtml_dom[0][0].innerHTML);
-												} else {
-													$("#inputautocomplete"+htmlname).val("");
-												}
-												$("select#" + htmlname).change();	/* Trigger event change */
-											});
-								}
-							})
-							</script>';
-					}
+//					if (count($events))		// Add management of event
+//					{
+//						$out.='<script type="text/javascript">
+//								$(document).ready(function() {
+//									jQuery("#'.$htmlname.'").change(function () {
+//										var obj = '.json_encode($events).';
+//							   			$.each(obj, function(key,values) {
+//						    				if (values.method.length) {
+//						    					runJsCodeForEvent'.$htmlname.'(values);
+//						    				}
+//										});
+//									});
+//
+//								function runJsCodeForEvent'.$htmlname.'(obj) {
+//									var id = $("#'.$htmlname.'").val();
+//									var method = obj.method;
+//									var url = obj.url;
+//									var htmlname = obj.htmlname;
+//									var showempty = obj.showempty;
+//						    		$.getJSON(url,
+//											{
+//												action: method,
+//												id: id,
+//												htmlname: htmlname,
+//												showempty: showempty
+//											},
+//											function(response) {
+//												$.each(obj.params, function(key,action) {
+//													if (key.length) {
+//														var num = response.num;
+//														if (num > 0) {
+//															$("#" + key).removeAttr(action);
+//														} else {
+//															$("#" + key).attr(action, action);
+//														}
+//													}
+//												});
+//												$("select#" + htmlname).html(response.value);
+//												if (response.num) {
+//													var selecthtml_str = response.value;
+//													var selecthtml_dom=$.parseHTML(selecthtml_str);
+//													$("#inputautocomplete"+htmlname).val(selecthtml_dom[0][0].innerHTML);
+//												} else {
+//													$("#inputautocomplete"+htmlname).val("");
+//												}
+//												$("select#" + htmlname).change();	/* Trigger event change */
+//											});
+//								}
+//							})
+//							</script>';
+//					}
 	            }
             }
 
@@ -1046,8 +1046,9 @@ class Form
      */
     function select_contacts($socid,$selected='',$htmlname='contactid',$showempty=0,$exclude='',$limitto='',$showfunction=0, $moreclass='', $showsoc=0, $forcecombo=0, $events=array(), $options_only=false)
     {
+
     	print $this->selectcontacts($socid,$selected,$htmlname,$showempty,$exclude,$limitto,$showfunction, $moreclass, $options_only, $showsoc, $forcecombo, $events);
-    	return $this->num;
+//    	return $this->num;
     }
 
     /**
@@ -1075,16 +1076,23 @@ class Form
 
         $out='';
 
-        // On recherche les societes
-        $sql = "SELECT sp.rowid, sp.lastname, sp.statut, sp.firstname, sp.poste";
-        if ($showsoc > 0) $sql.= " , s.nom as company";
-        $sql.= " FROM ".MAIN_DB_PREFIX ."socpeople as sp";
-        if ($showsoc > 0) $sql.= " LEFT OUTER JOIN  ".MAIN_DB_PREFIX ."societe as s ON s.rowid=sp.fk_soc";
-        $sql.= " WHERE sp.entity IN (".getEntity('societe', 1).")";
-        if ($socid > 0) $sql.= " AND sp.fk_soc=".$socid;
-        if (! empty($conf->global->CONTACT_HIDE_INACTIVE_IN_COMBOBOX)) $sql.= " AND sp.statut<>0";
-        $sql.= " ORDER BY sp.lastname ASC";
+//        // On recherche les societes
+//        $sql = "SELECT sp.rowid, sp.lastname, sp.statut, sp.firstname, sp.poste";
+//        if ($showsoc > 0) $sql.= " , s.nom as company";
+//        $sql.= " FROM ".MAIN_DB_PREFIX ."socpeople as sp";
+//        if ($showsoc > 0) $sql.= " LEFT OUTER JOIN  ".MAIN_DB_PREFIX ."societe as s ON s.rowid=sp.fk_soc";
+//        $sql.= " WHERE sp.entity IN (".getEntity('societe', 1).")";
+//        if ($socid > 0) $sql.= " AND sp.fk_soc=".$socid;
+//        if (! empty($conf->global->CONTACT_HIDE_INACTIVE_IN_COMBOBOX)) $sql.= " AND sp.statut<>0";
+//        $sql.= " ORDER BY sp.lastname ASC";
 
+        if ($socid > 0)
+            $sql = "SELECT rowid, lastname, firstname, '' poste, '' company, 1 statut from ".MAIN_DB_PREFIX ."societe_contact
+                WHERE 1 and socid=".$socid." AND active = 1 ORDER BY lastname ASC";
+        else
+            $sql = "SELECT rowid, lastname, firstname, '' poste, '' company, 1 statut from ".MAIN_DB_PREFIX ."societe_contact
+                    WHERE 1 and socid= -1 limit 1";
+//        die($sql);
         dol_syslog(get_class($this)."::select_contacts", LOG_DEBUG);
         $resql=$this->db->query($sql);
         if ($resql)
@@ -1110,59 +1118,65 @@ class Form
                 while ($i < $num)
                 {
                     $obj = $this->db->fetch_object($resql);
-
+//                    var_dump($obj);
+//                    die();
                     $contactstatic->id=$obj->rowid;
                     $contactstatic->lastname=$obj->lastname;
                     $contactstatic->firstname=$obj->firstname;
 					if ($obj->statut == 1){
-                    if ($htmlname != 'none')
-                    {
-                        $disabled=0;
-                        if (is_array($exclude) && count($exclude) && in_array($obj->rowid,$exclude)) $disabled=1;
-                        if (is_array($limitto) && count($limitto) && ! in_array($obj->rowid,$limitto)) $disabled=1;
-                        if ($selected && $selected == $obj->rowid)
+                        if ($htmlname != 'none')
                         {
-                            $out.= '<option value="'.$obj->rowid.'"';
-                            if ($disabled) $out.= ' disabled="disabled"';
-                            $out.= ' selected="selected">';
-                            $out.= $contactstatic->getFullName($langs);
-                            if ($showfunction && $obj->poste) $out.= ' ('.$obj->poste.')';
-                            if (($showsoc > 0) && $obj->company) $out.= ' - ('.$obj->company.')';
-                            $out.= '</option>';
+
+                            $disabled=0;
+                            if (is_array($exclude) && count($exclude) && in_array($obj->rowid,$exclude)) $disabled=1;
+                            if (is_array($limitto) && count($limitto) && ! in_array($obj->rowid,$limitto)) $disabled=1;
+
+                            if ($selected && $selected == $obj->rowid)
+                            {
+                                $out.= '<option value="'.$obj->rowid.'"';
+                                if ($disabled) $out.= ' disabled="disabled"';
+                                $out.= ' selected="selected">';
+                                $out.= $contactstatic->getFullName($langs);
+                                if ($showfunction && $obj->poste) $out.= ' ('.$obj->poste.')';
+                                if (($showsoc > 0) && $obj->company) $out.= ' - ('.$obj->company.')';
+                                $out.= '</option>';
+
+                            }
+                            else
+                            {
+
+                                $out.= '<option value="'.$obj->rowid.'"';
+                                if ($disabled) $out.= ' disabled="disabled"';
+                                $out.= '>';
+                                $out.= $contactstatic->getFullName($langs);
+                                if ($showfunction && $obj->poste) $out.= ' ('.$obj->poste.')';
+                                if (($showsoc > 0) && $obj->company) $out.= ' - ('.$obj->company.')';
+                                $out.= '</option>';
+                            }
                         }
                         else
                         {
-                            $out.= '<option value="'.$obj->rowid.'"';
-                            if ($disabled) $out.= ' disabled="disabled"';
-                            $out.= '>';
-                            $out.= $contactstatic->getFullName($langs);
-                            if ($showfunction && $obj->poste) $out.= ' ('.$obj->poste.')';
-                            if (($showsoc > 0) && $obj->company) $out.= ' - ('.$obj->company.')';
-                            $out.= '</option>';
+                            if ($selected == $obj->rowid)
+                            {
+                                $out.= $contactstatic->getFullName($langs);
+                                if ($showfunction && $obj->poste) $out.= ' ('.$obj->poste.')';
+                                if (($showsoc > 0) && $obj->company) $out.= ' - ('.$obj->company.')';
+                            }
                         }
-                    }
-                    else
-					{
-                        if ($selected == $obj->rowid)
-                        {
-                            $out.= $contactstatic->getFullName($langs);
-                            if ($showfunction && $obj->poste) $out.= ' ('.$obj->poste.')';
-                            if (($showsoc > 0) && $obj->company) $out.= ' - ('.$obj->company.')';
-                        }
-                    }
-				}
+				    }
                     $i++;
                 }
+
             }
             else
 			{
-            	$out.= '<option value="-1"'.($showempty==2?'':' selected="selected"').' disabled="disabled">'.$langs->trans($socid?"NoContactDefinedForThirdParty":"NoContactDefined").'</option>';
+           	    $out.= '<option value="-1"'.($showempty==2?'':' selected="selected"').' disabled="disabled">'.$langs->trans($socid?"NoContactDefinedForThirdParty":"NoContactDefined").'</option>';
             }
+
             if ($htmlname != 'none' || $options_only)
             {
                 $out.= '</select>';
             }
-
             $this->num = $num;
             return $out;
         }
@@ -1463,7 +1477,7 @@ class Form
 			if ($value['id'] == $ownerid) continue;
 			$userstatic->fetch($value['id']);
 			$out.=$userstatic->getNomUrl(1);
-			if ($i == 0) { $ownerid = $value['id']; $out.=' ('.$langs->trans("Owner").')'; }
+			if ($i == 0) { $ownerid = $value['id']; $out.=' ('.$langs->trans("OwnerEvent").')'; }
 			if ($nbassignetouser > 1 && $action != 'view') $out.=' <input type="image" style="border: 0px;" src="'.img_picto($langs->trans("Remove"), 'delete', '', 0, 1).'" value="'.$userstatic->id.'" class="removedassigned" id="removedassigned_'.$userstatic->id.'" name="removedassigned_'.$userstatic->id.'">';
 			//$out.=' '.($value['mandatory']?$langs->trans("Mandatory"):$langs->trans("Optional"));
 			//$out.=' '.($value['transparency']?$langs->trans("Busy"):$langs->trans("NotBusy"));
@@ -3863,6 +3877,30 @@ class Form
      * 	@return	mixed						Nothing or string if nooutput is 1
      *  @see	form_date
      */
+    function select_confirmdoc($htmlname='confirmdoc', $docname=''){
+        global $conf, $langs;
+        $sql='select rowid, name from `llx_c_kinddoc` where active=1 order by rowid';
+        $out = '<select id="'.$htmlname.'" class="combobox" name="'.$htmlname.'" size=1>';
+        $out .= '<option value="0"></option>';
+        $res = $this->db->query($sql);
+        while($row = $this->db->fetch_object($res)){
+            $out .= '<option value="'.$row->name.'" '.($docname == $row->name?'selected="selected"':'').'>'.$langs->trans($row->name).'</option>';
+        }
+        $out.='</select>';
+        return $out;
+    }
+    function select_period($htmlname='selperiod', $period=''){
+        global $conf, $langs;
+        $sql='select rowid, name from `llx_c_period` where active=1 order by rowid';
+        $out = '<select id="'.$htmlname.'" class="combobox" name="'.$htmlname.'" size=1>';
+        $out .= '<option value="0"></option>';
+        $res = $this->db->query($sql);
+        while($row = $this->db->fetch_object($res)){
+            $out .= '<option value="'.$row->name.'">'.$langs->trans($row->name).'</option>';
+        }
+        $out.='</select>';
+        return $out;
+    }
     function select_date($set_time='', $prefix='re', $h=0, $m=0, $empty=0, $form_name="", $d=1, $addnowbutton=0, $nooutput=0, $disabled=0, $fullday='')
     {
         global $conf,$langs;
@@ -4016,7 +4054,7 @@ class Form
         if ($h)
         {
             // Show hour
-            $retstring.='<select'.($disabled?' disabled="disabled"':'').' class="flat '.($fullday?$fullday.'hour':'').'" name="'.$prefix.'hour">';
+            $retstring.='<select'.($disabled?' disabled="disabled"':'').' id="'.$prefix.'hour" " class="flat '.($fullday?$fullday.'hour':'').'" name="'.$prefix.'hour">';
             if ($emptyhours) $retstring.='<option value="-1">&nbsp;</option>';
             for ($hour = 0; $hour < 24; $hour++)
             {
@@ -4030,7 +4068,7 @@ class Form
         if ($m)
         {
             // Show minutes
-            $retstring.='<select'.($disabled?' disabled="disabled"':'').' class="flat '.($fullday?$fullday.'min':'').'" name="'.$prefix.'min">';
+            $retstring.='<select'.($disabled?' disabled="disabled"':'').' id="'.$prefix.'min" class="flat '.($fullday?$fullday.'min':'').'" name="'.$prefix.'min" onchange="setP2();">';
             if ($emptyhours) $retstring.='<option value="-1">&nbsp;</option>';
             for ($min = 0; $min < 60 ; $min++)
             {
@@ -4188,6 +4226,7 @@ class Form
         global $conf, $langs;
         $sql='select rowid, trademark from `llx_c_trademark` where active=1 order by trademark';
         $out = '<select id="'.$htmlname.'" class="combobox" name="'.$htmlname.'" size=1>';
+        $out .='<option selected="selected" disabled="disabled" value="0">Вкажіть торгівельну марку</option>';
         $res = $this->db->query($sql);
         while($row = $this->db->fetch_object($res)){
             $out .= '<option '.($id == $row->rowid?('selected = "selected"'):'').' value="'.$row->rowid.'">'.trim($row->trademark).'</option>';

@@ -54,6 +54,18 @@ function print_auguria_menu($db,$atarget,$type_user,&$tabMenu,&$menu,$noout=0)
 	$menuArbo = new Menubase($db,'auguria');
 	$newTabMenu = $menuArbo->menuTopCharger('', '', $type_user, 'auguria',$tabMenu);
 
+    if(!$user->admin){
+        $hidemenu=array("5217");
+        for($i=0; $i<count($newTabMenu); $i++){
+            if(in_array($newTabMenu[$i]['rowid'], $hidemenu)){
+                unset($newTabMenu[$i]);
+            }
+        }
+    }
+//    echo '<pre>';
+//    var_dump($newTabMenu);
+//    echo '</pre>';
+//    die('test');
 	if (empty($noout)) print_start_menu_array_auguria();
 
 
