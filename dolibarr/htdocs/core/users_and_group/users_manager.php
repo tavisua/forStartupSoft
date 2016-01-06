@@ -45,13 +45,13 @@ print_fiche_titre($MenuUsersAndGroups);
 
 $TableParam = array();
 $ColParam['title']=$langs->trans('Login');
-$ColParam['width']='250';
+$ColParam['width']='180';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
-$ColParam['title']=$langs->trans('LastName');
-$ColParam['width']='150';
+$ColParam['title']=trim($langs->trans('LastName'));
+$ColParam['width']='120';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
@@ -75,13 +75,13 @@ $ColParam['class']='';
 $TableParam[]=$ColParam;
 
 $ColParam['title']=$langs->trans('Skype');
-$ColParam['width']='130';
+$ColParam['width']='120';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
 $ColParam['title']=$langs->trans('SubDivision');
-$ColParam['width']='200';
+$ColParam['width']='180';
 $ColParam['align']='';
 $ColParam['class']='';
 $ColParam['sourcetable']='subdivision';
@@ -117,6 +117,6 @@ $db = new dbBuilder();
 $table = $db->fShowTable($TableParam, $sql, "'".$tablename."'", $conf->theme);
 $new_link = "http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/DBManager/dbManager.php?new=1&tablename='".$tablename."'";
 ob_start();
-include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/eldy/users_manager.html');
+include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/users_manager.html');
 echo ob_get_clean();
 llxFooter();

@@ -1218,7 +1218,11 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
             	$tmpplugin=empty($conf->global->MAIN_USE_JQUERY_MULTISELECT)?constant('REQUIRE_JQUERY_MULTISELECT'):$conf->global->MAIN_USE_JQUERY_MULTISELECT;
             	print '<script type="text/javascript" src="'.DOL_URL_ROOT.'/includes/jquery/plugins/'.$tmpplugin.'/'.$tmpplugin.'.js'.($ext?'?'.$ext:'').'" ></script>'."\n";
             }
-            if($_REQUEST['mainmenu'] == 'tools' || $_REQUEST['mainmenu']=='companies'){
+//            echo '<pre>';
+//            var_dump($_SERVER["SCRIPT_NAME"]!='/dolibarr/htdocs/core/users_and_group/users_manager.php');
+//            echo '</pre>';
+//            die();
+            if(($_REQUEST['mainmenu'] == 'tools' || $_REQUEST['mainmenu']=='companies')&&$_SERVER["SCRIPT_NAME"]!='/dolibarr/htdocs/core/users_and_group/users_manager.php'){
                 print '<script type="text/javascript"> $(document).ready(function(){
                         if(document.getElementById("reference_body") != null)
                             setHightTable("reference_body");

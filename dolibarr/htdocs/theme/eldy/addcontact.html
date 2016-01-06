@@ -23,14 +23,14 @@
         <input id="url" name="url" type="hidden" value="<?echo $url?>">
         <input id="action" name="action" type="hidden" value="<?echo $action?>">
         <input id="town_id" name="town_id" type="hidden" value="<?echo $soc_contact->town_id?>">
-        <input id="call_work_phone" name="call_work_phone" type="hidden" value="<?echo ($action == 'add'|| $action == 'error'?1:$soc_contact->call_work_phone)?>">
+        <input id="call_work_phone" name="call_work_phone" type="hidden" value="<?echo ($action == 'add'|| $action == 'error'?0:$soc_contact->call_work_phone)?>">
         <input id="mainmenu" name="mainmenu" type="hidden" value="companies">
         <input id="socid" name="socid" type="hidden" value="<?echo($action == 'add'|| $action == 'error'?$socid:$soc_contact->socid)?>">
         <input id="call_fax" name="call_fax" type="hidden" value="<?echo ($action == 'add'|| $action == 'error'?1:$soc_contact->call_fax)?>">
         <input id="call_mobile_phone1" name="call_mobile_phone1" type="hidden" value="<?echo ($action == 'add'|| $action == 'error'?1:$soc_contact->call_mobile_phone1)?>">
-        <input id="call_mobile_phone2" name="call_mobile_phone2" type="hidden" value="<?echo ($action == 'add'|| $action == 'error'?1:$soc_contact->call_mobile_phone2)?>">
+        <input id="call_mobile_phone2" name="call_mobile_phone2" type="hidden" value="<?echo ($action == 'add'|| $action == 'error'?0:$soc_contact->call_mobile_phone2)?>">
         <input id="send_email1" name="send_email1" type="hidden" value="<?echo ($action == 'add'|| $action == 'error'?1:$soc_contact->send_email1)?>">
-        <input id="send_email2" name="send_email2" type="hidden" value="<?echo ($action == 'add'|| $action == 'error'?1:$soc_contact->send_email2)?>">
+        <input id="send_email2" name="send_email2" type="hidden" value="<?echo ($action == 'add'|| $action == 'error'?0:$soc_contact->send_email2)?>">
         <input id="call_skype" name="call_skype" type="hidden" value="<?echo ($action == 'add'|| $action == 'error'?1:$soc_contact->call_skype)?>">
         <input id="send_birthdaydate" name="send_birthdaydate" type="hidden" value="<?echo ($action == 'add'|| $action == 'error'?1:$soc_contact->send_birthdaydate)?>">
 
@@ -52,7 +52,8 @@
                 </td>
             </tr>
             <tr>
-                <td class="<?if($action == 'error' && empty($soc_contact->post)){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                <td>
+                <!--<td class="<?if($action == 'error' && empty($soc_contact->post)){echo 'fielderror';}else{echo 'fieldrequired';}?>">-->
                     <?echo $langs->trans('aPost')?>
                 </td>
                 <td>
@@ -60,7 +61,8 @@
                 </td>
             </tr>
             <tr>
-                <td class="<?if($action == 'error' && empty($soc_contact->SphereOfResponsibility)){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                <td>
+                <!--<td class="<?if($action == 'error' && empty($soc_contact->SphereOfResponsibility)){echo 'fielderror';}else{echo 'fieldrequired';}?>">-->
                     <?echo $langs->trans('SphereOfResponsibility')?>
                 </td>
                 <td>
@@ -68,7 +70,8 @@
                 </td>
             </tr>
             <tr>
-                <td class="<?if($action == 'error' && $soc_contact->lastname == 0){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                <td>
+                <!--<td class="<?if($action == 'error' && $soc_contact->lastname == 0){echo 'fielderror';}else{echo 'fieldrequired';}?>">-->
                     <?echo $langs->trans('Lastname')?>
                 </td>
                 <td>
@@ -76,7 +79,8 @@
                 </td>
             </tr>
             <tr>
-                <td class="<?if($action == 'error' && $soc_contact->firstname == 0){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                <td>
+                <!--<td class="<?if($action == 'error' && $soc_contact->firstname == 0){echo 'fielderror';}else{echo 'fieldrequired';}?>">-->
                     <?echo $langs->trans('Firstname')?>
                 </td>
                 <td>
@@ -84,7 +88,8 @@
                 </td>
             </tr>
             <tr>
-                <td class="<?if($action == 'error' && $soc_contact->work_phone == 0){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                <td>
+                <!--<td class="<?if($action == 'error' && $soc_contact->work_phone == 0){echo 'fielderror';}else{echo 'fieldrequired';}?>">-->
                     <?echo $langs->trans('PhonePro')?>
                 </td>
                 <td style="vertical-align: middle">
@@ -106,7 +111,8 @@
                 </td>
             </tr>
             <tr>
-                <td class="<?if($action == 'error' && $soc_contact->mobile_phone1 == 0){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                <td>
+                <!--<td class="<?if($action == 'error' && $soc_contact->mobile_phone1 == 0){echo 'fielderror';}else{echo 'fieldrequired';}?>">-->
                     <?echo $langs->trans('PhoneMobile')?> 1
                 </td>
                 <td style="vertical-align: middle">
@@ -123,12 +129,13 @@
                 <td style="vertical-align: middle">
                     <div style="height: 30px" >
                         <div style="float: left;"><input id="mobile_phone2" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_contact->mobile_phone2?>" name="mobile_phone2" maxlength="60" size="60" autocomplete="off"></div>
-                        <div style="float: left;"><img class="switcher" onclick="change_switch($('#callmobile_phone2'));" src="<?echo($soc_contact->call_mobile_phone2==1 || $action == 'add'|| $action == 'error'?('/dolibarr/htdocs/theme/eldy/img/switch_on.png'):('/dolibarr/htdocs/theme/eldy/img/switch_off.png'))?>" id="callmobile_phone2"></div>
+                        <div style="float: left;"><img class="switcher" onclick="change_switch($('#callmobile_phone2'));" src="<?echo($soc_contact->call_mobile_phone2==1 && $action == 'add'|| $action == 'error'?('/dolibarr/htdocs/theme/eldy/img/switch_on.png'):('/dolibarr/htdocs/theme/eldy/img/switch_off.png'))?>" id="callmobile_phone2"></div>
                     </div>
                 </td>
             </tr>
             <tr>
-                <td class="<?if($action == 'error' && $soc_contact->email1 == 0){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                <td>
+                <!--<td class="<?if($action == 'error' && $soc_contact->email1 == 0){echo 'fielderror';}else{echo 'fieldrequired';}?>">-->
                     <?echo $langs->trans('Email')?> 1
                 </td>
                 <td style="vertical-align: middle">
@@ -145,7 +152,7 @@
                 <td style="vertical-align: middle">
                     <div style="height: 30px" >
                         <div style="float: left;"><input id="email2" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_contact->email2?>" name="email2" maxlength="60" size="60" autocomplete="off"></div>
-                        <div style="float: left;"><img class="switcher" onclick="change_switch($('#sendemail2'));" src="<?echo($soc_contact->send_email2==1 || $action == 'add'|| $action == 'error'?('/dolibarr/htdocs/theme/eldy/img/switch_on.png'):('/dolibarr/htdocs/theme/eldy/img/switch_off.png'))?>" id="sendemail2"></div>
+                        <div style="float: left;"><img class="switcher" onclick="change_switch($('#sendemail2'));" src="<?echo(($soc_contact->send_email2==1 && $action == 'add')|| $action == 'error'?('/dolibarr/htdocs/theme/eldy/img/switch_on.png'):('/dolibarr/htdocs/theme/eldy/img/switch_off.png'))?>" id="sendemail2"></div>
                     </div>
                 </td>
             </tr>

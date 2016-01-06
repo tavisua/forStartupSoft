@@ -464,13 +464,11 @@ class Societe extends CommonObject
 
             if ($result)
             {
+                //Зберігаю параметри класифікациї
                 $this->id = $this->db->last_insert_id(MAIN_DB_PREFIX."societe");
                 $this->db->commit();
-
-                //Зберігаю параметри класифікациї
                 $this->setclassification();
-//                var_dump($result);
-//                die();
+
                 $ret = $this->update($this->id,$user,0,1,1,'add');
 
                 // Ajout du commercial affecte
@@ -489,12 +487,13 @@ class Societe extends CommonObject
 
                     // Call trigger
                     $result=$this->call_trigger('COMPANY_CREATE',$user);
-
+                    $result = 0;
                     if ($result < 0) $error++;
                     // End call triggers
                 }
                 else $error++;
-
+//                var_dump($error);
+//                die();
                 if (! $error)
                 {
 
@@ -504,6 +503,8 @@ class Societe extends CommonObject
                 }
                 else
                 {
+//                    var_dump($this->error);
+//                    die('eee');
                     dol_syslog(get_class($this)."::Create echec update ".$this->error, LOG_ERR);
                     $this->db->rollback();
                     return -3;
@@ -544,18 +545,21 @@ class Societe extends CommonObject
     function getCountryCode(){
         $sql = 'select phonecode from countries where rowid='.$this->country_id;
         $res = $this->db->query($sql);
+        if(!$res)return'';
         $obj = $this->db->fetch_object($res);
         return $obj->phonecode;
     }
     function getFormOfGoverment(){
         $sql = 'select name from `formofgavernment` where rowid = '.$this->formofgoverment_id;
         $res = $this->db->query($sql);
+        if(!$res)return'';
         $obj = $this->db->fetch_object($res);
         return $obj->name;
     }
     function getCategoryOfCustomer(){
         $sql = 'select name from `category_counterparty` where rowid = '.$this->categoryofcustomer_id;
         $res = $this->db->query($sql);
+        if(!$res)return'';
         $obj = $this->db->fetch_object($res);
         return $obj->name;
     }
@@ -564,8 +568,8 @@ class Societe extends CommonObject
         $sql = 'select classifycation_id, value, active from `llx_societe_classificator` where soc_id='.$this->id;
         $keylist = array_keys($this->param);
         foreach($keylist as $key){
-            $check_sql = $sql.' and classifycation_id = '.substr($key, 6).' limit 1';
 
+            $check_sql = $sql.' and classifycation_id = '.substr($key, 6).' limit 1';
             $res = $this->db->query($check_sql);
 
             if($this->db->num_rows($res) == 0){
@@ -769,7 +773,7 @@ class Societe extends CommonObject
 
         $this->code_compta=trim($this->code_compta);
         $this->code_compta_fournisseur=trim($this->code_compta_fournisseur);
-
+        $this->setclassification();
 //        // Check parameters
 //        if (! empty($conf->global->SOCIETE_MAIL_REQUIRED) && ! isValidEMail($this->email))
 //        {
@@ -1034,6 +1038,7 @@ class Societe extends CommonObject
                 $this->db->rollback();
                 return $result;
             }
+
         }
         else
        {
@@ -1102,7 +1107,7 @@ class Societe extends CommonObject
         if ($idprof2) $sql .= " WHERE s.siret = '".$this->db->escape($idprof2)."' AND s.entity IN (".getEntity($this->element, 1).")";
         if ($idprof3) $sql .= " WHERE s.ape = '".$this->db->escape($idprof3)."' AND s.entity IN (".getEntity($this->element, 1).")";
         if ($idprof4) $sql .= " WHERE s.idprof4 = '".$this->db->escape($idprof4)."' AND s.entity IN (".getEntity($this->element, 1).")";
-
+//die($sql);
         $resql=$this->db->query($sql);
 
         dol_syslog(get_class($this)."::fetch ".$sql);
@@ -1125,7 +1130,7 @@ class Societe extends CommonObject
 
                 $this->ref          = $obj->rowid;
                 $this->name 		= $obj->name;
-                $this->nom          = $obj->name;		// deprecated
+//                $this->nom          = $obj->name;		// deprecated
                 $this->ref_ext      = $obj->ref_ext;
                 $this->ref_int      = $obj->ref_int;
 

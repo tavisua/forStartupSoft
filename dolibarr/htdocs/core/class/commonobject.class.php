@@ -3355,7 +3355,8 @@ abstract class CommonObject
     			$this->errors=$interface->errors;
     		}
     	}
-
+//        var_dump($this->errors);
+//        die('call_triggers');
     	return $result;
     }
 

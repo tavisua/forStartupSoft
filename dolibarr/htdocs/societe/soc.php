@@ -67,11 +67,13 @@ $mesg=''; $error=0; $errors=array();
 
 $action		= (GETPOST('action') ? GETPOST('action') : 'view');
 //echo '<pre>';
-//var_dump($action);
+//var_dump($_SERVER);
 //echo '</pre>';
 //die();
 
 $backtopage = $_POST['backtopage'];
+if(empty($backtopage))
+    $backtopage = $_SERVER["HTTP_REFERER"];
 //die($backtopage);
 $confirm	= GETPOST('confirm');
 $socid		= GETPOST('socid','int');
@@ -247,7 +249,10 @@ if (empty($reshook))
         foreach($ParamList as $Key){
             $object->param[$Key] = GETPOST($Key);
         }
-
+//        echo '<pre>';
+//        var_dump($object->param);
+//        echo '</pre>';
+//        die();
         // Fill array 'array_options' with data from add form
         $ret = $extrafields->setOptionalsFromPost($extralabels,$object);
 		if ($ret < 0)
@@ -410,17 +415,23 @@ if (empty($reshook))
 
                 if ($result >= 0)
                 {
+//                    var_dump($_REQUEST['mainmenu']);
+//                    die();
                     $db->commit();
 //                    var_dump(!empty($backtopage));
 //                    die($backtopage);
                 	if (!empty($backtopage))
                 	{
-                        header("Location: ".$backtopage."=#tr".$object->id);
+                        if($_REQUEST['mainmenu'] == 'area' && $action == 'add'){
+                            header("Location: /dolibarr/htdocs/societe/societeaddress.php?mainmenu=area&idmenu=10425&socid=" . $object->id);
+                        }else {
+                            header("Location: " . $backtopage . "=#tr" . $object->id);
+                        }
                         exit;
                 	}
                 	else
                 	{
-                        header("Location: /dolibarr/htdocs/responsibility/sale/area.php?idmenu=10425&mainmenu=area&leftmenu=#tr".$object->id);
+                        header("Location: /dolibarr/htdocs/societe/societeaddress.php?mainmenu=area&idmenu=10425&socid=".$object->id);
 //               		    header("Location: ".$backtopage);
                         exit;
 //                    	$url=$_SERVER["PHP_SELF"]."?socid=".$object->id;
@@ -559,6 +570,11 @@ if (empty($reshook))
                     if(GETPOST('mainmenu') == 'companies'){
                         header("Location: /dolibarr/htdocs/societe/index.php?mainmenu=companies&amp;amp;leftmenu=&idmenu=5217&mainmenu=companies&leftmenu=");
                     	exit;
+                    }elseif(GETPOST('mainmenu') == 'area'){
+                        var_dump($action);
+                        die();
+                        header("Location: /dolibarr/htdocs/responsibility/sale/area.php?idmenu=10425&mainmenu=area&leftmenu=");
+                        exit;
                     }
                 }
                 else
@@ -1238,6 +1254,7 @@ else
             $form->select_users((! empty($object->commercial_id)?$object->commercial_id:$user->id),'commercial_id',1); // Add current user by default
             print '</td></tr>';
         }
+
         //Класифікація
         print '<tr id="classifycation">';
         print '<td><label for="classifycation">'.$langs->trans("Classifycation").'</label></td>';
@@ -1905,13 +1922,17 @@ else
                 print '<span span id="TypeName" class="fieldrequired"><label for="name">'.$langs->trans('ThirdPartyName').'</label></span>';
             }
             print '</td><td'.(empty($conf->global->SOCIETE_USEPREFIX)?' colspan="3"':'').'>';
-            print '<input type="text" size="60" maxlength="128" name="nom" id="name" value="'.$object->name.'" autofocus="autofocus"></td>';
-            if (! empty($conf->global->SOCIETE_USEPREFIX))  // Old not used prefix field
-            {
-                print '<td>'.$langs->trans('Prefix').'</td><td><input type="text" size="5" maxlength="5" name="prefix_comm" value="'.$object->prefix_comm.'"></td>';
-            }
-            print '</tr>';
 
+
+            print '<input type="text" size="60" maxlength="128" name="nom" id="name" value="'.str_replace('"',"'", $object->name).'" autofocus="autofocus"></td>';
+
+//            if (! empty($conf->global->SOCIETE_USEPREFIX))  // Old not used prefix field
+//            {
+//                print '<td>'.$langs->trans('Prefix').'</td><td><input type="text" size="5" maxlength="5" name="prefix_comm" value="'.$object->prefix_comm.'"></td>';
+//            }
+            print '</tr>';
+//            var_dump('<input type="text" size="60" maxlength="128" name="nom" id="name" value="'.$object->name.'" autofocus="autofocus">');
+//            die($object->name);
             // If javascript on, we show option individual
             if ($conf->use_javascript_ajax)
             {
@@ -2210,6 +2231,7 @@ else
                 print '</td></tr>';
             }
             //Класифікація
+
             print '<tr id="classifycation">';
             print '<td><label for="classifycation">'.$langs->trans("Classifycation").'</label></td>';
             print '<td colspan="3" class="maxwidthonsmartphone">';
@@ -2246,7 +2268,7 @@ else
             print '</table>'."\n";
 
             print '<br><center>';
-            print '<input type="submit" class="button" value="'.$langs->trans('AddThirdParty').'">';
+            print '<input type="submit" class="button" value="'.$langs->trans('Save').'">';
             print '</center>'."\n";
 
             print '</form>'."\n";        }
@@ -2880,10 +2902,12 @@ else
     }
 
 }
+//var_dump($action == 'edit');
+//die();
 print '
 <script type="text/javascript">
     $(function(){
-
+        return;
         //Присоединяем автозаполнение
         $("#name").autocomplete({
             //Определяем обратный вызов к результатам форматирования

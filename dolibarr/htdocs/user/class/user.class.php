@@ -893,9 +893,9 @@ class User extends CommonObject
 			}
 			else
 			{
-				$sql = "INSERT INTO ".MAIN_DB_PREFIX."user (datec,login,ldap_sid,entity,subdiv_id,skype,usergroup_id,post_id,active,id_usr,dtChange)";
+				$sql = "INSERT INTO ".MAIN_DB_PREFIX."user (datec,login,ldap_sid,entity,subdiv_id,skype,usergroup_id,post_id,active,id_usr,dtChange,respon_id)";
 				$sql.= " VALUES('".$this->db->idate($this->datec)."','".$this->db->escape($this->login)."','".$this->ldap_sid."',".$this->db->escape($this->entity).",".
-                    $this->subdiv_id.",'".$this->skype."',".$this->usergroup_id.", ".$this->post_id.",1,".$user->id.",Now())";
+                    $this->subdiv_id.",'".$this->skype."',".$this->usergroup_id.", ".$this->post_id.",1,".$user->id.",Now(),".$this->respon_id.")";
 //                var_dump($sql);
 //                die();
 				$result=$this->db->query($sql);
@@ -1193,6 +1193,7 @@ class User extends CommonObject
 		$this->note         = trim($this->note);
 		$this->openid       = trim(empty($this->openid)?'':$this->openid);    // Avoid warning
 		$this->admin        = $this->admin?$this->admin:0;
+		$this->respon_id    = $this->respon_id?$this->respon_id:0;
 		$this->address		= empty($this->address)?'':$this->address;
 		$this->zip			= empty($this->zip)?'':$this->zip;
 		$this->town			= empty($this->town)?'':$this->town;
@@ -1215,6 +1216,7 @@ class User extends CommonObject
 		$sql.= ", firstname = '".$this->db->escape($this->firstname)."'";
 		$sql.= ", login = '".$this->db->escape($this->login)."'";
 		$sql.= ", admin = ".$this->admin;
+		$sql.= ", respon_id = ".$this->respon_id;
 		$sql.= ", address = '".$this->db->escape($this->address)."'";
 		$sql.= ", zip = '".$this->db->escape($this->zip)."'";
 		$sql.= ", town = '".$this->db->escape($this->town)."'";

@@ -37,6 +37,7 @@ function ShowTask(){
     }
     unset($taskID);
     unset($taskAuthor);
+    $taskID[] = 0;
     while($obj = $db->fetch_object($res)){
         $taskID[]=$obj->id;
         $taskAuthor[$obj->id] = $obj->fk_user_author;

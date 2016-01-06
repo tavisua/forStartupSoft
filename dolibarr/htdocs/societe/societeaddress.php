@@ -19,11 +19,13 @@ llxHeader('',$Address,$help_url);
 print_fiche_titre($Address);
 $object = new Societe($db);
 $object->fetch($socid);
+
 $CategoryOfCustomer = $object->getCategoryOfCustomer();
 $FormOfGoverment = $object->getFormOfGoverment();
 $NewItem = $langs->trans('NewItem');
 $Control = $langs->trans('Control');
 $AddAddress = $langs->trans('AddAddress');
+
 print '
         <div class="tabs" data-role="controlgroup" data-type="horizontal">
             <div class="inline-block tabsElem tabsElemActive">

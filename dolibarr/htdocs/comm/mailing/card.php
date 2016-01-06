@@ -34,6 +34,74 @@ require_once DOL_DOCUMENT_ROOT.'/comm/mailing/class/mailing.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
 
+if($_POST['action']=='delivery'){
+    global $db;
+    $sql = 'select login, pass, lastname, firstname from `llx_user`
+        where active = 1
+        and login like "%@%"';
+    $res = $db->query($sql);
+    if(!$res){
+        var_dump($sql);
+        dol_print_error($db);
+    }
+    $nom = 0;
+    while($obj = $db->fetch_object($res)) {
+        $to = '=?utf-8?B?' . base64_encode($obj->lastname).'?=<'.$obj->login.'>';
+//        $to = '=?utf-8?B?' . base64_encode($obj->lastname).'?=<tavis@shtorm.com>';
+//    // несколько получателей
+//    $to  = 'aidan@example.com' . ', '; // обратите внимание на запятую
+//    $to .= 'wez@example.com';
+
+// тема письма
+        $subject = '=?utf-8?B?' . base64_encode('Информация для подключения к CRM') . '?=';
+
+// текст письма
+        $message = '
+            <html>
+            <head>
+              <title>Информация подключения к CRM</title>
+            </head>
+            <body>
+              <p>Здравствуйте, ' . $obj->firstname. '!</p></br>
+              Информация, необходимая для входа в CRM систему:
+              <table>
+                <tr>
+                  <td>Ссылка для входа в CRM:</td><td><a href="http://uspex2015.com.ua/dolibarr/htdocs/responsibility/sale/area.php?idmenu=10425&mainmenu=area&leftmenu=">ссылка</a></td>
+                </tr>                <tr>
+                  <td>Ваш логин:</td><td>' . $obj->login . '</td>
+                </tr>
+                <tr>
+                  <td>Ваш пароль:</td><td>' . $obj->pass . '</td>
+                </tr>
+              </table>
+              <div>Инструкцию по вводу информации о клиенте/контрагенте, Вы можете <a href="https://drive.google.com/file/d/0B5v4Q8Vw1LpKRlBDWlVNdXBZSnc/view?usp=sharing">скачать по ссылке</a></div>
+              <div>Помните, что в случае обнаружения ошибки в работе CRM или с предложениями по улучшению ее работы, </br> Вы сможете связаться по электронной почте <a href="mailto:tavis.ua@gmail.com?subject=TitSupport">tavis.ua@gmail.com</a></div></br>
+              </br>
+              С наилучшими пожеланиями, Виктор Михайлов.
+            </body>
+            </html>
+            ';
+
+// Для отправки HTML-письма должен быть установлен заголовок Content-type
+        $headers = 'MIME-Version: 1.0' . "\r\n";
+        $headers .= 'Content-type: text/html; charset="utf-8"' . "\r\n";
+
+//// Дополнительные заголовки
+//        $headers .= 'To: Mary <mary@example.com>' . "\r\n";
+        $headers .= 'From: =?utf-8?B?' . base64_encode('Виктор Михайлов') . '?= <tavis.ua@gmail.com>' . "\r\n";
+//    $headers .= 'Cc: birthdayarchive@example.com' . "\r\n";
+//    $headers .= 'Bcc: birthdaycheck@example.com' . "\r\n";
+
+// Отправляем
+        mail($to, $subject, $message, $headers);
+//        if(++$nom>3)
+//            break;
+    }
+    echo 'Готово';
+    exit();
+//    echo $nom.'</br>';
+}
+
 $langs->load("mails");
 
 if (! $user->rights->mailing->lire || (empty($conf->global->EXTERNAL_USERS_ARE_AUTHORIZED) && $user->societe_id > 0)) accessforbidden();
@@ -44,6 +112,7 @@ $confirm=GETPOST('confirm','alpha');
 $urlfrom=GETPOST('urlfrom');
 
 $object=new Mailing($db);
+
 $result=$object->fetch($id);
 
 $extrafields = new ExtraFields($db);
@@ -667,9 +736,9 @@ llxHeader('',$langs->trans("Mailing"),$help_url);
 if ($action == 'create')
 {
 	// EMailing in creation mode
-	print '<form name="new_mailing" action="'.$_SERVER['PHP_SELF'].'" method="POST">'."\n";
+	print '<form id="new_mailing" name="new_mailing" action="'.$_SERVER['PHP_SELF'].'" method="POST">'."\n";
 	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-	print '<input type="hidden" name="action" value="add">';
+	print '<input id="action" type="hidden" name="action" value="add">';
 
 	print_fiche_titre($langs->trans("NewMailing"));
 
@@ -710,12 +779,20 @@ if ($action == 'create')
 	print '</table>';
 
 	print '<br><center><input type="submit" class="button" value="'.$langs->trans("CreateMailing").'"></center>';
+	print '<br><center><button onclick="Delivery();"> Розсилка </button></center>';
 
 	print '</form>';
+    print '<script>
+        function Delivery(){
+            $("#action").val("delivery");
+            $("form#new_mailing").submit();
+        }
+    </script>';
 }
 else
 {
-	if ($object->id > 0)
+
+    if ($object->id > 0)
 	{
 		$upload_dir = $conf->mailing->dir_output . "/" . get_exdir($object->id,2,0,1);
 

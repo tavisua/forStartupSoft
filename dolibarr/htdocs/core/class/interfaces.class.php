@@ -151,8 +151,9 @@ class Interfaces
 
             $objMod = new $modName($this->db);
 //            echo '<pre>';
-//            var_dump();
+//            var_dump($objMod);
 //            echo '</pre>';
+//            die();
             if ($objMod)
             {
             	$result=0;
@@ -172,7 +173,8 @@ class Interfaces
 				{
 	                dol_syslog(get_class($this)."::run_triggers action=".$action." A trigger was declared for class ".get_class($objMod)." but method runTrigger was not found", LOG_ERR);
 				}
-
+//                var_dump(method_exists($objMod, 'runTrigger'));
+//                die('run_triggers');
                 if ($result > 0)
                 {
                     // Action OK

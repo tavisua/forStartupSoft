@@ -18,15 +18,15 @@ left join `formofgavernment` on `llx_societe`.`formofgoverment_id` = `formofgave
 left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`';
 
 if($region_id != 0) {
-    $sql .= 'where `region_id` = ' . $region_id . ' ';
+    $sql .= ' where `region_id` = ' . $region_id . ' ';
     $sql .= 'and `llx_societe`.`categoryofcustomer_id` in
 (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = '.$user->respon_id.')';
 }else
-    $sql .= 'where 1 ';
+    $sql .= ' where 1 ';
 if(!$user->admin)
     $sql .= ' and `llx_societe`.`fk_user_creat`='.$user->id;
-$sql .= 'order by width desc, nom';
-//var_dump($sql);
+$sql .= ' order by width desc, nom';
+//die($sql);
 $TableParam = array();
 $ColParam['title']='';
 $ColParam['width']='178';

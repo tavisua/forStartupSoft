@@ -58,6 +58,7 @@ print '
 
 $CategoryOfCustomer = $object->getCategoryOfCustomer();
 $FormOfGoverment = $object->getFormOfGoverment();
+global $langs;
 $NewItem = $langs->trans('NewItem');
 $Control = $langs->trans('Control');
 $AddContact = $langs->trans('AddContact');

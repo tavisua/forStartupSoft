@@ -196,7 +196,10 @@ class Mailing extends CommonObject
 		$sql.= ", m.date_envoi";
 		$sql.= ", m.extraparams";
 		$sql.= " FROM ".MAIN_DB_PREFIX."mailing as m";
-		$sql.= " WHERE m.rowid = ".$rowid;
+        if(!empty($rowid))
+		    $sql.= " WHERE m.rowid = ".$rowid;
+        else
+            $sql.= " limit 1";
 
 		dol_syslog(get_class($this)."::fetch", LOG_DEBUG);
 		$result=$this->db->query($sql);
@@ -526,7 +529,7 @@ class Mailing extends CommonObject
 	 *  @param  int		$mode          	0=libelle long, 1=libelle court, 2=Picto + Libelle court, 3=Picto, 4=Picto + Libelle long, 5=Libelle court + Picto
 	 *  @return string        			Label
 	 */
-	static public function libStatutDest($statut,$mode=0)
+	public function libStatutDest($statut,$mode=0)
 	{
 		global $langs;
 		$langs->load('mails');

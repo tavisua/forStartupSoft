@@ -61,19 +61,34 @@ if($action =='cancel') {
     $soc_address->SendEmail     = GETPOST('SendEmail');
     $soc_address->SendPost      = GETPOST('SendPost');
     $error = 0;
-    if(empty($soc_address->whom))$error++;
-    if(empty($soc_address->kindaddress))$error++;
-    if(empty($soc_address->Zip))$error++;
-    if($soc_address->country_id == 0)$error++;
-    if($soc_address->state_id == 0)$error++;
-    if($soc_address->region_id == 0)$error++;
-    if($soc_address->kindlocality_id == 0)$error++;
-    if(empty($soc_address->location))$error++;
-    if($soc_address->kindofstreet_id == 0)$error++;
-    if(empty($soc_address->street_name))$error++;
-    if(empty($soc_address->NumberOfHouse))$error++;
-    if(empty($soc_address->NumberOfOffice))$error++;
-    if($soc_address->kindoffice_id == 0)$error++;
+    if(empty($soc_address->whom))$soc_address->whom='';
+//    if(empty($soc_address->kindaddress))$error++;
+    if(empty($soc_address->Zip))$soc_address->Zip='null';
+//    if($soc_address->country_id == 0)$error++;
+//    if($soc_address->state_id == 0)$error++;
+//    if($soc_address->region_id == 0)$error++;
+//    if($soc_address->kindlocality_id == 0)$error++;
+    if(empty($soc_address->location))$soc_address->location='';
+//    if($soc_address->kindofstreet_id == 0)$error++;
+    if(empty($soc_address->street_name))$soc_address->street_name='';
+    if(empty($soc_address->NumberOfHouse))$soc_address->NumberOfHouse='';
+    if(empty($soc_address->NumberOfOffice))$soc_address->NumberOfOffice='';
+    if(empty($soc_address->WorkerCount))$soc_address->WorkerCount='null';
+    if($soc_address->kindoffice_id == 0)$soc_address->kindoffice_id=0;
+
+//    if(empty($soc_address->whom))$error++;
+//    if(empty($soc_address->kindaddress))$error++;
+//    if(empty($soc_address->Zip))$error++;
+//    if($soc_address->country_id == 0)$error++;
+//    if($soc_address->state_id == 0)$error++;
+//    if($soc_address->region_id == 0)$error++;
+//    if($soc_address->kindlocality_id == 0)$error++;
+//    if(empty($soc_address->location))$error++;
+//    if($soc_address->kindofstreet_id == 0)$error++;
+//    if(empty($soc_address->street_name))$error++;
+//    if(empty($soc_address->NumberOfHouse))$error++;
+//    if(empty($soc_address->NumberOfOffice))$error++;
+//    if($soc_address->kindoffice_id == 0)$error++;
     if($error > 0) {
         $action = 'error';
     }else {

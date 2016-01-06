@@ -29,7 +29,8 @@
         <input id="SendEmail" name="SendEmail" type="hidden" value="<?if($action == 'add'){ echo 1;} else{ echo $soc_address->SendEmail;}?>">
         <table class="border" width="100%">
             <tr>
-                <td class="<?if($action == 'error' && empty($soc_address->whom)){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                <td>
+                <!--<td class="<?if($action == 'error' && empty($soc_address->whom)){echo 'fielderror';}else{echo 'fieldrequired';}?>">-->
                     <?echo $langs->trans('Whom')?>
                 </td>
                 <td>
@@ -37,7 +38,8 @@
                 </td>
             </tr>
             <tr>
-                <td class="<?if($action == 'error' && empty($soc_address->kindaddress)){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                <td>
+                <!--<td class="<?if($action == 'error' && empty($soc_address->kindaddress)){echo 'fielderror';}else{echo 'fieldrequired';}?>">-->
                     <?echo $langs->trans('KindAddress')?>
                 </td>
                 <td>
@@ -45,7 +47,8 @@
                 </td>
             </tr>
             <tr>
-                <td class="<?if($action == 'error' && empty($soc_address->Zip)){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                <td>
+                <!--<td class="<?if($action == 'error' && empty($soc_address->Zip)){echo 'fielderror';}else{echo 'fieldrequired';}?>">-->
                     <?echo $langs->trans('Zip')?>
                 </td>
                 <td>
@@ -53,7 +56,8 @@
                 </td>
             </tr>
             <tr>
-                <td class="<?if($action == 'error' && $soc_address->country_id == 0){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                <td>
+                <!--<td class="<?if($action == 'error' && $soc_address->country_id == 0){echo 'fielderror';}else{echo 'fieldrequired';}?>">-->
                     <?echo $langs->trans('Country')?>
                 </td>
                 <td>
@@ -61,7 +65,8 @@
                 </td>
             </tr>
             <tr>
-                <td class="<?if($action == 'error' && $soc_address->state_id == 0){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                <td>
+                <!--<td class="<?if($action == 'error' && $soc_address->state_id == 0){echo 'fielderror';}else{echo 'fieldrequired';}?>">-->
                     <?echo $langs->trans('State')?>
                 </td>
                 <td>
@@ -69,7 +74,8 @@
                 </td>
             </tr>
             <tr>
-                <td class="<?if($action == 'error' && $soc_address->region_id == 0){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                <!--<td class="<?if($action == 'error' && $soc_address->region_id == 0){echo 'fielderror';}else{echo 'fieldrequired';}?>">-->
+                <td>
                     <?echo $langs->trans('Areas')?>
                 </td>
                 <td>
@@ -77,7 +83,8 @@
                 </td>
             </tr>
             <tr>
-                <td class="<?if($action == 'error' && $soc_address->kindlocality_id == 0){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                <td>
+                <!--<td class="<?if($action == 'error' && $soc_address->kindlocality_id == 0){echo 'fielderror';}else{echo 'fieldrequired';}?>">-->
                     <?echo $langs->trans('KindOfLocality')?>
                 </td>
                 <td>
@@ -85,7 +92,8 @@
                 </td>
             </tr>
             <tr>
-                <td class="<?if($action == 'error' && empty($soc_address->location)){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                <td>
+                <!--<td class="<?if($action == 'error' && empty($soc_address->location)){echo 'fielderror';}else{echo 'fieldrequired';}?>">-->
                     <?echo $langs->trans('Location')?>
                 </td>
                 <td>
@@ -93,7 +101,8 @@
                 </td>
             </tr>
             <tr>
-                <td class="<?if($action == 'error' && $soc_address->kindlocality_id == 0){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                <td>
+                <!--<td class="<?if($action == 'error' && $soc_address->kindlocality_id == 0){echo 'fielderror';}else{echo 'fieldrequired';}?>">-->
                     <?echo $langs->trans('KindOfStreet')?>
                 </td>
                 <td>
@@ -101,7 +110,8 @@
                 </td>
             </tr>
             <tr>
-                <td class="<?if($action == 'error' && empty($soc_address->street_name)){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                <td>
+                <!--<td class="<?if($action == 'error' && empty($soc_address->street_name)){echo 'fielderror';}else{echo 'fieldrequired';}?>">-->
                     <?echo $langs->trans('Street')?>
                 </td>
                 <td>
@@ -109,7 +119,8 @@
                 </td>
             </tr>
             <tr>
-                <td class="<?if($action == 'error' && empty($soc_address->NumberOfHouse)){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                <td>
+                <!--<td class="<?if($action == 'error' && empty($soc_address->NumberOfHouse)){echo 'fielderror';}else{echo 'fieldrequired';}?>">-->
                     <?echo $langs->trans('NumberOfHouse')?>
                 </td>
                 <td>
@@ -117,7 +128,8 @@
                 </td>
             </tr>
             <tr>
-                <td class="<?if($action == 'error' && $soc_address->kindoffice_id == 0){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                <td>
+                <!--<td class="<?if($action == 'error' && $soc_address->kindoffice_id == 0){echo 'fielderror';}else{echo 'fieldrequired';}?>">-->
                     <?echo $langs->trans('KindOfOffice')?>
                 </td>
                 <td>
@@ -125,7 +137,8 @@
                 </td>
             </tr>
             <tr>
-                <td class="<?if($action == 'error' && empty($soc_address->NumberOfOffice)){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                <td>
+                <!--<td class="<?if($action == 'error' && empty($soc_address->NumberOfOffice)){echo 'fielderror';}else{echo 'fieldrequired';}?>">-->
                     <?echo $langs->trans('NumberOfOffice')?>
                 </td>
                 <td>
@@ -141,7 +154,8 @@
                 </td>
             </tr>
             <tr>
-                <td class="<?if($action == 'error' && (empty($soc_address->e_mail) || !isValidEMail($soc_address->e_mail))){echo 'fielderror';}else{echo 'fieldrequired';}?>">
+                <td>
+                <!--<td class="<?if($action == 'error' && (empty($soc_address->e_mail) || !isValidEMail($soc_address->e_mail))){echo 'fielderror';}else{echo 'fieldrequired';}?>">-->
                     <?echo $langs->trans('e-mail')?>
                 </td>
                 <td>

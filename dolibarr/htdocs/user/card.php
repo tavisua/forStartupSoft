@@ -213,6 +213,7 @@ if ($action == 'add' && $canadduser)
         $object->post_id        = GETPOST("post_id")>0?GETPOST("post_id"):0;
         $object->usergroup_id   = GETPOST("usergroup_id")>0?GETPOST("usergroup_id"):0;
         $object->subdiv_id      = GETPOST("subdiv_id")>0?GETPOST("subdiv_id"):0;
+        $object->respon_id      = GETPOST("respon_id")>0?GETPOST("respon_id"):0;
 
         $object->thm            = GETPOST("thm")!=''?GETPOST("thm"):'';
         $object->tjm            = GETPOST("tjm")!=''?GETPOST("tjm"):'';
@@ -769,6 +770,15 @@ if (($action == 'create') || ($action == 'adduserldap'))
 //    print '<input size="30" type="text" name="job" value="'.GETPOST('job').'">';
     print '</td></tr>';
 
+    // Type
+    print '<tr><td valign="top">'.$langs->trans('SphereOfResponsibility').'</td><td colspan="2">';
+    print $form->select_control('', 'respon_id', 0, 'responsibility', 'name', $object, false);
+//            $type=$langs->trans("Internal");
+//            if ($object->societe_id) $type=$langs->trans("External");
+//            print $form->textwithpicto($type,$langs->trans("InternalExternalDesc"));
+//            if ($object->ldap_sid) print ' ('.$langs->trans("DomainUser").')';
+    print '</td></tr>'."\n";
+
     //SubDivision
     print '<tr><td valign="top">'.$langs->trans("SubDivision").'</td>';
     print '<td colspan="2">'.$form->select_control('', 'subdiv_id', 0, 'subdivision', 'name', $object, false).'</td>';
@@ -796,7 +806,7 @@ if (($action == 'create') || ($action == 'adduserldap'))
     }
     else
     {
-        print '<input size="20" maxsize="24" type="text" name="login" value="'.GETPOST('login').'">';
+        print '<input size="20" maxsize="55" type="text" name="login" value="'.GETPOST('login').'">';
     }
     print '</td></tr>';
 
@@ -1214,7 +1224,7 @@ else
 
             //Subdivision
             print '<tr><td valign="top">'.$langs->trans("SubDivision").'</td>';
-            print '<td colspan="2">'.$form->select_control('', 'post_id', 0, 'subdivision', 'name',$object, true).'</td>';
+            print '<td colspan="2">'.$form->select_control('', 'subdiv_id', 0, 'subdivision', 'name',$object, true).'</td>';
             print '</tr>'."\n";
 
             // Login
@@ -1572,7 +1582,6 @@ else
             print "<br>\n";
 
 
-
             /*
              * Liste des groupes dans lequel est l'utilisateur
              */
@@ -1793,12 +1802,17 @@ else
             print $form->select_control('', 'post_id', 0, 'llx_post', 'postname', $object, false);
             print '</td></tr>';
 
+            //Subdivision
+            print '<tr><td valign="top">'.$langs->trans("SubDivision").'</td>';
+            print '<td colspan="2">'.$form->select_control('', 'subdiv_id', 0, 'subdivision', 'name',$object, false).'</td>';
+            print '</tr>'."\n";
+
             // Login
             print "<tr>".'<td valign="top"><span class="fieldrequired">'.$langs->trans("Login").'</span></td>';
             print '<td>';
             if ($user->admin  && !$object->ldap_sid)
             {
-                print '<input size="12" maxlength="24" type="text" class="flat" name="login" value="'.$object->login.'">';
+                print '<input size="12" maxlength="55" type="text" class="flat" name="login" value="'.$object->login.'">';
             }
             else
             {

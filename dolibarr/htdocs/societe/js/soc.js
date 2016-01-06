@@ -80,6 +80,7 @@ function setHightTable(table){
     var tabPage = $('.tabPage');
 }
 function change_switch(obj){
+    return;//Запрет на переключение флажков при добавлении контакта. Нужно доделать
     console.log(obj.attr('src'));
 
     var check = 0;

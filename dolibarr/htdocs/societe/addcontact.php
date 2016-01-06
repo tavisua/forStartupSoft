@@ -41,6 +41,7 @@ if($action =='cancel') {
     $EditAddress = $langs->trans('EditContact');
     llxHeader('', $EditAddress, $help_url);
     print_fiche_titre($EditAddress);
+
     include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/addcontact.html');
     echo ob_get_clean();
     llxFooter();
@@ -80,13 +81,13 @@ if($action =='cancel') {
 //    echo '</pre>';
 //    die();
     $error = 0;
-    if(empty($soc_contact->post))$error++;
-    if(empty($soc_contact->SphereOfResponsibility))$error++;
-    if(empty($soc_contact->lastname))$error++;
-    if(empty($soc_contact->firstname))$error++;
-    if(empty($soc_contact->work_phone))$error++;
-    if(empty($soc_contact->mobile_phone1))$error++;
-    if(empty($soc_contact->email1))$error++;
+//    if(empty($soc_contact->post))$error++;
+//    if(empty($soc_contact->SphereOfResponsibility))$error++;
+//    if(empty($soc_contact->lastname))$error++;
+//    if(empty($soc_contact->firstname))$error++;
+//    if(empty($soc_contact->work_phone))$error++;
+//    if(empty($soc_contact->mobile_phone1))$error++;
+//    if(empty($soc_contact->email1))$error++;
 
     if($error > 0) {
         $action = 'error';
@@ -111,6 +112,7 @@ if(empty($socid))
 //$url = $_SERVER["HTTP_REFERER"];
 $object = new  Societe($db);
 $object->fetch($socid);
+
 $CategoryOfCustomer = $object->getCategoryOfCustomer();
 $FormOfGoverment = $object->getFormOfGoverment();
 $countrycode = $object->getCountryCode();
@@ -120,6 +122,7 @@ if(GETPOST('action', 'alpha') == 'add' ||$action == 'error') {
     $AddContact = $langs->trans('AddContact');
     llxHeader('', $AddContact, $help_url);
     print_fiche_titre($AddContact);
+
     include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/addcontact.html');
     echo ob_get_clean();
     llxFooter();

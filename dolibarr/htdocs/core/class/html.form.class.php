@@ -1230,9 +1230,16 @@ class Form
         $sql = 'select rowid, `' . $fieldname . '` as name, active from `' . $tablename . '`';
         if(!$readonly)
             $sql .=' where active = 1 order by `' . $fieldname . '`';
-        else
-            $sql .=' where rowid='.get_object_vars($userinfo)[$htmlname];
-//        die($sql);
+        else {
+            if(!empty(get_object_vars($userinfo)[$htmlname]))
+                $sql .= ' where rowid=' . get_object_vars($userinfo)[$htmlname];
+            else
+                $sql .=' where active = 1 order by `' . $fieldname . '`';
+        }
+//        if('subdivision'==$tablename) {
+//            var_dump($htmlname);
+//            die($sql);
+//        }
         $resql = $this->db->query($sql);
         $out = '';
         if ($resql) {
@@ -1260,6 +1267,10 @@ class Form
             }else
                 $out = $langs->trans('NotData');
         }
+//        if('responsibility'==$tablename){
+//            var_dump($out);
+//            die();
+//        }
         return $out;
     }
     function select_dolusers($selected='', $htmlname='userid', $show_empty=0, $exclude='', $disabled=0, $include='', $enableonly='', $force_entity=0, $maxlength=0, $showstatus=0, $morefilter='')

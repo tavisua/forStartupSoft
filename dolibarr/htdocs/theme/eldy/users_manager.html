@@ -46,7 +46,11 @@
  </script>
  <script>
      $(document).ready(function(){
-         $('#reference_body').attr('height', window.innerHeight - 360);
+         $('#reference_body').attr('height', window.innerHeight - 350);
+         $(".reference").offset({top: 200, left: -165});
+         $(".vmenu").offset({top: 150, left: 30});
+         $(".tabPage").width(1200);
+         $(".tabPage").height($('#reference_body').height()+100);
          var th = document.getElementsByTagName('th');
          var left = 30;
          var widths = [];

@@ -742,16 +742,20 @@ class FormCompany
                 where `llx_societe_classificator`.`soc_id`='.$id_cus.'
                 and `classifycation`.`calc` = 1 and `classifycation`.`active` = 1';
             $res = $this->db->query($sql);
-            if ($this->db->num_rows($res) > 0) {
-                $out = '<table class="param" width="100%">';
-                while ($param = $this->db->fetch_object($res)) {
-                    $out .= '<tr><td class="param_title">' . $param->name . '</td>';
-                    $out .= '<td width="auto"><input class="param_item" type="text" value="'.$param->value.'" size="6" name="param_' . $param->rowid . '"></td></tr>';
-                }
-                $out .= '</table>';
-            } else {
-                return '';
+            if ($this->db->num_rows($res) == 0) {
+                $sql='select `classifycation`.`rowid`, `classifycation`.`name`, null as `value`
+                    from `classifycation`
+                    where 1
+                    and `classifycation`.`calc` = 1
+                    and `classifycation`.`active` = 1';
+                $res = $this->db->query($sql);
             }
+            $out = '<table class="param" width="100%">';
+            while ($param = $this->db->fetch_object($res)) {
+                $out .= '<tr><td class="param_title">' . $param->name . '</td>';
+                $out .= '<td width="auto"><input class="param_item" type="text" value="'.$param->value.'" size="6" name="param_' . $param->rowid . '"></td></tr>';
+            }
+            $out .= '</table>';
         }
 
 //        <tr><td>1</td><td>2</td></tr></table>';
