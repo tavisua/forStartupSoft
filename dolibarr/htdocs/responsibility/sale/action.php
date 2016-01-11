@@ -133,7 +133,9 @@ if(!isset($_REQUEST['sortfield']))
 else
     $contact = $contacttable->fShowTable($TableParam, $sql, "'".$tablename."'", $conf->theme, $_REQUEST['sortfield'], $_REQUEST['sortorder']);
 unset($TableParam);
-//var_dump($contact);
+
+$datep = new DateTime();
+
 $actiontabe = ShowActionTable();
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/action.html';
 llxFooter();
@@ -244,15 +246,21 @@ function loadcontactlist($contactid){
     return $out;
 }
 function ShowActionTable(){
-    global $db, $langs;
-    $sql = 'select `llx_societe_action`.`rowid`, `llx_societe_action`.`socid`, trim(`llx_societe_contact`.`lastname`) as contactname,`kindaction`,trim(`said`) said,
-    trim(`answer`) answer, trim(`argument`) argument, trim(`said_important`) said_important,
-    trim(`result_of_action`) result_of_action,trim(`work_before_the_next_action`) work_before_the_next_action, `date_next_action`,
-    `llx_societe_action`.`dtChange`, `llx_user`.lastname, trim(`work_before_the_next_action_mentor`) work_mentor, `date_next_action_mentor` date_mentor
-        from `llx_societe_action`
-        inner join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.rowid
-        inner join `llx_societe_contact` on `llx_societe_action`.`contactid`
-        where `llx_societe_action`.`socid`='.$_REQUEST['socid'].' and `llx_societe_action`.active=1 order by dtChange desc';
+    global $db, $langs, $conf;
+//    $sql = 'select `llx_societe_action`.`rowid`, `llx_societe_action`.`socid`, trim(`llx_societe_contact`.`lastname`) as contactname,`kindaction`,trim(`said`) said,
+//    trim(`answer`) answer, trim(`argument`) argument, trim(`said_important`) said_important,
+//    trim(`result_of_action`) result_of_action,trim(`work_before_the_next_action`) work_before_the_next_action, `date_next_action`,
+//    `llx_societe_action`.`dtChange`, `llx_user`.lastname, trim(`work_before_the_next_action_mentor`) work_mentor, `date_next_action_mentor` date_mentor
+//        from `llx_societe_action`
+//        inner join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.rowid
+//        inner join `llx_societe_contact` on `llx_societe_action`.`contactid`
+//        where `llx_societe_action`.`socid`='.$_REQUEST['socid'].' and `llx_societe_action`.active=1 order by dtChange desc';
+    $sql='select `llx_actioncomm`.id as rowid, "" as `datec`, "" lastname, concat(case when `llx_societe_contact`.lastname is null then "" else `llx_societe_contact`.lastname end,
+    case when `llx_societe_contact`.firstname is null then "" else `llx_societe_contact`.firstname end) as contactname, TypeCode.code kindaction from `llx_actioncomm`
+    left join `llx_user` on `llx_actioncomm`.fk_user_author = `llx_user`.rowid
+    inner join (select code, libelle label from `llx_c_actioncomm` where active = 1 and (type = "system" or  type = "user")) TypeCode on TypeCode.code = `llx_actioncomm`.code
+    left join `llx_societe_contact` on `llx_societe_contact`.rowid=`llx_actioncomm`.fk_contact
+    where fk_soc = '.$_REQUEST['socid'];
     $res = $db->query($sql);
     if(!$res){
         dol_print_error($db);
@@ -280,21 +288,50 @@ function ShowActionTable(){
     }
     $num=0;
     while($row = $db->fetch_object($res)){
-        $dtChange = new DateTime($row->dtChange);
+        $dtChange = new DateTime($row->datec);
         $dtNextAction = new DateTime($row->date_next_action);
         $dtDateMentor = new DateTime($row->date_mentor);
+        $iconitem='';
+        $title='';
+        switch($row->kindaction){
+            case 'AC_GLOBAL':{
+                $classitem = 'global_taskitem';
+                $iconitem = 'object_global_task.png';
+                $title=$langs->trans('ActionGlobalTask');
+            }break;
+            case 'AC_CURRENT':{
+                $classitem = 'current_taskitem';
+                $iconitem = 'object_current_task.png';
+                $title=$langs->trans('ActionCurrentTask');
+            }break;
+            case 'AC_RDV':{
+                $classitem = 'office_meetting_taskitem';
+                $iconitem = 'object_office_meetting_task.png';
+                $title=$langs->trans('ActionAC_RDV');
+            }break;
+            case 'AC_TEL':{
+                $classitem = 'office_callphone_taskitem';
+                $iconitem = 'object_call2.png';
+                $title=$langs->trans('ActionAC_TEL');
+            }break;
+            case 'AC_DEP':{
+                $classitem = 'departure_taskitem';
+                $iconitem = 'object_departure_task.png';
+                $title=$langs->trans('ActionDepartureMeeteng');
+            }break;
+        }
         $out .= '<tr class="'.(fmod($num++, 2)==0?'impair':'pair').'">
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'dtChange" style="widtd: 80px" class="middle_size">'.$dtChange->format('d.m.y H:i:s').'</td>
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'dtChange" style="widtd: 80px" class="middle_size">'.(empty($row->datec)?'':$dtChange->format('d.m.y H:i:s')).'</td>
             <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'lastname" style="widtd: 100px" class="middle_size">'.$row->lastname.'</td>
             <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'contactname" style="widtd: 80px" class="middle_size">'.$row->contactname.'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'kindaction" style="widtd: 50px" class="middle_size">'.$langs->trans($row->kindaction).'</td>
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'kindaction" style="widtd: 50px; text-align: center;" class="middle_size" ><img src="/dolibarr/htdocs/theme/'.$conf->theme.'/img/'.$iconitem.'" title="'.$title.'"></td>
             <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'said" style="widtd: 80px" class="middle_size">'.(strlen($row->said)>20?substr($row->said, 0, 20).'...':$row->said).'</td>
             <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'answer" style="widtd: 80px" class="middle_size">'.(strlen($row->answer)>20?substr($row->answer, 0, 20).'...':$row->answer).'</td>
             <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'argument" style="widtd: 80px" class="middle_size">'.(strlen($row->argument)>20?substr($row->argument, 0, 20).'...':$row->argument).'</td>
             <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'said_important" style="widtd: 80px" class="middle_size">'.(strlen($row->said_important)>20?substr($row->said_important, 0, 20).'...':$row->said_important).'</td>
             <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'result_of_action" style="widtd: 80px" class="middle_size">'.(strlen($row->result_of_action)>20?substr($row->result_of_action, 0, 20).'...':$row->result_of_action).'</td>
             <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'work_before_the_next_action" style="widtd: 80px" class="middle_size">'.(strlen($row->work_before_the_next_action)>20?substr($row->work_before_the_next_action, 0, 20).'...':$row->work_before_the_next_action).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'date_next_action" style="widtd: 80px" class="middle_size">'.$dtNextAction->format('d.m.y H:i:s').'</td>
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'date_next_action" style="widtd: 80px" class="middle_size">'.(empty($row->date_next_action)?'':$dtNextAction->format('d.m.y H:i:s')).'</td>
             <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'work_before_the_next_action_mentor" style="widtd: 80px" class="middle_size">'.(strlen($row->work_mentor)>20?substr($row->work_mentor, 0, 20).'...':$row->work_mentor).'</td>
             <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'date_next_action_mentor" style="widtd: 80px" class="middle_size">'.(empty($row->date_mentor)?'':$dtDateMentor->format('d.m.y H:i:s')).'</td>
             <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'action" style="width: 35px" class="middle_size"><script>

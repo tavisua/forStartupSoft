@@ -1018,9 +1018,13 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
             if (!empty($conf->global->MAIN_USE_JQUERY_THEME)) $jquerytheme = $conf->global->MAIN_USE_JQUERY_THEME;
             //Если открывается панель инструментов, подключаю стили форм
 
-            if($_REQUEST['mainmenu'] == 'hourly_plan' || $_REQUEST['mainmenu'] == 'tools' || $_REQUEST['mainmenu']=='hourly_plan' || $_REQUEST['mainmenu']== 'global_task'|| $_REQUEST['mainmenu']=='area' || $_REQUEST['mainmenu'] == 'home' || $_REQUEST['mainmenu']=='companies' || GETPOST('mainmenu')=='companies'){
+            if($_REQUEST['mainmenu'] == 'hourly_plan' || $_REQUEST['mainmenu'] == 'tools' || $_REQUEST['mainmenu']=='plan_of_days' || $_REQUEST['mainmenu']=='hourly_plan' || $_REQUEST['mainmenu']== 'global_task'|| $_REQUEST['mainmenu']=='area' || $_REQUEST['mainmenu'] == 'home' || $_REQUEST['mainmenu']=='companies' || GETPOST('mainmenu')=='companies'){
                 print '<link rel="stylesheet" type="text/css" href="'.DOL_URL_ROOT.'/theme/'.$conf->theme.'/design.css'.($ext?'?'.$ext:'').'"/>'."\n";          //Стиль для фор
                 print '<link rel="stylesheet" type="text/css" href="'.DOL_URL_ROOT.'/theme/'.$conf->theme.'/style-modal.css'.($ext?'?'.$ext:'').'"/>'."\n";     //Стиль модальной формы
+//                if($_REQUEST['mainmenu']=='area') {
+//                    print '<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css">';
+//                    print '<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap-theme.min.css">';
+//                }
             }
             print '<link rel="stylesheet" type="text/css" href="'.DOL_URL_ROOT.'/admin/tools/template/design.css'.($ext?'?'.$ext:'').'"/>'."\n";//Стиль меню
 
@@ -1967,8 +1971,11 @@ if (! function_exists("llxFooter"))
         if ($comment) print '<!-- '.$comment.' -->'."\n";
 
         printCommonFooter($zone);
+//Пагінація
+
 
         if (empty($conf->dol_hide_leftmenu) && empty($conf->dol_use_jmobile) && empty($conf->global->MAIN_MENU_USE_JQUERY_LAYOUT)) print '</div> <!-- End div id-container -->'."\n";	// End div container
+
         print '<div class="footer">В разі виникнення запитань чи виявлення помилок в роботі програми, пишіть в службу підтримки <a href="mailto:tavis.ua@gmail.com?subject=TitSupport">tavis.ua@gmail.com</a></p></div>';
         print '<script type="text/javascript">';
         print '$(".param").keypress(function( b ){';

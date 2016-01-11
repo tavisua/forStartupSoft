@@ -84,6 +84,7 @@ if($action =='cancel') {
 //    if(empty($soc_contact->post))$error++;
 //    if(empty($soc_contact->SphereOfResponsibility))$error++;
 //    if(empty($soc_contact->lastname))$error++;
+
 //    if(empty($soc_contact->firstname))$error++;
 //    if(empty($soc_contact->work_phone))$error++;
 //    if(empty($soc_contact->mobile_phone1))$error++;

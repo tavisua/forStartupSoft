@@ -49,8 +49,8 @@ class societecontact {
         $sql.= empty($this->subdivision)?"null":"'".$db->escape(trim($this->subdivision))."'";
         $sql.= ", ".$this->post.", ".$this->SphereOfResponsibility.", ";
         $sql.= (empty($this->lastname)?("null"):("'".$db->escape(trim($this->lastname))."'")).", ";
-        $sql.= (empty($this->firstname)?"null":"'".$db->escape(trim($this->firstname)))."', ";
-        $sql.= (empty($this->work_phone)?"null":"'".$db->escape(trim($this->work_phone))."'").", ";
+        $sql.= (empty($this->firstname)?("null"):"'".$db->escape(trim($this->firstname))."'").", ";
+        $sql.= (empty($this->work_phone)?("null"):"'".$db->escape(trim($this->work_phone))."'").", ";
         $sql.= (empty($this->call_work_phone)?'0':'1').", ";
         $sql.= (empty($this->fax)?"null":"'".trim($this->fax)."'").", ";
         $sql.= (empty($this->call_fax)?'0':'1').", ";

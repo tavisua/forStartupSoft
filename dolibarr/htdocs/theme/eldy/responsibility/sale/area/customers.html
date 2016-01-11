@@ -45,10 +45,11 @@
             <?echo $table?>
 
     </table>
+
 </div>
         <script>
             $(document).ready(function(){
-                $('#reference_body').attr('height', window.innerHeight - 360);
+                $('#reference_body').attr('height', window.innerHeight - 420);
                 var th = document.getElementsByTagName('th');
                 var left = 30;
                 var widths = [];
@@ -88,11 +89,27 @@
                 if(tdList[tdIndex].id.substr(tdList[tdIndex].id.length-'nom'.length) == 'nom') {
 //                     http://uspex2015.com/dolibarr/htdocs/user/card.php?id=13
                     var id = tdList[tdIndex].id.substr(0, (tdList[tdIndex].id.length - 'nom'.length));
-                    tdList[tdIndex].innerHTML = '<a id = "login_'+id+'" href="/dolibarr/htdocs/societe/soc.php?mainmenu=area&idmenu=<?echo $_REQUEST["idmenu"]?>&action=edit&socid='+id+'"> <img border="0"  alt="" src="/dolibarr/htdocs/theme/eldy/img/object_contact.png">' + (tdList[tdIndex].innerHTML) + '</a>';
-//                     console.log(tdList[tdIndex].id.substr(0, (tdList[tdIndex].id.length - 'login'.length)));
-//                     console.log(id);
+                    if(tdList[tdIndex].id.substr(0,4)!='prev') {
+                        if (!strpos(tdList[tdIndex].innerHTML, '<img'))
+                            tdList[tdIndex].innerHTML = '<a id = "login_' + id + '" href="/dolibarr/htdocs/societe/soc.php?mainmenu=area&idmenu=<?echo $_REQUEST["idmenu"]?>&action=edit&socid=' + id + '"> <img border="0"  alt="" src="/dolibarr/htdocs/theme/eldy/img/object_contact.png">' + (tdList[tdIndex].innerHTML) + '</a>';
+                        else {
+                            var text = tdList[tdIndex].innerHTML.substr(0, strpos(tdList[tdIndex].innerHTML, '<img'));
+                            tdList[tdIndex].innerHTML = '<a id = "login_' + id + '" href="/dolibarr/htdocs/societe/soc.php?mainmenu=area&idmenu=<?echo $_REQUEST["idmenu"]?>&action=edit&socid=' + id + '"> <img border="0"  alt="" src="/dolibarr/htdocs/theme/eldy/img/object_contact.png">' + (text) + '</a>' +
+                            tdList[tdIndex].innerHTML.substr(strpos(tdList[tdIndex].innerHTML, '<img'));
+                        }
+                    }
                 }
             }
         }
     })
+    function preview(object){
+        console.log(object);
+        $("#prev_form").text($("#full"+object).text());
+        location.href="#peview_form";
+//        $("#peview_form").offset({top:10, left:10});
+    }
+    function strpos( haystack, needle, offset){ // Find position of first occurrence of a string
+        var i = haystack.indexOf( needle, offset ); // returns -1
+        return i >= 0 ? i : false;
+    }
 </script>

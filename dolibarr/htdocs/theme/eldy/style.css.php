@@ -1883,6 +1883,8 @@ table.liste td {
 	font-family: <?php print $fontlist ?>;
 	border: 0px;
 	margin-bottom: 1px;
+<!--    border-bottom: solid #000000;-->
+<!--    border-bottom-width: thin;-->
 	color: #202020;
 }
 

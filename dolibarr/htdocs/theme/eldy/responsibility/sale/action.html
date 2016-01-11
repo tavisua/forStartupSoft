@@ -52,21 +52,37 @@
         <!--</tbody>-->
     </table>
 </div>
+<!--<script>-->
+    <!--$(document).ready(function(){-->
+        <!--$("#contactlist_body").find('td').css("border-color","transparent");-->
+    <!--})-->
+<!--</script>-->
 
 <div>
-    <button title="Скрити чи відобразити таблицю 'Дії'">    Скрити дії    </button>
-    <button title="Додати запис в таблицю 'Дії'" onclick="location.href=location.href+'&action=add'">    Додати дію    </button>
-    <button title="Додати інформацію про потреби">    Потреби    </button>
-    <button>    В роботу    </button>
-    <button>    Структура    </button>
-    <button>    Повідомити    </button>
-    <button>    Звітувати    </button>
+    <form method="post" action="" id="actionbuttons">
+        <input type="hidden" value="<?=$_SERVER['REQUEST_URI']?>" name="backtopage">
+        <input type="hidden" value="create" name="action">
+        <input type="hidden" value="<?=$_GET['socid']?>" name="socid">
+        <input type="hidden" value="hourly_plan" name="mainmenu">
+        <input type="hidden" value="<?=$datep->format('d.m.Y')?>" name="datep">
+
+        <button title="Скрити чи відобразити таблицю 'Дії'">    Скрити дії    </button>
+
+        <button title="Додати запис в таблицю 'Дії'" onclick="AddAction();">    Додати дію    </button>
+
+        <!--<button title="Додати запис в таблицю 'Дії'" onclick="location.href=location.href+'&action=add'">    Додати дію    </button>-->
+        <button title="Додати інформацію про потреби">    Потреби    </button>
+        <button>    В роботу    </button>
+        <button>    Структура    </button>
+        <button>    Повідомити    </button>
+        <button>    Звітувати    </button>
+    </form>
     <table>
         <thead>
         <tr class="header_table">
             <th style="width: 80px" class="middle_size">Дата і час внесення</th>
             <th style="width: 100px" class="middle_size">Хто від нас вносив</th>
-            <th style="width: 80px" class="middle_size">З ким діяли</th>
+            <th style="width: 80px" class="middle_size">Контакт</th>
             <th style="width: 50px" class="middle_size">Вид дій</th>
             <th style="width: 80px" class="middle_size">Що йому озвучили</th>
             <th style="width: 80px" class="middle_size">Що він відповів</th>
@@ -85,11 +101,15 @@
         <!--</tbody>-->
     </table>
     <b>Попередні дії</b></br>
-    <textarea><?echo $object->prehistoric_actions;?></textarea>
+    <textarea id="prev_action"><?echo $object->prehistoric_actions;?></textarea>
 </div>
 <style>
     #reference_body td{
         font-size: 12;
+    }
+    #prev_action{
+        width: 65%;
+        height: 90px;
     }
 </style>
 <script>
@@ -107,4 +127,9 @@
             $('#contactlist').show();
         }
     }
+    function AddAction(){
+        $("#actionbuttons").attr('action', '/dolibarr/htdocs/comm/action/card.php');
+        console.log($("#actionbuttons").attr('action'));
+    }
+
 </script>

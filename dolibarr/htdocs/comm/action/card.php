@@ -785,7 +785,7 @@ if ($action == 'create')
             $thirdparty_list = $form->select_thirdparty_list('','socid','',1,1,0,$events);
 		}
         $thirdparty_list = substr($thirdparty_list, 0, strpos($thirdparty_list, 'name')).' onchange="SocIdChange();" '.substr($thirdparty_list, strpos($thirdparty_list, 'name'));
-//        var_dump(htmlspecialchars($thirdparty_list));
+
         print $thirdparty_list;
 	}
 	print '</td></tr>';

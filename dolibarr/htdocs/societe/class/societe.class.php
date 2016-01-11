@@ -1871,7 +1871,7 @@ class Societe extends CommonObject
         // By default
         if (empty($lien))
         {
-            $lien = '<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$this->id;
+            $lien = '<a href="'.DOL_URL_ROOT.'/societe/soc.php?socid='.$this->id.'&mainmenu=area&idmenu=10425&action=edit';
         }
 
         // Add type of canvas

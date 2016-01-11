@@ -1,0 +1,87 @@
+<div class="dataTables_paginate paging_simple_numbers" id="tenderTable_paginate">
+	<ul class="pagination">
+		<?php
+
+//		$page = 0;
+//		$search = '';
+////		$search = $data['search'];
+//		$city = '';
+//		$total = 5;
+//        var_dump($total);
+        $companyname = '';
+		$isPrev = $page > 1 ? '' : 'disabled';
+		$isNext = $page < $total ? '' : 'disabled';
+        $cityParts = explode(' ', $city);
+        $city = implode('+', $cityParts);
+//        $nameParts = explode(' ', $search);
+//        $search = implode('+', $nameParts);
+        if($total == 1 || empty($total))
+            exit();
+		?>
+			<li class="paginate_button previous <?=$isPrev?>" tabindex="0">
+<!--                --><?php
+//                    if(isset($dbData['rq_page_link'])){
+//                ?>
+                    <a href="<?=$link_page?>&page=<?= $page-1 ?>&per_page=<?=$per_page?>"><?echo $langs->trans('Previous')?></a></li>
+<!--                --><?php
+//                }else{
+//                    ?>
+<!--		    		<a href="/search.php?ofertas-trabajo=--><?//= $search ?><!--&en=--><?//= $city ?><!--&de=--><?//= $companyname ?><!--&page=--><?//=($page-1)>0?$page-1:1 ?><!--">--><?//echo $langs->trans('Previous')?><!--</a></li>-->
+<!--                --><?php //}
+//                ?>
+
+            <?php
+            $QtPerSide = 5;
+//            if($page <= $QtPerSide){
+                $start_page = 1;
+//            }
+
+
+            if($total >= 10) {
+                $start_page = $page - $QtPerSide;
+                if($start_page<1)$start_page=1;
+                $end_page = $start_page + $QtPerSide * 2;
+                if($end_page>$total) {
+                    $end_page = $total;
+                    $start_page = $end_page-9;
+
+                }
+            }else
+                $end_page = $total+1;
+//            var_dump($start_page);
+			for ( $i = $start_page; $i < $end_page; $i++) {
+                $isActive = $i == $page ? 'active' : '';
+                if ($i > 1) {
+                    ?>
+                    <li class="paginate_button <?= $isActive ?>" tabindex="0">
+                        <a href="<?=$link_page?>&page=<?= $i ?>&per_page=<?=$per_page?>"><?= $i ?></a>
+<!--                            <a href="/ofertas-trabajo---><?//= $search ?><!----><?//= !empty($city) ? '-en-' . $city : '' ?><!--/--><?//= $i ?><!--.html">--><?//= $i ?><!--</a>-->
+                    </li>
+                <?php
+                } else {
+                    ?>
+                    <li class="paginate_button <?= $isActive ?>" tabindex="0">
+                        <a href="<?=$link_page?>&page=<?= $i ?>&per_page=<?=$per_page?>"><?= $i ?></a>
+                    </li>
+                <?php
+                }
+            }
+            ?>
+<!--		<li class="paginate_button disabled" tabindex="0">-->
+<!--			<a href="#">…</a></li>-->
+
+		<li class="paginate_button next <?=$isNext?>"  tabindex="0">
+<!--            --><?php
+//            if(isset($dbData['rq_page_link'])){
+//            ?>
+                <a href="<?=$link_page?>&page=<?= $page+1 ?>&per_page=<?=$per_page?>"><?echo $langs->trans('Next')?></a>
+<!--            --><?php
+//            }else{
+//            ?>
+<!--                <a href="/search.php?ofertas-trabajo=--><?//= $search ?><!--&en=--><?//= $city ?><!--&de=--><?//= $companyname ?><!--&page=--><?//= ($page + 1)>$total?$total:($page + 1) ?><!--">--><?//echo $langs->trans('Next')?><!--</a>-->
+<!--            --><?php
+//            }
+//            ?>
+        </li>
+	</ul>
+</div>

@@ -6,7 +6,13 @@
  * Time: 11:32
  */
  $region_id = $_SESSION['region_id'];
-//var_dump($_SESSION['region_id']);
+$search = explode(',',$_GET['search']);
+$search_array = array();
+foreach($search as $elem) {
+    $tmp = explode('=>', $elem);
+    $search_array[$tmp[0]]=$tmp[1];
+}
+//var_dump($search_array);
 //die();
 
 $sql = 'select `llx_societe`.rowid, `llx_societe`.nom,
@@ -16,51 +22,72 @@ $sql = 'select `llx_societe`.rowid, `llx_societe`.nom,
 from `llx_societe` left join `category_counterparty` on `llx_societe`.`categoryofcustomer_id` = `category_counterparty`.rowid
 left join `formofgavernment` on `llx_societe`.`formofgoverment_id` = `formofgavernment`.rowid
 left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`';
-
+$sql_count = 'select count(*) iCount from `llx_societe`';
 if($region_id != 0) {
-    $sql .= ' where `region_id` = ' . $region_id . ' ';
-    $sql .= 'and `llx_societe`.`categoryofcustomer_id` in
+    $tmp = ' where `region_id` = ' . $region_id . ' ';
+    $tmp .= 'and `llx_societe`.`categoryofcustomer_id` in
 (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = '.$user->respon_id.')';
-}else
+    $sql.=$tmp;
+    $sql_count.=$tmp;
+}else {
     $sql .= ' where 1 ';
-if(!$user->admin)
-    $sql .= ' and `llx_societe`.`fk_user_creat`='.$user->id;
+    $sql_count.=' where 1 ';
+}
+if(!$user->admin) {
+    $tmp = ' and `llx_societe`.`fk_user_creat`=' . $user->id;
+    $sql.=$tmp;
+    $sql_count.=$tmp;
+}
 $sql .= ' order by width desc, nom';
+$page = isset($_GET['page'])?$_GET['page']:1;
+$per_page = isset($_GET['per_page'])?$_GET['per_page']:30;
+$sql .= ' limit '.($page-1)*$per_page.','.$per_page;
+$res = $db->query($sql_count);
+$count = $db->fetch_object($res);
+//var_dump(ceil($count->iCount/$per_page));
+//die();
+$total = ceil($count->iCount/$per_page);
 //die($sql);
 $TableParam = array();
 $ColParam['title']='';
 $ColParam['width']='178';
 $ColParam['align']='';
 $ColParam['class']='';
+$ColParam['substr']='20';
 $TableParam[]=$ColParam;
+unset($ColParam['substr']);
 
 $ColParam['title']='';
 $ColParam['width']='98';
 $ColParam['align']='';
 $ColParam['class']='';
-$ColParam['substr']='16';
+$ColParam['substr']='10';
 $TableParam[]=$ColParam;
-unset($ColParam['substr']);
+
+
 $ColParam['title']='';
 $ColParam['width']='50';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
+
 $ColParam['title']='';
 $ColParam['width']='129';
 $ColParam['align']='';
 $ColParam['class']='';
+$ColParam['substr']='15';
 $TableParam[]=$ColParam;
+unset($ColParam['substr']);
 
 $ColParam['title']='';
-$ColParam['width']='98';
+$ColParam['width']='100';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
 $ColParam['title']='';
-$ColParam['width']='98';
+$ColParam['width']='100';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
@@ -128,6 +155,13 @@ $table = fShowTable($TableParam, $sql, "'" . $tablename . "'", $conf->theme, $_R
 //$row = $db_mysql->fShowTable($TableParam, $sql, "'" . $tablename . "'", $conf->theme, $_REQUEST['sortfield'], $_REQUEST['sortorder'], $readonly = array(-1), false);
 
 include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/area/customers.html');
+$prev_form = "<a href='#x' class='overlay' id='peview_form'></a>
+                     <div class='popup' style='width: 300px;height: 150px'>
+                     <textarea readonly id='prev_form' style='width: 100%;height: 100%;resize: none'></textarea>
+                     <a class='close' title='Закрыть' href='#close'></a>
+                     </div>";
+print $prev_form;
+
 return;
 function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $sortorder='', $readonly = array(), $showtitle=true){
     global $user, $conf, $langs, $db;
@@ -299,6 +333,7 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
 //            die();
 //            echo '</br>';
         $num_col = 0;
+        $prev_col=array('nom','town','remark');
         foreach($row as $cell=>$value){
             $col_name = "'".$fields[$num_col]->name."'";
             if($cell != 'rowid') {
@@ -326,14 +361,24 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
                         }
                     } else {
                         if (substr($fields[$num_col]->name, 0, 2) != 's_') {
-
-                            if(strlen(trim($value))>0)
-                                $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:'.($col_width[$num_col-1]+2).'px;">'.
-                                    (isset($title[$num_col-1]["substr"])?mb_substr(trim($langs->trans($value)),0,$title[$num_col-1]["substr"], 'UTF-8')
-                                        :trim($langs->trans($value))). '</td>';
-                            else
+                            $full_text='';
+                            if(mb_strlen(trim($value))>0) {
+                                $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:' . ($col_width[$num_col - 1] + 2) . 'px;">';
+                                if(!isset($title[$num_col - 1]['substr'])||mb_strlen(trim($value))<10)
+                                    $table .= trim($langs->trans($value));
+                                else {
+                                    $obj="'".$row['rowid'] . $fields[$num_col]->name."'";
+                                    $table .= mb_substr(trim($langs->trans($value)), 0, $title[$num_col - 1]['substr']) . '...
+                                    <img id="prev' . $row['rowid'] . $fields[$num_col]->name . '" onclick="preview(' . $obj . ');" style="vertical-align: middle" title="Передивитись" src="/dolibarr/htdocs/theme/eldy/img/object-more.png">';
+                                }
+                                $table .='</td>';
+                                $full_text = trim($value);
+                            }else
                                 $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '"  style="width:'.($col_width[$num_col-1]+2).'px; text-align: center;">'.(isset($actionfields[$fields[$num_col]->name])?
                                         '<a href="../'.$actionfields[$fields[$num_col]->name].'/action.php?socid='.$row['rowid'].'&idmenu=10425&mainmenu=area"><img src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/object_action.png"></a>':'').' </td>';
+
+                            if(in_array(trim($fields[$num_col]->name), $prev_col))
+                                $table .='<td style="display: none" id="full'.$row['rowid'] . $fields[$num_col]->name.'">'.$full_text.'</td>';
                         }
                         else {
 

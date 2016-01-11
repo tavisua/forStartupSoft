@@ -9,6 +9,60 @@
 .text{
     width: 100%;
 }
+#contactlist td{
+    border: transparent!important;
+}
+.pair td{
+    border-color: #939393!important; /* Цвет границы */
+    border-style: solid!important; /* Стиль границы */
+    border-bottom-width: 1px!important; /* Толщина линии внизу текста */
+    border-top-width: 1px!important; /* Толщина линии над текстом */
+    border-left-width: 0px!important; /* Толщина линии над текстом */
+    border-right-width: 0px!important; /* Толщина линии над текстом */
+}
+/**::before, *::after {*/
+    /*box-sizing: border-box;*/
+/*}*/
+.pagination>.active>a, .pagination>.active>span, .pagination>.active>a:hover, .pagination>.active>span:hover, .pagination>.active>a:focus, .pagination>.active>span:focus {
+    z-index: 2;
+    color: #fff;
+    cursor: default;
+    background-color: #428bca;
+    border-color: #428bca;
+}
+.pagination>li>a, .pagination>li>span {
+    position: relative;
+    float: left;
+    padding: 6px 12px;
+    margin-left: -1px;
+    line-height: 1.42857143;
+    color: #428bca;
+    text-decoration: none;
+    background-color: #fff;
+    border: 1px solid #ddd;
+}
+.pagination a:hover {
+    color: #428bca;
+    text-decoration: none;
+    background-color: rgb(238,238,238);
+}
+.pagination > li > a, .pagination > li > span {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    color: #428bca;
+    float: left;
+    line-height: 1.42857;
+    margin-left: -1px;
+    padding: 6px 12px;
+    position: relative;
+    text-decoration: none;
+}
+.pagination > li {
+    display: inline;
+}
+/** {*/
+    /*box-sizing: border-box;*/
+/*}*/
 #modal_form {
     width: 300px;
     height: 300px; /* Рaзмеры дoлжны быть фиксирoвaны */
