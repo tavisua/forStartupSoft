@@ -41,10 +41,10 @@ $hour = 8;
 $split=array();
 //global $conf;
 //var_dump($conf->browser->name);
-if(!isset($_POST['date'])){
+if(!isset($_REQUEST['date'])){
     $date = date('d.m.Y');
 }else{
-    $date = GETPOST('date', 'alpha');
+    $date = $_REQUEST['date'];
 }
 $dateQuery = new DateTime($date);
 //var_dump($dateQuery->format('Y-m-d'));

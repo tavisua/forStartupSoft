@@ -571,8 +571,8 @@ if (empty($reshook))
                         header("Location: /dolibarr/htdocs/societe/index.php?mainmenu=companies&amp;amp;leftmenu=&idmenu=5217&mainmenu=companies&leftmenu=");
                     	exit;
                     }elseif(GETPOST('mainmenu') == 'area'){
-                        var_dump($action);
-                        die();
+//                        var_dump($action);
+//                        die();
                         header("Location: /dolibarr/htdocs/responsibility/sale/area.php?idmenu=10425&mainmenu=area&leftmenu=");
                         exit;
                     }

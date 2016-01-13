@@ -479,7 +479,7 @@ class societecontact {
         `subdivision`= "'.$db->escape(trim($this->subdivision)).'",
         `town_id` = '.(empty($this->town_id)?0:$this->town_id).',
         `post_id` = '.(empty($this->post)?0:$this->post).',
-        `respon_id`= '.(empty($this->SphereOfResponsibility)?null:$this->SphereOfResponsibility).',
+        `respon_id`= '.(empty($this->$SphereOfResponsibility)?"null":$this->SphereOfResponsibility).',
         `lastname` = "'.$db->escape(trim($this->lastname)).'",
         `firstname` = "'.$db->escape(trim($this->firstname)).'",
         `work_phone`= "'.trim($this->work_phone).'",
@@ -495,9 +495,12 @@ class societecontact {
         `email2` = "'.trim($this->email2).'",
         `send_email2` = '.(empty($this->send_email2)?0:$this->send_email2).',
         `skype` = "'.trim($this->skype).'",
-        `call_skype` = '.(empty($this->call_skype)?0:$this->call_skype).',
-        `birthdaydate` = "'.$date->format('Y-m-d').'",
-        `send_birthdaydate` = '.(empty($this->send_birthdaydate)?0:$this->send_birthdaydate).',
+        `call_skype` = '.(empty($this->call_skype)?0:$this->call_skype).',';
+        if(!empty($this->birthdaydate))
+            $sql.='`birthdaydate` = "'.$date->format('Y-m-d').'",';
+        else
+            $sql.='`birthdaydate` = null,';
+        $sql.='`send_birthdaydate` = '.(empty($this->send_birthdaydate)?0:$this->send_birthdaydate).',
         `socid` = '.$this->socid.', id_usr = '.$user->id.' where rowid='.$this->rowid;
         $sql = str_replace('"', "'", $sql);
 //        die($sql);

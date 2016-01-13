@@ -29,6 +29,7 @@
             <th colspan="2" id="service_action">Дії сервісн. служби</th>
             <th colspan="2" id="accounts_action">Дії бухгалтерії</th>
             <th colspan="2" id="mentor_action">Перевірки наставником</th>
+            <th width="50px" rowspan="2">Активне</th>
         </tr>
         <tr class="multiple_header_table">
             <th width="75px" class="middle_size">Останні</th>
@@ -108,6 +109,38 @@
         location.href="#peview_form";
 //        $("#peview_form").offset({top:10, left:10});
     }
+    function change_switch(rowid){
+        var x;
+        x = document.getElementById('img' + rowid );
+
+        //console.log('img' + rowid + col_name);
+        var check = false;
+        var end = strpos(x.src, '/img/');
+        //console.log(x.src);
+        //console.log(x.src.substr(0, end+4)+'/switch_on.png');
+        if(x.src == x.src.substr(0, end+4)+'/switch_on.png'){
+            x.src = x.src.substr(0, end+4)+'/switch_off.png';
+        }else{
+            x.src =  x.src.substr(0, end+4)+'/switch_on.png';
+            check = true;
+        }
+        if(rowid != 0) {
+            var link = 'http://'+location.hostname+'/dolibarr/htdocs/DBManager/dbManager.php?rowid='+rowid+'&edit=1&tablename=llx_societe&col_name=active&value='+check;
+            console.log(link);
+            update_data(link);
+        }
+    }
+    function update_data(link){
+        var id_usr = document.getElementById('user_id').value;
+        $.ajax({
+            url: link+'&id_usr='+id_usr,
+            cache: false,
+            success: function (html) {
+                console.log(html);
+            }
+        });
+
+    };
     function strpos( haystack, needle, offset){ // Find position of first occurrence of a string
         var i = haystack.indexOf( needle, offset ); // returns -1
         return i >= 0 ? i : false;

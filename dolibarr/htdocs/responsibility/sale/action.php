@@ -261,6 +261,8 @@ function ShowActionTable(){
     inner join (select code, libelle label from `llx_c_actioncomm` where active = 1 and (type = "system" or  type = "user")) TypeCode on TypeCode.code = `llx_actioncomm`.code
     left join `llx_societe_contact` on `llx_societe_contact`.rowid=`llx_actioncomm`.fk_contact
     where fk_soc = '.$_REQUEST['socid'];
+
+//    die($sql);
     $res = $db->query($sql);
     if(!$res){
         dol_print_error($db);

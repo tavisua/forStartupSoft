@@ -67,6 +67,7 @@ if (! $sortfield) $sortfield="a.datec";
 $socid = GETPOST("socid","int");
 if ($user->societe_id) $socid=$user->societe_id;
 $result = restrictedArea($user, 'agenda', 0, '', 'myactions');
+
 if ($socid < 0) $socid='';
 
 $canedit=1;

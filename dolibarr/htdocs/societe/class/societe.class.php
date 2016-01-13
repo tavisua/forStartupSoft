@@ -936,6 +936,7 @@ class Societe extends CommonObject
 //            die($sql);
             dol_syslog(get_class($this)."::Update", LOG_DEBUG);
             $resql=$this->db->query($sql);
+
             if ($resql)
             {
             	unset($this->country_code);		// We clean this because it may have been changed after an update of country_id

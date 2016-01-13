@@ -30,10 +30,14 @@ if($region_id != 0) {
     $sql.=$tmp;
     $sql_count.=$tmp;
 }else {
-    $sql .= ' where 1 ';
-    $sql_count.=' where 1 ';
+    $sql .= ' where `llx_societe`.active = 1 ';
+    $sql_count.=' where `llx_societe`.active = 1 ';
 }
-if(!$user->admin) {
+//echo '<pre>';
+//var_dump($user->id);
+//echo '</pre>';
+
+if($user->login != 'admin') {
     $tmp = ' and `llx_societe`.`fk_user_creat`=' . $user->id;
     $sql.=$tmp;
     $sql_count.=$tmp;
@@ -142,6 +146,12 @@ $TableParam[]=$ColParam;
 
 $ColParam['title']='';
 $ColParam['width']='75';
+$ColParam['align']='';
+$ColParam['class']='';
+$TableParam[]=$ColParam;
+
+$ColParam['title']='';
+$ColParam['width']='50';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
@@ -364,12 +374,14 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
                             $full_text='';
                             if(mb_strlen(trim($value))>0) {
                                 $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:' . ($col_width[$num_col - 1] + 2) . 'px;">';
-                                if(!isset($title[$num_col - 1]['substr'])||mb_strlen(trim($value))<10)
+                                if(!isset($title[$num_col - 1]['substr'])||mb_strlen(trim($value), 'UTF-8')<=$title[$num_col - 1]['substr'])
                                     $table .= trim($langs->trans($value));
                                 else {
+
                                     $obj="'".$row['rowid'] . $fields[$num_col]->name."'";
-                                    $table .= mb_substr(trim($langs->trans($value)), 0, $title[$num_col - 1]['substr']) . '...
-                                    <img id="prev' . $row['rowid'] . $fields[$num_col]->name . '" onclick="preview(' . $obj . ');" style="vertical-align: middle" title="Передивитись" src="/dolibarr/htdocs/theme/eldy/img/object-more.png">';
+                                    $table .= mb_substr(trim($value), 0, $title[$num_col - 1]['substr'], 'UTF-8') . '...';
+//                                    $table .= mb_strlen(trim($value), 'UTF-8').'%%%'.trim($value);
+                                    $table .='<img id="prev' . $row['rowid'] . $fields[$num_col]->name . '" onclick="preview(' . $obj . ');" style="vertical-align: middle" title="Передивитись" src="/dolibarr/htdocs/theme/eldy/img/object-more.png">';
                                 }
                                 $table .='</td>';
                                 $full_text = trim($value);
@@ -389,11 +401,6 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
                             $s_table = substr($fields[$num_col]->name, 2, strpos($fields[$num_col]->name, '_', $stpos) - 2);
                             $s_fieldname = substr($fields[$num_col]->name, strpos($fields[$num_col]->name, '_', $stpos) + 1);
 
-//                                $selectlist = str_replace('selected=\"selected\"', '', $this->selectlist['edit_' . $s_table . '_' . $s_fieldname]);
-//                                if('regions' == $s_table) {
-//                                    var_dump($selectlist);
-//                                    die($value);
-//                                }
                             $selectlist = substr($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], 0, strpos($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], $value) - 1) . ' selected = "selected" ' . substr($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], strpos($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], $value) - 1);
 
                             $selectlist = str_replace('class="edit_' . substr($fields[$num_col]->name, 2) . '"', '', $selectlist);
@@ -445,6 +452,7 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
 //
 //            var_dump(count($readonly)==0);
 //            die();
+        $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:'.($col_width[$num_col-1]+2).'px" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png" onclick="change_switch(' . $row['rowid'] . ');" > </td>';
         if(count($readonly)==0 && $showtitle) {
             $table .= '<td style="width: 20px" align="left">
 
@@ -453,6 +461,7 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
 
                        </td>';
         }
+
         $table .= '</tr>';
     }
     $table .= '</tbody>'."\r\n";

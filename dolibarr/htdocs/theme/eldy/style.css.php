@@ -236,7 +236,7 @@ height:100%;
     <?php print 'direction: '.$langs->trans("DIRECTION").";\n"; ?>
 }
 
-a:link, a:visited, a:hover, a:active { font-family: <?php print $fontlist ?>; font-weight: bold; color: #4A4A4A; text-decoration: none;  }
+a:link, a:visited, a:hover, a:active, .link { font-family: <?php print $fontlist ?>; font-weight: bold; color: #4A4A4A; text-decoration: none; cursor:pointer;}
 
 a:hover { text-decoration: underline; color: #000000;}
 
