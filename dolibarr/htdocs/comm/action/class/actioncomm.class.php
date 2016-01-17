@@ -101,6 +101,7 @@ class ActionComm extends CommonObject
     var $percentage;    // Percentage
     var $location;      // Location
     var $period;        //Period ReExecution
+    var $parent_id;     //Parent action id
 
 	var $transparency;	// Transparency (ical standard). Used to say if people assigned to event are busy or not by event. 0=available, 1=busy, 2=busy (refused events)
     var $priority;      // Small int (0 By default)
@@ -110,6 +111,7 @@ class ActionComm extends CommonObject
 	var $userassigned = array();	// Array of user ids
     var $userownerid;		// Id of user owner
     var $userdoneid;	// Id of user done
+    var $resultaction = array();
 
     /**
      * Object user of owner
@@ -264,6 +266,7 @@ class ActionComm extends CommonObject
         $sql.= "fk_action,";
         $sql.= "code,";
         $sql.= "fk_soc,";
+        $sql.= "fk_parent,";
         $sql.= "fk_project,";
         $sql.= "note,";
         $sql.= "fk_contact,";
@@ -285,6 +288,7 @@ class ActionComm extends CommonObject
         $sql.= (isset($this->type_id)?$this->type_id:"null").",";
         $sql.= (isset($this->type_code)?" '".$this->type_code."'":"null").",";
         $sql.= ((isset($this->socid) && $this->socid > 0)?" '".$this->socid."'":"null").",";
+        $sql.= ((isset($this->parent_id) && $this->parent_id > 0)?" '".$this->parent_id."'":"null").",";
         $sql.= ((isset($this->fk_project) && $this->fk_project > 0)?" '".$this->fk_project."'":"null").",";
         $sql.= " '".$this->db->escape($this->note)."',";
         $sql.= ((isset($this->contactid) && $this->contactid > 0)?"'".$this->contactid."'":"null").",";
@@ -484,6 +488,22 @@ class ActionComm extends CommonObject
         {
             $this->error=$this->db->lasterror();
             return -1;
+        }
+        $sql = 'select `rowid`,`said`,`answer`, `argument`,`said_important`,`result_of_action`,`work_before_the_next_action`
+        from llx_societe_action where action_id='.$id.' limit 1';
+        $resql=$this->db->query($sql);
+        if ($resql) {
+            $num = $this->db->num_rows($resql);
+            if ($num) {
+                $obj = $this->db->fetch_object($resql);
+                $this->resultaction['rowid']                         = $obj->rowid;
+                $this->resultaction['said']                          = $obj->said;
+                $this->resultaction['answer']                        = $obj->answer;
+                $this->resultaction['argument']                      = $obj->argument;
+                $this->resultaction['said_important']                = $obj->said_important;
+                $this->resultaction['result_of_action']              = $obj->result_of_action;
+                $this->resultaction['work_before_the_next_action']   = $obj->work_before_the_next_action;
+            }
         }
 
         return $num;

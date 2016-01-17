@@ -21,8 +21,9 @@
             </div>
             <div><form id="addaction" action="/dolibarr/htdocs/comm/action/card.php" method="post">
                 <input type="hidden" name="backtopage" value="'<?echo $backtopage?>'">
-                <input type="hidden" name="action" value="create">
+                <input type="hidden" name="action" value="create" id="action">
                 <input type="hidden" name="mainmenu" value="hourly_plan">
+                <input type="hidden" name="id" value="" id="id">
                 <input type="hidden" name="datep" value="20151130100000">
                 <button type="submit" title="Додати запис в таблицю 'Дії'"> Додати дію </button>
             </form> </div>
@@ -47,6 +48,7 @@
             });
             var basic_top =$('#taskfield').offset().top;
             $('div.split').hide();
+
             var ua = navigator.userAgent;
             var bName = function () {
                 if (ua.search(/MSIE/) > -1) return "ie";
@@ -90,6 +92,11 @@
 
             }
         })
+        function EditAction(rowid){
+            $('#id').val(rowid);
+            $('#action').val('edit');
+            $('#addaction').submit();
+        }
         function SetTaskParam(prev, task){
 //            console.log($("#"+prev.id).offset().top, task);
 //            if(prev == null)return;

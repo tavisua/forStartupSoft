@@ -4304,7 +4304,8 @@ class Form
         		   </script>';
         }
 
-        $out.='<select id="'.$htmlname.'" '.($disabled?'disabled="disabled" ':'').'class="flat'.($morecss?' '.$morecss:'').'" name="'.$htmlname.'" '.($moreparam?$moreparam:'').'>';
+//        $out.='<select id="'.$htmlname.'" '.($disabled?'disabled="disabled" ':'').'class="flat'.($morecss?' '.$morecss:'').'" name="'.$htmlname.'" '.($moreparam?$moreparam:'').'>';
+        $out.='<select id="'.$htmlname.'" '.($disabled?'disabled="disabled" ':'').'class="combobox" name="'.$htmlname.'" '.($moreparam?$moreparam:'').'>';
 
         if ($show_empty)
         {

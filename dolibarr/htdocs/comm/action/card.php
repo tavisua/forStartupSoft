@@ -230,6 +230,8 @@ if ($action == 'add')
 		$object->fk_element = GETPOST("fk_element");
 		$object->elementtype = GETPOST("elementtype");
         $object->period = GETPOST("selperiod");
+        $object->parent_id= GETPOST("parent_id");
+//        die($object->parent_id);
 		if (! GETPOST('label'))
 		{
 			if (GETPOST('actioncode') == 'AC_RDV' && $contact->getFullName($langs))
@@ -422,6 +424,7 @@ if ($action == 'update')
 		$object->location    = GETPOST('location');
 		$object->socid       = GETPOST("socid");
 
+
         $object->contactid   = GETPOST("contactid",'int');
 
 		//$object->societe->id = $_POST["socid"];			// deprecated
@@ -517,6 +520,9 @@ if ($action == 'update')
 	{
         if (! empty($backtopage))
         {
+            if(substr($backtopage, 0,1) == "'" && substr($backtopage, mb_strlen($backtopage)-1,1) == "'"){
+                $backtopage = substr($backtopage, 1,mb_strlen($backtopage)-2);
+            }
         	unset($_SESSION['assignedtouser']);
             header("Location: ".$backtopage);
             exit;
@@ -599,7 +605,10 @@ if ($action == 'mupdate')
  */
 
 $help_url='EN:Module_Agenda_En|FR:Module_Agenda|ES:M&omodulodulo_Agenda';
-llxHeader('',$langs->trans("AddAction"),$help_url);
+if ($action == 'create')
+    llxHeader('',$langs->trans("AddAction"),$help_url);
+elseif($action == 'edit')
+    llxHeader('',$langs->trans("EditAction"),$help_url);
 
 $form = new Form($db);
 $formfile = new FormFile($db);
@@ -608,7 +617,7 @@ $formactions = new FormActions($db);
 if ($action == 'create')
 {
 	$contact = new Contact($db);
-    print '<div class="tabPage">';
+    print '<div class="tabBar">';
 	if (GETPOST("contactid"))
 	{
 		$result=$contact->fetch(GETPOST("contactid"));
@@ -662,7 +671,8 @@ if ($action == 'create')
 	print '<form name="formaction" action="'.$_SERVER['PHP_SELF'].'" method="POST">';
 	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
 	print '<input type="hidden" name="action" value="add">';
-	print '<input type="hidden" name="mainmenu" value="hourly_plan">';
+	print '<input type="hidden" name="mainmenu" value="'.$_REQUEST["mainmenu"].'">';
+	print '<input type="hidden" name="parent_id" value="'.$_REQUEST["parent_id"].'">';
 	print '<input type="hidden" name="donotclearsession" value="1">';
 	print '<input type="hidden" name="backtopage" value="'.($backtopage != '1' ? $backtopage : $_SERVER["HTTP_REFERER"]).'">';
 
@@ -917,140 +927,21 @@ if ($action == 'create')
 
 	print "</form>";
     print '</div>';
-    print '<style>
-            .tabPage{
-                width: 800px;
-                background-image: -moz-linear-gradient(center bottom , rgba(110, 110, 110, 0.5) 25%, rgba(210, 210, 210, 0.5) 100%);
-                border-color: #ccc #bbb #bbb;
-                border-radius: 6px;
-                border-style: solid;
-                border-width: 1px;
-                box-shadow: 3px 3px 4px #ddd;
-                color: #444;
-                margin: 0 0 14px;
-                padding: 9px 8px 8px;
-            }
-           </style>
-    <script>
-        $(document).ready(function(){
-            $("#actioncode").removeClass("flat");
-            $("#actioncode").addClass("combobox");
-            $("#actioncode").unbind("change");
-            $("#contactid").removeClass("flat");
-            $("#contactid").addClass("combobox");
-            $("#socid").removeClass("flat");
-            $("#socid").addClass("combobox");
-            if($("#actioncode").val() != "AC_GLOBAL")
-                $("#period").hide();
-            else
-                $("#period").show();
-        });
-
-        function SocIdChange(){
-            if($("select#socid").val() == -1) return;
-            var link = "http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=get_contactlist&socid="+$("select#socid").val();
-            console.log(link);
-            $.ajax({
-                url: link,
-                cahce: false,
-                success: function(html){
-                    $("select#contactid").find("option").remove();
-                    var optionList = html.substr(strpos(html, "<option value="));
-                    optionList = optionList.substr(0, strpos(optionList, "</select>"));
-                    $("select#contactid").append(optionList);
-                }
-            })
-        }
-        function strpos( haystack, needle, offset){ // Find position of first occurrence of a string
-            var i = haystack.indexOf( needle, offset ); // returns -1
-            return i >= 0 ? i : false;
-        }
-        function dpChangeDay(id, format){
-            if(id == "ap"){
-                $("#p2").val($("#ap").val())
-                $("#p2day").val($("#apday").val());
-                $("#p2month").val($("#apmonth").val());
-                $("#p2year").val($("#apyear").val());
-            }
-        }
-        function setP2(){
-            console.log($("select#apmin").val());
-            if($("select#apmin").val() == -1) return;
-            else if($("select#apmin").val() != "-1") {
-                if($("select#actioncode").val()!=0){
-                    if($("#actioncode").val() != "AC_GLOBAL")
-                        $("#period").hide();
-                    else
-                        $("#period").show();
-                    var link = "http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=get_exectime&code="+$("#actioncode").val();
-                    console.log(link);
-                    $.ajax({
-                        url:link,
-                        cache: false,
-                        success: function(html){
-                            var hour = parseInt(document.getElementById("aphour").value)+Math.floor(html/60);
-                            document.getElementById("p2hour").value = hour<10?("0"+hour):hour;
-                            var p2min = 0;
-
-                            if(parseInt(html)%60){
-                                p2min = parseInt(document.getElementById("apmin").value)+parseInt(html);
-                                document.getElementById("p2hour").value =
-                                    parseInt(document.getElementById("aphour").value)+Math.floor(p2min/60);
-                            }else{
-                               p2min = parseInt(document.getElementById("apmin").value);
-                               var hour = parseInt(html)+parseInt(document.getElementById("aphour").value);
-                               document.getElementById("p2hour").value = hour<10?("0"+hour):hour;
-                            }
-                            var min="";
-                            if(p2min%60<10)
-                                min = "0"+(p2min%60).toString();
-                            else
-                                min = (p2min%60).toString();
-
-                            document.getElementById("p2min").value = min;
-//                            if(Math.floor(p2min/60)>0){
-////                                var min="";
-////                                if(p2min%60<10)
-////                                    min = "0"+(p2min%60).toString();
-////                                else
-////                                    min = (p2min%60).toString();
-//                                document.getElementById("p2min").value = min;
-//                            }else{
-//
-//                                document.getElementById("p2min").value = min;
-//                            }
-//                            console.log(p2min%60);
-                        }
-                    })
-                }else{
-                    alert("Будь ласка вкажіть тип дії");
-                }
-            }
-        }
-        function ActionCodeChanged(){
-            if(!$("#ap").val()){
-                var date = new Date();
-                var month = date.getMonth()+1;
-                var day = date.getDate();
-                var year = date.getFullYear();
-                $("#apday").val(day);
-                $("#apmonth").val(month);
-                $("#apyear").val(year);
-
-
-                $("#ap").val((day<10 ? "0" : "") + day+"."+(month<10 ? "0" : "") + month+"."+year);
-            }
-//            console.log($("#aphour").val() ,$("#apmin").val());
-            if($("#aphour").val() == -1 || $("#apmin").val() == -1){
-                document.getElementById("aphour").value=formatDate(new Date(), "HH");
-                document.getElementById("apmin").value=formatDate(new Date(), "mm");
-            }
-            dpChangeDay("ap","dd.MM.yyyy");
-            setP2();
-
-//            console.log($("#actioncode").val());
-        }
-    </script>';
+//    print '<style>
+//            .tabBar{
+//                width: 800px;
+//                background-image: -moz-linear-gradient(center bottom , rgba(110, 110, 110, 0.5) 25%, rgba(210, 210, 210, 0.5) 100%);
+//                border-color: #ccc #bbb #bbb;
+//                border-radius: 6px;
+//                border-style: solid;
+//                border-width: 1px;
+//                box-shadow: 3px 3px 4px #ddd;
+//                color: #444;
+//                margin: 0 0 14px;
+//                padding: 9px 8px 8px;
+//            }
+//           </style>
+//';
 }
 
 // View or edit
@@ -1089,6 +980,7 @@ if ($id > 0)
 
 	if ($action == 'edit')
 	{
+        print_fiche_titre($langs->trans("EditAction"));
 	    if (! empty($conf->use_javascript_ajax))
         {
             print "\n".'<script type="text/javascript">';
@@ -1111,11 +1003,22 @@ if ($id > 0)
 	            		$("#fullday").change(function() {
 	            			setdatefields();
 	            		});
+
+                        $("#event_desc").removeClass("tabactive");
+                        $("#event_desc").addClass("tab");
+                        $(".tabBar").width(600);
+                        $("#formaction").width(600);
                    })';
             print '</script>'."\n";
         }
-
-		print '<form name="formaction" action="'.$_SERVER['PHP_SELF'].'" method="POST">';
+//        print '<div class="tabPage">';
+        print '<form id="redirect" action="/dolibarr/htdocs/comm/action/result_action.php" method="get">
+                <input type="hidden" name="backtopage" value="'.($backtopage != '1'? $backtopage : $_SERVER["HTTP_REFERER"]).'">
+                <input type="hidden" name="id" value="'.$id.'">
+                <input type="hidden" name="mainmenu" value="'.$_REQUEST["mainmenu"].'">
+                <input type="hidden" name="action" value="edit">
+        </form>';
+		print '<form id = "formaction" name="formaction" action="'.$_SERVER['PHP_SELF'].'" method="POST">';
 		print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
 		print '<input type="hidden" name="action" value="update">';
 		print '<input type="hidden" name="id" value="'.$id.'">';
@@ -1127,22 +1030,22 @@ if ($id > 0)
 
 		print '<table class="border" width="100%">';
 
-		// Ref
-		print '<tr><td width="30%">'.$langs->trans("Ref").'</td><td colspan="3">'.$object->id.'</td></tr>';
-
-		// Type of event
-		if (! empty($conf->global->AGENDA_USE_EVENT_TYPE))
-		{
-			print '<tr><td class="fieldrequired">'.$langs->trans("Type").'</td><td colspan="3">';
-			$formactions->select_type_actions(GETPOST("actioncode")?GETPOST("actioncode"):$object->type_code, "actioncode","systemauto");
-			print '</td></tr>';
-		}
+//		// Ref
+//		print '<tr><td width="30%">'.$langs->trans("Ref").'</td><td colspan="3">'.$object->id.'</td></tr>';
 
 		// Title
 		print '<tr><td'.(empty($conf->global->AGENDA_USE_EVENT_TYPE)?' class="fieldrequired"':'').'>'.$langs->trans("Title").'</td><td colspan="3"><input type="text" name="label" size="50" value="'.$object->label.'"></td></tr>';
 
+        // Type of event
+//		if (! empty($conf->global->AGENDA_USE_EVENT_TYPE))
+//		{
+        print '<tr><td class="fieldrequired">'.$langs->trans("ActionType").'</td><td colspan="3">';
+        $formactions->select_type_actions(GETPOST("actioncode")?GETPOST("actioncode"):$object->type_code, "actioncode","systemauto");
+        print '</td></tr>';
+//		}
+
         // Full day event
-        print '<tr><td class="fieldrequired">'.$langs->trans("EventOnFullDay").'</td><td colspan="3"><input type="checkbox" id="fullday" name="fullday" '.($object->fulldayevent?' checked="checked"':'').'></td></tr>';
+        print '<tr><td>'.$langs->trans("EventOnFullDay").'</td><td colspan="3"><input type="checkbox" id="fullday" name="fullday" '.($object->fulldayevent?' checked="checked"':'').'></td></tr>';
 
 		// Date start
 		print '<tr><td class="nowrap"><span class="fieldrequired">'.$langs->trans("DateActionStart").'</span></td><td colspan="3">';
@@ -1220,11 +1123,11 @@ if ($id > 0)
 			$events[]=array('method' => 'getContacts', 'url' => dol_buildpath('/core/ajax/contacts.php',1), 'htmlname' => 'contactid', 'params' => array('add-customer-contact' => 'disabled'));
 			print $form->select_company($object->socid,'socid','',1,1,0,$events);
 			print '</td>';
-
-			// Contact
-			print '<td>'.$langs->trans("Contact").'</td><td width="30%">';
-			$form->select_contacts($object->socid, $object->contactid,'contactid',1);
-			print '</td></tr>';
+            print '</tr>';
+            // Contact
+            print '<tr><td>'.$langs->trans("Contact").'</td><td width="30%">';
+            $form->select_contacts($object->socid, $object->contactid,'contactid',1);
+            print '</td></tr>';
 		}
 
 		// Project
@@ -1283,6 +1186,8 @@ if ($id > 0)
 		print '</center>';
 
 		print '</form>';
+//        print '</div>';
+
 	}
 	else
 	{
@@ -1579,6 +1484,132 @@ if ($id > 0)
 	    }
 	}
 }
+print '
+ <script>
+        $(document).ready(function(){
+            $("#actioncode").removeClass("flat");
+            $("#actioncode").addClass("combobox");
+            $("#actioncode").unbind("change");
+            $("#contactid").removeClass("flat");
+            $("#contactid").addClass("combobox");
+            $("#socid").removeClass("flat");
+            $("#socid").addClass("combobox");
+            if($("#actioncode").val() != "AC_GLOBAL")
+                $("#period").hide();
+            else
+                $("#period").show();
+            $(".tabBar").width(800);
+            $("#event_desc").on("click", redirect);
+        });
+        function redirect(){
+            $("#redirect").submit();
+        }
+        function SocIdChange(){
+            if($("select#socid").val() == -1) return;
+            var link = "http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=get_contactlist&socid="+$("select#socid").val();
+            console.log(link);
+            $.ajax({
+                url: link,
+                cahce: false,
+                success: function(html){
+                    $("select#contactid").find("option").remove();
+                    var optionList = html.substr(strpos(html, "<option value="));
+                    optionList = optionList.substr(0, strpos(optionList, "</select>"));
+                    $("select#contactid").append(optionList);
+                }
+            })
+        }
+        function strpos( haystack, needle, offset){ // Find position of first occurrence of a string
+            var i = haystack.indexOf( needle, offset ); // returns -1
+            return i >= 0 ? i : false;
+        }
+        function dpChangeDay(id, format){
+            if(id == "ap"){
+                $("#p2").val($("#ap").val())
+                $("#p2day").val($("#apday").val());
+                $("#p2month").val($("#apmonth").val());
+                $("#p2year").val($("#apyear").val());
+            }
+        }
+        function setP2(){
+            console.log($("select#apmin").val());
+            if($("select#apmin").val() == -1) return;
+            else if($("select#apmin").val() != "-1") {
+                if($("select#actioncode").val()!=0){
+                    if($("#actioncode").val() != "AC_GLOBAL")
+                        $("#period").hide();
+                    else
+                        $("#period").show();
+                    var link = "http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=get_exectime&code="+$("#actioncode").val();
+                    console.log(link);
+                    $.ajax({
+                        url:link,
+                        cache: false,
+                        success: function(html){
+                            var hour = parseInt(document.getElementById("aphour").value)+Math.floor(html/60);
+                            document.getElementById("p2hour").value = hour<10?("0"+hour):hour;
+                            var p2min = 0;
+
+                            if(parseInt(html)%60){
+                                p2min = parseInt(document.getElementById("apmin").value)+parseInt(html);
+                                document.getElementById("p2hour").value =
+                                    parseInt(document.getElementById("aphour").value)+Math.floor(p2min/60);
+                            }else{
+                               p2min = parseInt(document.getElementById("apmin").value);
+                               var hour = parseInt(html)+parseInt(document.getElementById("aphour").value);
+                               document.getElementById("p2hour").value = hour<10?("0"+hour):hour;
+                            }
+                            var min="";
+                            if(p2min%60<10)
+                                min = "0"+(p2min%60).toString();
+                            else
+                                min = (p2min%60).toString();
+
+                            document.getElementById("p2min").value = min;
+//                            if(Math.floor(p2min/60)>0){
+////                                var min="";
+////                                if(p2min%60<10)
+////                                    min = "0"+(p2min%60).toString();
+////                                else
+////                                    min = (p2min%60).toString();
+//                                document.getElementById("p2min").value = min;
+//                            }else{
+//
+//                                document.getElementById("p2min").value = min;
+//                            }
+//                            console.log(p2min%60);
+                        }
+                    })
+                }else{
+                    alert("Будь ласка вкажіть тип дії");
+                }
+            }
+        }
+        function ActionCodeChanged(){
+            if(!$("#ap").val()){
+                var date = new Date();
+                var month = date.getMonth()+1;
+                var day = date.getDate();
+                var year = date.getFullYear();
+                $("#apday").val(day);
+                $("#apmonth").val(month);
+                $("#apyear").val(year);
+
+
+                $("#ap").val((day<10 ? "0" : "") + day+"."+(month<10 ? "0" : "") + month+"."+year);
+            }
+//            console.log($("#aphour").val() ,$("#apmin").val());
+            if($("#aphour").val() == -1 || $("#apmin").val() == -1){
+                document.getElementById("aphour").value=formatDate(new Date(), "HH");
+                document.getElementById("apmin").value=formatDate(new Date(), "mm");
+            }
+            dpChangeDay("ap","dd.MM.yyyy");
+            setP2();
+
+//            console.log($("#actioncode").val());
+        }
+    </script>';
+
 
 llxFooter();
 

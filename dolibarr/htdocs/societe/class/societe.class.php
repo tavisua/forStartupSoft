@@ -549,6 +549,16 @@ class Societe extends CommonObject
         $obj = $this->db->fetch_object($res);
         return $obj->phonecode;
     }
+    function getContactname($contact_id){
+        if(empty($contact_id)){
+            return'';
+        }
+        $sql = 'select lastname, firstname from `llx_societe_contact` where rowid='.$contact_id;
+        $res = $this->db->query($sql);
+        if(!$res)return'';
+        $obj = $this->db->fetch_object($res);
+        return empty($obj->lastname)?$obj->firstname:$obj->lastname;
+    }
     function getFormOfGoverment(){
         $sql = 'select name from `formofgavernment` where rowid = '.$this->formofgoverment_id;
         $res = $this->db->query($sql);

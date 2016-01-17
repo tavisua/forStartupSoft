@@ -671,14 +671,14 @@ function dol_get_fiche_head($links=array(), $active='0', $title='', $notab=0, $p
 	// Show title
 	$showtitle=1;
 	if (! empty($conf->dol_optimize_smallscreen)) $showtitle=0;
-	if (! empty($title) && $showtitle)
-	{
-		$limittitle=30;
-		$out.='<a class="tabTitle">';
-		if ($picto) $out.=img_picto('',($pictoisfullpath?'':'object_').$picto,'',$pictoisfullpath).' ';
-		$out.=dol_trunc($title,$limittitle);
-		$out.='</a>';
-	}
+//	if (! empty($title) && $showtitle)
+//	{
+//		$limittitle=30;
+//		$out.='<a class="tabTitle">';
+//		if ($picto) $out.=img_picto('',($pictoisfullpath?'':'object_').$picto,'',$pictoisfullpath).' ';
+//		$out.=dol_trunc($title,$limittitle);
+//		$out.='</a>';
+//	}
 
 	// Define max of key (max may be higher than sizeof because of hole due to module disabling some tabs).
 	$maxkey=-1;

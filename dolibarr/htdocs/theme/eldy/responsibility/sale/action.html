@@ -103,6 +103,14 @@
     <b>Попередні дії</b></br>
     <textarea id="prev_action"><?echo $object->prehistoric_actions;?></textarea>
 </div>
+<form id="addaction" action="/dolibarr/htdocs/comm/action/card.php" method="post">
+    <input type="hidden" name="backtopage" value="'<?=$_SERVER['REQUEST_URI']?>'">
+    <input type="hidden" name="action" value="create" id="edit_action">
+    <input type="hidden" name="mainmenu" value="area">
+    <input type="hidden" value="<?=$_GET['socid']?>" name="socid">
+    <input type="hidden" name="id" value="" id="action_id">
+    <input type="hidden" name="datep" value="20151130100000">
+</form>
 <style>
     #reference_body td{
         font-size: 12;
@@ -118,6 +126,11 @@
         $('#showhide_contactlist').offset({top:$('#addcontact').offset().top, left:$('#addcontact').offset().left+$('#addcontact').width()+15});
         $('#contactlist').offset({top:$('#contactlist').offset().top-20});
     })
+    function EditAction(rowid){
+        $('#action_id').val(rowid);
+        $('#edit_action').val('edit');
+        $('#addaction').submit();
+    }
     function ShowHideContactList(object){
         if($('#'+object.attr('id')).text().trim()=='Скрити контакти') {
             $('#' + object.attr('id')).text('Відобразити контакти');

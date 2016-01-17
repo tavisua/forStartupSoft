@@ -1926,7 +1926,7 @@ if (! function_exists("llxFooter"))
         global $conf, $langs, $user;
 
         $loginphone_form = "<a href='#x' class='overlay' id='login_phone'></a>
-                     <div class='popup' style='width: 300px;'>
+                     <div class='popup' style='width: 300px;display: none'>
                      <form >
                      <input type='hidden' id='user_id' name='user_id' value=" . $user->id . ">
                      <b>".$langs->trans('RegisterPhone')."</b>

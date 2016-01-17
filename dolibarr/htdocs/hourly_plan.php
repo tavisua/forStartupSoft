@@ -123,7 +123,7 @@ while($row = $db->fetch_object($res)) {
                <div class="task_cell" style="float: left; width: 140px; border-color: transparent">'.$status.'</div>';
 //    $task .= '<div id="'.$row->rowid.'" class="'.$classitem.'" style="height: 216px" >' . $task_table . '</div>';
 
-    $task.='<tr id="'.$row->rowid.'"><td class="'.$classitem.'" >'.$task_table.'</td></tr>';
+    $task.='<tr id="'.$row->rowid.'" onclick="EditAction('.$row->rowid.');"><td class="'.$classitem.'" >'.$task_table.'</td></tr>';
 //    $task.='<tr id="'.$row->rowid.'"><td class="'.$classitem.'" style="height: '.($DiffSec/600*($conf->browser->name == 'firefox' ? ($DiffSec/60<=30?($DiffSec/60<15?22:23.8):23.7) : 22)).'px">'.$task_table.'</td></tr>';
     $prev_time=mktime($datep2->format('H'),$datep2->format('i'),$datep2->format('s'),$datep2->format('m'),$datep2->format('d'),$datep2->format('Y'));
 }

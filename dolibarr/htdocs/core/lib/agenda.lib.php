@@ -416,25 +416,31 @@ function actions_prepare_head($object)
 	$h = 0;
 	$head = array();
 
-	$head[$h][0] = DOL_URL_ROOT.'/comm/action/card.php?id='.$object->id;
+	$head[$h][0] = DOL_URL_ROOT.'/comm/action/card.php?id='.$object->id.'&mainmenu='.$_REQUEST['mainmenu'].'&action=edit';
 	$head[$h][1] = $langs->trans("CardAction");
 	$head[$h][2] = 'card';
 	$h++;
 
-    // Attached files
-    require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
-    $upload_dir = $conf->agenda->dir_output . "/" . $object->id;
-    $nbFiles = count(dol_dir_list($upload_dir,'files',0,'','(\.meta|_preview\.png)$'));
-    $head[$h][0] = DOL_URL_ROOT.'/comm/action/document.php?id='.$object->id;
-    $head[$h][1] = $langs->trans("Documents");
-	if ($nbFiles > 0) $head[$h][1].= ' <span class="badge">'.$nbFiles.'</span>';
-    $head[$h][2] = 'documents';
+    $head[$h][0] = '#';
+//    $head[$h][0] = DOL_URL_ROOT.'/comm/action/result_action.php?id='.$object->id.'&mainmenu='.$_REQUEST['mainmenu'].'&action=edit';
+    $head[$h][1] = $langs->trans("EventDescription");
+    $head[$h][2] = 'event_desc';
     $h++;
 
-	$head[$h][0] = DOL_URL_ROOT.'/comm/action/info.php?id='.$object->id;
-	$head[$h][1] = $langs->trans('Info');
-	$head[$h][2] = 'info';
-	$h++;
+//    // Attached files
+//    require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+//    $upload_dir = $conf->agenda->dir_output . "/" . $object->id;
+//    $nbFiles = count(dol_dir_list($upload_dir,'files',0,'','(\.meta|_preview\.png)$'));
+//    $head[$h][0] = DOL_URL_ROOT.'/comm/action/document.php?id='.$object->id;
+//    $head[$h][1] = $langs->trans("Documents");
+//	if ($nbFiles > 0) $head[$h][1].= ' <span class="badge">'.$nbFiles.'</span>';
+//    $head[$h][2] = 'documents';
+//    $h++;
+//
+//	$head[$h][0] = DOL_URL_ROOT.'/comm/action/info.php?id='.$object->id;
+//	$head[$h][1] = $langs->trans('Info');
+//	$head[$h][2] = 'info';
+//	$h++;
 
 	complete_head_from_modules($conf,$langs,$object,$head,$h,'action');
 
