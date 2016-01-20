@@ -49,6 +49,16 @@ if($_GET['action']=='get_exectime'){
     $list = $form->select_contacts($_GET['socid'], '','contactid',1);
     echo $list;
     exit();
+}elseif($_GET['action']=='received_action'){
+    global $db;
+    $sql = 'update llx_actioncomm set dateconfirm = Now() where id='.$_GET['rowid'];
+    $res = $db->query($sql);
+    if(!$res){
+        var_dump($sql);
+        dol_print_error($db);
+    }
+    return 1;
+    exit();
 }
 
 
@@ -90,7 +100,10 @@ if ($cancel)
 $fulldayevent=GETPOST('fullday');
 $datep=dol_mktime($fulldayevent?'00':GETPOST("aphour"), $fulldayevent?'00':GETPOST("apmin"), 0, GETPOST("apmonth"), GETPOST("apday"), GETPOST("apyear"));
 $datef=dol_mktime($fulldayevent?'23':GETPOST("p2hour"), $fulldayevent?'59':GETPOST("p2min"), $fulldayevent?'59':'0', GETPOST("p2month"), GETPOST("p2day"), GETPOST("p2year"));
-
+//echo '<pre>';
+//var_dump($_POST);
+//echo '</pre>';
+//die();
 // Security check
 $socid = GETPOST('socid','int');
 $id = GETPOST('id','int');
@@ -1494,10 +1507,7 @@ print '
             $("#contactid").addClass("combobox");
             $("#socid").removeClass("flat");
             $("#socid").addClass("combobox");
-            if($("#actioncode").val() != "AC_GLOBAL")
-                $("#period").hide();
-            else
-                $("#period").show();
+            ActionCodeChanged();
             $(".tabBar").width(800);
             $("#event_desc").on("click", redirect);
         });
@@ -1526,6 +1536,9 @@ print '
         function dpChangeDay(id, format){
             if(id == "ap"){
                 $("#p2").val($("#ap").val())
+                $("#apday").val($("#ap").val().substr(0,2));
+                $("#apmonth").val($("#ap").val().substr(3,2));
+                $("#apyear").val($("#ap").val().substr(6,4));
                 $("#p2day").val($("#apday").val());
                 $("#p2month").val($("#apmonth").val());
                 $("#p2year").val($("#apyear").val());
@@ -1605,8 +1618,10 @@ print '
             }
             dpChangeDay("ap","dd.MM.yyyy");
             setP2();
-
-//            console.log($("#actioncode").val());
+            if($("#actioncode").val() == "AC_GLOBAL" || $("#actioncode").val() == "AC_CURRENT")
+                $("#period").show();
+            else
+                $("#period").hide();
         }
     </script>';
 

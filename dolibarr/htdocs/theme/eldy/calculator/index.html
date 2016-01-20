@@ -1,0 +1,73 @@
+<div style=" width:100%; height:1px; clear:both;">.</div>
+<div style="float: left">
+    <div id = "lefttable">
+        <table id="headercontrol" >
+            <tr id="today">
+                <td>
+                    <?=$langs->trans('TitleToday')?>
+                </td>
+                <td class="autoinsert">
+                    <?=date('d.m.Y')?>
+                </td>
+            </tr>
+            <tr id="worker">
+                <td>
+                    <?=$langs->trans('worker')?>
+                </td>
+                <td class="autoinsert">
+                    <?echo $user->lastname?>
+                </td>
+            </tr>
+        </table>
+        </br>
+    </div>
+
+    <div>
+        <table cellspacing="1" class="WidthScroll">
+            <thead>
+                <tr class="multiple_header_table">
+                    <th style="width: 105px;">Область</th>
+                    <th style="width: 145px;">Район</th>
+                    <?=$theme_header?>
+                </tr>
+
+            </thead>
+
+            <?echo $table?>
+
+        </table>
+    </div>
+</div>
+<div id="popupmenu" style="display: none">
+    <table style="background: #ffffff">
+        <thead><tr class="multiple_header_table" style="width: 100px"><th class="middle_size">Вкажіть дату на яку відобразити завдання</th></tr></thead>
+        <tr>
+            <td class="middle_size" onclick="setdate();" style="cursor: pointer">1</td>
+        </tr>
+        <tr>
+            <td class="middle_size" onclick="setdate();" style="cursor: pointer">2</td>
+        </tr>
+    </table>
+</div>
+            <script>
+                $(document).ready(function(){
+                    $('#reference_body').attr('height', window.innerHeight - 300);
+                    $('#reference_body').width($('#reference_body').width()+15);
+                    $('#popupmenu').offset({top:550, left:-250});
+                })
+                function ShowTask(object){
+//                    if(object.text()==1){
+//
+//                    }else {
+                        $("#popupmenu").show();
+                        $("#popupmenu").offset({
+                            top: object.offset().top - 50,
+                            left: object.offset().left - $('#reference_body').width()
+                        });
+//                    }
+//                    console.log(object.text());
+                }
+                function setdate(){
+                    $("#popupmenu").hide();
+                }
+            </script>

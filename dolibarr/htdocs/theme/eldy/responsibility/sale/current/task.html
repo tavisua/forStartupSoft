@@ -33,6 +33,7 @@
             <th width="50px" class="small_size" rowspan="2">Статус завдання</th>
             <th width="50px" class="small_size" rowspan="2" title="Підтвердження про виконання">Підтв. про викон.</th>
             <th width="25px" class="small_size" rowspan="2"></th>
+
         </tr>
         <tr class="multiple_header_table">
             <th width="75px" class="middle_size">Останні</th>
@@ -46,7 +47,7 @@
 
     </table>
 </div>
-<script>
+<script type="text/javascript">
     $(document).ready(function(){
         $('#reference_body').attr('height', window.innerHeight - 360);
         var th = document.getElementsByTagName('th');
@@ -55,7 +56,6 @@
         var TotalWidth = 0;
         for(var i=0; i<th.length; i++){
             if(th[i].className == "middle_size" || th[i].id == '') {
-//                    console.log(th[i].offsetWidth);
                 var iWidth = th[i].offsetWidth;
                 if (th[i].className == 'header_table')
                     left += parseInt(iWidth);
@@ -65,14 +65,10 @@
         }
 
         $('.tabs').offset({top:215, left:left});
-//                console.log($('#comerc_action').width());
         $('#comerc').offset({top:150, left:$('#comerc_action').offset().left});
-//                $('#service').offset({top:150, left:$('#service_action').offset().left});
-//                $('#accounts').offset({top:150, left:$('#accounts_action').offset().left});
         $('#mentor').offset({top:150, left:$('#mentor_action').offset().left});
         $('#tabs_area').width(600);
         $('#reference_body').offset({left:22});
-////console.log(TotalWidth, widths);
         $('#reference_body').width(TotalWidth+30);
     })
     function ConfirmReceived(id){

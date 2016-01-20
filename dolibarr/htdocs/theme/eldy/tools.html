@@ -73,13 +73,14 @@
         <td id = "menu_item" class="boxstats" onclick='location.href="/dolibarr/htdocs/admin/dict.php?mainmenu=tools"'>
             <img id="icon" src="/dolibarr/htdocs/theme/<?echo $theme?>/img/dictionary.png"><div><?echo $langs->trans('DictionarySetup')?></div>
         </td>
-        <td id = "menu_item" class="boxstats" >
-        <img id="icon" src="/dolibarr/htdocs/theme/<?echo $theme?>/img/fixed_assets.png"><div><?echo $langs->trans('EconomicIndicators')?></div>
+
+        <td id = "menu_item" class="boxstats"onclick='location.href="/dolibarr/htdocs/comm/mailing/card.php?mainmenu=tools&action=create"' >
+            <img id="icon" src="/dolibarr/htdocs/theme/<?echo $theme?>/img/email_delivery.png"><div><?echo $langs->trans('EmailDelivery')?></div>
         </td>
     </tr>
     <tr>
-        <td id = "menu_item" class="boxstats"onclick='location.href="/dolibarr/htdocs/comm/mailing/card.php?mainmenu=tools&action=create"' >
-            <img id="icon" src="/dolibarr/htdocs/theme/<?echo $theme?>/img/email_delivery.png"><div><?echo $langs->trans('EmailDelivery')?></div>
+        <td id = "menu_item" class="boxstats" onclick='location.href="/dolibarr/htdocs/calculator/setup.php?mainmenu=tools"' >
+            <img id="icon" src="/dolibarr/htdocs/theme/<?echo $theme?>/img/calculator.png"><div><?echo $langs->trans('Calculator')?></div>
         </td>
         <!--<td id = "menu_item" class="boxstats" onclick='location.href="/dolibarr/htdocs/core/countries.php?mainmenu=tools"'>-->
             <!--<img id="icon" src="/dolibarr/htdocs/theme/<?echo $theme?>/img/countries.png"><div><?echo $Country?></div>-->

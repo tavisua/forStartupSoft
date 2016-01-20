@@ -1018,7 +1018,7 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
             if (!empty($conf->global->MAIN_USE_JQUERY_THEME)) $jquerytheme = $conf->global->MAIN_USE_JQUERY_THEME;
             //Если открывается панель инструментов, подключаю стили форм
 
-            if($_REQUEST['mainmenu'] == 'hourly_plan' || $_REQUEST['mainmenu'] == 'tools' || $_REQUEST['mainmenu']=='plan_of_days' || $_REQUEST['mainmenu']=='hourly_plan' || $_REQUEST['mainmenu']== 'global_task'|| $_REQUEST['mainmenu']=='area' || $_REQUEST['mainmenu'] == 'home' || $_REQUEST['mainmenu']=='companies' || GETPOST('mainmenu')=='companies'){
+            if($_REQUEST['mainmenu'] == 'hourly_plan' || $_REQUEST['mainmenu'] == 'tools' || $_REQUEST['mainmenu'] == 'calculator' || $_REQUEST['mainmenu'] == "current_task" || $_REQUEST['mainmenu']=='plan_of_days' || $_REQUEST['mainmenu']=='hourly_plan' || $_REQUEST['mainmenu']== 'global_task'|| $_REQUEST['mainmenu']=='area' || $_REQUEST['mainmenu'] == 'home' || $_REQUEST['mainmenu']=='companies' || GETPOST('mainmenu')=='companies'){
                 print '<link rel="stylesheet" type="text/css" href="'.DOL_URL_ROOT.'/theme/'.$conf->theme.'/design.css'.($ext?'?'.$ext:'').'"/>'."\n";          //Стиль для фор
                 print '<link rel="stylesheet" type="text/css" href="'.DOL_URL_ROOT.'/theme/'.$conf->theme.'/style-modal.css'.($ext?'?'.$ext:'').'"/>'."\n";     //Стиль модальной формы
 //                if($_REQUEST['mainmenu']=='area') {

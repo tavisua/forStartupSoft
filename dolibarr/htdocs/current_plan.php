@@ -14,11 +14,11 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 //die();
 $table = ShowTask();
 
-$HourlyPlan = $langs->trans('GlobalTask');
+$HourlyPlan = $langs->trans('CurrentTask');
 llxHeader("",$HourlyPlan,"");
-print_fiche_titre($langs->trans('GlobalTask'));
-include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/global/header.php';
-include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/global/task.php';
+print_fiche_titre($langs->trans('CurrentTask'));
+include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/current/header.php';
+include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/current/task.php';
 llxFooter();
 return;
 
@@ -29,7 +29,7 @@ function ShowTask(){
         from `llx_actioncomm`
         where fk_action in
               (select id from `llx_c_actioncomm`
-              where `code` in ('AC_GLOBAL'))
+              where `code` in ('AC_CURRENT'))
               and percent != 100";
     $res = $db->query($sql);
     if(!$res){
@@ -45,6 +45,7 @@ function ShowTask(){
 
     //завантажую ІД пов'язаних з задачами користувачів
     $sql = "select fk_actioncomm, fk_element from llx_actioncomm_resources where fk_actioncomm in (".implode(",", $taskID).")";
+//    die($sql);
     $res = $db->query($sql);
     if(!$res){
         dol_print_error($db);
@@ -63,7 +64,10 @@ function ShowTask(){
             }
         }
     }
-
+//    echo '<pre>';
+//    var_dump($assignedUser);
+//    echo '</pre>';
+//    die();
     //Завантажую завдання
     $sql = "select id, note, confirmdoc, `datec`, datep2, `dateconfirm`, period, `percent`, `llx_c_groupoftask`.`name` groupoftask
     from `llx_actioncomm`

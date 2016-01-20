@@ -101,7 +101,7 @@
 //            console.log($("#"+prev.id).offset().top, task);
 //            if(prev == null)return;
             var div = task.getElementsByTagName('div');
-            if(prev.id.substr(0,5)=="empty") {
+            if(prev != null && prev.id.substr(0,5)=="empty") {
                 var start_time = div[1].innerHTML;
                 td = $('td#' + parseInt(start_time.substr(0, 2)) + 'h' + (Math.floor(parseInt(start_time.substr(3, 2)) / 10) * 10) + 'm');
                 start_time = parseInt(start_time.substr(3, 2));

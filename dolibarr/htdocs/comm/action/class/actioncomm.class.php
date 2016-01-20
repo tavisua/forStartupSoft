@@ -288,7 +288,7 @@ class ActionComm extends CommonObject
         $sql.= (isset($this->type_id)?$this->type_id:"null").",";
         $sql.= (isset($this->type_code)?" '".$this->type_code."'":"null").",";
         $sql.= ((isset($this->socid) && $this->socid > 0)?" '".$this->socid."'":"null").",";
-        $sql.= ((isset($this->parent_id) && $this->parent_id > 0)?" '".$this->parent_id."'":"null").",";
+        $sql.= ((isset($this->parent_id) && $this->parent_id > 0)?" '".$this->parent_id."'":0).",";
         $sql.= ((isset($this->fk_project) && $this->fk_project > 0)?" '".$this->fk_project."'":"null").",";
         $sql.= " '".$this->db->escape($this->note)."',";
         $sql.= ((isset($this->contactid) && $this->contactid > 0)?"'".$this->contactid."'":"null").",";

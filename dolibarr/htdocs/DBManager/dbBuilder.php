@@ -198,7 +198,7 @@ class dbBuilder{
             if (!isset($column['hidden'])) {
                 if($showtitle) {
                     $table .= '<th id = "th' . $colindex++ . '" class="liste_titre" ';
-                    $table .= $column['width'] <> '' ? ('style="width:' . $column['width'] . 'px"') : ('auto');//ширина
+                    $table .= $column['width'] <> '' ? ('style="width:' . $column['width'] . 'px; font-size: 12px;"') : ('auto');//ширина
                     $table .= $column['align'] <> '' ? ('align=' . $column['align'] . '"') : (' ');//выравнивание
                     $table .= $column['class'] <> '' ? ('class=' . $column['class'] . '"') : (' ');//класс
                     $table .= '>' . $column['title'] . '
