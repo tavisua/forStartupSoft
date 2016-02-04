@@ -15,7 +15,7 @@ AddActionRendezVous=Create a Rendez-vous event
 Rendez-Vous=Rendezvous
 ConfirmDeleteAction=Are you sure you want to delete this event/task ?
 CardAction=Опис дії
-EventDescription=Результати перемовин
+EventDescription=Результати дій/перемовин
 PercentDone=Percentage complete
 ActionOnCompany=Завдання пов'язано з компанією
 ActionOnContact=Контактне лице
@@ -115,4 +115,6 @@ LineActive=Напрямок
 KindAssets=Вид засобів/матеріалів
 SelectMonth=Вкажіть місяць
 TypeEconomicIndicators=Види господарських даних
+FinanceAndDetails=Фінанси і реквізити
+PartnersOfCustomer=Партнери контрагента
 

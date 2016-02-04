@@ -861,11 +861,24 @@ else
             </div>
             <div class="inline-block tabsElem" id="inactiveTab">
                 <b class="tab inline-block" data-role="button">'.$langs->trans('ContactList').'</b>
-            </div>
+            </div>';
+        if($user->respon_alias == 'sale')
+            print '
             <div class="inline-block tabsElem" id="inactiveTab">
                 <b class="tab inline-block" data-role="button">'.$langs->trans('EconomicData').'</b>
-            </div>
+            </div>';
+        elseif($user->respon_alias == 'purchase')
+            print '
+            <div class="inline-block tabsElem" id="inactiveTab">
+                <b class="tab inline-block" data-role="button">'.$langs->trans('LineAction').'</b>
+            </div>';
+        print '<div class="inline-block tabsElem" id="inactiveTab">
+            <b class="tab inline-block" data-role="button">'.$langs->trans('FinanceAndDetails').'</b>
         </div>
+        <div class="inline-block tabsElem" id="inactiveTab">
+            <b class="tab inline-block" data-role="button">'.$langs->trans('PartnersOfCustomer').'</b>
+        </div>';
+        print '</div>
         <div class="tabPage">';
         if (! empty($conf->use_javascript_ajax))
         {
@@ -1077,7 +1090,7 @@ else
 
         // Address
         print '<tr><td valign="top"><label for="address">'.$langs->trans('Address').'</label></td>';
-        print '<td colspan="3"><textarea name="address" id="address" cols="40" rows="3" wrap="soft">';
+        print '<td colspan="3"><input name="address" id="address" cols="40" rows="3" wrap="soft">';
         print $object->address;
         print '</textarea></td></tr>';
         //Засновник
@@ -1097,9 +1110,9 @@ else
 
         // Email web
         print '<tr><td><label for="email">'.$langs->trans('EMail').(! empty($conf->global->SOCIETE_MAIL_REQUIRED)?'*':'').'</label></td>';
-	    print '<td colspan="3"><input type="text" name="email" id="email" size="32" value="'.$object->email.'"></td></tr>';
-        print '<tr><td><label for="url">'.$langs->trans('Web').'</label></td>';
-	    print '<td colspan="3"><input type="text" name="url" id="url" size="32" value="'.$object->url.'"></td></tr>';
+	    print '<td><input type="text" name="email" id="email" size="32" value="'.$object->email.'"></td>';
+        print '<td><label for="url">'.$langs->trans('Web').'</label></td>';
+	    print '<td><input type="text" name="url" id="url" size="32" value="'.$object->url.'"></td></tr>';
 
         // Skype
         if (! empty($conf->skype->enabled))
@@ -1255,13 +1268,14 @@ else
             print '</td></tr>';
         }
 
-        //Класифікація
-        print '<tr id="classifycation">';
-        print '<td><label for="classifycation">'.$langs->trans("Classifycation").'</label></td>';
-        print '<td colspan="3" class="maxwidthonsmartphone">';
-        print $formcompany->classifycation($object->id);
-        print '</td></tr>';
-
+        if($user->respon_alias == 'sale') {
+            //Класифікація
+            print '<tr id="classifycation">';
+            print '<td><label for="classifycation">' . $langs->trans("Classifycation") . '</label></td>';
+            print '<td colspan="3" class="maxwidthonsmartphone">';
+            print $formcompany->classifycation($object->id);
+            print '</td></tr>';
+        }
         // Discription
         print '<tr><td valign="top"><label for="remark">'.$langs->trans('Remark').'</label></td>';
         print '<td colspan="3"><textarea name="remark" id="remark" cols="40" rows="3" wrap="soft">';
@@ -1833,11 +1847,23 @@ else
             </div>
             <div class="inline-block tabsElem">
                 <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societecontact.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('ContactList').'</a>
+            </div>';
+            if($user->respon_alias == 'sale')
+                print '<div class="inline-block tabsElem">
+                    <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('EconomicData').'</a>
+                </div>';
+            elseif($user->respon_alias == 'purchase') {
+                print '<div class="inline-block tabsElem">
+                    <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('LineActive').'</a>
+                </div>';
+            }
+            print '<div class="inline-block tabsElem">
+                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('FinanceAndDetails').'</a>
             </div>
             <div class="inline-block tabsElem">
-                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('EconomicData').'</a>
-            </div>
-        </div>
+                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('PartnersOfCustomer').'</a>
+            </div>';
+        print '
         <div class="tabPage">';
             if (! empty($conf->use_javascript_ajax))
             {
@@ -2053,9 +2079,8 @@ else
 
             // Address
             print '<tr><td valign="top"><label for="address">'.$langs->trans('Address').'</label></td>';
-            print '<td colspan="3"><textarea name="address" id="address" cols="40" rows="3" wrap="soft">';
-            print $object->address;
-            print '</textarea></td></tr>';
+            print '<td colspan="3"><input name="address" id="address" style="width:100%" size="60" wrap="soft" value="'.$object->address.'">';
+            print '</td></tr>';
             //Засновник
             if ($object->particulier || $private){}
             else {
@@ -2230,8 +2255,8 @@ else
                 $form->select_users((! empty($object->commercial_id)?$object->commercial_id:$user->id),'commercial_id',1); // Add current user by default
                 print '</td></tr>';
             }
-            //Класифікація
 
+            //Класифікація
             print '<tr id="classifycation">';
             print '<td><label for="classifycation">'.$langs->trans("Classifycation").'</label></td>';
             print '<td colspan="3" class="maxwidthonsmartphone">';

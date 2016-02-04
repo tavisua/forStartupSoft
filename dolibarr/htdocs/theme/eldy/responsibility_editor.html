@@ -32,10 +32,17 @@
                     <?echo $selector?>
                 </td>
             </tr>
+            <tr>
+                <td>
 
+                </td>
+                <td>
+                    <input id="ShowLineActive" name="ShowLineActive" type="checkbox" <?= $ShowLineActive?("checked"):("")?>><?=" ".$langs->trans('ShowLineActive')?>
+                </td>
+            </tr>
         </table>
         <div align="center">
-        <button onclick="save();">Зберегти</button>
+            <button onclick="save();">Зберегти</button>
             <button onclick="back();">Відмінити</button>
         </div>
     </form>

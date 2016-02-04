@@ -7,6 +7,7 @@
  */
 require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/comm/action/class/actioncomm.class.php';
 
 //echo '<pre>';
 //var_dump($_SERVER);
@@ -82,6 +83,7 @@ function ShowTask(){
     $tmp_user = new User($db);
     global $langs;
     $numrow = 0;
+    $Actions = new ActionComm($db);
     while($obj = $db->fetch_object($res)){
         $add = false;
         if($taskAuthor[$obj->id] == $user->id)
@@ -93,7 +95,7 @@ function ShowTask(){
         if($add){
             $class = fmod($numrow++,2)==0?'impair':'pair';
             $datec = new DateTime($obj->datec);
-            $table.='<tr class="'.$class.'">';
+            $table.='<tr id="tr'.$obj->id.'" class="'.$class.'">';
 //            $table.='<td style="width:51px"></td>
 //            <td style="width:51px"></td>';
             $table.='<td style="width:51px" class="small_size">'.$datec->format('d.m.y').'</td>';
@@ -123,7 +125,15 @@ function ShowTask(){
             }else
                 $table .= '<td style="width:51px; text-align: center"><img src="/dolibarr/htdocs/theme/eldy/img/uncheck.png" onclick="ConfirmReceived('.$obj->id.');" id="confirm'.$obj->id.'"></td>';
             //Дії виконавця
-            $table .= '<td style="width:76px"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td><td style="width:76px"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td>';
+            $lastaction = $Actions->GetLastAction($obj->id, 'datep');
+            if(empty($lastaction)){
+                $lastaction = '<img src="/dolibarr/htdocs/theme/eldy/img/object_action.png">';
+            }else{
+                $date = new DateTime($lastaction);
+                $lastaction = $date->format('d.m.Y');
+            }
+            $table .= '<td style="width:76px"><a href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu=current_task">'.$lastaction.'</a></td>';
+            $table .= '<td style="width:76px"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td>';
             //Дії наставника
             $table .= '<td style="width:76px"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td><td style="width:76px"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td>';
             //Період виконання

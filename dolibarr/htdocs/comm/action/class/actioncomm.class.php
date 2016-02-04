@@ -180,6 +180,64 @@ class ActionComm extends CommonObject
      *    @param    int		$notrigger		1 = disable triggers, 0 = enable triggers
      *    @return   int 		        	Id of created event, < 0 if KO
      */
+    function GetLastAction($action_id, $name){
+        global $db;
+        $sql = 'select id, datep from llx_actioncomm
+        inner join (select fk_parent rowid from llx_actioncomm where id='.$action_id.') parent on parent.rowid=llx_actioncomm.id';
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+        $result = $db->fetch_array($res);
+        return $result[$name];
+    }
+    function GetNextAction($action_id, $name){
+        global $db;
+        $sql = 'select id, datep from llx_actioncomm
+        where fk_parent='.$action_id;
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+        $result = $db->fetch_array($res);
+        return $result[$name];
+    }
+    function GetFirstFreeTime($date, $id_usr, $minutes){
+        $freetime = $this->GetFreeTimePeriod($date, $id_usr);
+        foreach($freetime as $period){
+            if($minutes<=$period[1]) {
+                return  $period[0];
+            }
+        }
+        return 0;
+    }
+    function GetFreeTimePeriod($date, $id_usr){
+        global $db;
+        $date = new DateTime($date);
+        $sql = "select `llx_actioncomm`.`id`, `llx_actioncomm`.`datep`, `llx_actioncomm`.`datep2` from `llx_actioncomm`
+            inner join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.id
+            where `llx_actioncomm`.`datep` between '".$date->format('Y-m-d')."' and adddate('".$date->format('Y-m-d')."', interval 1 day)
+            and `llx_actioncomm_resources`.`fk_element` = ".$id_usr."
+            order by `llx_actioncomm`.`datep`";
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+        $time = mktime(8,0,0,$date->format('m'),$date->format('d'),$date->format('Y'));
+
+        $freetime = array();
+        while($obj = $db->fetch_object($res)){
+            $tmp_date = new DateTime($obj->datep);
+            $tmp_mk = mktime($tmp_date->format('H'), $tmp_date->format('i'),$tmp_date->format('s'),$tmp_date->format('m'), $tmp_date->format('d'),$tmp_date->format('Y'));
+            if(($tmp_mk - $time)/60>0) {
+                $freetime[] = array(date('H.i.s', $time), ($tmp_mk - $time)/60);
+                $tmp_date = new DateTime($obj->datep2);
+                $time = mktime($tmp_date->format('H'), $tmp_date->format('i'),$tmp_date->format('s'),$tmp_date->format('m'), $tmp_date->format('d'),$tmp_date->format('Y'));
+            }
+        }
+        $tmp_mk = mktime(19,0,0,$date->format('m'),$date->format('d'),$date->format('Y'));
+        if(($tmp_mk - $time)/60>0) {
+            $freetime[] = array(date('H.i.s', $time), ($tmp_mk - $time)/60);
+        }
+        return $freetime;
+    }
     function add($user,$notrigger=0)
     {
 //        var_dump($this);
@@ -413,7 +471,7 @@ class ActionComm extends CommonObject
         $sql.= " a.priority, a.fulldayevent, a.location, a.punctual, a.transparency,";
         $sql.= " c.id as type_id, c.code as type_code, c.libelle,";
         $sql.= " s.nom as socname,";
-        $sql.= " u.firstname, u.lastname as lastname";
+        $sql.= " u.firstname, u.lastname as lastname, a.period";
         $sql.= " FROM ".MAIN_DB_PREFIX."actioncomm as a ";
         $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."c_actioncomm as c ON a.fk_action=c.id ";
         $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user as u on u.rowid = a.fk_user_author";
@@ -447,6 +505,7 @@ class ActionComm extends CommonObject
                 $this->datep				= $this->db->jdate($obj->datep);
                 $this->datef				= $this->db->jdate($obj->datep2);
 //				$this->durationp			= $this->durationp;					// deprecated
+                $this->period               = $obj->period;
 
                 $this->datec   				= $this->db->jdate($obj->datec);
                 $this->datem   				= $this->db->jdate($obj->datem);

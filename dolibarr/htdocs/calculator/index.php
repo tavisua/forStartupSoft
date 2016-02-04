@@ -53,7 +53,7 @@ if(!$res){
 }
 $theme_header = '';
 while($obj = $db->fetch_object($res)) {
-    $theme_header .= '<th style="width: 50px" class="small_size">'.$obj->theme.'</th>';
+    $theme_header .= '<th style="width: 50px" id = "'.$obj->rowid.'" class="small_size">'.$obj->theme.'</th>';
 }
 
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/calculator/index.html';
@@ -113,19 +113,29 @@ function ShowTable()
 //    var_dump($calc_param);
 //    echo '</pre>';
 //    die();
+    $total = array();
     while($obj = $db->fetch_object($res)){
         $class=(fmod($nom++,2)==0?"impair":"pair");
         $table.='<tr id = "'.$obj->rowid.'" class="'.$class.'">
             <td class="middle_size" style="width:106px">'.$obj->states_name.'</td>
             <td class="middle_size" style="width:146px">'.str_replace('-', '- ',$obj->regions_name).'</td>';
         foreach($calc_theme as $theme_id){
-            if(isset($calc_param[$theme_id.'_'.$obj->rowid]))
-                $table .= '<td id="calc_'.$theme_id."_".$obj->rowid.'" style="width: 51px">'.round($calc_param[$theme_id."_".$obj->rowid],0).'</td>';
-            else
+            if(isset($calc_param[$theme_id.'_'.$obj->rowid])) {
+                $table .= '<td id="calc_' . $theme_id . "_" . $obj->rowid . '" style="width: 51px">' . round($calc_param[$theme_id . "_" . $obj->rowid], 0) . '</td>';
+                if(isset($total[$theme_id]))
+                    $total[$theme_id]=$total[$theme_id]+round($calc_param[$theme_id . "_" . $obj->rowid], 0);
+                else
+                    $total[$theme_id]=round($calc_param[$theme_id . "_" . $obj->rowid], 0);
+            }else
                 $table .= '<td id="calc_'.$theme_id."_".$obj->rowid.'" style="width: 51px"></td>';
         }
         $table.='</tr>';
     }
     $table .= '</tbody>';
+    foreach($total as $theme=>$value){
+        $table .= '<input type="hidden"  value="'.$value.'" id="totaltheme'.$theme.'">';
+//        var_dump($theme, $value);
+//        die();
+    }
     return $table;
 }

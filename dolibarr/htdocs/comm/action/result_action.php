@@ -173,18 +173,26 @@ function saveaction($rowid, $createaction = false){
         $sql.='where rowid='.$rowid;
     }
     $res = $db->query($sql);
-
     if(!$res){
         dol_print_error($db);
     }
     if(empty($rowid))
         $rowid = get_last_id();
+
+    $sql = 'update llx_actioncomm set datea=Now()
+    where llx_actioncomm.id in (select llx_societe_action.action_id from `llx_societe_action` where 1
+    and llx_societe_action.rowid = '.$rowid.')
+    and datea is null';
+    $res = $db->query($sql);
+//    if($res)
+//        dol_print_error($db);
+
 //    die(substr($_REQUEST['backtopage'], 1, strlen($_REQUEST['backtopage'])-2));
 //    die(DOL_URL_ROOT);
     if(!$createaction)
         header("Location: ".substr($_REQUEST['backtopage'], 1, strlen($_REQUEST['backtopage'])-2));
     else{
-        $link = "http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/comm/action/card.php?mainmenu=".$_REQUEST['mainmenu']."&socid=".$socid."&action=create&parent_id=".$_REQUEST["actionid"]."&backtopage=".urlencode(htmlspecialchars(substr($_REQUEST['backtopage'], 1, strlen($_REQUEST['backtopage'])-2)));
+        $link = "http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/comm/action/card.php?mainmenu=".$_REQUEST['mainmenu']."&actioncode=".$_REQUEST['actioncode']."&socid=".$socid."&action=create&parent_id=".$_REQUEST["actionid"]."&backtopage=".urlencode(htmlspecialchars(substr($_REQUEST['backtopage'], 1, strlen($_REQUEST['backtopage'])-2)));
 //        die($link);
         header("Location: ".$link);
     }

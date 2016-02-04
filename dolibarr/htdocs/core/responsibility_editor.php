@@ -2,14 +2,21 @@
 global $db, $user;
 require '../main.inc.php';
 if(count($_POST)>0) {
-    $sql = 'update responsibility set name = "'.$db->escape(GETPOST('name')).'", alias = "'.$db->escape(GETPOST('alias')).'" where rowid='.GETPOST('rowid');
+
+    $sql = 'update responsibility set name = "'.$db->escape(GETPOST('name')).'", alias = "'.$db->escape(GETPOST('alias')).'", showlineactive='.(isset($_POST['ShowLineActive'])?1:0).' where rowid='.GETPOST('rowid');
+//    die($sql);
     $res = $db->query($sql);
     if(!$res){
         var_dump($sql);
         dol_print_error($db);
     }
-    $id_respon = explode(';', GETPOST('id_respon'));
-    $sql = 'delete from responsibility_param where fx_responsibility = '.GETPOST('rowid').' and fx_category_counterparty not in ('.implode(',', $id_respon).')';
+    $id_respon = array();
+    if(!empty($_POST['id_respon'])) {
+        $id_respon = explode(';', GETPOST('id_respon'));
+        $sql = 'delete from responsibility_param where fx_responsibility = ' . GETPOST('rowid') . ' and fx_category_counterparty not in (' . implode(',', $id_respon) . ')';
+    }else{
+        $sql = 'delete from responsibility_param where fx_responsibility = ' . GETPOST('rowid');
+    }
     $res = $db->query($sql);
     if(!$res){
         var_dump($sql);
@@ -56,7 +63,7 @@ while($row = $db->fetch_object($res)){
 }
 $selector .= '</select>';
 
-$sql = 'select name,alias from responsibility where rowid='.$_REQUEST['rowid'];
+$sql = 'select name,alias,showlineactive from responsibility where rowid='.$_REQUEST['rowid'];
 
 $rowid = $_REQUEST['rowid'];
 $url = $_SERVER["HTTP_REFERER"];
@@ -64,6 +71,7 @@ $res = $db->query($sql);
 $row = $db->fetch_object($res);
 $Name = $row->name;
 $Alias = $row->alias;
+$ShowLineActive = $row->showlineactive;
 include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility_editor.html');
 echo ob_get_clean();
 llxFooter();

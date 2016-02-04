@@ -22,25 +22,20 @@ $sql = 'select `llx_societe`.rowid, `llx_societe`.nom,
 from `llx_societe` left join `category_counterparty` on `llx_societe`.`categoryofcustomer_id` = `category_counterparty`.rowid
 left join `formofgavernment` on `llx_societe`.`formofgoverment_id` = `formofgavernment`.rowid
 left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`
-where 1';
+where 1 ';
 $sql_count = 'select count(*) iCount from `llx_societe` where 1 ';
 
-if($user->login != 'admin') {
-    $tmp = '';
-    if ($region_id != 0)
-        $tmp .= ' and `region_id` = ' . $region_id . ' ';
-    $tmp .= 'and `llx_societe`.`categoryofcustomer_id` in
-    (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = ' . $user->respon_id . ')';
-    $sql .= $tmp;
-    $sql_count .= $tmp;
-}
-$sql .= ' and `llx_societe`.active = 1 ';
-$sql_count.=' and `llx_societe`.active = 1 ';
+    $tmp = 'and `llx_societe`.`categoryofcustomer_id` in
+(select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = '.$user->respon_id.')';
+    $sql.=$tmp;
+    $sql_count.=$tmp;
+
+    $sql .= ' and `llx_societe`.active = 1 ';
+    $sql_count.=' and `llx_societe`.active = 1 ';
 
 //echo '<pre>';
 //var_dump($user->id);
 //echo '</pre>';
-
 
 if($user->login != 'admin') {
     $tmp = ' and `llx_societe`.`fk_user_creat`=' . $user->id;
@@ -50,13 +45,11 @@ if($user->login != 'admin') {
 $sql .= ' order by width desc, nom';
 $sql .= ' limit '.($page-1)*$per_page.','.$per_page;
 $res = $db->query($sql_count);
-if(!$res)
-    dol_print_error($db);
 $count = $db->fetch_object($res);
 //var_dump(ceil($count->iCount/$per_page));
 //die();
 $total = ceil($count->iCount/$per_page);
-//die($sql);
+
 $TableParam = array();
 $ColParam['title']='';
 $ColParam['width']='178';
@@ -246,8 +239,7 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
             }
         }
     }
-//    var_dump($lastaction);
-//    die();
+
     $futureaction = array();
     $sql = "select `llx_societe`.rowid, llx_actioncomm.datep, `responsibility`.`alias`
         from `llx_societe`
@@ -258,7 +250,7 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
         inner join `llx_user` on `llx_actioncomm`.`fk_user_author` = `llx_user`.`rowid`
         left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
         where `llx_societe`.active = 1
-        and `llx_actioncomm`.`id` not in (select `llx_societe_action`.`action_id` from llx_societe_action where action_id is not null)
+        and `llx_actioncomm`.`id` not in (select `llx_societe_action`.`action_id` from llx_societe_action)
         limit 0,30";
 //    die($sql);
     $res = $db->query($sql);

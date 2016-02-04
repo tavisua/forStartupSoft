@@ -1,30 +1,22 @@
-<a href="<?echo $_SERVER['HTTP_REFERER']?>#<?echo $_REQUEST['socid']?>"><?echo $langs->trans('Area')?></a>  /  <a href="/"><?echo $langs->trans('ActionArea')?></a></div>
-
+<div style="width: 150px"><a href="<?echo $_SERVER['HTTP_REFERER']?>#<?echo $_REQUEST['socid']?>"><?echo $langs->trans('Area')?></a>  /  <a href="/"><?echo $langs->trans('ActionArea')?></a></div>
 </br>
-<div  id="customerinfo" style="float: left">
+<div  id="customerinfo">
     <table id="headercontrol" style="background-color: #ffffff">
         <tr>
-            <td><b><?=$langs->trans('TitleToday')?></b></td>
-            <td class="autoinsert"><?=$datep->format('d.m.Y')?></td>
             <td><b>Категорія контрагента</b></td>
-            <td class="autoinsert"><?echo $object->getCategoryOfCustomer()?></td>
+            <td><?echo $object->getCategoryOfCustomer()?></td>
         </tr>
         <tr>
-            <td><b><?=$langs->trans('worker')?></b></td>
-            <td class="autoinsert"><?=$user->lastname?></td>
             <td><b>Назва контрагента</b></td>
-            <td class="autoinsert"><?echo $object->name?></td>
+            <td><?echo $object->name?></td>
         </tr>
         <tr>
-            <td><b>Станом на</b></td>
-            <td class="autoinsert" id="lastdate"></td>
             <td><b>Форма правління</b></td>
-            <td class="autoinsert"><?echo $object->getFormOfGoverment()?></td>
+            <td><?echo $object->getFormOfGoverment()?></td>
         </tr>
     </table>
 </div>
 </br>
-<div style="width: 100%; height: 80px"></div>
 <div>
     <form method="post" action="/dolibarr/htdocs/societe/addcontact.php">
         <input id="url" type="hidden" value="<?echo $_SERVER['REQUEST_URI']?>" name="url">
@@ -85,7 +77,7 @@
         <button>    Повідомити    </button>
         <button>    Звітувати    </button>
     </form>
-    <table id="actions_table">
+    <table>
         <thead>
         <tr class="header_table">
             <th style="width: 80px" class="middle_size">Дата і час внесення</th>
@@ -111,19 +103,12 @@
     <b>Попередні дії</b></br>
     <textarea id="prev_action"><?echo $object->prehistoric_actions;?></textarea>
 </div>
-<!--<form id="addaction" action="/dolibarr/htdocs/comm/action/card.php" method="post">-->
-    <!--<input type="hidden" name="backtopage" value="'<?=$_SERVER['REQUEST_URI']?>'">-->
-    <!--<input type="hidden" name="action" value="create" id="edit_action">-->
-    <!--<input type="hidden" name="mainmenu" value="area">-->
-    <!--<input type="hidden" value="<?=$_GET['socid']?>" name="socid">-->
-    <!--<input type="hidden" name="id" value="" id="action_id">-->
-<!--</form>-->
-<form id="redirect" action="/dolibarr/htdocs/comm/action/result_action.php" method="get">
+<form id="addaction" action="/dolibarr/htdocs/comm/action/card.php" method="post">
     <input type="hidden" name="backtopage" value="'<?=$_SERVER['REQUEST_URI']?>'">
+    <input type="hidden" name="action" value="create" id="edit_action">
+    <input type="hidden" name="mainmenu" value="area">
+    <input type="hidden" value="<?=$_GET['socid']?>" name="socid">
     <input type="hidden" name="id" value="" id="action_id">
-    <input type="hidden" name="mainmenu" value="<?=$_REQUEST['mainmenu']?>">
-    <input type="hidden" value="<?=$actioncode?>" id="redirect_actioncode" name="actioncode">
-    <input type="hidden" name="action" value="edit" id="edit_action">
 </form>
 <style>
     #reference_body td{
@@ -139,30 +124,11 @@
         var top =
         $('#showhide_contactlist').offset({top:$('#addcontact').offset().top, left:$('#addcontact').offset().left+$('#addcontact').width()+15});
         $('#contactlist').offset({top:$('#contactlist').offset().top-20});
-        var tr = document.getElementById('actions_table').getElementsByTagName('tr');
-        for(var i = 0; i<tr.length; i++) {
-            var td = tr[i].getElementsByTagName('td');
-            if(td.length>0) {
-                if (td[0].innerHTML.length > 0) {
-                    console.log(td[0].innerHTML);
-                    td = $('td#' + td[0].id);
-                    var space_index = strpos(td.html(), ' ');
-                    $("#lastdate").text(td.html().substr(0, space_index));
-                    break;
-                } else {
-                    $("#lastdate").text('Нема даних');
-                }
-            }
-        }
     })
-    function strpos( haystack, needle, offset){ // Find position of first occurrence of a string
-        var i = haystack.indexOf( needle, offset ); // returns -1
-        return i >= 0 ? i : false;
-    }
     function EditAction(rowid){
         $('#action_id').val(rowid);
         $('#edit_action').val('edit');
-        $('#redirect').submit();
+        $('#addaction').submit();
     }
     function ShowHideContactList(object){
         if($('#'+object.attr('id')).text().trim()=='Скрити контакти') {

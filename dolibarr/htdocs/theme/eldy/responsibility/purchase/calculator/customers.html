@@ -1,0 +1,163 @@
+<div class="contant_tble">
+
+        <div class="tabs" id="tabs_area" data-role="controlgroup" data-type="horizontal">
+            <div class="inline-block tabsElem tabsElemActive">
+                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/responsibility/sale/area.php?idmenu=10425&mainmenu=area<?= (isset($_GET['page'])?('&page='.$_GET['page'].'&per_page='.$_GET['per_page']):'')?>"><? echo $langs->trans('BasicInfo')?></a>
+            </div>
+            <div  class="inline-block tabsElem" id="Calculator">
+                <a href="/dolibarr/htdocs/responsibility/sale/calculator.php?idmenu=10425&mainmenu=area<?= isset($_GET['page'])?('&page='.$_GET['page'].'&per_page='.$_GET['per_page']):''?>" class="tabactive tab inline-block" data-role="button"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<? echo $langs->trans('Calculator')?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b></a>
+            </div>
+
+        </div>
+
+    <table  cellspacing="1" class="WidthScroll">
+        <thead>
+        <tr class="multiple_header_table">
+            <th width="180px">Назва контрагента</th>
+            <th width="100px">Місце знаходження</th>
+            <th width="50px">Орної землі, га</th>
+            <?=$theme_header?>
+            <th width="50px" rowspan="2">Активне</th>
+        </tr>
+        </thead>
+
+            <?echo $table?>
+
+    </table>
+
+</div>
+<script>
+    $(document).ready(function(){
+        $('#reference_body').attr('height', window.innerHeight - 420);
+        var th = document.getElementsByTagName('th');
+        var left = 30;
+        var widths = [];
+        var TotalWidth = 0;
+        for(var i=0; i<th.length; i++){
+            if(th[i].className == "middle_size" || th[i].id == '') {
+//                    console.log(th[i].offsetWidth);
+                var iWidth = th[i].offsetWidth;
+                if (th[i].className == 'header_table')
+                    left += parseInt(iWidth);
+                TotalWidth += iWidth;
+                widths.push(parseInt(iWidth));
+            }
+        }
+
+        $('.tabs').offset({top:215, left:left});
+        $('#reference_body').offset({left:22});
+////console.log(TotalWidth, widths);
+        $('#reference_body').width(520);
+    })
+
+</script>
+<script type="text/javascript">
+    $(document).ready(function(){
+        var tbody = document.getElementById('reference_body');
+        if(tbody == null)return;
+        var trList = tbody.getElementsByTagName('tr');
+        for(var index = 0; index<trList.length; index++){
+            var tdList = trList[index].getElementsByTagName('td');
+            for(var tdIndex = 0; tdIndex<tdList.length; tdIndex++){
+                if(tdList[tdIndex].id.substr(tdList[tdIndex].id.length-'nom'.length) == 'nom') {
+//                     http://uspex2015.com/dolibarr/htdocs/user/card.php?id=13
+                    var id = tdList[tdIndex].id.substr(0, (tdList[tdIndex].id.length - 'nom'.length));
+                    if(tdList[tdIndex].id.substr(0,4)!='prev') {
+                        if (!strpos(tdList[tdIndex].innerHTML, '<img'))
+                            tdList[tdIndex].innerHTML = '<a id = "login_' + id + '" href="/dolibarr/htdocs/societe/soc.php?mainmenu=area&idmenu=<?echo $_REQUEST["idmenu"]?>&action=edit&socid=' + id + '"> <img border="0"  alt="" src="/dolibarr/htdocs/theme/eldy/img/object_contact.png">' + (tdList[tdIndex].innerHTML) + '</a>';
+                        else {
+                            var text = tdList[tdIndex].innerHTML.substr(0, strpos(tdList[tdIndex].innerHTML, '<img'));
+                            tdList[tdIndex].innerHTML = '<a id = "login_' + id + '" href="/dolibarr/htdocs/societe/soc.php?mainmenu=area&idmenu=<?echo $_REQUEST["idmenu"]?>&action=edit&socid=' + id + '"> <img border="0"  alt="" src="/dolibarr/htdocs/theme/eldy/img/object_contact.png">' + (text) + '</a>' +
+                            tdList[tdIndex].innerHTML.substr(strpos(tdList[tdIndex].innerHTML, '<img'));
+                        }
+                    }
+                }
+            }
+        }
+    })
+    $(window).keydown(function(event){ //ловим событие нажатия клавиши
+        if(event.keyCode == 13) { //если это Enter
+            $('#edit').blur(); //снимаем фокус с поля ввода
+        }
+    });
+    $(function(){
+        $('td').click(function(e){
+            if($(this).attr('id').substr(0, 4)!='calc')
+                return;
+            //ловим элемент, по которому кликнули
+            var t = e.target || e.srcElement; //получаем название тега
+            var elm_name = t.tagName.toLowerCase(); //если это инпут - ничего не делаем
+            if(elm_name == 'input') {return false;}
+
+            var val = $(this).html();
+            var field = '<input type="text" id="edit" value="'+val+'" size=2/>';
+            $(this).empty().append(field); //устанавливаем фокус на свеженарисованное поле
+            $('#edit').focus();
+            $('#edit').select();
+            $('#edit').blur(function() { //устанавливаем обработчик
+                var val = $(this).val(); //получаем то, что в поле находится
+                //находим ячейку, опустошаем, вставляем значение из поля
+                $(this).parent().empty().html(val);
+                var theme_id, socid;
+                for(var i = 5; i< e.target.id.length; i++){
+                    if(e.target.id.substr(i,1)=="_"){
+//                        console.log(i);
+                        theme_id = e.target.id.substr(5,i-5);
+                        socid    = e.target.id.substr(i+1);
+                    }
+                }
+//                console.log(theme_id, socid);
+                var td = $('#'+e.target.id).parent();
+                $.ajax({
+                    url:'/dolibarr/htdocs/calculator/index.php?action=set&socid='+socid+'&theme_id='+theme_id+'&val='+val+'&id_usr=<?=$user->id?>',
+                    cache:false,
+                    success:function(html){
+
+                    }
+                })
+            });
+        })
+    })
+    function preview(object){
+        console.log(object);
+        $("#prev_form").text($("#full"+object).text());
+        location.href="#peview_form";
+//        $("#peview_form").offset({top:10, left:10});
+    }
+    function change_switch(rowid){
+        var x;
+        x = document.getElementById('img' + rowid );
+
+        //console.log('img' + rowid + col_name);
+        var check = false;
+        var end = strpos(x.src, '/img/');
+        //console.log(x.src);
+        //console.log(x.src.substr(0, end+4)+'/switch_on.png');
+        if(x.src == x.src.substr(0, end+4)+'/switch_on.png'){
+            x.src = x.src.substr(0, end+4)+'/switch_off.png';
+        }else{
+            x.src =  x.src.substr(0, end+4)+'/switch_on.png';
+            check = true;
+        }
+        if(rowid != 0) {
+            var link = 'http://'+location.hostname+'/dolibarr/htdocs/DBManager/dbManager.php?rowid='+rowid+'&edit=1&tablename=llx_societe&col_name=active&value='+check;
+            console.log(link);
+            update_data(link);
+        }
+    }
+    function update_data(link){
+        var id_usr = document.getElementById('user_id').value;
+        $.ajax({
+            url: link+'&id_usr='+id_usr,
+            cache: false,
+            success: function (html) {
+                console.log(html);
+            }
+        });
+
+    };
+    function strpos( haystack, needle, offset){ // Find position of first occurrence of a string
+        var i = haystack.indexOf( needle, offset ); // returns -1
+        return i >= 0 ? i : false;
+    }
+</script>

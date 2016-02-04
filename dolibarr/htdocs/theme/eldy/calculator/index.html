@@ -30,6 +30,10 @@
                     <th style="width: 145px;">Район</th>
                     <?=$theme_header?>
                 </tr>
+                <tr class="multiple_header_table" id="Total">
+                    <th colspan="2">Всього</th>
+                    <?=$theme_header?>
+                </tr>
 
             </thead>
 
@@ -54,6 +58,11 @@
                     $('#reference_body').attr('height', window.innerHeight - 300);
                     $('#reference_body').width($('#reference_body').width()+15);
                     $('#popupmenu').offset({top:550, left:-250});
+                    var th = document.getElementById('Total').getElementsByTagName('th');
+                    for(var i = 1; i<th.length; i++){
+                        th[i].innerHTML = document.getElementById('totaltheme'+th[i].id).value;
+                        console.log('input#totaltheme'+th[i].id);
+                    }
                 })
                 function ShowTask(object){
 //                    if(object.text()==1){

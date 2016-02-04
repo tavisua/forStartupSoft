@@ -11,13 +11,243 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 llxHeader("",$langs->trans('PlanOfDays'),"");
 print_fiche_titre($langs->trans('PlanOfDays'));
 $table = ShowTable();
+
+//Підрахунок глобальних задач
+$global_task = array();
+$global_task = CalcOutStandingActions("'AC_GLOBAL'", $global_task, $user->id);
+$global_task = CalcFutureActions("'AC_GLOBAL'", $global_task, $user->id);
+$global_task = CalcFaktActions("'AC_GLOBAL'", $global_task, $user->id);
+$global_task = CalcPercentExecActions("'AC_GLOBAL'", $global_task, $user->id);
+
+//Підрахунок поточних задач
+$current_task = array();
+$current_task = CalcOutStandingActions("'AC_CURRENT'", $current_task, $user->id);
+$current_task = CalcFutureActions("'AC_CURRENT'", $current_task, $user->id);
+$current_task = CalcFaktActions("'AC_CURRENT'", $current_task, $user->id);
+$current_task = CalcPercentExecActions("'AC_CURRENT'", $current_task, $user->id);
+
+//Підрахунок по направленнях
+$sql = "select `code` from llx_c_actioncomm
+where type in ('system','user')
+and code not in ('AC_GLOBAL', 'AC_CURRENT')";
+$res = $db->query($sql);
+if(!$res)
+    dol_print_error($db);
+$Code='';
+while($obj = $db->fetch_object($res)){
+    if(empty($Code))
+        $Code = "'".$obj->code."'";
+    else
+        $Code .= ",'".$obj->code."'";
+}
+$lineaction = array();
+$lineaction = CalcOutStandingActions($Code, $lineaction, $user->id);
+$lineaction = CalcFutureActions($Code, $lineaction, $user->id);
+$lineaction = CalcFaktActions($Code, $lineaction, $user->id);
+$lineaction = CalcPercentExecActions($Code, $lineaction, $user->id);
+
+//Підсумок виконання задач
+$total_percent =array();
+for($i = 0; $i<9; $i++){
+    $count = 0;
+    $sum = 0;
+    if($i<8){
+        if(strlen($global_task["percent_".$i])>0){
+            $count++;
+            $sum.=$global_task["percent_".$i];
+        }
+        if(strlen($current_task["percent_".$i])>0){
+            $count++;
+            $sum+=$current_task["percent_".$i];
+        }
+        if(strlen($lineaction["percent_".$i])>0){
+            $count++;
+            $sum+=$lineaction["percent_".$i];
+        }
+        if($count != 0)
+            $total_percent["percent_".$i] = round($sum/$count);
+    }else{
+        if(strlen($global_task["percent_month"])>0){
+            $count++;
+            $sum+=$global_task["percent_month"];
+        }
+        if(strlen($current_task["percent_month"])>0){
+            $count++;
+            $sum+=$current_task["percent_month"];
+        }
+        if(strlen($lineaction["percent_month"])>0){
+            $count++;
+            $sum+=$lineaction["percent_month"];
+        }
+        if($count != 0) {
+            $total_percent["percent_month"] = round($sum / $count,0);
+        }
+    }
+}
+
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/day_plan.html';
 //print '</br>';
 //print'<div style="float: left">test</div>';
 llxFooter();
 
 exit();
+function CalcPercentExecActions($actioncode, $array, $id_usr){
+    global $db;
+    $totaltask = array();
+    $exectask = array();
+    for($i = 0; $i<9; $i++){
+        $sql = "select count(*) as iCount  from `llx_actioncomm`
+        inner join
+        (select id from `llx_c_actioncomm` where code in(".$actioncode.") and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
+        left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
+        where 1 ";
+        $sql .= " and fk_user_author = ".$id_usr;
+        if($i<8) {
+            $query_date = date("Y-m-d", (time()+3600*24*(-$i)));
+            if($i!=7)
+                $sql .= " and datep2 between '".$query_date . "' and date_add('" . $query_date . "', interval 1 day)";
+            else
+                $sql .= " and datep2 between date_add('" . date("Y-m-d") . "', interval -7 day) and '".date("Y-m-d") . "'";
+        }else {
+                $sql .= " and datep2 between date_add('" . date("Y-m-d") . "', interval -31 day) and '" . date("Y-m-d") . "'";
+        }
+//        if($i == 4)
+//            die($sql);
+        $res = $db->query($sql);
+        while($res && $obj = $db->fetch_object($res)){
+            if($i<8) {
+                $totaltask[$i] = $obj->iCount;
+            }else
+                $totaltask['month']=$obj->iCount;
+        }
+        $res = $db->query($sql.' and datea is not null');
+        while($res && $obj = $db->fetch_object($res)){
+            if($i<8) {
+                $exectask[$i] = $obj->iCount;
+            }else
+                $exectask['month']=$obj->iCount;
+        }
+    }
+    for($i=0; $i<9; $i++){
+        if($i<8) {
+            if($totaltask[$i]!=0){
+               $array['percent_'.$i] = round($exectask[$i]*100/$totaltask[$i],0);
+            }else{
+               $array['percent_'.$i] = '';
+            }
+        }else{
+            if($totaltask['month'] != 0){
+                $array['percent_month'] =  round($exectask['month']*100/$totaltask['month'],0);
+            }else{
+               $array['percent_month'] = '';
+            }
+        }
+    }
+//    echo '<pre>';
+//    var_dump($array);
+//    echo '</pre>';
+//    die();
+    return $array;
+}
+function CalcFaktActions($actioncode, $array, $id_usr){
+    global $db, $user;
+    //Минулі виконані дії
+    for($i=0; $i<9; $i++) {
+        $sql = "select count(*) as iCount  from `llx_actioncomm`
+        inner join
+        (select id from `llx_c_actioncomm` where code in(".$actioncode.") and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
+        left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
+        where 1";
+        if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'" || $user->login !="admin")
+            $sql .=" and fk_user_author = ".$id_usr;
+        if($i<8) {
+            $query_date = date("Y-m-d", (time()+3600*24*(-$i)));
+            if($i!=7)
+                $sql .= " and datep2 between '".$query_date . "' and date_add('" . $query_date . "', interval 1 day)";
+            else
+                $sql .= " and datep2 between date_add('" . date("Y-m-d") . "', interval -7 day) and '".date("Y-m-d") . "'";
+        }else {
+                $sql .= " and datep2 between date_add('" . date("Y-m-d") . "', interval -31 day) and '" . date("Y-m-d") . "'";
+        }
+        $sql .=" and datea is not null";
+//        if($i == 4)
+//            die($sql);
+        $res = $db->query($sql);
+        while($res && $obj = $db->fetch_object($res)){
+            if($i<8) {
+                if($i == 0)
+                    $array['fakt_today'] = $obj->iCount;
+                else
+                    $array['fakt_day_m' . ($i)] = $obj->iCount;
+            }else
+                $array['fakt_month']=$obj->iCount;
+        }
+    }
+    return $array;
+}
 
+function CalcFutureActions($actioncode, $array, $id_usr){
+    global $db, $user;
+    //Майбутні дії
+    for($i=0; $i<9; $i++) {
+        $sql = "select count(*) as iCount  from `llx_actioncomm`
+        inner join
+        (select id from `llx_c_actioncomm` where code in(".$actioncode.") and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
+        left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
+        where 1";
+        if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'" || $user->login !="admin")
+            $sql .=" and fk_user_author = ".$id_usr;
+        if($i<8) {
+            $query_date = date("Y-m-d", (time()+3600*24*$i));
+            if($i!=7)
+                $sql .= " and datep2 between '".$query_date . "' and date_add('" . $query_date . "', interval 1 day)";
+            else
+                $sql .= " and datep2 between '".date("Y-m-d") . "' and date_add('" . date("Y-m-d") . "', interval 7 day)";
+        }else {
+            $month = date("m");
+            if($month+1<10)
+                $month = '0'.($month+1);
+            else
+                $month =($month+1);
+                $sql .= " and datep2 between '" . date("Y-m-d") . "' and date_add('" . date("Y-m-d") . "', interval 31 day)";
+        }
+        $sql .=" and datea is null";
+
+        $res = $db->query($sql);
+        while($res && $obj = $db->fetch_object($res)){
+            if($i<8) {
+                if($i == 0)
+                    $array['future_today'] = $obj->iCount;
+                else
+                    $array['future_day_pl' . ($i)] = $obj->iCount;
+            }else
+                $array['future_month']=$obj->iCount;
+        }
+    }
+    return $array;
+}
+function CalcOutStandingActions($actioncode, $array, $id_usr){
+    global $db, $user;
+    $sql = "select count(*) as iCount  from `llx_actioncomm`
+    inner join
+    (select id from `llx_c_actioncomm` where code in(".$actioncode.") and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
+    left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
+    where 1";
+        if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'" || $user->login !="admin")
+            $sql .=" and fk_user_author = ".$id_usr;
+    $sql .= " and datep2 < '".date("Y-m-d")."'";
+    $sql .=" and datea is null";
+//    if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'"){}
+//        else
+//            die($sql);
+    $res = $db->query($sql);
+    if($db->num_rows($res)) {
+        $obj = $db->fetch_object($res);
+        $array['outstanding'] = $obj->iCount;
+    }else
+        $array['outstanding'] = '';
+    return $array;
+}
 function ShowTable(){
     global $db, $user, $conf;
     $future_actions = array();
@@ -30,7 +260,10 @@ function ShowTable(){
         where 1 ";
         if($i<8) {
             $query_date = date("Y-m-d", (time()+3600*24*$i));
-            $sql .= " and datep2 between '".$query_date . "' and date_add('" . $query_date . "', interval 1 day)";
+            if($i!=7)
+                $sql .= " and datep2 between '".$query_date . "' and date_add('" . $query_date . "', interval 1 day)";
+            else
+                $sql .= " and datep2 between '".date("Y-m-d") . "' and date_add('" . date("Y-m-d") . "', interval 7 day)";
         }else {
             $month = date("m");
             if($month+1<10)

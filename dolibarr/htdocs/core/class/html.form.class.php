@@ -1223,6 +1223,76 @@ class Form
      * 	@return	string					HTML select string
      *  @see select_dolgroups
      */
+    function selectLineAction($selected='', $htmlname){
+        global $db, $langs;
+        $sql = "SELECT DISTINCT c.category_id, c.parent_id, cd2.name,  (SELECT  GROUP_CONCAT(cd1.name ORDER BY level SEPARATOR ' &gt; ')
+            FROM oc_category_path cp LEFT JOIN oc_category_description cd1 ON (cp.path_id = cd1.category_id AND cp.category_id != cp.path_id) WHERE cp.category_id = c.category_id AND cd1.language_id = 4 GROUP BY cp.category_id) AS path
+            FROM oc_category c
+            LEFT JOIN oc_category_description cd2 ON (c.category_id = cd2.category_id)
+            WHERE c.parent_id <> 0 AND cd2.language_id = 4
+            order by parent_id, c.sort_order, cd2.name";
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+        $basic_group = array();
+        $group = array();
+        $categries = array();
+        while($obj = $db->fetch_array($res)){
+            if($obj['parent_id'] == 67){
+                $basic_group[]=$obj['category_id'];
+            }
+            if(!in_array($obj['parent_id'], $group))
+                $group[]=$obj['parent_id'];
+            $categries[$obj['category_id']]=array($obj['name'], $this->SymbolCounter('&gt;', $obj['path']));
+
+        }
+        //Subcategory
+        $sub_category = array();
+        foreach($group as $group_id){
+            mysqli_data_seek($res, 0);
+            $subcatstr='';
+            while($obj = $db->fetch_object($res)){
+                if($obj->parent_id == $group_id){
+                    if(empty($subcatstr))
+                        $subcatstr = $obj->category_id;
+                    else
+                        $subcatstr.=','.$obj->category_id;
+                }
+            }
+            $sub_category[$group_id]=explode(',', $subcatstr);
+        }
+
+        $out = '<select id="select_lineaction" name="select_lineaction" size="5" multiple="" class="combobox">';
+        $index = 0;
+        while(count($basic_group)) {
+            $catalog_id = $basic_group[0];
+            array_shift($basic_group);
+            $space = '&nbsp;&nbsp;&nbsp;&nbsp;';
+            $space_item = '';
+            for($i=1; $i<=$categries[$catalog_id][1]; $i++)
+                $space_item.=$space;
+            if(isset($sub_category[$catalog_id])) {
+                $out .= '<option value="' . $catalog_id . '" disabled>' .$space_item.$categries[$catalog_id][0] . '</option>';
+                for($i=count($sub_category[$catalog_id])-1; $i>=0; $i--) {
+                    array_unshift($basic_group, $sub_category[$catalog_id][$i]);
+                }
+            }else
+                $out .= '<option value="' . $catalog_id . '">' .$space_item.$categries[$catalog_id][0] . '</option>';
+            $index++;
+//            if($index>10)break;
+        }
+        $out .= '</select>';
+        return $out;
+
+    }
+    function SymbolCounter($symbol, $str){
+        $count=0;
+        for($i=0; $i<mb_strlen($str, 'UTF-8'); $i++){
+            if(mb_substr($str, $i, 4) == $symbol)
+                $count++;
+        }
+        return $count;
+    }
     function select_control($selected='', $htmlname, $disabled=0, $tablename, $fieldname, $userinfo, $readonly = true)
     {
         global $conf, $user, $langs;
@@ -3901,13 +3971,15 @@ class Form
         return $out;
     }
     function select_period($htmlname='selperiod', $period=''){
-        global $conf, $langs;
+//        var_dump($period);
+//        die();
+        global $langs;
         $sql='select rowid, name from `llx_c_period` where active=1 order by rowid';
         $out = '<select id="'.$htmlname.'" class="combobox" name="'.$htmlname.'" size=1>';
         $out .= '<option value="0"></option>';
         $res = $this->db->query($sql);
         while($row = $this->db->fetch_object($res)){
-            $out .= '<option value="'.$row->name.'">'.$langs->trans($row->name).'</option>';
+            $out .= '<option value="'.$row->name.'" '.($period==$row->name?'selected="selected"':"").'>'.$langs->trans($row->name).'</option>';
         }
         $out.='</select>';
         return $out;

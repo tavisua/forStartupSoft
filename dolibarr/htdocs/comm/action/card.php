@@ -59,7 +59,17 @@ if($_GET['action']=='get_exectime'){
     }
     return 1;
     exit();
+}elseif($_GET['action']=='get_freetime'){
+	require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
+	global $db, $user;
+	$Action = new ActionComm($db);
+	$freetime = $Action->GetFirstFreeTime($_GET['date'], $user->id, $_GET['minute']);
+	echo '<pre>';
+	var_dump($freetime);
+	echo '</pre>';
+	exit();
 }
+
 
 
 require_once DOL_DOCUMENT_ROOT.'/core/lib/agenda.lib.php';
@@ -101,7 +111,7 @@ $fulldayevent=GETPOST('fullday');
 $datep=dol_mktime($fulldayevent?'00':GETPOST("aphour"), $fulldayevent?'00':GETPOST("apmin"), 0, GETPOST("apmonth"), GETPOST("apday"), GETPOST("apyear"));
 $datef=dol_mktime($fulldayevent?'23':GETPOST("p2hour"), $fulldayevent?'59':GETPOST("p2min"), $fulldayevent?'59':'0', GETPOST("p2month"), GETPOST("p2day"), GETPOST("p2year"));
 //echo '<pre>';
-//var_dump($_POST);
+//var_dump($_GET);
 //echo '</pre>';
 //die();
 // Security check
@@ -674,7 +684,7 @@ if ($action == 'create')
                         }
                    });
                    $("#actioncode").change(function() {
-                        if ($("#actioncode").val() == \'AC_RDV\') $("#dateend").addClass("fieldrequired");
+                        if ($("#actioncode").val() == "AC_RDV") $("#dateend").addClass("fieldrequired");
                         else $("#dateend").removeClass("fieldrequired");
                    });
                })';
@@ -709,9 +719,43 @@ if ($action == 'create')
 
     // Full day
     print '<tr><td>'.$langs->trans("EventOnFullDay").'</td><td><input type="checkbox" id="fullday" name="fullday" '.(GETPOST('fullday')?' checked="checked"':'').'></td></tr>';
-
+    $period='';
 	// Date start
-	$datep=($datep?$datep:$object->datep);
+	if(empty($_REQUEST["parent_id"])) {
+		$datep = ($datep ? $datep : $object->datep);
+		$datef = ($datef ? $datef : $object->datef);
+	}else{
+		$sql = "select datep, datep2, period from llx_actioncomm where id = ".$_REQUEST["parent_id"];
+		$res = $db->query($sql);
+		if(!$res)
+			dol_print_error($db);
+		$obj = $db->fetch_object($res);
+        $datep = new DateTime($obj->datep);
+        $datef = new DateTime($obj->datep2);
+        $period = $obj->period;
+		switch($obj->period){
+			case 'EveryWeek':{
+                $datep = new DateTime(($datep->format('d')+7).'.'.$datep->format('m').'.'.$datep->format('Y'). ' '.$datep->format('h').':'.$datep->format('i').':'.$datep->format('s'));
+                $datef = new DateTime(($datef->format('d')+7).'.'.$datef->format('m').'.'.$datef->format('Y'). ' '.$datef->format('h').':'.$datef->format('i').':'.$datef->format('s'));
+			}break;
+			case 'EveryMonth':{
+                $datep = new DateTime($datep->format('d').'.'.($datep->format('m')+1).'.'.$datep->format('Y'). ' '.$datep->format('h').':'.$datep->format('i').':'.$datep->format('s'));
+                $datef = new DateTime($datef->format('d').'.'.($datef->format('m')+1).'.'.$datef->format('Y'). ' '.$datef->format('h').':'.$datef->format('i').':'.$datef->format('s'));
+			}break;
+			case 'Quarterly':{
+                $datep = new DateTime($datep->format('d').'.'.($datep->format('m')+3).'.'.$datep->format('Y'). ' '.$datep->format('h').':'.$datep->format('i').':'.$datep->format('s'));
+                $datef = new DateTime($datef->format('d').'.'.($datef->format('m')+3).'.'.$datef->format('Y'). ' '.$datef->format('h').':'.$datef->format('i').':'.$datef->format('s'));
+			}break;
+			case 'Annually':{
+                $datep = new DateTime($datep->format('d').'.'.$datep->format('m').'.'.($datep->format('Y')+1). ' '.$datep->format('h').':'.$datep->format('i').':'.$datep->format('s'));
+                $datef = new DateTime($datef->format('d').'.'.$datef->format('m').'.'.($datef->format('Y')+1). ' '.$datef->format('h').':'.$datef->format('i').':'.$datef->format('s'));
+			}break;
+		}
+//        var_dump($datep);
+//        die();
+        $datep = mktime($datep->format('h'),$datep->format('i'),$datep->format('s'),$datep->format('m'),$datep->format('d'),$datep->format('Y'));
+        $datef = mktime($datef->format('h'),$datef->format('i'),$datef->format('s'),$datef->format('m'),$datef->format('d'),$datef->format('Y'));
+	}
 	if (GETPOST('datep','int',1)) $datep=dol_stringtotime(GETPOST('datep','int',1),0);
 	print '<tr><td width="30%" class="nowrap"><span class="fieldrequired">'.$langs->trans("DateActionStart").'</span></td><td>';
 	if (GETPOST("afaire") == 1) $form->select_date($datep,'ap',1,1,0,"action",1,1,0,0,'fulldayend');
@@ -720,7 +764,7 @@ if ($action == 'create')
 	print '</td></tr>';
 
 	// Date end
-	$datef=($datef?$datef:$object->datef);
+
     if (GETPOST('datef','int',1)) $datef=dol_stringtotime(GETPOST('datef','int',1),0);
 	if (empty($datef) && ! empty($datep) && ! empty($conf->global->AGENDA_AUTOSET_END_DATE_WITH_DELTA_HOURS))
 	{
@@ -751,7 +795,7 @@ if ($action == 'create')
 //    {
 //    var_dump((GETPOST("actioncode") != "AC_GLOBAL"));
 //        die(GETPOST("actioncode"));
-		print '<tr id="period"><td>'.$langs->trans("Period").'</td><td colspan="3">'.$form->select_period().'</td></tr>';
+		print '<tr id="period"><td>'.$langs->trans("Period").'</td><td colspan="3">'.$form->select_period('selperiod',$period).'</td></tr>';
 //    }
 
 	// Assigned to
@@ -1029,6 +1073,7 @@ if ($id > 0)
                 <input type="hidden" name="backtopage" value="'.($backtopage != '1'? $backtopage : $_SERVER["HTTP_REFERER"]).'">
                 <input type="hidden" name="id" value="'.$id.'">
                 <input type="hidden" name="mainmenu" value="'.$_REQUEST["mainmenu"].'">
+                <input type="hidden" value="" id="redirect_actioncode" name="actioncode">
                 <input type="hidden" name="action" value="edit">
         </form>';
 		print '<form id = "formaction" name="formaction" action="'.$_SERVER['PHP_SELF'].'" method="POST">';
@@ -1078,7 +1123,17 @@ if ($id > 0)
 		$percent=GETPOST("percentage")?GETPOST("percentage"):$object->percentage;
 		$formactions->form_select_status_action('formaction',$percent,1);
 		print '</td></tr>';
-
+		// Period
+//    if (GETPOST("actioncode") == "AC_GLOBAL")
+//    {
+//    var_dump((GETPOST("actioncode") != "AC_GLOBAL"));
+//        die(GETPOST("actioncode"));
+//		echo '<pre>';
+//		var_dump($object->period);
+//		echo '</pre>';
+//		die();
+		print '<tr id="period"><td>'.$langs->trans("Period").'</td><td colspan="3">'.$form->select_period('selperiod', $object->period).'</td></tr>';
+//    }
         // Location
 	    if (empty($conf->global->AGENDA_DISABLE_LOCATION))
 	    {
@@ -1510,6 +1565,11 @@ print '
             ActionCodeChanged();
             $(".tabBar").width(800);
             $("#event_desc").on("click", redirect);
+//            var link = "http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=get_freetime&date=2016-01-21";
+//            console.log(link);
+//            $.ajax({
+//            	url:
+//            })
         });
         function redirect(){
             $("#redirect").submit();
@@ -1549,10 +1609,10 @@ print '
             if($("select#apmin").val() == -1) return;
             else if($("select#apmin").val() != "-1") {
                 if($("select#actioncode").val()!=0){
-                    if($("#actioncode").val() != "AC_GLOBAL")
-                        $("#period").hide();
-                    else
-                        $("#period").show();
+//                    if($("#actioncode").val() != "AC_GLOBAL")
+//                        $("#period").hide();
+//                    else
+//                        $("#period").show();
                     var link = "http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=get_exectime&code="+$("#actioncode").val();
                     console.log(link);
                     $.ajax({
@@ -1618,10 +1678,13 @@ print '
             }
             dpChangeDay("ap","dd.MM.yyyy");
             setP2();
-            if($("#actioncode").val() == "AC_GLOBAL" || $("#actioncode").val() == "AC_CURRENT")
+            $("#redirect_actioncode").val($("#actioncode").val());
+            if($("#actioncode").val() == "AC_GLOBAL" || $("#actioncode").val() == "AC_CURRENT"){
                 $("#period").show();
-            else
+            }else{
                 $("#period").hide();
+			}
+
         }
     </script>';
 

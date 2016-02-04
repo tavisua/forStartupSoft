@@ -5,7 +5,8 @@
  * Date: 07.11.2015
  * Time: 11:32
  */
- $region_id = $_SESSION['region_id'];
+
+$region_id = $_SESSION['region_id'];
 $search = explode(',',$_GET['search']);
 $search_array = array();
 foreach($search as $elem) {
@@ -16,31 +17,24 @@ $page = isset($_GET['page'])?$_GET['page']:1;
 $per_page = isset($_GET['per_page'])?$_GET['per_page']:30;
 
 $sql = 'select `llx_societe`.rowid, `llx_societe`.nom,
-`llx_societe`.`town`, round(`llx_societe_classificator`.`value`,0) as width, `llx_societe`.`remark`, " " deficit,
-" " task," " lastdate, " " lastdatecomerc, " " futuredatecomerc, " " lastdateservice,
-" " futuredateservice, " " lastdateaccounts, " " futuredateaccounts, " " lastdatementor, " " futuredatementor
+`llx_societe`.`town`, round(`llx_societe_classificator`.`value`,0) as width
 from `llx_societe` left join `category_counterparty` on `llx_societe`.`categoryofcustomer_id` = `category_counterparty`.rowid
 left join `formofgavernment` on `llx_societe`.`formofgoverment_id` = `formofgavernment`.rowid
-left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`
-where 1';
-$sql_count = 'select count(*) iCount from `llx_societe` where 1 ';
-
-if($user->login != 'admin') {
-    $tmp = '';
-    if ($region_id != 0)
-        $tmp .= ' and `region_id` = ' . $region_id . ' ';
+left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`';
+$sql_count = 'select count(*) iCount from `llx_societe`';
+if($region_id != 0) {
+    $tmp = ' where `region_id` = ' . $region_id . ' ';
     $tmp .= 'and `llx_societe`.`categoryofcustomer_id` in
-    (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = ' . $user->respon_id . ')';
-    $sql .= $tmp;
-    $sql_count .= $tmp;
+(select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = '.$user->respon_id.')';
+    $sql.=$tmp;
+    $sql_count.=$tmp;
+}else {
+    $sql .= ' where `llx_societe`.active = 1 ';
+    $sql_count.=' where `llx_societe`.active = 1 ';
 }
-$sql .= ' and `llx_societe`.active = 1 ';
-$sql_count.=' and `llx_societe`.active = 1 ';
-
 //echo '<pre>';
 //var_dump($user->id);
 //echo '</pre>';
-
 
 if($user->login != 'admin') {
     $tmp = ' and `llx_societe`.`fk_user_creat`=' . $user->id;
@@ -50,8 +44,6 @@ if($user->login != 'admin') {
 $sql .= ' order by width desc, nom';
 $sql .= ' limit '.($page-1)*$per_page.','.$per_page;
 $res = $db->query($sql_count);
-if(!$res)
-    dol_print_error($db);
 $count = $db->fetch_object($res);
 //var_dump(ceil($count->iCount/$per_page));
 //die();
@@ -80,96 +72,35 @@ $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
-
 $ColParam['title']='';
-$ColParam['width']='129';
-$ColParam['align']='';
-$ColParam['class']='';
-$ColParam['substr']='15';
-$TableParam[]=$ColParam;
-unset($ColParam['substr']);
-
-$ColParam['title']='';
-$ColParam['width']='100';
+$ColParam['width']='45';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
-$ColParam['title']='';
-$ColParam['width']='100';
-$ColParam['align']='';
-$ColParam['class']='';
-$TableParam[]=$ColParam;
 
-$ColParam['title']='';
-$ColParam['width']='80';
-$ColParam['align']='';
-$ColParam['class']='';
-$TableParam[]=$ColParam;
 
-$ColParam['title']='';
-$ColParam['width']='74';
-$ColParam['align']='';
-$ColParam['class']='';
-$TableParam[]=$ColParam;
-
-$ColParam['title']='';
-$ColParam['width']='74';
-$ColParam['align']='';
-$ColParam['class']='';
-$TableParam[]=$ColParam;
-
-$ColParam['title']='';
-$ColParam['width']='74';
-$ColParam['align']='';
-$ColParam['class']='';
-$TableParam[]=$ColParam;
-
-$ColParam['title']='';
-$ColParam['width']='74';
-$ColParam['align']='';
-$ColParam['class']='';
-$TableParam[]=$ColParam;
-
-$ColParam['title']='';
-$ColParam['width']='74';
-$ColParam['align']='';
-$ColParam['class']='';
-$TableParam[]=$ColParam;
-
-$ColParam['title']='';
-$ColParam['width']='74';
-$ColParam['align']='';
-$ColParam['class']='';
-$TableParam[]=$ColParam;
-
-$ColParam['title']='';
-$ColParam['width']='75';
-$ColParam['align']='';
-$ColParam['class']='';
-$TableParam[]=$ColParam;
-
-$ColParam['title']='';
-$ColParam['width']='75';
-$ColParam['align']='';
-$ColParam['class']='';
-$TableParam[]=$ColParam;
-
-$ColParam['title']='';
-$ColParam['width']='50';
-$ColParam['align']='';
-$ColParam['class']='';
-$TableParam[]=$ColParam;
 
 $tablename = "`llx_societe`";
 //include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
 //$db_mysql = new dbBuilder();
 
 $table = fShowTable($TableParam, $sql, "'" . $tablename . "'", $conf->theme, $_REQUEST['sortfield'], $_REQUEST['sortorder'], $readonly = array(-1), false);
+//Теми калькулятора
+$sql = "select `calculator_theme`.`rowid`, `calculator_theme`.`theme` from `calculator_theme`
+    where `calculator_theme`.`respon_id` = ".$user->respon_id."
+    and `calculator_theme`.`active` = 1
+    order by dtChange desc";
+$res = $db->query($sql);
+if(!$res){
+    dol_print_error($db);
+}
+$theme_header = '';
+while($obj = $db->fetch_object($res)) {
+    $theme_header .= '<th style="width: 50px" class="small_size">'.$obj->theme.'</th>';
+}
 
-//$row = $db_mysql->fShowTable($TableParam, $sql, "'" . $tablename . "'", $conf->theme, $_REQUEST['sortfield'], $_REQUEST['sortorder'], $readonly = array(-1), false);
-
-include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/area/customers.html');
+include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/calculator/customers.html');
 $prev_form = "<a href='#x' class='overlay' id='peview_form'></a>
                      <div class='popup' style='width: 300px;height: 150px'>
                      <textarea readonly id='prev_form' style='width: 100%;height: 100%;resize: none'></textarea>
@@ -221,58 +152,6 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
     $page = isset($_GET['page'])?$_GET['page']:1;
     $per_page = isset($_GET['per_page'])?$_GET['per_page']:30;
 
-    $lastaction = array();
-    $sql = "select `llx_societe`.rowid, `llx_societe_action`.`dtChange`, `responsibility`.`alias`
-    from `llx_societe`
-    left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`
-    left join `llx_actioncomm` on `llx_actioncomm`.`fk_soc`= `llx_societe`.rowid
-    inner join (select code, libelle label from `llx_c_actioncomm` where active = 1 and (type = 'system' or type = 'user')) TypeCode on TypeCode.code = `llx_actioncomm`.code
-    left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
-    inner join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.`rowid`
-    left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
-    where `llx_societe`.active = 1 ";
-    $sql .= ' limit '.($page-1)*$per_page.','.$per_page;
-
-//  die($sql);
-    $res = $db->query($sql);
-    if(!$res){
-        dol_print_error($db);
-    }
-    if($db->num_rows($res)>0) {
-        while ($row = $db->fetch_object($res)){
-            if(!isset($lastaction[$row->rowid.$row->alias])) {
-                $date = new DateTime($row->dtChange);
-                $lastaction[$row->rowid . $row->alias] = $date->format('d.m.y');
-            }
-        }
-    }
-//    var_dump($lastaction);
-//    die();
-    $futureaction = array();
-    $sql = "select `llx_societe`.rowid, llx_actioncomm.datep, `responsibility`.`alias`
-        from `llx_societe`
-        left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`
-        left join `llx_actioncomm` on `llx_actioncomm`.`fk_soc`= `llx_societe`.rowid
-        inner join (select code, libelle label from `llx_c_actioncomm` where active = 1
-        and (type = 'system' or type = 'user')) TypeCode on TypeCode.code = `llx_actioncomm`.code
-        inner join `llx_user` on `llx_actioncomm`.`fk_user_author` = `llx_user`.`rowid`
-        left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
-        where `llx_societe`.active = 1
-        and `llx_actioncomm`.`id` not in (select `llx_societe_action`.`action_id` from llx_societe_action where action_id is not null)
-        limit 0,30";
-//    die($sql);
-    $res = $db->query($sql);
-    if(!$res){
-        dol_print_error($db);
-    }
-    if($db->num_rows($res)>0) {
-        while ($row = $db->fetch_object($res)){
-            if(!isset($futureaction[$row->rowid.$row->alias])) {
-                $date = new DateTime($row->datep);
-                $futureaction[$row->rowid . $row->alias] = $date->format('d.m.y');
-            }
-        }
-    }
 
     $fields = $result->fetch_fields();
 //        var_dump($showtitle);
@@ -388,6 +267,34 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
                         </div>";
         }
     }
+    //Завантажую ИД теми
+    $calc_theme=array();
+    $sql = "select `calculator_theme`.`rowid` from `calculator_theme`
+    where `calculator_theme`.`respon_id` = ".$user->respon_id."
+    and `calculator_theme`.`active` = 1
+    order by `calculator_theme`.`dtChange` desc";
+    $res = $db->query($sql);
+    if(!$res){
+        dol_print_error($db);
+    }
+    while($obj = $db->fetch_object($res)){
+        $calc_theme[]=$obj->rowid;
+    }
+    //Завантажую введені дані
+    $calc_param=array();
+    $sql = "select `calculator_theme`.`rowid`, `calculator_parameters`.`fk_soc`, `calculator_parameters`.`value`
+        from `calculator_theme`
+        inner join `calculator_parameters` on `calculator_theme`.`rowid` = `calculator_parameters`.`fk_calc`
+        where `calculator_theme`.`respon_id` = ".$user->respon_id."
+        and `calculator_theme`.`active` = 1";
+    $res = $db->query($sql);
+    if(!$res){
+        dol_print_error($db);
+    }
+    while($obj = $db->fetch_object($res)){
+        $calc_param[$obj->rowid.'_'.$obj->fk_soc]=$obj->value;
+    }
+
 
     while($row = $result->fetch_assoc()) {
         $count++;
@@ -407,9 +314,9 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
         foreach($row as $cell=>$value){
             $col_name = "'".$fields[$num_col]->name."'";
             if($cell != 'rowid') {
-                if(!$create_edit_form && count($readonly)==0)//Формирую форму для редактирования
+//                if(!$create_edit_form && count($readonly)==0)//Формирую форму для редактирования
 //                    $edit_form.=$this->fBuildEditForm($title[$num_col-1], $fields[$num_col], $theme, $tablename);
-                    var_dump($title[$num_col-1]['title'].' '.$cell.' '.!isset($title[$num_col-1]['hidden']).'</br>');
+//                    var_dump(($num_col-1).'</br>');
                 if(!isset($title[$num_col-1]['hidden'])) {
 //                        echo'<pre>';
 //                        var_dump($cell);
@@ -449,16 +356,6 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
                                 if(isset($actionfields[$fields[$num_col]->name])){
                                     $alias = $actionfields[$fields[$num_col]->name];
                                     $full_text = '';
-                                    switch($fields[$num_col]->name){
-                                        case 'lastdatecomerc':{
-                                            $full_text = !isset($lastaction[$row['rowid'].$alias]) ?
-                                                '<img src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/object_action.png">' : $lastaction[$row['rowid'].$alias];
-                                        }break;
-                                        case 'futuredatecomerc':{
-                                            $full_text = !isset($futureaction[$row['rowid'].$alias]) ?
-                                                '<img src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/object_action.png">' : $futureaction[$row['rowid'].$alias];
-                                        }
-                                    }
 
                                     $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '"  style="width:' . ($col_width[$num_col - 1] + 2) . 'px; text-align: center;"><a href="../' . $actionfields[$fields[$num_col]->name] . '/action.php?socid=' . $row['rowid'] . '&idmenu=10425&mainmenu=area">' . ($full_text) . '</a> </td>';
                                 }else{
@@ -496,6 +393,16 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
                         }
                     }
                 }
+            }
+            if($num_col == 3){
+                foreach($calc_theme as $theme_id){
+                    if(isset($calc_param[$theme_id.'_'.$row['rowid']]))
+                        $table .= '<td id="calc_'.$theme_id."_".$row["rowid"].'" style="width: 51px">'.round($calc_param[$theme_id."_".$row["rowid"]],0).'</td>';
+                    else
+                        $table .= '<td id="calc_'.$theme_id."_".$row["rowid"].'" style="width: 51px"></td>';
+                }
+
+
             }
             $num_col++;
         }

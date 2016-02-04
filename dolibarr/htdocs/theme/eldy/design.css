@@ -12,6 +12,16 @@
 #contactlist td{
     border: transparent!important;
 }
+.whitetitle{
+    background-color: white!important;
+    color: #000000!important;
+    font-size: 12px!important;
+    font-weight: normal!important;
+    text-align: left!important;
+}
+.totalvalue{
+    text-align: center!important;
+}
 .pair td{
     border-color: #939393!important; /* Цвет границы */
     border-style: solid!important; /* Стиль границы */
@@ -167,7 +177,7 @@ a.vsmenu:link, a.vsmenu:visited, a.vsmenu:hover, a.vsmenu:active {
     color: #444;
     margin: 0 0 14px;
     padding: 9px 8px 8px;
-    width: 600px;
+    width: 820px;
 }
 #contactlist_body, .contactlist_contact{
     font-size: 12;

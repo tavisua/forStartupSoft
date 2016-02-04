@@ -26,10 +26,8 @@ if(isset($_REQUEST['action'])){
         exit();
     }
 }
-print '<div style="width: 150px;float: left;">';
 
 print_fiche_titre($ActionArea);
-
 
 $object = new Societe($db);
 $socid = $_REQUEST['socid'];
