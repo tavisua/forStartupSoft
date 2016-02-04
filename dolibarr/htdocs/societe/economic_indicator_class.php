@@ -290,6 +290,20 @@ class EconomicIndicator {
         $out .= '</select>';
         return $out;
     }
+    public function selecttare($name='',$rowid=0){
+//        die('test');
+        global $db, $langs;
+        $out = '<select id="'.$name.'" name="'.$name.'" class="combobox" size="1" style="width: 100px">';
+        $out .='<option value="0" disabled="disabled" selected="selected">'.$langs->trans("Tare").'</option>';
+        $sql = 'select rowid, name from llx_c_tare where active = 1 order by name';
+
+        $res = $db->query($sql);
+        while($row = $db->fetch_object($res)){
+            $out .='<option value = '.$row->rowid.' '.($rowid == $row->rowid?('selected="selected"'):'').'>'.$row->name.'</option>';
+        }
+        $out .= '</select>';
+        return $out;
+    }
     public function selectMeasurement($name='',$rowid=0){
 //        die('test');
         global $db, $langs;
@@ -305,6 +319,7 @@ class EconomicIndicator {
         return $out;
     }
     public function selecttrademark($rowid=0){
+
         global $db, $langs;
         $out = '<select id="trademark" name="trademark" class="combobox" size="1">';
         $out .='<option value="0" disabled="disabled" selected="selected">'.$langs->trans("Trademark").'</option>';
@@ -317,6 +332,7 @@ class EconomicIndicator {
         return $out;
     }
     public function selectmodel($trademark = 0, $kind_assets = 0, $rowid = 0){
+
         if($kind_assets == "null")$kind_assets=0;
         global $db, $langs;
         $out = '<select id="model" name="model" class="combobox" size="1">';

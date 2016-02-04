@@ -1,0 +1,359 @@
+
+
+<div class="tabPage">
+    <div class="address_header">
+        <table id="headercontrol" style="background-color: #ffffff">
+            <tr>
+                <td><b>Категорія контрагента</b></td>
+                <td><?=$object->getCategoryOfCustomer()?></td>
+            </tr>
+            <tr>
+                <td><b>Назва контрагента</b></td>
+                <td><?= $object->name?></td>
+            </tr>
+            <tr>
+                <td><b>Форма правління</b></td>
+                <td><?=$object->getFormOfGoverment()?></td>
+            </tr>
+        </table>
+    </div>
+
+    <form id="addaddress" action="<?echo $action_url?>" method="post">
+        <input id="rowid" name="rowid" type="hidden" value="<?echo $_REQUEST['rowid']?>">
+        <input id="url" name="url" type="hidden" value="<?=$_SERVER['HTTP_REFERER']?>">
+        <input id="action" name="action" type="hidden" value="<?echo $action?>">
+        <input id="mainmenu" name="mainmenu" type="hidden" value="<?echo GETPOST('mainmenu', 'alpha')?>">
+        <input id="idmenu" name="idmenu" type="hidden" value="<?echo GETPOST('idmenu', 'alpha')?>">
+        <input id="socid" name="socid" type="hidden" value="<?echo $socid?>">
+        <input id="fx_soc" name="fx_soc" type="hidden" value="">
+        <table class="border" width="100%">
+            <tr>
+                <td><span id="CategoryCustomer" class="fieldrequired" span=""><label for="status"><?=$langs->trans('CategoryCustomer')?></label></span></td>
+                <td colspan="3">
+                    <?=$form->select_categorycustomer($item->categoryofcustomer_id);?>
+                </td>
+            </tr>
+            <tr><td width="25%"><?=$langs->trans('ThirdPartyName')?></td>
+                <td colspan="3">
+                <input type="text" size="60" maxlength="128" name="nom" id="contragent" value="<?=$item->contragentname?>" autofocus="autofocus">
+                </td>
+
+            </tr>
+            <tr>
+                <td>
+                    <?echo $langs->trans('LineActive')?>
+                </td>
+                <td>
+                    <?echo $EconomicIndicators->lineactive($item->line_active)?>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <?echo $langs->trans('KindAssets')?>
+                </td>
+                <td>
+                    <?echo $EconomicIndicators->selectkind_assets($item->line_active, $item->kind_assets)?>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <?echo $langs->trans('Trademark')?>
+                </td>
+                <td>
+                    <?echo $EconomicIndicators->selecttrademark($item->trademark)?>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <?echo $langs->trans('Model')?>
+                </td>
+                <td>
+                    <?echo $EconomicIndicators->selectmodel($item->trademark, $item->kind_assets, $item->model)?>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <?echo $langs->trans('HowMatch')?>
+                </td>
+                <td>
+                    <input type="text" size="60" maxlength="128" name="dCol_ed" id="dCol_ed" value="<?=$item->dCol_ed?>" autofocus="autofocus">
+                    <?=$EconomicIndicators->selectMeasurement('measurement', $item->fx_measurement)?>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <?echo $langs->trans('Tare')?>
+                </td>
+                <td>
+                    <?=$EconomicIndicators->selecttare('tare', $item->tare)?>
+                    <?=$EconomicIndicators->selectMeasurement('tare_measurement', $item->fx_tare_measurement)?>
+                </td>
+            </tr>
+            <tr><td colspan="3" style="height: 15px"></td></tr>
+            <tr>
+                <td>
+                    Дата договора (рахунка)
+                </td>
+                <td colspan="3">
+                    <input type="text" size="60" maxlength="128" name="account_date" id="account_date" value="<?=$item->account_date?>" autofocus="autofocus">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Номер договора (рахунка)
+                </td>
+                <td colspan="3">
+                    <input type="text" size="60" class="param" maxlength="128" name="account_number" id="account_number" value="<?=$item->account_number?>" autofocus="autofocus">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Знижка від прайса, %
+                </td>
+                <td colspan="3">
+                    <input type="text" size="60" class="param" maxlength="128" name="discont_from_price" id="discont_from_price" value="<?=$item->discont_from_price?>" autofocus="autofocus">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Знижка з одиниці, грн
+                </td>
+                <td colspan="3">
+                    <input type="text" size="60" class="param" maxlength="128" name="discont_from_units" id="discont_from_units" value="<?=$item->discont_from_units?>" autofocus="autofocus">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Ціна, грн
+                </td>
+                <td colspan="3">
+                    <input type="text" size="60" class="param" maxlength="128" name="price" id="price" value="<?=$item->price?>" autofocus="autofocus">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    Оплата за товар/послугу
+                </td>
+                <td colspan="3">
+                    <select name="percent_payment" id="percent_payment" class="combobox">
+                        <option value="100">100%</option>
+                        <option value="90">90%</option>
+                        <option value="80">80%</option>
+                        <option value="70">70%</option>
+                        <option value="60">60%</option>
+                        <option value="50">50%</option>
+                        <option value="40">40%</option>
+                        <option value="30">30%</option>
+                        <option value="20">20%</option>
+                        <option value="10">10%</option>
+                        <option value="5">5%</option>
+                    </select>
+                </td>
+            </tr>
+                <td>
+                    Період часу доплати у разі відстрочки
+                </td>
+                <td colspan="3">
+                    <input type="text" size="60" maxlength="128" name="delay" id="delay" value="<?=$item->delay?>" autofocus="autofocus">
+                </td>
+            </tr>
+                <td>
+                    Умови відвантаження
+                </td>
+                <td colspan="3">
+                    <input type="text" size="60" maxlength="128" name="delivery" id="delivery" value="<?=$item->delivery?>" autofocus="autofocus">
+                </td>
+            </tr>
+                <td>
+                    Гарантія, часу, місяців
+                </td>
+                <td colspan="3">
+                    <select name="guarantee" id="guarantee" class="combobox">
+                        <option value="1">1 мес</option>
+                        <option value="2">2 мес</option>
+                        <option value="3">3 мес</option>
+                        <option value="4">4 мес</option>
+                        <option value="5">5 мес</option>
+                        <option value="6">6 мес</option>
+                        <option value="7">7 мес</option>
+                        <option value="8">8 мес</option>
+                        <option value="9">9 мес</option>
+                        <option value="12">12 мес</option>
+                        <option value="15">15 мес</option>
+                        <option value="18">18 мес</option>
+                        <option value="21">21 мес</option>
+                        <option value="24">24 мес</option>
+                        <option value="36">36 мес</option>
+                        <option value="48">48 мес</option>
+                        <option value="60">60 мес</option>
+                    </select>
+                </td>
+            </tr>
+            </tr>
+                <td>
+                    Подарунки, інші пільги та інші особливості
+                </td>
+                <td colspan="3">
+                    <input type="text" size="60" maxlength="128" name="present" id="present" value="<?=$item->present?>" autofocus="autofocus">
+                </td>
+            </tr>
+            </tr>
+                <td>
+                    Обороти за рік співпраці, грн
+                </td>
+                <td colspan="3">
+                    <input type="text" size="60" maxlength="128" name="money_turnover" id="money_turnover" value="<?=$item->money_turnover?>" autofocus="autofocus">
+                </td>
+            </tr>
+            </tr>
+                <td>
+                    Примітка
+                </td>
+                <td colspan="3">
+                    <input type="text" size="60" maxlength="128" name="comment" id="comment" value="<?=$item->comment?>" autofocus="autofocus">
+                </td>
+            </tr>
+        </table>
+        <div align="center">
+        <button onclick="save();">Зберегти</button>
+            <button onclick="back();">Відмінити</button>
+        </div>
+    </form>
+
+</div>
+
+<script type="text/javascript">
+    $(".param").keypress(function( b ){        var C = /[0-9\x25\x27\x24\x23]/;        var a = b.which;        var c = String.fromCharCode(a);        return !!(a==0||a==8||a==9||a==13||c.match(C));    });
+
+    function back(){
+        $('#action').val('cancel');
+        $('#addaddress').attr('action', $('#url').val());
+    }
+    function save(){
+        $('#action').val('save');
+    }
+    function save_and_add(){
+        $('#action').val('save_and_add');
+    }
+    function hide_emptyrow(){
+        $("select#lineactive [value='0' ]"). remove();
+    }
+    function get_model(){
+        console.log('/dolibarr/htdocs/societe/economin_indicator.php?action=get_model&trademark='+$('select#trademark').val()+'&kindassets='+$('select#KindAssets').val()+'&socid='+$('#socid').val());
+        $.ajax({
+            url:'/dolibarr/htdocs/societe/economin_indicator.php?action=get_model&trademark='+$('select#trademark').val()+'&kindassets='+$('select#KindAssets').val()+'&socid='+$('#socid').val(),
+            cache:false,
+            success: function(html){
+                $('select#model').find('option').remove();
+                var optionList = html.substr(strpos(html, '<option value="0"'));
+                optionList = optionList.substr(0, strpos(optionList, '</select>'));
+                console.log(optionList);
+                $('select#model').append(optionList);
+            }
+        })
+    }
+    function lineactive(update){
+        $.ajax({
+            url: '/dolibarr/htdocs/societe/economin_indicator.php?action=get_economic_indicators&line_active='+$('select#lineactive').val()+'&socid='+$('input#socid').val(),
+            cache: false,
+            success: function(html){
+                console.log(html);
+                switch (html){
+                    case '1':{
+                        $('.additional').hide();
+                        $('tr.fixed_assets').show();
+                    }break;
+                    case '2':{
+                        $('.additional').show();
+                        $('tr.fixed_assets').hide();
+                    }break;
+                }
+                if(update) {
+                    $.ajax({
+                        url: '/dolibarr/htdocs/societe/economin_indicator.php?action=get_kind_assets&line_active=' + $('select#lineactive').val() + '&socid=' + $('input#socid').val(),
+                        cache: false,
+                        success: function (html) {
+                            $('select#KindAssets').find('option').remove();
+                            var optionList = html.substr(strpos(html, '<option value="0"'));
+                            optionList = optionList.substr(0, strpos(optionList, '</select>'));
+                            console.log(optionList);
+                            $('select#KindAssets').append(optionList);
+                        }
+                    })
+                }
+            }
+        })
+    }
+</script>
+
+
+<script type="text/javascript">
+    $(document).ready(function(){
+
+        $('tr.additional').hide();
+        $('tr.fixed_assets').show();
+        lineactive(false);
+        if(window.innerHeight<$('#addaddress').innerHeight()+50){
+            $('.footer').hide();
+        }
+        $('select#lineactive').on('change', lineactive);
+        $('select#trademark').on('change', get_model);
+        $('#categoryofcustomer').unbind('change');
+
+    })
+    function setvisiblbloks(){
+        return 0;
+    }
+</script>
+<script>
+    var contactlist = [];
+    $("#contragent").autocomplete({
+        //Определяем обратный вызов к результатам форматирования
+
+        source: function(req, add){
+            req["tablename"]="llx_societe";
+            req["fieldname"]="nom";
+            req["categoryofcustomer_id"]=$('select#categoryofcustomer').val();
+            //Передаём запрос на сервер
+            $.getJSON("autocomplete.php?callback=?", req, function(data) {
+                if(data == null){
+                    $("#contragent").val(req["term"]);
+                    //                    console.log($("#name").val());
+                    add(null);
+                    return;
+                }
+                //Создаем массив для объектов ответа
+                var suggestions = [];
+                //Обрабатываем ответ
+                $.each(data, function(i, val){
+                    contactlist.push({"rowid":val.rowid, "name":val.name});
+                    suggestions.push(val.name);
+
+                });
+
+                //Передаем массив обратному вызову
+                add(suggestions);
+
+            });
+        },
+
+        //Определяем обработчик селектора
+        select: function(e, ui) {
+            $("#contragent").value = ui.item.value;
+            for(var i = 0; i<contactlist.length; i++){
+                if(contactlist[i].name == ui.item.value){
+                    $("#fx_soc").val(contactlist[i].rowid);
+                    console.log($("#fx_soc").val());
+                    break;
+                }
+            }
+
+        },
+
+        //Определяем обработчик выбора
+        change: function() {
+            //Сохраняем поле "Наименование" без изменений и в правильной позиции
+//                        $("#name").val("").css("top", 2);
+        }
+    });
+</script>

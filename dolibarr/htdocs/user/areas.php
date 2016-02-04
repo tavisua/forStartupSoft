@@ -200,6 +200,6 @@ print'
 ';
 echo ob_get_clean();
 
-llxFooter();
+//llxFooter();
 
 //$db->close();

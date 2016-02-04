@@ -3706,17 +3706,16 @@ class Form
      *  @param  string	$htmlname    name of HTML select list
      * 	@return	string
      */
-    function selectCurrency($selected='',$htmlname='currency_id')
+    function selectCurrency($selected='UAN',$htmlname='currency_id')
     {
         global $conf,$langs,$user;
 
         $langs->loadCacheCurrencies('');
 
         $out='';
-
         if ($selected=='euro' || $selected=='euros') $selected='EUR';   // Pour compatibilite
 
-        $out.= '<select class="flat" name="'.$htmlname.'" id="'.$htmlname.'">';
+        $out.= '<select class="combobox" name="'.$htmlname.'" id="'.$htmlname.'">';
         foreach ($langs->cache_currencies as $code_iso => $currency)
         {
         	if ($selected && $selected == $code_iso)
@@ -4328,6 +4327,17 @@ class Form
         $out.='</select>';
         return $out;
     }
+    function selectmeasurement($htmlname, $id=''){
+        global $conf, $langs;
+        $sql='select rowid, name from `llx_c_measurement` where active=1';
+        $out = '<select id="'.$htmlname.'" class="combobox" name="'.$htmlname.'" size=1">';
+        $res = $this->db->query($sql);
+        while($row = $this->db->fetch_object($res)){
+            $out .= '<option '.($id == $row->rowid?('selected = "selected"'):'').' value="'.$row->rowid.'">'.$langs->trans($row->name).'</option>';
+        }
+        $out.='</select>';
+        return $out;
+    }
     function selectkindassets($htmlname, $fx_lineactive = 0, $id=''){
         global $conf, $langs;
 
@@ -4340,6 +4350,17 @@ class Form
         $res = $this->db->query($sql);
         while($row = $this->db->fetch_object($res)){
             $out .= '<option '.($id == $row->rowid?('selected = "selected"'):'').' value="'.$row->rowid.'">'.$langs->trans($row->line).'</option>';
+        }
+        $out.='</select>';
+        return $out;
+    }
+    function selectfinance_service($htmlname, $id=''){
+        global $conf, $langs;
+        $sql='select rowid, name from `llx_c_finance_service` where active=1';
+        $out = '<select id="'.$htmlname.'" class="combobox" name="'.$htmlname.'" size=1>';
+        $res = $this->db->query($sql);
+        while($row = $this->db->fetch_object($res)){
+            $out .= '<option value="'.$row->rowid.'">'.$langs->trans($row->name).'</option>';
         }
         $out.='</select>';
         return $out;
@@ -4536,7 +4557,16 @@ class Form
      *  @param  int		$useempty          Affiche valeur vide dans liste
      *  @return	void
      */
-    function select_categorycustomer($selected = ''){
+    function getlastid($tab, $field='rowid'){
+        return $this->db->last_insert_id($tab);
+        $sql = "select max(".$field.") id from ".$tab;
+        $res = $this->db->query($sql);
+        if(!$res)
+            dol_print_error($this->db);
+        $obj = $this->db->fetch_object($res);
+        return $obj->id;
+    }
+    function select_categorycustomer($selected = '7'){
         $sql ="select rowid, name from `category_counterparty` where active = 1 order by name";
         $result= $this->db->query($sql);
         if($result){

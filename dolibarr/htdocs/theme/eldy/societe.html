@@ -2,8 +2,9 @@
 
 <div class="reference">
     <?echo $table?>
+    <?include DOL_DOCUMENT_ROOT.'/static_content/layout/pagination.phtml';?>
 </div>
-<div class="vmenu">
+<div class="vmenu" id="control">
     <div class="blockvmenupair">
         <div class="menu_titre">
             <b ><?echo $Control?></b>
@@ -37,6 +38,8 @@
 <!--</script>-->
 <script type="text/javascript">
     $(document).ready(function(){
+//        $('.scrolling-table').offset({top:180,left:280});
+        $('#control').offset({top:225});
         var tbody = document.getElementById('reference_body');
         var trList = tbody.getElementsByTagName('tr');
         for(var index = 0; index<trList.length; index++){
@@ -66,6 +69,7 @@
 
             widths.push(parseInt(iWidth));
         }
+        $('#reference_body').height(window.innerHeight - 300);
         console.log(widths);
 //        var tr = document.getElementById('reference_body').getElementsByTagName('tr');
 //        for(var t = 0; t<tr.length; t++) {

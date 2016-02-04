@@ -1,0 +1,100 @@
+<div class="tabPage" id="AddressPage">
+
+    <div class="address_header">
+        <table id="headercontrol" style="background-color: #ffffff">
+            <tr>
+                <td><b>Категорія контрагента</b></td>
+                <td><?=$object->getCategoryOfCustomer()?></td>
+            </tr>
+            <tr>
+                <td><b>Назва контрагента</b></td>
+                <td><?= $object->name?></td>
+            </tr>
+            <tr>
+                <td><b>Форма правління</b></td>
+                <td><?=$object->getFormOfGoverment()?></td>
+            </tr>
+        </table>
+    </div>
+    <div class="address_header">
+        <div class="blockvmenupair">
+            <div class="menu_titre">
+                <b><?=$langs->trans('Control')?></b>
+            </div>
+            <div class="menu_top"></div>
+            <div class="menu_contenu">
+                <form id="control" action="<? echo $_SERVER['PHP_SELF']?>" method="post">
+                    <input id="url" name="url" type="hidden" value="<?echo $_SERVER['REQUEST_URI']?>">
+                    <input id="mainmenu" name="mainmenu" type="hidden" value="<?echo $_REQUEST['mainmenu']?>">
+                    <input id="idmenu" name="idmenu" type="hidden" value="<?echo $_REQUEST['idmenu']?>">
+                    <input id="socid" name="socid" type="hidden" value="<?echo $socid?>">
+                    <input id="rowid" name="rowid" type="hidden" value="">
+                    <input id="action" name="action" type="hidden" value="add">
+                    <button type="submit">&nbsp;&nbsp;&nbsp;&nbsp;<?=$langs->trans('AddItem')?>&nbsp;&nbsp;&nbsp;&nbsp;</button>
+                </form>
+            </div>
+            <div class="menu_end"></div>
+        </div>
+    </div>
+
+
+    <table>
+        <thead>
+        <tr class="multiple_header_table">
+            <th class="small_size">Хто вніс дані</th>
+            <th class="small_size">Дата</th>
+            <th class="small_size" title="З якою категорією працюють">З якою кат. прац.</th>
+            <th class="small_size">Назва контрагента з ким працюють</th>
+            <th class="small_size">Адреса фінустанови (місцезнаходження або № відділення)</th>
+            <th class="small_size">№ розрахункового рахунку</th>
+            <th class="small_size">валюта рахунку</th>
+            <th class="small_size">МФО</th>
+            <th class="small_size">Які послуги по фінансуванню отримує контрагент від цієї фінустанови</th>
+            <th class="small_size">Розмір послуг по фінансуванню, грн/руб/дол/евро</th>
+            <th class="small_size">Валюта фінансування</th>
+            <th class="small_size">Примітка</th>
+            <th class="small_size">Коментар контрагента по роботі з фінустановою</th>
+            <th class="small_size">Коментар від фінустанови по надійності контрагента</th>
+            <th class="small_size">Інформація від фінустанови по контрагенту (суть , коли та хто повідомив)</th>
+            <th class="small_size">ЄДРПОУ </th>
+            <th class="small_size">ІНП</th>
+            <th class="small_size">№ свідоцтва</th>
+            <th class="small_size" style="width: 30px"></th>
+        </tr>
+        </thead>
+        <!--<tbody id="reference_body">-->
+        <?echo $table?>
+        <!--</tbody>-->
+    </table>
+</div>
+<style>
+    #reference_body td{
+        font-size: 12;
+    }
+    #AddressPage{
+        width: 1250px;
+    }
+</style>
+<script type="text/javascript">
+    $(document).ready(function(){
+        var tbody = document.getElementById('reference_body');
+        var trList = tbody.getElementsByTagName('tr');
+        for(var index = 0; index<trList.length; index++){
+            var tdList = trList[index].getElementsByTagName('td');
+            for(var tdIndex = 0; tdIndex<tdList.length; tdIndex++){
+                if(tdList[tdIndex].id.substr(tdList[tdIndex].id.length-'whom'.length) == 'whom') {
+//                     http://uspex2015.com/dolibarr/htdocs/user/card.php?id=13
+                    var id = tdList[tdIndex].id.substr(0, (tdList[tdIndex].id.length - 'whom'.length));
+                    tdList[tdIndex].innerHTML = '<a id = "login_'+id+'" href="/dolibarr/htdocs/societe/addaddress.php?mainmenu=companies&idmenu=<?echo $_REQUEST["idmenu"]?>&action=edit&rowid='+id+'"> <img border="0"  alt="" src="/dolibarr/htdocs/theme/eldy/img/object_address.png">' +' '+ (tdList[tdIndex].innerHTML) + '</a>';
+//                     console.log(tdList[tdIndex].id.substr(0, (tdList[tdIndex].id.length - 'login'.length)));
+//                     console.log(id);
+                }
+            }
+        }
+    })
+    function edit_item(id){
+        $("#action").val("edit");
+        $("#rowid").val(id);
+        $("#control").submit();
+    }
+</script>

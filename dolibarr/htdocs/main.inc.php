@@ -1122,7 +1122,7 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
                 print '">'."\n";
             }
         }
-        print '<script src="http://code.jquery.com/jquery-1.8.3.js"></script>'."\n";
+        print '<script src="'.DOL_URL_ROOT.'/includes/jquery/js/jquery-1.8.3.js"></script>'."\n";
 
 //        print '<script type="text/javascript" src="'.$_SERVER['DOCUMENT_ROOT'].'/dolibarr/scripts/js/jquery.maskedinput-1.2.2.js"></script>';
         // Output standard javascript links

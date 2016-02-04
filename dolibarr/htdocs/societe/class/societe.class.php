@@ -458,7 +458,7 @@ class Societe extends CommonObject
             $sql.= ", ".(! empty($this->formofgoverment_id) ? "'".$this->formofgoverment_id."'":"null");
             $sql.= ", ".(! empty($this->categoryofcustomer_id) ? "'".$this->categoryofcustomer_id."'":"null");
             $sql.=", 1, Now(), '".$this->db->escape($this->prehistoric_actions)."')";
-//            die($sql);
+
             dol_syslog(get_class($this)."::create", LOG_DEBUG);
             $result=$this->db->query($sql);
 
@@ -467,6 +467,7 @@ class Societe extends CommonObject
                 //Зберігаю параметри класифікациї
                 $this->id = $this->db->last_insert_id(MAIN_DB_PREFIX."societe");
                 $this->db->commit();
+
                 $this->setclassification();
 
                 $ret = $this->update($this->id,$user,0,1,1,'add');
@@ -590,8 +591,10 @@ class Societe extends CommonObject
                     ' and classifycation_id = '.substr($key, 6).' limit 1';
             }
         }
-        $this->db->query($set);
-        $this->db->commit();
+        if(!empty($set)) {
+            $this->db->query($set);
+            $this->db->commit();
+        }
     }
     function create_individual(User $user)
     {

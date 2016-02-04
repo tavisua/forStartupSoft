@@ -1,0 +1,96 @@
+<div class="tabPage" id="PartnersList">
+
+    <div class="address_header">
+        <table id="headercontrol" style="background-color: #ffffff">
+            <tr>
+                <td><b>Категорія контрагента</b></td>
+                <td><?=$object->getCategoryOfCustomer()?></td>
+            </tr>
+            <tr>
+                <td><b>Назва контрагента</b></td>
+                <td><?= $object->name?></td>
+            </tr>
+            <tr>
+                <td><b>Форма правління</b></td>
+                <td><?=$object->getFormOfGoverment()?></td>
+            </tr>
+        </table>
+    </div>
+    <div class="address_header">
+        <div class="blockvmenupair">
+            <div class="menu_titre">
+                <b><?=$langs->trans('Control')?></b>
+            </div>
+            <div class="menu_top"></div>
+            <div class="menu_contenu">
+                <form id="control" action="" method="post">
+                    <input id="url" name="url" type="hidden" value="<?echo $_SERVER['REQUEST_URI']?>">
+                    <input id="mainmenu" name="mainmenu" type="hidden" value="<?echo $_REQUEST['mainmenu']?>">
+                    <input id="idmenu" name="idmenu" type="hidden" value="<?echo $_REQUEST['idmenu']?>">
+                    <input id="socid" name="socid" type="hidden" value="<?echo $socid?>">
+                    <input id="rowid" type="hidden" value="" name="rowid">
+                    <input id="action" name="action" type="hidden" value="add">
+                    <button type="submit">&nbsp;&nbsp;&nbsp;&nbsp;<?=$langs->trans('AddItem')?>&nbsp;&nbsp;&nbsp;&nbsp;</button>
+                </form>
+            </div>
+            <div class="menu_end"></div>
+        </div>
+    </div>
+
+
+    <table>
+        <thead>
+        <tr class="multiple_header_table">
+            <th class="small_size" rowspan="2">Хто вносить дані</th>
+            <th class="small_size" rowspan="2">Дата внесення</th>
+            <th class="small_size" rowspan="2">З якою категоріїю контрагентів працюють</th>
+            <th class="small_size" rowspan="2">Назва контрагента з яким співпрацюють</th>
+            <th class="small_size" rowspan="2">Адреса контрагента (місцезнаходження або № відділення)</th>
+            <th class="small_size" colspan="4">Що поставляють</th>
+            <th class="small_size" colspan="2">Скільки</th>
+            <th class="small_size" colspan="2">В чому</th>
+            <th class="small_size">&nbsp;</th>
+            <th class="small_size" colspan="12">Умови співпраці</th>
+            <th class="small_size">&nbsp;</th>
+        </tr>
+        <tr class="multiple_header_table">
+            <th class="small_size">Напрямок</th>
+            <th class="small_size">Вид</th>
+            <th class="small_size">Виробник</th>
+            <th class="small_size">Назва</th>
+            <th class="small_size">Скільки</th>
+            <th class="small_size">Од. вим.</th>
+            <th class="small_size">Тара</th>
+            <th class="small_size">Од. вим.</th>
+            <th class="small_size">&nbsp;</th>
+            <th class="small_size">дата договора (рахунка)</th>
+            <th class="small_size">№ договора (рахунка)</th>
+            <th class="small_size">Знижка від прайса, %</th>
+            <th class="small_size">Знижка з одиниці, грн</th>
+            <th class="small_size">Ціна, грн</th>
+            <th class="small_size">Оплата за товар/послугу</th>
+            <th class="small_size">Період Часу доплати у разі відстрочки</th>
+            <th class="small_size">Умови відвантаження </th>
+            <th class="small_size">Гарантія, часу, місяців</th>
+            <th class="small_size">Подарунки, інші пільги та інші особливості</th>
+            <th class="small_size">Обороти за рік співпраці, грн</th>
+            <th class="small_size">Примітка.</th>
+            <th class="small_size" style="width: 30px"></th>
+        </tr>
+        </thead>
+        <!--<tbody id="reference_body">-->
+        <?echo $table?>
+        <!--</tbody>-->
+    </table>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function(){
+        $('#PartnersList').width(1400);
+    })
+    function edit_item(id){
+        $("#action").val("edit");
+        $("#rowid").val(id);
+        $("#control").submit();
+    }
+</script>

@@ -22,6 +22,10 @@ elseif($_GET['tablename'] == 'llx_c_ziptown') {
         left join states on states.rowid = llx_c_ziptown.fk_state
         left join regions on regions.rowid =  llx_c_ziptown.`fk_region`
         where trim(nametown) like "'.trim($_GET["term"]).'%" order by llx_c_ziptown.nametown, regions.name, states.name';
+}elseif($_GET['tablename'] == 'llx_societe'){
+    $sql = 'select llx_societe.rowid, llx_societe.nom as name from llx_societe
+    where categoryofcustomer_id = '.$_GET['categoryofcustomer_id'].
+    ' and trim(nom) like "'.trim($_GET["term"]).'%" and active = 1 order by llx_societe.nom';
 }
 
 //die($sql);
@@ -38,6 +42,8 @@ for ($x = 0, $numrows = $query->num_rows; $x < $numrows; $x++) {
         $friends[$x] = array("name" => $row["name"]);
     elseif($_GET['tablename'] == 'llx_c_ziptown') {
         $friends[$x] = array("rowid" => $row["rowid"], "name" => $row["name"], "state_id"=>$row["fk_state"], "region_id"=>$row["fk_region"]);
+    }elseif($_GET['tablename'] == 'llx_societe'){
+        $friends[$x] = array("rowid" => $row["rowid"], "name" => $row["name"]);
     }
 }
 //echo '<pre>';

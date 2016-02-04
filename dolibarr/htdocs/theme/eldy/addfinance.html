@@ -1,0 +1,185 @@
+
+
+<div class="tabPage">
+    <div class="address_header">
+        <table id="headercontrol" style="background-color: #ffffff">
+            <tr>
+                <td><b>Категорія контрагента</b></td>
+                <td><?=$object->getCategoryOfCustomer()?></td>
+            </tr>
+            <tr>
+                <td><b>Назва контрагента</b></td>
+                <td><?= $object->name?></td>
+            </tr>
+            <tr>
+                <td><b>Форма правління</b></td>
+                <td><?=$object->getFormOfGoverment()?></td>
+            </tr>
+        </table>
+    </div>
+
+    <form id="addaddress" action="<?echo $action_url?>" method="post">
+        <input id="rowid" name="rowid" type="hidden" value="<?echo $_REQUEST['rowid']?>">
+        <input id="url" name="url" type="hidden" value="<?=$_SERVER['HTTP_REFERER']?>">
+        <input id="action" name="action" type="hidden" value="<?echo $action?>">
+        <input id="mainmenu" name="mainmenu" type="hidden" value="<?echo GETPOST('mainmenu', 'alpha')?>">
+        <input id="idmenu" name="idmenu" type="hidden" value="<?echo GETPOST('idmenu', 'alpha')?>">
+        <input id="socid" name="socid" type="hidden" value="<?echo $socid?>">
+        <input id="fx_soc" name="fx_soc" type="hidden" value="">
+        <table class="border" width="100%">
+            <tr>
+                <td><span id="CategoryCustomer" class="fieldrequired" span=""><label for="status"><?=$langs->trans('CategoryCustomer')?></label></span></td>
+                <td colspan="3">
+                    <?=$form->select_categorycustomer($item->categoryofcustomer_id);?>
+                </td>
+            </tr>
+            <tr><td width="25%"><?=$langs->trans('ThirdPartyName')?></td>
+            <td colspan="3">
+                <input type="text" size="60" maxlength="128" name="nom" id="contragent" value="<?=$item->lastname?>" autofocus="autofocus"></td>
+                </td>
+            </tr>
+            <tr><td width="25%">№ розр.рах</td>
+                <td colspan="3">
+                    <input type="text" size="60" maxlength="128" name="accountnumber" id="accountnumber" value="<?=$item->account?>" autofocus="autofocus"></td>
+                </td>
+            </tr>
+            <tr><td width="25%">Валюта рахунку</td>
+                <td colspan="3">
+                    <?=$form->selectCurrency($item->fx_account_curr,'acount_curr')?>
+                </td>
+            </tr>
+            <tr><td width="25%">МФО</td>
+                <td colspan="3">
+                    <input type="text" size="60" maxlength="128" name="mfo" id="mfo" value="<?=$item->mfo?>" autofocus="autofocus"></td>
+            </tr>
+            </td>
+            <tr><td width="25%">Надає фінансові послуги</td>
+                <td colspan="3">
+                    <?=$form->selectfinance_service('finance_service',$item->fx_account_service)?>
+                </td>
+            </tr>
+            <tr><td width="25%">Розмір послуг по фінансуванню</td>
+                <td colspan="3">
+                    <input type="text" size="60" maxlength="128" name="account_width" id="account_width" value="<?=$item->account_width?>" autofocus="autofocus"></td>
+            </tr>
+            <tr><td width="25%">Валюта фінансування</td>
+                <td colspan="3">
+                    <?=$form->selectCurrency($item->fx_finance_curr,'finance_curr')?>
+                </td>
+            </tr>
+            <tr><td width="25%">Коментар</td>
+                <td colspan="3">
+                    <input type="text" size="60" maxlength="128" name="comment" id="comment" value="<?=$item->comment?>" autofocus="autofocus"></td>
+            </tr>
+            <tr><td width="25%">Коментар контрагента по роботі з фінустановою</td>
+                <td colspan="3">
+                    <input type="text" size="60" maxlength="128" name="comment_with_finservice" id="comment_with_finservice" value="<?=$item->comment_with_finservice?>" autofocus="autofocus"></td>
+            </tr>
+            <tr><td width="25%">Коментар від фінустанови по надійності контрагента</td>
+                <td colspan="3">
+                    <input type="text" size="60" maxlength="128" name="comment_about_reliability" id="comment_about_reliability" value="<?=$item->comment_about_reliability?>" autofocus="autofocus"></td>
+            </tr>
+            <tr><td width="25%">Інформація від фінустанови по контрагенту (суть , коли та хто повідомив)</td>
+                <td colspan="3">
+                    <input type="text" size="60" maxlength="128" name="comment_from_finservice" id="comment_from_finservice" value="<?=$item->comment_from_finservice?>" autofocus="autofocus"></td>
+            </tr>
+            <tr><td width="25%">ЄДРПОУ</td>
+                <td colspan="3">
+                    <input type="text" size="60" maxlength="128" name="erdpou" id="erdpou" value="<?=$item->erdpou?>" autofocus="autofocus"></td>
+            </tr>
+            <tr><td width="25%">ІНП</td>
+                <td colspan="3">
+                    <input type="text" size="60" maxlength="128" name="inn" id="inn" value="<?=$item->inn?>" autofocus="autofocus"></td>
+            </tr>
+            <tr><td width="25%">№ свідоцтва</td>
+                <td colspan="3">
+                    <input type="text" size="60" maxlength="128" name="certificate_number" id="certificate_number" value="<?=$item->certificate_number?>" autofocus="autofocus"></td>
+            </tr>
+        </table>
+        <div align="center">
+        <button onclick="save();">Зберегти</button>
+            <button onclick="back();">Відмінити</button>
+        </div>
+    </form>
+
+</div>
+<script type="text/javascript">
+    function back(){
+        $('#action').val('cancel');
+        $('#addaddress').attr('action', $('#url').val());
+    }
+    function save(){
+        $('#action').val('save');
+    }
+    function change_switchPost(){
+        if($('#SendPost').val() == 0){
+            $('#SendPost').val(1);
+            $('#imgSendPost').attr('src',"/dolibarr/htdocs/theme/eldy/img/switch_on.png");
+        }else{
+            $('#SendPost').val(0);
+            $('#imgSendPost').attr('src',"/dolibarr/htdocs/theme/eldy/img/switch_off.png");
+        }
+    }    
+    function change_switchEmail(){
+        if($('#SendEmail').val() == 0){
+            $('#SendEmail').val(1);
+            $('#imgSendEmail').attr('src',"/dolibarr/htdocs/theme/eldy/img/switch_on.png");
+        }else{
+            $('#SendEmail').val(0);
+            $('#imgSendEmail').attr('src',"/dolibarr/htdocs/theme/eldy/img/switch_off.png");
+        }
+    }
+    $(".param").keypress(function( b ){        var C = /[0-9\x25\x27\x24\x23]/;        var a = b.which;        var c = String.fromCharCode(a);        return !!(a==0||a==8||a==9||a==13||c.match(C));    });
+</script>
+<script>
+    var contactlist = [];
+    $("#contragent").autocomplete({
+        //Определяем обратный вызов к результатам форматирования
+
+        source: function(req, add){
+            req["tablename"]="llx_societe";
+            req["fieldname"]="nom";
+            req["categoryofcustomer_id"]=$('select#categoryofcustomer').val();
+            //Передаём запрос на сервер
+            $.getJSON("autocomplete.php?callback=?", req, function(data) {
+                if(data == null){
+                    $("#contragent").val(req["term"]);
+                    //                    console.log($("#name").val());
+                    add(null);
+                    return;
+                }
+                //Создаем массив для объектов ответа
+                var suggestions = [];
+                //Обрабатываем ответ
+                $.each(data, function(i, val){
+                    contactlist.push({"rowid":val.rowid, "name":val.name});
+                    suggestions.push(val.name);
+
+                });
+
+                //Передаем массив обратному вызову
+                add(suggestions);
+
+            });
+        },
+
+        //Определяем обработчик селектора
+        select: function(e, ui) {
+            $("#contragent").value = ui.item.value;
+            for(var i = 0; i<contactlist.length; i++){
+                if(contactlist[i].name == ui.item.value){
+                    $("#fx_soc").val(contactlist[i].rowid);
+                    console.log($("#fx_soc").val());
+                    break;
+                }
+            }
+
+        },
+
+        //Определяем обработчик выбора
+        change: function() {
+            //Сохраняем поле "Наименование" без изменений и в правильной позиции
+//                        $("#name").val("").css("top", 2);
+        }
+    });
+</script>

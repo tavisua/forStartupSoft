@@ -81,7 +81,7 @@ $hookmanager->initHooks(array('admin'));
 // Put here declaration of dictionaries properties
 
 // Sort order to show dictionary (0 is space). All other dictionaries (added by modules) will be at end of this.
-$taborder=array(26,27,28,29,30,31,32,33,34,6,0,9,4,3,2,0,1,8,19,16,0,5,11,0,0,10,23,12,13,0,14,0,7,17,0,22,20,18,21,0,15,0,24,0,25);
+$taborder=array(26,27,28,29,30,31,32,33,34,35,6,9,36,0,3,2,0,1,8,19,16,0,5,11,0,0,10,23,12,13,0,14,0,7,17,0,22,20,18,21,0,15,0,24,0,25);
 
 // Name of SQL tables of dictionaries
 $tabname=array();
@@ -119,6 +119,8 @@ $tabname[31]= MAIN_DB_PREFIX."c_measurement";
 $tabname[32]= MAIN_DB_PREFIX."c_kinddoc";
 $tabname[33]= MAIN_DB_PREFIX."c_period";
 $tabname[34]= MAIN_DB_PREFIX."c_groupoftask";
+$tabname[35]= MAIN_DB_PREFIX."c_tare";
+$tabname[36]= MAIN_DB_PREFIX."c_finance_service";
 
 // Dictionary labels
 $tablib=array();
@@ -156,6 +158,8 @@ $tablib[31]= "UnitsOfMeasurement";
 $tablib[32]= "KindDoc";
 $tablib[33]= "Periods";
 $tablib[34]= "GroupOfTask";
+$tablib[35]= "Tare";
+$tablib[36]= "FinanceService";
 
 // Requests to extract data
 $tabsql=array();
@@ -201,6 +205,10 @@ $tabsql[31]= "select rowid, name, active from ".MAIN_DB_PREFIX."c_measurement";
 $tabsql[32]= "select rowid, name, active from ".MAIN_DB_PREFIX."c_kinddoc";
 $tabsql[33]= "select rowid, name, active from ".MAIN_DB_PREFIX."c_period";
 $tabsql[34]= "select rowid, name, active from ".MAIN_DB_PREFIX."c_groupoftask";
+$tabsql[35]= "select llx_c_tare.rowid, llx_c_tare.name, llx_c_measurement.name ed_name, llx_c_tare.active
+from llx_c_tare
+left join llx_c_measurement on llx_c_measurement.rowid=llx_c_tare.fx_measurement";
+$tabsql[36]= "select rowid, name, active from ".MAIN_DB_PREFIX."c_finance_service";
 // Criteria to sort dictionaries
 $tabsqlsort=array();
 $tabsqlsort[1] ="country ASC, code ASC";
@@ -237,6 +245,8 @@ $tabsqlsort[31]="name ASC";
 $tabsqlsort[32]="name ASC";
 $tabsqlsort[33]="rowid ASC";
 $tabsqlsort[34]="rowid ASC";
+$tabsqlsort[35]=MAIN_DB_PREFIX."c_tare.rowid ASC";
+$tabsqlsort[36]="rowid ASC";
 
 // Nom des champs en resultat de select pour affichage du dictionnaire
 $tabfield=array();
@@ -274,6 +284,8 @@ $tabfield[31]= "name";
 $tabfield[32]= "name";
 $tabfield[33]= "name";
 $tabfield[34]= "name";
+$tabfield[35]= "name,ed_name";
+$tabfield[36]= "name";
 
 // Nom des champs d'edition pour modification d'un enregistrement
 $tabfieldvalue=array();
@@ -311,6 +323,10 @@ $tabfieldvalue[31]= "name";
 $tabfieldvalue[32]= "name";
 $tabfieldvalue[33]= "name";
 $tabfieldvalue[34]= "name";
+$tabfieldvalue[35]= "name,ed_name";
+$tabfieldvalue[36]= "name";
+
+
 
 // Nom des champs dans la table pour insertion d'un enregistrement
 $tabfieldinsert=array();
@@ -348,6 +364,8 @@ $tabfieldinsert[31]= "name";
 $tabfieldinsert[32]= "name";
 $tabfieldinsert[33]= "name";
 $tabfieldinsert[34]= "name";
+$tabfieldinsert[35]= "name,fx_measurement";
+$tabfieldinsert[36]= "name";
 
 // Nom du rowid si le champ n'est pas de type autoincrement
 // Example: "" if id field is "rowid" and has autoincrement on
@@ -387,6 +405,8 @@ $tabrowid[31]= "rowid";
 $tabrowid[32]= "rowid";
 $tabrowid[33]= "rowid";
 $tabrowid[34]= "rowid";
+$tabrowid[35]= "rowid";
+$tabrowid[36]= "rowid";
 
 // Condition to show dictionary in setup page
 $tabcond=array();
@@ -424,6 +444,8 @@ $tabcond[31]= true;
 $tabcond[32]= true;
 $tabcond[33]= true;
 $tabcond[34]= true;
+$tabcond[35]= true;
+$tabcond[36]= true;
 
 // List of help for fields
 $tabhelp=array();
@@ -461,6 +483,8 @@ $tabhelp[31] = array();
 $tabhelp[32] = array();
 $tabhelp[33] = array();
 $tabhelp[34] = array();
+$tabhelp[35] = array();
+$tabhelp[36] = array();
 
 // List of check for fields (NOT USED YET)
 $tabfieldcheck=array();
@@ -498,6 +522,8 @@ $tabfieldcheck[31] = array();
 $tabfieldcheck[32] = array();
 $tabfieldcheck[33] = array();
 $tabfieldcheck[34] = array();
+$tabfieldcheck[35] = array();
+$tabfieldcheck[36] = array();
 
 // Complete all arrays with entries found into modules
 complete_dictionary_with_modules($taborder,$tabname,$tablib,$tabsql,$tabsqlsort,$tabfield,$tabfieldvalue,$tabfieldinsert,$tabrowid,$tabcond,$tabhelp,$tabfieldcheck);
@@ -587,6 +613,7 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
 //            die();
 //        }
         if ($id == 30 && ($value == 'Model' || $value == 'Description'||($value == 'Trademark'&&!isset($_POST['Trademark']))))continue;
+        if ($id == 35 && ($value == 'ed_name'))continue;
         if ((! isset($_POST[$value]) || $_POST[$value]=='')
         	&& (! in_array($listfield[$f], array('decalage','module','accountancy_code','accountancy_code_sell','accountancy_code_buy')))  // Fields that are not mandatory
 		)
@@ -1490,6 +1517,14 @@ if($id == 30){
         })
     </script>';
 }
+if($id == 35){
+	print '<script>
+        $(document).ready(function(){
+            load_measurement();
+            $("select#KindAssets").on("change", SetEnableTrademark);
+        })
+    </script>';
+}
 
 //llxFooter();
 $db->close();
@@ -1651,9 +1686,13 @@ function fieldList($fieldlist,$obj='',$tabname='')
         {
             print '<td align="left">';
             print $form->selectlineactive($fieldlist[$field]);
+			print '</td>';
 //            print '*'.$tabname.'*';
-            print '</td>';
-        }
+        }elseif($fieldlist[$field] == 'ed_name'){
+			print '<td align="left">';
+			print $form->selectmeasurement($fieldlist[$field]);
+			print '</td>';
+		}
 		else
 		{
 			print '<td>';

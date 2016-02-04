@@ -2224,5 +2224,5 @@ else
 }
 
 
-llxFooter();
+//llxFooter();
 $db->close();

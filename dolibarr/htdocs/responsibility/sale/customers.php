@@ -6,14 +6,8 @@
  * Time: 11:32
  */
  $region_id = $_SESSION['region_id'];
-$search = explode(',',$_GET['search']);
-$search_array = array();
-foreach($search as $elem) {
-    $tmp = explode('=>', $elem);
-    $search_array[$tmp[0]]=$tmp[1];
-}
-$page = isset($_GET['page'])?$_GET['page']:1;
-$per_page = isset($_GET['per_page'])?$_GET['per_page']:30;
+//var_dump($_SESSION['region_id']);
+//die();
 
 $sql = 'select `llx_societe`.rowid, `llx_societe`.nom,
 `llx_societe`.`town`, round(`llx_societe_classificator`.`value`,0) as width, `llx_societe`.`remark`, " " deficit,
@@ -21,82 +15,50 @@ $sql = 'select `llx_societe`.rowid, `llx_societe`.nom,
 " " futuredateservice, " " lastdateaccounts, " " futuredateaccounts, " " lastdatementor, " " futuredatementor
 from `llx_societe` left join `category_counterparty` on `llx_societe`.`categoryofcustomer_id` = `category_counterparty`.rowid
 left join `formofgavernment` on `llx_societe`.`formofgoverment_id` = `formofgavernment`.rowid
-left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`
-where 1';
-$sql_count = 'select count(*) iCount from `llx_societe` where 1 ';
+left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`';
+if($region_id != 0) {
+    $sql .= 'where `region_id` = ' . $region_id . ' ';
+    $sql .= 'and `llx_societe`.`categoryofcustomer_id` in
+(select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = '.$user->respon_id.')';
+}else
+    $sql .= 'where 1 ';
 
-if($user->login != 'admin') {
-    $tmp = '';
-    if ($region_id != 0)
-        $tmp .= ' and `region_id` = ' . $region_id . ' ';
-    $tmp .= ' and `llx_societe`.`categoryofcustomer_id` in
-    (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = ' . $user->respon_id . ')';
-    $sql .= $tmp;
-    $sql_count .= $tmp;
-}
-$sql .= ' and `llx_societe`.active = 1 ';
-$sql_count.=' and `llx_societe`.active = 1 ';
-//die($sql);
-//echo '<pre>';
-//var_dump($user->id);
-//echo '</pre>';
-
-
-if($user->login != 'admin') {
-    $tmp = ' and `llx_societe`.`fk_user_creat`=' . $user->id;
-    $sql.=$tmp;
-    $sql_count.=$tmp;
-}
-$sql .= ' order by width desc, nom';
-$sql .= ' limit '.($page-1)*$per_page.','.$per_page;
-$res = $db->query($sql_count);
-if(!$res)
-    dol_print_error($db);
-$count = $db->fetch_object($res);
-//var_dump(ceil($count->iCount/$per_page));
-//die();
-$total = ceil($count->iCount/$per_page);
-//die($sql);
+$sql .= 'order by width desc, nom';
+//var_dump($sql);
 $TableParam = array();
 $ColParam['title']='';
 $ColParam['width']='178';
 $ColParam['align']='';
 $ColParam['class']='';
-$ColParam['substr']='20';
 $TableParam[]=$ColParam;
-unset($ColParam['substr']);
 
 $ColParam['title']='';
 $ColParam['width']='98';
 $ColParam['align']='';
 $ColParam['class']='';
-$ColParam['substr']='10';
+$ColParam['substr']='16';
 $TableParam[]=$ColParam;
-
-
+unset($ColParam['substr']);
 $ColParam['title']='';
 $ColParam['width']='50';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
-
 $ColParam['title']='';
 $ColParam['width']='129';
 $ColParam['align']='';
 $ColParam['class']='';
-$ColParam['substr']='15';
 $TableParam[]=$ColParam;
-unset($ColParam['substr']);
 
 $ColParam['title']='';
-$ColParam['width']='100';
+$ColParam['width']='98';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
 $ColParam['title']='';
-$ColParam['width']='100';
+$ColParam['width']='98';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
@@ -155,12 +117,6 @@ $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
-$ColParam['title']='';
-$ColParam['width']='50';
-$ColParam['align']='';
-$ColParam['class']='';
-$TableParam[]=$ColParam;
-
 $tablename = "`llx_societe`";
 //include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
 //$db_mysql = new dbBuilder();
@@ -169,14 +125,7 @@ $table = fShowTable($TableParam, $sql, "'" . $tablename . "'", $conf->theme, $_R
 
 //$row = $db_mysql->fShowTable($TableParam, $sql, "'" . $tablename . "'", $conf->theme, $_REQUEST['sortfield'], $_REQUEST['sortorder'], $readonly = array(-1), false);
 
-include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/area/customers.html');
-$prev_form = "<a href='#x' class='overlay' id='peview_form'></a>
-                     <div class='popup' style='width: 300px;height: 150px'>
-                     <textarea readonly id='prev_form' style='width: 100%;height: 100%;resize: none'></textarea>
-                     <a class='close' title='Закрыть' href='#close'></a>
-                     </div>";
-print $prev_form;
-
+include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/customers.html');
 return;
 function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $sortorder='', $readonly = array(), $showtitle=true){
     global $user, $conf, $langs, $db;
@@ -216,64 +165,7 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
             $num_col++;
         }
     }
-    $actionfields = array('futuredatecomerc'=>'sale', 'lastdatecomerc'=>'sale',  'lastdateservice'=>'service', 'lastdateaccounts'=>'accounts',  'lastdatementor'=>'mentor');
-    if(!$result)return;
-    $page = isset($_GET['page'])?$_GET['page']:1;
-    $per_page = isset($_GET['per_page'])?$_GET['per_page']:30;
-
-    $lastaction = array();
-    $sql = "select `llx_societe`.rowid, `llx_societe_action`.`dtChange`, `responsibility`.`alias`
-    from `llx_societe`
-    left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`
-    left join `llx_actioncomm` on `llx_actioncomm`.`fk_soc`= `llx_societe`.rowid
-    inner join (select code, libelle label from `llx_c_actioncomm` where active = 1 and (type = 'system' or type = 'user')) TypeCode on TypeCode.code = `llx_actioncomm`.code
-    left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
-    inner join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.`rowid`
-    left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
-    where `llx_societe`.active = 1 ";
-    $sql .= ' limit '.($page-1)*$per_page.','.$per_page;
-
-//  die($sql);
-    $res = $db->query($sql);
-    if(!$res){
-        dol_print_error($db);
-    }
-    if($db->num_rows($res)>0) {
-        while ($row = $db->fetch_object($res)){
-            if(!isset($lastaction[$row->rowid.$row->alias])) {
-                $date = new DateTime($row->dtChange);
-                $lastaction[$row->rowid . $row->alias] = $date->format('d.m.y');
-            }
-        }
-    }
-//    var_dump($lastaction);
-//    die();
-    $futureaction = array();
-    $sql = "select `llx_societe`.rowid, llx_actioncomm.datep, `responsibility`.`alias`
-        from `llx_societe`
-        left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`
-        left join `llx_actioncomm` on `llx_actioncomm`.`fk_soc`= `llx_societe`.rowid
-        inner join (select code, libelle label from `llx_c_actioncomm` where active = 1
-        and (type = 'system' or type = 'user')) TypeCode on TypeCode.code = `llx_actioncomm`.code
-        inner join `llx_user` on `llx_actioncomm`.`fk_user_author` = `llx_user`.`rowid`
-        left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
-        where `llx_societe`.active = 1
-        and `llx_actioncomm`.`id` not in (select `llx_societe_action`.`action_id` from llx_societe_action where action_id is not null)
-        limit 0,30";
-//    die($sql);
-    $res = $db->query($sql);
-    if(!$res){
-        dol_print_error($db);
-    }
-    if($db->num_rows($res)>0) {
-        while ($row = $db->fetch_object($res)){
-            if(!isset($futureaction[$row->rowid.$row->alias])) {
-                $date = new DateTime($row->datep);
-                $futureaction[$row->rowid . $row->alias] = $date->format('d.m.y');
-            }
-        }
-    }
-
+    $actionfields = array('lastdatecomerc'=>'sale',  'lastdateservice'=>'service', 'lastdateaccounts'=>'accounts',  'lastdatementor'=>'mentor');
     $fields = $result->fetch_fields();
 //        var_dump($showtitle);
 //        die();
@@ -403,7 +295,6 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
 //            die();
 //            echo '</br>';
         $num_col = 0;
-        $prev_col=array('nom','town','remark');
         foreach($row as $cell=>$value){
             $col_name = "'".$fields[$num_col]->name."'";
             if($cell != 'rowid') {
@@ -431,43 +322,14 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
                         }
                     } else {
                         if (substr($fields[$num_col]->name, 0, 2) != 's_') {
-                            $full_text='';
-                            if(mb_strlen(trim($value))>0) {
-                                $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:' . ($col_width[$num_col - 1] + 2) . 'px;">';
-                                if(!isset($title[$num_col - 1]['substr'])||mb_strlen(trim($value), 'UTF-8')<=$title[$num_col - 1]['substr'])
-                                    $table .= trim($langs->trans($value));
-                                else {
 
-                                    $obj="'".$row['rowid'] . $fields[$num_col]->name."'";
-                                    $table .= mb_substr(trim($value), 0, $title[$num_col - 1]['substr'], 'UTF-8') . '...';
-//                                    $table .= mb_strlen(trim($value), 'UTF-8').'%%%'.trim($value);
-                                    $table .='<img id="prev' . $row['rowid'] . $fields[$num_col]->name . '" onclick="preview(' . $obj . ');" style="vertical-align: middle" title="Передивитись" src="/dolibarr/htdocs/theme/eldy/img/object-more.png">';
-                                }
-                                $table .='</td>';
-                                $full_text = trim($value);
-                            }else {
-                                if(isset($actionfields[$fields[$num_col]->name])){
-                                    $alias = $actionfields[$fields[$num_col]->name];
-                                    $full_text = '';
-                                    switch($fields[$num_col]->name){
-                                        case 'lastdatecomerc':{
-                                            $full_text = !isset($lastaction[$row['rowid'].$alias]) ?
-                                                '<img src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/object_action.png">' : $lastaction[$row['rowid'].$alias];
-                                        }break;
-                                        case 'futuredatecomerc':{
-                                            $full_text = !isset($futureaction[$row['rowid'].$alias]) ?
-                                                '<img src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/object_action.png">' : $futureaction[$row['rowid'].$alias];
-                                        }
-                                    }
-
-                                    $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '"  style="width:' . ($col_width[$num_col - 1] + 2) . 'px; text-align: center;"><a href="../' . $actionfields[$fields[$num_col]->name] . '/action.php?socid=' . $row['rowid'] . '&idmenu=10425&mainmenu=area">' . ($full_text) . '</a> </td>';
-                                }else{
-                                    $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '"  style="width:' . ($col_width[$num_col - 1] + 2) . 'px; text-align: center;"> </td>';
-                                }
-                            }
-
-                            if(in_array(trim($fields[$num_col]->name), $prev_col))
-                                $table .='<td style="display: none" id="full'.$row['rowid'] . $fields[$num_col]->name.'">'.$full_text.'</td>';
+                            if(strlen(trim($value))>0)
+                                $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:'.($col_width[$num_col-1]+2).'px;">'.
+                                    (isset($title[$num_col-1]["substr"])?mb_substr(trim($langs->trans($value)),0,$title[$num_col-1]["substr"], 'UTF-8')
+                                        :trim($langs->trans($value))). '</td>';
+                            else
+                                $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '"  style="width:'.($col_width[$num_col-1]+2).'px; text-align: center;">'.(isset($actionfields[$fields[$num_col]->name])?
+                                        '<a href="../'.$actionfields[$fields[$num_col]->name].'/action.php?socid='.$row['rowid'].'&idmenu=10425&mainmenu=area"><img src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/object_action.png"></a>':'').' </td>';
                         }
                         else {
 
@@ -478,6 +340,11 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
                             $s_table = substr($fields[$num_col]->name, 2, strpos($fields[$num_col]->name, '_', $stpos) - 2);
                             $s_fieldname = substr($fields[$num_col]->name, strpos($fields[$num_col]->name, '_', $stpos) + 1);
 
+//                                $selectlist = str_replace('selected=\"selected\"', '', $this->selectlist['edit_' . $s_table . '_' . $s_fieldname]);
+//                                if('regions' == $s_table) {
+//                                    var_dump($selectlist);
+//                                    die($value);
+//                                }
                             $selectlist = substr($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], 0, strpos($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], $value) - 1) . ' selected = "selected" ' . substr($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], strpos($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], $value) - 1);
 
                             $selectlist = str_replace('class="edit_' . substr($fields[$num_col]->name, 2) . '"', '', $selectlist);
@@ -529,7 +396,6 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
 //
 //            var_dump(count($readonly)==0);
 //            die();
-        $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:'.($col_width[$num_col-1]+2).'px" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png" onclick="change_switch(' . $row['rowid'] . ');" > </td>';
         if(count($readonly)==0 && $showtitle) {
             $table .= '<td style="width: 20px" align="left">
 
@@ -538,7 +404,6 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
 
                        </td>';
         }
-
         $table .= '</tr>';
     }
     $table .= '</tbody>'."\r\n";
