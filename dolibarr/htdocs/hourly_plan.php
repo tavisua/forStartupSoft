@@ -59,9 +59,11 @@ $sql = "select `llx_actioncomm`.id as rowid, `llx_actioncomm`.datep, `llx_action
         left join `regions` on `regions`.rowid=`llx_societe`.region_id
         left join `llx_user` on `llx_user`.rowid= `llx_actioncomm`.fk_user_author
         left join `llx_c_actioncomm` on `llx_c_actioncomm`.`code` = `llx_actioncomm`.`code`
+        inner join `llx_actioncomm_resources` on `llx_actioncomm`.`id` =  `llx_actioncomm_resources`.`fk_actioncomm`
         where fk_action in
               (select id from `llx_c_actioncomm`
               where `type` in ('system', 'user'))
+        and `llx_actioncomm_resources`.`fk_element`= ".$user->id."
         and `datep` between '".$dateQuery->format('Y-m-d')."' and date_add('".$dateQuery->format('Y-m-d')."', interval 1 day)
         order by datep";
 $res = $db->query($sql);
@@ -114,7 +116,7 @@ while($row = $db->fetch_object($res)) {
     $DiffTime = sprintf('%02d:%02d', $DiffSec / 3600, ($DiffSec % 3600) / 60, $DiffSec % 60);
     $task_table = '<div class="task_cell" style="float: left; width: ' . ($conf->browser->name == 'firefox' ? '23px' : '24px') . '"><img src="theme/'.$conf->theme.'/img/'.$iconitem.'" title="'.$langs->trans($row->title).'"></div>
                <div class="task_cell" style="float: left; width: ' . ($conf->browser->name == 'firefox' ? '42px' : '43px') . '">'.$datep->format('H:i').'</div>
-               <div class="task_cell" style="float: left; width: 36px">'.$DiffTime.'</div>
+               <div class="task_cell" style="float: left; width: 36px;">'.$DiffTime.'</div>
                <div class="task_cell" style="float: left; width: 35px">'.$datep2->format('H:i').'</div>
                <div class="task_cell" style="float: left; width: 152px">'.trim($row->region_name).' район</div>
                <div class="task_cell" style="float: left; width: 152px">'.trim($row->lastname).'</div>

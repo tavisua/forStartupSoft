@@ -64,9 +64,10 @@ if($_GET['action']=='get_exectime'){
 	global $db, $user;
 	$Action = new ActionComm($db);
 	$freetime = $Action->GetFirstFreeTime($_GET['date'], $user->id, $_GET['minute']);
-	echo '<pre>';
-	var_dump($freetime);
-	echo '</pre>';
+//	echo '<pre>';
+//	var_dump($freetime);
+//	echo '</pre>';
+	echo $freetime;
 	exit();
 }
 
@@ -694,6 +695,7 @@ if ($action == 'create')
 	print '<form name="formaction" action="'.$_SERVER['PHP_SELF'].'" method="POST">';
 	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
 	print '<input type="hidden" name="action" value="add">';
+	print '<input type="hidden" id="showform1" value="0">';
 	print '<input type="hidden" name="mainmenu" value="'.$_REQUEST["mainmenu"].'">';
 	print '<input type="hidden" name="parent_id" value="'.$_REQUEST["parent_id"].'">';
 	print '<input type="hidden" name="donotclearsession" value="1">';
@@ -847,9 +849,9 @@ if ($action == 'create')
 		$events[]=array('method' => 'getContacts', 'url' => dol_buildpath('/core/ajax/contacts.php',1), 'htmlname' => 'contactid', 'params' => array('add-customer-contact' => 'disabled'));
 		//For external user force the company to user company
 		if (!empty($user->societe_id)) {
-			$thirdparty_list = $form->select_thirdparty_list($user->societe_id,'socid','',1,1,0,$events);
+			$thirdparty_list = $form->select_thirdparty_list($user->societe_id,'socid','',1,1,0,'',0,0,$user->id);
 		} else {
-            $thirdparty_list = $form->select_thirdparty_list('','socid','',1,1,0,$events);
+            $thirdparty_list = $form->select_thirdparty_list('','socid','',1,1,0,$events,'',0,0,$user->id);
 		}
         $thirdparty_list = substr($thirdparty_list, 0, strpos($thirdparty_list, 'name')).' onchange="SocIdChange();" '.substr($thirdparty_list, strpos($thirdparty_list, 'name'));
 
@@ -1081,6 +1083,8 @@ if ($id > 0)
 		print '<input type="hidden" name="action" value="update">';
 		print '<input type="hidden" name="id" value="'.$id.'">';
 		print '<input type="hidden" name="ref_ext" value="'.$object->ref_ext.'">';
+		print '<input type="hidden" id="showform" value="0">';
+		print '<input type="hidden" id="id_usr" value="'.$user->id.'">';
 		if ($backtopage) print '<input type="hidden" name="backtopage" value="'.($backtopage != '1'? $backtopage : $_SERVER["HTTP_REFERER"]).'">';
 		if (empty($conf->global->AGENDA_USE_EVENT_TYPE)) print '<input type="hidden" name="actioncode" value="'.$object->type_code.'">';
 
@@ -1602,9 +1606,28 @@ print '
                 $("#p2day").val($("#apday").val());
                 $("#p2month").val($("#apmonth").val());
                 $("#p2year").val($("#apyear").val());
+                if($("#showform").val()!=0){
+                	var Date1 = new Date($("#apyear").val(),
+                						($("#apmonth").val().substr(0,1)=="0"?$("#apmonth").val().substr(1):$("#apmonth").val()),
+                						($("#apday").val().substr(0,1)=="0"?$("#apday").val().substr(1):$("#apday").val()),
+                						($("#aphour").val().substr(0,1)=="0"?$("#aphour").val().substr(1):$("#aphour").val()),
+                						($("#apmin").val().substr(0,1)=="0"?$("#apmin").val().substr(1):$("#apmin").val()),
+                						0);
+                	var Date2 = new Date($("#p2year").val(),
+                						($("#p2month").val().substr(0,1)=="0"?$("#p2month").val().substr(1):$("#p2month").val()),
+                						($("#p2day").val().substr(0,1)=="0"?$("#p2day").val().substr(1):$("#p2day").val()),
+                						($("#p2hour").val().substr(0,1)=="0"?$("#p2hour").val().substr(1):$("#p2hour").val()),
+                						($("#p2min").val().substr(0,1)=="0"?$("#p2min").val().substr(1):$("#p2min").val()),
+                						0);
+					var minute = (Date2.getTime()-Date1.getTime())/ (1000*60);
+                	var link = "http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=get_freetime&date="+$("#apyear").val()+"-"+$("#apmonth").val()+"-"+$("#apday").val()+"&id_usr="+$("#id_usr").val()+"&minute="+minute;
+            		setTime(link);
+                }else{
+                	$("#showform").val(1);
+                }
             }
         }
-        function setP2(){
+        function setP2(showalert){
             console.log($("select#apmin").val());
             if($("select#apmin").val() == -1) return;
             else if($("select#apmin").val() != "-1") {
@@ -1637,7 +1660,10 @@ print '
                                 min = "0"+(p2min%60).toString();
                             else
                                 min = (p2min%60).toString();
-
+                            hour +=Math.floor(p2min/60);
+//console.log("округ"+Math.floor(p2min/60));
+                            var sHour = hour<10?("0"+hour.toString()):(hour.toString());
+                            document.getElementById("p2hour").value = sHour;
                             document.getElementById("p2min").value = min;
 //                            if(Math.floor(p2min/60)>0){
 ////                                var min="";
@@ -1654,8 +1680,10 @@ print '
                         }
                     })
                 }else{
-                    alert("Будь ласка вкажіть тип дії");
+                	if(showalert == 1)
+                		alert("Будь ласка вкажіть тип дії");
                 }
+
             }
         }
         function ActionCodeChanged(){
@@ -1677,7 +1705,8 @@ print '
                 document.getElementById("apmin").value=formatDate(new Date(), "mm");
             }
             dpChangeDay("ap","dd.MM.yyyy");
-            setP2();
+//            if($("#actioncode").val() != 0)
+//            	setP2();
             $("#redirect_actioncode").val($("#actioncode").val());
             if($("#actioncode").val() == "AC_GLOBAL" || $("#actioncode").val() == "AC_CURRENT"){
                 $("#period").show();
@@ -1689,6 +1718,6 @@ print '
     </script>';
 
 
-llxFooter();
+//llxFooter();
 
 $db->close();

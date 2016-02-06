@@ -19,6 +19,12 @@
     font-weight: normal!important;
     text-align: left!important;
 }
+.userlist{
+    background: #88bbdd!important;
+}
+.bestvalue {
+    background-color: #EFEFD4!important;
+}
 .totalvalue{
     text-align: center!important;
 }

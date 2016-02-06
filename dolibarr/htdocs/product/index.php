@@ -69,6 +69,12 @@ llxHeader("",$langs->trans("ProductsAndServices"),$helpurl);
 print_fiche_titre($transAreaType);
 
 
+
+
+
+exit();
+
+
 print '<div class="fichecenter"><div class="fichethirdleft">';
 
 

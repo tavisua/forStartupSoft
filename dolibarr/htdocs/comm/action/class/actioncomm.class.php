@@ -202,6 +202,10 @@ class ActionComm extends CommonObject
     }
     function GetFirstFreeTime($date, $id_usr, $minutes){
         $freetime = $this->GetFreeTimePeriod($date, $id_usr);
+//        echo '<pre>';
+//        var_dump($freetime);
+//        echo '</pre>';
+//        die();
         foreach($freetime as $period){
             if($minutes<=$period[1]) {
                 return  $period[0];
@@ -228,9 +232,9 @@ class ActionComm extends CommonObject
             $tmp_mk = mktime($tmp_date->format('H'), $tmp_date->format('i'),$tmp_date->format('s'),$tmp_date->format('m'), $tmp_date->format('d'),$tmp_date->format('Y'));
             if(($tmp_mk - $time)/60>0) {
                 $freetime[] = array(date('H.i.s', $time), ($tmp_mk - $time)/60);
-                $tmp_date = new DateTime($obj->datep2);
-                $time = mktime($tmp_date->format('H'), $tmp_date->format('i'),$tmp_date->format('s'),$tmp_date->format('m'), $tmp_date->format('d'),$tmp_date->format('Y'));
             }
+            $tmp_date = new DateTime($obj->datep2);
+            $time = mktime($tmp_date->format('H'), $tmp_date->format('i'),$tmp_date->format('s'),$tmp_date->format('m'), $tmp_date->format('d'),$tmp_date->format('Y'));
         }
         $tmp_mk = mktime(19,0,0,$date->format('m'),$date->format('d'),$date->format('Y'));
         if(($tmp_mk - $time)/60>0) {

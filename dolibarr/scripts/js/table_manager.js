@@ -4,6 +4,19 @@
 function close_form(){
     location.href = '#close';
 }
+function setTime(link){
+    $.ajax({
+        url:link,
+        cache: false,
+        success: function(html){
+            var hour = html.substr(0,2);
+            var min = html.substr(3,2);
+            $("#aphour [value='"+hour+"']").attr("selected", "selected");
+            $("#apmin [value='"+min+"']").attr("selected", "selected");
+            setP2(1);
+        }
+    })
+}
 function save_item(tablename, paramfield, sendtable){
     if(confirm('Зберегти данні?')){
         var sID = document.getElementById('edit_rowid').value;

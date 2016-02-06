@@ -235,6 +235,41 @@
                     <th class="totalvalue" id="curent_future_month"><?=$current_task['future_month']?></th>
                 </tr>
                 <tr class="multiple_header_table whitetitle">
+                    <th  colspan="2" class="bestvalue">Всього по найкращому</th>
+                    <!--% виконання запланованого по факту-->
+                    <th class="totalvalue bestvalue" id="bestvalue_percent_month"><?=$bestvalue["percent_month"]?></th>
+                    <th class="totalvalue bestvalue" id="bestvalue_percent_day_m7"><?=$bestvalue["percent_7"]?></th>
+                    <th class="totalvalue bestvalue" id="bestvalue_percent_day_m6"><?=$bestvalue["percent_6"]?></th>
+                    <th class="totalvalue bestvalue" id="bestvalue_percent_day_m5"><?=$bestvalue["percent_5"]?></th>
+                    <th class="totalvalue bestvalue" id="bestvalue_percent_day_m4"><?=$bestvalue["percent_4"]?></th>
+                    <th class="totalvalue bestvalue" id="bestvalue_percent_day_m3"><?=$bestvalue["percent_3"]?></th>
+                    <th class="totalvalue bestvalue" id="bestvalue_percent_day_m2"><?=$bestvalue["percent_2"]?></th>
+                    <th class="totalvalue bestvalue" id="bestvalue_percent_day_m1"><?=$bestvalue["percent_1"]?></th>
+                    <th class="totalvalue bestvalue" id="bestvalue_percent_today"><?=$bestvalue["percent_0"]?></th>
+                    <!--минуле (факт)-->
+                    <th class="totalvalue bestvalue" id="bestvalue_fakt_month"><?=$bestvalue["fakt_month"]?></th>
+                    <th class="totalvalue bestvalue" id="bestvalue_fakt_day_m7"><?=$bestvalue["fakt_day_m7"]?></th>
+                    <th class="totalvalue bestvalue" id="bestvalue_fakt_day_m6"><?=$bestvalue["fakt_day_m6"]?></th>
+                    <th class="totalvalue bestvalue" id="bestvalue_fakt_day_m5"><?=$bestvalue["fakt_day_m5"]?></th>
+                    <th class="totalvalue bestvalue" id="bestvalue_fakt_day_m4"><?=$bestvalue["fakt_day_m4"]?></th>
+                    <th class="totalvalue bestvalue" id="bestvalue_fakt_day_m3"><?=$bestvalue["fakt_day_m3"]?></th>
+                    <th class="totalvalue bestvalue" id="bestvalue_fakt_day_m2"><?=$bestvalue["fakt_day_m2"]?></th>
+                    <th class="totalvalue bestvalue" id="bestvalue_fakt_day_m1"><?=$bestvalue["fakt_day_m1"]?></th>
+                    <th class="totalvalue bestvalue" id="bestvalue_fakt_today"><?=$bestvalue["fakt_today"]?></th>
+                    <!--майбутнє (план)-->
+                    <th class="totalvalue bestvalue" id="bestvalue_outstanding"><?=$bestvalue['outstanding']?></th>
+                    <th class="totalvalue bestvalue" id="bestvalue_future_today"><?=$bestvalue['future_today']?></th>
+                    <th class="totalvalue bestvalue" id="bestvalue_future_day_pl1"><?=$bestvalue['future_day_pl1']?></th>
+                    <th class="totalvalue bestvalue" id="bestvalue_future_day_pl2"><?=$bestvalue['future_day_pl2']?></th>
+                    <th class="totalvalue bestvalue" id="bestvalue_future_day_pl3"><?=$bestvalue['future_day_pl3']?></th>
+                    <th class="totalvalue bestvalue" id="bestvalue_future_day_pl4"><?=$bestvalue['future_day_pl4']?></th>
+                    <th class="totalvalue bestvalue" id="bestvalue_future_day_pl5"><?=$bestvalue['future_day_pl5']?></th>
+                    <th class="totalvalue bestvalue" id="bestvalue_future_day_pl6"><?=$bestvalue['future_day_pl6']?></th>
+                    <th class="totalvalue bestvalue" id="bestvalue_future_day_pl7"><?=$bestvalue['future_day_pl7']?></th>
+                    <!--ітого за місяць-->
+                    <th class="totalvalue bestvalue" id="bestvalue_future_month"><?=$bestvalue['future_month']?></th>
+                </tr>
+                <tr class="multiple_header_table whitetitle">
                     <th  colspan="2">Всього по направленнях/контрагентах</th>
                     <!--% виконання запланованого по факту-->
                     <th class="totalvalue" id="lineactive_percent_month"><?=$lineaction["percent_month"]?></th>
@@ -271,7 +306,7 @@
                 </tr>
             </thead>
 
-            <?echo $table?>
+            <?=$table?>
 
         </table>
     </div>
