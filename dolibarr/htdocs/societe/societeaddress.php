@@ -190,11 +190,12 @@ from `llx_societe_address`
 left join typeofaddress on typeofaddress.`rowid` = `llx_societe_address`.kindaddress
 left join `countries` on `countries`.`rowid` = `llx_societe_address`.country_id
 left join `states` on `states`.`rowid` = `llx_societe_address`.state_id
-left join `regions` on `regions`.`rowid` = `llx_societe_address`.state_id
+left join `regions` on `regions`.`rowid` = `llx_societe_address`.region_id
 left join `kindlocality` on `kindlocality`.`rowid` = `llx_societe_address`.kindlocality_id
 left join `kindstreet` on `kindstreet`.`rowid` = `llx_societe_address`.kindofstreet_id
 left join `kindoffice` on `kindoffice`.`rowid` = `llx_societe_address`.kindoffice_id
 where fk_soc = '.$socid.' and `llx_societe_address`.active=1';
+//die($sql);
 
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
 $db = new dbBuilder();
