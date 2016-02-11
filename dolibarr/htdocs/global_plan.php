@@ -98,16 +98,16 @@ function ShowTask(){
             $table.='<td style="width:51px" class="small_size">'.$datec->format('d.m.y').'</td>';
             $tmp_user->fetch($taskAuthor[$obj->id]);
             $table.='
-            <td style="width:101px">'.mb_strtolower($langs->trans(ucfirst($tmp_user->respon_alias))).'</td>
+            <td style="width:101px">'.mb_strtolower($langs->trans(ucfirst($tmp_user->respon_alias)), 'UTF-8').'</td>
             <td style="width:101px">'.$tmp_user->lastname.'</td>';
             if(empty($assignedUser[$obj->id])){
                 $table.='
-                <td style="width:101px">'.mb_strtolower($langs->trans(ucfirst($tmp_user->respon_alias))).'</td>
+                <td style="width:101px">'.mb_strtolower($langs->trans(ucfirst($tmp_user->respon_alias)), 'UTF-8').'</td>
                 <td style="width:101px">'.$tmp_user->lastname.'</td>';
             }else{
                 $users = explode(',',$assignedUser[$obj->id]);
                 $tmp_user->fetch($users[0]);
-                $table.='<td style="width:101px">'.mb_strtolower($langs->trans(ucfirst($tmp_user->respon_alias))).'</td>
+                $table.='<td style="width:101px">'.mb_strtolower($langs->trans(ucfirst($tmp_user->respon_alias)), 'UTF-8').'</td>
                 <td style="width:101px">'.$tmp_user->lastname.'</td>';
             }
             $table.='<td style="width:81px">'.$obj->groupoftask.'</td>';
@@ -134,7 +134,7 @@ function ShowTask(){
             //Дії наставника
             $table .= '<td style="width:76px"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td><td style="width:76px"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td>';
             //Період виконання
-            $table .= '<td style="width:51px" class="small_size">'.mb_strtolower($langs->trans($obj->period)).'</td>';
+            $table .= '<td style="width:51px" class="small_size">'.mb_strtolower($langs->trans($obj->period), 'UTF-8').'</td>';
             //Статус завдання
             $date = new DateTime();
             $style = 'style="';

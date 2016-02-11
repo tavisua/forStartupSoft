@@ -1,0 +1,80 @@
+ <a href="/dolibarr/htdocs/core/tools.php?mainmenu=tools"><?=$langs->trans('Tools')?></a>  /  <a href="/dolibarr/htdocs/product/pricelist_manager.php?mainmenu=tools"><?=$langs->trans('PriceListManager')?></a>
+ <div class="tabs" data-type="horizontal" data-role="controlgroup">
+     <div class="inline-block tabsElem tabsElemActive">
+         <a id="user" class="tab inline-block" href="/dolibarr/htdocs/product/groups_manager.php?mainmenu=tools" data-role="button"><?=$langs->trans('GroupPriceList')?></a>
+     </div>
+     <div class="inline-block tabsElem">
+         <a id="rights" class="tabactive tab inline-block" href="/dolibarr/htdocs/product/pricelist_manager.php?mainmenu=tools" data-role="button"><?=$langs->trans('ProductsAndServicesArea')?></a>
+     </div>
+ </div>
+ <div class="tabPage" style="width: 1530px">
+    <div style=" width:100%; height:1px; clear:both;">.</div>
+     <div style="float: left">
+         <div id="groupproducts_title">
+             <p>Каталог продукції</p>
+         </div>
+         <div id="groupproducts" >
+             <?=$Categories?>
+         </div>
+     </div>
+    <input type="hidden" id="numpage" value="<?=(empty($page)?1:$page)?>">
+      <div style="float: left; min-height: 150px; width: 150px; margin-left: 15px; align-content: inherit">
+        <div class="vmenu">
+             <div class="blockvmenupair">
+                 <div class="menu_titre">
+                     <b><?=$langs->trans('Control')?></b>
+                 </div>
+                 <div class="menu_top"></div>
+                 <div class="menu_contenu">
+                     <a class="vsmenu" onclick="location.href='/dolibarr/htdocs/user/card.php?leftmenu=users&action=create&idmenu=5617&mainmenu=tools'" ><?=$langs->trans('NewItem')?></a>
+                     <br>
+                 </div>
+                 <div class="menu_end"></div>
+             </div>
+         </div>
+         <div class="tabs" data-type="horizontal" data-role="controlgroup" style="width: 500px">
+             <div class="inline-block tabsElem tabsElemActive">
+                 <a id="first" class=" tab inline-block" href="<?=$_SERVER['PHP_SELF']?>?mainmenu=<?=$_REQUEST['mainmenu']?>&id_cat=<?=$id_cat?>&page=1#cat<?=$id_cat?>" data-role="button">Техніка</a>
+             </div>
+             <div class="inline-block tabsElem">
+                 <a id="second" class="tab inline-block" href="<?=$_SERVER['PHP_SELF']?>?mainmenu=<?=$_REQUEST['mainmenu']?>&id_cat=<?=$id_cat?>&page=2#cat<?=$id_cat?>" data-role="button">Запчастини</a>
+             </div>
+             <div class="inline-block tabsElem">
+                 <a id="thirth" class="tab inline-block" href="<?=$_SERVER['PHP_SELF']?>?mainmenu=<?=$_REQUEST['mainmenu']?>&id_cat=<?=$id_cat?>&page=3#cat<?=$id_cat?>" data-role="button">Робочі органи</a>
+             </div>
+         </div>
+         <table style="width: 405px" class="WidthScroll" cellspacing="1">
+             <thead>
+                <tr class="multiple_header_table">
+                <th style="width: 450px">
+                    Найменування
+                </th>
+                </tr>
+             </thead>
+             <tbody id="products">
+             <?= $Products?>
+             </tbody>
+         </table>
+
+
+     </div>
+    <div style=" width:100%; height:1px; clear:both;">.</div>
+
+ </div>
+ <script>
+     $(document).ready(function(){
+         $('#products').attr('height', window.innerHeight - 320);
+        switch($('#numpage').val()){
+            case '1':{
+                $('#first').addClass("tabpriceactive");
+            }break;
+            case '2':{
+                $('#second').addClass('tabpriceactive');
+            }break;
+            case '3':{
+                $('#thirth').addClass('tabpriceactive');
+            }break;
+        }
+     })
+
+ </script>

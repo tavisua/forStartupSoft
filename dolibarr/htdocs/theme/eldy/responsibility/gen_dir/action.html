@@ -8,18 +8,14 @@
             <td class="autoinsert"><?=$datep->format('d.m.Y')?></td>
             <td><b>Категорія контрагента</b></td>
             <td class="autoinsert"><?echo $object->getCategoryOfCustomer()?></td>
-        </tr>
-        <tr>
-            <td><b><?=$langs->trans('worker')?></b></td>
-            <td class="autoinsert"><?=$user->lastname?></td>
+            <td><b>Область/район</b></td>
+            <td class="autoinsert"><?=$object->getStateRegion()?></td>
             <td><b>Назва контрагента</b></td>
             <td class="autoinsert"><?echo $object->name?></td>
-        </tr>
-        <tr>
+            <td><b><?=$langs->trans('worker')?></b></td>
+            <td class="autoinsert"><?=$user->lastname?></td>
             <td><b>Станом на</b></td>
             <td class="autoinsert" id="lastdate"></td>
-            <td><b>Форма правління</b></td>
-            <td class="autoinsert"><?echo $object->getFormOfGoverment()?></td>
         </tr>
     </table>
 </div>

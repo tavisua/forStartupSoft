@@ -25,6 +25,7 @@ $subdivision = $obj->name;
 
 $table = ShowTable();
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/gen_dir/day_plan.html';
+
 //print '</br>';
 //print'<div style="float: left">test</div>';
 llxFooter();
@@ -68,7 +69,7 @@ function GetTask($Code = '', $classname='', $responding = '', $subdiv_id=''){
         $sql = "select rowid, name from subdivision where active = 1 order by name";
         $Prefix="subdiv_";
     }elseif(!empty($subdiv_id)){
-        $sql = "select llx_user.rowid, CONCAT(llx_user.lastname, ' ', `subdivision`.`name`)name
+        $sql = "select llx_user.rowid, llx_user.lastname, llx_user.firstname
             from llx_user
             left join `subdivision` on `subdivision`.`rowid` = `llx_user`.`subdiv_id`
             where `llx_user`.`subdiv_id` in (" . $subdiv_id . ")";
@@ -95,8 +96,12 @@ function GetTask($Code = '', $classname='', $responding = '', $subdiv_id=''){
     while($obj = $db->fetch_object($userlist)) {
         $class = (fmod($nom++, 2) == 0 ? "impair" : "pair");
         $id = $Prefix . $obj->rowid . $Postfix;
+        $name = $obj->name;
+        if(!empty($obj->lastname)&&!empty($obj->firstname)){
+            $name = $obj->lastname.' '.$obj->firstname;
+        }
         $table .= '<tr id = "tr' . $id . '" class="' . $class . ' ' . $classname .($Prefix == 'user_'?" userlist":"").'">
-            <td class="middle_size" style="width:106px">' . $obj->name . '</td>
+            <td class="middle_size" style="width:106px">' . $name . '</td>
             <td class="middle_size" style="width:146px">Всього ' . $kindtask . '</td>';
         if ($Prefix == 'user_'){
             $table.='<td style="width: '.($conf->browser->name=='firefox'?(30):(31)).'px; text-align:center;"></td>';
@@ -157,14 +162,27 @@ function GetTask($Code = '', $classname='', $responding = '', $subdiv_id=''){
     }
     return $table;
 }
-function GetBestUserID($Code="'AC_TEL','AC_FAX','AC_EMAIL','AC_RDV','AC_INT','AC_OTH','AC_DEP'", $responming='', $subdiv_id=0){
+function GetBestUserID($Code="'AC_TEL','AC_FAX','AC_EMAIL','AC_RDV','AC_INT','AC_OTH','AC_DEP'", $responming='', $subdiv_id='0'){
     global $db, $user;
     $sql = "select `llx_actioncomm_resources`.fk_element id_usr, count(*) iCount
         from `llx_actioncomm`
         inner join (select id from `llx_c_actioncomm` where code in(".$Code.") and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
         inner join `llx_actioncomm_resources` on `llx_actioncomm`.`id` =  `llx_actioncomm_resources`.`fk_actioncomm`
-        where `llx_actioncomm_resources`.fk_element in (select rowid from llx_user where  1)
-        group by `llx_actioncomm_resources`.fk_element
+        where `llx_actioncomm_resources`.fk_element in (select rowid from llx_user where 1 ".
+        (empty($responming)?"":" and llx_user.respon_id in (".$responming.")");
+    if(!empty($subdiv_id)) {
+        $subdiv_array = explode(',', $subdiv_id);
+        if($subdiv_array[0]>0)
+            $sql .= (empty($subdiv_id) ? "" : " and llx_user.subdiv_id in (" . $subdiv_id . ")");
+        else{
+            for($i = 0; $i<count($subdiv_array); $i++){
+                $subdiv_array[$i] = -$subdiv_array[$i];
+            }
+            $sql .= (empty($subdiv_id) ? "" : " and llx_user.subdiv_id not in (" . implode(',', $subdiv_array) . ")");
+        }
+    }
+    $sql .=
+        ") group by `llx_actioncomm_resources`.fk_element
         order by iCount desc
         limit 1";
     $res = $db->query($sql);
@@ -368,12 +386,16 @@ function ShowTable(){
         else
             $Code .= ",'".$obj->code."'";
     }
+
+    unset($bestvalue);
     $bestvalue = array();
-    $bestuser_id = GetBestUserID();
-    $bestvalue = CalcOutStandingActions($Code, $bestvalue, $bestuser_id);
-    $bestvalue = CalcFutureActions($Code, $bestvalue, $bestuser_id);
-    $bestvalue = CalcFaktActions($Code, $bestvalue, $bestuser_id);
-    $bestvalue = CalcPercentExecActions($Code, $bestvalue, $bestuser_id);
+    $bestuser_id = GetBestUserID($Code, '', 1);
+    if($bestuser_id) {
+        $bestvalue = CalcOutStandingActions($Code, $bestvalue, $bestuser_id);
+        $bestvalue = CalcFutureActions($Code, $bestvalue, $bestuser_id);
+        $bestvalue = CalcFaktActions($Code, $bestvalue, $bestuser_id);
+        $bestvalue = CalcPercentExecActions($Code, $bestvalue, $bestuser_id);
+    }
 
     $sql = 'select name from subdivision, llx_user
         where llx_user.rowid = '.(empty($bestuser_id)?0:$bestuser_id).
@@ -385,7 +407,132 @@ function ShowTable(){
     $subdivision = $obj->name;
 
 //    die(DOL_DOCUMENT_ROOT);
-    $table.='<tr class="bestvalue"><td class="middle_size" style="width:106px">Департамент '.$subdivision.'</td><td class="middle_size" style="width:144px">Всього по найкращому</td>';
+    $table.='<tr class="bestvalue"><td class="middle_size" style="width:106px">Офіс</td><td class="middle_size" style="width:144px">Всього по найкращому</td>';
+    $table.='<td style="width: '.($conf->browser->name=='firefox'?(30):(31)).'px; text-align:center;"></td>';
+    //% виконання запланованого по факту
+    for($i=8; $i>=0; $i--){
+        if($i == 8)
+            $table.='<td style="width: '.($conf->browser->name=='firefox'?(33):(34)).'px; text-align:center;">'.$bestvalue['percent_month'].'</td>';
+        elseif($i == 0)
+            $table.='<td style="width: '.($conf->browser->name=='firefox'?(31):(32)).'px; text-align:center;">'.$bestvalue['percent_'.$i].'</td>';
+        else
+             $table.='<td style="width: '.($conf->browser->name=='firefox'?(30):(31)).'px; text-align:center;">'.$bestvalue['percent_'.$i].'</td>';
+    }
+    //минуле (факт)
+    for($i=8; $i>=0; $i--){
+        if($i == 0)
+            $table.='<td style="width: '.($conf->browser->name=='firefox'?(31):(32)).'px; text-align:center;">'.$bestvalue['fakt_today'].'</td>';
+        elseif($i == 8)
+            $table.='<td style="width: '.($conf->browser->name=='firefox'?(33):(34)).'px; text-align:center;">'.$bestvalue['fakt_month'].'</td>';
+        else
+            $table.='<td style="width: '.($conf->browser->name=='firefox'?(30):(30)).'px; text-align:center;">' . $bestvalue['fakt_day_m' . $i] . '</td>';
+    }
+    $table.='<td style="text-align: center; width: '.($conf->browser->name=='firefox'?(51):(51)).'px">'.$bestvalue["outstanding"].'</td>';
+    //майбутнє (план)
+    for($i=0; $i<9; $i++){
+        if($i == 0)
+            $table.='<td  style="text-align: center; width: '.($conf->browser->name=='firefox'?(31):(32)).'px"><a href="/dolibarr/htdocs/hourly_plan.php?idmenu=10420&mainmenu=hourly_plan&leftmenu=&date='.date("Y-m-d").'">'.$bestvalue['future_today'].'</a></td>';
+        elseif($i == 8)
+            $table.='<td style="text-align: center; width: '.($conf->browser->name=='firefox'?(33):(34)).'px">'.$bestvalue['future_month'].'</td>';
+        else {
+            $table .= '<td style="text-align: center; width: ' . ($conf->browser->name == 'firefox' ? (30) : (31)) . 'px"><a href="/dolibarr/htdocs/hourly_plan.php?idmenu=10420&mainmenu=hourly_plan&leftmenu=&date='.date("Y-m-d", (time()+3600*24*$i)).'">' . $bestvalue['future_day_pl' . $i] . '</a></td>';
+        }
+    }
+    $table.='</tr>';
+    unset($bestvalue);
+
+    $sql = 'select rowid from `responsibility` where alias = "dir_depatment" and active = 1';
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $responding = array();
+    while($obj = $db->fetch_object($res)){
+        $responding[] = $obj->rowid;
+    }
+    $bestvalue = array();
+    $bestuser_id = GetBestUserID($Code, implode(',', $responding));
+    if($bestuser_id) {
+        $bestvalue = CalcOutStandingActions($Code, $bestvalue, $bestuser_id);
+        $bestvalue = CalcFutureActions($Code, $bestvalue, $bestuser_id);
+        $bestvalue = CalcFaktActions($Code, $bestvalue, $bestuser_id);
+        $bestvalue = CalcPercentExecActions($Code, $bestvalue, $bestuser_id);
+    }
+
+    $sql = 'select name from subdivision, llx_user
+        where llx_user.rowid = '.(empty($bestuser_id)?0:$bestuser_id).
+    ' and llx_user.subdiv_id = subdivision.rowid';
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $obj = $db->fetch_object($res);
+    $subdivision = $obj->name;
+
+//    die(DOL_DOCUMENT_ROOT);
+    $table.='<tr class="bestvalue"><td class="middle_size" style="width:106px">Директор департаменту</td><td class="middle_size" style="width:144px">Всього по найкращому</td>';
+    $table.='<td style="width: '.($conf->browser->name=='firefox'?(30):(31)).'px; text-align:center;"></td>';
+    //% виконання запланованого по факту
+    for($i=8; $i>=0; $i--){
+        if($i == 8)
+            $table.='<td style="width: '.($conf->browser->name=='firefox'?(33):(34)).'px; text-align:center;">'.$bestvalue['percent_month'].'</td>';
+        elseif($i == 0)
+            $table.='<td style="width: '.($conf->browser->name=='firefox'?(31):(32)).'px; text-align:center;">'.$bestvalue['percent_'.$i].'</td>';
+        else
+             $table.='<td style="width: '.($conf->browser->name=='firefox'?(30):(31)).'px; text-align:center;">'.$bestvalue['percent_'.$i].'</td>';
+    }
+    //минуле (факт)
+    for($i=8; $i>=0; $i--){
+        if($i == 0)
+            $table.='<td style="width: '.($conf->browser->name=='firefox'?(31):(32)).'px; text-align:center;">'.$bestvalue['fakt_today'].'</td>';
+        elseif($i == 8)
+            $table.='<td style="width: '.($conf->browser->name=='firefox'?(33):(34)).'px; text-align:center;">'.$bestvalue['fakt_month'].'</td>';
+        else
+            $table.='<td style="width: '.($conf->browser->name=='firefox'?(30):(30)).'px; text-align:center;">' . $bestvalue['fakt_day_m' . $i] . '</td>';
+    }
+    $table.='<td style="text-align: center; width: '.($conf->browser->name=='firefox'?(51):(51)).'px">'.$bestvalue["outstanding"].'</td>';
+    //майбутнє (план)
+    for($i=0; $i<9; $i++){
+        if($i == 0)
+            $table.='<td  style="text-align: center; width: '.($conf->browser->name=='firefox'?(31):(32)).'px"><a href="/dolibarr/htdocs/hourly_plan.php?idmenu=10420&mainmenu=hourly_plan&leftmenu=&date='.date("Y-m-d").'">'.$bestvalue['future_today'].'</a></td>';
+        elseif($i == 8)
+            $table.='<td style="text-align: center; width: '.($conf->browser->name=='firefox'?(33):(34)).'px">'.$bestvalue['future_month'].'</td>';
+        else {
+            $table .= '<td style="text-align: center; width: ' . ($conf->browser->name == 'firefox' ? (30) : (31)) . 'px"><a href="/dolibarr/htdocs/hourly_plan.php?idmenu=10420&mainmenu=hourly_plan&leftmenu=&date='.date("Y-m-d", (time()+3600*24*$i)).'">' . $bestvalue['future_day_pl' . $i] . '</a></td>';
+        }
+    }
+    $table.='</tr>';
+
+    unset($responding);
+    unset($bestvalue);
+
+    $sql = 'select rowid from `responsibility` where alias = "sale" and active = 1';
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $responding = array();
+    while($obj = $db->fetch_object($res)){
+        $responding[] = $obj->rowid;
+    }
+
+    $bestvalue = array();
+    $bestuser_id = GetBestUserID($Code, implode(',', $responding), '-1,0');
+    if($bestuser_id) {
+        $bestvalue = CalcOutStandingActions($Code, $bestvalue, $bestuser_id);
+        $bestvalue = CalcFutureActions($Code, $bestvalue, $bestuser_id);
+        $bestvalue = CalcFaktActions($Code, $bestvalue, $bestuser_id);
+        $bestvalue = CalcPercentExecActions($Code, $bestvalue, $bestuser_id);
+    }
+
+    $sql = 'select name from subdivision, llx_user
+        where llx_user.rowid = '.(empty($bestuser_id)?0:$bestuser_id).
+    ' and llx_user.subdiv_id = subdivision.rowid';
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $obj = $db->fetch_object($res);
+    $subdivision = $obj->name;
+
+//    die(DOL_DOCUMENT_ROOT);
+    $table.='<tr class="bestvalue"><td class="middle_size" style="width:106px">Департамент '.$subdivision.'</td><td class="middle_size" style="width:144px">Всього по найкращому співробітнику</td>';
     $table.='<td style="width: '.($conf->browser->name=='firefox'?(30):(31)).'px; text-align:center;"></td>';
     //% виконання запланованого по факту
     for($i=8; $i>=0; $i--){
@@ -479,54 +626,7 @@ function ShowTable(){
     $userlist = $db->query($sql);
     if(!$userlist)
         dol_print_error($db);
-//    $nom = 0;
-//    while($obj = $db->fetch_object($userlist)){
-//        $class=(fmod($nom++,2)==0?"impair":"pair");
-//        $table.='<tr id = "'.$obj->rowid.'" class="'.$class.'">
-//            <td class="middle_size" style="width:106px">'.$obj->name.'</td>
-//            <td class="middle_size" style="width:146px">Всього задач</td>';
-//            $table.='<td style="width: '.($conf->browser->name=='firefox'?(30):(31)).'px; text-align:center;"></td>';
-//            $totaltask = array();
-//            $totaltask = CalcOutStandingActions($Code, $totaltask, 0, '', $obj->rowid);
-//            $totaltask = CalcFutureActions($Code, $totaltask, 0, '', $obj->rowid);
-//            $totaltask = CalcFaktActions($Code, $totaltask, 0, '', $obj->rowid);
-//            $totaltask = CalcPercentExecActions($Code, $totaltask, 0, '', $obj->rowid);
-////            echo '<pre>';
-////            var_dump($totaltask);
-////            echo '</pre>';
-////            die($Code);
-//            //% виконання запланованого по факту
-//
-//            for($i=8; $i>=0; $i--){
-//                if($i == 8)
-//                    $table.='<td style="width: '.($conf->browser->name=='firefox'?(32):(33)).'px; text-align:center;">'.$totaltask['percent_month'].'</td>';
-//                else
-//                    $table.='<td style="width: '.($conf->browser->name=='firefox'?(31):(31)).'px; text-align:center;">'.$totaltask['percent_'.$i].'</td>';
-//            }
-//            //минуле (факт)
-//            for($i=8; $i>=0; $i--){
-//                if($i == 0)
-//                    $table.='<td style="width: '.($conf->browser->name=='firefox'?(34):(35)).'px; text-align:center;">'.$totaltask['fakt_day_m'.$i].'</td>';
-//                elseif($i == 8)
-//                    $table.='<td style="width: '.($conf->browser->name=='firefox'?(32):(33)).'px; text-align:center;">'.$totaltask['fakt_month'].'</td>';
-//                else
-//                    $table.='<td style="width: '.($conf->browser->name=='firefox'?(31):(31)).'px; text-align:center;">' . $totaltask['fakt_day_m'.$i] . '</td>';
-//            }
-////            //Прострочено сьогодні
-//            $table.='<td style="text-align: center; width: '.($conf->browser->name=='firefox'?(51):(51)).'px"> '.$totaltask['outstanding'].'</td>';
-//            //майбутнє (план)
-//            for($i=0; $i<9; $i++){
-//                if($i == 0)
-//                    $table.='<td  style="text-align: center; width: '.($conf->browser->name=='firefox'?(32):(33)).'px">'.$totaltask['future_today'].'</td>';
-//                elseif($i == 8)
-//                    $table.='<td style="text-align: center; width: '.($conf->browser->name=='firefox'?(32):(34)).'px">'.$totaltask['future_month'].'</td>';
-//                else {
-//                    $table .= '<td style="text-align: center; width: ' . ($conf->browser->name == 'firefox' ? (31) : (31)) . 'px">' . $totaltask[ 'future_day_pl' . $i] . '</a></td>';
-//                }
-//            }
-//            unset($totaltask);
-//        $table.='</tr>';
-//    }
+
     //Всього глобальних задач
     $Code = "'AC_GLOBAL'";
     $totaltask = array();
@@ -739,161 +839,6 @@ function ShowTable(){
     $table.='</tr>';
 
 
-//    //Компанія всі директори глобальні
-//    $Code = "'AC_GLOBAL'";
-//    $totaltask = array();
-//    $totaltask = CalcOutStandingActions($Code, $totaltask, 0, 10);
-//    $totaltask = CalcFutureActions($Code, $totaltask, 0, 10);
-//    $totaltask = CalcFaktActions($Code, $totaltask, 0, 10);
-//    $totaltask = CalcPercentExecActions($Code, $totaltask, 0, 10);
-//
-////    echo '<pre>';
-////    var_dump($totaltask);
-////    echo '</pre>';
-////    die();
-//
-//    $class=(fmod($nom++,2)==0?"impair":"pair");
-//    $table.='<tr class="'.$class.'"><td class="middle_size" style="width:106px">Компанія всі директори</td><td class="middle_size" style="width:144px">Всього глобальних задач</td>';
-//    $table.='<td style="width: '.($conf->browser->name=='firefox'?(30):(31)).'px; text-align:center;"></td>';
-////% виконання запланованого по факту
-//    for($i=8; $i>=0; $i--){
-//        if($i == 8)
-//            $table.='<td style="width: '.($conf->browser->name=='firefox'?(33):(34)).'px; text-align:center;">'.$totaltask['percent_month'].'</td>';
-//        elseif($i == 0)
-//            $table.='<td style="width: '.($conf->browser->name=='firefox'?(31):(32)).'px; text-align:center;">'.$totaltask['percent_'.$i].'</td>';
-//        else
-//             $table.='<td style="width: '.($conf->browser->name=='firefox'?(30):(31)).'px; text-align:center;">'.$totaltask['percent_'.$i].'</td>';
-//    }
-//    //минуле (факт)
-//    for($i=8; $i>=0; $i--){
-//        if($i == 0)
-//            $table.='<td style="width: '.($conf->browser->name=='firefox'?(31):(32)).'px; text-align:center;">'.$totaltask['fakt_today'].'</td>';
-//        elseif($i == 8)
-//            $table.='<td style="width: '.($conf->browser->name=='firefox'?(33):(34)).'px; text-align:center;">'.$totaltask['fakt_month'].'</td>';
-//        else
-//            $table.='<td style="width: '.($conf->browser->name=='firefox'?(30):(30)).'px; text-align:center;">' . $totaltask['fakt_day_m' . $i] . '</td>';
-//    }
-//    $table.='<td style="text-align: center; width: '.($conf->browser->name=='firefox'?(51):(51)).'px">'.$totaltask["outstanding"].'</td>';
-//    //майбутнє (план)
-//    for($i=0; $i<9; $i++){
-//        if($i == 0)
-//            $table.='<td  style="text-align: center; width: '.($conf->browser->name=='firefox'?(31):(32)).'px">'.$totaltask['future_today'].'</td>';
-//        elseif($i == 8)
-//            $table.='<td style="text-align: center; width: '.($conf->browser->name=='firefox'?(33):(34)).'px">'.$totaltask['future_month'].'</td>';
-//        else {
-//            $table .= '<td style="text-align: center; width: ' . ($conf->browser->name == 'firefox' ? (30) : (31)) . 'px">' . $totaltask['future_day_pl' . $i] . '</td>';
-//        }
-//    }
-//    unset($totaltask);
-//    $table.='</tr>';
-//
-//    //Компанія всі директори поточні
-//    $Code = "'AC_CURRENT'";
-//    $totaltask = array();
-//    $totaltask = CalcOutStandingActions($Code, $totaltask, 0, 10);
-//    $totaltask = CalcFutureActions($Code, $totaltask, 0, 10);
-//    $totaltask = CalcFaktActions($Code, $totaltask, 0, 10);
-//    $totaltask = CalcPercentExecActions($Code, $totaltask, 0, 10);
-//
-////    echo '<pre>';
-////    var_dump($totaltask);
-////    echo '</pre>';
-////    die();
-//
-//    $class=(fmod($nom++,2)==0?"impair":"pair");
-//    $table.='<tr class="'.$class.'"><td class="middle_size" style="width:106px">Компанія всі директори</td><td class="middle_size" style="width:144px">Всього поточних задач</td>';
-//    $table.='<td style="width: '.($conf->browser->name=='firefox'?(30):(31)).'px; text-align:center;"></td>';
-////% виконання запланованого по факту
-//    for($i=8; $i>=0; $i--){
-//        if($i == 8)
-//            $table.='<td style="width: '.($conf->browser->name=='firefox'?(33):(34)).'px; text-align:center;">'.$totaltask['percent_month'].'</td>';
-//        elseif($i == 0)
-//            $table.='<td style="width: '.($conf->browser->name=='firefox'?(31):(32)).'px; text-align:center;">'.$totaltask['percent_'.$i].'</td>';
-//        else
-//             $table.='<td style="width: '.($conf->browser->name=='firefox'?(30):(31)).'px; text-align:center;">'.$totaltask['percent_'.$i].'</td>';
-//    }
-//    //минуле (факт)
-//    for($i=8; $i>=0; $i--){
-//        if($i == 0)
-//            $table.='<td style="width: '.($conf->browser->name=='firefox'?(31):(32)).'px; text-align:center;">'.$totaltask['fakt_today'].'</td>';
-//        elseif($i == 8)
-//            $table.='<td style="width: '.($conf->browser->name=='firefox'?(33):(34)).'px; text-align:center;">'.$totaltask['fakt_month'].'</td>';
-//        else
-//            $table.='<td style="width: '.($conf->browser->name=='firefox'?(30):(30)).'px; text-align:center;">' . $totaltask['fakt_day_m' . $i] . '</td>';
-//    }
-//    $table.='<td style="text-align: center; width: '.($conf->browser->name=='firefox'?(51):(51)).'px">'.$totaltask["outstanding"].'</td>';
-//    //майбутнє (план)
-//    for($i=0; $i<9; $i++){
-//        if($i == 0)
-//            $table.='<td  style="text-align: center; width: '.($conf->browser->name=='firefox'?(31):(32)).'px">'.$totaltask['future_today'].'</td>';
-//        elseif($i == 8)
-//            $table.='<td style="text-align: center; width: '.($conf->browser->name=='firefox'?(33):(34)).'px">'.$totaltask['future_month'].'</td>';
-//        else {
-//            $table .= '<td style="text-align: center; width: ' . ($conf->browser->name == 'firefox' ? (30) : (31)) . 'px">' . $totaltask['future_day_pl' . $i] . '</td>';
-//        }
-//    }
-//    unset($totaltask);
-//    $table.='</tr>';
-//
-////Підрахунок по направленнях
-//    $sql = "select `code` from llx_c_actioncomm
-//    where type in ('system','user')
-//    and code not in ('AC_GLOBAL', 'AC_CURRENT')";
-//    $res = $db->query($sql);
-//    if(!$res)
-//        dol_print_error($db);
-//    $Code='';
-//    while($obj = $db->fetch_object($res)){
-//        if(empty($Code))
-//            $Code = "'".$obj->code."'";
-//        else
-//            $Code .= ",'".$obj->code."'";
-//    }
-//   $totaltask = array();
-//    $totaltask = CalcOutStandingActions($Code, $totaltask, 0, 10);
-//    $totaltask = CalcFutureActions($Code, $totaltask, 0, 10);
-//    $totaltask = CalcFaktActions($Code, $totaltask, 0, 10);
-//    $totaltask = CalcPercentExecActions($Code, $totaltask, 0, 10);
-//
-////    echo '<pre>';
-////    var_dump($totaltask);
-////    echo '</pre>';
-////    die();
-//
-//    $class=(fmod($nom++,2)==0?"impair":"pair");
-//    $table.='<tr class="'.$class.'"><td class="middle_size" style="width:106px">Компанія всі директори</td><td class="middle_size" style="width:144px">Всього задач по направленнях</td>';
-//    $table.='<td style="width: '.($conf->browser->name=='firefox'?(30):(31)).'px; text-align:center;"></td>';
-////% виконання запланованого по факту
-//    for($i=8; $i>=0; $i--){
-//        if($i == 8)
-//            $table.='<td style="width: '.($conf->browser->name=='firefox'?(33):(34)).'px; text-align:center;">'.$totaltask['percent_month'].'</td>';
-//        elseif($i == 0)
-//            $table.='<td style="width: '.($conf->browser->name=='firefox'?(31):(32)).'px; text-align:center;">'.$totaltask['percent_'.$i].'</td>';
-//        else
-//             $table.='<td style="width: '.($conf->browser->name=='firefox'?(30):(31)).'px; text-align:center;">'.$totaltask['percent_'.$i].'</td>';
-//    }
-//    //минуле (факт)
-//    for($i=8; $i>=0; $i--){
-//        if($i == 0)
-//            $table.='<td style="width: '.($conf->browser->name=='firefox'?(31):(32)).'px; text-align:center;">'.$totaltask['fakt_today'].'</td>';
-//        elseif($i == 8)
-//            $table.='<td style="width: '.($conf->browser->name=='firefox'?(33):(34)).'px; text-align:center;">'.$totaltask['fakt_month'].'</td>';
-//        else
-//            $table.='<td style="width: '.($conf->browser->name=='firefox'?(30):(30)).'px; text-align:center;">' . $totaltask['fakt_day_m' . $i] . '</td>';
-//    }
-//    $table.='<td style="text-align: center; width: '.($conf->browser->name=='firefox'?(51):(51)).'px">'.$totaltask["outstanding"].'</td>';
-//    //майбутнє (план)
-//    for($i=0; $i<9; $i++){
-//        if($i == 0)
-//            $table.='<td  style="text-align: center; width: '.($conf->browser->name=='firefox'?(31):(32)).'px">'.$totaltask['future_today'].'</td>';
-//        elseif($i == 8)
-//            $table.='<td style="text-align: center; width: '.($conf->browser->name=='firefox'?(33):(34)).'px">'.$totaltask['future_month'].'</td>';
-//        else {
-//            $table .= '<td style="text-align: center; width: ' . ($conf->browser->name == 'firefox' ? (30) : (31)) . 'px">' . $totaltask['future_day_pl' . $i] . '</td>';
-//        }
-//    }
-//    unset($totaltask);
-//    $table.='</tr>';
     $table .= '</tbody>';
     return $table;
 }

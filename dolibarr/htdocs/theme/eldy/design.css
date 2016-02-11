@@ -12,6 +12,55 @@
 #contactlist td{
     border: transparent!important;
 }
+.tabpriceactive{
+    background-color: white;
+}
+.activepage{
+    background-color:#e8e8e8;
+}
+.unactivepage{
+    background-color:#93a5aa;
+}
+.subcatalog{
+    color: #d10310!important;
+    margin-left: -25px!important;
+    font-size: 12px!important;
+}
+#groupproducts{
+    background-color: white;
+    width: 300px;
+    height: 600px;
+    overflow: hidden;
+    overflow-y: auto;
+    margin-top: -19px;
+}
+#groupproducts ul{
+    font-weight: bold;
+    margin-left: -35px ;
+    color: #8d2f2b;
+    font-size: 14px;
+
+}
+#groupproducts li, #groupproducts a:link, #groupproducts a:visited, #groupproducts a:hover, #groupproducts a:active {
+    list-style: outside none none;
+    margin-left: 15px ;
+}
+#groupproducts_title{
+    background-color: white;
+    text-align: center;
+    width: 300px;
+    /*float: left;*/
+}
+.selected, .selected a {
+    background-color: #00adee;
+    color: #ffffff!important;
+}
+#groupproducts_title p{
+    border-bottom: 1px solid #e9eaea;
+    color: #d10310;
+    font: 18px "MyriadProLight";
+    /*padding-bottom: 12px;*/
+}
 .whitetitle{
     background-color: white!important;
     color: #000000!important;
@@ -268,13 +317,17 @@ body {
     text-align: center;
 }
 div.header_table, tr.header_table, th.header_table, tr.header_table_sel, form.header_table, form.header_table_sel, table.dataTable thead tr {
-    background: rgb(218, 150, 148) -moz-linear-gradient(center bottom , rgba(0, 0, 0, 0.3) 0%, rgba(250, 250, 250, 0.3) 100%) repeat-x scroll 0 0;
+    /*background: rgb(218, 150, 148) -moz-linear-gradient(center bottom , rgba(0, 0, 0, 0.3) 0%, rgba(250, 250, 250, 0.3) 100%) repeat-x scroll 0 0;*/
+    background: #da9694;
     border-bottom: 1px solid #fdffff;
     color: #fff;
     font-family: arial,tahoma,verdana,helvetica;
     font-size: 14px;
     font-weight: bold;
     text-align: left;
+}
+div.mainmenu.orders {
+    background-image: url("/dolibarr/htdocs/theme/eldy/img/menus/agenda.png");
 }
 tr.header_table th, th.header_table, tr.header_table td, td.header_table, form.header_table div, div.header_table {
     border-bottom: 1px solid #bbb;

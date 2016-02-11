@@ -44,7 +44,7 @@ if($action =='cancel') {
 
     include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/addcontact.html');
     echo ob_get_clean();
-    llxFooter();
+//    llxFooter();
     exit;
 }elseif(GETPOST('action', 'alpha') == 'save'){
 //    echo '<pre>';
@@ -126,7 +126,7 @@ if(GETPOST('action', 'alpha') == 'add' ||$action == 'error') {
 
     include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/addcontact.html');
     echo ob_get_clean();
-    llxFooter();
+//    llxFooter();
 }
 
 

@@ -17,6 +17,87 @@ function setTime(link){
         }
     })
 }
+function GotoRequiredPage(pagename){
+    //if(pagename.length == 0)
+        return;
+    //$.cookie('required_pages');
+    var pages = [];
+    $.ajax({
+        url: '/dolibarr/htdocs/index.php?action=requeredpages',
+        cache:false,
+        success: function(html){
+            pages = html.split(',');
+        }
+    })
+    //alert($.cookie('required_pages'));
+
+
+    if($.cookie('required_pages') == null) {
+        console.log("Добавить");
+        var insert = false;
+        if(pagename == 'home')
+            insert = true;
+        if(insert)
+        pages.push('home');
+        if(pagename == 'calculator')
+            insert = true;
+        if(insert)
+            pages.push('calculator');
+        if(pagename == 'plan_of_days')
+            insert = true;
+        if(insert)
+            pages.push('plan_of_days');
+        if(pagename == 'hourly_plan')
+            insert = true;
+        if(insert)
+            pages.push('hourly_plan');
+        if(pagename == 'global_task')
+            insert = true;
+        if(insert)
+            pages.push('global_task');
+        if(pagename == 'current_task')
+            insert = true;
+        if(insert)
+            pages.push('current_task');
+        $.cookie('required_pages', pages);
+    }
+    var pages = $.cookie('required_pages').split(',');
+    console.log($.cookie('required_pages'));
+    var firstpage = pages[0];
+    pages.splice(0,1);
+    $.cookie('required_pages', pages);
+    if(firstpage != pagename){
+        console.log(firstpage);
+        switch(firstpage){
+            case 'home':{
+                location.href = 'http://'+location.hostname+'/index.php?mainmenu=home&leftmenu=&idmenu=5216&mainmenu=home&leftmenu=&redirect=1';
+            }break;
+            case 'calculator':{
+                location.href = 'http://'+location.hostname+'/dolibarr/htdocs/calculator/index.php?idmenu=10418&mainmenu=calculator&leftmenu=&redirect=1';
+            }break;
+            case 'plan_of_days':{
+                location.href = 'http://'+location.hostname+'/dolibarr/htdocs/day_plan.php?idmenu=10419&mainmenu=plan_of_days&leftmenu=&redirect=1';
+            }break;
+            case 'hourly_plan':{
+                location.href = 'http://'+location.hostname+'/dolibarr/htdocs/hourly_plan.php?idmenu=10420&mainmenu=hourly_plan&leftmenu=&redirect=1'
+            }break;
+            case 'global_task':{
+                location.href = 'http://'+location.hostname+'/dolibarr/htdocs/global_plan.php?idmenu=10421&mainmenu=global_task&leftmenu=&redirect=1';
+            }break;
+            case 'current_task':{
+                location.href = 'http://'+location.hostname+'/dolibarr/htdocs/current_plan.php?idmenu=10423&mainmenu=current_task&leftmenu=&redirect=1';
+            }break;
+        }
+    }
+
+    console.log($.cookie('required_pages'));
+}
+function getCookie(name) {
+  var matches = document.cookie.match(new RegExp(
+    "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+  ));
+  return matches ? decodeURIComponent(matches[1]) : undefined;
+}
 function save_item(tablename, paramfield, sendtable){
     if(confirm('Зберегти данні?')){
         var sID = document.getElementById('edit_rowid').value;

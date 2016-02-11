@@ -1,0 +1,88 @@
+
+<div class="tabPage" style="width: 1530px">
+    <div style=" width:100%; height:1px; clear:both;">.</div>
+     <div style="float: left">
+         <div id="groupproducts_title">
+             <p>Каталог продукції</p>
+         </div>
+         <div id="groupproducts" >
+             <?=$Categories?>
+         </div>
+     </div>
+     <input type="hidden" id="numpage" value="<?=$page?>">
+     <div style="float: left; min-height: 150px;  margin-left: 15px; align-content: inherit">
+         <div class="tabs" data-type="horizontal" data-role="controlgroup">
+             <div class="inline-block tabsElem tabsElemActive">
+                 <a id="first" class=" tab inline-block" href="<?=$_SERVER['PHP_SELF']?>?mainmenu=<?=$_REQUEST['mainmenu']?>&id_cat=<?=$id_cat?>&page=1#cat<?=$id_cat?>" data-role="button">Техніка</a>
+             </div>
+             <div class="inline-block tabsElem">
+                 <a id="second" class="tab inline-block" href="<?=$_SERVER['PHP_SELF']?>?mainmenu=<?=$_REQUEST['mainmenu']?>&id_cat=<?=$id_cat?>&page=2#cat<?=$id_cat?>" data-role="button">Запчастини</a>
+             </div>
+             <div class="inline-block tabsElem">
+                 <a id="thirth" class="tab inline-block" href="<?=$_SERVER['PHP_SELF']?>?mainmenu=<?=$_REQUEST['mainmenu']?>&id_cat=<?=$id_cat?>&page=3#cat<?=$id_cat?>" data-role="button">Робочі органи</a>
+             </div>
+         </div>
+         <table class="WidthScroll" cellspacing="1">
+             <thead>
+                <tr class="multiple_header_table">
+                    <th style="width: 100px" class="middle_size">
+                        Виробник
+                    </th>
+                    <th style="width: 200px" class="middle_size">
+                        Найменування
+                    </th>
+                    <th style="width: 80px" class="middle_size">
+                        Ціна
+                    </th>
+                    <th style="width: 60px" class="middle_size">
+                        Валюта
+                    </th>
+                    <th style="width: 60px" class="middle_size">
+                        Тип ціни
+                    </th>
+                    <th style="width: 60px" class="middle_size">
+                        Актуальн.
+                    </th>
+                    <th style="width: 60px" class="middle_size">
+                        Дата оновл.
+                    </th>
+                    <th style="width: 80px" class="middle_size">
+                       Постач. по техніці
+                    </th>
+                    <th style="width: 80px" class="middle_size">
+                       Постач. по запчаст.
+                    </th>
+                    <th style="width: 50px" class="middle_size">
+                       Наявн. на складі
+                    </th>
+                    <th style="width: 50px" class="middle_size">
+                       Наявн. у постач.
+                    </th>
+                </tr>
+             </thead>
+             <tbody id="products">
+             <?= $Products?>
+             </tbody>
+         </table>
+     </div>
+    <div style=" width:100%; height:1px; clear:both;">.</div>
+
+ </div>
+ <script>
+     $(document).ready(function(){
+        $('#products').attr('height', window.innerHeight - 320);
+        $('#products').width(930);
+        switch($('#numpage').val()){
+            case '1':{
+                $('#first').addClass("tabpriceactive");
+            }break;
+            case '2':{
+                $('#second').addClass('tabpriceactive');
+            }break;
+            case '3':{
+                $('#thirth').addClass('tabpriceactive');
+            }break;
+        }
+     })
+
+ </script>

@@ -1,4 +1,5 @@
 <?php
+
 require '../main.inc.php';
 
 if($_GET['action'] == 'set'){

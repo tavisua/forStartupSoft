@@ -114,6 +114,7 @@ class User extends CommonObject
 	var $salary;					// Monthly salary
 	var $salaryextra;				// Monthly salary extra
 	var $weeklyhours;				// Weekly hours
+	var $required_pages;			//обов'язкові до перегляду сторінки
 
 	var $color;						// Define background color for user in agenda
 
@@ -138,6 +139,7 @@ class User extends CommonObject
 		$this->rights->user			= new stdClass();
 		$this->rights->user->user	= new stdClass();
 		$this->rights->user->self	= new stdClass();
+
 	}
 
 	/**

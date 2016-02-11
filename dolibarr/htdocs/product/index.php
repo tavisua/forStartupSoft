@@ -42,6 +42,7 @@ $langs->load("products");
 $product_static = new Product($db);
 
 
+
 /*
  * View
  */
@@ -68,9 +69,15 @@ llxHeader("",$langs->trans("ProductsAndServices"),$helpurl);
 
 print_fiche_titre($transAreaType);
 
-
-
-
+//$Categories = $product_static->ShowCategories();
+//$id_cat = $_REQUEST['id_cat'];
+//if(empty($id_cat))
+//    $id_cat = $product_static->ShowCategories(true);
+//$Products = $product_static->ShowProducts($id_cat);
+//ob_start();
+//include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/pricelist.html');
+//echo ob_get_clean();
+$product_static->ShowPriceList($_REQUEST['page']);
 
 exit();
 

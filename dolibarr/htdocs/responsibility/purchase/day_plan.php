@@ -115,8 +115,11 @@ function GetBestUserID(){
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
-    $obj = $db->fetch_object($res);
-    return $obj->id_usr;
+    if($db->num_rows($res)>0) {
+        $obj = $db->fetch_object($res);
+        return $obj->id_usr;
+    }else
+        return 0;
 
 }
 function CalcPercentExecActions($actioncode, $array, $id_usr){

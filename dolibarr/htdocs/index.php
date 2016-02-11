@@ -24,9 +24,24 @@
  */
 
 define('NOCSRFCHECK',1);	// This is login page. We must be able to go on it from another web site.
-
+//if(!isset($_COOKIE['required_pages']))
+//    $_COOKIE['required_pages'] = 1;
+//    $_COOKIE['required_pages'] = array('home','calculator','plan_of_days','hourly_plan','global_task','current_task');
 require 'main.inc.php';
+if($_GET['action']=='requeredpages'){
+    global $db;
+    $sql = 'select pages from llx_requestpages where id_usr='.$user->id.' and dtChange>"'.date('Y-m-d').'"';
+    $res = $db->query($sql);
+    if($res)
+        dol_print_error($db);
+
+exit();
+}
+
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
+
+
+
 
 // If not defined, we select menu "home"
 $_GET['mainmenu']=GETPOST('mainmenu', 'alpha')?GETPOST('mainmenu', 'alpha'):'home';

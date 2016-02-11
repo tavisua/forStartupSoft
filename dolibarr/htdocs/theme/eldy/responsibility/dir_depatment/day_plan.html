@@ -159,26 +159,28 @@
         </tr>
     </table>
 </div>
-            <script>
-                $(document).ready(function(){
-                    $('#reference_body').attr('height', window.innerHeight - 370);
-                    $('#reference_body').width($('#reference_body').width()+15);
-                    $('#popupmenu').offset({top:550, left:-250});
-                    $('#global_future_day+4')
-                })
-                function ShowTask(object){
+<script>
+    $(document).ready(function(){
+        $('#reference_body').attr('height', window.innerHeight - 370);
+        $('#reference_body').width($('#reference_body').width()+15);
+        $('#popupmenu').offset({top:550, left:-250});
+        var Width = $(".WidthScroll").width();
+        var Top = $(".WidthScroll").height();
+        $("#sent_task").offset({top:Top+180, left:-Width+5});
+    })
+    function ShowTask(object){
 //                    if(object.text()==1){
 //
 //                    }else {
-                        $("#popupmenu").show();
-                        $("#popupmenu").offset({
-                            top: object.offset().top - 50,
-                            left: object.offset().left - $('#reference_body').width()
-                        });
+            $("#popupmenu").show();
+            $("#popupmenu").offset({
+                top: object.offset().top - 50,
+                left: object.offset().left - $('#reference_body').width()
+            });
 //                    }
 //                    console.log(object.text());
-                }
-                function setdate(){
-                    $("#popupmenu").hide();
-                }
-            </script>
+    }
+    function setdate(){
+        $("#popupmenu").hide();
+    }
+</script>

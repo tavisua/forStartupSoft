@@ -20,6 +20,7 @@ $subdivision = $obj->name;
 
 $table = ShowTable();
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/dir_depatment/day_plan.html';
+
 //print '</br>';
 //print'<div style="float: left">test</div>';
 llxFooter();

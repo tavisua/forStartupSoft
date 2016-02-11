@@ -35,8 +35,46 @@
 
 // For optional tuning. Enabled if environment variable DOL_TUNING is defined.
 // A call first. Is the equivalent function dol_microtime_float not yet loaded..
-//var_dump($_SESSION["mainmenu"]);
+//echo '<pre>';
+//    var_dump($_COOKIE['required_pages']);
+//echo '</pre>';
 //die();
+//    if($_COOKIE['required_pages'][0] == $_REQUEST['mainmenu'] || $_COOKIE['required_pages'][0] == 'home' && empty($_REQUEST['mainmenu']) ) {
+//        unset($_COOKIE['required_pages'][0]);
+////        echo '<pre>';
+////        var_dump($user->required_pages);
+////        echo '</pre>';
+////        die();
+//    }else{
+////        die($user->required_pages[0]);
+//        switch($_COOKIE['required_pages'][0]){
+//            default:{
+//                $link = 'http://'.$_SERVER['SERVER_NAME'];
+//            }
+//            case 'calculator':{
+//                $link = '/dolibarr/htdocs/calculator/index.php?idmenu=10418&mainmenu=calculator&leftmenu=';
+//            }break;
+//            case 'plan_of_days':{
+//                $link = '/dolibarr/htdocs/day_plan.php?idmenu=10419&mainmenu=plan_of_days&leftmenu=';
+//            }break;
+//            case 'hourly_plan':{
+//                $link = '/dolibarr/htdocs/hourly_plan.php?idmenu=10420&mainmenu=hourly_plan&leftmenu=';
+//            }break;
+//            case 'global_task':{
+//                $link = '/dolibarr/htdocs/global_plan.php?idmenu=10421&mainmenu=global_task&leftmenu=';
+//            }break;
+//            case 'current_task':{
+//                $link = '/dolibarr/htdocs/current_plan.php?idmenu=10423&mainmenu=current_task&leftmenu=';
+//            }break;
+//        }
+////        die($link);
+//        unset($_COOKIE['required_pages'][0]);
+////        echo $link;
+////        session_abort();
+//        header("Location: ".$link);
+//        exit();
+//    }
+
 
 $micro_start_time=0;
 if (! empty($_SERVER['DOL_TUNING']))
@@ -913,10 +951,28 @@ if (! function_exists("llxHeader"))
      */
 	function llxHeader($head = '', $title='', $help_url='', $target='', $disablejs=0, $disablehead=0, $arrayofjs='', $arrayofcss='', $morequerystring='')
 	{
-	    global $conf;
+	    global $conf, $user, $langs;
 	    // html header
 		top_htmlhead($head, $title, $disablejs, $disablehead, $arrayofjs, $arrayofcss);
-
+        $loginphone_form = "<a href='#x' class='overlay' id='login_phone'></a>
+                     <div class='popup' id='login_phoneform' style='width: 300px;display: none'>
+                     <form >
+                     <input type='hidden' id='user_id' name='user_id' value=" . $user->id . ">
+                     <b>".$langs->trans('RegisterPhone')."</b>
+                     <input class='param' type='text' placeholder='Телефон' id='registerphone' maxlength='13' tabindex='1' value='+380' name='registerphone' data-name='phone'>
+                    </form>
+                    <button onclick='save_registeredphone();'>".$langs->trans('Register')."</button>
+                    <button onclick='close_registerform();'>".$langs->trans('Cancel')."</button>
+                        <a class='close' title='Закрыть' href='#close'></a>
+                     </div>
+                     <script>
+                        function registerphone(){
+                            $('input#registerphone').val('+380');
+                            location.href = '#login_phone';
+                            $('#login_phoneform').show();
+                        }
+                    </script>";
+        print $loginphone_form;
 		// top menu and left menu area
 		if (empty($conf->dol_hide_topmenu))
 		{
@@ -967,10 +1023,7 @@ function top_httphead()
 function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs='', $arrayofcss='')
 {
     global $user, $conf, $langs, $db;
-//    echo '<pre>';
-//    var_dump($_SESSION);
-//    echo '</pre>';
-//    die();
+
     top_httphead();
 
     if (empty($conf->css)) $conf->css = '/theme/eldy/style.css.php';	// If not defined, eldy by default
@@ -1018,7 +1071,7 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
             if (!empty($conf->global->MAIN_USE_JQUERY_THEME)) $jquerytheme = $conf->global->MAIN_USE_JQUERY_THEME;
             //Если открывается панель инструментов, подключаю стили форм
 
-            if($_REQUEST['mainmenu'] == 'hourly_plan' || $_REQUEST['mainmenu'] == 'tools' || $_REQUEST['mainmenu'] == 'calculator' || $_REQUEST['mainmenu'] == "current_task" || $_REQUEST['mainmenu']=='plan_of_days' || $_REQUEST['mainmenu']=='hourly_plan' || $_REQUEST['mainmenu']== 'global_task'|| $_REQUEST['mainmenu']=='area' || $_REQUEST['mainmenu'] == 'home' || $_REQUEST['mainmenu']=='companies' || GETPOST('mainmenu')=='companies'){
+            if($_REQUEST['mainmenu'] == 'hourly_plan' || 'orders' == $_REQUEST['mainmenu'] || 'products' == $_REQUEST['mainmenu'] || $_REQUEST['mainmenu'] == 'tools' || $_REQUEST['mainmenu'] == 'calculator' || $_REQUEST['mainmenu'] == "current_task" || $_REQUEST['mainmenu']=='plan_of_days' || $_REQUEST['mainmenu']=='hourly_plan' || $_REQUEST['mainmenu']== 'global_task'|| $_REQUEST['mainmenu']=='area' || $_REQUEST['mainmenu'] == 'home' || $_REQUEST['mainmenu']=='companies' || GETPOST('mainmenu')=='companies'){
                 print '<link rel="stylesheet" type="text/css" href="'.DOL_URL_ROOT.'/theme/'.$conf->theme.'/design.css'.($ext?'?'.$ext:'').'"/>'."\n";          //Стиль для фор
                 print '<link rel="stylesheet" type="text/css" href="'.DOL_URL_ROOT.'/theme/'.$conf->theme.'/style-modal.css'.($ext?'?'.$ext:'').'"/>'."\n";     //Стиль модальной формы
 //                if($_REQUEST['mainmenu']=='area') {
@@ -1284,16 +1337,20 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
 
             // Add datepicker default options
             print '<script type="text/javascript" src="'.DOL_URL_ROOT.'/core/js/datepicker.js.php?lang='.$langs->defaultlang.($ext?'&amp;'.$ext:'').'"></script>'."\n";
-//            echo '<pre>';
-//            var_dump();
-//            echo '</pre>';
-//            die();
+
             if(strpos($_SERVER["SCRIPT_NAME"],'soc.php') || strpos($_SERVER["SCRIPT_NAME"],'address.php')|| strpos($_SERVER["SCRIPT_NAME"],'addcontact.php')){
                 print '<script type="text/javascript" src="/dolibarr/htdocs/societe/js/soc.js'.($ext?'?'.$ext:'').'"></script>'."\n";
             }elseif(strpos($_SERVER["SCRIPT_NAME"],'dict.php')){
                 print '<script type="text/javascript" src="/dolibarr/htdocs/admin/js/dict.js'.($ext?'?'.$ext:'').'"></script>'."\n";
             }else
                 print '<script type="text/javascript" src="/dolibarr/scripts/js/table_manager.js'.($ext?'?'.$ext:'').'"></script>'."\n";
+
+            //RequiredPage
+            if(!isset($_REQUEST['redirect']) && isset($_REQUEST['mainmenu'])){
+                print '<script type="text/javascript" src="/dolibarr/scripts/js/jquery.cookie.js"></script>
+	            <script type="text/javascript" src="/dolibarr/scripts/js/general.js"></script>';
+                print "<script>GotoRequiredPage('" . (isset($_REQUEST['redirect']) ? '' : trim($_REQUEST['mainmenu'])) . "')</script>";
+            }
 
             // JS forced by modules (relative url starting with /)
             if (! empty($conf->modules_parts['js']))		// $conf->modules_parts['js'] is array('module'=>array('file1','file2'))
@@ -1925,18 +1982,18 @@ if (! function_exists("llxFooter"))
     {
         global $conf, $langs, $user;
 
-        $loginphone_form = "<a href='#x' class='overlay' id='login_phone'></a>
-                     <div class='popup' style='width: 300px;display: none'>
-                     <form >
-                     <input type='hidden' id='user_id' name='user_id' value=" . $user->id . ">
-                     <b>".$langs->trans('RegisterPhone')."</b>
-                     <input class='param' type='text' placeholder='Телефон' id='registerphone' maxlength='13' tabindex='1' value='+380' name='registerphone' data-name='phone'>
-                    </form>
-                    <button onclick='save_registeredphone();'>".$langs->trans('Register')."</button>
-                    <button onclick='close_registerform();'>".$langs->trans('Cancel')."</button>
-                        <a class='close' title='Закрыть' href='#close'></a>
-                     </div>";
-        print $loginphone_form;
+//        $loginphone_form = "<a href='#x' class='overlay' id='login_phone'></a>
+//                     <div class='popup' style='width: 300px;display: none'>
+//                     <form >
+//                     <input type='hidden' id='user_id' name='user_id' value=" . $user->id . ">
+//                     <b>".$langs->trans('RegisterPhone')."</b>
+//                     <input class='param' type='text' placeholder='Телефон' id='registerphone' maxlength='13' tabindex='1' value='+380' name='registerphone' data-name='phone'>
+//                    </form>
+//                    <button onclick='save_registeredphone();'>".$langs->trans('Register')."</button>
+//                    <button onclick='close_registerform();'>".$langs->trans('Cancel')."</button>
+//                        <a class='close' title='Закрыть' href='#close'></a>
+//                     </div>";
+//        print $loginphone_form;
 
         // Global html output events ($mesgs, $errors, $warnings)
         dol_htmloutput_events();
@@ -1992,10 +2049,6 @@ if (! function_exists("llxFooter"))
         print '';
         print '</script>';
         print '<script type="text/javascript">
-                function registerphone(){
-                    $("input#registerphone").val("+380");
-                    location.href = "#login_phone";
-                }
                 function close_registerform(){
                     location.href ="#close";
                 }

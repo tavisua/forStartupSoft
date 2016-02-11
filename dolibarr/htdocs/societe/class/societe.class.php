@@ -396,6 +396,23 @@ class Societe extends CommonObject
      *    @param	User	$user       Object of user that ask creation
      *    @return   int         		>= 0 if OK, < 0 if KO
      */
+    function getStateRegion(){
+        if(empty($this->id))
+            return '';
+        global $db;
+        $sql = "select concat(states.`name`, ' обл./', regions.`name`,' р-н.') `name` from llx_societe
+            left join states on `states`.`rowid`=`llx_societe`.`state_id`
+            left join regions on `regions`.`rowid`=`llx_societe`.`region_id`
+            where llx_societe.rowid=".$this->id;
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+        if($db->num_rows($res)) {
+            $obj = $db->fetch_object($res);
+            return $obj->name;
+        }else
+            return '';
+    }
     function create($user='')
     {
         global $langs,$conf;

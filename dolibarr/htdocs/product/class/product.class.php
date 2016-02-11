@@ -219,6 +219,139 @@ class Product extends CommonObject
 	 *  @param	int		$notrigger		Disable triggers
 	 *	@return int			     		Id of product/service if OK, < 0 if KO
 	 */
+	function ShowPriceList($page=1){
+		empty($page)?$page=1:$page;
+		global $conf;
+		$Categories = $this->ShowCategories();
+		$id_cat = $_REQUEST['id_cat'];
+		if(empty($id_cat))
+			$id_cat = $this->ShowCategories(true);
+		$Products = $this->ShowProducts($id_cat);
+		ob_start();
+		include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/pricelist.html');
+		echo ob_get_clean();
+	}
+	function ShowProducts($id_cat){
+		global $db;
+		$sql = 'select `oc_product_to_category`.`product_id`, `oc_product_attribute`.`text`
+			from `oc_product_to_category`
+			inner join `oc_product_attribute` on `oc_product_attribute`.`product_id`=`oc_product_to_category`.`product_id`
+			where `oc_product_to_category`.category_id='.$id_cat.'
+			and `oc_product_attribute`.language_id=4
+			and `oc_product_attribute`.`attribute_id`=1';
+		$res = $db->query($sql);
+		if(!$res)
+			dol_print_error($db);
+		$Producer = array();
+		while($obj = $db->fetch_object($res)){
+			$Producer[$obj->product_id] = trim($obj->text);
+		}
+
+		$sql = 'select `oc_product_description`.`product_id`, `oc_product_description`.`name`, `oc_product`.price, `oc_product`.`date_added`,`oc_product`.`date_modified`
+			from `oc_product_to_category`
+			left join `oc_product_description` on `oc_product_description`.`product_id` = `oc_product_to_category`.`product_id`
+			inner join `oc_product` on `oc_product`.`product_id` = `oc_product_to_category`.`product_id`
+			where `oc_product_to_category`.category_id='.$id_cat.'
+			and `oc_product_description`.language_id=4
+			order by `oc_product_description`.`name`';
+		$res = $db->query($sql);
+		if(!$res)
+			dol_print_error($db);
+		$table='';
+		$nom = 0;
+//		var_dump($Producer);
+//		die();
+		while($obj = $db->fetch_object($res)){
+
+			$class=(fmod($nom++,2)==0?"impair":"pair");
+			$table .= '<tr id="tr'.$obj->product_id.'" class = "'.$class.' middle_size">';
+			if(isset($Producer[$obj->product_id])){
+				$table .= '<td style="width:101px">'.$Producer[$obj->product_id].'</td>';
+			}else
+				$table .= '<td style="width:101px"></td>';
+			$table .= '		<td style="width:201px">'.$obj->name.'</td>';
+			$table .= '		<td style="width:81px">'.round($obj->price, 1).'</td>';
+			$table .= '		<td style="width:61px">грн</td>';
+			$table .= '		<td style="width:61px">роздріб</td>';
+			$table .= '		<td style="width:61px">актуальна</td>';
+//			if($obj->product_id == 9970){
+//				var_dump($obj->date_added, $obj->date_modified);
+//			}
+			$date_modified = new DateTime($obj->date_modified == '0000-00-00 00:00:00'?$obj->date_added:$obj->date_modified);
+			$table .= '		<td style="width:61px">'.$date_modified->format('d.m.y').'</td>';
+			$table .= '		<td style="width:81px"></td>';
+			$table .= '		<td style="width:81px"></td>';
+			$table .= '		<td style="width:51px"></td>';
+			$table .= '		<td style="width:51px"></td>';
+			$table .= '	</tr>';
+		}
+		return $table;
+	}
+	function ShowCategories($showfirstcategory_id = false){
+		global $db, $langs;
+		$form = new Form($db);
+		$sql = "SELECT DISTINCT c.category_id, c.parent_id, cd2.name,  (SELECT  GROUP_CONCAT(cd1.name ORDER BY level SEPARATOR ' &gt; ')
+			FROM oc_category_path cp LEFT JOIN oc_category_description cd1 ON (cp.path_id = cd1.category_id AND cp.category_id != cp.path_id) WHERE cp.category_id = c.category_id AND cd1.language_id = 4 GROUP BY cp.category_id) AS path
+			FROM oc_category c
+			LEFT JOIN oc_category_description cd2 ON (c.category_id = cd2.category_id)
+			WHERE c.parent_id <> 0 AND cd2.language_id = 4
+			order by parent_id, c.sort_order, cd2.name";
+		$res = $db->query($sql);
+		if(!$res)
+			dol_print_error($db);
+		$basic_group = array();
+		$group = array();
+		$categries = array();
+		while($obj = $db->fetch_array($res)){
+			if($obj['parent_id'] == 67){
+				$basic_group[]=$obj['category_id'];
+			}
+			if(!in_array($obj['parent_id'], $group))
+				$group[]=$obj['parent_id'];
+			$categries[$obj['category_id']]=array($obj['name'], $form->SymbolCounter('&gt;', $obj['path']));
+
+		}
+		//Subcategory
+		$sub_category = array();
+		foreach($group as $group_id){
+			mysqli_data_seek($res, 0);
+			$subcatstr='';
+			while($obj = $db->fetch_object($res)){
+				if($obj->parent_id == $group_id){
+					if(empty($subcatstr))
+						$subcatstr = $obj->category_id;
+					else
+						$subcatstr.=','.$obj->category_id;
+				}
+			}
+			$sub_category[$group_id]=explode(',', $subcatstr);
+		}
+		$out = '';
+		$index = 0;
+		$id_cat = $_REQUEST['id_cat'];
+		while(count($basic_group)) {
+			$catalog_id = $basic_group[0];
+			array_shift($basic_group);
+			if(isset($sub_category[$catalog_id])) {
+				$out .= '<ul '.($categries[$catalog_id][1]!=0?'class="subcatalog"':'').'>' .$categries[$catalog_id][0] . '</ul>';
+				for($i=count($sub_category[$catalog_id])-1; $i>=0; $i--) {
+					array_unshift($basic_group, $sub_category[$catalog_id][$i]);
+				}
+			}else {
+				if(empty($id_cat)) {
+					if($showfirstcategory_id)
+						return $catalog_id;
+					$id_cat = $catalog_id;
+					$out .= '<li id="cat'.$id_cat.'" class="selected"><a href="' .$_SERVER['PHP_SELF'].'?mainmenu='.$_REQUEST['mainmenu'].'&id_cat='.$id_cat.'#cat'.$id_cat.'">'.$categries[$catalog_id][0] . '</a></li>';
+				}else{
+					$out .= '<li id="cat'.$catalog_id.'" '.($id_cat==$catalog_id?'class="selected"':'').'><a href="' .$_SERVER['PHP_SELF'].'?mainmenu='.$_REQUEST['mainmenu'].'&id_cat='.$catalog_id.'#cat'.$catalog_id.'">'.$categries[$catalog_id][0] . '</a></li>';
+				}
+			}
+			$index++;
+		}
+
+		return $out;
+	}
 	function create($user,$notrigger=0)
 	{
 		global $conf, $langs;
