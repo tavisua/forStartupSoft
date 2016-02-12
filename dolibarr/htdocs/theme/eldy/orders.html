@@ -1,0 +1,97 @@
+<a onclick="close_action();" class='overlay' id='type_action'></a>
+ <div class='popup' id='actionform' style='width: 300px;display: none'>
+     Оформити:
+    <form id="choose_typeaction" action="<?=$_SERVER['REQUEST_URI']?>" method="post">
+        <p><input type="radio" name="type_action" value="with_list" id="with_list" checked ><label for="with_list"> товарну потребу зі списку</label></p>
+        <p><input type="radio" name="type_action" value="without_list" id="without_list" ><label for="without_list"> товарну потребу без списку</label></p>
+        <p><input type="radio" name="type_action" value="internal" id="internal" ><label for="internal"> внутрішню потребу без списку</label></p>
+    </form>
+    <button onclick='choose_action();'><?=$langs->trans('Choose')?></button>
+    <!--<button onclick='close_action();'><?=$langs->trans('Cancel')?></button>-->
+        <a class='close' title='Закрыть' href='#close'></a>
+ </div>
+<div id="savebtn">
+    <button style="width: 200px;height: 30px">Зберегти заявку</button>
+</div>
+
+<script>
+    $(document).ready(function(){
+        if('<?=$_REQUEST["type_action"]?>'.length == 0) {
+            location.href = '#type_action';
+            $('#actionform').show();
+        }else{
+            patch_link();
+            $('#first').removeClass("tabpriceactive");
+            $('#second').removeClass("tabpriceactive");
+            $('#thirth').removeClass("tabpriceactive");
+            $('.tabs').remove();
+            switch('<?=$_REQUEST["page"]?>'){
+                case '1':{
+                    $('#first').addClass("tabpriceactive");
+                }break;
+                case '2':{
+                    $('#second').addClass('tabpriceactive');
+                }break;
+                case '3':{
+                    $('#thirth').addClass('tabpriceactive');
+                }break;
+            }
+            var table = $('.WidthScroll');
+            $('#savebtn').appendTo($('.tabPage')[0]);
+            $('#savebtn').prependTo('.WidthScroll');
+            document.getElementsByClassName('multiple_header_table')[0].innerHTML += '<th style="width: 55px" class="middle_size">Потреба</th>';
+            $('tbody#products').width(985);
+            for(var i = 0; i<$('tbody#products').find('tr').length;i++){
+                var tr = $('tbody#products').find('tr')[i];
+                tr.innerHTML+='<td id = "td'+tr.id.substr(2)+'" style="width:50px; text-align: center"><input id="Col'+tr.id.substr(2)+'" value="" type="text" size="4"></td>';
+            }
+
+        }
+    })
+    function patch_link(){
+        var links = document.getElementById('groupproducts').getElementsByTagName('a');
+        for(var i=0; i<links.length; i++){
+            var href = links[i].href;
+            links[i].href = href.substr(0, strpos(links[i].href, "#cat"))+'&type_action=<?=$_REQUEST["type_action"]?>&page=<?=$_REQUEST["page"]?>'+links[i].href.substr(strpos(links[i].href, "#cat"));
+        }
+        href = $('a#first').attr('href');
+        $('a#first').attr('href', href.substr(0, strpos(href, "#cat"))+'&type_action=<?=$_REQUEST["type_action"]?>'+href.substr(strpos(href, "#cat")));
+        href = $('a#second').attr('href');
+        $('a#second').attr('href', href.substr(0, strpos(href, "#cat"))+'&type_action=<?=$_REQUEST["type_action"]?>'+href.substr(strpos(href, "#cat")));
+        href = $('a#thirth').attr('href');
+        $('a#thirth').attr('href', href.substr(0, strpos(href, "#cat"))+'&type_action=<?=$_REQUEST["type_action"]?>'+href.substr(strpos(href, "#cat")));
+    }
+    function close_action(){
+        location.href = '#x';
+        $('#actionform').hide();
+    }
+    function choose_product(id){
+        var img = $('#img'+id).attr('src');
+        var insert = false;
+        if(img.substr(img.length-'uncheck.png'.length)=='uncheck.png'){
+            insert = true;
+            $('#img'+id).attr('src', '/dolibarr/htdocs/theme/eldy/img/check.png');
+        }else{
+            $('#img'+id).attr('src', '/dolibarr/htdocs/theme/eldy/img/uncheck.png');
+        }
+        var action = (insert==true?'insert':'delete');
+
+        $.ajax({
+            url:'<?=$_SERVER["PHP_SELF"]?>?type_action=choose_product&action='+action+'&product_id='+id,
+            cache:false,
+            success:function(html){
+
+            }
+        })
+    }
+    function choose_action(){
+        $('#choose_typeaction').submit();
+    }
+    function strpos( haystack, needle, offset){ // Find position of first occurrence of a string
+        var i = haystack.indexOf( needle, offset ); // returns -1
+        return i >= 0 ? i : false;
+    }
+</script>
+
+<?=$actionform?>
+

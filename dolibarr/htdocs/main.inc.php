@@ -956,14 +956,14 @@ if (! function_exists("llxHeader"))
 		top_htmlhead($head, $title, $disablejs, $disablehead, $arrayofjs, $arrayofcss);
         $loginphone_form = "<a href='#x' class='overlay' id='login_phone'></a>
                      <div class='popup' id='login_phoneform' style='width: 300px;display: none'>
-                     <form >
-                     <input type='hidden' id='user_id' name='user_id' value=" . $user->id . ">
-                     <b>".$langs->trans('RegisterPhone')."</b>
-                     <input class='param' type='text' placeholder='Телефон' id='registerphone' maxlength='13' tabindex='1' value='+380' name='registerphone' data-name='phone'>
-                    </form>
-                    <button onclick='save_registeredphone();'>".$langs->trans('Register')."</button>
-                    <button onclick='close_registerform();'>".$langs->trans('Cancel')."</button>
-                        <a class='close' title='Закрыть' href='#close'></a>
+                        <form >
+                            <input type='hidden' id='user_id' name='user_id' value=" . $user->id . ">
+                            <b>".$langs->trans('RegisterPhone')."</b>
+                            <input class='param' type='text' placeholder='Телефон' id='registerphone' maxlength='13' tabindex='1' value='+380' name='registerphone' data-name='phone'>
+                        </form>
+                        <button onclick='save_registeredphone();'>".$langs->trans('Register')."</button>
+                        <button onclick='close_registerform();'>".$langs->trans('Cancel')."</button>
+                            <a class='close' title='Закрыть' href='#close'></a>
                      </div>
                      <script>
                         function registerphone(){
@@ -971,6 +971,30 @@ if (! function_exists("llxHeader"))
                             location.href = '#login_phone';
                             $('#login_phoneform').show();
                         }
+                        function close_registerform(){
+                            location.href ='#close';
+                            $('#login_phoneform').hide();
+                        }
+                        function save_registeredphone(){
+                            if($('input#registerphone').val().length!=13){
+                                alert('Перевірте правильність номера телефону');
+                                return;
+                            }
+                            if(confirm('Зареєструвати телефон?')){
+                                var link = 'http://'+location.hostname+'/dolibarr/htdocs/autocall/index.php?action=registerphone&phonenumber='+$('input#registerphone').val()+'&id_usr='+$('input#user_id').val();
+                                console.log(link);
+                                $.ajax({
+                                    url: link,
+                                    cache: false,
+                                    success: function (html) {
+                                        $('img#phone_indicator').attr('src', 'http://'+location.hostname+'/dolibarr/htdocs/theme/eldy/img/active_phone.png')
+                                        $('img#phone_indicator').attr('title', ''+$langs->trans('PhoneRegistered')+'');
+                                    }
+                                })
+                            }
+                            location.href ='#close';
+                            $('#login_phoneform').hide();
+                        }                        
                     </script>";
         print $loginphone_form;
 		// top menu and left menu area
@@ -2048,30 +2072,32 @@ if (! function_exists("llxFooter"))
         print '    });';
         print '';
         print '</script>';
-        print '<script type="text/javascript">
-                function close_registerform(){
-                    location.href ="#close";
-                }
-                function save_registeredphone(){
-                    if($("input#registerphone").val().length!=13){
-                        alert("Перевірте правильність номера телефону");
-                        return;
-                    }
-                    if(confirm("Зареєструвати телефон?")){
-                        var link = "http://"+location.hostname+"/dolibarr/htdocs/autocall/index.php?action=registerphone&phonenumber="+$("input#registerphone").val()+"&id_usr="+$("input#user_id").val();
-                        console.log(link);
-                        $.ajax({
-                            url: link,
-                            cache: false,
-                            success: function (html) {
-                                $("img#phone_indicator").attr("src", "http://"+location.hostname+"/dolibarr/htdocs/theme/eldy/img/active_phone.png")
-                                $("img#phone_indicator").attr("title", "'.$langs->trans('PhoneRegistered').'");
-                            }
-                        })
-                    }
-                    location.href ="#close";
-                }
-            </script>';
+//        print '<script type="text/javascript">
+//                function close_registerform(){
+//                    location.href ="#close";
+//                    $("#login_phoneform").hide();
+//                }
+//                function save_registeredphone(){
+//                    if($("input#registerphone").val().length!=13){
+//                        alert("Перевірте правильність номера телефону");
+//                        return;
+//                    }
+//                    if(confirm("Зареєструвати телефон?")){
+//                        var link = "http://"+location.hostname+"/dolibarr/htdocs/autocall/index.php?action=registerphone&phonenumber="+$("input#registerphone").val()+"&id_usr="+$("input#user_id").val();
+//                        console.log(link);
+//                        $.ajax({
+//                            url: link,
+//                            cache: false,
+//                            success: function (html) {
+//                                $("img#phone_indicator").attr("src", "http://"+location.hostname+"/dolibarr/htdocs/theme/eldy/img/active_phone.png")
+//                                $("img#phone_indicator").attr("title", "'.$langs->trans('PhoneRegistered').'");
+//                            }
+//                        })
+//                    }
+//                    location.href ="#close";
+//                    $("#login_phoneform").hide();
+//                }
+//            </script>';
         if($conf->browser->name == chrome){
             print '
                 <script type="text/javascript">

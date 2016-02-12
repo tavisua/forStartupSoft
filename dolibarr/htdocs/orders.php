@@ -9,147 +9,38 @@
 require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 
-//echo '<pre>';
-//var_dump($_SERVER);
-//echo '</pre>';
-//die();
+$Orders = $langs->trans('Orders');
+llxHeader("",$Orders,"");
+print_fiche_titre($langs->trans('Orders'));
 
-$HourlyPlan = $langs->trans('HourlyPlan');
-llxHeader("",$HourlyPlan,"");
-print_fiche_titre($langs->trans('HourlyPlan'));
-$table = '<table class="WidthScroll" cellspacing="1" id="schedule_table">';
-$table .= '<thead>
-                <tr class="multiple_header_table">
-                    <th width="58" rowspan="2">Години</th>
-                    <th rowspan="2">Хвилини</th>
-                    <th width="300px" colspan="9">Наявні завдання</th>
-                </tr>
-                <tr class="multiple_header_table">
-                    <th class="small_size">Тип</th>
-                    <th class="small_size">Початок</th>
-                    <th class="small_size">Необх.</th>
-                    <th class="small_size">Кінець</th>
-                    <th class="small_size" width="150px">Направлення</th>
-                    <th class="small_size" width="150px">Замовник</th>
-                    <th class="small_size" width="200px">Задача</th>
-                    <th class="small_size" width="150px">Примітка: Що зробить, кінцева мета, підтвердження</th>
-                    <th class="small_size" width="140px">Статус</th>
-                </tr>
-           </thead>';
-$row = 0;
-$hour = 8;
-$split=array();
-//global $conf;
-//var_dump($conf->browser->name);
-if(!isset($_REQUEST['date'])){
-    $date = date('d.m.Y');
-}else{
-    $date = $_REQUEST['date'];
-}
-$dateQuery = new DateTime($date);
-//var_dump($dateQuery->format('Y-m-d'));
-//die();
-$actionURL = '/comm/action/card.php';
-$sql = "select `llx_actioncomm`.id as rowid, `llx_actioncomm`.datep, `llx_actioncomm`.datep2,
-        `llx_actioncomm`.`code`, `llx_actioncomm`.label, `regions`.`name` as region_name, `llx_user`.`lastname`,
-        `llx_actioncomm`.`note`, `llx_actioncomm`.`percent`, `llx_c_actioncomm`.`libelle` title, `llx_actioncomm`.confirmdoc
-        from `llx_actioncomm`
-        left join `llx_societe` on `llx_societe`.rowid = `llx_actioncomm`.fk_soc
-        left join `states` on `states`.rowid = `llx_societe`.state_id
-        left join `regions` on `regions`.rowid=`llx_societe`.region_id
-        left join `llx_user` on `llx_user`.rowid= `llx_actioncomm`.fk_user_author
-        left join `llx_c_actioncomm` on `llx_c_actioncomm`.`code` = `llx_actioncomm`.`code`
-        inner join `llx_actioncomm_resources` on `llx_actioncomm`.`id` =  `llx_actioncomm_resources`.`fk_actioncomm`
-        where fk_action in
-              (select id from `llx_c_actioncomm`
-              where `type` in ('system', 'user'))
-        and `llx_actioncomm_resources`.`fk_element`= ".$user->id."
-        and `datep` between '".$dateQuery->format('Y-m-d')."' and date_add('".$dateQuery->format('Y-m-d')."', interval 1 day)
-        order by datep";
-$res = $db->query($sql);
-$task = '';
 
-//$task.='<div id="currenttime"></div>';
+if(isset($_REQUEST['type_action'])){
+    switch($_REQUEST['type_action']){
+        case 'with_list':{
+            $actionform=ShowPriceList();
+        }break;
+        case 'without_list':{
 
-$task = '<div id="currenttime" style="z-index: 10;"></div><div id = "tasklist"><table  class="tasklist">
-            <tbody>';
-$prev_time = mktime(8,0,0, $dateQuery->format('m'),$dateQuery->format('d'),$dateQuery->format('Y'));
-$emptyid=0;
-while($row = $db->fetch_object($res)) {
-    switch(trim($row->code)){
-        case 'AC_GLOBAL':{
-            $classitem = 'global_taskitem';
-            $iconitem = 'object_global_task.png';
         }break;
-        case 'AC_CURRENT':{
-            $classitem = 'current_taskitem';
-            $iconitem = 'object_current_task.png';
-        }break;
-        case 'AC_RDV':{
-            $classitem = 'office_meetting_taskitem';
-            $iconitem = 'object_office_meetting_task.png';
-        }break;
-        case 'AC_TEL':{
-            $classitem = 'office_callphone_taskitem';
-            $iconitem = 'object_call.png';
-        }break;
-        case 'AC_DEP':{
-            $classitem = 'departure_taskitem';
-            $iconitem = 'object_departure_task.png';
-        }break;
-    }
-    if($row->percent == -1)
-        $status = 'Не розпочато';
-    elseif($row->percent>0&&$row->percent<100)
-        $status = 'В роботі('.$row->percent.'%)';
-    else
-        $status = 'Виконано';
-    $datep = new DateTime($row->datep);
-    $datep2 = new DateTime($row->datep2);
-    $DiffSec = (mktime($datep2->format('H'),$datep2->format('i'),$datep2->format('s'),$datep2->format('m'),$datep2->format('d'),$datep2->format('Y')) -
-        mktime($datep->format('H'),$datep->format('i'),$datep->format('s'),$datep->format('m'),$datep->format('d'),$datep->format('Y')));
-    $EmptyPeriod = (mktime($datep->format('H'),$datep->format('i'),$datep->format('s'),$datep->format('m'),$datep->format('d'),$datep->format('Y'))-$prev_time)/60;
-    if($EmptyPeriod>0){
-        $task.='<tr id="empty'.($emptyid++).'"><td class="emptyitem"></td></tr>';
-//        $task.='<tr><td style="height: '.($EmptyPeriod*($conf->browser->name == 'firefox' ? ($EmptyPeriod<=30?23.9:24) : 22)/10).'px" class="emptyitem"></td></tr>';
-    }
-    $DiffTime = sprintf('%02d:%02d', $DiffSec / 3600, ($DiffSec % 3600) / 60, $DiffSec % 60);
-    $task_table = '<div class="task_cell" style="float: left; width: ' . ($conf->browser->name == 'firefox' ? '23px' : '24px') . '"><img src="theme/'.$conf->theme.'/img/'.$iconitem.'" title="'.$langs->trans($row->title).'"></div>
-               <div class="task_cell" style="float: left; width: ' . ($conf->browser->name == 'firefox' ? '42px' : '43px') . '">'.$datep->format('H:i').'</div>
-               <div class="task_cell" style="float: left; width: 36px;">'.$DiffTime.'</div>
-               <div class="task_cell" style="float: left; width: 35px">'.$datep2->format('H:i').'</div>
-               <div class="task_cell" style="float: left; width: 152px">'.trim($row->region_name).' район</div>
-               <div class="task_cell" style="float: left; width: 152px">'.trim($row->lastname).'</div>
-               <div class="task_cell" style="float: left; width: 202px;">'.trim($row->note).'</div>
-               <div class="task_cell" style="float: left; width: 152px;">'.trim($row->confirmdoc).'</div>
-               <div class="task_cell" style="float: left; width: 130px; border-color: transparent">'.$status.'</div>';
-//    $task .= '<div id="'.$row->rowid.'" class="'.$classitem.'" style="height: 216px" >' . $task_table . '</div>';
+        case 'internal':{
 
-    $task.='<tr id="'.$row->rowid.'" onclick="EditAction('.$row->rowid.');"><td class="'.$classitem.'" >'.$task_table.'</td></tr>';
-//    $task.='<tr id="'.$row->rowid.'"><td class="'.$classitem.'" style="height: '.($DiffSec/600*($conf->browser->name == 'firefox' ? ($DiffSec/60<=30?($DiffSec/60<15?22:23.8):23.7) : 22)).'px">'.$task_table.'</td></tr>';
-    $prev_time=mktime($datep2->format('H'),$datep2->format('i'),$datep2->format('s'),$datep2->format('m'),$datep2->format('d'),$datep2->format('Y'));
-}
-$task.='    </tbody>
-            </table></div>';
+        }break;
+        case 'choose_product':{
 
-//$task = 'test';
-$table .= '<tbody id="schedule_body">';
-for($period=0; $period<66;$period++){
-    if($row == 0) {
-        $table .= '<tr><td rowspan="6" style="vertical-align: text-top" width="32px" '.(($hour==12||$hour==13)?'class="lanch"':'').'>'.$hour++.'год <td id="'.($hour-1).'h0m" width="54px" '.(($hour-1==12||$hour-1==13)?'class="lanch"':'').'>00 хв.</td>'.($period==0&&$row==0?'<td rowspan="66" height="100%" id="taskfield" valign="top" >'.$task.'</td>':'');
-    }else{
-        $table .= '<tr><td id="'.($hour-1).'h'.($row*10).'m" '.(($hour-1==12||$hour-1==13)?'class="lanch"':'').'>'.($row*10).'хв.</td>';
-    }
-    $row++;
-    if($row == 6) {
-        $row = 0;
+            exit();
+        }break;
     }
 }
-$table .= '</tbody>';
-$table .= '</table>';
 
-$backtopage = $_SERVER['REQUEST_URI'];
-include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/hourly_plan.html';
-//print '</br>';
-//print'<div style="float: left">test</div>';
+
+
+include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/orders.html';
 llxFooter();
+exit();
+
+function ShowPriceList(){
+    require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
+    global $db;
+    $product_static = new Product($db);
+    return $product_static->ShowPriceList();
+}

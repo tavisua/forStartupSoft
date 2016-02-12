@@ -16,14 +16,14 @@ require_once $_SERVER["DOCUMENT_ROOT"].'/dolibarr/htdocs/core/lib/functions.lib.
 //var_dump($_POST);
 //echo '</pre>';
 //die();
-
+global $user, $db;
 if($_REQUEST['action']=='registerphone'){
-    global $user, $db;
+
 
     $user->fetch($_REQUEST['id_usr']);
 //    if(empty($user->accessToken)){
         $user->accessToken = dol_hash(uniqid(mt_rand(), TRUE));
-        $sql='insert into phone_connect (phonenumber,Hex,id_usr) values("'.substr($_GET['phonenumber'], 1).'","'.$user->accessToken.'", '.$user->id.')';
+        $sql='insert into phone_connect (phonenumber,Hex,id_usr) values("'.$db->escape($_GET['phonenumber']).'","'.$user->accessToken.'", '.$user->id.')';
         $user->timePhoneConnect = dol_now();
 //    die($sql);
         $res = $db->query($sql);
@@ -37,8 +37,6 @@ if($_REQUEST['action']=='registerphone'){
     exit();
 }elseif($_REQUEST['action']=='sendSMS'||$_REQUEST['action']=='CallPhone'){
     $user->fetch($_REQUEST['id_usr']);
-//    var_dump($user->id_connect);
-//    die();
     if(!empty($user->id_connect)) {
         $sql = 'insert into phone_job(`id_connect`,`status`,';
         if ($_REQUEST['action'] == 'sendSMS')
@@ -46,10 +44,11 @@ if($_REQUEST['action']=='registerphone'){
         elseif ($_REQUEST['action'] == 'CallPhone')
             $sql .= '`call`,';
         $sql .= '`id_usr`)';
-        $sql .= ' values(' . $user->id_connect . ",0, '".$_REQUEST['phonenumber']."',";
+        $sql .= ' values(' . $user->id_connect . ",0, '".str_replace('*','+', $_GET['phonenumber'])."',";
         if ($_REQUEST['action'] == 'sendSMS')
             $sql .= "'".$_REQUEST['text']."',";
         $sql .= $_REQUEST['id_usr'].')';
+//        die($sql);
         $res = $db->query($sql);
         if(!$res){
             dol_print_error($db);
@@ -70,6 +69,7 @@ elseif(GETPOST('action', 'alpha') == 'auth'){
     $login = checkLoginPassEntity(GETPOST('name', 'alpha'),GETPOST('pass', 'alpha'),1,$authmode);
     $http_status = 0;
 //
+
     if($login){
         $sql ='select rowid from llx_user where login="'.trim($login).'" and active = 1 limit 1';
 //        die($sql);
