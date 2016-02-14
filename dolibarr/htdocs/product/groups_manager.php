@@ -38,7 +38,7 @@ if(isset($_REQUEST['id_cat'])&&$_REQUEST['id_cat']>0){
     $page=isset($_REQUEST['page'])?(empty($_REQUEST['page'])?1:$_REQUEST['page']):1;
     $Question = GetQuestion($_REQUEST['id_cat'], $page);
     ob_start();
-    include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/addgroupproduct.html');
+    include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/products/addgroupproduct.html');
     echo ob_get_clean();
     exit();
 
@@ -51,7 +51,7 @@ print_fiche_titre($GroupProductManager);
 $form = new Form($db);
 $Categories = ShowCategories();
 ob_start();
-include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/groupproduct_manager.html');
+include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/products/groupproduct_manager.html');
 echo ob_get_clean();
 exit();
 

@@ -954,7 +954,7 @@ if (! function_exists("llxHeader"))
 	    global $conf, $user, $langs;
 	    // html header
 		top_htmlhead($head, $title, $disablejs, $disablehead, $arrayofjs, $arrayofcss);
-        $loginphone_form = "<a href='#x' class='overlay' id='login_phone'></a>
+        $loginphone_form = "<a href='#x' onclick='close_registerform();' class='overlay' id='login_phone'></a>
                      <div class='popup' id='login_phoneform' style='width: 300px;display: none'>
                         <form >
                             <input type='hidden' id='user_id' name='user_id' value=" . $user->id . ">
@@ -1095,14 +1095,14 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
             if (!empty($conf->global->MAIN_USE_JQUERY_THEME)) $jquerytheme = $conf->global->MAIN_USE_JQUERY_THEME;
             //Если открывается панель инструментов, подключаю стили форм
 
-            if($_REQUEST['mainmenu'] == 'hourly_plan' || 'orders' == $_REQUEST['mainmenu'] || 'products' == $_REQUEST['mainmenu'] || $_REQUEST['mainmenu'] == 'tools' || $_REQUEST['mainmenu'] == 'calculator' || $_REQUEST['mainmenu'] == "current_task" || $_REQUEST['mainmenu']=='plan_of_days' || $_REQUEST['mainmenu']=='hourly_plan' || $_REQUEST['mainmenu']== 'global_task'|| $_REQUEST['mainmenu']=='area' || $_REQUEST['mainmenu'] == 'home' || $_REQUEST['mainmenu']=='companies' || GETPOST('mainmenu')=='companies'){
+//            if($_REQUEST['mainmenu'] == 'hourly_plan' || 'orders' == $_REQUEST['mainmenu'] || 'products' == $_REQUEST['mainmenu'] || $_REQUEST['mainmenu'] == 'tools' || $_REQUEST['mainmenu'] == 'calculator' || $_REQUEST['mainmenu'] == "current_task" || $_REQUEST['mainmenu']=='plan_of_days' || $_REQUEST['mainmenu']=='hourly_plan' || $_REQUEST['mainmenu']== 'global_task'|| $_REQUEST['mainmenu']=='area' || $_REQUEST['mainmenu'] == 'home' || $_REQUEST['mainmenu']=='companies' || GETPOST('mainmenu')=='companies'){
                 print '<link rel="stylesheet" type="text/css" href="'.DOL_URL_ROOT.'/theme/'.$conf->theme.'/design.css'.($ext?'?'.$ext:'').'"/>'."\n";          //Стиль для фор
                 print '<link rel="stylesheet" type="text/css" href="'.DOL_URL_ROOT.'/theme/'.$conf->theme.'/style-modal.css'.($ext?'?'.$ext:'').'"/>'."\n";     //Стиль модальной формы
 //                if($_REQUEST['mainmenu']=='area') {
 //                    print '<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css">';
 //                    print '<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap-theme.min.css">';
 //                }
-            }
+//            }
             print '<link rel="stylesheet" type="text/css" href="'.DOL_URL_ROOT.'/admin/tools/template/design.css'.($ext?'?'.$ext:'').'"/>'."\n";//Стиль меню
 
             if (constant('JS_JQUERY_UI')) print '<link rel="stylesheet" type="text/css" href="'.JS_JQUERY_UI.'css/'.$jquerytheme.'/jquery-ui.min.css'.($ext?'?'.$ext:'').'" />'."\n";  // JQuery

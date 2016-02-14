@@ -219,7 +219,158 @@ class Product extends CommonObject
 	 *  @param	int		$notrigger		Disable triggers
 	 *	@return int			     		Id of product/service if OK, < 0 if KO
 	 */
+	function ShowWorkingUnits($product_id){
+		global $db, $user;
+		$out = '<table class="WidthScroll" cellspacing="1" >
+			<thead>
+			<tr class="multiple_header_table">
+				<th style="width: 100px">
+					Виробник
+				</th>
+				<th style="width: 200px">
+					Назва товару
+				</th>
+				<th style="width: 80px">
+					Ціна
+				</th>
+				<th style="width: 50px">
+					Познач.
+				</th>
+			</tr>
+		</thead>';
+
+		$out .= '<tbody id="reference_body" style="width: 440px">';
+//		return $out;
+		if(!isset($_REQUEST['id_selcat']))
+			$id_cat = $this->GetFirstCategoriID();
+		else
+			$id_cat = $_REQUEST['id_selcat'];
+		$result_table = $this->ShowProducts($id_cat, '', 'name,price');
+		$pos = 0;
+		$sql = "select working_units_id from llx_workingunits where product_pref = 'oc' and product_id = ".$product_id." and working_units_pref = 'oc' and active = 1";
+		$res = $db->query($sql);
+		if(!$res)
+			dol_print_error($db);
+		$working_units = array();
+		while($obj = $db->fetch_object($res)){
+			$working_units[]=$obj->working_units_id;
+		}
+		while(gettype(strpos($result_table, '<tr id="tr', $pos)) == 'integer') {
+			$pos = strpos($result_table, '<tr id="tr', $pos);
+			$working_units_id = substr($result_table, $pos+10, strpos($result_table, '"', $pos+10)-($pos+10));
+			$result_table = substr($result_table, 0, strpos($result_table, '</tr>', $pos+10)).
+					'<td id="td'.$working_units_id.'" style="width:50px; text-align: center" onclick="SetSpareParts('."'oc'".','.$product_id.', '."'oc'".', '.$working_units_id.');"><img id="img'.$working_units_id.'" src="/dolibarr/htdocs/theme/eldy/img/'.(in_array($working_units_id, $working_units)?'check':'uncheck').'.png"></td>'.substr($result_table, strpos($result_table, '</tr>', $pos+10));
+			$pos++;
+		}
+		$out .= $result_table;
+		$out .= '</tbody>';
+		return $out;
+	}
+	function ShowSpareParts($product_id){
+		global $db, $user;
+		$out = '<table class="WidthScroll" cellspacing="1" >
+			<thead>
+			<tr class="multiple_header_table">
+				<th style="width: 100px">
+					Виробник
+				</th>
+				<th style="width: 200px">
+					Назва товару
+				</th>
+				<th style="width: 80px">
+					Ціна
+				</th>
+				<th style="width: 50px">
+					Познач.
+				</th>
+			</tr>
+		</thead>';
+
+		$out .= '<tbody id="reference_body" style="width: 440px">';
+//		return $out;
+		if(!isset($_REQUEST['id_selcat']))
+			$id_cat = $this->GetFirstCategoriID();
+		else
+			$id_cat = $_REQUEST['id_selcat'];
+		$result_table = $this->ShowProducts($id_cat, '', 'name,price');
+		$pos = 0;
+		$sql = "select spare_id from llx_spareparts where product_pref = 'oc' and product_id = ".$product_id." and spare_pref = 'oc' and active = 1";
+		$res = $db->query($sql);
+		if(!$res)
+			dol_print_error($db);
+		$spareparts = array();
+		while($obj = $db->fetch_object($res)){
+			$spareparts[]=$obj->spare_id;
+		}
+		while(gettype(strpos($result_table, '<tr id="tr', $pos)) == 'integer') {
+			$pos = strpos($result_table, '<tr id="tr', $pos);
+			$sparepart_id = substr($result_table, $pos+10, strpos($result_table, '"', $pos+10)-($pos+10));
+			$result_table = substr($result_table, 0, strpos($result_table, '</tr>', $pos+10)).
+					'<td id="td'.$sparepart_id.'" style="width:50px; text-align: center" onclick="SetSpareParts('."'oc'".','.$product_id.', '."'oc'".', '.$sparepart_id.');"><img id="img'.$sparepart_id.'" src="/dolibarr/htdocs/theme/eldy/img/'.(in_array($sparepart_id, $spareparts)?'check':'uncheck').'.png"></td>'.substr($result_table, strpos($result_table, '</tr>', $pos+10));
+			$pos++;
+		}
+		$out .= $result_table;
+		$out .= '</tbody>';
+		return $out;
+	}
+	function ShowOrders($orders_id = 0){
+		global $db, $user;
+		$sql = 'select products_id from llx_orders ';
+		if(empty($orders_id))
+			$sql .= 'where status = 0 and id_usr = '.$user->id;
+		else
+			$sql .= 'where rowid = '.$orders_id;
+		$sql .= ' limit 1';
+		$res = $db->query($sql);
+		$out = '<table>
+			<thead>
+			<tr class="multiple_header_table">
+				<th colspan="4">
+					Заявка
+				</th>
+			</tr>
+			<tr class="multiple_header_table">
+				<th>
+					Виробник
+				</th>
+				<th>
+					Назва товару
+				</th>
+				<th>
+					Ціна
+				</th>
+				<th>
+					Потреба
+				</th>
+			</tr>
+		</thead>';
+		$obj = $db->fetch_object($res);
+		$productlist = explode(';', $obj->products_id);
+		$products = array();
+		foreach($productlist as $product=>$value){
+			if(!empty($value)) {
+				$item = explode('=', $value);
+				$products[$item[0]]=$item[1];
+			}
+		}
+		$out .= '<tbody>';
+		$result_table = $this->ShowProducts(0, implode(',', array_keys($products)), 'name,price');
+		$pos = 0;
+
+		while(gettype(strpos($result_table, '<tr id="tr', $pos)) == 'integer') {
+			$pos = strpos($result_table, '<tr id="tr', $pos);
+			$product_id = substr($result_table, $pos+10, strpos($result_table, '"', $pos+10)-($pos+10));
+			$result_table = substr($result_table, 0, strpos($result_table, '</tr>', $pos+10)).
+					'<td id="td'.$product_id.'" style="width:50px; text-align: center">'.$products[$product_id].'</td>'.substr($result_table, strpos($result_table, '</tr>', $pos+10));
+			$pos++;
+		}
+		$out .= $result_table;
+		$out .= '</tbody>';
+		return $out;
+	}
 	function ShowPriceList($page=1){
+		global $db;
+		$form = new Form($db);
 		empty($page)?$page=1:$page;
 		global $conf;
 		$Categories = $this->ShowCategories();
@@ -228,17 +379,24 @@ class Product extends CommonObject
 			$id_cat = $this->ShowCategories(true);
 		$Products = $this->ShowProducts($id_cat);
 		ob_start();
-		include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/pricelist.html');
+		include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/products/pricelist.html');
 		echo ob_get_clean();
 	}
-	function ShowProducts($id_cat){
+
+	function ShowProducts($id_cat, $products_id = '', $fields = ''){
 		global $db;
+		if(!empty($fields))
+			$fields = explode(',', $fields);
+
 		$sql = 'select `oc_product_to_category`.`product_id`, `oc_product_attribute`.`text`
 			from `oc_product_to_category`
-			inner join `oc_product_attribute` on `oc_product_attribute`.`product_id`=`oc_product_to_category`.`product_id`
-			where `oc_product_to_category`.category_id='.$id_cat.'
-			and `oc_product_attribute`.language_id=4
-			and `oc_product_attribute`.`attribute_id`=1';
+			inner join `oc_product_attribute` on `oc_product_attribute`.`product_id`=`oc_product_to_category`.`product_id`';
+		if(empty($products_id))
+			$sql .= ' where `oc_product_to_category`.category_id='.$id_cat;
+		else
+			$sql .= ' where `oc_product_to_category`.product_id in ('.$products_id.')';
+		$sql .=' and `oc_product_attribute`.language_id=4
+			 and `oc_product_attribute`.`attribute_id`=1';
 		$res = $db->query($sql);
 		if(!$res)
 			dol_print_error($db);
@@ -250,9 +408,12 @@ class Product extends CommonObject
 		$sql = 'select `oc_product_description`.`product_id`, `oc_product_description`.`name`, `oc_product`.price, `oc_product`.`date_added`,`oc_product`.`date_modified`
 			from `oc_product_to_category`
 			left join `oc_product_description` on `oc_product_description`.`product_id` = `oc_product_to_category`.`product_id`
-			inner join `oc_product` on `oc_product`.`product_id` = `oc_product_to_category`.`product_id`
-			where `oc_product_to_category`.category_id='.$id_cat.'
-			and `oc_product_description`.language_id=4
+			inner join `oc_product` on `oc_product`.`product_id` = `oc_product_to_category`.`product_id`';
+		if(empty($products_id))
+			$sql .= ' where `oc_product_to_category`.category_id='.$id_cat;
+		else
+			$sql .= ' where `oc_product_to_category`.product_id in ('.$products_id.')';
+		$sql .=' and `oc_product_description`.language_id=4
 			order by `oc_product_description`.`name`';
 		$res = $db->query($sql);
 		if(!$res)
@@ -270,22 +431,81 @@ class Product extends CommonObject
 			}else
 				$table .= '<td style="width:101px"></td>';
 			$table .= '		<td style="width:201px">'.$obj->name.'</td>';
-			$table .= '		<td style="width:81px">'.round($obj->price, 1).'</td>';
-			$table .= '		<td style="width:61px">грн</td>';
-			$table .= '		<td style="width:61px">роздріб</td>';
-			$table .= '		<td style="width:61px">актуальна</td>';
+			$table .= '		<td style="width:81px" id="price'.$obj->product_id.'">'.round($obj->price, 1).'</td>';
+			if(gettype($fields) == 'string' ||in_array('currency',$fields))
+				$table .= '		<td style="width:61px">грн</td>';
+			if(gettype($fields) == 'string' ||in_array('type_price',$fields))
+				$table .= '		<td style="width:61px">роздріб</td>';
+			if(gettype($fields) == 'string' ||in_array('actual_price',$fields))
+				$table .= '		<td style="width:61px">актуальна</td>';
 //			if($obj->product_id == 9970){
 //				var_dump($obj->date_added, $obj->date_modified);
 //			}
-			$date_modified = new DateTime($obj->date_modified == '0000-00-00 00:00:00'?$obj->date_added:$obj->date_modified);
-			$table .= '		<td style="width:61px">'.$date_modified->format('d.m.y').'</td>';
-			$table .= '		<td style="width:81px"></td>';
-			$table .= '		<td style="width:81px"></td>';
-			$table .= '		<td style="width:51px"></td>';
-			$table .= '		<td style="width:51px"></td>';
+			if(gettype($fields) == 'string' ||in_array('last_modified',$fields)) {
+				$date_modified = new DateTime($obj->date_modified == '0000-00-00 00:00:00' ? $obj->date_added : $obj->date_modified);
+				$table .= '		<td style="width:61px">' . $date_modified->format('d.m.y') . '</td>';
+			}
+			if(gettype($fields) == 'string' ||in_array('purchase_tech',$fields))
+				$table .= '		<td style="width:81px"></td>';
+			if(gettype($fields) == 'string' ||in_array('purchase_parts',$fields))
+				$table .= '		<td style="width:81px"></td>';
+			if(gettype($fields) == 'string' ||in_array('count_areas',$fields))
+				$table .= '		<td style="width:51px"></td>';
+			if(gettype($fields) == 'string' ||in_array('count_purchase',$fields))
+				$table .= '		<td style="width:51px"></td>';
 			$table .= '	</tr>';
 		}
 		return $table;
+	}
+	function GetFirstCategoriID(){
+		global $db, $langs;
+		$form = new Form($db);
+		$sql = "SELECT DISTINCT c.category_id, c.parent_id, cd2.name,  (SELECT  GROUP_CONCAT(cd1.name ORDER BY level SEPARATOR ' &gt; ')
+			FROM oc_category_path cp LEFT JOIN oc_category_description cd1 ON (cp.path_id = cd1.category_id AND cp.category_id != cp.path_id) WHERE cp.category_id = c.category_id AND cd1.language_id = 4 GROUP BY cp.category_id) AS path
+			FROM oc_category c
+			LEFT JOIN oc_category_description cd2 ON (c.category_id = cd2.category_id)
+			WHERE c.parent_id <> 0 AND cd2.language_id = 4
+			order by parent_id, c.sort_order, cd2.name";
+		$res = $db->query($sql);
+		if(!$res)
+			dol_print_error($db);
+		$basic_group = array();
+		$group = array();
+		while($obj = $db->fetch_array($res)){
+			if($obj['parent_id'] == 67){
+				$basic_group[]=$obj['category_id'];
+			}
+			if(!in_array($obj['parent_id'], $group))
+				$group[]=$obj['parent_id'];
+
+		}
+		//Subcategory
+		$sub_category = array();
+		foreach($group as $group_id){
+			mysqli_data_seek($res, 0);
+			$subcatstr='';
+			while($obj = $db->fetch_object($res)){
+				if($obj->parent_id == $group_id){
+					if(empty($subcatstr))
+						$subcatstr = $obj->category_id;
+					else
+						$subcatstr.=','.$obj->category_id;
+				}
+			}
+			$sub_category[$group_id]=explode(',', $subcatstr);
+		}
+		while(count($basic_group)) {
+			$catalog_id = $basic_group[0];
+			array_shift($basic_group);
+			if(isset($sub_category[$catalog_id])) {
+				for($i=count($sub_category[$catalog_id])-1; $i>=0; $i--) {
+					array_unshift($basic_group, $sub_category[$catalog_id][$i]);
+				}
+			}else {
+				return $catalog_id;
+			}
+		}
+
 	}
 	function ShowCategories($showfirstcategory_id = false){
 		global $db, $langs;

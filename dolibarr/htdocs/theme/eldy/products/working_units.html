@@ -1,0 +1,73 @@
+<div class="tabPage">
+    <form action="<?=$_SERVER['PHP_SELF']?>" method="post">
+        <table>
+            <tr>
+                <td>Найменування</td>
+                <td><input type="text" value="<?=$productname?>" maxlength="128" size="60"></td>
+            </tr>
+            <tr>
+                <td>Група/напрямок</td>
+                <td><?=$form->selectLineAction($_REQUEST['id_cat'], 'category_id', 1)?></td>
+            </tr>
+            <tr>
+
+                <td colspan="2">
+                    <div class="tabs" data-type="horizontal" data-role="controlgroup">
+                        <div class="inline-block tabsElem tabsElemActive">
+                            <a id="1S" class="<?=(!isset($_REQUEST['page']) || $_REQUEST['page'] == '1S'?'activepage':'unactivepage')?> middle_size tab inline-block" href="<?=$linkpage.'&page=1S'?>" data-role="button">Картки 1С</a>
+                        </div>
+                        <div class="inline-block tabsElem">
+                            <a id="spare_parts" class="<?=($_REQUEST['page'] == 'spare_parts'?'activepage':'unactivepage')?> middle_size tab inline-block" href="<?=$linkpage.'&page=spare_parts'?>" data-role="button">Запасні частини</a>
+                        </div>
+                        <div class="inline-block tabsElem">
+                            <a id="working_units" class="<?=($_REQUEST['page'] == 'working_units'?'activepage':'unactivepage')?> middle_size tab inline-block" href="<?=$linkpage.'&page=working_units'?>" data-role="button">Робочі органи</a>
+                        </div>
+                        <div class="inline-block tabsElem">
+                            <a id="tech_parameter" class="<?=($_REQUEST['page'] == 'tech_parameter'?'activepage':'unactivepage')?> middle_size tab inline-block" href="<?=$linkpage.'&page=tech_parameter'?>" data-role="button">Технічні характеристики</a>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+        <div style=" width:100%; height:17px; clear:both;">.</div>
+        <?=$Table?>
+        <div style=" width:100%; height:1px; clear:both;">.</div>
+        <center>
+<!--<input class="button" type="submit" value="Наступний крок">-->
+
+        <input type="button" value="Повернутися в налаштування прайсу" onclick="cancel();">
+            </center>
+    </form>
+</div>
+<script>
+    $(document).ready(function(){
+        var a = document.getElementById('groupproducts').getElementsByTagName('a');
+        for(var i = 0; i< a.length; i++) {
+            a[i].href = a[i].href.replace('&id_cat', '&page=working_units&product_id=<?=$_REQUEST["product_id"]?>&id_selcat');
+        }
+        $('#groupproducts').attr('height', window.innerHeight - 450);
+
+    });
+</script>
+<script>
+    function SetSpareParts(product_pref,product_id,spare_pref,spare_id){
+        var img = $('#img'+spare_id).attr('src');
+        var insert = false;
+        if(img.substr(img.length-'uncheck.png'.length)=='uncheck.png'){
+            insert = true;
+            $('#img'+spare_id).attr('src', '/dolibarr/htdocs/theme/eldy/img/check.png');
+        }else{
+            $('#img'+spare_id).attr('src', '/dolibarr/htdocs/theme/eldy/img/uncheck.png');
+        }
+        $.ajax({
+            url: '<?=$linkpage?>'+'&action='+(insert?'setlink':'unsetlink')+'&product_pref='+product_pref+'&product_id='+product_id+'&working_units_pref='+spare_pref+'&working_units_id='+spare_id,
+            cache:false,
+            success:function(html){
+                console.log(html);
+            }
+        });
+    }
+    function cancel(){
+        location.href="<?=$_SERVER['PHP_SELF']?>?mainmenu=tools&id_cat=<?=$_REQUEST['id_cat']?>#cat<?=$_REQUEST['id_cat']?>"
+    }
+</script>

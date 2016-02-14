@@ -75,7 +75,7 @@ print_fiche_titre($transAreaType);
 //    $id_cat = $product_static->ShowCategories(true);
 //$Products = $product_static->ShowProducts($id_cat);
 //ob_start();
-//include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/pricelist.html');
+//include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/products/addproduct.html');
 //echo ob_get_clean();
 $product_static->ShowPriceList($_REQUEST['page']);
 

@@ -1,0 +1,51 @@
+<div class="tabPage">
+    <form action="<?=$_SERVER['PHP_SELF']?>" method="post">
+        <table>
+            <tr>
+                <td>Найменування</td>
+                <td><input type="text" value="<?=$productname?>" maxlength="128" size="60"></td>
+            </tr>
+            <tr>
+                <td>Група/напрямок</td>
+                <td><?=$form->selectLineAction($_REQUEST['id_cat'], 'category_id', 1)?></td>
+            </tr>
+            <tr>
+
+                <td colspan="2">
+                    <div class="tabs" data-type="horizontal" data-role="controlgroup">
+                        <div class="inline-block tabsElem tabsElemActive">
+                            <a id="1S" class="<?=(!isset($_REQUEST['page']) || $_REQUEST['page'] == '1S'?'activepage':'unactivepage')?> middle_size tab inline-block" href="<?=$linkpage.'&page=1S'?>" data-role="button">Картки 1С</a>
+                        </div>
+                        <div class="inline-block tabsElem">
+                            <a id="spare_parts" class="<?=($_REQUEST['page'] == 'spare_parts'?'activepage':'unactivepage')?> middle_size tab inline-block" href="<?=$linkpage.'&page=spare_parts'?>" data-role="button">Запасні частини</a>
+                        </div>
+                        <div class="inline-block tabsElem">
+                            <a id="working_units" class="<?=($_REQUEST['page'] == 'working_units'?'activepage':'unactivepage')?> middle_size tab inline-block" href="<?=$linkpage.'&page=working_units'?>" data-role="button">Робочі органи</a>
+                        </div>
+                        <div class="inline-block tabsElem">
+                            <a id="tech_parameter" class="<?=($_REQUEST['page'] == 'tech_parameter'?'activepage':'unactivepage')?> middle_size tab inline-block" href="<?=$linkpage.'&page=tech_parameter'?>" data-role="button">Технічні характеристики</a>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <?=$Table?>
+        </table>
+
+        <center>
+<!--<input class="button" type="submit" value="Наступний крок">-->
+
+        <input type="button" type="SUBMIT" value="Зберегти"><input type="button" value="Відмінити" onclick="cancel();">
+            </center>
+    </form>
+</div>
+<script>
+    $(document).ready(function(){
+        console.log('<?=$_SERVER["REQUEST_URI"]?>');
+//        $('#spare_parts').attr('href', );
+    });
+</script>
+<script>
+    function cancel(){
+        location.href="<?=$_SERVER['PHP_SELF']?>?mainmenu=tools&id_cat=<?=$_REQUEST['id_cat']?>#cat<?=$_REQUEST['id_cat']?>"
+    }
+</script>

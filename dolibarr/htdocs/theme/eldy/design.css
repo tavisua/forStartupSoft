@@ -16,10 +16,10 @@
     background-color: white;
 }
 .activepage{
-    background-color:#e8e8e8;
+    background-color:#fafafa;
 }
 .unactivepage{
-    background-color:#93a5aa;
+    background: #cccccc;
 }
 .subcatalog{
     color: #d10310!important;

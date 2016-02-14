@@ -1,8 +1,78 @@
 <?php
 require '../main.inc.php';
+require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
 //require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/core/class/html.form.class.php';
 
 if(isset($_REQUEST['product_id'])){
+    global $user;
+    if(isset($_REQUEST['action'])){
+        switch($_REQUEST['action']){
+            case 'setlink':{
+                if(isset($_REQUEST['spare_id']))
+                    $tablename='`llx_spareparts`';
+                elseif(isset($_REQUEST['working_units_id'])){
+                    $tablename='`llx_workingunits`';
+                }
+                $sql = 'select rowid from '.$tablename.'
+                  where product_pref = "'.$_REQUEST["product_pref"].'"
+                  and product_id='.$_REQUEST["product_id"].'
+                  and '.(isset($_REQUEST["spare_pref"])?'spare_pref':'working_units_pref').' = "'.(isset($_REQUEST["spare_pref"])?$_REQUEST["spare_pref"]:$_REQUEST["working_units_pref"]).'"
+                  and '.(isset($_REQUEST["spare_id"])?'spare_id':'working_units_id').' = '.(isset($_REQUEST['spare_id'])?$_REQUEST["spare_id"]:$_REQUEST["working_units_id"]);
+                $res = $db->query($sql);
+                if(!$res)
+                    dol_print_error($db);
+                if($db->num_rows($res) == 0){
+                    $sql = 'insert into '.$tablename.'(product_pref,product_id,'.(isset($_REQUEST['spare_id'])?'spare_pref,spare_id':'working_units_pref,working_units_id').',active,id_usr)
+                    values("'.$_REQUEST["product_pref"].'",
+                            '.$_REQUEST["product_id"].',
+                           "'.(isset($_REQUEST["spare_pref"])?$_REQUEST["spare_pref"]:$_REQUEST["working_units_pref"]).'",
+                            '.(isset($_REQUEST['spare_id'])?$_REQUEST["spare_id"]:$_REQUEST["working_units_id"]).', 1, '.$user->id.')';
+                }else{
+                    $obj = $db->fetch_object($res);
+                    $sql = 'update '.$tablename.' set
+                    product_pref = "'.$_REQUEST["product_pref"].'",
+                    product_id = '.$_REQUEST["product_id"].',
+                    '.(isset($_REQUEST["spare_pref"])?'spare_pref':'working_units_pref').' = "'.(isset($_REQUEST["spare_pref"])?$_REQUEST["spare_pref"]:$_REQUEST["working_units_pref"]).'",
+                    '.(isset($_REQUEST["spare_id"])?'spare_id':'working_units_id').' = '.(isset($_REQUEST['spare_id'])?$_REQUEST["spare_id"]:$_REQUEST["working_units_id"]).',
+                    active = 1,
+                    id_usr = '.$user->id.'
+                    where rowid= '.$obj->rowid;
+                }
+                $res = $db->query($sql);
+                if(!$res)
+                    dol_print_error($db);
+                echo 'success_setlink';
+                exit();
+            }break;
+            case 'unsetlink':{
+                if(isset($_REQUEST['spare_id']))
+                    $tablename='`llx_spareparts`';
+                elseif(isset($_REQUEST['working_units_id'])){
+                    $tablename='`llx_workingunits`';
+                }
+                $sql = 'select rowid from '.$tablename.'
+                  where product_pref = "'.$_REQUEST["product_pref"].'"
+                  and product_id='.$_REQUEST["product_id"].'
+                  and spare_pref="'.$_REQUEST["spare_pref"].'"
+                  and spare_id='.$_REQUEST["spare_id"];
+                $res = $db->query($sql);
+                if(!$res)
+                    dol_print_error($db);
+                if($db->num_rows($res) > 0){
+                    $obj = $db->fetch_object($res);
+                    $sql = 'update '.$tablename.' set
+                    active = 0,
+                    id_usr = '.$user->id.'
+                    where rowid= '.$obj->rowid;
+                    $res = $db->query($sql);
+                    if(!$res)
+                        dol_print_error($db);
+                    echo 'success_unsetlink';
+                }
+                exit();
+            }break;
+        }
+    }
     if($_REQUEST['product_id'] != 0)
         $ProductManager = $langs->trans("ProductManager");
     else
@@ -16,8 +86,38 @@ if(isset($_REQUEST['product_id'])){
     $obj = $db->fetch_object($res);
     $productname = $obj->name;
     $form = new Form($db);
-    $Attibutes = GetAtributes($_REQUEST['product_id'], $_REQUEST['id_cat']);
-    include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/eldy/addproduct.html');
+    $product_static = new Product($db);
+    $id_cat = $_REQUEST['id_cat'];
+    if(!isset($_REQUEST['id_cat'])){
+        $sql = 'select category_id from oc_product_to_category where product_id='.$_REQUEST['product_id'];
+        $cat_res = $db->query($sql);
+        $obj = $db->fetch_object($cat_res);
+        $id_cat = $obj->category_id;
+    }
+    $linkpage = $_SERVER["SCRIPT_NAME"].'?mainmenu=tools&product_id='.$_REQUEST['product_id'].'&id_cat='.$id_cat;
+    switch($_REQUEST['page']) {
+        case 'spare_parts': {//запчастини
+            $Table = '<div id="groupproducts" style="float: left;width: 300px">'.ShowCategories().'</div>';
+            $Table .= '<div style="float: left;width: 500px;margin-top: -19px">';
+            $Table .= $product_static->ShowSpareParts($_REQUEST['product_id']).'</body></table></div>';
+            include($_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/theme/eldy/products/spare_parts.html');
+        }break;
+        case 'working_units': {//Робочі органи
+            $Table = '<div id="groupproducts" style="float: left;width: 300px">'.ShowCategories().'</div>';
+            $Table .= '<div style="float: left;width: 500px;margin-top: -19px">';
+            $Table .= $product_static->ShowWorkingUnits($_REQUEST['product_id']).'</body></table></div>';
+            include($_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/theme/eldy/products/working_units.html');
+        }break;
+        case 'tech_parameter': {//Технічні характеристики
+            $Table = GetAtributes($_REQUEST['product_id'], $_REQUEST['id_cat']);
+            include($_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/theme/eldy/products/addproduct.html');
+        }break;
+        default:{//1С
+            $Table = '';
+            include($_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/theme/eldy/products/link_1S.html');
+        }break;
+    }
+
 exit();
 }
 global $hookmanager, $menumanager;
@@ -36,7 +136,7 @@ $Products = ShowProducts($id_cat);
 $page=$_REQUEST['page'];
 
 ob_start();
-include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/pricelist_manager.html');
+include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/products/pricelist_manager.html');
 echo ob_get_clean();
 exit();
 
@@ -78,6 +178,11 @@ function GetAtributes($product_id, $id_cat){
 }
 function ShowProducts($id_cat){
     global $db;
+    if($id_cat==0){
+        $id_cat = ShowCategories(true);
+    }
+//    var_dump($id_cat);
+//    die('test');
     $sql = 'select `oc_product_description`.`product_id`, `oc_product_description`.`name` from `oc_product_to_category`
         left join `oc_product_description` on `oc_product_description`.`product_id` = `oc_product_to_category`.`product_id`
         where `oc_product_to_category`.category_id='.$id_cat.'
@@ -137,7 +242,7 @@ function ShowCategories($showfirstcategory_id = false){
     }
     $out = '';
     $index = 0;
-    $id_cat = $_REQUEST['id_cat'];
+    $id_cat = $_REQUEST['id_selcat'];
     while(count($basic_group)) {
         $catalog_id = $basic_group[0];
         array_shift($basic_group);
