@@ -47,7 +47,7 @@ class societecontact {
         email1,send_email1,email2,send_email2,skype,call_skype,birthdaydate,send_birthdaydate,socid,active,id_usr)
         values(";
         $sql.= empty($this->subdivision)?"null":"'".$db->escape(trim($this->subdivision))."'";
-        $sql.= ", ".$this->post.", ".$this->SphereOfResponsibility.", ";
+        $sql.= ", ".$this->post.", ".(empty($this->SphereOfResponsibility)?'null':$this->SphereOfResponsibility).", ";
         $sql.= (empty($this->lastname)?("null"):("'".$db->escape(trim($this->lastname))."'")).", ";
         $sql.= (empty($this->firstname)?("null"):"'".$db->escape(trim($this->firstname))."'").", ";
         $sql.= (empty($this->work_phone)?("null"):"'".$db->escape(trim($this->work_phone))."'").", ";
