@@ -204,7 +204,8 @@ left join llx_c_line_active on `llx_c_kind_assets`.`fx_line_active` = `llx_c_lin
 $tabsql[31]= "select rowid, name, active from ".MAIN_DB_PREFIX."c_measurement";
 $tabsql[32]= "select rowid, name, active from ".MAIN_DB_PREFIX."c_kinddoc";
 $tabsql[33]= "select rowid, name, active from ".MAIN_DB_PREFIX."c_period";
-$tabsql[34]= "select rowid, name, active from ".MAIN_DB_PREFIX."c_groupoftask";
+$tabsql[34]= "select llx_c_groupoftask.rowid, llx_c_groupoftask.name, responsibility.name as responsibility, llx_c_groupoftask.active from ".MAIN_DB_PREFIX."c_groupoftask
+left join responsibility on responsibility.rowid = ".MAIN_DB_PREFIX."c_groupoftask.fk_respon_id";
 $tabsql[35]= "select llx_c_tare.rowid, llx_c_tare.name, llx_c_measurement.name ed_name, llx_c_tare.active
 from llx_c_tare
 left join llx_c_measurement on llx_c_measurement.rowid=llx_c_tare.fx_measurement";
@@ -244,7 +245,7 @@ $tabsqlsort[30]="Trademark ASC,Model ASC";
 $tabsqlsort[31]="name ASC";
 $tabsqlsort[32]="name ASC";
 $tabsqlsort[33]="rowid ASC";
-$tabsqlsort[34]="rowid ASC";
+$tabsqlsort[34]="name ASC";
 $tabsqlsort[35]=MAIN_DB_PREFIX."c_tare.rowid ASC";
 $tabsqlsort[36]="rowid ASC";
 
@@ -283,7 +284,7 @@ $tabfield[30]= "LineActive,KindAssets,Trademark,Model,Description";
 $tabfield[31]= "name";
 $tabfield[32]= "name";
 $tabfield[33]= "name";
-$tabfield[34]= "name";
+$tabfield[34]= "name,responsibility";
 $tabfield[35]= "name,ed_name";
 $tabfield[36]= "name";
 
@@ -322,7 +323,7 @@ $tabfieldvalue[30]= "LineActive,KindAssets,Trademark,Model,Description";
 $tabfieldvalue[31]= "name";
 $tabfieldvalue[32]= "name";
 $tabfieldvalue[33]= "name";
-$tabfieldvalue[34]= "name";
+$tabfieldvalue[34]= "name,responsibility";
 $tabfieldvalue[35]= "name,ed_name";
 $tabfieldvalue[36]= "name";
 
@@ -363,7 +364,7 @@ $tabfieldinsert[30]= ",fx_kind_assets,fx_trademark,Model,Description";
 $tabfieldinsert[31]= "name";
 $tabfieldinsert[32]= "name";
 $tabfieldinsert[33]= "name";
-$tabfieldinsert[34]= "name";
+$tabfieldinsert[34]= "name,fk_respon_id";
 $tabfieldinsert[35]= "name,fx_measurement";
 $tabfieldinsert[36]= "name";
 
@@ -613,6 +614,7 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
 //            die();
 //        }
         if ($id == 30 && ($value == 'Model' || $value == 'Description'||($value == 'Trademark'&&!isset($_POST['Trademark']))))continue;
+		if ($id == 34 && ($value == 'responsibility'))continue;
         if ($id == 35 && ($value == 'ed_name'))continue;
         if ((! isset($_POST[$value]) || $_POST[$value]=='')
         	&& (! in_array($listfield[$f], array('decalage','module','accountancy_code','accountancy_code_sell','accountancy_code_buy')))  // Fields that are not mandatory
@@ -713,7 +715,15 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
         foreach ($listfieldinsert as $f => $value)
         {
 
-            if($id == 30 && ($listfieldvalue[$i] == 'LineActive')){
+            if($id == 30 && ($listfieldvalue[$i] == 'LineActive')) {
+			}elseif($id == 34 && ($listfieldvalue[$i] == 'responsibility')){
+//				echo '<pre>';
+//				var_dump($listfieldvalue[$i]);
+//				var_dump($_POST);
+//				echo '</pre>';
+//				die();
+				if ($added) $sql .= ",";
+				$sql .= $_POST[$listfieldvalue[$i]];
             }else {
                 if ($value == 'price' || preg_match('/^amount/i', $value)) {
                     $_POST[$listfieldvalue[$i]] = price2num($_POST[$listfieldvalue[$i]], 'MU');
@@ -736,6 +746,7 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
             $i++;
         }
         $sql.=",1".($id>=25?(",".$user->id):"").")";
+//var_dump($_POST);
 //die($sql);
         dol_syslog("actionadd", LOG_DEBUG);
         $result = $db->query($sql);
@@ -968,7 +979,7 @@ if ($id)
         $sql.=" ORDER BY ";
     }
     $sql.=$tabsqlsort[$id];
-//    if($id == 28){
+//    if($id == 34){
 //        die($sql);
 //    }
     $sql.=$db->plimit($listlimit+1,$offset);
@@ -1667,6 +1678,15 @@ function fieldList($fieldlist,$obj='',$tabname='')
             print $form->selecttrademark($fieldlist[$field]);
             print '</td>';
         }
+		//Сфера відповідальності
+        elseif ($fieldlist[$field] == 'responsibility' && ($tabname ==  MAIN_DB_PREFIX."c_groupoftask"))
+		{
+			require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/societe/societecontact_class.php';
+			$soc_contact = new societecontact();
+            print '<td align="left">';
+            print $soc_contact->selectResponsibility('responsibility',$soc_contact->SphereOfResponsibility);
+            print '</td>';
+		}
         //напрямок в моделі
         elseif ($fieldlist[$field] == 'LineActive' && ($tabname ==  MAIN_DB_PREFIX."c_model"))
         {

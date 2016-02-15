@@ -105,7 +105,8 @@ function save_item(tablename, paramfield, sendtable){
         var editor = document.getElementsByClassName('popup');
         var input_field = editor[0].getElementsByTagName('input');
         var fields='', values ='';
-
+        //console.log(input_field);
+        //return;
         for(var i=0;i<input_field.length;i++){
             if(input_field[i].type != 'hidden' && input_field[i].id.substr(0, 5) == 'edit_'){
                 var fieldname = input_field[i].id.substring(5);
@@ -221,11 +222,13 @@ function save_item(tablename, paramfield, sendtable){
             link += "&rowid="+sID;
         else {
             console.log('Добавление новой записи '+sID);
-            add_item();
+            //add_item();
         }
-
+        //console.log(link);
+        //return;
         save_data(link);
         location.href = '#close';
+        //location.href='';
     }
 }
 function setHightTable(table){
@@ -613,61 +616,65 @@ function save_data(link){
         cache: false,
         success: function (html) {
             console.log('***'+html+'***');
+            location.reload();
+            return;
             var rowid = html;
             var tr = document.getElementById("0");
             if(tr == null)
                 tr = document.getElementById('tr'+rowid);
-            tr.id='tr'+rowid;
-            var tdlist = tr.getElementsByTagName('td');
-            for(var i=0; i<tdlist.length;i++){
-                if(tdlist[i].id.substr(0,1)=='0'){
-                    tdlist[i].id = rowid+tdlist[i].id.substr(1);
-                }
-                if(tdlist[i].getElementsByTagName('img').length>0){
-                    var imglist = tdlist[i].getElementsByTagName('img');
-                    var img = imglist[0];
-                    if(img.id.substring(0,4) == 'img0') {
-                        var begin = strpos(link, '=')+1;
-                        var end = strpos(link, '&');
-                        var tablename = link.substr(begin, end-begin)
-                        var fieldname= img.id.substring(4);
-                        img.id='img'+rowid+img.id.substring(4);
-                        img.onclick = function () {
-                            change_switch(rowid, tablename, fieldname);
-                        }
-                    }else {
-                        if(img.id == null) {
+            if(tr != null) {
+                tr.id = 'tr' + rowid;
+                var tdlist = tr.getElementsByTagName('td');
+                for (var i = 0; i < tdlist.length; i++) {
+                    if (tdlist[i].id.substr(0, 1) == '0') {
+                        tdlist[i].id = rowid + tdlist[i].id.substr(1);
+                    }
+                    if (tdlist[i].getElementsByTagName('img').length > 0) {
+                        var imglist = tdlist[i].getElementsByTagName('img');
+                        var img = imglist[0];
+                        if (img.id.substring(0, 4) == 'img0') {
+                            var begin = strpos(link, '=') + 1;
+                            var end = strpos(link, '&');
+                            var tablename = link.substr(begin, end - begin)
+                            var fieldname = img.id.substring(4);
+                            img.id = 'img' + rowid + img.id.substring(4);
                             img.onclick = function () {
-                                edit_item(rowid)
-                            };
+                                change_switch(rowid, tablename, fieldname);
+                            }
+                        } else {
+                            if (img.id == null) {
+                                img.onclick = function () {
+                                    edit_item(rowid)
+                                };
+                            }
                         }
                     }
-                }
-                if(tdlist[i].getElementsByTagName('select').length>0){
-                    //console.log($('select#edit_regions_name').val());
-                    var selectList = tdlist[i].getElementsByTagName('select');
+                    if (tdlist[i].getElementsByTagName('select').length > 0) {
+                        //console.log($('select#edit_regions_name').val());
+                        var selectList = tdlist[i].getElementsByTagName('select');
 
-                    var select = selectList[0];
-                    //console.log(select);
-                    var detail_field = select.id.substring(6 + rowid.length);
-                    //var select_field = $('select#edit_'+select.id.substring(6+rowid.length));
-                    //console.log(detail_field, 522);
-                    //var detail_id = 'detail_' + select_field[0].id.substr(5);
-                    //
-                    //var detail_field = document.getElementById(detail_id);
-                    //console.log($('select#edit_' + tdlist[i].id.substr(html.length+2)).val());
-                    select.onchange = function () {
-                        change_select(rowid, tablename, detail_field);
+                        var select = selectList[0];
+                        //console.log(select);
+                        var detail_field = select.id.substring(6 + rowid.length);
+                        //var select_field = $('select#edit_'+select.id.substring(6+rowid.length));
+                        //console.log(detail_field, 522);
+                        //var detail_id = 'detail_' + select_field[0].id.substr(5);
+                        //
+                        //var detail_field = document.getElementById(detail_id);
+                        //console.log($('select#edit_' + tdlist[i].id.substr(html.length+2)).val());
+                        select.onchange = function () {
+                            change_select(rowid, tablename, detail_field);
+                        }
+                        if (select.id == null)
+                            select.id = 'select' + rowid + detail_field.value;
+                        //console.log("select#" + select.id + "  [value=" + $('select#edit_' + tdlist[i].id.substr(html.length) + '').val() + "]", 531);
+                        $("select#" + select.id + "  [value=" + $('select#edit_' + tdlist[i].id.substr(html.length + 2)).val() + "]").attr("selected", "selected");
                     }
-                    if (select.id == null)
-                        select.id = 'select' + rowid + detail_field.value;
-                    //console.log("select#" + select.id + "  [value=" + $('select#edit_' + tdlist[i].id.substr(html.length) + '').val() + "]", 531);
-                    $("select#" + select.id + "  [value=" + $('select#edit_' + tdlist[i].id.substr(html.length+2)).val() + "]").attr("selected", "selected");
+
                 }
 
+                document.getElementById('edit_rowid').value = html;
             }
-            
-            document.getElementById('edit_rowid').value=html;
         }
     });
 

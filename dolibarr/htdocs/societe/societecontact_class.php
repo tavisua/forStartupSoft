@@ -122,11 +122,12 @@ class societecontact {
         $resql = $db->query($sql);
         if ($resql) {
             $out .= '<select id = "'.$htmlname.'" class="combobox" name="' . $htmlname . '">';
+            $out .='<option selected="selected" disabled="disabled" value="0">Вкажіть сферу відповідальності</option>';
             $num = $db->num_rows($resql);
             $i = 0;
             if ($num) {
                 $country = '';
-                $out .= '<option value="0">&nbsp;</option>';
+                $out .= '<option value="0">Всі</option>';
                 while ($i < $num) {
                     $obj = $db->fetch_object($resql);
                     if (!empty($respon_id) && $respon_id == $obj->rowid) {

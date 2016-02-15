@@ -29,6 +29,9 @@ NoRecordFound=Записів не знайдено
 NoError=Немає помилок
 Error=Помилка
 Choose=Вибрати
+responsibility=Сфера відповідальності
+Responsibility=Сфера відповідальності
+
 ErrorFieldRequired=Поле '%s' є обов'язковим
 ErrorFieldFormat=Поле '%s' містить помилкове значення
 ErrorFileDoesNotExists=Файл %s не існує

@@ -29,6 +29,7 @@
 
 require '../../main.inc.php';
 
+
 if($_GET['action']=='get_exectime'){
     global $db;
     $sql = "select exec_time from llx_c_actioncomm where active = 1 and code='".$_GET['code']."' limit 1";
