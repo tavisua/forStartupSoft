@@ -2,7 +2,7 @@
 
         <div class="tabs" id="tabs_area" data-role="controlgroup" data-type="horizontal">
             <div class="inline-block tabsElem tabsElemActive">
-                <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/soc.php?mainmenu=companies&idmenu=5217&action=edit&socid=<? echo $object->id?>"><? echo $langs->trans('BasicInfo')?></a>
+                <a id="user" class="tabactive tab inline-block" data-role="button" href="/"><? echo $langs->trans('BasicInfo')?></a>
             </div>
             <div  class="inline-block tabsElem" id="Calculator">
                 <a href="/"class="tab inline-block" data-role="button"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<? echo $langs->trans('Calculator')?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b></a>
@@ -27,17 +27,19 @@
             <th width="50px" class="small_size" rowspan="2">Виконати  кінцево до</th>
             <th width="50px" class="small_size" rowspan="2">Задачу отримано</th>
 
-            <th colspan="2" id="comerc_action">Дії відповідального</th>
+            <th colspan="3" id="comerc_action">Дії відповідального</th>
             <th colspan="2" id="mentor_action">Перевірки наставником</th>
             <th width="50px" class="small_size" rowspan="2">Відмітка : особливе, важливе</th>
             <th width="50px" class="small_size" rowspan="2">Статус завдання</th>
             <th width="50px" class="small_size" rowspan="2" title="Підтвердження про виконання">Підтв. про викон.</th>
+            <th width="25px" class="small_size" rowspan="2"></th>
             <th width="25px" class="small_size" rowspan="2"></th>
 
         </tr>
         <tr class="multiple_header_table">
             <th width="75px" class="middle_size">Останні</th>
             <th width="75px" class="middle_size">Майбутні</th>
+            <th width="40px" class="middle_size">Необх. часу, хв</th>
             <th width="75px" class="middle_size">Останні</th>
             <th width="75px" class="middle_size">Майбутні</th>
         </tr>
@@ -69,8 +71,13 @@
         $('#mentor').offset({top:150, left:$('#mentor_action').offset().left});
         $('#tabs_area').width(600);
         $('#reference_body').offset({left:22});
-        $('#reference_body').width(TotalWidth+30);
+        $('#reference_body').width(TotalWidth+20);
     })
+    function PrepareOrder(order_id){
+        var link = "http://"+location.hostname+'/dolibarr/htdocs/orders.php?idmenu=10426&mainmenu=orders&leftmenu=&type_action=prepare_order&order_id='+order_id;
+        location.href = link;
+//        console.log(order_id, link);
+    }
     function ConfirmReceived(id){
         var src = $('img#confirm' + id).attr('src');
         var img_src = (src.substr(src.length-'uncheck.png'.length, 'uncheck.png'.length));

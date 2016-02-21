@@ -54,6 +54,9 @@ if($_REQUEST['action']=='registerphone'){
             dol_print_error($db);
         }
 //        die($sql);
+    }else{
+        $fp = fopen('C:\temp\job.json', 'a+');
+        fwrite($fp, '{"call":"'.str_replace('*','+', $_GET['phonenumber']).'"}');
     }
     exit();
 }

@@ -55,6 +55,11 @@ function user_prepare_head($object)
         $head[$h][1] = $langs->trans("Areas");
         $head[$h][2] = 'areas';
         $h++;
+    }elseif($object->respon_alias == 'purchase'){
+        $head[$h][0] = DOL_URL_ROOT.'/user/lineactive.php?id='.$object->id.'&mainmenu=tools&idmenu=5223';
+        $head[$h][1] = $langs->trans("PropLineActive");
+        $head[$h][2] = 'lineactive';
+        $h++;
     }
 
 	if (! empty($conf->ldap->enabled) && ! empty($conf->global->LDAP_SYNCHRO_ACTIVE))

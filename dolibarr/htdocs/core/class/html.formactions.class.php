@@ -56,6 +56,29 @@ class FormActions
      *  @param	string	$onlyselect		0=Standard, 1=Hide percent of completion and force usage of a select list, 2=Same than 1 and add "Incomplete (Todo+Running)
      * 	@return	void
      */
+	function select_groupoftask($formname, $respon_id, $selected=0){
+		$sql = '(select rowid, name
+			from `llx_c_groupoftask`
+			where `llx_c_groupoftask`.`fk_respon_id` = 0
+			and active = 1)
+			union
+			(select rowid, name
+			from `llx_c_groupoftask`
+			where `llx_c_groupoftask`.`fk_respon_id` = '.$respon_id.'
+			and active = 1)
+			order by name';
+//		var_dump($sql);
+		$res = $this->db->query($sql);
+		if(!$res)
+			dol_print_error($this->db);
+		$out = '<select name="'.$formname.'" id="select'.$formname.'" class="combobox">';
+		$out .= '<option value="-1"></option>';
+		while($obj = $this->db->fetch_object($res)){
+			$out .= '<option value="'.$obj->rowid.'" '.($selected == $obj->rowid?'selected="selected"':'').'>'.$obj->name.'</option>';
+		}
+		$out .= '</select>';
+		print $out;
+	}
     function form_select_status_action($formname,$selected,$canedit=1,$htmlname='complete',$showempty=0,$onlyselect=0)
     {
         global $langs,$conf;

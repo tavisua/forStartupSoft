@@ -954,6 +954,7 @@ if (! function_exists("llxHeader"))
 	    global $conf, $user, $langs;
 	    // html header
 		top_htmlhead($head, $title, $disablejs, $disablehead, $arrayofjs, $arrayofcss);
+
 //        $loginphone_form = "<a href='#x' onclick='close_registerform();' class='overlay' id='login_phone'></a>
 //                     <div class='popup' id='login_phoneform' style='width: 300px;display: none'>
 //                        <form >
@@ -965,15 +966,13 @@ if (! function_exists("llxHeader"))
 //                        <button onclick='close_registerform();'>".$langs->trans('Cancel')."</button>
 //                            <a class='close' title='Закрыть' href='#close'></a>
 //                     </div>
-//                     <script>
+
+
+
 //                        function registerphone(){
 //                            $('input#registerphone').val('+380');
 //                            location.href = '#login_phone';
 //                            $('#login_phoneform').show();
-//                        }
-//                        function close_registerform(){
-//                            location.href ='#close';
-//                            $('#login_phoneform').hide();
 //                        }
 //                        function save_registeredphone(){
 //                            if($('input#registerphone').val().length!=13){
@@ -1309,6 +1308,12 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
                             setHightTable("reference_body");
                 })</script>'."\n";
             }
+        print '<script type="text/javascript">
+            function close_registerform(){
+                location.href ="#close";
+                $(".popupmenu").hide();
+            }
+        </script>';
             // jQuery jMobile
             if (! empty($conf->global->MAIN_USE_JQUERY_JMOBILE) || defined('REQUIRE_JQUERY_JMOBILE') || (! empty($conf->dol_use_jmobile) && $conf->dol_use_jmobile > 0))
             {
@@ -1369,12 +1374,13 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
             }else
                 print '<script type="text/javascript" src="/dolibarr/scripts/js/table_manager.js'.($ext?'?'.$ext:'').'"></script>'."\n";
 
+            print '<script type="text/javascript" src="/dolibarr/htdocs/societe/js/jquery.maskedinput-1.2.2.js'.($ext?'?'.$ext:'').'"></script>'."\n";
             //RequiredPage
-            if(!isset($_REQUEST['redirect']) && isset($_REQUEST['mainmenu'])){
-                print '<script type="text/javascript" src="/dolibarr/scripts/js/jquery.cookie.js"></script>
-	            <script type="text/javascript" src="/dolibarr/scripts/js/general.js"></script>';
-                print "<script>GotoRequiredPage('" . (isset($_REQUEST['redirect']) ? '' : trim($_REQUEST['mainmenu'])) . "')</script>";
-            }
+//            if(!isset($_REQUEST['redirect']) && isset($_REQUEST['mainmenu'])){
+//                print '<script type="text/javascript" src="/dolibarr/scripts/js/jquery.cookie.js"></script>
+//	            <script type="text/javascript" src="/dolibarr/scripts/js/general.js"></script>';
+//                print "<script>GotoRequiredPage('" . (isset($_REQUEST['redirect']) ? '' : trim($_REQUEST['mainmenu'])) . "')</script>";
+//            }
 
             // JS forced by modules (relative url starting with /)
             if (! empty($conf->modules_parts['js']))		// $conf->modules_parts['js'] is array('module'=>array('file1','file2'))

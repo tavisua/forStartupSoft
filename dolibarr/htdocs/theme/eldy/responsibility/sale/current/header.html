@@ -51,9 +51,9 @@
         <td>простроч.</td>
     </tr>
     <tr>
-        <td class="autoinsert">3835</td>
-        <td class="autoinsert">7482</td>
-        <td class="autoinsert">7482</td>
+        <td class="autoinsert" id="my_fact"></td>
+        <td class="autoinsert" id="my_plan"></td>
+        <td class="autoinsert" id="my_outstanding"></td>
     </tr>
     </table>
 
@@ -82,3 +82,18 @@
     </table>
 </div>
 <div style=" width:100%; height:1px; clear:both;">.</div>
+<script>
+    $(document).ready(function(){
+        $.ajax({
+            url:'/dolibarr/htdocs/day_plan.php?action=getuserplan&mainmenu=<?=$_REQUEST["mainmenu"]?>&id_usr=<?=$user->id?>',
+            cache:false,
+            success:function(html){
+                var obj = $.parseJSON(html);
+                $('#my_fact').html(obj.fakt_today);
+                $('#my_plan').html(obj.future_today);
+                $('#my_outstanding').html(obj.outstanding);
+                console.log(html);
+            }
+        })
+    })
+</script>

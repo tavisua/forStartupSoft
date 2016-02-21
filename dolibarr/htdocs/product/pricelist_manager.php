@@ -96,13 +96,13 @@ if(isset($_REQUEST['product_id'])){
     }
     $linkpage = $_SERVER["SCRIPT_NAME"].'?mainmenu=tools&product_id='.$_REQUEST['product_id'].'&id_cat='.$id_cat;
     switch($_REQUEST['page']) {
-        case 'spare_parts': {//запчастини
+        case 'spare_parts': {//унікальні з/ч
             $Table = '<div id="groupproducts" style="float: left;width: 300px">'.ShowCategories().'</div>';
             $Table .= '<div style="float: left;width: 500px;margin-top: -19px">';
             $Table .= $product_static->ShowSpareParts($_REQUEST['product_id']).'</body></table></div>';
             include($_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/theme/eldy/products/spare_parts.html');
         }break;
-        case 'working_units': {//Робочі органи
+        case 'working_units': {//стандартні вироби
             $Table = '<div id="groupproducts" style="float: left;width: 300px">'.ShowCategories().'</div>';
             $Table .= '<div style="float: left;width: 500px;margin-top: -19px">';
             $Table .= $product_static->ShowWorkingUnits($_REQUEST['product_id']).'</body></table></div>';

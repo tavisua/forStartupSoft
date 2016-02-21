@@ -856,27 +856,46 @@ else
             <div class="inline-block tabsElem tabsElemActive">
             <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/soc.php?mainmenu=companies&idmenu=5217&action=edit&socid='.$object->id.'">'.$langs->trans('BasicInfo').'</a>
             </div>
-            <div class="inline-block tabsElem" id="inactiveTab">
-                <b class="tab inline-block" data-role="button">'.$langs->trans('AddressList').'</b>
+            <div class="inline-block tabsElem">
+                <b class="tab inline-block inactiveTab" data-role="button">'.$langs->trans('AddressList').'</b>
             </div>
-            <div class="inline-block tabsElem" id="inactiveTab">
-                <b class="tab inline-block" data-role="button">'.$langs->trans('ContactList').'</b>
+            <div class="inline-block tabsElem">
+                <b class="tab inline-block inactiveTab" data-role="button">'.$langs->trans('ContactList').'</b>
             </div>';
-        if($user->respon_alias == 'sale')
-            print '
-            <div class="inline-block tabsElem" id="inactiveTab">
-                <b class="tab inline-block" data-role="button">'.$langs->trans('EconomicData').'</b>
-            </div>';
-        elseif($user->respon_alias == 'purchase')
-            print '
-            <div class="inline-block tabsElem" id="inactiveTab">
-                <b class="tab inline-block" data-role="button">'.$langs->trans('LineAction').'</b>
-            </div>';
-        print '<div class="inline-block tabsElem" id="inactiveTab">
-            <b class="tab inline-block" data-role="button">'.$langs->trans('FinanceAndDetails').'</b>
+        $sql = "select `responsibility_param`.`fx_category_counterparty` category_id from `responsibility`
+            inner join `responsibility_param` on `responsibility_param`.`fx_responsibility` = `responsibility`.`rowid`
+            where `responsibility`.`alias`='sale'";
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+        $sales_category = array();
+        while($obj = $db->fetch_object($res)){
+            $sales_category[]=$obj->category_id;
+        }
+        $sql = "select `responsibility_param`.`fx_category_counterparty` category_id from `responsibility`
+            inner join `responsibility_param` on `responsibility_param`.`fx_responsibility` = `responsibility`.`rowid`
+            where `responsibility`.`alias`='purchase'";
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+        $purchase_category = array();
+        while($obj = $db->fetch_object($res)){
+            $purchase_category[]=$obj->category_id;
+        }
+        if(in_array($object->categoryofcustomer_id, $sales_category))
+            print '<div class="inline-block tabsElem">
+                            <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('EconomicData').'</a>
+                        </div>';
+        elseif(in_array($object->categoryofcustomer_id, $purchase_category)) {
+            print '<div class="inline-block tabsElem">
+                            <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('LineActive').'</a>
+                        </div>';
+        }
+        print '<div class="inline-block tabsElem" >
+            <b class="tab inline-block inactiveTab" data-role="button">'.$langs->trans('FinanceAndDetails').'</b>
         </div>
-        <div class="inline-block tabsElem" id="inactiveTab">
-            <b class="tab inline-block" data-role="button">'.$langs->trans('PartnersOfCustomer').'</b>
+        <div class="inline-block tabsElem">
+            <b class="tab inline-block inactiveTab" data-role="button">'.$langs->trans('PartnersOfCustomer').'</b>
         </div>';
         print '</div>
         <div class="tabPage">';
@@ -1848,15 +1867,35 @@ else
             <div class="inline-block tabsElem">
                 <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societecontact.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('ContactList').'</a>
             </div>';
-            if($user->respon_alias == 'sale')
-                print '<div class="inline-block tabsElem">
-                    <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('EconomicData').'</a>
-                </div>';
-            elseif($user->respon_alias == 'purchase') {
-                print '<div class="inline-block tabsElem">
-                    <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('LineActive').'</a>
-                </div>';
-            }
+        $sql = "select `responsibility_param`.`fx_category_counterparty` category_id from `responsibility`
+            inner join `responsibility_param` on `responsibility_param`.`fx_responsibility` = `responsibility`.`rowid`
+            where `responsibility`.`alias`='sale'";
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+        $sales_category = array();
+        while($obj = $db->fetch_object($res)){
+            $sales_category[]=$obj->category_id;
+        }
+        $sql = "select `responsibility_param`.`fx_category_counterparty` category_id from `responsibility`
+            inner join `responsibility_param` on `responsibility_param`.`fx_responsibility` = `responsibility`.`rowid`
+            where `responsibility`.`alias`='purchase'";
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+        $purchase_category = array();
+        while($obj = $db->fetch_object($res)){
+            $purchase_category[]=$obj->category_id;
+        }
+        if(in_array($object->categoryofcustomer_id, $sales_category))
+            print '<div class="inline-block tabsElem">
+                            <a id="user" class=" tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('EconomicData').'</a>
+                        </div>';
+        elseif(in_array($object->categoryofcustomer_id, $purchase_category)) {
+            print '<div class="inline-block tabsElem">
+                            <a id="user" class=" tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('LineActive').'</a>
+                        </div>';
+        }
             print '<div class="inline-block tabsElem">
                 <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/finance.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&socid='.$object->id.'">'.$langs->trans('FinanceAndDetails').'</a>
             </div>
@@ -2929,8 +2968,22 @@ else
 }
 //var_dump($action == 'edit');
 //die();
+$countrycode = $object->getCountryCode();
+
 print '
 <script type="text/javascript">
+    $(function($) {
+        $.mask.definitions["~"]="[+-]";
+        $("#BirthdayDate").mask("99.99.9999");
+        $("#phone").mask("+'.$countrycode.'(099) 999-9999");
+        $("#mobile_phone1").mask("'.$countrycode.'(099) 999-9999");
+        $("#mobile_phone2").mask("'.$countrycode.'(099) 999-9999");
+//        $("#phoneext").mask("(999) 999-9999? x99999");
+//        $("#tin").mask("99-9999999");
+//        $("#ssn").mask("999-99-9999");
+//        $("#product").mask("a*-999-a999");
+//        $("#eyescript").mask("~9.99 ~9.99 999");
+    });
     $(function(){
         return;
         //Присоединяем автозаполнение
@@ -3066,5 +3119,5 @@ print '
 
 //print'<div>test</div>';
 // End of page
-llxFooter();
+//llxFooter();
 $db->close();

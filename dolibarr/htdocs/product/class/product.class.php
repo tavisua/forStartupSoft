@@ -313,7 +313,7 @@ class Product extends CommonObject
 		$out .= '</tbody>';
 		return $out;
 	}
-	function ShowOrders($orders_id = 0){
+	function ShowOrders($orders_id = 0, $showprice = true){
 		global $db, $user;
 		$sql = 'select products_id from llx_orders ';
 		if(empty($orders_id))
@@ -335,11 +335,12 @@ class Product extends CommonObject
 				</th>
 				<th>
 					Назва товару
-				</th>
-				<th>
+				</th>';
+		if($showprice)
+			$out .='<th>
 					Ціна
-				</th>
-				<th>
+				</th>';
+		$out .='<th>
 					Потреба
 				</th>
 			</tr>
@@ -354,7 +355,8 @@ class Product extends CommonObject
 			}
 		}
 		$out .= '<tbody>';
-		$result_table = $this->ShowProducts(0, implode(',', array_keys($products)), 'name,price');
+
+		$result_table = $this->ShowProducts(0, implode(',', array_keys($products)), 'name'.($showprice==true?',price':''));
 		$pos = 0;
 
 		while(gettype(strpos($result_table, '<tr id="tr', $pos)) == 'integer') {
@@ -404,7 +406,18 @@ class Product extends CommonObject
 		while($obj = $db->fetch_object($res)){
 			$Producer[$obj->product_id] = trim($obj->text);
 		}
-
+		$sql = 'select lastname from llx_user
+			inner join `llx_user_lineactive` on `llx_user_lineactive`.`fk_user` = `llx_user`.`rowid`
+			where `llx_user_lineactive`.`fk_lineactive` = '.$id_cat.'
+			 and `llx_user_lineactive`.`active`=1';
+		$res = $db->query($sql);
+		if(!$res)
+			dol_print_error($db);
+		$purchaselist = array();
+		if($db->num_rows($res)>0)
+			while($obj = $db->fetch_object($res)){
+				$purchaselist[] = $obj->lastname;
+			}
 		$sql = 'select `oc_product_description`.`product_id`, `oc_product_description`.`name`, `oc_product`.price, `oc_product`.`date_added`,`oc_product`.`date_modified`
 			from `oc_product_to_category`
 			left join `oc_product_description` on `oc_product_description`.`product_id` = `oc_product_to_category`.`product_id`
@@ -431,7 +444,8 @@ class Product extends CommonObject
 			}else
 				$table .= '<td style="width:101px"></td>';
 			$table .= '		<td style="width:201px">'.$obj->name.'</td>';
-			$table .= '		<td style="width:81px" id="price'.$obj->product_id.'">'.round($obj->price, 1).'</td>';
+			if(gettype($fields) == 'string' ||in_array('price',$fields))
+				$table .= '		<td style="width:81px" id="price'.$obj->product_id.'">'.round($obj->price, 1).'</td>';
 			if(gettype($fields) == 'string' ||in_array('currency',$fields))
 				$table .= '		<td style="width:61px">грн</td>';
 			if(gettype($fields) == 'string' ||in_array('type_price',$fields))
@@ -446,7 +460,7 @@ class Product extends CommonObject
 				$table .= '		<td style="width:61px">' . $date_modified->format('d.m.y') . '</td>';
 			}
 			if(gettype($fields) == 'string' ||in_array('purchase_tech',$fields))
-				$table .= '		<td style="width:81px"></td>';
+				$table .= '		<td style="width:81px">'.implode(' ', $purchaselist).'</td>';
 			if(gettype($fields) == 'string' ||in_array('purchase_parts',$fields))
 				$table .= '		<td style="width:81px"></td>';
 			if(gettype($fields) == 'string' ||in_array('count_areas',$fields))

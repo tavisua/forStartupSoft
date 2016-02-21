@@ -67,7 +67,7 @@ function ShowTask(){
     }
 
     //Завантажую завдання
-    $sql = "select id, note, confirmdoc, `datec`, datep2, `dateconfirm`, period, `percent`, `llx_c_groupoftask`.`name` groupoftask
+    $sql = "select id, note, confirmdoc, `datec`, datep2, round((UNIX_TIMESTAMP(datep2)-UNIX_TIMESTAMP(datep))/60,0) iMinute, `dateconfirm`, period, `percent`, `llx_c_groupoftask`.`name` groupoftask
     from `llx_actioncomm`
     left join llx_c_groupoftask on `llx_c_groupoftask`.`rowid` = fk_groupoftask
     where id in (".implode(",", $taskID).")
@@ -131,6 +131,7 @@ function ShowTask(){
             }
             $table .= '<td style="width:76px"><a href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu=global_task">'.$lastaction.'</a></td>';
             $table .= '<td style="width:76px"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td>';
+            $table .= '<td style="width:41px">'.$obj->iMinute.'</td>';
             //Дії наставника
             $table .= '<td style="width:76px"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td><td style="width:76px"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td>';
             //Період виконання

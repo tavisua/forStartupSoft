@@ -1,4 +1,4 @@
-<div class="contant_tble">
+<div class="contant_tble" style="padding-top: 32px">
 
         <div class="tabs" id="tabs_area" data-role="controlgroup" data-type="horizontal">
             <div class="inline-block tabsElem tabsElemActive">
@@ -7,7 +7,6 @@
             <div  class="inline-block tabsElem" id="Calculator">
                 <a href="/dolibarr/htdocs/responsibility/sale/calculator.php?idmenu=10425&mainmenu=area<?= isset($_GET['page'])?('&page='.$_GET['page'].'&per_page='.$_GET['per_page']):''?>"class="tab inline-block" data-role="button"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<? echo $langs->trans('Calculator')?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b></a>
             </div>
-
         </div>
 
     <table  cellspacing="1" class="WidthScroll">
@@ -15,7 +14,7 @@
         <tr class="multiple_header_table">
             <!--<th class="header_table" width="130px">Категорія контрагента</th>-->
             <!--<th class="header_table" width="150px">Засновник, інвестор, холдинг</th>-->
-            <th width="180px" rowspan="2">Назва контрагента</th>
+            <th width="180px" rowspan="2">Назва контрагента <img title="Передивитись"</th>
             <!--<th class="header_page" width="80px">Форма власності</th>-->
             <th width="100px" rowspan="2">Місце знаходження</th>
             <!--<th class="header_page" width="130px">П.І.Б. засновника</th>-->
@@ -48,7 +47,19 @@
     </table>
 
 </div>
+<div id="popupmenu" style="display: none; position: absolute" class="pair popupmenu" >
+    <form id="setfilter" action="" method="get">
+        <input type="hidden" name="mainmenu" value="<?=$_REQUEST['mainmenu']?>">
+        <input type="hidden" name="idmenu" value="<?=$_REQUEST['idmenu']?>">
+        <input type="text" name="filter" value="" id="filter" size="45">
+        <input type="submit" value="Пошук">
+        <input type="button" onclick="closefindmenu();" value="Відміна">
+    </form>
+</div>
         <script>
+            function closefindmenu(){
+                $('#popupmenu').hide();
+            }
             $(document).ready(function(){
                 $('#reference_body').attr('height', window.innerHeight - 420);
                 var th = document.getElementsByTagName('th');
@@ -66,17 +77,33 @@
                     }
                 }
 
-                $('.tabs').offset({top:215, left:left});
+                $('.tabs').offset({top:250, left:left});
 //                console.log($('#comerc_action').width());
-                $('#comerc').offset({top:150, left:$('#comerc_action').offset().left});
-                $('#service').offset({top:150, left:$('#service_action').offset().left});
-                $('#accounts').offset({top:150, left:$('#accounts_action').offset().left});
-                $('#mentor').offset({top:150, left:$('#mentor_action').offset().left});
+                $('#comerc').offset({top:172, left:$('#comerc_action').offset().left});
+                $('#service').offset({top:172, left:$('#service_action').offset().left});
+                $('#accounts').offset({top:172, left:$('#accounts_action').offset().left});
+                $('#mentor').offset({top:172, left:$('#mentor_action').offset().left});
                 $('#tabs_area').width(600);
                 $('#reference_body').offset({left:22});
 ////console.log(TotalWidth, widths);
                 $('#reference_body').width(TotalWidth+30);
             })
+            function clearfilter(){
+//                $('#filter').clean();
+                $('#setfilter').submit();
+            }
+            function showfilter(){
+                $('#popupmenu').width(275);
+                $('#popupmenu').height(50);
+                $('#popupmenu').offset({top:220});
+                $('#popupmenu').show();
+                $('#filter').focus();
+            }
+            $(window).keydown(function(event){ //ловим событие нажатия клавиши
+                if(event.keyCode == 13) { //если это Enter
+                   console.log(event.target.id);
+                }
+            });
 
         </script>
 <script type="text/javascript">

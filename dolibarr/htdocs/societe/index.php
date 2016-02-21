@@ -61,7 +61,35 @@ $Control = $langs->trans('Control');
 $page = isset($_GET['page'])?$_GET['page']:1;
 $per_page = isset($_GET['per_page'])?$_GET['per_page']:30;
 
-$sql = 'select count(*) iCount from llx_societe';
+$sql = 'select count(*) iCount from llx_societe where 1 ';
+$filterid = array();
+if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])){
+    $sql_filter = "select llx_societe.rowid from llx_societe
+    left join `llx_societe_contact` on `llx_societe_contact`.`socid`=`llx_societe`.`rowid`
+    where `llx_societe`.`nom`  like '%".$_REQUEST['filter']."%'
+    or `llx_societe_contact`.`lastname`  like '%".$_REQUEST['filter']."%'
+    or `llx_societe_contact`.`firstname`  like '%".$_REQUEST['filter']."%'
+    or `llx_societe_contact`.`subdivision`  like '%".$_REQUEST['filter']."%'
+    or `llx_societe_contact`.`email1`  like '%".$_REQUEST['filter']."%'
+    or `llx_societe_contact`.`email2`  like '%".$_REQUEST['filter']."%'
+    or `llx_societe_contact`.`mobile_phone1`  like '%".$_REQUEST['filter']."%'
+    or `llx_societe_contact`.`mobile_phone2`  like '%".$_REQUEST['filter']."%'
+    or `llx_societe_contact`.`skype`  like '%".$_REQUEST['filter']."%'";
+    $res = $db->query($sql_filter);
+    if(!$res)
+        dol_print_error($db);
+    $filterid = array();
+    if($db->num_rows($res))
+        while($obj = $db->fetch_object($res)){
+            $filterid[]=$obj->rowid;
+        }
+    if(count($filterid)) {
+        $sql .= ' and `llx_societe`.`rowid` in (' . implode(',', $filterid) . ') ';
+        $sql_count .= ' and `llx_societe`.`rowid` in (' . implode(',', $filterid) . ')';
+    }
+}
+
+
 $res = $db->query($sql);
 if(!$res)
     dol_print_error($db);
@@ -74,7 +102,11 @@ $sql = 'select `llx_societe`.rowid, `category_counterparty`.name as s_category_c
 `llx_societe`.`town`, `llx_societe`.`founder`, `llx_societe`.`phone`, `llx_societe`.`remark`, `llx_societe`.active
 from `llx_societe` left join `category_counterparty` on `llx_societe`.`categoryofcustomer_id` = `category_counterparty`.rowid
 left join `formofgavernment` on `llx_societe`.`formofgoverment_id` = `formofgavernment`.rowid
-order by nom ';
+where 1 ';
+if(count($filterid)) {
+    $sql .= ' and `llx_societe`.`rowid` in (' . implode(',', $filterid) . ') ';
+}
+$sql .='order by nom ';
 $sql .= ' limit '.($page-1)*$per_page.','.$per_page;
 
 
@@ -150,10 +182,13 @@ $table = $db_mysql->fShowTable($TableParam, $sql, "'" . $tablename . "'", $conf-
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/societe.html';
 if(strpos($_SERVER['QUERY_STRING'],'&page='))
     $link_page = $_SERVER['PHP_SELF'].'?'.substr($_SERVER['QUERY_STRING'],0,strpos($_SERVER['QUERY_STRING'],'&page='));
-else
-    $link_page = $_SERVER['PHP_SELF'].'?'.$_SERVER['QUERY_STRING'];
-
+else {
+    $link_page = $_SERVER['PHP_SELF'] . '?' . $_SERVER['QUERY_STRING'];
+//    die($link_page);
+}
+//print $link_page;
 //llxFooter();
+
 
 
 //print '<table border="0" width="100%" class="notopnoleftnoright">';

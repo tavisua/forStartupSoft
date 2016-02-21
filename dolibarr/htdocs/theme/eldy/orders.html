@@ -12,26 +12,57 @@
  </div>
 <div id="savebtn" style="display: none">
     <button style="width: 200px;height: 30px" onclick="showorders();">Відобразити заявку</button>
-    <button style="width: 200px;height: 30px">Зберегти заявку</button>
+    <button style="width: 200px;height: 30px" onclick="preparedorders();">Зберегти заявку</button>
 </div>
-<div id="popupmenu" style="display: none;" class="pair" >
+<div id="popupmenu" style="display: none;" class="pair popupmenu" >
     <table style="background: #ffffff; border-collapse: collapse;" id="popup_table" >
-
     </table>
     <div style="color: #0000FF; font-weight: bold; font-size: 14px; padding: 5px 0px 5px 20px" id="total_price">Загалом на суму </div>
     <div style="text-align: center">
-    <button style="width: 150px;height: 30px">Зберегти заявку</button>
+    <button style="width: 150px;height: 30px" onclick="saveorders();">Зберегти заявку</button>
     <button style="width: 150px;height: 30px" onclick="close_registerform();">Закрити</button>
     </div>
 </div>
+<div id="typicalqueries" style="display: none"  class="pair popupmenu">
+    <div style="color: #0000FF; font-weight: bold; font-size: 14px; padding: 5px 0px 5px 20px" id="title_question">Дозвольте задати Вам останні організаційні запитання...</div>
+    <form id="questions_form" action="?type_action=save_orders" method="post">
+    <input type="hidden" value="" name="order_id">
+    <input type="hidden" value="<?=$_REQUEST['mainmenu']?>" name="mainmenu">
+    <input type="hidden" value="<?=$_REQUEST['idmenu']?>" name="idmenu">
+    <table style="background: #ffffff; border-collapse: collapse;" id="questions" >
+    </table>
+    </form>
+    <div style="text-align: center">
+    <button style="width: 150px;height: 30px" onclick="saveorders();">Зберегти заявку</button>
+    <button style="width: 150px;height: 30px" onclick="close_registerform();">Відмінити</button>
+    </div>
+</div>
+<button style="width: 200px;height: 30px">Створити заявку</button>
+<table>
+    <thead>
+        <tr class="multiple_header_table">
+            <th style="width: 60px" class="middle_size">
+                Дата створен.
+            </th>
+            <th style="width: 200px" class="middle_size">
+                Клієнт
+            </th>
+            <th title="Попередня дата обробки" style="width: 60px" class="middle_size">
+                Попер. дата оброб.
+            </th>
+            <th style="width: 80px" class="middle_size">
+                Статус
+            </th>
+            <th style="width: 80px" class="middle_size">
+                Дії
+            </th>
+        </tr>
+    </thead>
+    <?=$orders?>
+</table>
 <input type="hidden" id="choosed_products" value="">
 <script>
     $(document).ready(function(){
-        
-        if('<?=$_REQUEST["type_action"]?>'.length == 0) {
-            location.href = '#type_action';
-            $('#actionform').show();
-        }else{
             patch_link();
             get_choosed_products();
             $('#first').removeClass("tabpriceactive");
@@ -62,13 +93,34 @@
                 tr.innerHTML+='<td id = "td'+tr.id.substr(2)+'" style="width:50px; text-align: center"><input id="Col'+tr.id.substr(2)+'" onblur="setProductCount(Col'+tr.id.substr(2)+');" class="product_count" value="" type="text" size="4"></td>';
             }
             $('#savebtn').show();
-        }
+
     })
     $(window).click(function(){
         if(location.href.substr(strpos(location.href, "#")) == '#close'){
             $('#popupmenu').hide();
         }
     });
+    function saveorders(){
+        if(confirm('Зберегти активну заявку?')) {
+            $('#questions_form').submit();
+        }
+    }
+    function preparedorders(){
+            $('.popupmenu').hide();
+            $('#typicalqueries').css('position', "absolute");
+            $('#typicalqueries').css("top", '150');
+            $('#typicalqueries').css("z-index", '1500000');
+            $('#typicalqueries').css("left", (($(window).width() - 458) / 2));
+//            location.href = '#login_phone';
+            $.ajax({
+            url: '<?=$_SERVER["PHP_SELF"]?>?type_action=get_typical_question',
+            cashe: false,
+            success: function(html){
+                $('#questions').html(html);
+                }
+            })
+        $('#typicalqueries').show();
+    }
     function showorders(){
         $.ajax({
             url: '<?=$_SERVER["PHP_SELF"]?>?type_action=showorders',
@@ -106,7 +158,9 @@
         })
     }
     function patch_link(){
-        var links = document.getElementById('groupproducts').getElementsByTagName('a');
+        var groups = document.getElementById('groupproducts');
+        if(groups != null){
+        var links = groups.getElementsByTagName('a');
         for(var i=0; i<links.length; i++){
             var href = links[i].href;
             links[i].href = href.substr(0, strpos(links[i].href, "#cat"))+'&type_action=<?=$_REQUEST["type_action"]?>&page=<?=$_REQUEST["page"]?>'+links[i].href.substr(strpos(links[i].href, "#cat"));

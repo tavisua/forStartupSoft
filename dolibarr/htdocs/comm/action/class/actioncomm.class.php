@@ -102,6 +102,8 @@ class ActionComm extends CommonObject
     var $location;      // Location
     var $period;        //Period ReExecution
     var $parent_id;     //Parent action id
+    var $order_id;      //Linked order
+    var $groupoftask;   //GroupOfTask
 
 	var $transparency;	// Transparency (ical standard). Used to say if people assigned to event are busy or not by event. 0=available, 1=busy, 2=busy (refused events)
     var $priority;      // Small int (0 By default)
@@ -200,8 +202,22 @@ class ActionComm extends CommonObject
         $result = $db->fetch_array($res);
         return $result[$name];
     }
-    function GetFirstFreeTime($date, $id_usr, $minutes){
-        $freetime = $this->GetFreeTimePeriod($date, $id_usr);
+    function GetExecTime($code){
+        global $db;
+        $sql = "select exec_time from llx_c_actioncomm where active = 1 and code='".$code."' limit 1";
+        $res = $db->query($sql);
+        if(!$res){
+            var_dump($sql);
+            dol_print_error($db);
+        }
+        $obj = $db->fetch_object($res);
+        $exec_time = $obj->exec_time;
+        if(empty($exec_time))
+            $exec_time = 0;
+        return $exec_time;
+    }
+    function GetFirstFreeTime($date, $id_usr, $minutes, $prioritet = 0){
+        $freetime = $this->GetFreeTimePeriod($date, $id_usr, $prioritet);
 //        echo '<pre>';
 //        var_dump($freetime);
 //        echo '</pre>';
@@ -213,13 +229,14 @@ class ActionComm extends CommonObject
         }
         return 0;
     }
-    function GetFreeTimePeriod($date, $id_usr){
+    function GetFreeTimePeriod($date, $id_usr, $prioritet){
         global $db;
         $date = new DateTime($date);
         $sql = "select `llx_actioncomm`.`id`, `llx_actioncomm`.`datep`, `llx_actioncomm`.`datep2` from `llx_actioncomm`
             inner join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.id
             where `llx_actioncomm`.`datep` between '".$date->format('Y-m-d')."' and adddate('".$date->format('Y-m-d')."', interval 1 day)
             and `llx_actioncomm_resources`.`fk_element` = ".$id_usr."
+            and `llx_actioncomm`.`priority` = ".(empty($prioritet)?0:$prioritet)."
             order by `llx_actioncomm`.`datep`";
         $res = $db->query($sql);
         if(!$res)
@@ -244,7 +261,9 @@ class ActionComm extends CommonObject
     }
     function add($user,$notrigger=0)
     {
+//        echo '<pre>';
 //        var_dump($this);
+//        echo '</pre>';
 //        die();
         global $langs,$conf,$hookmanager;
 
@@ -341,7 +360,8 @@ class ActionComm extends CommonObject
         $sql.= "elementtype,";
         $sql.= "entity,";
         $sql.= "confirmdoc,";
-        $sql.= "period";
+        $sql.= "period,";
+        $sql.= "fk_order_id";
         $sql.= ") VALUES (";
         $sql.= "'".$this->db->idate($now)."',";
         $sql.= (strval($this->datep)!=''?"'".$this->db->idate($this->datep)."'":"null").",";
@@ -363,7 +383,8 @@ class ActionComm extends CommonObject
         $sql.= (! empty($this->elementtype)?"'".$this->elementtype."'":"null").",";
         $sql.= $conf->entity.",";
         $sql.= "'".$this->confirmdoc."',";
-        $sql.= "'".$this->period."'";
+        $sql.= "'".$this->period."',";
+        $sql.= " ".(! empty($this->order_id)?"'".$this->order_id."'":"null");
         $sql.= ")";
 //        die($sql);
         dol_syslog(get_class($this)."::add", LOG_DEBUG);
@@ -467,6 +488,7 @@ class ActionComm extends CommonObject
         $sql.= " a.tms as datem,";
         $sql.= " a.code, a.label, a.note,";
         $sql.= " a.fk_soc,";
+        $sql.= " a.fk_groupoftask,";
         $sql.= " a.fk_project,";
         $sql.= " a.fk_user_author, a.fk_user_mod,";
         $sql.= " a.fk_user_action, a.fk_user_done,";
@@ -510,6 +532,7 @@ class ActionComm extends CommonObject
                 $this->datef				= $this->db->jdate($obj->datep2);
 //				$this->durationp			= $this->durationp;					// deprecated
                 $this->period               = $obj->period;
+                $this->groupoftask          = $obj->fk_groupoftask;
 
                 $this->datec   				= $this->db->jdate($obj->datec);
                 $this->datem   				= $this->db->jdate($obj->datem);
@@ -731,10 +754,11 @@ class ActionComm extends CommonObject
         $sql.= ", fk_user_mod = '".$user->id."'";
         $sql.= ", fk_user_action=".($userownerid > 0 ? "'".$userownerid."'":"null");
         $sql.= ", fk_user_done=".($userdoneid > 0 ? "'".$userdoneid."'":"null");
+        $sql.= ", fk_groupoftask=".($this->groupoftask > 0 ? $this->groupoftask :"null");
         if (! empty($this->fk_element)) $sql.= ", fk_element=".($this->fk_element?$this->fk_element:"null");
         if (! empty($this->elementtype)) $sql.= ", elementtype=".($this->elementtype?"'".$this->elementtype."'":"null");
         $sql.= " WHERE id=".$this->id;
-
+//        die($sql);
         dol_syslog(get_class($this)."::update", LOG_DEBUG);
         if ($this->db->query($sql))
         {

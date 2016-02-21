@@ -1225,7 +1225,7 @@ class Form
      * 	@return	string					HTML select string
      *  @see select_dolgroups
      */
-    function selectLineAction($selected='', $htmlname, $size=5){
+    function selectLineAction($selected=array(), $htmlname, $size=5){
         global $db, $langs;
         $sql = "SELECT DISTINCT c.category_id, c.parent_id, cd2.name,  (SELECT  GROUP_CONCAT(cd1.name ORDER BY level SEPARATOR ' &gt; ')
             FROM oc_category_path cp LEFT JOIN oc_category_description cd1 ON (cp.path_id = cd1.category_id AND cp.category_id != cp.path_id) WHERE cp.category_id = c.category_id AND cd1.language_id = 4 GROUP BY cp.category_id) AS path
@@ -1263,7 +1263,7 @@ class Form
             }
             $sub_category[$group_id]=explode(',', $subcatstr);
         }
-        $seleced_array = explode(',', $selected);
+//        $seleced_array = explode(',', $selected);
         $out = '<select id="select_lineaction" name="select_lineaction" size="'.$size.'" '.($size>1?'multiple=""':'').' class="combobox">';
         $index = 0;
         while(count($basic_group)) {
@@ -1278,8 +1278,10 @@ class Form
                 for($i=count($sub_category[$catalog_id])-1; $i>=0; $i--) {
                     array_unshift($basic_group, $sub_category[$catalog_id][$i]);
                 }
-            }else
-                $out .= '<option '.(in_array($catalog_id, $seleced_array)?'selected="selected"':'').' value="' . $catalog_id . '">' .$space_item.$categries[$catalog_id][0] . '</option>';
+            }else {
+//                $out .= '<option value="' . $catalog_id . '">' . $space_item . $categries[$catalog_id][0] . '</option>';
+                $out .= '<option ' . (in_array($catalog_id, $selected) ? 'selected="selected"' : '') . ' value="' . $catalog_id . '">' . $space_item . $categries[$catalog_id][0] . '</option>';
+            }
             $index++;
 //            if($index>10)break;
         }

@@ -28,20 +28,12 @@
  */
 
 require '../../main.inc.php';
-
+require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
 
 if($_GET['action']=='get_exectime'){
-    global $db;
-    $sql = "select exec_time from llx_c_actioncomm where active = 1 and code='".$_GET['code']."' limit 1";
-    $res = $db->query($sql);
-    if(!$res){
-        var_dump($sql);
-        dol_print_error($db);
-    }
-    $obj = $db->fetch_object($res);
-    $exec_time = $obj->exec_time;
-    if(empty($exec_time))
-        $exec_time = 0;
+
+	$Action = new ActionComm($db);
+	$exec_time = $Action->GetExecTime($_GET['code']);
     echo $exec_time;
     exit();
 }elseif($_GET['action']=='get_contactlist'){
@@ -49,6 +41,16 @@ if($_GET['action']=='get_exectime'){
     $form = new Form($db);
     $list = $form->select_contacts($_GET['socid'], '','contactid',1);
     echo $list;
+    exit();
+}elseif($_GET['action']=='delete_action'){
+	global $db;
+    $sql = 'update llx_actioncomm set active = 0 where id='.$_GET['rowid'];
+    $res = $db->query($sql);
+    if(!$res){
+        var_dump($sql);
+        dol_print_error($db);
+    }
+    echo 1;
     exit();
 }elseif($_GET['action']=='received_action'){
     global $db;
@@ -61,10 +63,10 @@ if($_GET['action']=='get_exectime'){
     return 1;
     exit();
 }elseif($_GET['action']=='get_freetime'){
-	require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
+
 	global $db, $user;
 	$Action = new ActionComm($db);
-	$freetime = $Action->GetFirstFreeTime($_GET['date'], $user->id, $_GET['minute']);
+	$freetime = $Action->GetFirstFreeTime($_GET['date'], $user->id, $_GET['minute'], $_GET['priority']);
 //	echo '<pre>';
 //	var_dump($freetime);
 //	echo '</pre>';
@@ -448,6 +450,7 @@ if ($action == 'update')
         $object->fulldayevent= GETPOST("fullday")?1:0;
 		$object->location    = GETPOST('location');
 		$object->socid       = GETPOST("socid");
+        $object->groupoftask = GETPOST('groupoftask');
 
 
         $object->contactid   = GETPOST("contactid",'int');
@@ -828,6 +831,23 @@ if ($action == 'create')
 		print $form->select_dolusers(GETPOST("doneby")?GETPOST("doneby"):(! empty($object->userdoneid) && $percent==100?$object->userdoneid:0),'doneby',1);
 		print '</td></tr>';
 	}
+	//GroupOfTask
+	print '<tr><td width="10%">'.$langs->trans("GroupOfTask").'</td>';
+	print '<td>';
+	$percent=-1;
+	if(count($listofuserid) == 1)
+		$formactions->select_groupoftask('groupoftask', $user->respon_id);
+	else{
+		$assigneduser = new User($db);
+		foreach($listofuserid as $id_usr){
+			if($id_usr != $user->id){
+				$assigneduser->fetch($id_usr);
+			}
+		}
+		$formactions->select_groupoftask('groupoftask', $assigneduser->respon_id);
+	}
+
+	print '</td></tr>';
 
 	print '</table>';
 	print '<br><br>';
@@ -897,9 +917,9 @@ if ($action == 'create')
 	}
 
 	// Priority
-//	print '<tr><td class="nowrap">'.$langs->trans("Priority").'</td><td colspan="3">';
-//	print '<input type="text" name="priority" value="'.(GETPOST('priority')?GETPOST('priority'):($object->priority?$object->priority:'')).'" size="5">';
-//	print '</td></tr>';
+	print '<tr><td class="nowrap">'.$langs->trans("Priority").'</td><td colspan="3">';
+	print '<input type="text" id="priority" name="priority"  class="param_item" value="'.(GETPOST('priority')?GETPOST('priority'):($object->priority?$object->priority:'')).'" size="5">';
+	print '</td></tr>';
 
     // ActionDescription
     print '<tr><td valign="top">'.$langs->trans("ActionDescription").'</td><td>';
@@ -1180,7 +1200,23 @@ if ($id > 0)
 			print $form->select_dolusers($object->userdoneid> 0?$object->userdoneid:-1,'doneby',1);
 			print '</td></tr>';
 		}
-
+		//GroupOfTask
+		print '<tr><td width="10%">'.$langs->trans("GroupOfTask").'</td>';
+		print '<td>';
+		$percent=-1;
+//		var_dump(count($listofuserid));
+//		die();
+		if(count($listofuserid) == 1)
+			$formactions->select_groupoftask('groupoftask', $user->respon_id, $object->groupoftask);
+		else{
+			$assigneduser = new User($db);
+			foreach($listofuserid as $id_usr){
+				if($id_usr != $user->id){
+					$assigneduser->fetch($id_usr);
+				}
+			}
+			$formactions->select_groupoftask('groupoftask', $assigneduser->respon_id);
+		}
 		print '</table>';
 
 		print '<br><br>';
@@ -1223,7 +1259,7 @@ if ($id > 0)
 
 		// Priority
 		print '<tr><td nowrap width="30%">'.$langs->trans("Priority").'</td><td colspan="3">';
-		print '<input type="text" name="priority" value="'.($object->priority?$object->priority:'').'" size="5">';
+		print '<input id="priority" type="text" name="priority" value="'.($object->priority?$object->priority:'').'" size="5">';
 		print '</td></tr>';
 
 		// Object linked
@@ -1570,6 +1606,7 @@ print '
             ActionCodeChanged();
             $(".tabBar").width(800);
             $("#event_desc").on("click", redirect);
+            $("#priority").on("change",ActionCodeChanged);
 //            var link = "http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=get_freetime&date=2016-01-21";
 //            console.log(link);
 //            $.ajax({
@@ -1621,7 +1658,7 @@ print '
                 						($("#p2min").val().substr(0,1)=="0"?$("#p2min").val().substr(1):$("#p2min").val()),
                 						0);
 					var minute = (Date2.getTime()-Date1.getTime())/ (1000*60);
-                	var link = "http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=get_freetime&date="+$("#apyear").val()+"-"+$("#apmonth").val()+"-"+$("#apday").val()+"&id_usr="+$("#id_usr").val()+"&minute="+minute;
+                	var link = "http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=get_freetime&date="+$("#apyear").val()+"-"+$("#apmonth").val()+"-"+$("#apday").val()+"&id_usr="+$("#id_usr").val()+"&minute="+minute+"&priority="+$("#priority").val();
             		setTime(link);
                 }else{
                 	$("#showform").val(1);

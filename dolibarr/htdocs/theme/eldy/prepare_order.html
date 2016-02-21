@@ -1,0 +1,254 @@
+<a onclick="close_action();" class='overlay' id='type_action'></a>
+     <div class="tabs" data-type="horizontal" data-role="controlgroup">
+         <div class="inline-block tabsElem tabsElemActive">
+             <div id="basic_part" onclick="selpage(event);" class="tab inline-block" data-role="button">Основна економічна частина</div>
+         </div>
+         <div class="inline-block tabsElem">
+             <div id="addition_part" onclick="selpage(event);" class="unactivepage tab inline-block"  data-role="button">Додаткова економічна частина</div>
+         </div>
+         <div class="inline-block tabsElem">
+             <div id="result_part" onclick="selpage(event);" class="unactivepage tab inline-block" data-role="button">Результат</div>
+         </div>
+         <div class="inline-block tabsElem">
+             <div id="features_part" onclick="selpage(event);" class="unactivepage tab inline-block" data-role="button">Особливості</div>
+         </div>
+     </div>
+    <div class="tabPage">
+        <table>
+            <thead>
+                <!--<tr class="multiple_header_table">-->
+                    <!--<th colspan="13" class="basic_part">Основна економічна частина</th>-->
+                    <!--<th colspan="10" class="addition_part">Додаткова економічна частина</th>-->
+                    <!--<th colspan="4" class="result_part">Результат</th>-->
+                    <!--<th colspan="5" class="features_part">Особливості</th>-->
+                <!--</tr>-->
+                <tr class="multiple_header_table">
+                    <th rowspan="2" style="width: 92px" class="middle_size">Виробник</th>
+                    <th rowspan="2" style="width: 190px" class="middle_size">Назва товару</th>
+                    <th rowspan="2" style="width: 80px" class="middle_size">№ по каталогу (артикул)</th>
+                    <th rowspan="2" style="width: 60px" class="middle_size">Кільк.</th>
+                    <th rowspan="2" style="width: 60px" class="middle_size">Од. виміру</th>
+                    <th colspan="2" class="middle_size basic_part">закупка одиниці</th>
+                    <th colspan="2" class="middle_size basic_part">закупка партії</th>
+                    <th rowspan="2" style="width: 60px" class="middle_size basic_part">варт. завант.</th>
+                    <th colspan="2" class="middle_size basic_part">транспорт1</th>
+                    <th colspan="2" class="middle_size basic_part">транспорт2</th>
+                    <th colspan="2" class="middle_size basic_part">транспорт3</th>
+                    <th rowspan="2" style="width: 60px" class="middle_size basic_part">допрод. підгот.</th>
+                    <th rowspan="2" style="width: 60px" class="middle_size basic_part">викор. трансп. ТіТ</th>
+                    <th rowspan="2" style="width: 60px" class="middle_size addition_part">виїзд в господ.</th>
+                    <th rowspan="2" style="width: 60px" class="middle_size addition_part">затрати серв. служби</th>
+                    <th rowspan="2" style="width: 60px" class="middle_size addition_part">інше + подяка кліенту</th>
+                    <th rowspan="2" style="width: 60px" class="middle_size addition_part">нав. розв. роботи</th>
+                    <th rowspan="2" style="width: 60px" class="middle_size addition_part">банк. %</th>
+                    <th rowspan="2" style="width: 60px" class="middle_size addition_part">інше</th>
+                    <th rowspan="2" style="width: 60px" class="middle_size addition_part">подат. на приб.</th>
+                    <th rowspan="2" style="width: 60px" class="middle_size addition_part">ПДВ</th>
+                    <th colspan="2" class="middle_size addition_part">собіварт.</th>
+                    <th colspan="2" class="middle_size result_part">продаж</th>
+                    <th rowspan="2" style="width: 60px" class="middle_size result_part">різниця</th>
+                    <th rowspan="2" style="width: 60px" class="middle_size result_part">%</th>
+                    <th rowspan="2" style="width: 60px" class="middle_size features_part">Необх. % предопл.</th>
+                    <th rowspan="2" style="width: 60px" class="middle_size features_part">Кінц. дата предопл.</th>
+                    <th rowspan="2" style="width: 60px" class="middle_size features_part">Кінц. допл. клієнтом до, дата/подія</th>
+                    <th rowspan="2" style="width: 60px" class="middle_size features_part">Дата пост. / викон.</th>
+                    <th rowspan="2" style="width: 60px" class="middle_size features_part">Прим.</th>
+                </tr>
+                <tr class="middle_size multiple_header_table">
+                    <th style="width: 60px" class="middle_size basic_part">без ПДВ</th>
+                    <th style="width: 60px" class="middle_size basic_part">з ПДВ</th>
+                    <th style="width: 60px" class="middle_size basic_part">без ПДВ</th>
+                    <th style="width: 60px" class="middle_size basic_part">з ПДВ</th>
+                    <th style="width: 60px" class="middle_size basic_part">без ПДВ</th>
+                    <th style="width: 60px" class="middle_size basic_part">з ПДВ</th>
+                    <th style="width: 60px" class="middle_size basic_part">без ПДВ</th>
+                    <th style="width: 60px" class="middle_size basic_part">з ПДВ</th>
+                    <th style="width: 60px" class="middle_size basic_part">без ПДВ</th>
+                    <th style="width: 60px" class="middle_size basic_part">з ПДВ</th>
+                    <th style="width: 60px" class="middle_size addition_part">без ПДВ</th>
+                    <th style="width: 60px" class="middle_size addition_part">з ПДВ (+ ін.витр.)</th>
+                    <th style="width: 60px" class="middle_size result_part">без ПДВ</th>
+                    <th style="width: 60px" class="middle_size result_part">з ПДВ (+ ін.витр.)</th>
+                </tr>
+            </thead>
+            <?=$order?>
+        </table>
+
+        <div style="color: #0000FF; font-weight: bold; font-size: 14px; padding: 5px 0px 5px 20px" id="title_question">Організаційні запитання:</div>
+        <div id="typicalqueries">
+        <div id="question" style="max-width: 450px; width: 450px; background-color: #ffffff">
+            <table class="middle_size" style="width: 80%">
+                <tbody>
+                    <?=$question?>
+                </tbody>
+            </table>
+        </div>
+        </div>
+        <div style="text-align: center; width: 550px">
+        <button style="width: 150px;height: 30px" onclick="saveorders();">Зберегти заявку</button>
+        <button style="width: 150px;height: 30px" onclick="close_registerform();">Відмінити</button>
+        </div>
+    </div>
+<input type="hidden" id="choosed_products" value="">
+<style>
+    .tabs{
+        padding-left: 500px;
+    }
+    .tabPage{
+        width: 1350px;
+    }
+</style>
+<script>
+    $(document).ready(function(){
+//                        <th colspan="13" class="basic_part">Основна економічна частина</th>
+//                <th colspan="10" class="addition_part">Додаткова економічна частина</th>
+//                <th colspan="4" class="result_part">Результат</th>
+//                <th colspan="5" class="features_part">Особливості</th>
+        $('.basic_part').show();
+        $('.addition_part').hide();
+        $('.result_part').hide();
+        $('.features_part').hide();
+        var table = document.getElementsByTagName('table')[1];
+        table.id = 'orderlist';
+        console.log(table);
+    })
+    $(window).click(function(){
+        if(location.href.substr(strpos(location.href, "#")) == '#close'){
+            $('#popupmenu').hide();
+        }
+    });
+    function selpage(event){
+        $('.basic_part').hide();
+        $('#basic_part').addClass('unactivepage');
+        $('.addition_part').hide();
+        $('#addition_part').addClass('unactivepage');
+        $('.result_part').hide();
+        $('#result_part').addClass('unactivepage');
+        $('.features_part').hide();
+        $('#features_part').addClass('unactivepage');
+        $('.'+event.target.id).show();
+        $('#'+event.target.id).removeClass('unactivepage');
+        console.log();
+    }
+    function saveorders(){
+        if(confirm('Зберегти активну заявку?')) {
+            $('#questions_form').submit();
+        }
+    }
+    function preparedorders(){
+            $('.popupmenu').hide();
+            $('#typicalqueries').css('position', "absolute");
+            $('#typicalqueries').css("top", '150');
+            $('#typicalqueries').css("z-index", '1500000');
+            $('#typicalqueries').css("left", (($(window).width() - 458) / 2));
+//            location.href = '#login_phone';
+            $.ajax({
+            url: '<?=$_SERVER["PHP_SELF"]?>?type_action=get_typical_question',
+            cashe: false,
+            success: function(html){
+                $('#questions').html(html);
+                }
+            })
+        $('#typicalqueries').show();
+    }
+    function showTotalPrice(){
+        var table = document.getElementsByTagName('table')[1];
+        table.id = 'popup_table';
+        var tr = table.getElementsByTagName('tr');
+        var TotalPrice = 0
+        for(var i = 0; i<tr.length; i++){
+            var id = tr[i].id.substr(2);
+            if($('#popup_table').find('#price'+id).length)
+                TotalPrice += $('#popup_table').find('#price'+id).html()*$('#popup_table').find('#td'+id).html();
+            console.log($('#popup_table').find('#price'+id).html(), $('#popup_table').find('#td'+id).html());
+        }
+        $('#total_price').html('Загалом на суму '+TotalPrice);
+    }
+    function showorders(){
+        $.ajax({
+            url: '<?=$_SERVER["PHP_SELF"]?>?type_action=showorders',
+            cashe: false,
+            success: function(html){
+                $('#popup_table').html(html);
+                var tr = document.getElementById('popup_table').getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+                var TotalPrice = 0
+                for(var i = 0; i<tr.length; i++){
+                    var id = tr[i].id.substr(2);
+                    TotalPrice += $('#popup_table').find('#price'+id).html()*$('#popup_table').find('#td'+id).html();
+                }
+                $('#total_price').html('Загалом на суму '+TotalPrice);
+            }
+        })
+        $('#popupmenu').css('position', "absolute");
+        $('#popupmenu').css("top", '150');
+        $('#popupmenu').css("z-index", '1500000');
+        $('#popupmenu').css("left", (($(window).width() - 458) / 2));
+        location.href = '#login_phone';
+        $('#popupmenu').show();
+    }
+    function  get_choosed_products(){
+        $.ajax({
+            url: '<?=$_SERVER["PHP_SELF"]?>?type_action=get_choosed_product',
+            cashe: false,
+            success: function(html){
+                var result = html;
+                var products_id = result.split(';');
+                for(var i=0; i<products_id.length-1; i++) {
+                    var row = products_id[i].split('=');
+                    $('#Col'+row[0]).val(row[1]);
+                }
+            }
+        })
+    }
+
+    $(window).keydown(function(event){ //ловим событие нажатия клавиши
+//        console.log(event.keyCode);
+        if(event.keyCode == 13 || event.keyCode == 9) { //если это Enter
+            event.target.blur(event);
+        }
+    });
+    function setProductCount(elem){
+//        console.log('test', $('#'+elem.id).val());
+        $.ajax({
+            url: '<?=$_SERVER["PHP_SELF"]?>?type_action=choose_product&product_id='+elem.id.substr(3)+'&count='+$('#'+elem.id).val()+'&id_usr=<?=$user->id?>',
+            cashe: false,
+            success: function(html){
+
+            }
+        })
+
+    }
+    function close_action(){
+        location.href = '#x';
+        $('#actionform').hide();
+    }
+    function choose_product(id){
+        var img = $('#img'+id).attr('src');
+        var insert = false;
+        if(img.substr(img.length-'uncheck.png'.length)=='uncheck.png'){
+            insert = true;
+            $('#img'+id).attr('src', '/dolibarr/htdocs/theme/eldy/img/check.png');
+        }else{
+            $('#img'+id).attr('src', '/dolibarr/htdocs/theme/eldy/img/uncheck.png');
+        }
+        var action = (insert==true?'insert':'delete');
+
+        $.ajax({
+            url:'<?=$_SERVER["PHP_SELF"]?>?type_action=choose_product&action='+action+'&product_id='+id,
+            cache:false,
+            success:function(html){
+                console.log(html);
+            }
+        })
+    }
+    function choose_action(){
+        $('#choose_typeaction').submit();
+    }
+    function strpos( haystack, needle, offset){ // Find position of first occurrence of a string
+        var i = haystack.indexOf( needle, offset ); // returns -1
+        return i >= 0 ? i : false;
+    }
+</script>
+
+<?=$actionform?>
+

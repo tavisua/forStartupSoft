@@ -52,7 +52,8 @@ $dateQuery = new DateTime($date);
 $actionURL = '/comm/action/card.php';
 $sql = "select `llx_actioncomm`.id as rowid, `llx_actioncomm`.datep, `llx_actioncomm`.datep2,
         `llx_actioncomm`.`code`, `llx_actioncomm`.label, `regions`.`name` as region_name, `llx_user`.`lastname`,
-        `llx_actioncomm`.`note`, `llx_actioncomm`.`percent`, `llx_c_actioncomm`.`libelle` title, `llx_actioncomm`.confirmdoc
+        `llx_actioncomm`.`note`, `llx_actioncomm`.`percent`, `llx_c_actioncomm`.`libelle` title, `llx_actioncomm`.confirmdoc,
+        `llx_actioncomm`.priority
         from `llx_actioncomm`
         left join `llx_societe` on `llx_societe`.rowid = `llx_actioncomm`.fk_soc
         left join `states` on `states`.rowid = `llx_societe`.state_id
@@ -65,69 +66,85 @@ $sql = "select `llx_actioncomm`.id as rowid, `llx_actioncomm`.datep, `llx_action
               where `type` in ('system', 'user'))
         and `llx_actioncomm_resources`.`fk_element`= ".$user->id."
         and `datep` between '".$dateQuery->format('Y-m-d')."' and date_add('".$dateQuery->format('Y-m-d')."', interval 1 day)
-        order by datep";
+        order by priority,datep";
 $res = $db->query($sql);
 $task = '';
 
 //$task.='<div id="currenttime"></div>';
-
-$task = '<div id="currenttime" style="z-index: 10;"></div><div id = "tasklist"><table  class="tasklist">
-            <tbody>';
-$prev_time = mktime(8,0,0, $dateQuery->format('m'),$dateQuery->format('d'),$dateQuery->format('Y'));
-$emptyid=0;
+$priority = -100;
+$task = '<div id="currenttime" style="z-index: 10;"></div>';
+//$prev_time = mktime(8,0,0, $dateQuery->format('m'),$dateQuery->format('d'),$dateQuery->format('Y'));
+//$emptyid=0;
 while($row = $db->fetch_object($res)) {
-    switch(trim($row->code)){
-        case 'AC_GLOBAL':{
+    if($row->priority != $priority) {
+        $prev_time = mktime(8,0,0, $dateQuery->format('m'),$dateQuery->format('d'),$dateQuery->format('Y'));
+        $emptyid=0;
+        if($row->priority != 0)
+            $task .= '</tbody></table></div>';
+
+        $task .='<div id = "tasklist'.$row->priority.'" style="z-index: '.$row->priority.';"><table  class="tasklist">
+            <tbody>';
+    }
+//var_dump(htmlspecialchars($task));
+//    die();
+    switch (trim($row->code)) {
+        case 'AC_GLOBAL': {
             $classitem = 'global_taskitem';
             $iconitem = 'object_global_task.png';
-        }break;
-        case 'AC_CURRENT':{
+        }
+            break;
+        case 'AC_CURRENT': {
             $classitem = 'current_taskitem';
             $iconitem = 'object_current_task.png';
-        }break;
-        case 'AC_RDV':{
+        }
+            break;
+        case 'AC_RDV': {
             $classitem = 'office_meetting_taskitem';
             $iconitem = 'object_office_meetting_task.png';
-        }break;
-        case 'AC_TEL':{
+        }
+            break;
+        case 'AC_TEL': {
             $classitem = 'office_callphone_taskitem';
             $iconitem = 'object_call.png';
-        }break;
-        case 'AC_DEP':{
+        }
+            break;
+        case 'AC_DEP': {
             $classitem = 'departure_taskitem';
             $iconitem = 'object_departure_task.png';
-        }break;
+        }
+            break;
     }
-    if($row->percent == -1)
+    if ($row->percent == -1)
         $status = 'Не розпочато';
-    elseif($row->percent>0&&$row->percent<100)
-        $status = 'В роботі('.$row->percent.'%)';
+    elseif ($row->percent > 0 && $row->percent < 100)
+        $status = 'В роботі(' . $row->percent . '%)';
     else
         $status = 'Виконано';
     $datep = new DateTime($row->datep);
     $datep2 = new DateTime($row->datep2);
-    $DiffSec = (mktime($datep2->format('H'),$datep2->format('i'),$datep2->format('s'),$datep2->format('m'),$datep2->format('d'),$datep2->format('Y')) -
-        mktime($datep->format('H'),$datep->format('i'),$datep->format('s'),$datep->format('m'),$datep->format('d'),$datep->format('Y')));
-    $EmptyPeriod = (mktime($datep->format('H'),$datep->format('i'),$datep->format('s'),$datep->format('m'),$datep->format('d'),$datep->format('Y'))-$prev_time)/60;
-    if($EmptyPeriod>0){
-        $task.='<tr id="empty'.($emptyid++).'"><td class="emptyitem"></td></tr>';
+    $DiffSec = (mktime($datep2->format('H'), $datep2->format('i'), $datep2->format('s'), $datep2->format('m'), $datep2->format('d'), $datep2->format('Y')) -
+        mktime($datep->format('H'), $datep->format('i'), $datep->format('s'), $datep->format('m'), $datep->format('d'), $datep->format('Y')));
+    $EmptyPeriod = (mktime($datep->format('H'), $datep->format('i'), $datep->format('s'), $datep->format('m'), $datep->format('d'), $datep->format('Y')) - $prev_time) / 60;
+    if ($EmptyPeriod > 0) {
+        $task .= '<tr id="empty' . ($emptyid++) . '"><td class="emptyitem"></td></tr>';
 //        $task.='<tr><td style="height: '.($EmptyPeriod*($conf->browser->name == 'firefox' ? ($EmptyPeriod<=30?23.9:24) : 22)/10).'px" class="emptyitem"></td></tr>';
     }
     $DiffTime = sprintf('%02d:%02d', $DiffSec / 3600, ($DiffSec % 3600) / 60, $DiffSec % 60);
-    $task_table = '<div class="task_cell" style="float: left; width: ' . ($conf->browser->name == 'firefox' ? '23px' : '24px') . '"><img src="theme/'.$conf->theme.'/img/'.$iconitem.'" title="'.$langs->trans($row->title).'"></div>
-               <div class="task_cell" style="float: left; width: ' . ($conf->browser->name == 'firefox' ? '42px' : '43px') . '">'.$datep->format('H:i').'</div>
-               <div class="task_cell" style="float: left; width: 36px;">'.$DiffTime.'</div>
-               <div class="task_cell" style="float: left; width: 35px">'.$datep2->format('H:i').'</div>
-               <div class="task_cell" style="float: left; width: 152px">'.trim($row->region_name).' район</div>
-               <div class="task_cell" style="float: left; width: 152px">'.trim($row->lastname).'</div>
-               <div class="task_cell" style="float: left; width: 202px;">'.trim($row->note).'</div>
-               <div class="task_cell" style="float: left; width: 152px;">'.trim($row->confirmdoc).'</div>
-               <div class="task_cell" style="float: left; width: 130px; border-color: transparent">'.$status.'</div>';
+    $task_table = '<div class="task_cell" style="float: left; width: ' . ($conf->browser->name == 'firefox' ? '23px' : '24px') . '"><img src="theme/' . $conf->theme . '/img/' . $iconitem . '" title="' . $langs->trans($row->title) . '"></div>
+           <div class="task_cell" style="float: left; width: ' . ($conf->browser->name == 'firefox' ? '42px' : '43px') . '">' . $datep->format('H:i') . '</div>
+           <div class="task_cell" style="float: left; width: 36px;">' . $DiffTime . '</div>
+           <div class="task_cell" style="float: left; width: 35px">' . $datep2->format('H:i') . '</div>
+           <div class="task_cell" style="float: left; width: 152px">' . trim($row->region_name) . ' район</div>
+           <div class="task_cell" style="float: left; width: 152px">' . trim($row->lastname) . '</div>
+           <div class="task_cell" style="float: left; width: 202px;">' . trim($row->note) . '</div>
+           <div class="task_cell" style="float: left; width: 152px;">' . trim($row->confirmdoc) . '</div>
+           <div class="task_cell" style="float: left; width: 130px; border-color: transparent">' . $status . '</div>';
 //    $task .= '<div id="'.$row->rowid.'" class="'.$classitem.'" style="height: 216px" >' . $task_table . '</div>';
 
-    $task.='<tr id="'.$row->rowid.'" onclick="EditAction('.$row->rowid.');"><td class="'.$classitem.'" >'.$task_table.'</td></tr>';
+    $task .= '<tr id="' . $row->rowid . '" onclick="EditAction(' . $row->rowid . ');"><td class="' . $classitem . '" >' . $task_table . '</td></tr>';
 //    $task.='<tr id="'.$row->rowid.'"><td class="'.$classitem.'" style="height: '.($DiffSec/600*($conf->browser->name == 'firefox' ? ($DiffSec/60<=30?($DiffSec/60<15?22:23.8):23.7) : 22)).'px">'.$task_table.'</td></tr>';
-    $prev_time=mktime($datep2->format('H'),$datep2->format('i'),$datep2->format('s'),$datep2->format('m'),$datep2->format('d'),$datep2->format('Y'));
+    $prev_time = mktime($datep2->format('H'), $datep2->format('i'), $datep2->format('s'), $datep2->format('m'), $datep2->format('d'), $datep2->format('Y'));
+
 }
 $task.='    </tbody>
             </table></div>';

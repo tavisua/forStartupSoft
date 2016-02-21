@@ -1,4 +1,4 @@
-<a href="<?echo $_SERVER['HTTP_REFERER']?>#<?echo $_REQUEST['socid']?>"><?echo $langs->trans('Area')?></a>  /  <a href="/"><?echo $langs->trans('ActionArea')?></a></div>
+<a href="<?=$refer_link?>#<?echo $_REQUEST['socid']?>"><?echo $langs->trans('Area')?></a>  /  <b><?echo $langs->trans('ActionArea')?></b></div>
 
 </br>
 <div  id="customerinfo" style="float: left">
@@ -84,6 +84,7 @@
     <table id="actions_table">
         <thead>
         <tr class="header_table">
+            <th style="width: 80px" class="middle_size">Дата і час дії</th>
             <th style="width: 80px" class="middle_size">Дата і час внесення</th>
             <th style="width: 100px" class="middle_size">Хто від нас вносив</th>
             <th style="width: 80px" class="middle_size">Контакт</th>
@@ -97,7 +98,7 @@
             <th style="width: 80px" class="middle_size">Дата наст.дій</th>
             <th style="width: 80px" class="middle_size">Робота до/на наступних дій (завдання наставника)</th>
             <th style="width: 80px" class="middle_size">Запропонована дата виконання наставником</th>
-            <th style="width: 20px" class="middle_size"></th>
+            <th style="width: 50px" class="middle_size"></th>
         </tr>
         </thead>
         <!--<tbody id="reference_body">-->
@@ -139,9 +140,9 @@
         for(var i = 0; i<tr.length; i++) {
             var td = tr[i].getElementsByTagName('td');
             if(td.length>0) {
-                if (td[0].innerHTML.length > 0) {
-                    console.log(td[0].innerHTML);
-                    td = $('td#' + td[0].id);
+                if (td[1].innerHTML.length > 0) {
+                    console.log(td[1].innerHTML);
+                    td = $('td#' + td[1].id);
                     var space_index = strpos(td.html(), ' ');
                     $("#lastdate").text(td.html().substr(0, space_index));
                     break;
@@ -167,6 +168,21 @@
         }else {
             $('#' + object.attr('id')).text('Скрити контакти');
             $('#contactlist').show();
+        }
+    }
+    function DelAction(rowid){
+        if(confirm('Видалити дію?')) {
+            var link = '/dolibarr/htdocs/comm/action/card.php?action=delete_action&rowid=' + rowid;
+            $.ajax({
+                url: link,
+                cache: false,
+                success: function (html) {
+                    if (html == 1)
+                        location.href = location.href;
+                    else
+                        console.log('помилка ', html, link);
+                }
+            })
         }
     }
     function AddAction(){

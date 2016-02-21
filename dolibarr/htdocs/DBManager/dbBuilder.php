@@ -178,10 +178,10 @@ class dbBuilder{
                 $num_col++;
             }
         }
-
-        $fields = $result->fetch_fields();
-//        var_dump($showtitle);
+//var_dump($sql);
 //        die();
+        $fields = $result->fetch_fields();
+
         if($showtitle) {
             $table = '<table class="scrolling-table" >' . "\r\n";
             $table .= '<thead >' . "\r\n";

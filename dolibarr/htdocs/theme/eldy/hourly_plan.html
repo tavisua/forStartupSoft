@@ -60,19 +60,46 @@
                 if (ua.search(/Iceweasel/) > -1) return "iceweasel";
                 if (ua.search(/SeaMonkey/) > -1) return "seamonkey";}();
             var dt = new Date();
-            var taskfield = document.getElementById('tasklist');
-            var task = taskfield.getElementsByTagName('tr');
-            var zIndex = -100;
-            for(var i = 0; i<task.length; i++){
-                if(task[i].id.substr(0,5)!="empty"){
-                    SetTaskParam(i>0?task[i-1]:null, task[i]);
-                }
-                if(i+1 == task.length ){
-                    var div = task[i].getElementsByTagName('div');
-                    for(var d = 0; d<div.length; d++)
-                        div[d].style.height = task[i].style.height;
+            for(var priority = 0; priority<=10000; priority++) {
+                var taskfield = document.getElementById('tasklist'+priority);
+                if(taskfield == null)
+                    break;
+                var task = taskfield.getElementsByTagName('tr');
+//                var zIndex = -100;
+                for (var i = 0; i < task.length; i++) {
+                    if(priority != 0)
+                        $('#tasklist'+priority).offset({top: $('#tasklist0').offset().top});
+                    if(priority != 0)
+                        console.log(task[i].id);
+                    if (task[i].id.substr(0, 5) != "empty") {
+                        SetTaskParam(i > 0 ? task[i - 1] : null, task[i]);
+                    }
+                    if (i + 1 == task.length) {
+                        var div = task[i].getElementsByTagName('div');
+                        for (var d = 0; d < div.length; d++) {
+                            div[d].style.height = task[i].style.height;
+//                            if(priority != 0){
+//                                div[d].style.height = 50;
+//                            }
+                        }
+                    }
                 }
             }
+////            $('table.tasklist').height(200);
+//            console.log($('div#tasklist').height(), $('#tasklist1').offset().top);
+//            taskfield = document.getElementById('tasklist1');
+//            task = taskfield.getElementsByTagName('tr');
+//            zIndex = 1;
+//            for(var i = 0; i<task.length; i++){
+//                if(task[i].id.substr(0,5)!="empty"){
+//                    SetTaskParam(i>0?task[i-1]:null, task[i]);
+//                }
+//                if(i+1 == task.length ){
+//                    var div = task[i].getElementsByTagName('div');
+//                    for(var d = 0; d<div.length; d++)
+//                        div[d].style.height  = task[i].style.height;
+//                }
+//            }
 
             if(dt.getHours()>=8 && dt.getHours()<=18) {
                 var time = dt.getHours() + ":" + dt.getMinutes() + ":" + dt.getSeconds();
@@ -98,7 +125,8 @@
             $('#addaction').submit();
         }
         function SetTaskParam(prev, task){
-//            console.log($("#"+prev.id).offset().top, task);
+            if(prev != null)
+                console.log('SetTaskParam', prev.id.substr(0,5), prev, task);
 //            if(prev == null)return;
             var div = task.getElementsByTagName('div');
             if(prev != null && prev.id.substr(0,5)=="empty") {
@@ -107,6 +135,7 @@
                 start_time = parseInt(start_time.substr(3, 2));
                 var min_height = (start_time - Math.floor(start_time / 10) * 10) / 10 * td.outerHeight();
                 var top = td.offset().top + min_height;
+                console.log('task', task);
                 $("#" + prev.id).height(top - $("#" + prev.id).offset().top);
             }
 
