@@ -1377,8 +1377,7 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
             print '<script type="text/javascript" src="/dolibarr/htdocs/societe/js/jquery.maskedinput-1.2.2.js'.($ext?'?'.$ext:'').'"></script>'."\n";
             //RequiredPage
 //            if(!isset($_REQUEST['redirect']) && isset($_REQUEST['mainmenu'])){
-//                print '<script type="text/javascript" src="/dolibarr/scripts/js/jquery.cookie.js"></script>
-//	            <script type="text/javascript" src="/dolibarr/scripts/js/general.js"></script>';
+                print '<script type="text/javascript" src="/dolibarr/scripts/js/jquery.cookie.js"></script>';
 //                print "<script>GotoRequiredPage('" . (isset($_REQUEST['redirect']) ? '' : trim($_REQUEST['mainmenu'])) . "')</script>";
 //            }
 

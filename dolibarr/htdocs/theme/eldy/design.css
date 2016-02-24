@@ -60,7 +60,8 @@ overflow-y: auto; /* прокрутка по вертикали */
     font-size: 14px;
 
 }
-#groupproducts li, #groupproducts a:link, #groupproducts a:visited, #groupproducts a:hover, #groupproducts a:active {
+#groupproducts li, #groupproducts a:link, #groupproducts a:visited, #groupproducts a:hover, #groupproducts a:active, 
+    #groupproducts b, #groupproducts b:hover, #groupproducts b:active {
     list-style: outside none none;
     margin-left: 15px ;
 }

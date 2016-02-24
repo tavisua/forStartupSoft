@@ -140,7 +140,7 @@
         for(var i = 0; i<tr.length; i++) {
             var td = tr[i].getElementsByTagName('td');
             if(td.length>0) {
-                if (td[1].innerHTML.length > 0) {
+                if (td[1].innerHTML.length > 0 && td[1].id.length > 0) {
                     console.log(td[1].innerHTML);
                     td = $('td#' + td[1].id);
                     var space_index = strpos(td.html(), ' ');
@@ -151,7 +151,35 @@
                 }
             }
         }
+        setcallphonelink();
     })
+    function setcallphonelink(){
+        var tbody = document.getElementById('contactlist_body');
+        if(tbody != null){
+            var tr = tbody.getElementsByTagName('tr');
+            for(var i = 0; i<tr.length; i++){
+                var id = tr[i].id.substr(2);
+                var td = tr[i].getElementsByTagName('td');
+                for(var t = 0; t<td.length; t++){
+                    if(td[t].id.substr(id.length) == 'mobile_phone1'){
+                        var phone_tr = td[t].getElementsByTagName('tr');
+                        for(var phone = 0; phone<phone_tr.length; phone++){
+                            var number_cell = phone_tr[phone].getElementsByTagName('td');
+                            var symbols = "(,), ,+,-";
+                            var array_symbols = symbols.split(',');
+                            var number = number_cell[0].innerHTML;
+                            for(var r = 0; r<symbols.length; r++){
+                                number = number.replace(symbols[r],'');
+                            }
+                            number_cell[0].innerHTML = '<a onclick="Call('+number+');">'+number_cell[0].innerHTML+'</a>';
+//                            Call(number);
+//                            console.log(number);
+                        }
+                    }
+                }
+            }
+        }
+    }
     function strpos( haystack, needle, offset){ // Find position of first occurrence of a string
         var i = haystack.indexOf( needle, offset ); // returns -1
         return i >= 0 ? i : false;

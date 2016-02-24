@@ -1108,25 +1108,28 @@ else
 
 
         // Address
-        print '<tr><td valign="top"><label for="address">'.$langs->trans('Address').'</label></td>';
-        print '<td colspan="3"><input name="address" id="address" cols="40" rows="3" wrap="soft">';
-        print $object->address;
-        print '</textarea></td></tr>';
-        //Засновник
-        if ($object->particulier || $private){}
-        else {
-            print '<tr><td>';
-            print '<label for="founder">' . $langs->trans('Founder') . '</label>';
-
-            print '</td><td' . (empty($conf->global->SOCIETE_USEPREFIX) ? ' colspan="3"' : '') . '>';
-            print '<input type="text" style="width:100%" size="60" maxlength="128" name="founder" id="founder" value="' . $object->founder . '" autofocus="autofocus"></td>';
-            if (!empty($conf->global->SOCIETE_USEPREFIX))  // Old not used prefix field
-            {
-                print '<td>' . $langs->trans('Prefix') . '</td><td><input type="text" size="5" maxlength="5" name="prefix_comm" value="' . $object->prefix_comm . '"></td>';
-            }
-            print '</tr>';
+        if(!empty($object->address)) {
+            print '<tr><td valign="top"><label for="address">' . $langs->trans('Address') . '</label></td>';
+            print '<td colspan="3"><input name="address" id="address" cols="40" rows="3" wrap="soft">';
+            print $object->address;
+            print '</textarea></td></tr>';
         }
+        if(!empty($object->founder)) {
+            //Засновник
+            if ($object->particulier || $private) {
+            } else {
+                print '<tr><td>';
+                print '<label for="founder">' . $langs->trans('Founder') . '</label>';
 
+                print '</td><td' . (empty($conf->global->SOCIETE_USEPREFIX) ? ' colspan="3"' : '') . '>';
+                print '<input type="text" style="width:100%" size="60" maxlength="128" name="founder" id="founder" value="' . $object->founder . '" autofocus="autofocus"></td>';
+                if (!empty($conf->global->SOCIETE_USEPREFIX))  // Old not used prefix field
+                {
+                    print '<td>' . $langs->trans('Prefix') . '</td><td><input type="text" size="5" maxlength="5" name="prefix_comm" value="' . $object->prefix_comm . '"></td>';
+                }
+                print '</tr>';
+            }
+        }
         // Email web
         print '<tr><td><label for="email">'.$langs->trans('EMail').(! empty($conf->global->SOCIETE_MAIL_REQUIRED)?'*':'').'</label></td>';
 	    print '<td><input type="text" name="email" id="email" size="32" value="'.$object->email.'"></td>';
@@ -2117,24 +2120,27 @@ else
             print '</td></tr>';
 
             // Address
-            print '<tr><td valign="top"><label for="address">'.$langs->trans('Address').'</label></td>';
-            print '<td colspan="3"><input name="address" id="address" style="width:100%" size="60" wrap="soft" value="'.$object->address.'">';
-            print '</td></tr>';
-            //Засновник
-            if ($object->particulier || $private){}
-            else {
-                print '<tr><td>';
-                print '<label for="founder">' . $langs->trans('Founder') . '</label>';
-
-                print '</td><td' . (empty($conf->global->SOCIETE_USEPREFIX) ? ' colspan="3"' : '') . '>';
-                print '<input type="text" style="width:100%" size="60" maxlength="128" name="founder" id="founder" value="' . $object->founder . '" autofocus="autofocus"></td>';
-                if (!empty($conf->global->SOCIETE_USEPREFIX))  // Old not used prefix field
-                {
-                    print '<td>' . $langs->trans('Prefix') . '</td><td><input type="text" size="5" maxlength="5" name="prefix_comm" value="' . $object->prefix_comm . '"></td>';
-                }
-                print '</tr>';
+            if(!empty($object->address)) {
+                print '<tr><td valign="top"><label for="address">' . $langs->trans('Address') . '</label></td>';
+                print '<td colspan="3"><input readonly name="address" id="address" style="width:100%" size="60" wrap="soft" value="' . $object->address . '">';
+                print '</td></tr>';
             }
+            //Засновник
+            if(!empty($object->founder)) {
+                if ($object->particulier || $private) {
+                } else {
+                    print '<tr><td>';
+                    print '<label for="founder">' . $langs->trans('Founder') . '</label>';
 
+                    print '</td><td' . (empty($conf->global->SOCIETE_USEPREFIX) ? ' colspan="3"' : '') . '>';
+                    print '<input readonly type="text" style="width:100%" size="60" maxlength="128" name="founder" id="founder" value="' . $object->founder . '" autofocus="autofocus"></td>';
+                    if (!empty($conf->global->SOCIETE_USEPREFIX))  // Old not used prefix field
+                    {
+                        print '<td>' . $langs->trans('Prefix') . '</td><td><input type="text" size="5" maxlength="5" name="prefix_comm" value="' . $object->prefix_comm . '"></td>';
+                    }
+                    print '</tr>';
+                }
+            }
             // Email web
             print '<tr><td><label for="email">'.$langs->trans('EMail').(! empty($conf->global->SOCIETE_MAIL_REQUIRED)?'*':'').'</label></td>';
             print '<td colspan="3"><input type="text" name="email" id="email" size="32" value="'.$object->email.'"></td></tr>';

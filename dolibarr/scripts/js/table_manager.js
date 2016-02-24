@@ -17,6 +17,19 @@ function setTime(link){
         }
     })
 }
+function Call(number){
+    var link = 'http://'+location.hostname+'/dolibarr/htdocs/autocall/index.php?action=CallPhone&phonenumber='+number;
+    //console.log(link);
+    //    return;
+    $.ajax({
+        url:link,
+        cache: false,
+        success: function(html){
+            console.log(html);
+            console.log('success Call')
+        }
+    })
+}
 function GotoRequiredPage(pagename){
     //if(pagename.length == 0)
         return;

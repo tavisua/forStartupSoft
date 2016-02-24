@@ -12,7 +12,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 //$res = shell_exec('adb shell am start -a android.intent.action.CALL -d tel:+380505223977');
 //var_dump($res);
 //die('ответ');
-$execption = array('get_choosed_product', 'showorders', 'get_typical_question');
+$execption = array('get_choosed_product', 'showorders', 'get_typical_question', 'get_question');
 
 if(isset($_REQUEST['type_action']) && !in_array($_REQUEST['type_action'],$execption) || !isset($_REQUEST['type_action'])) {
     $Orders = $langs->trans('Orders');
@@ -23,11 +23,82 @@ if(isset($_REQUEST['type_action']) && !in_array($_REQUEST['type_action'],$execpt
 
 if(isset($_REQUEST['type_action'])){
     switch($_REQUEST['type_action']){
+        case 'clone_question':{
+            global $db;
+            $sql = 'select distinct `oc_category`.`parent_id` from `llx_c_category_product_question`
+              left join `oc_category` on `oc_category`.`category_id`=`llx_c_category_product_question`.category_id';
+            $res_parent = $db->query($sql);
+            if(!$res_parent)
+                dol_print_error($db);
+            $num = 0;
+            while($parent = $db->fetch_object($res_parent)){
+                $sql = 'select `oc_category`.`category_id` from `oc_category` where `oc_category`.`parent_id` = '.$parent->parent_id;
+                $res_categoies = $db->query($sql);
+                if(!$res_parent)
+                    dol_print_error($db);
+                $categories = array();
+                while($category = $db->fetch_object($res_categoies)){
+                    $categories[]=$category->category_id;
+                }
+                $questions = array();
+                $sql = 'select llx_c_category_product_question.category_id, question, page from `llx_c_category_product_question`
+                    inner join `oc_category` on `oc_category`.`category_id` = `llx_c_category_product_question`.category_id
+                    where `oc_category`.`parent_id` = '.$parent->parent_id.'
+                    and llx_c_category_product_question.active = 1;';
+                $res_queries = $db->query($sql);
+                if(!$res_queries)
+                    dol_print_error($db);
+                $category_question = array();
+                while($question = $db->fetch_object($res_queries)){
+                    $category_question[]=$question->category_id.'|&|'.$question->question.'|&|'.$question->page;
+
+                }
+                foreach($categories as $category_id) {
+                    foreach ($category_question as $question) {
+                        if($category_id.'|&|'.substr($question, strpos($question, '|&|') + 3) != $question) {
+                            echo '<b>'.$category_id.'|&|'.substr($question, strpos($question, '|&|') + 3) .' '. $question . '</b></br>';
+                            $sql = "select rowid from llx_c_category_product_question where category_id=".$category_id."
+                                and question = '".$db->escape(substr($question, strpos($question, '|&|') + 3, strrpos($question, '|&|')-(strpos($question, '|&|') + 3))) ."' limit 1";
+                            $insert = $db->query($sql);
+                            if($db->num_rows($insert)>0)
+                                echo 'введено</br>';
+                            else {
+                                $sql = "insert into llx_c_category_product_question(category_id,question,page,active,id_usr)
+                              values(" . $category_id . ", '" . $db->escape(substr($question, strpos($question, '|&|') + 3, strrpos($question, '|&|') - (strpos($question, '|&|') + 3))) . "', " .
+                                    substr($question, strlen($question) - 1) . ", 1, 1)";
+                                echo $num++ . ' ' . $sql . '</br>';
+                                $insert = $db->query($sql);
+                                if(!$insert)
+                                    dol_print_error($db);
+                            }
+                        }
+//                    echo '<pre>';
+//                    var_dump($questions);
+//                    echo '</pre>';
+//                    die();
+                    }
+                }
+            }
+            exit();
+        }break;
         case 'with_list':{
             $actionform=ShowPriceList();
         }break;
         case 'without_list':{
-
+            require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
+            global $db;
+            $product_static = new Product($db);
+            echo '<div class="tabPage" style="width: 1000px">';
+            echo '    <div id="groupproducts" style="float: left">';
+            $categories = $product_static->ShowCategories();
+            echo $categories;
+//            <a href="/dolibarr/htdocs/orders.php?mainmenu=orders&id_cat=446#cat446">
+            echo '    </div>';
+            echo '    <div id="anketa" style="float: left; margin-left: 15px; width: 680px; height: 100%; background-color: #f5f8f9">';
+            echo '    </div>';
+            echo '</div>';
+            include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/order_without_list.html';
+            exit();
         }break;
         case 'internal':{
 
@@ -58,7 +129,8 @@ if(isset($_REQUEST['type_action'])){
                     dol_print_error($db);
                 $obj = $db->fetch_object($res);
                 $order_id = $obj->rowid;
-            }
+            }elseif(isset($_REQUEST['order_id'])&&!empty($_REQUEST['order_id']))
+                $order_id = $_REQUEST['order_id'];
 //            var_dump($order_id);
 //            die();
             $inserted_questions = array();
@@ -81,20 +153,30 @@ if(isset($_REQUEST['type_action'])){
             while($obj = $db->fetch_object($res)){
                 if(isset($_REQUEST['q'.$obj->rowid])){
                     if(isset($inserted_questions[$obj->rowid])){
-                        $sql="update llx_orders_queries set answer = '".trim($_REQUEST['q'.$obj->rowid])."', id_usr=".$user->id." where rowid=".$inserted_questions[$obj->rowid];
+                        $sql="update llx_orders_queries set answer = '".trim($db->escape($_REQUEST['q'.$obj->rowid]))."', id_usr=".$user->id." where rowid=".$inserted_questions[$obj->rowid];
                     }else{
                         $sql="insert into llx_orders_queries(order_id,query_id,answer,id_usr)
-                            values(".$order_id.", ".$obj->rowid.", '".trim($_REQUEST['q'.$obj->rowid])."', ".$user->id.")";
+                            values(".$order_id.", ".$obj->rowid.", '".trim($db->escape($_REQUEST['q'.$obj->rowid]))."', ".$user->id.")";
 
                     }
 //                    echo $sql.'</br>';
                     $res_answer = $db->query($sql);
-                    if(!$res_answer)
+                    if(!$res_answer) {
                         dol_print_error($db);
+                        die($sql);
+                    }
                 }
             }
             SendTaskForPurchase($order_id);
-
+            $sql = 'update llx_orders set `status` = 1 where rowid='.$order_id;
+            $res = $db->query($sql);
+            if(!$res)
+                dol_print_error($db);
+            exit();
+        }break;
+        case 'get_question':{
+            $questions = ShowQuestion($_REQUEST['id_cat'], $_REQUEST['page']);
+            echo $questions;
             exit();
         }break;
         case 'get_typical_question':{
@@ -178,12 +260,49 @@ if(isset($_REQUEST['type_action'])){
     }
 }
 
-
-$orders = ShowOrders();
+if(!isset($_REQUEST['type_action']))
+    $orders = ShowOrders();
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/orders.html';
 llxFooter();
 exit();
-
+function ShowQuestion($id_cat, $page){
+    global $db, $user;
+    $sql = 'select llx_c_category_product_question.rowid, llx_c_category_product_question.category_id, question, page from `llx_c_category_product_question`
+        where llx_c_category_product_question.category_id = '.$id_cat.'
+        and llx_c_category_product_question.active = 1
+        and page = '.$page;
+    $res_queries = $db->query($sql);
+    if(!$res_queries)
+        dol_print_error($db);
+    $sql = 'select `llx_orders_queries`.`query_id`, `llx_orders_queries`.`answer` from `llx_orders`
+        left join `llx_orders_queries` on `llx_orders_queries`.`order_id` = `llx_orders`.`rowid`
+        inner join `llx_c_category_product_question` on  `llx_orders_queries`.`query_id` =`llx_c_category_product_question` .`rowid`
+        where `llx_orders`.id_usr = '.$user->id.'
+        and `llx_orders`.`status` = 0
+        and `llx_c_category_product_question`.`category_id` is not null
+        and `llx_c_category_product_question`.`active` = 1';
+    $res_answer = $db->query($sql);
+    if(!$res_answer)
+        dol_print_error($db);
+    $answer = array();
+    while($obj = $db->fetch_object($res_answer)){
+        $answer[$obj->query_id] = trim($obj->answer);
+    }
+    $out = '<table class="WidthScroll"> <tbody id="queries">';
+    $num = 1;
+    while($obj = $db->fetch_object($res_queries)){
+        $class = (fmod($num++, 2)==0?'impair':'pair');
+        $out .= '<tr class="'.$class.'">';
+        $out .= '<td>'.$obj->question.'</td>';
+        $out .= '</tr>';
+        $class = (fmod($num++, 2)==0?'impair':'pair');
+        $out .= '<tr class="'.$class.'">';
+        $out .= '<td><textarea id="answer'.$obj->rowid.'" style="width: 90%">'.(isset($answer[$obj->rowid])?$answer[$obj->rowid]:'').'</textarea></td>';
+        $out .= '</tr>';
+    }
+    $out.= '</tbody></table>';
+    return $out;
+}
 function ShowOrders(){
     global $db, $user;
     $sql = 'select `llx_orders`.`rowid`, `llx_orders`.`dtCreated`, `llx_societe`.`nom` customer,
@@ -211,12 +330,15 @@ function ShowOrders(){
         $status = '';
         switch($obj->status){
             case 0:{
-                $status = 'Не прийнято';
+                $status = 'Не сформована';
             }break;
             case 1:{
-                $status = 'В роботі';
+                $status = 'Відправлена';
             }break;
             case 2:{
+                $status = 'В роботі';
+            }break;
+            case 3:{
                 $status = 'Оброблено';
             }break;
         }

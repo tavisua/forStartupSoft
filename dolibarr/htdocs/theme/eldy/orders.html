@@ -37,8 +37,8 @@
     <button style="width: 150px;height: 30px" onclick="close_registerform();">Відмінити</button>
     </div>
 </div>
-<button style="width: 200px;height: 30px">Створити заявку</button>
-<table>
+<button id="createorderbtn" onclick="createorder();" style="width: 200px;height: 30px">Створити заявку</button>
+<table id="orders">
     <thead>
         <tr class="multiple_header_table">
             <th style="width: 60px" class="middle_size">
@@ -61,8 +61,18 @@
     <?=$orders?>
 </table>
 <input type="hidden" id="choosed_products" value="">
+
 <script>
     $(document).ready(function(){
+        if($('table#orders').find('tbody').length == 0){
+            $('table#orders').hide();
+        }
+
+        if("<?=$_REQUEST['type_action']?>" == 'without_list'){
+            $('#groupproducts').css('margin-top', 0);
+            console.log('set');
+        }
+//        console.log();
             patch_link();
             get_choosed_products();
             $('#first').removeClass("tabpriceactive");
@@ -81,25 +91,37 @@
                 }break;
             }
             var table = $('.WidthScroll');
-            $('#savebtn').appendTo($('.tabPage')[0]);
-            $('#savebtn').prependTo('.WidthScroll');
-            document.getElementsByClassName('multiple_header_table')[0].innerHTML += '<th style="width: 55px" class="middle_size">Потреба</th>';
-            $('tbody#products').width(985);
+            if("<?=$_REQUEST['type_action']?>" == 'with_list') {
+                $('#savebtn').appendTo($('.tabPage')[0]);
+                $('#savebtn').prependTo('.WidthScroll');
+                $('#savebtn').show();
+                $('#createorderbtn').hide();
+                document.getElementsByClassName('multiple_header_table')[0].innerHTML += '<th style="width: 55px" class="middle_size">Потреба</th>';
+                $('tbody#products').width(985);
+            }
 
 
-
+//
+//
+//
             for(var i = 0; i<$('tbody#products').find('tr').length;i++){
                 var tr = $('tbody#products').find('tr')[i];
                 tr.innerHTML+='<td id = "td'+tr.id.substr(2)+'" style="width:50px; text-align: center"><input id="Col'+tr.id.substr(2)+'" onblur="setProductCount(Col'+tr.id.substr(2)+');" class="product_count" value="" type="text" size="4"></td>';
             }
-            $('#savebtn').show();
-
-    })
+//            $('#savebtn').show();
+//
+    });
     $(window).click(function(){
         if(location.href.substr(strpos(location.href, "#")) == '#close'){
             $('#popupmenu').hide();
         }
     });
+    function createorder(){
+        location.href = '#type_action';
+        $('#actionform').show();
+
+        console.log('test');
+    }
     function saveorders(){
         if(confirm('Зберегти активну заявку?')) {
             $('#questions_form').submit();
@@ -159,18 +181,19 @@
     }
     function patch_link(){
         var groups = document.getElementById('groupproducts');
-        if(groups != null){
-        var links = groups.getElementsByTagName('a');
-        for(var i=0; i<links.length; i++){
-            var href = links[i].href;
-            links[i].href = href.substr(0, strpos(links[i].href, "#cat"))+'&type_action=<?=$_REQUEST["type_action"]?>&page=<?=$_REQUEST["page"]?>'+links[i].href.substr(strpos(links[i].href, "#cat"));
+        if(groups != null) {
+            var links = groups.getElementsByTagName('a');
+            for (var i = 0; i < links.length; i++) {
+                var href = links[i].href;
+                links[i].href = href.substr(0, strpos(links[i].href, "#cat")) + '&type_action=<?=$_REQUEST["type_action"]?>&page=<?=$_REQUEST["page"]?>' + links[i].href.substr(strpos(links[i].href, "#cat"));
+            }
+            href = $('a#first').attr('href');
+            $('a#first').attr('href', href.substr(0, strpos(href, "#cat")) + '&type_action=<?=$_REQUEST["type_action"]?>' + href.substr(strpos(href, "#cat")));
+            href = $('a#second').attr('href');
+            $('a#second').attr('href', href.substr(0, strpos(href, "#cat")) + '&type_action=<?=$_REQUEST["type_action"]?>' + href.substr(strpos(href, "#cat")));
+            href = $('a#thirth').attr('href');
+            $('a#thirth').attr('href', href.substr(0, strpos(href, "#cat")) + '&type_action=<?=$_REQUEST["type_action"]?>' + href.substr(strpos(href, "#cat")));
         }
-        href = $('a#first').attr('href');
-        $('a#first').attr('href', href.substr(0, strpos(href, "#cat"))+'&type_action=<?=$_REQUEST["type_action"]?>'+href.substr(strpos(href, "#cat")));
-        href = $('a#second').attr('href');
-        $('a#second').attr('href', href.substr(0, strpos(href, "#cat"))+'&type_action=<?=$_REQUEST["type_action"]?>'+href.substr(strpos(href, "#cat")));
-        href = $('a#thirth').attr('href');
-        $('a#thirth').attr('href', href.substr(0, strpos(href, "#cat"))+'&type_action=<?=$_REQUEST["type_action"]?>'+href.substr(strpos(href, "#cat")));
     }
     $(window).keydown(function(event){ //ловим событие нажатия клавиши
 //        console.log(event.keyCode);
@@ -184,7 +207,7 @@
             url: '<?=$_SERVER["PHP_SELF"]?>?type_action=choose_product&product_id='+elem.id.substr(3)+'&count='+$('#'+elem.id).val()+'&id_usr=<?=$user->id?>',
             cashe: false,
             success: function(html){
-
+                console.log('test');
             }
         })
 

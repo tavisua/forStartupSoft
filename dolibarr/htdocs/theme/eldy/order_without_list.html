@@ -1,0 +1,83 @@
+<div style="text-align: center; width: 1000px">
+    <button style="width: 150px;height: 30px" onclick="saveorders();">Зберегти заявку</button>
+    <button style="width: 150px;height: 30px" onclick="close_registerform();">Відмінити</button>
+</div>
+<div id = "tabs" style="display: none">
+    <div  class='tabs' data-type='horizontal' data-role='controlgroup' style="height: 35px">
+         <div class='inline-block tabsElem tabsElemActive'>
+             <div id="a_product" onclick="selpage(event);" class="tab inline-block" data-role="button">Ціле</div>
+         </div>
+         <div class='inline-block tabsElem'>
+             <div id="unique_parts" onclick="selpage(event);" class="unactivepage tab inline-block"  data-role="button">Унікальні з/ч</div>
+         </div>
+         <div class='inline-block tabsElem'>
+             <div id="standart_parts" onclick="selpage(event);" class="unactivepage tab inline-block"  data-role="button">Стандартні вироби</div>
+         </div>
+     </div>
+    <div  id="pagequeries" style="width: 100%; background-color: white; display: block; height: 530px"></div>
+</div>
+<script>
+$(document).ready(function() {
+    if ($('table#orders').find('tbody').length == 0) {
+        $('table#orders').hide();
+    }
+
+    if ("<?=$_REQUEST['type_action']?>" == 'without_list') {
+        $('#groupproducts').css('margin-top', 0);
+    }
+    for(var i=0; i<document.getElementById('groupproducts').getElementsByTagName('li').length; i++) {
+        var html = document.getElementById('groupproducts').getElementsByTagName('li')[i].getElementsByTagName('a')[0].innerHTML;
+        document.getElementById('groupproducts').getElementsByTagName('li')[i].innerHTML = '<b id="link'+document.getElementById('groupproducts').getElementsByTagName('li')[i].id.substr(3)+'" style="cursor: pointer;" onclick="showanketa(event);">'+html+'</b>';
+
+    }
+    $('#anketa').html('<div><strong>Хочу задати декілька важливих питань, відповідь на які дасть можливість зробити Вам потрібну і правильну пропозицію ! Вдячний буду якщо відповісте ! Питання такі: </strong></div>'
+            +$("#tabs").html());
+
+            
+    $('.tabPage').height($('#groupproducts').height());
+
+
+});
+
+    function selpage(event){
+        $('#a_product').addClass('unactivepage');
+        $('#unique_parts').addClass('unactivepage');
+        $('#standart_parts').addClass('unactivepage');
+        $('#'+event.target.id).removeClass('unactivepage');
+        switch(event.target.id){
+            case 'a_product':{
+                $.cookie('page',1);
+            }break;
+            case 'unique_parts':{
+                $.cookie('page',2);
+            }break;
+            case 'standart_parts':{
+                $.cookie('page',3);
+            }break;
+        }
+        console.log($.cookie('page'));
+        getqueries($.cookie('id_cat'), $.cookie('page'));
+    }
+    function showanketa(event){
+        $.cookie('id_cat',event.target.id.substr(4));
+//        console.log(event.target.id.substr(4));
+        getqueries($.cookie('id_cat'), $.cookie('page'));
+    }
+    function getqueries(id_cat, page){
+        console.log(id_cat, page);
+        if(id_cat == null){
+            id_cat = document.getElementById('groupproducts').getElementsByTagName('li')[0].id.substr(3);
+        }
+        if(page == null)
+            page = 1;
+        var link ='/dolibarr/htdocs/orders.php?type_action=get_question&id_cat='+id_cat+'&page='+page;
+        $.ajax({
+            url: link,
+            cache: false,
+            success: function(html){
+                $('#pagequeries').html(html);
+                $('#queries').attr('height', window.innerHeight - 420);
+            }
+        })
+    }
+</script>
