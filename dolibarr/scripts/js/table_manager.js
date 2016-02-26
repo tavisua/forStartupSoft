@@ -18,17 +18,20 @@ function setTime(link){
     })
 }
 function Call(number){
-    var link = 'http://'+location.hostname+'/dolibarr/htdocs/autocall/index.php?action=CallPhone&phonenumber='+number;
-    //console.log(link);
-    //    return;
-    $.ajax({
-        url:link,
-        cache: false,
-        success: function(html){
-            console.log(html);
-            console.log('success Call')
-        }
-    })
+    var blob = new Blob(['{"call":"'+number+'"}'], {type: "text/plain;charset=utf-8"});
+    saveAs(blob, "call.json");
+    //var link = 'http://'+location.hostname+'/dolibarr/htdocs/autocall/index.php?action=CallPhone&phonenumber='+number;
+    ////console.log(link);
+    ////    return;
+    //$.ajax({
+    //    url:link,
+    //    cache: false,
+    //    success: function(html){
+    //        console.log(html);
+    //        console.log('success Call')
+    //    }
+    //})
+    console.log('savefile');
 }
 function GotoRequiredPage(pagename){
     //if(pagename.length == 0)

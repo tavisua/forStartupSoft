@@ -48,6 +48,25 @@
     </table>
 
 </div>
+<div id="popupmenu" style="display: none; position: absolute; width: auto; height: auto" class="pair popupmenu" >
+    <form id="setfilter" action="" method="get">
+        <table style="border-collapse: collapse">
+            <tr>
+                <td style="width: 200px">
+                    <input type="hidden" name="mainmenu" value="<?=$_REQUEST['mainmenu']?>">
+                    <input type="hidden" name="idmenu" value="<?=$_REQUEST['idmenu']?>">
+                    <input type="text" name="filter" value="" id="filter" size="45">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input type="submit" value="Пошук">
+                    <input type="button" onclick="closefindmenu();" value="Відміна">
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
         <script>
             $(document).ready(function(){
                 $('#reference_body').attr('height', window.innerHeight - 420);
@@ -77,7 +96,11 @@
 ////console.log(TotalWidth, widths);
                 $('#reference_body').width(TotalWidth+30);
             })
-
+            function showfilter(){
+                $('#popupmenu').offset({top:220});
+                $('#popupmenu').show();
+                $('#filter').focus();
+            }
         </script>
 <script type="text/javascript">
     $(document).ready(function(){

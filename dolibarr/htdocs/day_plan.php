@@ -10,36 +10,49 @@
 //echo '</pre>';
 //die();
 require $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/main.inc.php';
-if(isset($_REQUEST['action'])&&$_REQUEST['action']=='getuserplan'){
+if(isset($_REQUEST['action'])){
     global $db;
-    $typeaction='';
-    switch($_REQUEST['mainmenu']){
-        case 'current_task':{
-            $typeaction="'AC_CURRENT'";
-        }break;
-        case 'global_task':{
-            $typeaction="'AC_GLOBAL'";
-        }break;
-        case 'area':{
-            $sql = "select `code` from 	llx_c_actioncomm where type in ('user','system')
-            and code not in ('AC_CURRENT','AC_GLOBAL')";
-            $res = $db->query($sql);
-            if(!$res)
-                dol_print_error($db);
-            $codes=array();
-            if($db->num_rows($res))
-                while($obj = $db->fetch_object($res)){
-                    $codes[]="'".$obj->code."'";
+    switch($_REQUEST['action']) {
+        case 'getuserplan': {
+            $typeaction = '';
+            switch ($_REQUEST['mainmenu']) {
+                case 'current_task': {
+                    $typeaction = "'AC_CURRENT'";
                 }
-            $typeaction=implode(',', $codes);
-        }break;
-    }
-    $today = array();
-    $today = CalcOutStandingActions($typeaction, $today, $_REQUEST['id_usr']);
+                    break;
+                case 'global_task': {
+                    $typeaction = "'AC_GLOBAL'";
+                }
+                    break;
+                case 'area': {
+                    $sql = "select `code` from 	llx_c_actioncomm where type in ('user','system')
+                and code not in ('AC_CURRENT','AC_GLOBAL')";
+                    $res = $db->query($sql);
+                    if (!$res)
+                        dol_print_error($db);
+                    $codes = array();
+                    if ($db->num_rows($res))
+                        while ($obj = $db->fetch_object($res)) {
+                            $codes[] = "'" . $obj->code . "'";
+                        }
+                    $typeaction = implode(',', $codes);
+                }
+                    break;
+            }
+            $today = array();
+            $today = CalcOutStandingActions($typeaction, $today, $_REQUEST['id_usr']);
 
-    $today = CalcFutureActions($typeaction, $today, $_REQUEST['id_usr']);
-    $today = CalcFaktActions($typeaction, $today, $_REQUEST['id_usr']);
-    echo json_encode($today);
+            $today = CalcFutureActions($typeaction, $today, $_REQUEST['id_usr']);
+            $today = CalcFaktActions($typeaction, $today, $_REQUEST['id_usr']);
+            echo json_encode($today);
+        }break;
+        case 'gettaskkode':{
+            $sql = 'select `code` from llx_actioncomm where id='.$_REQUEST['rowid'];
+            $res = $db->query($sql);
+            $obj = $db->fetch_object($res);
+            echo $obj->code;
+        }
+    }
     exit();
 }
 

@@ -1366,6 +1366,7 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
 
             // Add datepicker default options
             print '<script type="text/javascript" src="'.DOL_URL_ROOT.'/core/js/datepicker.js.php?lang='.$langs->defaultlang.($ext?'&amp;'.$ext:'').'"></script>'."\n";
+            print '<script type="text/javascript" src="/dolibarr/scripts/js/FileSaver.js/FileSaver.js'.($ext?'?'.$ext:'').'"></script>'."\n";
 
             if(strpos($_SERVER["SCRIPT_NAME"],'soc.php') || strpos($_SERVER["SCRIPT_NAME"],'address.php')|| strpos($_SERVER["SCRIPT_NAME"],'addcontact.php')){
                 print '<script type="text/javascript" src="/dolibarr/htdocs/societe/js/soc.js'.($ext?'?'.$ext:'').'"></script>'."\n";

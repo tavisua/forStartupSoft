@@ -546,6 +546,8 @@ if ($action == 'update')
 
 	if (! $error)
 	{
+		var_dump(empty($backtopage));
+
         if (! empty($backtopage))
         {
             if(substr($backtopage, 0,1) == "'" && substr($backtopage, mb_strlen($backtopage)-1,1) == "'"){

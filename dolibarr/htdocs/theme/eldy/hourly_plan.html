@@ -40,8 +40,62 @@
 </table>
 
     <script>
+        $(window).load(function(){
+            window.location.hash="#8h0m";
+        })
         $(document).ready(function(){
-            $('#schedule_body').attr('height', window.innerHeight - 230);
+            $('.tasklist').mousedown(function(e){
+                var pos = $(this).offset();
+                var elem_left = pos.left;
+                var elem_top = pos.top;
+                // положение курсора внутри элемента
+                var Xinner = e.pageX - elem_left;
+                var Yinner = e.pageY - elem_top;
+//                console.log("X: " + Xinner + " Y: " + Yinner); // вывод результата в консоль
+                var tbody = $('.tasklist').find('tbody');
+                var task_id = 0;
+                for(var i = tbody.length-1; i>=0; i--) {
+                    if(task_id != 0)break;
+                    var item = tbody[i];
+                    var tr = $('#'+item.id).find('tr');
+                    var TotalHeight=0;
+                    for(var t = 0; t<tr.length; t++){
+                        TotalHeight += tr[t].clientHeight;
+                        if(TotalHeight >= Yinner) {
+//                            console.log(tr[t].id);
+                            task_id = tr[t].id;
+                            break;
+                        }
+                    }
+                }
+
+//                console.log($("a#mainmenua_hourly_plan").attr('href'));
+//                return;
+                $.ajax({
+                    url:'/dolibarr/htdocs/day_plan.php?action=gettaskkode&rowid='+task_id,
+                    cache:false,
+                    success: function(code){
+                        var mainmenu = '';
+                        switch(code){
+                            case 'AC_GLOBAL':{
+                                mainmenu = 'global_task&idmenu=10421'
+                            }break;
+                            case 'AC_CURRENT':{
+                                mainmenu = 'current_task&idmenu=10423';
+                            }break;
+                            default:{
+                                mainmenu = 'area&idmenu=10425';
+                            }
+                        }
+                        var link = '/dolibarr/htdocs/comm/action/chain_actions.php?action_id='+task_id+'&mainmenu='+mainmenu;
+//                        console.log(link);
+
+                        location.href = link;
+                    }
+                })
+            })
+//            location.hash = '8h0m';
+            $('#schedule_body').attr('height', window.innerHeight - 250);
 //            $('.fiche').attr('height', window.innerHeight - 250);
             $('#date').change(function(){
                 $('#seldate').submit();
@@ -62,15 +116,18 @@
             var dt = new Date();
             for(var priority = 0; priority<=10000; priority++) {
                 var taskfield = document.getElementById('tasklist'+priority);
+//                console.log(taskfield);
                 if(taskfield == null)
                     break;
+//                if(priority>0)
+//                    taskfield.remove();
                 var task = taskfield.getElementsByTagName('tr');
 //                var zIndex = -100;
                 for (var i = 0; i < task.length; i++) {
                     if(priority != 0)
                         $('#tasklist'+priority).offset({top: $('#tasklist0').offset().top});
-                    if(priority != 0)
-                        console.log(task[i].id);
+//                    if(priority != 0)
+//                        console.log(task[i].id);
                     if (task[i].id.substr(0, 5) != "empty") {
                         SetTaskParam(i > 0 ? task[i - 1] : null, task[i]);
                     }
@@ -119,23 +176,33 @@
 
             }
         })
-        function EditAction(rowid){
-            $('#id').val(rowid);
-            $('#action').val('edit');
-            $('#addaction').submit();
+//        function EditAction(rowid){
+//            $('#id').val(rowid);
+//            $('#action').val('edit');
+//            $('#addaction').submit();
+//        }
+        function RedirectToAction(rowid){
+            return;
+            var tr = document.getElementById(rowid);
+            console.log(tr);
         }
         function SetTaskParam(prev, task){
-            if(prev != null)
-                console.log('SetTaskParam', prev.id.substr(0,5), prev, task);
+//            if(task.id == '2113'){
+//                console.log(prev, task);
+//            }
+//            if(prev != null)
+//                console.log('SetTaskParam', prev.id.substr(0,5), prev, task);
 //            if(prev == null)return;
             var div = task.getElementsByTagName('div');
             if(prev != null && prev.id.substr(0,5)=="empty") {
                 var start_time = div[1].innerHTML;
+
                 td = $('td#' + parseInt(start_time.substr(0, 2)) + 'h' + (Math.floor(parseInt(start_time.substr(3, 2)) / 10) * 10) + 'm');
                 start_time = parseInt(start_time.substr(3, 2));
                 var min_height = (start_time - Math.floor(start_time / 10) * 10) / 10 * td.outerHeight();
                 var top = td.offset().top + min_height;
-                console.log('task', task);
+//                console.log('task', task);
+
                 $("#" + prev.id).height(top - $("#" + prev.id).offset().top);
             }
 

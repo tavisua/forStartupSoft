@@ -64,6 +64,12 @@ class dbBuilder{
                         $sql = "select rowid, " . $s_fieldname . " from " . $s_table . " where active = 1 order by " . $s_fieldname;
 //                        die($sql);
                         $result = $this->mysqli->query($sql);
+//                        if('name' == $s_fieldname && 'regions' == $s_table) {
+//                            echo '<pre>';
+//                            var_dump($title, $field, $theme, $tablename);
+//                            echo '</pre>';
+//                            die();
+//                        }
                         while ($row = $result->fetch_assoc()) {
                             $this->selectlist['edit_' . $s_table . '_' . $s_fieldname] .= '<option id="option' . $row['rowid'] . '" class="edit_' . $s_table . '_' . $s_fieldname . '" value="' . $row['rowid'] . '" '.(($title['selrow'] == $row['rowid'])?'selected = "selected"':'').'>' . $row[$s_fieldname] . '</option>' . "\r\n";
                         }
@@ -367,11 +373,19 @@ class dbBuilder{
 
 //                                $selectlist = str_replace('selected=\"selected\"', '', $this->selectlist['edit_' . $s_table . '_' . $s_fieldname]);
 //                                if('regions' == $s_table) {
-//                                    var_dump($selectlist);
-//                                    die($value);
-//                                }
-                                $selectlist = substr($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], 0, strpos($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], $value) - 1) . ' selected = "selected" ' . substr($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], strpos($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], $value) - 1);
 
+//                                }
+                                $selectlist = substr($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], 0, strpos($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], '>'.$value)).' selected = "selected" '.
+                                        substr($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], strpos($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], '>'.$value));
+//                                if('s_regions_name' == $fields[$num_col]->name) {
+//                                    $selectlist = substr($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], 0, strpos($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], '>'.$value)).' selected = "selected" '.
+//                                        substr($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], strpos($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], '>'.$value));
+//                                    echo '<pre>';
+//                                    var_dump($selectlist);
+////                                    var_dump(htmlspecialchars($this->selectlist['edit_' . $s_table . '_' . $s_fieldname]));
+//                                    echo '</pre>';
+//                                    die();
+//                                }
                                 $selectlist = str_replace('class="edit_' . substr($fields[$num_col]->name, 2) . '"', '', $selectlist);
 
                                 if (isset($title[$num_col - 1]["detailfield"])) {

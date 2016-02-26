@@ -37,7 +37,7 @@ $table .= '<thead>
                 </tr>
            </thead>';
 $row = 0;
-$hour = 8;
+$hour = 0;
 $split=array();
 //global $conf;
 //var_dump($conf->browser->name);
@@ -68,22 +68,26 @@ $sql = "select `llx_actioncomm`.id as rowid, `llx_actioncomm`.datep, `llx_action
         and `datep` between '".$dateQuery->format('Y-m-d')."' and date_add('".$dateQuery->format('Y-m-d')."', interval 1 day)
         order by priority,datep";
 $res = $db->query($sql);
+//die($sql);
 $task = '';
 
 //$task.='<div id="currenttime"></div>';
-$priority = -100;
+$priority = "-100";
 $task = '<div id="currenttime" style="z-index: 10;"></div>';
 //$prev_time = mktime(8,0,0, $dateQuery->format('m'),$dateQuery->format('d'),$dateQuery->format('Y'));
 //$emptyid=0;
 while($row = $db->fetch_object($res)) {
     if($row->priority != $priority) {
-        $prev_time = mktime(8,0,0, $dateQuery->format('m'),$dateQuery->format('d'),$dateQuery->format('Y'));
+        $priority = $row->priority;
+        $prev_time = mktime(0,0,0, $dateQuery->format('m'),$dateQuery->format('d'),$dateQuery->format('Y'));
         $emptyid=0;
+//        var_dump($row->priority != $priority, $row->priority,  $priority);
+//        die();
         if($row->priority != 0)
             $task .= '</tbody></table></div>';
 
         $task .='<div id = "tasklist'.$row->priority.'" style="z-index: '.$row->priority.';"><table  class="tasklist">
-            <tbody>';
+            <tbody id="tbody'.$priority.'">';
     }
 //var_dump(htmlspecialchars($task));
 //    die();
@@ -126,7 +130,7 @@ while($row = $db->fetch_object($res)) {
         mktime($datep->format('H'), $datep->format('i'), $datep->format('s'), $datep->format('m'), $datep->format('d'), $datep->format('Y')));
     $EmptyPeriod = (mktime($datep->format('H'), $datep->format('i'), $datep->format('s'), $datep->format('m'), $datep->format('d'), $datep->format('Y')) - $prev_time) / 60;
     if ($EmptyPeriod > 0) {
-        $task .= '<tr id="empty' . ($emptyid++) . '"><td class="emptyitem"></td></tr>';
+        $task .= '<tr id="empty' .$row->priority.($emptyid++) . '"><td class="emptyitem"></td></tr>';
 //        $task.='<tr><td style="height: '.($EmptyPeriod*($conf->browser->name == 'firefox' ? ($EmptyPeriod<=30?23.9:24) : 22)/10).'px" class="emptyitem"></td></tr>';
     }
     $DiffTime = sprintf('%02d:%02d', $DiffSec / 3600, ($DiffSec % 3600) / 60, $DiffSec % 60);
@@ -141,21 +145,30 @@ while($row = $db->fetch_object($res)) {
            <div class="task_cell" style="float: left; width: 130px; border-color: transparent">' . $status . '</div>';
 //    $task .= '<div id="'.$row->rowid.'" class="'.$classitem.'" style="height: 216px" >' . $task_table . '</div>';
 
-    $task .= '<tr id="' . $row->rowid . '" onclick="EditAction(' . $row->rowid . ');"><td class="' . $classitem . '" >' . $task_table . '</td></tr>';
+    $task .= '<tr id="' . $row->rowid . '" onclick="RedirectToAction(' . $row->rowid . ');"><td class="' . $classitem . '" >' . $task_table . '</td></tr>';
 //    $task.='<tr id="'.$row->rowid.'"><td class="'.$classitem.'" style="height: '.($DiffSec/600*($conf->browser->name == 'firefox' ? ($DiffSec/60<=30?($DiffSec/60<15?22:23.8):23.7) : 22)).'px">'.$task_table.'</td></tr>';
     $prev_time = mktime($datep2->format('H'), $datep2->format('i'), $datep2->format('s'), $datep2->format('m'), $datep2->format('d'), $datep2->format('Y'));
-
 }
-$task.='    </tbody>
-            </table></div>';
+if($db->num_rows($res))
+    $task.='    </tbody>
+                </table></div>';
 
 //$task = 'test';
 $table .= '<tbody id="schedule_body">';
-for($period=0; $period<66;$period++){
-    if($row == 0) {
-        $table .= '<tr><td rowspan="6" style="vertical-align: text-top" width="32px" '.(($hour==12||$hour==13)?'class="lanch"':'').'>'.$hour++.'год <td id="'.($hour-1).'h0m" width="54px" '.(($hour-1==12||$hour-1==13)?'class="lanch"':'').'>00 хв.</td>'.($period==0&&$row==0?'<td rowspan="66" height="100%" id="taskfield" valign="top" >'.$task.'</td>':'');
+$totalcount = 144;
+for($period=0; $period<$totalcount;$period++){
+    if($db->num_rows($res)) {
+        if ($row == 0) {
+            $table .= '<tr><td rowspan="6" style="vertical-align: text-top" width="32px" ' . (($hour == 12 || $hour == 13) ? 'class="lanch"' : '') . '>' . $hour++ . 'год <td id="' . ($hour - 1) . 'h0m" width="54px" ' . (($hour - 1 == 12 || $hour - 1 == 13) ? 'class="lanch"' : '') . '>'.'00 хв.</td>' . ($period == 0 && $row == 0 ? '<td rowspan="'.$totalcount.'" height="100%" id="taskfield" valign="top" >' . $task . '</td>' : '');
+        } else {
+            $table .= '<tr><td id="' . ($hour - 1) . 'h' . ($row * 10) . 'm" ' . (($hour - 1 == 12 || $hour - 1 == 13) ? 'class="lanch"' : '') . '>' . ($row * 10) . 'хв.</td>';
+        }
     }else{
-        $table .= '<tr><td id="'.($hour-1).'h'.($row*10).'m" '.(($hour-1==12||$hour-1==13)?'class="lanch"':'').'>'.($row*10).'хв.</td>';
+        if ($row == 0) {
+            $table .= '<tr><td rowspan="6" style="vertical-align: text-top" width="32px" ' . (($hour == 12 || $hour == 13) ? 'class="lanch"' : '') . '>' . $hour++ . 'год <td id="' . ($hour - 1) . 'h0m" width="54px" ' . (($hour - 1 == 12 || $hour - 1 == 13) ? 'class="lanch"' : '') . '>00 хв.</td>' . ($period == 0 && $row == 0 ? '<td rowspan="'.$totalcount.'" height="100%" width="100%" id="taskfield" valign="top" ></td>' : '');
+        } else {
+            $table .= '<tr><td id="' . ($hour - 1) . 'h' . ($row * 10) . 'm" ' . (($hour - 1 == 12 || $hour - 1 == 13) ? 'class="lanch"' : '') . '>' . ($row * 10) . 'хв.</td>';
+        }
     }
     $row++;
     if($row == 6) {
@@ -164,6 +177,10 @@ for($period=0; $period<66;$period++){
 }
 $table .= '</tbody>';
 $table .= '</table>';
+//echo '<pre>';
+//var_dump(htmlspecialchars($table));
+//echo '</pre>';
+//die();
 
 $backtopage = $_SERVER['REQUEST_URI'];
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/hourly_plan.html';

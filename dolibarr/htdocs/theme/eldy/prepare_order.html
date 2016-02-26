@@ -52,7 +52,7 @@
                     <th rowspan="2" style="width: 60px" class="middle_size features_part">Кінц. дата предопл.</th>
                     <th rowspan="2" style="width: 60px" class="middle_size features_part">Кінц. допл. клієнтом до, дата/подія</th>
                     <th rowspan="2" style="width: 60px" class="middle_size features_part">Дата пост. / викон.</th>
-                    <th rowspan="2" style="width: 60px" class="middle_size features_part">Прим.</th>
+                    <th rowspan="2" style="width: 190px" class="middle_size features_part">Прим.</th>
                 </tr>
                 <tr class="middle_size multiple_header_table">
                     <th style="width: 60px" class="middle_size basic_part">без ПДВ</th>
@@ -117,6 +117,81 @@
             $('#popupmenu').hide();
         }
     });
+    $(function(){
+        $('td').click(function(e){
+            if($(this).hasClass('input')) {
+//                console.log(e.target.id);
+                var val = $(this).html();
+                var field = '<input type="text" id="edit" value="'+val+'" size=4>';
+                $(this).empty().append(field); //устанавливаем фокус на свеженарисованное поле
+                $('#edit').focus();
+                $('#edit').select();
+                $('#edit').blur(function() { //устанавливаем обработчик
+                    var val = $(this).val(); //получаем то, что в поле находится
+                    //находим ячейку, опустошаем, вставляем значение из поля
+                    var product_id = $(this).parent().parent().attr('id').substr(2);
+                    $(this).parent().empty().html(val);
+                    if(e.target.id.substr(0, ('full_price_per_unit').length) == 'full_price_per_unit'){
+                        $('#price_per_unit'+product_id).empty().html(Math.round(val/1.2*100)/100);
+                        var price_per_party = $('#Col'+product_id).html()*$('#price_per_unit'+product_id).html();
+                        $('#price_per_party'+product_id).empty().html(price_per_party);
+                        var full_price_per_party = $('#Col'+product_id).html()*val;
+                        $('#full_price_per_party'+product_id).empty().html(full_price_per_party);
+                    }else if(e.target.id.substr(0, ('full_price_per_transport').length) == 'full_price_per_transport'){
+                        var col_id =  e.target.id.substr('full_price_per_transport'.length, 1);
+                        $('#price_per_transport'+col_id+product_id).empty().html(Math.round(val/1.2*100)/100);
+                    }else if(e.target.id.substr(0, ('full_sale_price').length) == 'full_sale_price'){
+                        $('#sale_price'+col_id+product_id).empty().html(Math.round(val/1.2*100)/100);
+                    }
+                    calculator(product_id);
+                    var td = $('#'+e.target.id).parent();
+
+                });
+            }
+        });
+        function calculator(product_id){
+            var full_price_costs =
+                    parseFloat($('#full_price_per_party'+product_id).html().length==0?0: $('#full_price_per_party'+product_id).html())+
+                    parseFloat($('#price_per_download'+product_id).html().length==0?0: $('#price_per_download'+product_id).html())+
+                    parseFloat($('#full_price_per_transport1'+product_id).html().length==0?0: $('#full_price_per_transport1'+product_id).html())+
+                    parseFloat($('#full_price_per_transport2'+product_id).html().length==0?0: $('#full_price_per_transport2'+product_id).html())+
+                    parseFloat($('#full_price_per_transport3'+product_id).html().length==0?0: $('#full_price_per_transport3'+product_id).html())+
+                    parseFloat($('#prep_sale'+product_id).html().length==0?0: $('#prep_sale'+product_id).html())+
+                    parseFloat($('#use_owner_transport'+product_id).html().length==0?0: $('#use_owner_transport'+product_id).html())+
+                    parseFloat($('#departure_to_customer'+product_id).html().length==0?0: $('#departure_to_customer'+product_id).html())+
+                    parseFloat($('#service_costs'+product_id).html().length==0?0: $('#service_costs'+product_id).html())+
+                    parseFloat($('#other_gratitude'+product_id).html().length==0?0: $('#other_gratitude'+product_id).html())+
+                    parseFloat($('#loading_unloading'+product_id).html().length==0?0: $('#loading_unloading'+product_id).html())+
+                    parseFloat($('#bank_cost'+product_id).html().length==0?0: $('#bank_cost'+product_id).html())+
+                    parseFloat($('#other'+product_id).html().length==0?0: $('#other'+product_id).html())+
+                    parseFloat($('#incom_tax'+product_id).html().length==0?0: $('#incom_tax'+product_id).html())+
+                    parseFloat($('#VAT'+product_id).html().length==0?0: $('#VAT'+product_id).html());
+            $('#full_price_costs'+product_id).empty().html(full_price_costs);
+            if($('#full_sale_price'+product_id).html().length>0){
+                var absolute_diference = Math.round(($('#full_sale_price'+product_id).html()-full_price_costs)*100)/100;
+                if(absolute_diference>0) {
+                    $('#absolute_diference' + product_id).removeClass('fielderror');
+                    $('#percent_diference'+product_id).removeClass('fielderror');
+                }else {
+                    $('#absolute_diference' + product_id).addClass('fielderror');
+                    $('#percent_diference'+product_id).addClass('fielderror');
+                }
+                $('#absolute_diference'+product_id).html(absolute_diference);
+                var percent_diference = Math.round((absolute_diference/$('#full_sale_price'+product_id).html())*100);
+                $('#percent_diference'+product_id).html(percent_diference);
+                var sale_price = parseFloat(Math.round($('#full_sale_price'+product_id).html()*100/1.2)/100);
+                $('#sale_price'+product_id).html(sale_price);
+//                var incom_tax = .18*(sale_price - (parseFloat($('#price_per_party'+product_id).html().length==0?0: $('#price_per_party'+product_id).html())+
+//                                            parseFloat($('#price_per_transport1'+product_id).html().length==0?0: $('#price_per_transport1'+product_id).html())+
+//                                            parseFloat($('#price_per_transport2'+product_id).html().length==0?0: $('#price_per_transport2'+product_id).html())+
+//                                            parseFloat($('#price_per_transport3'+product_id).html().length==0?0: $('#price_per_transport3'+product_id).html())));
+//                $('#incom_tax'+product_id).html(incom_tax);
+
+            }
+
+//            console.log( full_price_costs);
+        };
+    })
     function selpage(event){
         $('.basic_part').hide();
         $('#basic_part').addClass('unactivepage');

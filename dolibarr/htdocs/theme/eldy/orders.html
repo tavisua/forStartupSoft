@@ -23,7 +23,7 @@
     <button style="width: 150px;height: 30px" onclick="close_registerform();">Закрити</button>
     </div>
 </div>
-<div id="typicalqueries" style="display: none"  class="pair popupmenu">
+<div id="typicalqueries" style="display: none; height: 80%"  class="pair popupmenu">
     <div style="color: #0000FF; font-weight: bold; font-size: 14px; padding: 5px 0px 5px 20px" id="title_question">Дозвольте задати Вам останні організаційні запитання...</div>
     <form id="questions_form" action="?type_action=save_orders" method="post">
     <input type="hidden" value="" name="order_id">
@@ -51,6 +51,9 @@
                 Попер. дата оброб.
             </th>
             <th style="width: 80px" class="middle_size">
+                Постачальник
+            </th>
+            <th style="width: 80px" class="middle_size">
                 Статус
             </th>
             <th style="width: 80px" class="middle_size">
@@ -73,6 +76,8 @@
             console.log('set');
         }
 //        console.log();
+            if($('#typicalqueries').height()>580)
+                $('#typicalqueries').height(580);
             patch_link();
             get_choosed_products();
             $('#first').removeClass("tabpriceactive");

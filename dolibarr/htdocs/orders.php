@@ -314,9 +314,31 @@ function ShowOrders(){
         and `llx_orders`.`status` in (0,1,2)
         group by `llx_orders`.`rowid`, `llx_orders`.`dtCreated`, `llx_societe`.`nom`
         order by dtCreated desc';
+//    echo '<pre>';
+//    var_dump($sql);
+//    echo '</pre>';
+//    die();
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
+    $sql = 'select `llx_orders`.`rowid`, `llx_user`.`lastname`
+        from `llx_orders`
+        left join `llx_actioncomm` on `llx_actioncomm`.`fk_order_id`=`llx_orders`.`rowid`
+        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm`=`llx_actioncomm`.`id`
+        left join `llx_user` on `llx_user`.rowid = `llx_actioncomm_resources`.fk_element
+        where `llx_orders`.`id_usr` = '.$user->id.'
+        and `llx_orders`.`status` in (0,1,2)
+        and `llx_actioncomm_resources`.fk_element <> `llx_orders`.`id_usr`';
+    $res_purchase = $db->query($sql);
+    if(!$res_purchase)
+        dol_print_error($db);
+    $purchase = array();
+    while($obj = $db->fetch_object($res_purchase)){
+        if(!isset($purchase[$obj->rowid]))
+            $purchase[$obj->rowid] = $obj->lastname;
+        else
+            $purchase[$obj->rowid] .= ', '.$obj->lastname;
+    }
     $out = '<tbody>';
     $nom = 0;
     while($obj = $db->fetch_object($res)){
@@ -327,6 +349,10 @@ function ShowOrders(){
         $out .= '<td class="small_size">'.$obj->customer.'</td>';
         $date = new DateTime($obj->date_exec);
         $out .= '<td class="small_size" style="text-align: center">'.$date->format('d.m').'</br>'.$date->format('H:i').'</td>';
+        if(!isset($purchase[$obj->rowid]))
+            $out .= '<td class="small_size" style="text-align: center"></td>';
+        else
+            $out .= '<td class="small_size" style="text-align: center">'.$purchase[$obj->rowid].'</td>';
         $status = '';
         switch($obj->status){
             case 0:{
@@ -383,38 +409,38 @@ function ShowPrepareOrder($orders_id = 0){
 					'<td id="art'.$product_id.'"></td>
 					 <td id="Col'.$product_id.'" style="width:50px; text-align: center">'.$products[$product_id].'</td>
 					 <td id="Ed'.$product_id.'"></td>
-					 <td class="basic_part"></td>
-					 <td class="basic_part"></td>
-					 <td class="basic_part"></td>
-					 <td class="basic_part"></td>
-					 <td class="basic_part"></td>
-					 <td class="basic_part"></td>
-					 <td class="basic_part"></td>
-					 <td class="basic_part"></td>
-					 <td class="basic_part"></td>
-					 <td class="basic_part"></td>
-					 <td class="basic_part"></td>
-					 <td class="basic_part"></td>
-					 <td class="basic_part"></td>
-					 <td class="addition_part"></td>
-					 <td class="addition_part"></td>
-					 <td class="addition_part"></td>
-					 <td class="addition_part"></td>
-					 <td class="addition_part"></td>
-					 <td class="addition_part"></td>
-					 <td class="addition_part"></td>
-					 <td class="addition_part"></td>
-					 <td class="addition_part"></td>
-					 <td class="addition_part"></td>
-					 <td class="result_part"></td>
-					 <td class="result_part"></td>
-					 <td class="result_part"></td>
-					 <td class="result_part"></td>
-					 <td class="features_part"></td>
-					 <td class="features_part"></td>
-					 <td class="features_part"></td>
-					 <td class="features_part"></td>
-					 <td class="features_part"></td>
+					 <td class="basic_part autocalc" id="price_per_unit'.$product_id.'"></td>
+					 <td class="basic_part input" id="full_price_per_unit'.$product_id.'"></td>
+					 <td class="basic_part autocalc" id="price_per_party'.$product_id.'"></td>
+					 <td class="basic_part autocalc" id="full_price_per_party'.$product_id.'"></td>
+					 <td class="basic_part input" id="price_per_download'.$product_id.'"></td>
+					 <td class="basic_part autocalc" id="price_per_transport1'.$product_id.'"></td>
+					 <td class="basic_part input" id="full_price_per_transport1'.$product_id.'"></td>
+					 <td class="basic_part autocalc" id="price_per_transport2'.$product_id.'"></td>
+					 <td class="basic_part input" id="full_price_per_transport2'.$product_id.'"></td>
+					 <td class="basic_part autocalc" id="price_per_transport3'.$product_id.'"></td>
+					 <td class="basic_part input" id="full_price_per_transport3'.$product_id.'"></td>
+					 <td class="basic_part input" id="prep_sale'.$product_id.'"></td>
+					 <td class="basic_part input" id="use_owner_transport'.$product_id.'"></td>
+					 <td class="addition_part input" id="departure_to_customer'.$product_id.'"></td>
+					 <td class="addition_part input" id="service_costs'.$product_id.'"></td>
+					 <td class="addition_part input" id="other_gratitude'.$product_id.'"></td>
+					 <td class="addition_part input" id="loading_unloading'.$product_id.'"></td>
+					 <td class="addition_part input" id="bank_cost'.$product_id.'"></td>
+					 <td class="addition_part input" id="other'.$product_id.'"></td>
+					 <td class="addition_part autocalc" id="incom_tax'.$product_id.'"></td>
+					 <td class="addition_part autocalc" id="VAT'.$product_id.'"></td>
+					 <td class="addition_part" id="price_costs'.$product_id.'"></td>
+					 <td class="addition_part autocalc" id="full_price_costs'.$product_id.'"></td>
+					 <td class="result_part autocalc" id="sale_price'.$product_id.'"></td>
+					 <td class="result_part input" id="full_sale_price'.$product_id.'"></td>
+					 <td class="result_part autocalc" id="absolute_diference'.$product_id.'"></td>
+					 <td class="result_part autocalc" id="percent_diference'.$product_id.'"></td>
+					 <td class="features_part" id="'.$product_id.'"></td>
+					 <td class="features_part" id="'.$product_id.'"></td>
+					 <td class="features_part" id="'.$product_id.'"></td>
+					 <td class="features_part" id="'.$product_id.'"></td>
+					 <td class="features_part" id="'.$product_id.'"></td>
 					'.substr($result_table, strpos($result_table, '</tr>', $pos+10));
 			$pos++;
 		}

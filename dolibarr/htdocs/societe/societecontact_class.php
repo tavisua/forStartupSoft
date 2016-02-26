@@ -453,8 +453,8 @@ class societecontact {
 //            if(count($readonly)==0 && $showtitle) {
             $click_link = "/dolibarr/htdocs/societe/addcontact.php?action=edit&mainmenu=companies&rowid=".$row['rowid'];
                 $table .= '<td style="width: 20px" align="left">
-                <script> var click_event = "'.$click_link.'";</script>
-                <img  id="img_'. $row['rowid'].'" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/edit.png" title="'.$langs->trans('Edit').'" style="vertical-align: middle" onclick="location.href=click_event"">
+                <script> var click_event'.$row['rowid'].' = "'.$click_link.'";</script>
+                <img  id="img_'. $row['rowid'].'" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/edit.png" title="'.$langs->trans('Edit').'" style="vertical-align: middle" onclick="location.href=click_event'.$row['rowid'].'"">
 
 
                        </td>';

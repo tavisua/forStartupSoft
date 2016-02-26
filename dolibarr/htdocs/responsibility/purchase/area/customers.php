@@ -42,6 +42,31 @@ if($user->login != 'admin') {
     $sql.=$tmp;
     $sql_count.=$tmp;
 }
+if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])){
+    $sql_filter = "select llx_societe.rowid from llx_societe
+    left join `llx_societe_contact` on `llx_societe_contact`.`socid`=`llx_societe`.`rowid`
+    where `llx_societe`.`nom`  like '%".$_REQUEST['filter']."%'
+    or `llx_societe_contact`.`lastname`  like '%".$_REQUEST['filter']."%'
+    or `llx_societe_contact`.`firstname`  like '%".$_REQUEST['filter']."%'
+    or `llx_societe_contact`.`subdivision`  like '%".$_REQUEST['filter']."%'
+    or `llx_societe_contact`.`email1`  like '%".$_REQUEST['filter']."%'
+    or `llx_societe_contact`.`email2`  like '%".$_REQUEST['filter']."%'
+    or `llx_societe_contact`.`mobile_phone1`  like '%".$_REQUEST['filter']."%'
+    or `llx_societe_contact`.`mobile_phone2`  like '%".$_REQUEST['filter']."%'
+    or `llx_societe_contact`.`skype`  like '%".$_REQUEST['filter']."%'";
+    $res = $db->query($sql_filter);
+    if(!$res)
+        dol_print_error($db);
+    $filterid = array();
+    if($db->num_rows($res))
+        while($obj = $db->fetch_object($res)){
+            $filterid[]=$obj->rowid;
+        }
+    if(count($filterid)) {
+        $sql .= ' and `llx_societe`.`rowid` in (' . implode(',', $filterid) . ') ';
+        $sql_count .= ' and `llx_societe`.`rowid` in (' . implode(',', $filterid) . ')';
+    }
+}
 $sql .= ' order by width desc, nom';
 $sql .= ' limit '.($page-1)*$per_page.','.$per_page;
 $res = $db->query($sql_count);

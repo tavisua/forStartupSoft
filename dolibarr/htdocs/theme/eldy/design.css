@@ -15,6 +15,10 @@
 .tabpriceactive{
     background-color: white;
 }
+.autocalc{
+    background-color: #EFEFD4;
+    /*color: #ffffff;*/
+}
 .activepage{
     background-color:#fafafa;
 }

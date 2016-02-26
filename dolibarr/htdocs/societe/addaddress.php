@@ -36,7 +36,7 @@ if($action =='cancel') {
     print_fiche_titre($EditAddress);
     include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/addaddress.html');
     echo ob_get_clean();
-    llxFooter();
+//    llxFooter();
     exit;
 }elseif(GETPOST('action', 'alpha') == 'save'){
     $url                        = htmlspecialchars(GETPOST('url', 'alpha'));
@@ -112,20 +112,26 @@ if(empty($socid))
 
 $url = $_SERVER["HTTP_REFERER"];
 
-//echo '<pre>';
-//var_dump($soc_address);
-//echo '</pre>';
+
 $object = new  Societe($db);
 $object->fetch($socid);
 $CategoryOfCustomer = $object->getCategoryOfCustomer();
 $FormOfGoverment = $object->getFormOfGoverment();
 if(GETPOST('action', 'alpha') == 'add' ||$action == 'error') {
+    $soc_address->state_id = $object->state_id;
+    $soc_address->country_id = $object->country_id;
+    $soc_address->region_id = $object->region_id;
+//    echo '<pre>';
+//    var_dump($object);
+//    var_dump($soc_address);
+//    echo '</pre>';
+//    die();
     $AddAddress = $langs->trans('AddAddress');
     llxHeader('', $AddAddress, $help_url);
     print_fiche_titre($AddAddress);
     include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/addaddress.html');
     echo ob_get_clean();
-    llxFooter();
+//    llxFooter();
 }
 
 

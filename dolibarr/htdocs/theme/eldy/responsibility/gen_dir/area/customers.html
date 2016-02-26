@@ -1,4 +1,4 @@
-<div class="contant_tble">
+<div class="contant_tble" style="padding-top: 20px">
 
         <div class="tabs" id="tabs_area" data-role="controlgroup" data-type="horizontal">
             <div class="inline-block tabsElem tabsElemActive">
@@ -48,7 +48,34 @@
     </table>
 
 </div>
+<div id="popupmenu" style="display: none; position: absolute; width: auto; height: auto" class="pair popupmenu" >
+    <form id="setfilter" action="" method="get">
+        <table style="border-collapse: collapse">
+            <tr>
+                <td style="width: 200px">
+                    <input type="hidden" name="mainmenu" value="<?=$_REQUEST['mainmenu']?>">
+                    <input type="hidden" name="idmenu" value="<?=$_REQUEST['idmenu']?>">
+                    <input type="text" name="filter" value="" id="filter" size="45">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input type="submit" value="Пошук">
+                    <input type="button" onclick="closefindmenu();" value="Відміна">
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
         <script>
+            function closefindmenu(){
+                $('#popupmenu').hide();
+            }
+            function showfilter(){
+                $('#popupmenu').offset({top:220});
+                $('#popupmenu').show();
+                $('#filter').focus();
+            }
             $(document).ready(function(){
                 $('#reference_body').attr('height', window.innerHeight - 420);
                 var th = document.getElementsByTagName('th');
@@ -73,6 +100,7 @@
                 $('#accounts').offset({top:150, left:$('#accounts_action').offset().left});
                 $('#mentor').offset({top:150, left:$('#mentor_action').offset().left});
                 $('#tabs_area').width(600);
+                $('#tabs_area').offset({top:$('#headercontrol').offset().top+$('#headercontrol').height()});
                 $('#reference_body').offset({left:22});
 ////console.log(TotalWidth, widths);
                 $('#reference_body').width(TotalWidth+30);

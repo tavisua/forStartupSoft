@@ -79,7 +79,7 @@
                     <?echo $langs->trans('Areas')?>
                 </td>
                 <td>
-                    <?echo $formcompany->select_region($soc_address->state_id,'region_id', $soc_address->region_id)?>
+                    <?echo $formcompany->select_region($soc_address->state_id, 'region_id', $soc_address->region_id)?>
                 </td>
             </tr>
             <tr>
@@ -153,24 +153,24 @@
                     <input id="GPS" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_address->GPS?>" name="GPS" maxlength="20" size="60" autocomplete="off">
                 </td>
             </tr>
-            <tr>
-                <td>
-                <!--<td class="<?if($action == 'error' && (empty($soc_address->e_mail) || !isValidEMail($soc_address->e_mail))){echo 'fielderror';}else{echo 'fieldrequired';}?>">-->
-                    <?echo $langs->trans('e-mail')?>
-                </td>
-                <td>
-                    <input id="e_mail" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_address->e_mail?>" name="e_mail" maxlength="20" size="60" autocomplete="off">
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <?echo $langs->trans('site')?>
-                </td>
-                <td>
-                    <input id="site" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_address->site?>" name="site" maxlength="50" size="60" autocomplete="off">
-                </td>
-            </tr>
-            <tr>
+            <!--<tr>-->
+                <!--<td>-->
+                <!--&lt;!&ndash;<td class="<?if($action == 'error' && (empty($soc_address->e_mail) || !isValidEMail($soc_address->e_mail))){echo 'fielderror';}else{echo 'fieldrequired';}?>">&ndash;&gt;-->
+                    <!--<?echo $langs->trans('e-mail')?>-->
+                <!--</td>-->
+                <!--<td>-->
+                    <!--<input id="e_mail" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_address->e_mail?>" name="e_mail" maxlength="20" size="60" autocomplete="off">-->
+                <!--</td>-->
+            <!--</tr>-->
+            <!--<tr>-->
+                <!--<td>-->
+                    <!--<?echo $langs->trans('site')?>-->
+                <!--</td>-->
+                <!--<td>-->
+                    <!--<input id="site" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="<?echo $soc_address->site?>" name="site" maxlength="50" size="60" autocomplete="off">-->
+                <!--</td>-->
+            <!--</tr>-->
+            <!--<tr>-->
                 <td>
                     <?echo $langs->trans('WorkerCount')?>
                 </td>

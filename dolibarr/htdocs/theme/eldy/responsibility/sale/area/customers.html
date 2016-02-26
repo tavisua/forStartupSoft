@@ -47,13 +47,23 @@
     </table>
 
 </div>
-<div id="popupmenu" style="display: none; position: absolute" class="pair popupmenu" >
+<div id="popupmenu" style="display: none; position: absolute; width: auto; height: auto" class="pair popupmenu" >
     <form id="setfilter" action="" method="get">
-        <input type="hidden" name="mainmenu" value="<?=$_REQUEST['mainmenu']?>">
-        <input type="hidden" name="idmenu" value="<?=$_REQUEST['idmenu']?>">
-        <input type="text" name="filter" value="" id="filter" size="45">
-        <input type="submit" value="Пошук">
-        <input type="button" onclick="closefindmenu();" value="Відміна">
+        <table style="border-collapse: collapse">
+            <tr>
+                <td style="width: 200px">
+                    <input type="hidden" name="mainmenu" value="<?=$_REQUEST['mainmenu']?>">
+                    <input type="hidden" name="idmenu" value="<?=$_REQUEST['idmenu']?>">
+                    <input type="text" name="filter" value="" id="filter" size="45">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input type="submit" value="Пошук">
+                    <input type="button" onclick="closefindmenu();" value="Відміна">
+                </td>
+            </tr>
+        </table>
     </form>
 </div>
         <script>
@@ -93,8 +103,6 @@
                 $('#setfilter').submit();
             }
             function showfilter(){
-                $('#popupmenu').width(275);
-                $('#popupmenu').height(50);
                 $('#popupmenu').offset({top:220});
                 $('#popupmenu').show();
                 $('#filter').focus();

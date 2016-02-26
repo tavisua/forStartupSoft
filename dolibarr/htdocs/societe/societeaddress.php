@@ -185,11 +185,11 @@ $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
-$ColParam['title']=$langs->trans('e-mail');
-$ColParam['width']='200';
-$ColParam['align']='';
-$ColParam['class']='';
-$TableParam[]=$ColParam;
+//$ColParam['title']=$langs->trans('e-mail');
+//$ColParam['width']='200';
+//$ColParam['align']='';
+//$ColParam['class']='';
+//$TableParam[]=$ColParam;
 
 $ColParam['title']=$langs->trans('Active');
 $ColParam['width']='200';
@@ -203,9 +203,8 @@ $sql = 'select `llx_societe_address`.rowid, `llx_societe_address`.whom, `typeofa
 `states`.name as s_states_name, `regions`.name as s_regions_name, `kindlocality`.name as s_kindlocality_name,
 `llx_societe_address`.location, `kindstreet`.name as s_kindstreet_name, `llx_societe_address`.street_name,
 `llx_societe_address`.numberofhouse, `kindoffice`.name as s_kindoffice_name, `llx_societe_address`.numberofoffice,
-`llx_societe_address`.gps,`llx_societe_address`.email,`llx_societe_address`.site, null,
-`llx_societe_address`.workercount, "", `llx_societe_address`.sendpost,
-`llx_societe_address`.sendemail, `llx_societe_address`.active
+`llx_societe_address`.gps, null,
+`llx_societe_address`.workercount, "", `llx_societe_address`.sendpost, `llx_societe_address`.active
 from `llx_societe_address`
 left join typeofaddress on typeofaddress.`rowid` = `llx_societe_address`.kindaddress
 left join `countries` on `countries`.`rowid` = `llx_societe_address`.country_id
@@ -215,7 +214,10 @@ left join `kindlocality` on `kindlocality`.`rowid` = `llx_societe_address`.kindl
 left join `kindstreet` on `kindstreet`.`rowid` = `llx_societe_address`.kindofstreet_id
 left join `kindoffice` on `kindoffice`.`rowid` = `llx_societe_address`.kindoffice_id
 where fk_soc = '.$socid.' and `llx_societe_address`.active=1';
-//die($sql);
+//echo '<pre>';
+//var_dump($sql);
+//echo '</pre>';
+//die();
 
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
 $db = new dbBuilder();
