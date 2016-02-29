@@ -16,6 +16,7 @@
         <thead>
         <tr class="header_table">
             <th style="width: 80px" class="middle_size">Дата і час внесення</th>
+            <th style="width: 80px" class="middle_size">Дата і час внесення</th>
             <th style="width: 100px" class="middle_size">Хто від нас вносив</th>
             <th style="width: 80px" class="middle_size">Контакт</th>
             <th style="width: 50px" class="middle_size">Вид дій</th>
@@ -36,12 +37,19 @@
         <!--</tbody>-->
     </table>
 </div>
-<form id="addaction" action="/dolibarr/htdocs/comm/action/card.php" method="post">
+<!--<form id="addaction" action="/dolibarr/htdocs/comm/action/card.php" method="post">-->
+    <!--<input type="hidden" name="backtopage" value="'<?=$_SERVER['REQUEST_URI']?>'">-->
+    <!--<input type="hidden" name="action" value="create" id="edit_action">-->
+    <!--<input type="hidden" name="mainmenu" value="area">-->
+    <!--<input type="hidden" value="<?=$_GET['socid']?>" name="socid">-->
+    <!--<input type="hidden" name="id" value="" id="action_id">-->
+<!--</form>-->
+<form id="redirect" action="/dolibarr/htdocs/comm/action/result_action.php" method="get">
     <input type="hidden" name="backtopage" value="'<?=$_SERVER['REQUEST_URI']?>'">
-    <input type="hidden" name="action" value="create" id="edit_action">
-    <input type="hidden" name="mainmenu" value="area">
-    <input type="hidden" value="<?=$_GET['socid']?>" name="socid">
     <input type="hidden" name="id" value="" id="action_id">
+    <input type="hidden" name="mainmenu" value="<?=$_REQUEST['mainmenu']?>">
+    <input type="hidden" value="<?=$actioncode?>" id="redirect_actioncode" name="actioncode">
+    <input type="hidden" name="action" value="edit" id="edit_action">
 </form>
 <style>
     #reference_body td{
@@ -53,15 +61,15 @@
     }
 </style>
 <script>
-    $(document).ready(function(){
-        var top =
-        $('#showhide_contactlist').offset({top:$('#addcontact').offset().top, left:$('#addcontact').offset().left+$('#addcontact').width()+15});
-        $('#contactlist').offset({top:$('#contactlist').offset().top-20});
-    })
+//    $(document).ready(function(){
+//        var top =
+//        $('#showhide_contactlist').offset({top:$('#addcontact').offset().top, left:$('#addcontact').offset().left+$('#addcontact').width()+15});
+//        $('#contactlist').offset({top:$('#contactlist').offset().top-20});
+//    })
     function EditAction(rowid){
         $('#action_id').val(rowid);
         $('#edit_action').val('edit');
-        $('#addaction').submit();
+        $('#redirect').submit();
     }
     function ShowHideContactList(object){
         if($('#'+object.attr('id')).text().trim()=='Скрити контакти') {

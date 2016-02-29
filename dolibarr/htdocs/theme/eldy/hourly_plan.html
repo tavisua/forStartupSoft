@@ -61,9 +61,10 @@
                     var TotalHeight=0;
                     for(var t = 0; t<tr.length; t++){
                         TotalHeight += tr[t].clientHeight;
-                        if(TotalHeight >= Yinner) {
+                        if(TotalHeight >= Yinner){
 //                            console.log(tr[t].id);
-                            task_id = tr[t].id;
+                            if(tr[t].id.substr(0, 'empty'.length)!='empty')
+                                task_id = tr[t].id;
                             break;
                         }
                     }
@@ -89,7 +90,7 @@
                         }
                         var link = '/dolibarr/htdocs/comm/action/chain_actions.php?action_id='+task_id+'&mainmenu='+mainmenu;
 //                        console.log(link);
-
+//                        return;
                         location.href = link;
                     }
                 })

@@ -191,11 +191,11 @@ if ($action == 'add')
 
 	$error=0;
 
-    if (empty($backtopage))
-    {
-        if ($socid > 0) $backtopage = DOL_URL_ROOT.'/societe/agenda.php?socid='.$socid;
-        else $backtopage=DOL_URL_ROOT.'/comm/action/index.php';
-    }
+//    if (empty($backtopage))
+//    {
+//        if ($socid > 0) $backtopage = DOL_URL_ROOT.'/societe/agenda.php?socid='.$socid;
+//        else $backtopage=DOL_URL_ROOT.'/comm/action/index.php';
+//    }
 
     if ($contactid)
 	{
@@ -376,23 +376,39 @@ if ($action == 'add')
 
 				$moreparam='';
 				if ($user->id != $object->ownerid) $moreparam="usertodo=-1";	// We force to remove filter so created record is visible when going back to per user view.
-
+//				echo '<pre>';
+//				var_dump(empty($backtopage));
+//				echo '</pre>';
+//				die('stop');
 				$db->commit();
-				if (! empty($backtopage))
+				if (!empty($backtopage))
 				{
 					dol_syslog("Back to ".$backtopage.($moreparam?(preg_match('/\?/',$backtopage)?'&'.$moreparam:'?'.$moreparam):''));
 //					header("Location: ".$backtopage.($moreparam?(preg_match('/\?/',$backtopage)?'&'.$moreparam:'?'.$moreparam):''));
                     $Location = "Location: ".str_replace("'",'', $backtopage);
                     header($Location);
 				}
-				elseif($idaction)
-				{
-					header("Location: ".DOL_URL_ROOT.'/comm/action/card.php?id='.$idaction.($moreparam?'&'.$moreparam:''));
+				elseif(!empty($object->socid)){
+					if($object->type_code == 'AC_GLOBAL')
+						$backtopage = '/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$idaction.'&mainmenu=global_task';
+					elseif($object->type_code == 'AC_CURRENT')
+						$backtopage = '/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$idaction.'&mainmenu=current_task';
+					else
+						$backtopage = '/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/action.php?socid='.$object->socid.'&idmenu=10425&mainmenu=area';
+//					$backtopage = '/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/action.php?socid='.$object->socid.'&idmenu=10425&mainmenu=area';
+					var_dump($idaction, $object->type_code, $backtopage);
+					die('stop');
+					$Location = "Location: ".str_replace("'",'', $backtopage);
+                    header($Location);
 				}
-				else
-				{
-					header("Location: ".DOL_URL_ROOT.'/comm/action/index.php'.($moreparam?'?'.$moreparam:''));
-				}
+//				elseif($idaction)
+//				{
+//					header("Location: ".DOL_URL_ROOT.'/comm/action/card.php?id='.$idaction.($moreparam?'&'.$moreparam:''));
+//				}
+//				else
+//				{
+//					header("Location: ".DOL_URL_ROOT.'/comm/action/index.php'.($moreparam?'?'.$moreparam:''));
+//				}
 				exit;
 			}
 			else

@@ -204,7 +204,7 @@ function ShowActionTable(){
         $nextaction[$row->fk_parent] = $row->datep;
     }
 
-    $sql='select `llx_actioncomm`.id as rowid, `llx_societe_action`.dtChange as `datec`, `llx_user`.lastname,
+    $sql='select `llx_actioncomm`.id as rowid, `llx_actioncomm`.`datep`, `llx_societe_action`.dtChange as `datec`, `llx_user`.lastname,
         concat(case when `llx_societe_contact`.lastname is null then "" else `llx_societe_contact`.lastname end,
         case when `llx_societe_contact`.firstname is null then "" else `llx_societe_contact`.firstname end) as contactname,
         TypeCode.code kindaction, `llx_societe_action`.`said`, `llx_societe_action`.`answer`,`llx_societe_action`.`argument`,
@@ -213,8 +213,9 @@ function ShowActionTable(){
         inner join (select code, libelle label from `llx_c_actioncomm` where active = 1 and (type = "system" or type = "user")) TypeCode on TypeCode.code = `llx_actioncomm`.code
         left join `llx_societe_contact` on `llx_societe_contact`.rowid=`llx_actioncomm`.fk_contact
         left join `llx_societe_action` on `llx_actioncomm`.id = `llx_societe_action`.`action_id`
-        left join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.rowid 
-        where fk_soc = '.$_REQUEST['socid'];
+        left join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.rowid
+        where fk_soc = '.$_REQUEST['socid'].' and `llx_actioncomm`.`active` = 1';
+    $sql.=' order by `llx_actioncomm`.`datep` desc';
 
 //    die($sql);
     $res = $db->query($sql);
@@ -283,7 +284,9 @@ function ShowActionTable(){
                 $title=$langs->trans('ActionDepartureMeeteng');
             }break;
         }
+        $dateaction = new DateTime($row->datep);
         $out .= '<tr class="'.(fmod($num++, 2)==0?'impair':'pair').'">
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'dtChange" style="widtd: 80px" class="middle_size">'.(empty($row->datep)?'':($dateaction->format('d.m.y').'</br>'.$dateaction->format('H:i'))).'</td>
             <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'dtChange" style="widtd: 80px" class="middle_size">'.(empty($row->datec)?'':$dtChange->format('d.m.y H:i:s')).'</td>
             <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'lastname" style="widtd: 100px" class="middle_size">'.$row->lastname.'</td>
             <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'contactname" style="widtd: 80px" class="middle_size">'.$row->contactname.'</td>
@@ -300,8 +303,9 @@ function ShowActionTable(){
             <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'action" style="width: 35px" class="middle_size"><script>
                  var click_event = "/dolibarr/htdocs/societe/addcontact.php?action=edit&mainmenu=companies&rowid=1";
                 </script>
-                <img id="img_1" "="" onclick="" style="vertical-align: middle" title="'.$langs->trans('AddSubAction').'" src="/dolibarr/htdocs/theme/eldy/img/Add.png">
-                <img id="img_1" "="" onclick="EditAction('.$row->rowid.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Edit').'" src="/dolibarr/htdocs/theme/eldy/img/edit.png">
+                <img onclick="" style="vertical-align: middle" title="'.$langs->trans('AddSubAction').'" src="/dolibarr/htdocs/theme/eldy/img/Add.png">
+                <img onclick="EditAction('.$row->rowid.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Edit').'" src="/dolibarr/htdocs/theme/eldy/img/edit.png">
+                <img onclick="DelAction('.$row->rowid.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('delete').'" src="/dolibarr/htdocs/theme/eldy/img/delete.png">
             </td>
             </tr>';
     }

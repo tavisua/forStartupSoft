@@ -247,7 +247,7 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
     $per_page = isset($_GET['per_page'])?$_GET['per_page']:30;
 
     $lastaction = array();
-    $sql = "select `llx_societe`.rowid, `llx_societe_action`.`dtChange`, `responsibility`.`alias`
+    $sql = "select `llx_societe`.rowid, max(`llx_societe_action`.`dtChange`) dtChange, `responsibility`.`alias`
     from `llx_societe`
     left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`
     left join `llx_actioncomm` on `llx_actioncomm`.`fk_soc`= `llx_societe`.rowid
@@ -255,7 +255,8 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
     left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
     inner join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.`rowid`
     left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
-    where `llx_societe`.active = 1 ";
+    where `llx_societe`.active = 1
+    group by `llx_societe`.rowid, `responsibility`.`alias` ";
     $sql .= ' limit '.($page-1)*$per_page.','.$per_page;
 
 //  die($sql);
