@@ -64,7 +64,7 @@ class FormActions
 			union
 			(select rowid, name
 			from `llx_c_groupoftask`
-			where `llx_c_groupoftask`.`fk_respon_id` = '.$respon_id.'
+			where `llx_c_groupoftask`.`fk_respon_id` in ('.implode(',',$respon_id).')
 			and active = 1)
 			order by name';
 //		var_dump($sql);

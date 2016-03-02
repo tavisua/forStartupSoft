@@ -95,7 +95,7 @@ for($i = 0; $i<9; $i++){
         }
     }
 }
-include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/day_plan.html';
+include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/purchase/day_plan.html';
 
 //print '</br>';
 //print'<div style="float: left">test</div>';
@@ -391,21 +391,25 @@ function ShowTable(){
     }
 
 
-//    echo '<pre>';
-//    var_dump($percent_action);
-//    echo '</pre>';
-//    die(111);
-    $sql = 'select distinct `regions`.rowid, `regions`.name regions_name, states.name states_name
-    from `regions`
-    inner join (select fk_id from `llx_user_regions`';
-    if(!$user->admin)
-        $sql .='where fk_user = '.$user->id.' ';
-    else
-        $sql .='where 1 ';
-    $sql .='and llx_user_regions.active = 1) as active_regions on active_regions.fk_id = `regions`.rowid
-    left join states on `regions`.`state_id` = `states`.rowid
-    where `regions`.active = 1
-    order by states_name, `regions`.name';
+//    $sql = 'select distinct `regions`.rowid, `regions`.name regions_name, states.name states_name
+//    from `regions`
+//    inner join (select fk_id from `llx_user_regions`';
+//    if(!$user->admin)
+//        $sql .='where fk_user = '.$user->id.' ';
+//    else
+//        $sql .='where 1 ';
+//    $sql .='and llx_user_regions.active = 1) as active_regions on active_regions.fk_id = `regions`.rowid
+//    left join states on `regions`.`state_id` = `states`.rowid
+//    where `regions`.active = 1
+//    order by states_name, `regions`.name';
+
+    $sql = "select `oc_category_description`.category_id rowid, `oc_category_description`.`name` from llx_user_lineactive
+        inner join  `oc_category_description` on `oc_category_description`.`category_id`= llx_user_lineactive.fk_lineactive
+        where llx_user_lineactive.fk_user = ".$user->id." and llx_user_lineactive.page=1 and llx_user_lineactive.active=1
+        and `oc_category_description`.language_id = 4
+        union
+        select 0, 'Інше'";
+
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
@@ -416,13 +420,12 @@ function ShowTable(){
     while($obj = $db->fetch_object($res)){
         $class=(fmod($nom++,2)==0?"impair":"pair");
         $table.='<tr id = "'.$obj->rowid.'" class="'.$class.'">
-            <td class="middle_size" style="width:106px">'.$obj->states_name.'</td>
-            <td class="middle_size" style="width:146px">'.str_replace('-', '- ',$obj->regions_name).'</td>';
+            <td class="middle_size" style="width:252px">'.str_replace('-', '- ',$obj->name).'</td>';
             //% виконання запланованого по факту
 
             for($i=8; $i>=0; $i--){
                 if($i == 8)
-                    $table.='<td style="width: '.($conf->browser->name=='firefox'?(32):(33)).'px; text-align:center;">'.$percent_action[$obj->rowid.'_month'].'</td>';
+                    $table.='<td style="width: '.($conf->browser->name=='firefox'?(33):(33)).'px; text-align:center;">'.$percent_action[$obj->rowid.'_month'].'</td>';
                 else
                     $table.='<td style="width: '.($conf->browser->name=='firefox'?(31):(31)).'px; text-align:center;">'.$percent_action[$obj->rowid.'_'.$i].'</td>';
             }
@@ -443,7 +446,7 @@ function ShowTable(){
                 if($i == 0)
                     $table.='<td  style="text-align: center; width: '.($conf->browser->name=='firefox'?(32):(33)).'px"><a href="/dolibarr/htdocs/hourly_plan.php?idmenu=10420&mainmenu=hourly_plan&leftmenu=&date='.date("Y-m-d").'">'.$future_actions[$obj->rowid.'_'.$i].'</a></td>';
                 elseif($i == 8)
-                    $table.='<td style="text-align: center; width: '.($conf->browser->name=='firefox'?(32):(34)).'px">'.$future_actions[$obj->rowid.'_month'].'</td>';
+                    $table.='<td style="text-align: center; width: '.($conf->browser->name=='firefox'?(34):(34)).'px">'.$future_actions[$obj->rowid.'_month'].'</td>';
                 else {
                     $table .= '<td style="text-align: center; width: ' . ($conf->browser->name == 'firefox' ? (31) : (31)) . 'px"><a href="/dolibarr/htdocs/hourly_plan.php?idmenu=10420&mainmenu=hourly_plan&leftmenu=&date='.date("Y-m-d", (time()+3600*24*$i)).'">' . $future_actions[$obj->rowid . '_' . $i] . '</a></td>';
                 }

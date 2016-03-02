@@ -26,8 +26,7 @@
         <table cellspacing="1" class="WidthScroll">
             <thead>
                 <tr class="multiple_header_table">
-                    <th rowspan="4" style="width: 105px;">Область</th>
-                    <th rowspan="4" style="width: 145px;">Район</th>
+                    <th rowspan="4" style="width: 250px;">Напрямок</th>
                     <th colspan="9">% виконання запланованого по факту</th>
                     <th colspan="9">минуле (факт)</th>
                     <th rowspan="4" class="small_size" style="width: 50px;writing-mode:tb-lr;">кільк. простроч.</th>
@@ -130,7 +129,7 @@
                     <th class="small_size"></th>
                 </tr>
                 <tr class="multiple_header_table whitetitle">
-                    <th  colspan="2">Всього задач</th>
+                    <th>Всього задач</th>
                     <!--% виконання запланованого по факту-->
                     <th class="totalvalue" id="total_percent_month"><?=$total_percent["percent_month"]?></th>
                     <th class="totalvalue" id="total_percent_day_m7"><?=$total_percent["percent_7"]?></th>
@@ -165,7 +164,7 @@
                     <th class="totalvalue" id="total_future_month"><?=$global_task['future_month']+$current_task['future_month']+$lineaction['future_month']?></th>
                 </tr>
                 <tr class="multiple_header_table whitetitle">
-                    <th  colspan="2">Глобальні задачі(ТОПЗ)</th>
+                    <th>Глобальні задачі(ТОПЗ)</th>
                     <!--% виконання запланованого по факту-->
                     <th class="totalvalue" id="global_percent_month"><?=$global_task["percent_month"]?></th>
                     <th class="totalvalue" id="global_percent_day_m7"><?=$global_task["percent_7"]?></th>
@@ -200,7 +199,7 @@
                     <th class="totalvalue" id="global_future_month"><?=$global_task['future_month']?></th>
                 </tr>
                 <tr class="multiple_header_table whitetitle">
-                    <th  colspan="2">Поточні задачі</th>
+                    <th>Поточні задачі</th>
                     <!--% виконання запланованого по факту-->
                     <th class="totalvalue" id="curent_percent_month"><?=$current_task["percent_month"]?></th>
                     <th class="totalvalue" id="curent_percent_day_m7"><?=$current_task["percent_7"]?></th>
@@ -235,7 +234,7 @@
                     <th class="totalvalue" id="curent_future_month"><?=$current_task['future_month']?></th>
                 </tr>
                 <tr class="multiple_header_table whitetitle">
-                    <th  colspan="2" class="bestvalue">Всього по найкращому</th>
+                    <th class="bestvalue">Всього по найкращому</th>
                     <!--% виконання запланованого по факту-->
                     <th class="totalvalue bestvalue" id="bestvalue_percent_month"><?=$bestvalue["percent_month"]?></th>
                     <th class="totalvalue bestvalue" id="bestvalue_percent_day_m7"><?=$bestvalue["percent_7"]?></th>
@@ -270,7 +269,7 @@
                     <th class="totalvalue bestvalue" id="bestvalue_future_month"><?=$bestvalue['future_month']?></th>
                 </tr>
                 <tr class="multiple_header_table whitetitle">
-                    <th  colspan="2">Всього по направленнях/контрагентах</th>
+                    <th>Всього по направленнях/контрагентах</th>
                     <!--% виконання запланованого по факту-->
                     <th class="totalvalue" id="lineactive_percent_month"><?=$lineaction["percent_month"]?></th>
                     <th class="totalvalue" id="lineactive_percent_day_m7"><?=$lineaction["percent_7"]?></th>
@@ -326,7 +325,7 @@
 <script>
     $(document).ready(function(){
         $('#reference_body').attr('height', window.innerHeight - 370);
-        $('#reference_body').width($('#reference_body').width()+15);
+//        $('#reference_body').width(1260);
         $('#popupmenu').offset({top:550, left:-250});
         var Width = $(".WidthScroll").width();
         var Top = $(".WidthScroll").height();

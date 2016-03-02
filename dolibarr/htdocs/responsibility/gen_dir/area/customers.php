@@ -17,7 +17,7 @@ $per_page = isset($_GET['per_page'])?$_GET['per_page']:30;
 
 $sql = 'select `llx_societe`.rowid, `llx_societe`.nom,
 `llx_societe`.`town`, round(`llx_societe_classificator`.`value`,0) as width, `llx_societe`.`remark`, " " deficit,
-" " task," " lastdate, " " lastdatecomerc, " " futuredatecomerc, " " lastdateservice,
+" " task," " lastdate, " " lastdatecomerc, " " futuredatecomerc, " " exec_time, " " lastdateservice,
 " " futuredateservice, " " lastdateaccounts, " " futuredateaccounts, " " lastdatementor, " " futuredatementor
 from `llx_societe` left join `category_counterparty` on `llx_societe`.`categoryofcustomer_id` = `category_counterparty`.rowid
 left join `formofgavernment` on `llx_societe`.`formofgoverment_id` = `formofgavernment`.rowid
@@ -140,6 +140,12 @@ $TableParam[]=$ColParam;
 
 $ColParam['title']='';
 $ColParam['width']='74';
+$ColParam['align']='';
+$ColParam['class']='';
+$TableParam[]=$ColParam;
+
+$ColParam['title']='';
+$ColParam['width']='40';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;

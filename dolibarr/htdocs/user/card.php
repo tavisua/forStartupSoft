@@ -37,6 +37,14 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/images.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/usergroups.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
+
+if(isset($_REQUEST['action'])&&$_REQUEST['action']=='getpass'){
+    require_once DOL_DOCUMENT_ROOT.'/core/lib/security2.lib.php';
+    $pass = getRandomPassword();
+    echo($pass);
+    exit();
+}
+
 if (! empty($conf->ldap->enabled)) require_once DOL_DOCUMENT_ROOT.'/core/class/ldap.class.php';
 if (! empty($conf->adherent->enabled)) require_once DOL_DOCUMENT_ROOT.'/adherents/class/adherent.class.php';
 if (! empty($conf->multicompany->enabled)) dol_include_once('/multicompany/class/actions_multicompany.class.php');
@@ -1831,7 +1839,7 @@ else
             }
             else if ($caneditpassword)
             {
-                $text='<input size="12" maxlength="32" type="password" class="flat" name="password" value="'.$object->pass.'" autocomplete="off">';
+                $text='<input size="12" maxlength="32" type="password" class="flat" id="password" name="password" value="'.$object->pass.'" autocomplete="off"><img onclick=ReinitPassword(); title="'.$langs->trans('ReinitPassword').'" src="/dolibarr/htdocs/theme/'.$conf->theme.'/img/refresh.png">';
                 if ($dolibarr_main_authentication && $dolibarr_main_authentication == 'http')
                 {
                     $text=$form->textwithpicto($text,$langs->trans("DolibarrInHttpAuthenticationSoPasswordUseless",$dolibarr_main_authentication),1,'warning');

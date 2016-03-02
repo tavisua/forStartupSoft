@@ -1314,6 +1314,9 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
                 $(".popupmenu").hide();
             }
         </script>';
+
+
+
             // jQuery jMobile
             if (! empty($conf->global->MAIN_USE_JQUERY_JMOBILE) || defined('REQUIRE_JQUERY_JMOBILE') || (! empty($conf->dol_use_jmobile) && $conf->dol_use_jmobile > 0))
             {
@@ -2064,20 +2067,7 @@ if (! function_exists("llxFooter"))
         if (empty($conf->dol_hide_leftmenu) && empty($conf->dol_use_jmobile) && empty($conf->global->MAIN_MENU_USE_JQUERY_LAYOUT)) print '</div> <!-- End div id-container -->'."\n";	// End div container
 
         print '<div class="footer">В разі виникнення запитань чи виявлення помилок в роботі програми, пишіть в службу підтримки <a href="mailto:tavis.ua@gmail.com?subject=TitSupport">tavis.ua@gmail.com</a></p></div>';
-        print '<script type="text/javascript">';
-        print '$(".param").keypress(function( b ){';
-        print '';
-        print '        var C = /[0-9\x25\x27\x24\x23]/;';
-        print '';
-        print '        var a = b.which;';
-        print '';
-        print '        var c = String.fromCharCode(a);';
-        print '';
-        print '        return !!(a==0||a==8||a==9||a==13||c.match(C));';
-        print '';
-        print '    });';
-        print '';
-        print '</script>';
+
 //        print '<script type="text/javascript">
 //                function close_registerform(){
 //                    location.href ="#close";
@@ -2118,6 +2108,7 @@ if (! function_exists("llxFooter"))
                 </style>
             ';
         }
+
         print "</body>\n";
         print "</html>\n";
     }

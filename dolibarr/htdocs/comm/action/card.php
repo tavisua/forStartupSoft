@@ -115,7 +115,7 @@ $fulldayevent=GETPOST('fullday');
 $datep=dol_mktime($fulldayevent?'00':GETPOST("aphour"), $fulldayevent?'00':GETPOST("apmin"), 0, GETPOST("apmonth"), GETPOST("apday"), GETPOST("apyear"));
 $datef=dol_mktime($fulldayevent?'23':GETPOST("p2hour"), $fulldayevent?'59':GETPOST("p2min"), $fulldayevent?'59':'0', GETPOST("p2month"), GETPOST("p2day"), GETPOST("p2year"));
 //echo '<pre>';
-//var_dump($_GET);
+//var_dump($_REQUEST);
 //echo '</pre>';
 //die();
 // Security check
@@ -396,8 +396,8 @@ if ($action == 'add')
 					else
 						$backtopage = '/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/action.php?socid='.$object->socid.'&idmenu=10425&mainmenu=area';
 //					$backtopage = '/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/action.php?socid='.$object->socid.'&idmenu=10425&mainmenu=area';
-					var_dump($idaction, $object->type_code, $backtopage);
-					die('stop');
+//					var_dump($idaction, $object->type_code, $backtopage);
+//					die('stop');
 					$Location = "Location: ".str_replace("'",'', $backtopage);
                     header($Location);
 				}
@@ -562,17 +562,31 @@ if ($action == 'update')
 
 	if (! $error)
 	{
-		var_dump(empty($backtopage));
+//		echo '<pre>';
+//		var_dump($object);
+//		echo '</pre>';
+//		die();
 
-        if (! empty($backtopage))
-        {
-            if(substr($backtopage, 0,1) == "'" && substr($backtopage, mb_strlen($backtopage)-1,1) == "'"){
-                $backtopage = substr($backtopage, 1,mb_strlen($backtopage)-2);
-            }
-        	unset($_SESSION['assignedtouser']);
-            header("Location: ".$backtopage);
-            exit;
-        }
+        if (! empty($backtopage)) {
+			if (substr($backtopage, 0, 1) == "'" && substr($backtopage, mb_strlen($backtopage) - 1, 1) == "'") {
+				$backtopage = substr($backtopage, 1, mb_strlen($backtopage) - 2);
+			}
+			unset($_SESSION['assignedtouser']);
+			header("Location: " . $backtopage);
+			exit;
+		}elseif(!empty($object->socid)){
+					if($object->type_code == 'AC_GLOBAL')
+						$backtopage = '/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$object->id.'&mainmenu=global_task';
+					elseif($object->type_code == 'AC_CURRENT')
+						$backtopage = '/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$object->id.'&mainmenu=current_task';
+					else
+						$backtopage = '/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/action.php?socid='.$object->socid.'&idmenu=10425&mainmenu=area';
+//					$backtopage = '/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/action.php?socid='.$object->socid.'&idmenu=10425&mainmenu=area';
+//					var_dump($idaction, $object->type_code, $backtopage);
+//					die('stop');
+					$Location = "Location: ".str_replace("'",'', $backtopage);
+                    header($Location);
+		}
 	}
 }
 
@@ -785,7 +799,7 @@ if ($action == 'create')
 	if (GETPOST("afaire") == 1) $form->select_date($datep,'ap',1,1,0,"action",1,1,0,0,'fulldayend');
 	else if (GETPOST("afaire") == 2) $form->select_date($datep,'ap',1,1,1,"action",1,1,0,0,'fulldayend');
 	else $form->select_date($datep,'ap',1,1,1,"action",1,1,0,0,'fulldaystart');
-	print '</td></tr>';
+	print '<span style="font-size: 12px">Необхідно часу  </span><input type="text" class="param" size="2" id = "exec_time" name="exec_time"><span style="font-size: 12px"> хвилин.</span></td></tr>';
 
 	// Date end
 
@@ -853,16 +867,22 @@ if ($action == 'create')
 	print '<tr><td width="10%">'.$langs->trans("GroupOfTask").'</td>';
 	print '<td>';
 	$percent=-1;
-	if(count($listofuserid) == 1)
-		$formactions->select_groupoftask('groupoftask', $user->respon_id);
-	else{
+	$respon = array();
+	if(count($listofuserid) == 1) {
+		$respon[] = $user->respon_id;
+		$formactions->select_groupoftask('groupoftask', $respon);
+	}else{
 		$assigneduser = new User($db);
 		foreach($listofuserid as $id_usr){
-			if($id_usr != $user->id){
-				$assigneduser->fetch($id_usr);
+			if($id_usr['id'] != $user->id){
+				$assigneduser->fetch($id_usr['id']);
+				if(!in_array($assigneduser->respon_id,$respon))
+					$respon[]=$assigneduser->respon_id;
 			}
 		}
-		$formactions->select_groupoftask('groupoftask', $assigneduser->respon_id);
+//		var_dump($respon);
+//		die();
+		$formactions->select_groupoftask('groupoftask', $respon);
 	}
 
 	print '</td></tr>';
@@ -1224,16 +1244,20 @@ if ($id > 0)
 		$percent=-1;
 //		var_dump(count($listofuserid));
 //		die();
-		if(count($listofuserid) == 1)
-			$formactions->select_groupoftask('groupoftask', $user->respon_id, $object->groupoftask);
-		else{
+		$respon = array();
+		if(count($listofuserid) == 1) {
+			$respon[] = $user->respon_id;
+			$formactions->select_groupoftask('groupoftask', $respon, $object->groupoftask);
+		}else{
 			$assigneduser = new User($db);
 			foreach($listofuserid as $id_usr){
-				if($id_usr != $user->id){
-					$assigneduser->fetch($id_usr);
+				if($id_usr['id'] != $user->id){
+				$assigneduser->fetch($id_usr['id']);
+				if(!in_array($assigneduser->respon_id,$respon))
+					$respon[]=$assigneduser->respon_id;
 				}
 			}
-			$formactions->select_groupoftask('groupoftask', $assigneduser->respon_id);
+			$formactions->select_groupoftask('groupoftask', $respon, $object->groupoftask);
 		}
 		print '</table>';
 
@@ -1637,7 +1661,7 @@ print '
         function SocIdChange(){
             if($("select#socid").val() == -1) return;
             var link = "http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=get_contactlist&socid="+$("select#socid").val();
-            console.log(link);
+//            console.log(link);
             $.ajax({
                 url: link,
                 cahce: false,
@@ -1684,7 +1708,7 @@ print '
             }
         }
         function setP2(showalert){
-            console.log($("select#apmin").val());
+//            console.log($("select#apmin").val());
             if($("select#apmin").val() == -1) return;
             else if($("select#apmin").val() != "-1") {
                 if($("select#actioncode").val()!=0){
@@ -1693,46 +1717,13 @@ print '
 //                    else
 //                        $("#period").show();
                     var link = "http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=get_exectime&code="+$("#actioncode").val();
-                    console.log(link);
+//                    console.log(link);
                     $.ajax({
                         url:link,
                         cache: false,
                         success: function(html){
-                            var hour = parseInt(document.getElementById("aphour").value)+Math.floor(html/60);
-                            document.getElementById("p2hour").value = hour<10?("0"+hour):hour;
-                            var p2min = 0;
-
-                            if(parseInt(html)%60){
-                                p2min = parseInt(document.getElementById("apmin").value)+parseInt(html);
-                                document.getElementById("p2hour").value =
-                                    parseInt(document.getElementById("aphour").value)+Math.floor(p2min/60);
-                            }else{
-                               p2min = parseInt(document.getElementById("apmin").value);
-                               var hour = parseInt(html)+parseInt(document.getElementById("aphour").value);
-                               document.getElementById("p2hour").value = hour<10?("0"+hour):hour;
-                            }
-                            var min="";
-                            if(p2min%60<10)
-                                min = "0"+(p2min%60).toString();
-                            else
-                                min = (p2min%60).toString();
-                            hour +=Math.floor(p2min/60);
-//console.log("округ"+Math.floor(p2min/60));
-                            var sHour = hour<10?("0"+hour.toString()):(hour.toString());
-                            document.getElementById("p2hour").value = sHour;
-                            document.getElementById("p2min").value = min;
-//                            if(Math.floor(p2min/60)>0){
-////                                var min="";
-////                                if(p2min%60<10)
-////                                    min = "0"+(p2min%60).toString();
-////                                else
-////                                    min = (p2min%60).toString();
-//                                document.getElementById("p2min").value = min;
-//                            }else{
-//
-//                                document.getElementById("p2min").value = min;
-//                            }
-//                            console.log(p2min%60);
+                        	$("#exec_time").val(html);
+                            CalcP2();
                         }
                     })
                 }else{
@@ -1741,6 +1732,33 @@ print '
                 }
 
             }
+        }
+        function CalcP2(){
+        	var hour = parseInt(document.getElementById("aphour").value)+Math.floor($("#exec_time").val()/60);
+			document.getElementById("p2hour").value = hour<10?("0"+hour):hour;
+			var p2min = 0;
+
+			if(parseInt($("#exec_time").val())%60){
+
+				p2min = parseInt(document.getElementById("apmin").value)+parseInt($("#exec_time").val());
+				document.getElementById("p2hour").value =
+					parseInt(document.getElementById("aphour").value)+Math.floor(p2min/60);
+			}else{
+			   p2min = parseInt(document.getElementById("apmin").value);
+			   var hour = parseInt($("#exec_time").val())+parseInt(document.getElementById("aphour").value);
+			   document.getElementById("p2hour").value = hour<10?("0"+hour):hour;
+			}
+
+			var min="";
+			if(p2min%60<10)
+				min = "0"+(p2min%60).toString();
+			else
+				min = (p2min%60).toString();
+
+
+			var sHour = hour<10?("0"+hour.toString()):(hour.toString());
+			document.getElementById("p2hour").value = sHour;
+			document.getElementById("p2min").value = min;
         }
         function ActionCodeChanged(){
             if(!$("#ap").val()){
@@ -1773,7 +1791,22 @@ print '
         }
     </script>';
 
+        print '<script type="text/javascript">
+			$(".param").keypress(function( b ){
 
+					var C = /[0-9\x25\x27\x24\x23]/;
+
+				  var a = b.which;
+
+				   var c = String.fromCharCode(a);
+
+					return !!(a==0||a==8||a==9||a==13||c.match(C));
+			});
+			$("#exec_time").blur(function(e){
+				CalcP2();
+			});
+
+        </script>';
 //llxFooter();
 
 $db->close();

@@ -17,6 +17,19 @@ function setTime(link){
         }
     })
 }
+function ReinitPassword(){
+    $.ajax({
+        url:'/dolibarr/htdocs/user/card.php?action=getpass',
+        cache:false,
+        success: function(pass){
+            $('#password').val(pass);
+            var text = document.querySelector('#password');
+            text.select();
+            document.execCommand('copy');
+            alert('Новий пароль скопіювано в буфер обміну');
+        }
+    })
+}
 function Call(number){
     var blob = new Blob(['{"call":"'+number+'"}'], {type: "text/plain;charset=utf-8"});
     saveAs(blob, "call.json");
