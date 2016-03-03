@@ -15,8 +15,46 @@
     <button style="width: 200px;height: 30px" onclick="preparedorders();">Зберегти заявку</button>
 </div>
 <div id="popupmenu" style="display: none;" class="pair popupmenu" >
+
     <table style="background: #ffffff; border-collapse: collapse;" id="popup_table" >
     </table>
+    <script>
+        $(window).click(function (e) {
+//            console.log($('#popup_table').attr('order_id'), $('#popup_table').attr('order_id') === undefined);
+            if (e.target.id.substr(0, 2) == 'td' && $('#popup_table').attr('order_id') !== undefined) {
+                var val = $('#'+e.target.id).text();
+//                console.log($(this).attr('id'));
+                var field = '<input type="text" id="edit" value="'+val+'" size=4>';
+                $('#'+e.target.id).empty().append(field); //устанавливаем фокус на свеженарисованное поле
+                $('#edit').focus();
+                $('#edit').select();
+                $('#edit').blur(function() { //устанавливаем обработчик
+                    var val = $(this).val(); //получаем то, что в поле находится
+                    //находим ячейку, опустошаем, вставляем значение из поля
+                    var product_id = $(this).parent().parent().attr('id').substr(2);
+                    $(this).parent().empty().html(val);
+                    var tr = $('#popup_table').find('tr');
+                    var dSum = 0;
+                    var JSON = '{';
+                    for(var i = 0; i<tr.length; i++) {
+                        if($('#price'+tr[i].id.substr(2)).text().length>0 && $('#td'+tr[i].id.substr(2)).text().length>0)
+                            dSum += $('#price'+tr[i].id.substr(2)).text()*$('#td'+tr[i].id.substr(2)).text();
+                        if($('#price'+tr[i].id.substr(2)).text().length>0) {
+                            if (JSON.length > 1)
+                                JSON += ',';
+                            JSON += '"' + tr[i].id.substr(2) + '":' + $('#td' + tr[i].id.substr(2)).text();
+                        }
+                    }
+                    JSON+='}';
+                    $('#total_price').text('Загалом на суму '+dSum);
+                    $.cookie('products', JSON);
+//                    console.log(JSON);
+
+                });
+            }
+        });
+
+    </script>
     <div style="color: #0000FF; font-weight: bold; font-size: 14px; padding: 5px 0px 5px 20px" id="total_price">Загалом на суму </div>
     <div style="text-align: center">
     <button style="width: 150px;height: 30px" onclick="saveorders();">Зберегти заявку</button>
@@ -26,14 +64,15 @@
 <div id="typicalqueries" style="display: none; height: 80%"  class="pair popupmenu">
     <div style="color: #0000FF; font-weight: bold; font-size: 14px; padding: 5px 0px 5px 20px" id="title_question">Дозвольте задати Вам останні організаційні запитання...</div>
     <form id="questions_form" action="?type_action=save_orders" method="post">
-    <input type="hidden" value="" name="order_id">
+    <input type="hidden" value="" id = "order_id" name="order_id">
+    <input type="hidden" value="" id = "products" name="products">
     <input type="hidden" value="<?=$_REQUEST['mainmenu']?>" name="mainmenu">
     <input type="hidden" value="<?=$_REQUEST['idmenu']?>" name="idmenu">
     <table style="background: #ffffff; border-collapse: collapse;" id="questions" >
     </table>
     </form>
     <div style="text-align: center">
-    <button style="width: 150px;height: 30px" onclick="saveorders();">Зберегти заявку</button>
+    <button style="width: 150px;height: 30px" onclick="saveorders(true);">Зберегти заявку</button>
     <button style="width: 150px;height: 30px" onclick="close_registerform();">Відмінити</button>
     </div>
 </div>
@@ -56,7 +95,7 @@
             <th style="width: 80px" class="middle_size">
                 Статус
             </th>
-            <th style="width: 80px" class="middle_size">
+            <th style="width: 60px" class="middle_size">
                 Дії
             </th>
         </tr>
@@ -127,9 +166,50 @@
 
         console.log('test');
     }
-    function saveorders(){
-        if(confirm('Зберегти активну заявку?')) {
-            $('#questions_form').submit();
+    function saveorders(typicalqueries){
+        if(typicalqueries === undefined){
+            if($.cookie('products') == null){
+                var tr = $('#popup_table').find('tr');
+                var JSON = '{';
+                for(var i = 0; i<tr.length; i++) {
+                    if($('#price'+tr[i].id.substr(2)).text().length>0) {
+                        if (JSON.length > 1)
+                            JSON += ',';
+                        JSON += '"' + tr[i].id.substr(2) + '":' + $('#td' + tr[i].id.substr(2)).text();
+                    }
+                }
+                JSON+='}';
+                $.cookie('products', JSON);
+            }
+            if($('#popup_table').attr('order_id') !== undefined) {
+                var order_id = $('#questions_form').find('input#order_id');
+                order_id.val($('#popup_table').attr('order_id'))
+                var products = $('#questions_form').find('input#products');
+                products.val($.cookie('products'));
+//                console.log(order_id.val());
+            }
+            preparedorders();
+//            console.log();
+        }else {
+            var Query = '';
+            if($('#popup_table').attr('order_id') === undefined)
+                Query = 'Зберегти активну заявку?';
+            else
+                Query = 'Зберегти заявку?';
+            if (confirm(Query)) {
+                $('#questions_form').submit();
+            }
+        }
+    }
+    function deleteorder(order_id){
+        if(confirm('Видалити заявку?')) {
+            $.ajax({
+                url: '<?=$_SERVER["PHP_SELF"]?>?type_action=del_query&order_id=' + order_id,
+                cashe: false,
+                success: function (html) {
+                    location.href = '<?$_SERVER["REQUEST_URI"]?>';
+                }
+            })
         }
     }
     function preparedorders(){
@@ -148,9 +228,11 @@
             })
         $('#typicalqueries').show();
     }
-    function showorders(){
+    function showorders(order_id){
+//        console.log(order_id);
+//        return;
         $.ajax({
-            url: '<?=$_SERVER["PHP_SELF"]?>?type_action=showorders',
+            url: '<?=$_SERVER["PHP_SELF"]?>?type_action=showorders&order_id='+order_id,
             cashe: false,
             success: function(html){
                 $('#popup_table').html(html);
@@ -163,6 +245,10 @@
                 $('#total_price').html('Загалом на суму '+TotalPrice);
             }
         })
+//        console.log('set atribut order_id', parseInt(order_id)!=0);
+        if(parseInt(order_id)!=0){
+            $('#popup_table').attr('order_id', order_id);
+        }
         $('#popupmenu').css('position', "absolute");
         $('#popupmenu').css("top", '150');
         $('#popupmenu').css("z-index", '1500000');

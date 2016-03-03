@@ -1839,7 +1839,7 @@ else
             }
             else if ($caneditpassword)
             {
-                $text='<input size="12" maxlength="32" type="password" class="flat" id="password" name="password" value="'.$object->pass.'" autocomplete="off"><img onclick=ReinitPassword(); title="'.$langs->trans('ReinitPassword').'" src="/dolibarr/htdocs/theme/'.$conf->theme.'/img/refresh.png">';
+                $text='<input size="12" maxlength="32" type="password" class="flat copy" id="password" name="password" value="'.$object->pass.'" autocomplete="off"><img onclick=ReinitPassword(); title="'.$langs->trans('ReinitPassword').'" src="/dolibarr/htdocs/theme/'.$conf->theme.'/img/refresh.png">';
                 if ($dolibarr_main_authentication && $dolibarr_main_authentication == 'http')
                 {
                     $text=$form->textwithpicto($text,$langs->trans("DolibarrInHttpAuthenticationSoPasswordUseless",$dolibarr_main_authentication),1,'warning');

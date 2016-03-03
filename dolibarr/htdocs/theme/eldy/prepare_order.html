@@ -99,6 +99,48 @@
     }
 </style>
 <script>
+    function calculator(product_id){
+        var full_price_costs =
+                parseFloat($('#full_price_per_party'+product_id).html().length==0?0: $('#full_price_per_party'+product_id).html())+
+                parseFloat($('#price_per_download'+product_id).html().length==0?0: $('#price_per_download'+product_id).html())+
+                parseFloat($('#full_price_per_transport1'+product_id).html().length==0?0: $('#full_price_per_transport1'+product_id).html())+
+                parseFloat($('#full_price_per_transport2'+product_id).html().length==0?0: $('#full_price_per_transport2'+product_id).html())+
+                parseFloat($('#full_price_per_transport3'+product_id).html().length==0?0: $('#full_price_per_transport3'+product_id).html())+
+                parseFloat($('#prep_sale'+product_id).html().length==0?0: $('#prep_sale'+product_id).html())+
+                parseFloat($('#use_owner_transport'+product_id).html().length==0?0: $('#use_owner_transport'+product_id).html())+
+                parseFloat($('#departure_to_customer'+product_id).html().length==0?0: $('#departure_to_customer'+product_id).html())+
+                parseFloat($('#service_costs'+product_id).html().length==0?0: $('#service_costs'+product_id).html())+
+                parseFloat($('#other_gratitude'+product_id).html().length==0?0: $('#other_gratitude'+product_id).html())+
+                parseFloat($('#loading_unloading'+product_id).html().length==0?0: $('#loading_unloading'+product_id).html())+
+                parseFloat($('#bank_cost'+product_id).html().length==0?0: $('#bank_cost'+product_id).html())+
+                parseFloat($('#other'+product_id).html().length==0?0: $('#other'+product_id).html())+
+                parseFloat($('#incom_tax'+product_id).html().length==0?0: $('#incom_tax'+product_id).html())+
+                parseFloat($('#VAT'+product_id).html().length==0?0: $('#VAT'+product_id).html());
+        $('#full_price_costs'+product_id).empty().html(full_price_costs);
+        if($('#full_sale_price'+product_id).html().length>0){
+            var absolute_diference = Math.round(($('#full_sale_price'+product_id).html()-full_price_costs)*100)/100;
+            if(absolute_diference>0) {
+                $('#absolute_diference' + product_id).removeClass('fielderror');
+                $('#percent_diference'+product_id).removeClass('fielderror');
+            }else {
+                $('#absolute_diference' + product_id).addClass('fielderror');
+                $('#percent_diference'+product_id).addClass('fielderror');
+            }
+            $('#absolute_diference'+product_id).html(absolute_diference);
+            var percent_diference = Math.round((absolute_diference/$('#full_sale_price'+product_id).html())*100);
+            $('#percent_diference'+product_id).html(percent_diference);
+            var sale_price = parseFloat(Math.round($('#full_sale_price'+product_id).html()*100/1.2)/100);
+            $('#sale_price'+product_id).html(sale_price);
+//                var incom_tax = .18*(sale_price - (parseFloat($('#price_per_party'+product_id).html().length==0?0: $('#price_per_party'+product_id).html())+
+//                                            parseFloat($('#price_per_transport1'+product_id).html().length==0?0: $('#price_per_transport1'+product_id).html())+
+//                                            parseFloat($('#price_per_transport2'+product_id).html().length==0?0: $('#price_per_transport2'+product_id).html())+
+//                                            parseFloat($('#price_per_transport3'+product_id).html().length==0?0: $('#price_per_transport3'+product_id).html())));
+//                $('#incom_tax'+product_id).html(incom_tax);
+
+        }
+
+//            console.log( full_price_costs);
+    };
     $(document).ready(function(){
 //                        <th colspan="13" class="basic_part">Основна економічна частина</th>
 //                <th colspan="10" class="addition_part">Додаткова економічна частина</th>
@@ -110,7 +152,13 @@
         $('.features_part').hide();
         var table = document.getElementsByTagName('table')[1];
         table.id = 'orderlist';
-        console.log(table);
+//        console.log(table);
+        var tr = $('#orderlist').find('tbody').find('tr');
+        for(var i = 0; i<tr.length; i++){
+            var product_id = tr[i].id.substr(2);
+            calculator(product_id);
+//            console.log(tr[i].id);
+        }
     })
     $(window).click(function(){
         if(location.href.substr(strpos(location.href, "#")) == '#close'){
@@ -149,48 +197,7 @@
                 });
             }
         });
-        function calculator(product_id){
-            var full_price_costs =
-                    parseFloat($('#full_price_per_party'+product_id).html().length==0?0: $('#full_price_per_party'+product_id).html())+
-                    parseFloat($('#price_per_download'+product_id).html().length==0?0: $('#price_per_download'+product_id).html())+
-                    parseFloat($('#full_price_per_transport1'+product_id).html().length==0?0: $('#full_price_per_transport1'+product_id).html())+
-                    parseFloat($('#full_price_per_transport2'+product_id).html().length==0?0: $('#full_price_per_transport2'+product_id).html())+
-                    parseFloat($('#full_price_per_transport3'+product_id).html().length==0?0: $('#full_price_per_transport3'+product_id).html())+
-                    parseFloat($('#prep_sale'+product_id).html().length==0?0: $('#prep_sale'+product_id).html())+
-                    parseFloat($('#use_owner_transport'+product_id).html().length==0?0: $('#use_owner_transport'+product_id).html())+
-                    parseFloat($('#departure_to_customer'+product_id).html().length==0?0: $('#departure_to_customer'+product_id).html())+
-                    parseFloat($('#service_costs'+product_id).html().length==0?0: $('#service_costs'+product_id).html())+
-                    parseFloat($('#other_gratitude'+product_id).html().length==0?0: $('#other_gratitude'+product_id).html())+
-                    parseFloat($('#loading_unloading'+product_id).html().length==0?0: $('#loading_unloading'+product_id).html())+
-                    parseFloat($('#bank_cost'+product_id).html().length==0?0: $('#bank_cost'+product_id).html())+
-                    parseFloat($('#other'+product_id).html().length==0?0: $('#other'+product_id).html())+
-                    parseFloat($('#incom_tax'+product_id).html().length==0?0: $('#incom_tax'+product_id).html())+
-                    parseFloat($('#VAT'+product_id).html().length==0?0: $('#VAT'+product_id).html());
-            $('#full_price_costs'+product_id).empty().html(full_price_costs);
-            if($('#full_sale_price'+product_id).html().length>0){
-                var absolute_diference = Math.round(($('#full_sale_price'+product_id).html()-full_price_costs)*100)/100;
-                if(absolute_diference>0) {
-                    $('#absolute_diference' + product_id).removeClass('fielderror');
-                    $('#percent_diference'+product_id).removeClass('fielderror');
-                }else {
-                    $('#absolute_diference' + product_id).addClass('fielderror');
-                    $('#percent_diference'+product_id).addClass('fielderror');
-                }
-                $('#absolute_diference'+product_id).html(absolute_diference);
-                var percent_diference = Math.round((absolute_diference/$('#full_sale_price'+product_id).html())*100);
-                $('#percent_diference'+product_id).html(percent_diference);
-                var sale_price = parseFloat(Math.round($('#full_sale_price'+product_id).html()*100/1.2)/100);
-                $('#sale_price'+product_id).html(sale_price);
-//                var incom_tax = .18*(sale_price - (parseFloat($('#price_per_party'+product_id).html().length==0?0: $('#price_per_party'+product_id).html())+
-//                                            parseFloat($('#price_per_transport1'+product_id).html().length==0?0: $('#price_per_transport1'+product_id).html())+
-//                                            parseFloat($('#price_per_transport2'+product_id).html().length==0?0: $('#price_per_transport2'+product_id).html())+
-//                                            parseFloat($('#price_per_transport3'+product_id).html().length==0?0: $('#price_per_transport3'+product_id).html())));
-//                $('#incom_tax'+product_id).html(incom_tax);
 
-            }
-
-//            console.log( full_price_costs);
-        };
     })
     function selpage(event){
         $('.basic_part').hide();

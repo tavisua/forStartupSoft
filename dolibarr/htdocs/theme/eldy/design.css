@@ -39,6 +39,14 @@ border: 1px solid #C1C1C1; /* размер и цвет границы блока
 overflow: hidden; /* прокрутка по горизонтали */
 overflow-y: auto; /* прокрутка по вертикали */
 }
+.setdate{
+    border: solid!important;
+    border-width: 2px!important;
+    border-color: #999999!important;
+    border-top-color: #e8e8e8!important;
+    border-left-color: #e8e8e8!important;
+    width: 80px;
+}
 .popupmenu{
     /*border-color: #00adee;*/
     /*border-top: solid;*/

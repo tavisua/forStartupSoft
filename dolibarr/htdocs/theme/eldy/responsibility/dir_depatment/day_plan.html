@@ -169,18 +169,38 @@
         $("#sent_task").offset({top:Top+180, left:-Width+5});
     })
     function ShowTask(object){
-//                    if(object.text()==1){
-//
-//                    }else {
-            $("#popupmenu").show();
-            $("#popupmenu").offset({
-                top: object.offset().top - 50,
-                left: object.offset().left - $('#reference_body').width()
-            });
-//                    }
-//                    console.log(object.text());
+        var td = $('#'+object.target.id);
+        if(object.target.id.substr(0, 'current'.length)=='current'||
+                object.target.id.substr(0, 'global'.length)=='global'||
+                        object.target.id.substr(0, 'total'.length)=='total'
+        ){}else
+            return;
+        $.ajax({
+            url:'/dolibarr/htdocs/day_plan.php?action=getdateaction&type_action='+object.target.id,
+            cache:false,
+            success:function(html){
+                if(td.text() == '1'){
+                    location.href = 'http://'+location.hostname+'/dolibarr/htdocs/hourly_plan.php?idmenu=10420&mainmenu=hourly_plan&leftmenu=&date='+html;
+                    console.log(html);
+                }else {
+                    var tbody = $('table.setdate').find('tbody');
+                    tbody[0].innerHTML = html;
+                    $("#popupmenu").attr('type_action', object.target.id);
+                    $("#popupmenu").show();
+                    $("#popupmenu").offset({
+                        top: td.offset().top - 50,
+                        left: td.offset().left - $('#reference_body').width()
+                    });
+                }
+            }
+        })
+
+
     }
-    function setdate(){
-        $("#popupmenu").hide();
+    function setdate(id){
+//        console.log($('#'+id).text());
+//        console.log($("#popupmenu").attr('type_action').substr(0, 'current'.length));
+        location.href = 'http://'+location.hostname+'/dolibarr/htdocs/hourly_plan.php?idmenu=10420&mainmenu=hourly_plan&leftmenu=&date='+$('#'+id).text();
+//        $("#popupmenu").hide();
     }
 </script>

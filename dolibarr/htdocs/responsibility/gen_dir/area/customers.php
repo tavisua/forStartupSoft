@@ -48,6 +48,7 @@ if($user->login != 'admin') {
     $sql_count.=$tmp;
 }
 if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])){
+    $phone_number = fPrepPhoneFilter($_REQUEST['filter']);
     $sql_filter = "select llx_societe.rowid from llx_societe
     left join `llx_societe_contact` on `llx_societe_contact`.`socid`=`llx_societe`.`rowid`
     where `llx_societe`.`nom`  like '%".$_REQUEST['filter']."%'
@@ -55,10 +56,12 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])){
     or `llx_societe_contact`.`firstname`  like '%".$_REQUEST['filter']."%'
     or `llx_societe_contact`.`subdivision`  like '%".$_REQUEST['filter']."%'
     or `llx_societe_contact`.`email1`  like '%".$_REQUEST['filter']."%'
-    or `llx_societe_contact`.`email2`  like '%".$_REQUEST['filter']."%'
-    or `llx_societe_contact`.`mobile_phone1`  like '%".$_REQUEST['filter']."%'
-    or `llx_societe_contact`.`mobile_phone2`  like '%".$_REQUEST['filter']."%'
-    or `llx_societe_contact`.`skype`  like '%".$_REQUEST['filter']."%'";
+    or `llx_societe_contact`.`email2`  like '%".$_REQUEST['filter']."%'";
+    if(strlen($phone_number)>0) {
+        $sql_filter .=" or `llx_societe_contact` . `mobile_phone1`  like '%".$phone_number."%'
+        or `llx_societe_contact` . `mobile_phone2`  like '%".$phone_number."%' ";
+    }
+    $sql_filter .= "or `llx_societe_contact`.`skype`  like '%".$_REQUEST['filter']."%'";
     $res = $db->query($sql_filter);
     if(!$res)
         dol_print_error($db);
@@ -209,6 +212,30 @@ $prev_form = "<a href='#x' class='overlay' id='peview_form'></a>
 print $prev_form;
 
 return;
+
+function fPrepPhoneFilter($phonenumber){
+    //Clear notnumeric symbol
+    for($i = 0; $i<strlen($phonenumber); $i++){
+        if(!is_numeric(substr($phonenumber, $i,1))) {
+            if($i == 0)
+                $tmp = substr($phonenumber, $i+1) ;
+            else
+                $tmp = substr($phonenumber, 0, $i).substr($phonenumber, $i+1) ;
+            $phonenumber = $tmp;
+            $i--;
+        }
+    }
+    $tmp='';
+    for($i = 0; $i<strlen($phonenumber); $i++){
+        if($i+1==strlen($phonenumber))
+            $tmp.=substr($phonenumber, $i, 1);
+        else
+            $tmp.=substr($phonenumber, $i, 1).'%';
+    }
+    $phonenumber = $tmp;
+
+    return $phonenumber;
+}
 function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $sortorder='', $readonly = array(), $showtitle=true){
     global $user, $conf, $langs, $db;
 

@@ -32,7 +32,7 @@ function GetBestUserID($Code="'AC_TEL','AC_FAX','AC_EMAIL','AC_RDV','AC_INT','AC
         from `llx_actioncomm`
         inner join (select id from `llx_c_actioncomm` where code in(".$Code.") and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
         inner join `llx_actioncomm_resources` on `llx_actioncomm`.`id` =  `llx_actioncomm_resources`.`fk_actioncomm`
-        where `llx_actioncomm_resources`.fk_element in (select rowid from llx_user where  `subdiv_id` = ".$user->subdiv_id.(empty($responding)?"":" and respon_id in(".$responding.")").")
+        where `llx_actioncomm_resources`.fk_element in (select rowid from llx_user where 1 ".(empty($user->subdiv_id)?"":" and `subdiv_id` = ".$user->subdiv_id).(empty($responding)?"":" and respon_id in(".$responding.")").")
         group by `llx_actioncomm_resources`.fk_element
         order by iCount desc
         limit 1";
@@ -56,8 +56,10 @@ function CalcPercentExecActions($actioncode, $array, $id_usr=0, $responding=''){
         where 1 ";
         if(($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'" || $user->login !="admin")&& $id_usr != 0) {
             $sql .= " and `llx_actioncomm_resources`.fk_element = " . $id_usr;
-        }else
-            $sql .=" and `llx_actioncomm_resources`.fk_element in (select rowid from llx_user where `subdiv_id` = ".$user->subdiv_id.(empty($responding)?"":" and respon_id in(".$responding.")").")";
+        }else {
+            if(!empty($user->subdiv_id))
+                $sql .= " and `llx_actioncomm_resources`.fk_element in (select rowid from llx_user where `subdiv_id` = " . $user->subdiv_id . (empty($responding) ? "" : " and respon_id in(" . $responding . ")") . ")";
+        }
         if($i<8) {
             $query_date = date("Y-m-d", (time()+3600*24*(-$i)));
             if($i!=7)
@@ -116,8 +118,8 @@ function CalcFaktActions($actioncode, $array, $id_usr=0, $responding=''){
         where 1";
         if(($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'" || $user->login !="admin")&& $id_usr != 0)
             $sql .=" and `llx_actioncomm_resources`.fk_element = ".$id_usr;
-        else
-            $sql .=" and `llx_actioncomm_resources`.fk_element in (select rowid from llx_user where `subdiv_id` = ".$user->subdiv_id.(empty($responding)?"":" and respon_id in(".$responding.")").")";
+        elseif(!empty($user->subdiv_id))
+            $sql .=" and `llx_actioncomm_resources`.fk_element in (select rowid from llx_user where 1 ".(empty($user->subdiv_id)?"":"and `subdiv_id` = ".$user->subdiv_id).(empty($responding)?"":" and respon_id in(".$responding.")").")";
         if($i<8) {
             $query_date = date("Y-m-d", (time()+3600*24*(-$i)));
             if($i!=7)
@@ -156,8 +158,8 @@ function CalcFutureActions($actioncode, $array, $id_usr=0, $responding=''){
         where 1";
         if(($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'" || $user->login !="admin")&& $id_usr != 0)
             $sql .=" and `llx_actioncomm_resources`.fk_element = ".$id_usr;
-        else
-            $sql .=" and `llx_actioncomm_resources`.fk_element in (select rowid from llx_user where `subdiv_id` = ".$user->subdiv_id.(empty($responding)?"":" and respon_id in(".$responding.")").")";
+        elseif(!empty($user->subdiv_id))
+            $sql .=" and `llx_actioncomm_resources`.fk_element in (select rowid from llx_user where 1 ".(empty($user->subdiv_id)?"":"and`subdiv_id` = ".$user->subdiv_id).(empty($responding)?"":" and respon_id in(".$responding.")").")";
         if($i<8) {
             $query_date = date("Y-m-d", (time()+3600*24*$i));
             if($i!=7)
@@ -197,12 +199,12 @@ function CalcOutStandingActions($actioncode, $array, $id_usr=0, $responding=''){
     where 1";
         if(($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'" || $user->login !="admin")&& $id_usr != 0)
             $sql .=" and fk_user_author = ".$id_usr;
-        else
-            $sql .=" and `llx_actioncomm_resources`.fk_element in (select rowid from llx_user where `subdiv_id` = ".$user->subdiv_id.(empty($responding)?"":" and respon_id in(".$responding.")").")";
+        elseif(!empty($user->subdiv_id))
+            $sql .=" and `llx_actioncomm_resources`.fk_element in (select rowid from llx_user where 1 and `subdiv_id` = ".$user->subdiv_id.(empty($responding)?"":" and respon_id in(".$responding.")").")";
     $sql .= " and datep2 < '".date("Y-m-d")."'";
     $sql .=" and datea is null";
 //    if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'"){}
-//            die($sql);
+
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
@@ -312,6 +314,7 @@ function ShowTable(){
     $totaltask = CalcFutureActions($Code, $totaltask, 0);
     $totaltask = CalcFaktActions($Code, $totaltask, 0);
     $totaltask = CalcPercentExecActions($Code, $totaltask, 0);
+
     $table.='<tr style="font-weight: bold"><td class="middle_size" style="width:106px">Департамент '.$subdivision.'</td><td class="middle_size" style="width:144px">Всього задач</td>';
     //% виконання запланованого по факту
     for($i=8; $i>=0; $i--){
@@ -344,7 +347,7 @@ function ShowTable(){
     }
     $table.='</tr>';
 
-    $sql = "select rowid, lastname from llx_user where  `subdiv_id` = ".$user->subdiv_id;
+    $sql = "select rowid, lastname from llx_user where 1 ".(empty($user->subdiv_id)?"":"and`subdiv_id` = ".$user->subdiv_id) ;
     $userlist = $db->query($sql);
     if(!$userlist)
         dol_print_error($db);
@@ -399,6 +402,7 @@ function ShowTable(){
     $globaltask = array();
 
     $globaltask = CalcOutStandingActions($Code, $globaltask, 0);
+
     $globaltask = CalcFutureActions($Code, $globaltask, 0);
     $globaltask = CalcFaktActions($Code, $globaltask, 0);
     $globaltask = CalcPercentExecActions($Code, $globaltask, 0);
@@ -789,7 +793,7 @@ function ShowTable(){
     $sql = "select `regions`.rowid, llx_user.lastname,`regions`.`name` from llx_user
         left join `llx_user_regions` on `llx_user_regions`.`fk_user` = llx_user.rowid
         left join `regions` on `regions`.`rowid` = `llx_user_regions`.`fk_id`
-        where subdiv_id=".$user->subdiv_id."
+        where 1 ".(empty($user->subdiv_id)?"":" and subdiv_id=".$user->subdiv_id)."
         and llx_user.respon_id in (".implode(",", $respon).")";
     $res = $db->query($sql);
     if(!$res)

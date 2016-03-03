@@ -49,6 +49,7 @@ if($user->login != 'admin') {
 }
 
 if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])){
+    $phone_number = fPrepPhoneFilter($_REQUEST['filter']);
     $sql_filter = "select llx_societe.rowid from llx_societe
     left join `llx_societe_contact` on `llx_societe_contact`.`socid`=`llx_societe`.`rowid`
     where `llx_societe`.`nom`  like '%".$_REQUEST['filter']."%' 
@@ -56,10 +57,13 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])){
     or `llx_societe_contact`.`firstname`  like '%".$_REQUEST['filter']."%'
     or `llx_societe_contact`.`subdivision`  like '%".$_REQUEST['filter']."%'
     or `llx_societe_contact`.`email1`  like '%".$_REQUEST['filter']."%'
-    or `llx_societe_contact`.`email2`  like '%".$_REQUEST['filter']."%'
-    or `llx_societe_contact`.`mobile_phone1`  like '%".$_REQUEST['filter']."%'
-    or `llx_societe_contact`.`mobile_phone2`  like '%".$_REQUEST['filter']."%'
-    or `llx_societe_contact`.`skype`  like '%".$_REQUEST['filter']."%'";
+    or `llx_societe_contact`.`email2`  like '%".$_REQUEST['filter']."%'";
+    if(strlen($phone_number)>0) {
+        $sql_filter .=" or `llx_societe_contact` . `mobile_phone1`  like '%".$phone_number."%'
+        or `llx_societe_contact` . `mobile_phone2`  like '%".$phone_number."%' ";
+    }
+    $sql_filter .= "or `llx_societe_contact`.`skype`  like '%".$_REQUEST['filter']."%'";
+
     $res = $db->query($sql_filter);
     if(!$res)
         dol_print_error($db);
@@ -210,6 +214,30 @@ $prev_form = "<a href='#x' class='overlay' id='peview_form'></a>
 print $prev_form;
 
 return;
+
+function fPrepPhoneFilter($phonenumber){
+    //Clear notnumeric symbol
+    for($i = 0; $i<strlen($phonenumber); $i++){
+        if(!is_numeric(substr($phonenumber, $i,1))) {
+            if($i == 0)
+                $tmp = substr($phonenumber, $i+1) ;
+            else
+                $tmp = substr($phonenumber, 0, $i).substr($phonenumber, $i+1) ;
+            $phonenumber = $tmp;
+            $i--;
+        }
+    }
+    $tmp='';
+    for($i = 0; $i<strlen($phonenumber); $i++){
+        if($i+1==strlen($phonenumber))
+            $tmp.=substr($phonenumber, $i, 1);
+        else
+            $tmp.=substr($phonenumber, $i, 1).'%';
+    }
+    $phonenumber = $tmp;
+
+    return $phonenumber;
+}
 function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $sortorder='', $readonly = array(), $showtitle=true){
     global $user, $conf, $langs, $db;
 
@@ -263,6 +291,7 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
     inner join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.`rowid`
     left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
     where `llx_societe`.active = 1
+    and `llx_societe`.`fk_user_creat` = ".$user->id."
     group by `llx_societe`.rowid, `responsibility`.`alias` ";
     $sql .= ' limit '.($page-1)*$per_page.','.$per_page;
 
@@ -291,6 +320,7 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
         inner join `llx_user` on `llx_actioncomm`.`fk_user_author` = `llx_user`.`rowid`
         left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
         where `llx_societe`.active = 1
+        and `llx_societe`.`fk_user_creat` = ".$user->id."
         and `llx_actioncomm`.`id` not in (select `llx_societe_action`.`action_id` from llx_societe_action where action_id is not null)
         limit 0,30";
 //    die($sql);
@@ -482,6 +512,7 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
                                 if(isset($actionfields[$fields[$num_col]->name])){
                                     $alias = $actionfields[$fields[$num_col]->name];
                                     $full_text = '';
+                                    $showicon = !isset($lastaction[$row['rowid'].$alias]);
                                     switch($fields[$num_col]->name){
                                         case 'lastdatecomerc':{
                                             $full_text = !isset($lastaction[$row['rowid'].$alias]) ?
@@ -492,14 +523,14 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
                                                 '<img src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/object_action.png">' : $futureaction[$row['rowid'].$alias];
                                         }
                                     }
-
-                                    $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '"  style="width:' . ($col_width[$num_col - 1] + 2) . 'px; text-align: center;"><a href="../' . $actionfields[$fields[$num_col]->name] . '/action.php?socid=' . $row['rowid'] . '&idmenu=10425&mainmenu=area">' . ($full_text) . '</a> </td>';
+                                    $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '"   style="width:' . ($col_width[$num_col - 1] + 2) . 'px;  text-align: center;"><a href="../' . $actionfields[$fields[$num_col]->name] . '/action.php?socid=' . $row['rowid'] . '&idmenu=10425&mainmenu=area">' . ($full_text) . '</a> </td>';
                                 }else{
                                     $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '"  style="width:' . ($col_width[$num_col - 1] + 2) . 'px; text-align: center;"> </td>';
                                 }
                             }
-                            if(in_array(trim($fields[$num_col]->name), $prev_col))
-                                $table .='<td style="display: none" id="full'.$row['rowid'] . $fields[$num_col]->name.'">'.$full_text.'</td>';
+                            if(in_array(trim($fields[$num_col]->name), $prev_col)) {
+                                $table .= '<td style="display: none" id="full' . $row['rowid'] . $fields[$num_col]->name . '">' . $full_text . '</td>';
+                            }
                         }
                         else {
 

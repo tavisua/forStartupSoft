@@ -12,7 +12,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 //$res = shell_exec('adb shell am start -a android.intent.action.CALL -d tel:+380505223977');
 //var_dump($res);
 //die('ответ');
-$execption = array('get_choosed_product', 'showorders', 'get_typical_question', 'get_question');
+$execption = array('get_choosed_product', 'showorders', 'get_typical_question', 'get_question', 'save_orders', 'del_query');
 
 if(isset($_REQUEST['type_action']) && !in_array($_REQUEST['type_action'],$execption) || !isset($_REQUEST['type_action'])) {
     $Orders = $langs->trans('Orders');
@@ -23,6 +23,12 @@ if(isset($_REQUEST['type_action']) && !in_array($_REQUEST['type_action'],$execpt
 
 if(isset($_REQUEST['type_action'])){
     switch($_REQUEST['type_action']){
+        case 'del_query':{
+            $sql = 'update llx_orders set status = -1, id_usr='.$user->id.' where rowid='.$_REQUEST['order_id'];
+            $res = $db->query($sql);
+//            header("Location: ".$_SERVER["HTTP_REFERER"]);
+            exit();
+        }break;
         case 'clone_question':{
             global $db;
             $sql = 'select distinct `oc_category`.`parent_id` from `llx_c_category_product_question`
@@ -116,10 +122,14 @@ if(isset($_REQUEST['type_action'])){
             require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
             global $db;
             $product_static = new Product($db);
-            echo $product_static->ShowOrders();
+            if(isset($_REQUEST['order_id'])&&!empty($_REQUEST['order_id']))
+                echo $product_static->ShowOrders($_REQUEST['order_id']);
+            else
+                echo $product_static->ShowOrders();
             exit();
         }break;
         case 'save_orders':{
+
             global $db;
             $order_id=0;
             if(isset($_REQUEST['order_id'])&&empty($_REQUEST['order_id'])){
@@ -133,6 +143,21 @@ if(isset($_REQUEST['type_action'])){
                 $order_id = $_REQUEST['order_id'];
 //            var_dump($order_id);
 //            die();
+            if($order_id != 0 && isset($_REQUEST['products'])){
+                $products = $_REQUEST['products'];
+                $products = str_replace('"','',$products);
+                $products = str_replace(',',';',$products);
+                $products = str_replace(':','=',$products);
+                $products = str_replace('{','',$products);
+                $products = str_replace('}','',$products);
+                $sql = "update llx_orders set products_id = '".$products."', id_usr = ".$user->id." where rowid=".$_REQUEST['order_id'];
+                $res = $db->query($sql);
+//                echo '<pre>';
+//                var_dump($sql);
+//                echo '</pre>';
+//                die();
+            }
+
             $inserted_questions = array();
             $sql = 'select rowid, query_id from `llx_orders_queries` where order_id = '.$order_id;
             $res = $db->query($sql);
@@ -172,6 +197,11 @@ if(isset($_REQUEST['type_action'])){
             $res = $db->query($sql);
             if(!$res)
                 dol_print_error($db);
+//            echo '<pre>';
+//            var_dump($_SERVER);
+//            echo '</pre>';
+//            die();
+            header("Location: ".$_SERVER["HTTP_REFERER"]);
             exit();
         }break;
         case 'get_question':{
@@ -369,84 +399,92 @@ function ShowOrders(){
             }break;
         }
         $out .= '<td class="small_size">'.$status.'</td>';
-        $out .= '<td class="small_size"><img src="theme/eldy/img/preview.png" title="Переглянути" style="cursor: pointer">&nbsp;
-                                        <img src="theme/eldy/img/object_user.png" title="Докладно по постачальникам" style="cursor: pointer">&nbsp;
-                                        <img src="theme/eldy/img/edit.png" title="Редагувати" style="cursor: pointer">&nbsp;
-                                        <img src="theme/eldy/img/delete.png" title="Видалити" style="cursor: pointer"></td>';
+        $out .= '<td class="small_size"><img src="theme/eldy/img/object_user.png" title="Докладно по постачальникам" style="cursor: pointer">&nbsp;
+                                        <img src="theme/eldy/img/edit.png" onclick="showorders('.$obj->rowid.');" title="Редагувати" style="cursor: pointer">&nbsp;
+                                        <img src="theme/eldy/img/delete.png" onclick="deleteorder('.$obj->rowid.');" title="Видалити" style="cursor: pointer"></td>';
         $out .= '</tr>';
     }
     $out .= '</tbody>';
     return $out;
 }
 function ShowPrepareOrder($orders_id = 0){
-		global $db, $user;
-		$sql = 'select products_id from llx_orders ';
-		if(empty($orders_id))
-			$sql .= 'where status = 0 and id_usr = '.$user->id;
-		else
-			$sql .= 'where rowid = '.$orders_id;
-		$sql .= ' limit 1';
-		$res = $db->query($sql);
-		$out = '';
-		$obj = $db->fetch_object($res);
-		$productlist = explode(';', $obj->products_id);
-		$products = array();
-		foreach($productlist as $product=>$value){
-			if(!empty($value)) {
-				$item = explode('=', $value);
-				$products[$item[0]]=$item[1];
-			}
-		}
-		$out .= '<tbody>';
-        $product_class = new Product($db);
-		$result_table = $product_class->ShowProducts(0, implode(',', array_keys($products)), 'name');
-		$pos = 0;
+    global $db, $user;
+    $sql = 'select products_id from llx_orders ';
+    if(empty($orders_id))
+        $sql .= 'where status = 0 and id_usr = '.$user->id;
+    else
+        $sql .= 'where rowid = '.$orders_id;
+    $sql .= ' limit 1';
+    $res = $db->query($sql);
+    $out = '';
+    $obj = $db->fetch_object($res);
+    $productlist = explode(';', $obj->products_id);
+    $products = array();
+    foreach($productlist as $product=>$value){
+        if(!empty($value)) {
+            $item = explode('=', $value);
+            $products[$item[0]]=$item[1];
+        }
+    }
+    $sql = 'select product_id, price from oc_product where product_id in ('.implode(',', array_keys($products)).')';
+    $res = $db->query($sql);
 
-		while(gettype(strpos($result_table, '<tr id="tr', $pos)) == 'integer') {
-			$pos = strpos($result_table, '<tr id="tr', $pos);
-			$product_id = substr($result_table, $pos+10, strpos($result_table, '"', $pos+10)-($pos+10));
-			$result_table = substr($result_table, 0, strpos($result_table, '</tr>', $pos+10)).
-					'<td id="art'.$product_id.'"></td>
-					 <td id="Col'.$product_id.'" style="width:50px; text-align: center">'.$products[$product_id].'</td>
-					 <td id="Ed'.$product_id.'"></td>
-					 <td class="basic_part autocalc" id="price_per_unit'.$product_id.'"></td>
-					 <td class="basic_part input" id="full_price_per_unit'.$product_id.'"></td>
-					 <td class="basic_part autocalc" id="price_per_party'.$product_id.'"></td>
-					 <td class="basic_part autocalc" id="full_price_per_party'.$product_id.'"></td>
-					 <td class="basic_part input" id="price_per_download'.$product_id.'"></td>
-					 <td class="basic_part autocalc" id="price_per_transport1'.$product_id.'"></td>
-					 <td class="basic_part input" id="full_price_per_transport1'.$product_id.'"></td>
-					 <td class="basic_part autocalc" id="price_per_transport2'.$product_id.'"></td>
-					 <td class="basic_part input" id="full_price_per_transport2'.$product_id.'"></td>
-					 <td class="basic_part autocalc" id="price_per_transport3'.$product_id.'"></td>
-					 <td class="basic_part input" id="full_price_per_transport3'.$product_id.'"></td>
-					 <td class="basic_part input" id="prep_sale'.$product_id.'"></td>
-					 <td class="basic_part input" id="use_owner_transport'.$product_id.'"></td>
-					 <td class="addition_part input" id="departure_to_customer'.$product_id.'"></td>
-					 <td class="addition_part input" id="service_costs'.$product_id.'"></td>
-					 <td class="addition_part input" id="other_gratitude'.$product_id.'"></td>
-					 <td class="addition_part input" id="loading_unloading'.$product_id.'"></td>
-					 <td class="addition_part input" id="bank_cost'.$product_id.'"></td>
-					 <td class="addition_part input" id="other'.$product_id.'"></td>
-					 <td class="addition_part autocalc" id="incom_tax'.$product_id.'"></td>
-					 <td class="addition_part autocalc" id="VAT'.$product_id.'"></td>
-					 <td class="addition_part" id="price_costs'.$product_id.'"></td>
-					 <td class="addition_part autocalc" id="full_price_costs'.$product_id.'"></td>
-					 <td class="result_part autocalc" id="sale_price'.$product_id.'"></td>
-					 <td class="result_part input" id="full_sale_price'.$product_id.'"></td>
-					 <td class="result_part autocalc" id="absolute_diference'.$product_id.'"></td>
-					 <td class="result_part autocalc" id="percent_diference'.$product_id.'"></td>
-					 <td class="features_part" id="'.$product_id.'"></td>
-					 <td class="features_part" id="'.$product_id.'"></td>
-					 <td class="features_part" id="'.$product_id.'"></td>
-					 <td class="features_part" id="'.$product_id.'"></td>
-					 <td class="features_part" id="'.$product_id.'"></td>
-					'.substr($result_table, strpos($result_table, '</tr>', $pos+10));
-			$pos++;
-		}
-		$out .= $result_table;
-		$out .= '</tbody>';
-		return $out;
+    $price = array();
+    while($obj = $db->fetch_object($res)){
+        $price[$obj->product_id] = round($obj->price,2);
+    }
+//var_dump($price);
+//    die();
+    $out .= '<tbody>';
+    $product_class = new Product($db);
+    $result_table = $product_class->ShowProducts(0, implode(',', array_keys($products)), 'name');
+    $pos = 0;
+
+    while(gettype(strpos($result_table, '<tr id="tr', $pos)) == 'integer') {
+        $pos = strpos($result_table, '<tr id="tr', $pos);
+        $product_id = substr($result_table, $pos+10, strpos($result_table, '"', $pos+10)-($pos+10));
+        $result_table = substr($result_table, 0, strpos($result_table, '</tr>', $pos+10)).
+                '<td id="art'.$product_id.'"></td>
+                 <td id="Col'.$product_id.'" style="width:50px; text-align: center">'.$products[$product_id].'</td>
+                 <td id="Ed'.$product_id.'"></td>
+                 <td class="basic_part autocalc" id="price_per_unit'.$product_id.'"></td>
+                 <td class="basic_part input" id="full_price_per_unit'.$product_id.'"></td>
+                 <td class="basic_part autocalc" id="price_per_party'.$product_id.'"></td>
+                 <td class="basic_part autocalc" id="full_price_per_party'.$product_id.'"></td>
+                 <td class="basic_part input" id="price_per_download'.$product_id.'"></td>
+                 <td class="basic_part autocalc" id="price_per_transport1'.$product_id.'"></td>
+                 <td class="basic_part input" id="full_price_per_transport1'.$product_id.'"></td>
+                 <td class="basic_part autocalc" id="price_per_transport2'.$product_id.'"></td>
+                 <td class="basic_part input" id="full_price_per_transport2'.$product_id.'"></td>
+                 <td class="basic_part autocalc" id="price_per_transport3'.$product_id.'"></td>
+                 <td class="basic_part input" id="full_price_per_transport3'.$product_id.'"></td>
+                 <td class="basic_part input" id="prep_sale'.$product_id.'"></td>
+                 <td class="basic_part input" id="use_owner_transport'.$product_id.'"></td>
+                 <td class="addition_part input" id="departure_to_customer'.$product_id.'"></td>
+                 <td class="addition_part input" id="service_costs'.$product_id.'"></td>
+                 <td class="addition_part input" id="other_gratitude'.$product_id.'"></td>
+                 <td class="addition_part input" id="loading_unloading'.$product_id.'"></td>
+                 <td class="addition_part input" id="bank_cost'.$product_id.'"></td>
+                 <td class="addition_part input" id="other'.$product_id.'"></td>
+                 <td class="addition_part autocalc" id="incom_tax'.$product_id.'"></td>
+                 <td class="addition_part autocalc" id="VAT'.$product_id.'"></td>
+                 <td class="addition_part" id="price_costs'.$product_id.'"></td>
+                 <td class="addition_part autocalc" id="full_price_costs'.$product_id.'"></td>
+                 <td class="result_part autocalc" id="sale_price'.$product_id.'"></td>
+                 <td class="result_part input" id="full_sale_price'.$product_id.'">'.$price[$product_id]*$products[$product_id].'</td>
+                 <td class="result_part autocalc" id="absolute_diference'.$product_id.'"></td>
+                 <td class="result_part autocalc" id="percent_diference'.$product_id.'"></td>
+                 <td class="features_part" id="'.$product_id.'"></td>
+                 <td class="features_part" id="'.$product_id.'"></td>
+                 <td class="features_part" id="'.$product_id.'"></td>
+                 <td class="features_part" id="'.$product_id.'"></td>
+                 <td class="features_part" id="'.$product_id.'"></td>
+                '.substr($result_table, strpos($result_table, '</tr>', $pos+10));
+        $pos++;
+    }
+    $out .= $result_table;
+    $out .= '</tbody>';
+    return $out;
 }
 function GetQuestion($order_id){
     global $db;

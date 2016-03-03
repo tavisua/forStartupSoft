@@ -255,20 +255,21 @@ function CalcFutureActions($actioncode, $array, $id_usr){
     }
     return $array;
 }
+
 function CalcOutStandingActions($actioncode, $array, $id_usr){
     global $db, $user;
     $sql = "select count(*) as iCount  from `llx_actioncomm`
     inner join
     (select id from `llx_c_actioncomm` where code in(".$actioncode.") and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
     left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
+    left join llx_actioncomm_resources on llx_actioncomm_resources.fk_actioncomm = `llx_actioncomm`.id
     where 1";
         if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'" || $user->login !="admin")
-            $sql .=" and fk_user_author = ".$id_usr;
+            $sql .=" and llx_actioncomm_resources.fk_element = ".$id_usr;
     $sql .= " and datep2 < '".date("Y-m-d")."'";
-    $sql .=" and datea is null";
-//    if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'"){}
-//        else
-//            die($sql);
+    $sql .=" and percent <> 100 and datea is null";
+
+
     $res = $db->query($sql);
     if($db->num_rows($res)) {
         $obj = $db->fetch_object($res);

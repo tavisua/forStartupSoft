@@ -1024,7 +1024,6 @@ function top_httphead()
 
     //header("Content-type: text/html; charset=UTF-8");
     header("Content-type: text/html; charset=".$conf->file->character_set_client);
-
     // On the fly GZIP compression for all pages (if browser support it). Must set the bit 3 of constant to 1.
     if (isset($conf->global->MAIN_OPTIMIZE_SPEED) && ($conf->global->MAIN_OPTIMIZE_SPEED & 0x04)) {
         ob_start("ob_gzhandler");
@@ -1377,6 +1376,7 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
                 print '<script type="text/javascript" src="/dolibarr/htdocs/admin/js/dict.js'.($ext?'?'.$ext:'').'"></script>'."\n";
             }else
                 print '<script type="text/javascript" src="/dolibarr/scripts/js/table_manager.js'.($ext?'?'.$ext:'').'"></script>'."\n";
+
 
             print '<script type="text/javascript" src="/dolibarr/htdocs/societe/js/jquery.maskedinput-1.2.2.js'.($ext?'?'.$ext:'').'"></script>'."\n";
             //RequiredPage

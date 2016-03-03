@@ -324,6 +324,11 @@ function ShowTable(){
     while($obj = $db->fetch_object($res)){
         $outstanding_actions[$obj->region_id]=$obj->iCount;
     }
+//    echo '<pre>';
+//    var_dump($sql);
+//    echo '</pre>';
+//    die();
+
     //Виконані дії
     $exec_actions = array();
     $percent_action = array();
@@ -395,7 +400,7 @@ function ShowTable(){
     $sql = 'select distinct `regions`.rowid, `regions`.name regions_name, states.name states_name
     from `regions`
     inner join (select fk_id from `llx_user_regions`';
-    if(!$user->admin)
+    if($user->login != 'admin')
         $sql .='where fk_user = '.$user->id.' ';
     else
         $sql .='where 1 ';
@@ -403,6 +408,8 @@ function ShowTable(){
     left join states on `regions`.`state_id` = `states`.rowid
     where `regions`.active = 1
     order by states_name, `regions`.name';
+
+//    die($sql);
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
@@ -419,16 +426,18 @@ function ShowTable(){
 
             for($i=8; $i>=0; $i--){
                 if($i == 8)
-                    $table.='<td style="width: '.($conf->browser->name=='firefox'?(32):(33)).'px; text-align:center;">'.$percent_action[$obj->rowid.'_month'].'</td>';
+                    $table.='<td style="width: '.($conf->browser->name=='firefox'?(33):(33)).'px; text-align:center;">'.$percent_action[$obj->rowid.'_month'].'</td>';
+                elseif($i == 2 || $i == 0)
+                    $table.='<td style="width: '.($conf->browser->name=='firefox'?(32):(31)).'px; text-align:center;">'.$percent_action[$obj->rowid.'_'.$i].'</td>';
                 else
                     $table.='<td style="width: '.($conf->browser->name=='firefox'?(31):(31)).'px; text-align:center;">'.$percent_action[$obj->rowid.'_'.$i].'</td>';
             }
             //минуле (факт)
             for($i=8; $i>=0; $i--){
                 if($i == 0)
-                    $table.='<td style="width: '.($conf->browser->name=='firefox'?(34):(35)).'px; text-align:center;">'.$exec_actions[$obj->rowid.'_'.$i].'</td>';
+                    $table.='<td style="width: '.($conf->browser->name=='firefox'?(33):(35)).'px; text-align:center;">'.$exec_actions[$obj->rowid.'_'.$i].'</td>';
                 elseif($i == 8)
-                    $table.='<td style="width: '.($conf->browser->name=='firefox'?(32):(33)).'px; text-align:center;">'.$exec_actions[$obj->rowid.'_month'].'</td>';
+                    $table.='<td style="width: '.($conf->browser->name=='firefox'?(34):(33)).'px; text-align:center;">'.$exec_actions[$obj->rowid.'_month'].'</td>';
                 else
                     $table.='<td style="width: '.($conf->browser->name=='firefox'?(31):(31)).'px; text-align:center;">' . $exec_actions[$obj->rowid . '_' . $i] . '</td>';
             }

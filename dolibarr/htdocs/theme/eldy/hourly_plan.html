@@ -73,10 +73,13 @@
 //                console.log($("a#mainmenua_hourly_plan").attr('href'));
 //                return;
                 $.ajax({
-                    url:'/dolibarr/htdocs/day_plan.php?action=gettaskkode&rowid='+task_id,
+                    url:'/dolibarr/htdocs/day_plan.php?action=gettaskcode&rowid='+task_id,
                     cache:false,
                     success: function(code){
                         var mainmenu = '';
+                        var socid = code.substr(strpos(code, '&')+1);
+                        code = code.substr(0, strpos(code, '&'))
+
                         switch(code){
                             case 'AC_GLOBAL':{
                                 mainmenu = 'global_task&idmenu=10421'
@@ -88,7 +91,15 @@
                                 mainmenu = 'area&idmenu=10425';
                             }
                         }
-                        var link = '/dolibarr/htdocs/comm/action/chain_actions.php?action_id='+task_id+'&mainmenu='+mainmenu;
+                        var link = '';
+                        if(code == 'AC_GLOBAL' || code == 'AC_CURRENT')
+                            link = '/dolibarr/htdocs/comm/action/chain_actions.php?action_id='+task_id+'&mainmenu='+mainmenu;
+                        else{
+
+                            link = '/dolibarr/htdocs/responsibility/sale/action.php?socid='+socid+'&idmenu=10425&mainmenu='+mainmenu;
+                        }
+
+
 //                        console.log(link);
 //                        return;
                         location.href = link;
