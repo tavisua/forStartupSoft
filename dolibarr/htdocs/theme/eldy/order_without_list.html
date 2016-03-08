@@ -1,8 +1,17 @@
-<div style="text-align: center; width: 1000px">
-    <button style="width: 150px;height: 30px" onclick="saveorders();">Зберегти заявку</button>
-    <button style="width: 150px;height: 30px" onclick="close_registerform();">Відмінити</button>
+<!--<div id="saveanswer" style="text-align: center; width: 100%">-->
+    <!--<button style="width: 150px;height: 30px" onclick="saveorders();">Зберегти відповіді</button>-->
+    <!--<button style="width: 150px;height: 30px" onclick="close_registerform();">Відмінити</button>-->
+<!--</div>-->
+<div id="savebtn" style="display: none; height:30px; background-color: #f1f1f1; text-align: center; padding-bottom: 5px">
+    <button style="width: 200px;height: 30px;float: left"  onclick="showorders();">Відобразити заявку</button>
+    <form id="redirectform" action="<?=$_SERVER['REQUEST_URI']?>" method="get" style="float: left">
+        <input type="hidden" name="type_action" value="with_list">
+        <button style="width: 200px;height: 30px" >Додати товар зі списку</button>
+    </form>
+    <button style="width: 200px;height: 30px;float: left"  onclick="preparedorders();">Зберегти заявку</button>
 </div>
 <div id = "tabs" style="display: none">
+
     <div  class='tabs' data-type='horizontal' data-role='controlgroup' style="height: 35px">
          <div class='inline-block tabsElem tabsElemActive'>
              <div id="a_product" onclick="selpage(event);" class="tab inline-block" data-role="button">Ціле</div>
@@ -14,14 +23,116 @@
              <div id="standart_parts" onclick="selpage(event);" class="unactivepage tab inline-block"  data-role="button">Стандартні вироби</div>
          </div>
      </div>
-    <div  id="pagequeries" style="width: 100%; background-color: white; display: block; height: 530px"></div>
+    <div  id="pagequeries" style="width: 100%; background-color: white; display: block;"><?=$queries?></div>
 </div>
+<div id="typicalqueries" style="display: none; height: 80%"  class="pair popupmenu">
+    <div style="color: #0000FF; font-weight: bold; font-size: 14px; padding: 5px 0px 5px 20px" id="title_question">Дозвольте задати Вам останні організаційні запитання...</div>
+    <form id="questions_form" action="?type_action=save_orders" method="post">
+        <input type="hidden" value="<?=$_REQUEST['order_id']?>" id = "order_id" name="order_id">
+        <input type="hidden" value="" id = "products" name="products">
+        <input type="hidden" value="" id = "answer" name="answer">
+        <input type="hidden" value="<?=$_REQUEST['mainmenu']?>" name="mainmenu">
+        <input type="hidden" value="<?=$_REQUEST['idmenu']?>" name="idmenu">
+        <table style="background: #ffffff; border-collapse: collapse;" id="questions" >
+        </table>
+    </form>
+    <div style="text-align: center">
+    <button style="width: 150px;height: 30px" onclick="saveorders(true);">Зберегти заявку</button>
+    <button style="width: 150px;height: 30px" onclick="close_registerform();">Відмінити</button>
+    </div>
+</div>
+<div id="popupmenu" style="display: none; vertical-align: top" class="pair popupmenu" >
+    <div style="text-align: center; font-weight: bold; font-size:14px; background-color: transparent">Заявка</div>
+    <div id="showWithList"class="inline-block tabsElem tabsElemActive">
+         <b id="WithList" class=" tab inline-block"  onclick="ChangeActivePage($(this));" data-role="button">Потреба зі списку</b>
+     </div>
+     <div id="showWithoutList" class="inline-block tabsElem">
+         <b id="WithoutList" class="tab inline-block unactivepage" onclick="ChangeActivePage($(this));"  data-role="button">Потреба без списку</b>
+     </div>
+
+    <table style="background: #ffffff; border-collapse: collapse;"  id="popup_table" >
+    </table>
+    <script>
+        function ChangeActivePage(elem){
+            elem.removeClass('unactivepage');
+//            console.log(elem);
+            if(elem.attr('id') === $('b#WithList').attr('id')) {
+                $('b#WithoutList').addClass('unactivepage');
+                ShowChoosedProducts();
+            }else {
+                $('b#WithList').addClass('unactivepage');
+                ShowAnswer();
+            }
+
+        }
+        $(window).click(function (e) {
+//            console.log($('#popup_table').attr('order_id'), $('#popup_table').attr('order_id') === undefined);
+            if (e.target.id.substr(0, 2) == 'td' && $('#popup_table').attr('order_id') !== undefined) {
+                var val = $('#'+e.target.id).text();
+//                console.log($(this).attr('id'));
+                var field = '<input type="text" id="edit" value="'+val+'" size=4>';
+                $('#'+e.target.id).empty().append(field); //устанавливаем фокус на свеженарисованное поле
+                $('#edit').focus();
+                $('#edit').select();
+                $('#edit').blur(function() { //устанавливаем обработчик
+                    var val = $(this).val(); //получаем то, что в поле находится
+                    //находим ячейку, опустошаем, вставляем значение из поля
+                    var product_id = $(this).parent().parent().attr('id').substr(2);
+                    $(this).parent().empty().html(val);
+                    var tr = $('#popup_table').find('tr');
+                    var dSum = 0;
+                    var JSON = '{';
+                    for(var i = 0; i<tr.length; i++) {
+                        if($('#price'+tr[i].id.substr(2)).text().length>0 && $('#td'+tr[i].id.substr(2)).text().length>0)
+                            dSum += $('#price'+tr[i].id.substr(2)).text()*$('#td'+tr[i].id.substr(2)).text();
+                        if($('#price'+tr[i].id.substr(2)).text().length>0) {
+                            if (JSON.length > 1)
+                                JSON += ',';
+                            JSON += '"' + tr[i].id.substr(2) + '":' + $('#td' + tr[i].id.substr(2)).text();
+                        }
+                    }
+                    JSON+='}';
+                    $('#total_price').text('Загалом на суму '+dSum);
+                    $.cookie('products', JSON);
+//                    console.log(JSON);
+
+                });
+            }
+        });
+
+    </script>
+    <div style="color: #0000FF; font-weight: bold; font-size: 14px; padding: 5px 0px 5px 20px" id="total_price">Загалом на суму </div>
+    <div style="text-align: center">
+        <button style="width: 150px;height: 30px" onclick="saveorders();">Зберегти заявку</button>
+        <button style="width: 150px;height: 30px" onclick="close_registerform();">Закрити</button>
+    </div>
+</div>
+
 <script>
 $(document).ready(function() {
+
     if ($('table#orders').find('tbody').length == 0) {
         $('table#orders').hide();
     }
-
+    $(document).on('blur', '.answer', function () {//Вихід з текстового поля
+        var id = $(this).attr('id').substr(6);
+        var answer_array = [];
+        if($.cookie('answerId') != null)
+            answer_array = $.cookie('answerId').split(',');
+//        console.log($.inArray(id.toString(), answer_array), answer_array);
+        if($(this).val().length == 0){
+            $.cookie('a'+id, null);
+            if($.inArray(id.toString(), answer_array) != -1)
+                answer_array.splice($.inArray(id.toString(), answer_array), 1);
+        }else{
+            $.cookie('a'+id, $(this).val());
+            console.log($.inArray(id, answer_array));
+            if($.inArray(id.toString(), answer_array) == -1)
+                answer_array.push(id);
+        }
+        $.cookie('answerId', answer_array.toString());
+//        console.log(answer_array, $.cookie('answerId'));
+    });
     if ("<?=$_REQUEST['type_action']?>" == 'without_list') {
         $('#groupproducts').css('margin-top', 0);
     }
@@ -30,21 +141,164 @@ $(document).ready(function() {
         document.getElementById('groupproducts').getElementsByTagName('li')[i].innerHTML = '<b id="link'+document.getElementById('groupproducts').getElementsByTagName('li')[i].id.substr(3)+'" style="cursor: pointer;" onclick="showanketa(event);">'+html+'</b>';
 
     }
-    $('#anketa').html('<div><strong>Хочу задати декілька важливих питань, відповідь на які дасть можливість зробити Вам потрібну і правильну пропозицію ! Вдячний буду якщо відповісте ! Питання такі: </strong></div>'
+
+    $('#anketa').html('<div id="ask"><strong>Хочу задати декілька важливих питань, відповідь на які дасть можливість зробити Вам потрібну і правильну пропозицію ! Вдячний буду якщо відповісте ! Питання такі: </strong></div>'
             +$("#tabs").html());
+    $('#savebtn').appendTo('#anketa');
+    $('#savebtn').prependTo('#ask');
+    $('#savebtn').show();
+//    $('#saveanswer').appendTo('#anketa');
+//    patch_link();
+    selpage($.cookie('page'));
 
-            
     $('.tabPage').height($('#groupproducts').height());
-
-
 });
+    function ShowAnswer(queries) {
 
-    function selpage(event){
+        $('#total_price').hide();
+        if(queries == true){
+            var answer_id = '';
+            if ($.cookie('answerId') != null)
+                answer_id = $.cookie('answerId').split(',');
+            for (var i = 0; i < answer_id.length; i++) {
+                if ($.cookie('a' + answer_id[i]) != null)
+                    $('textarea#answer' + answer_id[i]).text($.cookie('a' + answer_id[i]));
+//                console.log(answer_id[i], $.cookie('a' + answer_id[i]));
+            }
+            var tbody = $('#pagequeries').find('#queries');
+            tbody.attr('height', $('#groupproducts').height()-110);
+            console.log(tbody.innerHeight);
+        }else {
+
+            var answer_id = '';
+            if ($.cookie('answerId') != null) {
+                answer_id = $.cookie('answerId').split(',');
+                $.ajax({
+                    url: '<?=$_SERVER["PHP_SELF"]?>?type_action=get_question&answer_id=' + answer_id,
+                    cashe: false,
+                    success: function (html) {
+                        $('#popup_table').html(html);
+                        for (var i = 0; i < answer_id.length; i++) {
+                            if ($.cookie('a' + answer_id[i]) != null)
+                                $('textarea#answer' + answer_id[i]).text($.cookie('a' + answer_id[i]));
+//                            console.log(answer_id[i], $.cookie('a' + answer_id[i]));
+                        }
+                        if (!$('#popup_table').hasClass('WidthScroll'))
+                            $('#popup_table').addClass('WidthScroll');
+                        var tbody = $('#popup_table').find('#queries');
+                        tbody.height($(window).height() - 250);
+                        tbody.width(550);
+                        $('#popup_table').find('td').css('width', '550px');
+                    }
+                })
+            }
+        }
+    }
+    function ShowChoosedProducts(order_id){
+
+        var products_id = '';
+        if($.cookie('products_id') != null)
+            products_id = $.cookie('products_id');
+        $.ajax({
+            url: '<?=$_SERVER["PHP_SELF"]?>?type_action=showorders&order_id='+(order_id==null?'':order_id)+'&products_id='+products_id,
+            cashe: false,
+            success: function(html){
+                $('#popup_table').html(html);
+                products_id = $.cookie('products_id').split(',');
+                for(var i=0; i<products_id.length; i++){
+                    if($.cookie('p'+products_id[i])!=null)
+                        $('td#td'+products_id[i]).text($.cookie('p'+products_id[i]));
+                    console.log(products_id[i]);
+                }
+                if(document.getElementById('popup_table').getElementsByTagName('tbody').length > 0) {
+                    var tr = document.getElementById('popup_table').getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+
+                    var TotalPrice = 0
+                    for (var i = 0; i < tr.length; i++) {
+                        var id = tr[i].id.substr(2);
+                        TotalPrice += $('#popup_table').find('#price' + id).html() * $('#popup_table').find('#td' + id).html();
+                    }
+                    $('#total_price').html('Загалом на суму ' + TotalPrice);
+                    $('#total_price').show();
+                }
+            }
+        })
+    }
+    function showorders(order_id){
+        if(order_id === undefined)
+            order_id = null;
+//        console.log($.cookie('products_id'), $.cookie('answerId'))
+        if($.cookie('products_id') == null || $.cookie('answerId') == null){
+            $('#showWithList').hide();
+            $('#showWithoutList').hide();
+        }
+
+
+
+        if($.cookie('products_id') != null)
+            ShowChoosedProducts(order_id);
+        else if($.cookie('answerId') != null)
+            ShowAnswer(false);
+//        console.log('set atribut order_id', parseInt(order_id)!=0);
+        if(parseInt(order_id)!=0){
+            $('#popup_table').attr('order_id', order_id);
+        }
+        $('#popupmenu').css('position', "absolute");
+        $('#popupmenu').css("top", '150');
+        $('#popupmenu').css("z-index", '1500000');
+        $('#popupmenu').css("left", (($(window).width() - 458) / 2));
+        location.href = '#login_phone';
+        $('#popupmenu').show();
+    }
+//    function ShowAnswer(){//Відображення відповідей на екрані
+//        if($.cookie('answerId') != null) {
+//            var answer = $.cookie('answerId').split(',');
+//            for (var i = 0; i < answer.length; i++) {
+//                $('textarea#answer' + answer[i]).text($.cookie('a' + answer[i]));
+//                console.log(answer[i], $.cookie('a' + answer[i]));
+//            }
+//        }
+//    }
+    function OpenFolder(id_cat){
+        var img = $('#cat'+id_cat).find('img');
+//        console.log(img.attr('src') == '/dolibarr/htdocs/theme/eldy/img/object_folded.png');
+        if(img.attr('src') == '/dolibarr/htdocs/theme/eldy/img/object_folded.png') {
+            img.attr('src', '/dolibarr/htdocs/theme/eldy/img/object_deployed.png');
+            $('.parent' + id_cat).show();
+        }else{
+            var downlevelimg = $('.parent' + id_cat).find('img');
+            for(var i = 0; i<downlevelimg.length; i++){
+//                console.log(downlevelimg[i].src == 'http://'+location.hostname+'/dolibarr/htdocs/theme/eldy/img/object_deployed.png');
+                if(downlevelimg[i].src == 'http://'+location.hostname+'/dolibarr/htdocs/theme/eldy/img/object_deployed.png'){
+                    OpenFolder(downlevelimg[i].id.substr(3));
+                }
+            }
+            img.attr('src', '/dolibarr/htdocs/theme/eldy/img/object_folded.png');
+            $('.parent' + id_cat).hide();
+        }
+        getqueries(id_cat, $.cookie('page'));
+
+    }
+    function selpage(page){
+//        console.log(page);
+        if(page == null)
+            page = 'a_product';
+        switch(page){
+            case '1':{
+                page = 'a_product';
+            }break;
+            case '2':{
+                page = 'unique_parts';
+            }break;
+            case '3':{
+                page = 'standart_parts';
+            }break;
+        }
         $('#a_product').addClass('unactivepage');
         $('#unique_parts').addClass('unactivepage');
         $('#standart_parts').addClass('unactivepage');
-        $('#'+event.target.id).removeClass('unactivepage');
-        switch(event.target.id){
+        $('#'+page).removeClass('unactivepage');
+        switch(page){
             case 'a_product':{
                 $.cookie('page',1);
             }break;
@@ -55,16 +309,19 @@ $(document).ready(function() {
                 $.cookie('page',3);
             }break;
         }
-        console.log($.cookie('page'));
-        getqueries($.cookie('id_cat'), $.cookie('page'));
+        ShowAnswer();
     }
+
     function showanketa(event){
+        console.log('test');
+        return;
         $.cookie('id_cat',event.target.id.substr(4));
 //        console.log(event.target.id.substr(4));
         getqueries($.cookie('id_cat'), $.cookie('page'));
     }
-    function getqueries(id_cat, page){
-        console.log(id_cat, page);
+
+    function getqueries(id_cat, page){//Завантаження запитань, що відповідають ІД каталога
+//        console.log(id_cat, page);
         if(id_cat == null){
             id_cat = document.getElementById('groupproducts').getElementsByTagName('li')[0].id.substr(3);
         }
@@ -76,7 +333,8 @@ $(document).ready(function() {
             cache: false,
             success: function(html){
                 $('#pagequeries').html(html);
-                $('#queries').attr('height', window.innerHeight - 420);
+                var queries = true;
+                ShowAnswer(queries);
             }
         })
     }

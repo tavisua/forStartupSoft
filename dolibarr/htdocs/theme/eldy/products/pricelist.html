@@ -1,7 +1,7 @@
 
 <div class="tabPage" style="width: 1530px">
     <div style=" width:100%; height:1px; clear:both;"></div>
-     <div style="float: left">
+     <div style="float: left" id="categories">
          <div id="groupproducts_title">
              <p>Каталог продукції</p>
          </div>
@@ -10,7 +10,7 @@
          </div>
      </div>
      <input type="hidden" id="numpage" value="<?=$page?>">
-     <div style="float: left; min-height: 150px;  margin-left: 15px; align-content: inherit">
+     <div id="pricelist" style="float: left; min-height: 150px;  margin-left: 15px; align-content: inherit">
          <div class="tabs" data-type="horizontal" data-role="controlgroup">
              <div class="inline-block tabsElem tabsElemActive">
                  <a id="first" class=" tab inline-block" href="<?=$_SERVER['PHP_SELF']?>?mainmenu=<?=$_REQUEST['mainmenu']?>&id_cat=<?=$id_cat?>&page=1#cat<?=$id_cat?>" data-role="button">Ціле</a>
@@ -84,5 +84,7 @@
             }break;
         }
      })
-
+    function OpenFolder(id_cat){
+        console.log(id_cat);
+    }
  </script>

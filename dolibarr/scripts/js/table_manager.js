@@ -17,6 +17,114 @@ function setTime(link){
         }
     })
 }
+function saveorders(typicalqueries){
+        //console.log(typicalqueries, $.cookie('products_id'), $.cookie('answerId'));
+        //return;
+        console.log('typicalqueries '+typicalqueries);
+        if(typicalqueries === undefined){
+
+            preparedorders();
+//            console.log();
+        }else {
+            var Query = '';
+            if($('#popup_table').attr('order_id') === undefined)
+                Query = 'Зберегти активну заявку?';
+            else
+                Query = 'Зберегти заявку?';
+            if (confirm(Query)) {
+                $('#questions_form').submit();
+            }
+        }
+}
+function delete_answer(answer_id){
+    if(confirm('Видалити відповідь?')){
+        var answerId = $.cookie('answerId').split(',');
+        var index = $.inArray(answer_id.toString(), answerId);
+        console.log('length', answerId.length);
+        answerId.splice(index, 1);
+        $.cookie('a'+answer_id, null);
+        console.log('length', answerId.length);
+        $.cookie('answerId', answerId.toString());
+        $('#q'+answer_id).parent().remove();
+        $('#a'+answer_id).remove();
+        console.log($.cookie('answerId'), answerId.toString());
+    }
+}
+function preparedorders(){
+    //alert($('#questions_form').find('input#order_id').val());
+    if($.cookie('products_id') != null){
+        var products_id = $.cookie('products_id').split(',');
+        var JSON = '{';
+        for(var i = 0; i<products_id.length; i++) {
+            if($.cookie('p'+products_id[i])!=null) {
+                if (JSON.length > 1)
+                    JSON += ',';
+                JSON += '"' + products_id[i] + '":' + $.cookie('p'+products_id[i]);
+            }
+        }
+        JSON+='}';
+        $('input#products').val(JSON);
+        //console.log(JSON, $('input#products').val());
+    }
+    console.log($.cookie('answerId'));
+    if($.cookie('answerId') != null){
+        var answerId = $.cookie('answerId').split(',');
+        var JSON = '(';
+        for(var i = 0; i<answerId.length; i++) {
+            if($.cookie('a'+answerId[i])!=null) {
+                if (JSON.length > 1)
+                    JSON += ',';
+                JSON += '"' + answerId[i] + '"=>"' + $.cookie('a'+answerId[i])+'"';
+            }
+        }
+        JSON+=')';
+        $('#answer').val(JSON);
+        console.log(JSON, $('input#answer_id').val());
+    }
+
+    if($('#popup_table').attr('order_id') !== undefined) {
+        //console.log('order_id param', $('#popup_table').attr('order_id'));
+        //return;
+        var order_id = $('#questions_form').find('input#order_id');
+        order_id.val($('#popup_table').attr('order_id'))
+        var products = $('#questions_form').find('input#products');
+        products.val($.cookie('products'));
+//                console.log(order_id.val());
+    }
+    $('.popupmenu').hide();
+    $('#typicalqueries').css('position', "absolute");
+    $('#typicalqueries').css("top", '150');
+    $('#typicalqueries').css("z-index", '1500000');
+    $('#typicalqueries').css("left", (($(window).width() - 458) / 2));
+//            location.href = '#login_phone';
+    var link = 'http://'+location.hostname+'/dolibarr/htdocs/orders.php?idmenu=10426&mainmenu=orders&leftmenu=&type_action=get_typical_question';
+    //console.log(link);
+    //return;
+    $.ajax({
+        url: link,
+        cashe: false,
+        success: function(html){
+            $('#questions').html(html);
+        }
+    })
+    $('#typicalqueries').show();
+}
+function clearOrderCookie(){
+    if($.cookie('products_id') != null){
+        var products_id = $.cookie('products_id').split(',');
+        for(var i = 0; i<products_id.length; i++){
+            $.cookie('p'+products_id[i], null);
+        }
+        $.cookie('products_id', null);
+    }
+    if($.cookie('answerId') != null){
+        var answerId = $.cookie('answerId').split(',');
+        for(var i = 0; i<answerId.length; i++){
+            $.cookie('a'+answerId[i], null);
+        }
+        $.cookie('answerId', null);
+    }
+}
 function ReinitPassword(){
     $.ajax({
         url:'/dolibarr/htdocs/user/card.php?action=getpass',

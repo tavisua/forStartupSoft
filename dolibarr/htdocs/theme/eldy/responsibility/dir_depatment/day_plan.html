@@ -167,7 +167,37 @@
         var Width = $(".WidthScroll").width();
         var Top = $(".WidthScroll").height();
         $("#sent_task").offset({top:Top+180, left:-Width+5});
+        SetTheadColumnWidth();
     })
+    function SetTheadColumnWidth(){
+        var tr = $('#reference_body').find('tr')[0];
+        var td = tr.getElementsByTagName('td');
+        var thead = $('.WidthScroll').find('thead').find('tr')[1];
+        var th = thead.getElementsByTagName('th');
+        console.log(th.length, td.length);
+        var num = 0;
+        for(var i = 0; i<td.length; i++){
+            if(i>2&&i<20){
+                th[i-2].style.width =  td[i].style.width;
+                if(th[i-2].innerWidth !=  td[i].style.width){
+                }
+            }else if(i>20){//майбутнє план
+                th[i-3].style.width =  td[i].style.width;
+            }else{//Кількість прострочених
+                var tr_thead = $('.WidthScroll').find('thead').find('tr')[0];
+                var th_thead = tr_thead.getElementsByTagName('th')[4];
+                var width = parseInt(td[i].style.width.substr(0,td[i].style.width.length-2))+2;
+                console.log(td[i].style.width.substr(0,td[i].style.width.length-2), width);
+                th_thead.style.width =  width+'px';
+            }
+
+
+        }
+//        for(var i = th.length-1; i>=0; i--){
+//            th[i].style.width = '60px';
+//            console.log(i, th[i].style.width);
+//        }
+    }
     function ShowTask(object){
         var td = $('#'+object.target.id);
         if(object.target.id.substr(0, 'current'.length)=='current'||

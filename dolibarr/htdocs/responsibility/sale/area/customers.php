@@ -240,15 +240,15 @@ function fPrepPhoneFilter($phonenumber){
 }
 function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $sortorder='', $readonly = array(), $showtitle=true){
     global $user, $conf, $langs, $db;
-
-
-    if(empty($sortorder))
-        $result = $db->query($sql);
-    else{
 //            echo '<pre>';
 //            var_dump($sql);
 //            echo '</pre>';
 //            die();
+
+    if(empty($sortorder))
+        $result = $db->query($sql);
+    else{
+
 
         $result = $db->query($sql.' limit 1');
 

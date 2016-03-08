@@ -95,6 +95,7 @@ if(isset($_REQUEST['product_id'])){
         $id_cat = $obj->category_id;
     }
     $linkpage = $_SERVER["SCRIPT_NAME"].'?mainmenu=tools&product_id='.$_REQUEST['product_id'].'&id_cat='.$id_cat;
+
     switch($_REQUEST['page']) {
         case 'spare_parts': {//унікальні з/ч
             $Table = '<div id="groupproducts" style="float: left;width: 300px">'.ShowCategories().'</div>';
@@ -114,6 +115,7 @@ if(isset($_REQUEST['product_id'])){
         }break;
         default:{//1С
             $Table = '';
+
             include($_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/theme/eldy/products/link_1S.html');
         }break;
     }
@@ -185,7 +187,8 @@ function ShowProducts($id_cat){
 //    die('test');
     $sql = 'select `oc_product_description`.`product_id`, `oc_product_description`.`name` from `oc_product_to_category`
         left join `oc_product_description` on `oc_product_description`.`product_id` = `oc_product_to_category`.`product_id`
-        where `oc_product_to_category`.category_id='.$id_cat.'
+        where `oc_product_to_category`.category_id in (select '.$id_cat.' union select category_id from `oc_category`
+				where parent_id = '.$id_cat.')
         and `oc_product_description`.language_id=4
         order by `oc_product_description`.`name`';
     $res = $db->query($sql);
@@ -246,8 +249,8 @@ function ShowCategories($showfirstcategory_id = false){
     while(count($basic_group)) {
         $catalog_id = $basic_group[0];
         array_shift($basic_group);
-        if(isset($sub_category[$catalog_id])) {
-            $out .= '<ul '.($categries[$catalog_id][1]!=0?'class="subcatalog"':'').'>' .$categries[$catalog_id][0] . '</ul>';
+        if(isset($sub_category[$catalog_id]) || $categries[$catalog_id][1] == 1) {
+            $out .= '<ul id="cat'.$catalog_id.'" '.($categries[$catalog_id][1]!=0?'class="subcatalog"':'').'><a href="' .$_SERVER['PHP_SELF'].'?mainmenu=tools&id_cat='.$catalog_id.'#cat'.$catalog_id.'">' .$categries[$catalog_id][0] . '</a></ul>';
             for($i=count($sub_category[$catalog_id])-1; $i>=0; $i--) {
                 array_unshift($basic_group, $sub_category[$catalog_id][$i]);
             }

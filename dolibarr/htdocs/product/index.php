@@ -77,6 +77,10 @@ print_fiche_titre($transAreaType);
 //ob_start();
 //include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/products/addproduct.html');
 //echo ob_get_clean();
+//echo '<pre>';
+//var_dump($_REQUEST);
+//echo '</pre>';
+//die();
 $product_static->ShowPriceList($_REQUEST['page']);
 
 exit();

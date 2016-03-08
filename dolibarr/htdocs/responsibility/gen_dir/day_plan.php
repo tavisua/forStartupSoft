@@ -22,7 +22,9 @@ if(!$res)
     dol_print_error($db);
 $obj = $db->fetch_object($res);
 $subdivision = $obj->name;
-
+$browsername = "'".getBrowserInfo() ["browsername"]."'";
+//var_dump($browsername);
+//die();
 $table = ShowTable();
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/gen_dir/day_plan.html';
 
@@ -354,10 +356,16 @@ function CalcOutStandingActions($actioncode, $array, $id_usr=0, $responding='', 
         if( $id_usr != 0)
             $sql .=" and `llx_actioncomm_resources`.fk_element = ".$id_usr;
         else
-            $sql .=" and `llx_actioncomm_resources`.fk_element in (select rowid from llx_user where 1 ".(empty($subdiv_id)?"":"and `subdiv_id` = ".$subdiv_id).(empty($responding)?"":" and respon_id in(".$responding.")").")";
-    $sql .= " and datep2 < '".date("Y-m-d")."'";
+            $sql .=" and `llx_actioncomm_resources`.fk_element in (select rowid from llx_user where 1 ".(empty($subdiv_id)?" and subdiv_id is not null":"and `subdiv_id` = ".$subdiv_id).(empty($responding)?"":" and respon_id in(".$responding.")").")";
+    $sql .= " and date(datep2) < '".date("Y-m-d")."'";
     $sql .=" and datea is null";
-//    if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'"){}
+//    if( $actioncode == "'AC_CURRENT'" ){
+//        echo '<pre>';
+//        var_dump($sql);
+//        echo '</pre>';
+//        die();
+//    }
+
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);

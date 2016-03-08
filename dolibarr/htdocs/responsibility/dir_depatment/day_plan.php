@@ -190,6 +190,7 @@ function CalcFutureActions($actioncode, $array, $id_usr=0, $responding=''){
     return $array;
 }
 function CalcOutStandingActions($actioncode, $array, $id_usr=0, $responding=''){
+
     global $db, $user;
     $sql = "select count(*) as iCount  from `llx_actioncomm`
     inner join
@@ -198,13 +199,19 @@ function CalcOutStandingActions($actioncode, $array, $id_usr=0, $responding=''){
     inner join `llx_actioncomm_resources` on `llx_actioncomm`.`id` =  `llx_actioncomm_resources`.`fk_actioncomm`
     where 1";
         if(($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'" || $user->login !="admin")&& $id_usr != 0)
-            $sql .=" and fk_user_author = ".$id_usr;
+            $sql .=" and `llx_actioncomm_resources`.fk_element = ".$id_usr;
         elseif(!empty($user->subdiv_id))
             $sql .=" and `llx_actioncomm_resources`.fk_element in (select rowid from llx_user where 1 and `subdiv_id` = ".$user->subdiv_id.(empty($responding)?"":" and respon_id in(".$responding.")").")";
-    $sql .= " and datep2 < '".date("Y-m-d")."'";
+    $sql .= " and date(datep2) < '".date("Y-m-d")."'";
     $sql .=" and datea is null";
+    $sql .=" and `llx_c_actioncomm`.`active` = 1";
 //    if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'"){}
-
+//    if($actioncode == "'AC_TEL','AC_FAX','AC_EMAIL','AC_RDV','AC_INT','AC_OTH','AC_GLOBAL','AC_CURRENT','AC_DEP'" && $id_usr == 47){
+//        echo '<pre>';
+//        var_dump($sql);
+//        echo '</pre>';
+//        die();
+//    }
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
@@ -311,6 +318,10 @@ function ShowTable(){
     }
     $totaltask = array();
     $totaltask = CalcOutStandingActions($Code, $totaltask, 0);
+//            echo '<pre>';
+//            var_dump($totaltask);
+//            echo '</pre>';
+//            die($Code);
     $totaltask = CalcFutureActions($Code, $totaltask, 0);
     $totaltask = CalcFaktActions($Code, $totaltask, 0);
     $totaltask = CalcPercentExecActions($Code, $totaltask, 0);
@@ -359,13 +370,16 @@ function ShowTable(){
             <td class="middle_size" style="width:146px">Всього задач</td>';
             $totaltask = array();
             $totaltask = CalcOutStandingActions($Code, $totaltask, $obj->rowid);
-            $totaltask = CalcFutureActions($Code, $totaltask, $obj->rowid);
-            $totaltask = CalcFaktActions($Code, $totaltask, $obj->rowid);
-            $totaltask = CalcPercentExecActions($Code, $totaltask, $obj->rowid);
+//        if(47 == $obj->rowid){
 //            echo '<pre>';
 //            var_dump($totaltask);
 //            echo '</pre>';
 //            die($Code);
+//        }
+            $totaltask = CalcFutureActions($Code, $totaltask, $obj->rowid);
+            $totaltask = CalcFaktActions($Code, $totaltask, $obj->rowid);
+            $totaltask = CalcPercentExecActions($Code, $totaltask, $obj->rowid);
+
             //% виконання запланованого по факту
 
             for($i=8; $i>=0; $i--){
@@ -377,7 +391,7 @@ function ShowTable(){
             //минуле (факт)
             for($i=8; $i>=0; $i--){
                 if($i == 0)
-                    $table.='<td style="width: '.($conf->browser->name=='firefox'?(34):(35)).'px; text-align:center;">'.$totaltask['fakt_day_m'.$i].'</td>';
+                    $table.='<td style="width: '.($conf->browser->name=='firefox'?(34):(35)).'px; text-align:center;">'.$totaltask['fakt_today'].'</td>';
                 elseif($i == 8)
                     $table.='<td style="width: '.($conf->browser->name=='firefox'?(32):(33)).'px; text-align:center;">'.$totaltask['fakt_month'].'</td>';
                 else
@@ -464,7 +478,7 @@ function ShowTable(){
             //минуле (факт)
             for($i=8; $i>=0; $i--){
                 if($i == 0)
-                    $table.='<td style="width: '.($conf->browser->name=='firefox'?(34):(35)).'px; text-align:center;">'.$totaltask['fakt_day_m'.$i].'</td>';
+                    $table.='<td style="width: '.($conf->browser->name=='firefox'?(34):(35)).'px; text-align:center;">'.$totaltask['fakt_today'].'</td>';
                 elseif($i == 8)
                     $table.='<td style="width: '.($conf->browser->name=='firefox'?(32):(33)).'px; text-align:center;">'.$totaltask['fakt_month'].'</td>';
                 else
@@ -551,7 +565,7 @@ function ShowTable(){
             //минуле (факт)
             for($i=8; $i>=0; $i--){
                 if($i == 0)
-                    $table.='<td style="width: '.($conf->browser->name=='firefox'?(34):(35)).'px; text-align:center;">'.$task['fakt_day_m'.$i].'</td>';
+                    $table.='<td style="width: '.($conf->browser->name=='firefox'?(34):(35)).'px; text-align:center;">'.$task['fakt_today'].'</td>';
                 elseif($i == 8)
                     $table.='<td style="width: '.($conf->browser->name=='firefox'?(32):(33)).'px; text-align:center;">'.$task['fakt_month'].'</td>';
                 else

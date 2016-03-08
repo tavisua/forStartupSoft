@@ -48,15 +48,15 @@
                 </tr>
                 <tr class="multiple_header_table">
                     <!--% виконання запланованого по факту-->
-                    <th class="small_size" style="width: 30px">за місяць</th>
-                    <th class="small_size" style="width: 30px">за 7 днів</th>
-                    <th class="small_size" style="width: 30px">за 6 днів</th>
-                    <th class="small_size" style="width: 30px">за 5 днів</th>
-                    <th class="small_size" style="width: 30px">за 4 днів</th>
-                    <th class="small_size" style="width: 30px">за 3 дня</th>
-                    <th class="small_size" style="width: 30px">за 2 дня</th>
-                    <th class="small_size" style="width: 30px">за 1 день</th>
-                    <th class="small_size" style="width: 30px">сього- дні</th>
+                    <th class="small_size" >за місяць</th>
+                    <th class="small_size" >за 7 днів</th>
+                    <th class="small_size" >за 6 днів</th>
+                    <th class="small_size" >за 5 днів</th>
+                    <th class="small_size" >за 4 днів</th>
+                    <th class="small_size" >за 3 дня</th>
+                    <th class="small_size" >за 2 дня</th>
+                    <th class="small_size" >за 1 день</th>
+                    <th class="small_size" >сього- дні</th>
                     <!--минуле (факт)-->
                     <th class="small_size" style="width: 30px">за місяць</th>
                     <th class="small_size" style="width: 30px">за 7 днів</th>
@@ -163,8 +163,15 @@
 <script>
     $(document).ready(function(){
         $('#reference_body').attr('height', window.innerHeight - 370);
-        $('#reference_body').width($('#reference_body').width()+15);
+        var width = $('#reference_body').width();
+
+        if(<?=$browsername?> =='firefox')
+        {
+            $('#reference_body').width(width-110);
+        }else if(<?=$browsername?> =='chrome')
+            $('#reference_body').width(width-90);
         $('#popupmenu').offset({top:550, left:-250});
+        SetTheadColumnWidth();
     })
     function ShowTask(object){
         var td = $('#'+object.target.id);
@@ -194,6 +201,53 @@
         })
 
 
+    }
+    function SetTheadColumnWidth(){
+        var tr = $('#reference_body').find('tr')[0];
+        var td = tr.getElementsByTagName('td');
+        var thead = $('.WidthScroll').find('thead').find('tr')[1];
+        var th = thead.getElementsByTagName('th');
+        console.log(th.length, td.length);
+        var num = 0;
+        for(var i = 0; i<td.length; i++){
+            if(i>2&&i<22){
+                var tdwidth = parseInt(td[i].style.width.substr(0,td[i].style.width.length-2));
+                var thwidth = parseInt(th[i-2].style.width.substr(0,th[i-2].style.width.length-2));
+//                if(thwidth > tdwidth)
+                    th[i-3].style.width = td[i].style.width;
+//                    th[i - 3].clientWidth = td[i].clientWidth;
+//                else if(thwidth < tdwidth) {
+//                    td[i].clientWidth = th[i - 3].clientWidth;
+//                    console.log();
+//                }
+//                console.log(thwidth, tdwidth);
+//
+//                console.log(th[i-3], th[i-3].clientWidth, td[i], td[i].clientWidth);
+
+            }else if(i>=22){//майбутнє план
+//                console.log(i, th[i-4], td[i]);
+                th[i-4].style.width =  td[i].style.width;
+            }else if(i<=2){//Область, район, керування
+                var tr_thead = $('.WidthScroll').find('thead').find('tr')[0];
+                var th_thead = tr_thead.getElementsByTagName('th')[i];
+                var width = parseInt(td[i].style.width.substr(0,td[i].style.width.length-2));
+                th_thead.style.width =  width+'px';
+                console.log(i, th_thead, td[i]);
+            }else{//Кількість прострочених
+                var tr_thead = $('.WidthScroll').find('thead').find('tr')[0];
+                var th_thead = tr_thead.getElementsByTagName('th')[4];
+                var width = parseInt(td[i].style.width.substr(0,td[i].style.width.length-2));
+//                console.log(td[i].style.width.substr(0,td[i].style.width.length-2), width);
+//                console.log(i, th_thead, td[i]);
+                th_thead.style.width =  width+'px';
+            }
+
+
+        }
+//        for(var i = th.length-1; i>=0; i--){
+//            th[i].style.width = '60px';
+//            console.log(i, th[i].style.width);
+//        }
     }
     function setdate(id){
         location.href = 'http://'+location.hostname+'/dolibarr/htdocs/hourly_plan.php?idmenu=10420&mainmenu=hourly_plan&leftmenu=&date='+$('#'+id).text();

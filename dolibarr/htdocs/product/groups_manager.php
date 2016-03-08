@@ -134,8 +134,8 @@ function ShowCategories($showfirstcategory_id = false){
     while(count($basic_group)) {
         $catalog_id = $basic_group[0];
         array_shift($basic_group);
-        if(isset($sub_category[$catalog_id])) {
-            $out .= '<ul '.($categries[$catalog_id][1]!=0?'class="subcatalog"':'').'>' .$categries[$catalog_id][0] . '</ul>';
+        if(isset($sub_category[$catalog_id]) || $categries[$catalog_id][1] == 1) {
+            $out .= '<ul '.($categries[$catalog_id][1]!=0?'class="subcatalog"':'').'><a href="' .$_SERVER['PHP_SELF'].'?mainmenu=tools&id_cat='.$catalog_id.'#cat'.$catalog_id.'">' .$categries[$catalog_id][0] . '</a></ul>';
             for($i=count($sub_category[$catalog_id])-1; $i>=0; $i--) {
                 array_unshift($basic_group, $sub_category[$catalog_id][$i]);
             }

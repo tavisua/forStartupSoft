@@ -25,10 +25,15 @@
 .unactivepage{
     background: #cccccc;
 }
-.subcatalog{
+.subcatalog {
+    padding-left: 60px!important;
+}
+.subcatalog a{
     color: #d10310!important;
-    margin-left: -25px!important;
+    /*margin-left: 55px!important;*/
+
     font-size: 12px!important;
+
 }
 #typicalqueries{
     padding-left: 25px;
@@ -72,11 +77,12 @@ overflow-y: auto; /* прокрутка по вертикали */
     font-size: 14px;
 
 }
-#groupproducts li, #groupproducts a:link, #groupproducts a:visited, #groupproducts a:hover, #groupproducts a:active, 
+#groupproducts li, #groupproducts a, #groupproducts a:visited, #groupproducts a:hover, #groupproducts a:active,
     #groupproducts b, #groupproducts b:hover, #groupproducts b:active {
     list-style: outside none none;
-    margin-left: 15px ;
+    padding-left: 30px;
 }
+
 #groupproducts_title{
     background-color: white;
     text-align: center;
@@ -120,6 +126,7 @@ overflow-y: auto; /* прокрутка по вертикали */
 /**::before, *::after {*/
     /*box-sizing: border-box;*/
 /*}*/
+
 .pagination>.active>a, .pagination>.active>span, .pagination>.active>a:hover, .pagination>.active>span:hover, .pagination>.active>a:focus, .pagination>.active>span:focus {
     z-index: 2;
     color: #fff;

@@ -12,7 +12,11 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 //$res = shell_exec('adb shell am start -a android.intent.action.CALL -d tel:+380505223977');
 //var_dump($res);
 //die('ответ');
-$execption = array('get_choosed_product', 'showorders', 'get_typical_question', 'get_question', 'save_orders', 'del_query');
+//echo '<pre>';
+//var_dump($_REQUEST);
+//echo '</pre>';
+//die();
+$execption = array('get_choosed_product', 'showorders', 'get_typical_question', 'get_question', 'save_orders', 'del_query', 'showproducts', 'getsavedorder');
 
 if(isset($_REQUEST['type_action']) && !in_array($_REQUEST['type_action'],$execption) || !isset($_REQUEST['type_action'])) {
     $Orders = $langs->trans('Orders');
@@ -29,68 +33,24 @@ if(isset($_REQUEST['type_action'])){
 //            header("Location: ".$_SERVER["HTTP_REFERER"]);
             exit();
         }break;
-        case 'clone_question':{
-            global $db;
-            $sql = 'select distinct `oc_category`.`parent_id` from `llx_c_category_product_question`
-              left join `oc_category` on `oc_category`.`category_id`=`llx_c_category_product_question`.category_id';
-            $res_parent = $db->query($sql);
-            if(!$res_parent)
-                dol_print_error($db);
-            $num = 0;
-            while($parent = $db->fetch_object($res_parent)){
-                $sql = 'select `oc_category`.`category_id` from `oc_category` where `oc_category`.`parent_id` = '.$parent->parent_id;
-                $res_categoies = $db->query($sql);
-                if(!$res_parent)
-                    dol_print_error($db);
-                $categories = array();
-                while($category = $db->fetch_object($res_categoies)){
-                    $categories[]=$category->category_id;
-                }
-                $questions = array();
-                $sql = 'select llx_c_category_product_question.category_id, question, page from `llx_c_category_product_question`
-                    inner join `oc_category` on `oc_category`.`category_id` = `llx_c_category_product_question`.category_id
-                    where `oc_category`.`parent_id` = '.$parent->parent_id.'
-                    and llx_c_category_product_question.active = 1;';
-                $res_queries = $db->query($sql);
-                if(!$res_queries)
-                    dol_print_error($db);
-                $category_question = array();
-                while($question = $db->fetch_object($res_queries)){
-                    $category_question[]=$question->category_id.'|&|'.$question->question.'|&|'.$question->page;
-
-                }
-                foreach($categories as $category_id) {
-                    foreach ($category_question as $question) {
-                        if($category_id.'|&|'.substr($question, strpos($question, '|&|') + 3) != $question) {
-                            echo '<b>'.$category_id.'|&|'.substr($question, strpos($question, '|&|') + 3) .' '. $question . '</b></br>';
-                            $sql = "select rowid from llx_c_category_product_question where category_id=".$category_id."
-                                and question = '".$db->escape(substr($question, strpos($question, '|&|') + 3, strrpos($question, '|&|')-(strpos($question, '|&|') + 3))) ."' limit 1";
-                            $insert = $db->query($sql);
-                            if($db->num_rows($insert)>0)
-                                echo 'введено</br>';
-                            else {
-                                $sql = "insert into llx_c_category_product_question(category_id,question,page,active,id_usr)
-                              values(" . $category_id . ", '" . $db->escape(substr($question, strpos($question, '|&|') + 3, strrpos($question, '|&|') - (strpos($question, '|&|') + 3))) . "', " .
-                                    substr($question, strlen($question) - 1) . ", 1, 1)";
-                                echo $num++ . ' ' . $sql . '</br>';
-                                $insert = $db->query($sql);
-                                if(!$insert)
-                                    dol_print_error($db);
-                            }
-                        }
-//                    echo '<pre>';
-//                    var_dump($questions);
-//                    echo '</pre>';
-//                    die();
-                    }
-                }
-            }
+        case 'showproducts':{
+            require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
+            $product_static = new Product($db);
+            if(!isset($_REQUEST['id_cat']))
+                $id_cat = $product_static->ShowCategories(true);
+            else
+                $id_cat = $_REQUEST['id_cat'];
+            echo $product_static->ShowProducts($id_cat);
             exit();
         }break;
         case 'with_list':{
             $actionform=ShowPriceList();
         }break;
         case 'without_list':{
+//                    echo '<pre>';
+//                    var_dump($_REQUEST);
+//                    echo '</pre>';
+//                    die();
             require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
             global $db;
             $product_static = new Product($db);
@@ -103,6 +63,15 @@ if(isset($_REQUEST['type_action'])){
             echo '    <div id="anketa" style="float: left; margin-left: 15px; width: 680px; height: 100%; background-color: #f5f8f9">';
             echo '    </div>';
             echo '</div>';
+//            echo '<pre>';
+            if(!isset($_REQUEST['id_cat']))
+                $id_cat = $product_static->ShowCategories(true);
+            else
+                $id_cat = $_REQUEST['id_cat'];
+//            var_dump();
+//            echo '</pre>';
+//            die();
+            $queries = ShowQuestion($id_cat, $_REQUEST['page']);
             include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/order_without_list.html';
             exit();
         }break;
@@ -125,23 +94,42 @@ if(isset($_REQUEST['type_action'])){
             if(isset($_REQUEST['order_id'])&&!empty($_REQUEST['order_id']))
                 echo $product_static->ShowOrders($_REQUEST['order_id']);
             else
-                echo $product_static->ShowOrders();
+                echo $product_static->ShowOrders('', $_REQUEST['products_id']);
             exit();
-        }break;
-        case 'save_orders':{
 
+        }break;
+        case 'save_orders': {
+//            echo '<pre>';
+//            var_dump($_REQUEST);
+//            echo '</pre>';
+//            die();
             global $db;
-            $order_id=0;
-            if(isset($_REQUEST['order_id'])&&empty($_REQUEST['order_id'])){
-                $sql = 'select rowid from llx_orders where id_usr = '.$user->id.' and status = 0 limit 1';
+            $order_id = 0;
+            if (isset($_REQUEST['order_id']) && empty($_REQUEST['order_id'])) {
+                $sql = 'select rowid from llx_orders where id_usr = ' . $user->id . ' and status = 0 limit 1';
                 $res = $db->query($sql);
-                if(!$res)
+                if (!$res)
                     dol_print_error($db);
                 $obj = $db->fetch_object($res);
                 $order_id = $obj->rowid;
-            }elseif(isset($_REQUEST['order_id'])&&!empty($_REQUEST['order_id']))
+            } elseif (isset($_REQUEST['order_id']) && !empty($_REQUEST['order_id'])){
                 $order_id = $_REQUEST['order_id'];
-//            var_dump($order_id);
+            }elseif(!isset($_REQUEST['order_id'])){
+//                $sql = 'insert into llx_orders(status,dtCreated,id_usr) values(0, Now(), '.$user->id.')';
+//                $res = $db->query($sql);
+//                if (!$res)
+//                    dol_print_error($db);
+                $sql = 'select rowid from llx_orders where id_usr = ' . $user->id . ' and status = 0 limit 1';
+                $res = $db->query($sql);
+                if (!$res)
+                    dol_print_error($db);
+                $obj = $db->fetch_object($res);
+                $order_id = $obj->rowid;
+
+            }
+//            echo '<pre>';
+//            var_dump($_REQUEST);
+//            echo '</pre>';
 //            die();
             if($order_id != 0 && isset($_REQUEST['products'])){
                 $products = $_REQUEST['products'];
@@ -168,6 +156,28 @@ if(isset($_REQUEST['type_action'])){
                 while($obj = $db->fetch_object($res)){
                     $inserted_questions[$obj->query_id] = $obj->rowid;
                 }
+            //Save categories question
+            if(isset($_REQUEST['answer']) && !empty($_REQUEST['answer'])) {
+                $json = $_REQUEST['answer'];
+                $answer = array();
+                eval("\$answer = array".$json.';');
+//                echo '<pre>';
+                foreach(array_keys($answer) as $key) {
+                    if(isset($inserted_questions[$obj->rowid])){
+                        $sql="update llx_orders_queries set answer = '".trim($db->escape($answer[$key]))."', id_usr=".$user->id." where rowid=".$inserted_questions[$obj->rowid];
+                    }else{
+                        $sql="insert into llx_orders_queries(order_id,query_id,answer,id_usr)
+                            values(".$order_id.", ".$key.", '".trim($db->escape($answer[$key]))."', ".$user->id.")";
+                    }
+                    $res = $db->query($sql);
+                    if(!$res)
+                        dol_print_error($db);
+//                    die($sql);
+                }
+//                echo '</pre>';
+//                die();
+            }
+//            die('test');
             //Save typical question
             $sql = 'select rowid from `llx_c_category_product_question` where category_id is null and active = 1';
             $res = $db->query($sql);
@@ -192,20 +202,51 @@ if(isset($_REQUEST['type_action'])){
                     }
                 }
             }
+//            die('test');
             SendTaskForPurchase($order_id);
             $sql = 'update llx_orders set `status` = 1 where rowid='.$order_id;
             $res = $db->query($sql);
             if(!$res)
                 dol_print_error($db);
 //            echo '<pre>';
-//            var_dump($_SERVER);
+//            var_dump($_REQUEST);
 //            echo '</pre>';
 //            die();
             header("Location: ".$_SERVER["HTTP_REFERER"]);
             exit();
         }break;
+        case 'getsavedorder':{
+            global $db;
+            $order = array();
+            $sql = 'select products_id from `llx_orders` where rowid = '.$_REQUEST['order_id'];
+            $res = $db->query($sql);
+            if(!$res)
+                dol_print_error($db);
+            if($db->num_rows($res)>0) {
+                $obj = $db->fetch_object($res);
+                $order['products_id'] = $obj->products_id;
+            }
+            $sql = 'select `llx_orders_queries`.`query_id`, `llx_orders_queries`.`answer` from `llx_orders_queries`
+                inner join `llx_c_category_product_question` on `llx_c_category_product_question`.`rowid` = `llx_orders_queries`.`query_id`
+                where order_id = '.$_REQUEST['order_id'].'
+                and `llx_c_category_product_question`.`category_id` is not null';
+            $res = $db->query($sql);
+//            die($sql);
+            if(!$res)
+                dol_print_error($db);
+            if($db->num_rows($res)>0) {
+                $queries = array();
+                while($obj = $db->fetch_object($res)) {
+                    $queries[$obj->query_id]=$obj->answer;
+                }
+                $order['queries']=$queries;
+            }
+            $json =  json_encode($order);
+            echo $json;
+            exit();
+        }break;
         case 'get_question':{
-            $questions = ShowQuestion($_REQUEST['id_cat'], $_REQUEST['page']);
+            $questions = ShowQuestion($_REQUEST['id_cat'], $_REQUEST['page'], $_REQUEST['answer_id']);
             echo $questions;
             exit();
         }break;
@@ -293,44 +334,87 @@ if(isset($_REQUEST['type_action'])){
 if(!isset($_REQUEST['type_action']))
     $orders = ShowOrders();
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/orders.html';
-llxFooter();
+//llxFooter();
 exit();
-function ShowQuestion($id_cat, $page){
+function ShowQuestion($id_cat, $page=1, $answer_id=''){
+
+    if(empty($page))
+        $page = 1;
     global $db, $user;
-    $sql = 'select llx_c_category_product_question.rowid, llx_c_category_product_question.category_id, question, page from `llx_c_category_product_question`
-        where llx_c_category_product_question.category_id = '.$id_cat.'
+    if(empty($answer_id)) {
+        $sql = 'select llx_c_category_product_question.rowid, llx_c_category_product_question.category_id, question, page from `llx_c_category_product_question`
+        where llx_c_category_product_question.category_id = ' . $id_cat . '
         and llx_c_category_product_question.active = 1
-        and page = '.$page;
-    $res_queries = $db->query($sql);
-    if(!$res_queries)
-        dol_print_error($db);
-    $sql = 'select `llx_orders_queries`.`query_id`, `llx_orders_queries`.`answer` from `llx_orders`
+        and page = ' . $page;
+//    var_dump($sql);
+//    die();
+        $res_queries = $db->query($sql);
+        if (!$res_queries)
+            dol_print_error($db);
+        $sql = 'select `llx_orders_queries`.`query_id`, `llx_c_category_product_question`.`category_id`,`oc_category_description`.`name`, `llx_orders_queries`.`answer` from `llx_orders`
         left join `llx_orders_queries` on `llx_orders_queries`.`order_id` = `llx_orders`.`rowid`
         inner join `llx_c_category_product_question` on  `llx_orders_queries`.`query_id` =`llx_c_category_product_question` .`rowid`
-        where `llx_orders`.id_usr = '.$user->id.'
+        left join `oc_category_description` on llx_c_category_product_question.category_id = `oc_category_description`.category_id
+        where `llx_orders`.id_usr = ' . $user->id . '
         and `llx_orders`.`status` = 0
         and `llx_c_category_product_question`.`category_id` is not null
-        and `llx_c_category_product_question`.`active` = 1';
+        and `llx_c_category_product_question`.`active` = 1
+        and `oc_category_description`.`language_id`=4';
+    }else{
+        $sql = "select llx_c_category_product_question.rowid as rowid, `oc_category_description`.`name`, llx_c_category_product_question.rowid query_id, llx_c_category_product_question.category_id, question, '' as answer  from `llx_c_category_product_question`
+        left join `oc_category_description` on llx_c_category_product_question.category_id = `oc_category_description`.category_id
+        where llx_c_category_product_question.rowid in (" . $answer_id . ")
+        and `oc_category_description`.`language_id`=4";
+//        return $answer_id;
+    }
+//    echo '<pre>';
+//    var_dump($sql);
+//    echo '</pre>';
+//    die();
+//    die($sql);
     $res_answer = $db->query($sql);
-    if(!$res_answer)
+    if (!$res_answer)
         dol_print_error($db);
     $answer = array();
-    while($obj = $db->fetch_object($res_answer)){
+    while ($obj = $db->fetch_object($res_answer)) {
         $answer[$obj->query_id] = trim($obj->answer);
     }
-    $out = '<table class="WidthScroll"> <tbody id="queries">';
+//    echo '<pre>';
+//    var_dump($answer);
+//    echo '</pre>';
+//    die();
+    $category_color = array('#e2ffe2','#dff1ff', '#e2ffe2', '#BBDDFF');
+    $out = '';
+    if(empty($answer_id))
+        $out .= '<table class="WidthScroll" cellspacing="1"> ';
+    else{
+        mysqli_data_seek($res_answer, 0);
+    }
+    $out .= '<tbody id="queries">';
     $num = 1;
-    while($obj = $db->fetch_object($res_queries)){
-        $class = (fmod($num++, 2)==0?'impair':'pair');
-        $out .= '<tr class="'.$class.'">';
-        $out .= '<td>'.$obj->question.'</td>';
+    $prev_category = -1;
+    $num_color = -1;
+    while($obj = $db->fetch_object(empty($answer_id)?$res_queries:$res_answer)){
+        if($prev_category != $obj->category_id){
+            $prev_category=$obj->category_id;
+            $num_color++;
+            if($num_color>3)$num_color=0;
+            $out .= '<tr title="'.$obj->name.'">';
+            $out .= '<td colspan="2"  style="background-color: '.$category_color[$num_color].';font-size:14px" ><b>'.$obj->name.'</b></td>';
+            $out .= '</tr>';
+        }
+//        $class = (fmod($num++, 2)==0?'impair':'pair');
+        $out .= '<tr title="'.$obj->name.'">';
+        $out .= '<td id="q'.$obj->rowid.'" style="background-color: '.$category_color[$num_color].'" >'.$obj->question.'</td>';
         $out .= '</tr>';
-        $class = (fmod($num++, 2)==0?'impair':'pair');
-        $out .= '<tr class="'.$class.'">';
-        $out .= '<td><textarea id="answer'.$obj->rowid.'" style="width: 90%">'.(isset($answer[$obj->rowid])?$answer[$obj->rowid]:'').'</textarea></td>';
+//        $class = (fmod($num++, 2)==0?'impair':'pair');
+        $out .= '<tr id="a'.$obj->rowid.'" title="'.$obj->name.'" >';
+        $out .= '<td  colspan="2" style="background-color: '.$category_color[$num_color].'"><textarea id="answer'.$obj->rowid.'" class="answer" style="width: 90%">'.(isset($answer[$obj->rowid])?$answer[$obj->rowid]:'').'</textarea></td>';
         $out .= '</tr>';
     }
-    $out.= '</tbody></table>';
+    $out.= '</tbody>';
+    if(empty($answer_id))
+        $out .= '</table>';
     return $out;
 }
 function ShowOrders(){
@@ -351,7 +435,7 @@ function ShowOrders(){
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
-    $sql = 'select `llx_orders`.`rowid`, `llx_user`.`lastname`
+    $sql = 'select distinct `llx_orders`.`rowid`, `llx_user`.`lastname`
         from `llx_orders`
         left join `llx_actioncomm` on `llx_actioncomm`.`fk_order_id`=`llx_orders`.`rowid`
         left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm`=`llx_actioncomm`.`id`
@@ -509,28 +593,41 @@ function ShowPriceList(){
     require_once DOL_DOCUMENT_ROOT.'/product/class/product.class.php';
     global $db;
     $product_static = new Product($db);
+
     return $product_static->ShowPriceList();
 }
-function SendTaskForPurchase($order_id){
+function SendTaskForPurchase($order_id)
+{
     global $db, $user;
-    $sql = 'select products_id from `llx_orders` where rowid = '.$order_id;
+    $sql = 'select products_id from `llx_orders` where rowid = ' . $order_id;
     $res = $db->query($sql);
-    if(!$res)
+    if (!$res)
         dol_print_error($db);
     $obj = $db->fetch_object($res);
     $productlist = explode(';', $obj->products_id);
     $products = array();
-    foreach($productlist as $item){
-        $itemarray = explode('=', $item);
-        if(count($itemarray) == 2){
-            $products[$itemarray[0]] = $itemarray[1];
+    if (count($productlist) > 0) {
+        foreach ($productlist as $item) {
+            $itemarray = explode('=', $item);
+            if (count($itemarray) == 2) {
+                $products[$itemarray[0]] = $itemarray[1];
+            }
         }
     }
     $sql = 'select distinct fk_user from `llx_user_lineactive`
         where fk_lineactive in
-        (select distinct category_id from `oc_product_to_category`
-        where product_id in ('.implode(',', array_keys($products)).'))
+            (select distinct category_id from `oc_product_to_category`
+            where product_id in ('.(count($products)>0?implode(',', array_keys($products)):0).'))
+        or fk_lineactive in
+            (select distinct `llx_c_category_product_question`.`category_id` from llx_orders_queries
+            inner join `llx_c_category_product_question` on `llx_c_category_product_question`.`rowid` = llx_orders_queries.`query_id`
+            where order_id = '.$order_id.'
+            and `llx_c_category_product_question`.`category_id` is not null)
         and active = 1';
+//    echo '<pre>';
+//    var_dump($sql);
+//    echo '</pre>';
+//    die();
     $res = $db->query($sql);
     require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
     while($obj = $db->fetch_object($res)){

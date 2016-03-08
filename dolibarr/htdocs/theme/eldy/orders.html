@@ -10,15 +10,48 @@
     <!--<button onclick='close_action();'><?=$langs->trans('Cancel')?></button>-->
         <a class='close' title='Закрыть' href='#close'></a>
  </div>
-<div id="savebtn" style="display: none">
-    <button style="width: 200px;height: 30px" onclick="showorders();">Відобразити заявку</button>
-    <button style="width: 200px;height: 30px" onclick="preparedorders();">Зберегти заявку</button>
+<div id="savebtn" style="display: none;float: left">
+    <button style="width: 200px;height: 30px;float: left" onclick="showorders();">Відобразити заявку</button>
+    <form action="<?=$_SERVER['REQUEST_URI']?>" method="get" style="float: left">
+        <input type="hidden" name="type_action" value="without_list">
+        <button style="width: 200px;height: 30px" >Додати товар без списку</button>
+    </form>
+    <button style="width: 200px;height: 30px;float: left" onclick="preparedorders();">Зберегти заявку</button>
 </div>
 <div id="popupmenu" style="display: none;" class="pair popupmenu" >
-
-    <table style="background: #ffffff; border-collapse: collapse;" id="popup_table" >
+    <div style="text-align: center; font-weight: bold; font-size:14px; background-color: transparent">Заявка</div>
+    <div>
+        <div id="showWithList"class="inline-block tabsElem tabsElemActive">
+             <b id="WithList" class=" tab inline-block"  onclick="ChangeActivePage($(this));" data-role="button">Потреба зі списку</b>
+         </div>
+         <div id="showWithoutList" class="inline-block tabsElem">
+             <b id="WithoutList" class="tab inline-block unactivepage" onclick="ChangeActivePage($(this));"  data-role="button">Потреба без списку</b>
+         </div>
+    </div>
+    <form id="addunits" action="<?=$_SERVER['REQUEST_URI']?>" method="get" style="float: left; width: 100%;background-color: #cccccc">
+        <input type="hidden" id ="edit_type_action" name="type_action" value="without_list">
+        <input type="hidden" id="edit_orderid" name="order_id" value="">
+        <button id="btnaddunits" style="width: 200px;height: 30px" >Додати товар без списку</button>
+    </form>
+    <table style="background: #ffffff; border-collapse: collapse;"  id="popup_table" >
     </table>
     <script>
+        function ChangeActivePage(elem){
+            elem.removeClass('unactivepage');
+//            console.log(elem);
+            if(elem.attr('id') === $('b#WithList').attr('id')) {
+                $('b#WithoutList').addClass('unactivepage');
+                $('#btnaddunits').text('Додати товар зі списку');
+                $('#addunits').find('input#edit_type_action').val("with_list");
+                ShowChoosedProducts();
+            }else {
+                $('b#WithList').addClass('unactivepage');
+                $('#btnaddunits').text('Додати товар без списку');
+                $('#addunits').find('input#edit_type_action').val("without_list");
+                ShowAnswer();
+            }
+
+        }
         $(window).click(function (e) {
 //            console.log($('#popup_table').attr('order_id'), $('#popup_table').attr('order_id') === undefined);
             if (e.target.id.substr(0, 2) == 'td' && $('#popup_table').attr('order_id') !== undefined) {
@@ -66,6 +99,7 @@
     <form id="questions_form" action="?type_action=save_orders" method="post">
     <input type="hidden" value="" id = "order_id" name="order_id">
     <input type="hidden" value="" id = "products" name="products">
+    <input type="hidden" value="" id = "answer" name="answer">
     <input type="hidden" value="<?=$_REQUEST['mainmenu']?>" name="mainmenu">
     <input type="hidden" value="<?=$_REQUEST['idmenu']?>" name="idmenu">
     <table style="background: #ffffff; border-collapse: collapse;" id="questions" >
@@ -77,6 +111,7 @@
     </div>
 </div>
 <button id="createorderbtn" onclick="createorder();" style="width: 200px;height: 30px">Створити заявку</button>
+
 <table id="orders">
     <thead>
         <tr class="multiple_header_table">
@@ -136,71 +171,32 @@
             }
             var table = $('.WidthScroll');
             if("<?=$_REQUEST['type_action']?>" == 'with_list') {
-                $('#savebtn').appendTo($('.tabPage')[0]);
-                $('#savebtn').prependTo('.WidthScroll');
+//                $('#savebtn').appendTo($('.tabPage')[0]);
+                $('#savebtn').prependTo('#pricelist');
                 $('#savebtn').show();
                 $('#createorderbtn').hide();
                 document.getElementsByClassName('multiple_header_table')[0].innerHTML += '<th style="width: 55px" class="middle_size">Потреба</th>';
                 $('tbody#products').width(985);
             }
-
-
-//
-//
-//
             for(var i = 0; i<$('tbody#products').find('tr').length;i++){
                 var tr = $('tbody#products').find('tr')[i];
-                tr.innerHTML+='<td id = "td'+tr.id.substr(2)+'" style="width:50px; text-align: center"><input id="Col'+tr.id.substr(2)+'" onblur="setProductCount(Col'+tr.id.substr(2)+');" class="product_count" value="" type="text" size="4"></td>';
+                tr.innerHTML+='<td id = "td'+tr.id.substr(2)+'" style="width:50px; text-align: center"><input id="Col'+tr.id.substr(2)+'" onblur="setProductCount('+"'Col"+tr.id.substr(2)+"'"+');" class="product_count" value="" type="text" size="4"></td>';
             }
-//            $('#savebtn').show();
-//
     });
     $(window).click(function(){
         if(location.href.substr(strpos(location.href, "#")) == '#close'){
             $('#popupmenu').hide();
         }
     });
+
     function createorder(){
+        clearOrderCookie();
         location.href = '#type_action';
         $('#actionform').show();
 
         console.log('test');
     }
-    function saveorders(typicalqueries){
-        if(typicalqueries === undefined){
-            if($.cookie('products') == null){
-                var tr = $('#popup_table').find('tr');
-                var JSON = '{';
-                for(var i = 0; i<tr.length; i++) {
-                    if($('#price'+tr[i].id.substr(2)).text().length>0) {
-                        if (JSON.length > 1)
-                            JSON += ',';
-                        JSON += '"' + tr[i].id.substr(2) + '":' + $('#td' + tr[i].id.substr(2)).text();
-                    }
-                }
-                JSON+='}';
-                $.cookie('products', JSON);
-            }
-            if($('#popup_table').attr('order_id') !== undefined) {
-                var order_id = $('#questions_form').find('input#order_id');
-                order_id.val($('#popup_table').attr('order_id'))
-                var products = $('#questions_form').find('input#products');
-                products.val($.cookie('products'));
-//                console.log(order_id.val());
-            }
-            preparedorders();
-//            console.log();
-        }else {
-            var Query = '';
-            if($('#popup_table').attr('order_id') === undefined)
-                Query = 'Зберегти активну заявку?';
-            else
-                Query = 'Зберегти заявку?';
-            if (confirm(Query)) {
-                $('#questions_form').submit();
-            }
-        }
-    }
+
     function deleteorder(order_id){
         if(confirm('Видалити заявку?')) {
             $.ajax({
@@ -212,43 +208,129 @@
             })
         }
     }
-    function preparedorders(){
-            $('.popupmenu').hide();
-            $('#typicalqueries').css('position', "absolute");
-            $('#typicalqueries').css("top", '150');
-            $('#typicalqueries').css("z-index", '1500000');
-            $('#typicalqueries').css("left", (($(window).width() - 458) / 2));
-//            location.href = '#login_phone';
+
+    function ShowAnswer() {
+        $('#total_price').hide();
+        var answer_id = '';
+        if ($.cookie('answerId') != null) {
+            answer_id = $.cookie('answerId').split(',');
             $.ajax({
-            url: '<?=$_SERVER["PHP_SELF"]?>?type_action=get_typical_question',
-            cashe: false,
-            success: function(html){
-                $('#questions').html(html);
+                url: '<?=$_SERVER["PHP_SELF"]?>?type_action=get_question&answer_id=' + answer_id,
+                cashe: false,
+                success: function (html) {
+                    $('#popup_table').html(html);
+                    $('#popup_table').find('td').css('width', '100%');
+                    for (var i = 0; i < answer_id.length; i++) {
+                        if ($.cookie('a' + answer_id[i]) != null)
+                            $('textarea#answer' + answer_id[i]).text($.cookie('a' + answer_id[i]));
+                            $('#q'+answer_id[i]).parent().html($('#q'+answer_id[i]).parent().html()+'<td style="width: 20px;background-color: '+$('#q'+answer_id[i]).css('background-color')+';"><img style="cursor: pointer" onclick="delete_answer('+answer_id[i]+');" src="/dolibarr/htdocs/theme/eldy/img/delete.png"></td>')
+//                        console.log($('#q'+answer_id[i]).parent().html()+'<td style="width: 20px"><img></td>');
+                    }
+                    if(!$('#popup_table').hasClass('WidthScroll'))
+                        $('#popup_table').addClass('WidthScroll');
+                    $('#queries').height($(window).height()-280);
+                    $('#queries').width(550);
                 }
             })
-        $('#typicalqueries').show();
+        }
     }
-    function showorders(order_id){
-//        console.log(order_id);
-//        return;
+    function ShowChoosedProducts(order_id){
+
+        var products_id = '';
+        if($.cookie('products_id') != null)
+            products_id = $.cookie('products_id');
         $.ajax({
-            url: '<?=$_SERVER["PHP_SELF"]?>?type_action=showorders&order_id='+order_id,
+            url: '<?=$_SERVER["PHP_SELF"]?>?type_action=showorders&order_id='+(order_id==null?'':order_id)+'&products_id='+products_id,
             cashe: false,
             success: function(html){
                 $('#popup_table').html(html);
-                var tr = document.getElementById('popup_table').getElementsByTagName('tbody')[0].getElementsByTagName('tr');
-                var TotalPrice = 0
-                for(var i = 0; i<tr.length; i++){
-                    var id = tr[i].id.substr(2);
-                    TotalPrice += $('#popup_table').find('#price'+id).html()*$('#popup_table').find('#td'+id).html();
+                if($.cookie('products_id')!=null) {
+                    products_id = $.cookie('products_id').split(',');
+                    for (var i = 0; i < products_id.length; i++) {
+                        if ($.cookie('p' + products_id[i]) != null)
+                            $('td#td' + products_id[i]).text($.cookie('p' + products_id[i]));
+                        console.log(products_id[i]);
+                    }
                 }
-                $('#total_price').html('Загалом на суму '+TotalPrice);
+                if(document.getElementById('popup_table').getElementsByTagName('tbody').length > 0) {
+                    var tr = document.getElementById('popup_table').getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+
+                    var TotalPrice = 0
+                    for (var i = 0; i < tr.length; i++) {
+                        var id = tr[i].id.substr(2);
+                        TotalPrice += $('#popup_table').find('#price' + id).html() * $('#popup_table').find('#td' + id).html();
+                    }
+                    $('#total_price').html('Загалом на суму ' + TotalPrice);
+                    $('#total_price').show();
+                }
             }
         })
+    }
+    function showorders(order_id){
+        clearOrderCookie();
+        console.log(order_id);
+        if(order_id === undefined) {
+            order_id = null;
+            showpopupmenu(order_id);
+        }else{
+            if(order_id != null) {
+                $('#questions_form').find('input#order_id').val(order_id);
+                $('#edit_orderid').val(order_id);
+            }
+            $.ajax({
+                url: '<?=$_SERVER["PHP_SELF"]?>?type_action=getsavedorder&order_id='+(order_id==null?'':order_id),
+                cashe: false,
+                success: function(html){
+                    console.log(html);
+                    var obj = JSON.parse(html);
+                    $('b#WithoutList').removeClass('unactivepage');
+                    $('b#WithList').removeClass('unactivepage');
+                    if(obj.queries!=null) {
+                        $.cookie('answerId', Object.keys(obj.queries).toString());
+                        var queries_id = Object.keys(obj.queries);
+//                    console.log(obj.queries['783']);
+                        for (var i = 0; i < Object.keys(obj.queries).length; i++) {
+                            $.cookie('a' + queries_id[i], obj.queries[queries_id[i]]);
+                        }
+                    }else
+                        $('b#WithoutList').addClass('unactivepage');
+                    if(obj.products_id != null){
+                        $.cookie('products_id', Object.keys(obj.products_id).toString());
+                        var products_id = Object.keys(obj.products_id);
+//                    console.log(obj.queries['783']);
+                        for (var i = 0; i < Object.keys(obj.products_id).length; i++) {
+                            $.cookie('p' + products_id[i], obj.products_id[products_id[i]]);
+                        }
+                    }else
+                        $('b#WithList').addClass('unactivepage');
+
+                    showpopupmenu(order_id);
+                }
+            })
+        }
+
+    }
+    function showpopupmenu(order_id){
+//           console.log($.cookie('products_id'), $.cookie('answerId'))
+//        return;
+        if(order_id == null && ($.cookie('products_id') == null || $.cookie('answerId') == null)){
+            $('#showWithList').hide();
+            $('#showWithoutList').hide();
+        }
+        console.log($.cookie('products_id'));
+//        if($.cookie('products_id') != null)
+//            ShowChoosedProducts(order_id);
+//        else if($.cookie('answerId') != null)
+//            ShowAnswer();
+        if($('b#WithList').hasClass('unactivepage')) {
+            ChangeActivePage($('b#WithList'));
+        }else
+            ChangeActivePage($('b#WithoutList'));
 //        console.log('set atribut order_id', parseInt(order_id)!=0);
         if(parseInt(order_id)!=0){
             $('#popup_table').attr('order_id', order_id);
         }
+
         $('#popupmenu').css('position', "absolute");
         $('#popupmenu').css("top", '150');
         $('#popupmenu').css("z-index", '1500000');
@@ -273,11 +355,11 @@
     function patch_link(){
         var groups = document.getElementById('groupproducts');
         if(groups != null) {
-            var links = groups.getElementsByTagName('a');
-            for (var i = 0; i < links.length; i++) {
-                var href = links[i].href;
-                links[i].href = href.substr(0, strpos(links[i].href, "#cat")) + '&type_action=<?=$_REQUEST["type_action"]?>&page=<?=$_REQUEST["page"]?>' + links[i].href.substr(strpos(links[i].href, "#cat"));
-            }
+//            var links = groups.getElementsByTagName('a');
+//            for (var i = 0; i < links.length; i++) {
+//                var href = links[i].href;
+//                links[i].href = href.substr(0, strpos(links[i].href, "#cat")) + '&type_action=<?=$_REQUEST["type_action"]?>&page=<?=$_REQUEST["page"]?>' + links[i].href.substr(strpos(links[i].href, "#cat"));
+//            }
             href = $('a#first').attr('href');
             $('a#first').attr('href', href.substr(0, strpos(href, "#cat")) + '&type_action=<?=$_REQUEST["type_action"]?>' + href.substr(strpos(href, "#cat")));
             href = $('a#second').attr('href');
@@ -288,20 +370,79 @@
     }
     $(window).keydown(function(event){ //ловим событие нажатия клавиши
 //        console.log(event.keyCode);
-        if(event.keyCode == 13 || event.keyCode == 9) { //если это Enter
-            event.target.blur(event);
+        if(event.keyCode == 13 ) { //если это Enter
+//            console.log(event.target);
+//            event.target.blur(event);
+            if($('#'+event.target.id).hasClass('product_count')){
+
+                var product_count = $.makeArray($('.product_count'));
+                var id_array = [];
+                for(var i = 0; i<product_count.length; i++){
+                    id_array.push(product_count[i].id);
+                }
+                var index = $.inArray(event.target.id, id_array);
+                if(index>=0){
+//                    index++;
+//                    document.getElementById(id_array[index]).focus();
+                    $('#'+id_array[++index]).focus();
+//                    console.log(id_array[index]);
+                }
+//                console.log(id_array);
+            }
         }
     });
-    function setProductCount(elem){
-//        console.log('test', $('#'+elem.id).val());
+    function OpenFolder(id_cat){
+        var img = $('#cat'+id_cat).find('img');
+        console.log(img.attr('src') == '/dolibarr/htdocs/theme/eldy/img/object_folded.png');
+        if(img.attr('src') == '/dolibarr/htdocs/theme/eldy/img/object_folded.png') {
+            img.attr('src', '/dolibarr/htdocs/theme/eldy/img/object_deployed.png');
+            $('.parent' + id_cat).show();
+        }else{
+            img.attr('src', '/dolibarr/htdocs/theme/eldy/img/object_folded.png');
+            $('.parent' + id_cat).hide();
+        }
         $.ajax({
-            url: '<?=$_SERVER["PHP_SELF"]?>?type_action=choose_product&product_id='+elem.id.substr(3)+'&count='+$('#'+elem.id).val()+'&id_usr=<?=$user->id?>',
-            cashe: false,
-            success: function(html){
-                console.log('test');
+            url:'/dolibarr/htdocs/orders.php?idmenu=10426&mainmenu=orders&leftmenu=&type_action=showproducts&id_cat='+id_cat,
+            cache: false,
+            success:function(html){
+                $('#products').empty().html(html);
+                for(var i = 0; i<$('tbody#products').find('tr').length;i++){
+                    var tr = $('tbody#products').find('tr')[i];
+                    tr.innerHTML+='<td id = "td'+tr.id.substr(2)+'" style="width:50px; text-align: center"><input id="Col'+tr.id.substr(2)+'"  onblur="setProductCount('+"'Col"+tr.id.substr(2)+"'"+');" class="product_count" value="" type="text" size="4"></td>';
+                }
+                ShowProducts();
             }
         })
+    }
 
+    function setProductCount(elem){
+        var id = elem.substr(3);
+        console.log(elem);
+//        return;
+        var products_array=[];
+
+        if($.cookie('products_id') != null)
+            products_array = $.cookie('products_id').split(',');
+        if($('#Col'+id).val().length == 0){
+            $.cookie('p'+id, null);
+            if($.inArray(id.toString(), products_array) != -1)
+                products_array.splice($.inArray(id.toString(), products_array), 1);
+        }else{
+            $.cookie('p'+id, $('#Col'+id).val());
+//            console.log($.inArray(id, products_array));
+            if($.inArray(id.toString(), products_array) == -1)
+                products_array.push(id);
+        }
+        $.cookie('products_id', products_array.toString());
+    }
+    function ShowProducts(){//Відображення кількості замовлених товарів
+        if($.cookie('products_id') != null) {
+            var product = $.cookie('products_id').split(',');
+            for (var i = 0; i < product.length; i++) {
+                $('input#Col' + product[i]).val($.cookie('p' + product[i]));
+                console.log(product[i], $.cookie('p' + product[i]))
+            }
+        }
     }
     function close_action(){
         location.href = '#x';
@@ -334,6 +475,6 @@
         return i >= 0 ? i : false;
     }
 </script>
-
 <?=$actionform?>
+
 

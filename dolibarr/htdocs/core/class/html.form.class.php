@@ -1274,7 +1274,7 @@ class Form
             for($i=1; $i<=$categries[$catalog_id][1]; $i++)
                 $space_item.=$space;
             if(isset($sub_category[$catalog_id])) {
-                $out .= '<option value="' . $catalog_id . '" disabled>' .$space_item.$categries[$catalog_id][0] . '</option>';
+                $out .= '<option value="' . $catalog_id . '" '.(in_array($catalog_id, $selected) ? 'selected="selected"' : '').' >' .$space_item.$categries[$catalog_id][0] . '</option>';
                 for($i=count($sub_category[$catalog_id])-1; $i>=0; $i--) {
                     array_unshift($basic_group, $sub_category[$catalog_id][$i]);
                 }

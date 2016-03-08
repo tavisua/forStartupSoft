@@ -313,22 +313,22 @@ class Product extends CommonObject
 		$out .= '</tbody>';
 		return $out;
 	}
-	function ShowOrders($orders_id = 0, $showprice = true){
+	function ShowOrders($orders_id = 0, $products_id = '', $showprice = true){
+
 		global $db, $user;
-		$sql = 'select products_id from llx_orders ';
-		if(empty($orders_id))
-			$sql .= 'where status = 0 and id_usr = '.$user->id;
-		else
-			$sql .= 'where rowid = '.$orders_id;
-		$sql .= ' limit 1';
-		$res = $db->query($sql);
+		if(empty($products_id)) {
+			$sql = 'select products_id from llx_orders ';
+			if (empty($orders_id))
+				$sql .= 'where status = 0 and id_usr = ' . $user->id;
+			else
+				$sql .= 'where rowid = ' . $orders_id;
+			$sql .= ' limit 1';
+			$res = $db->query($sql);
+			if (!$res)
+				dol_print_error($db);
+		}
 		$out = '<table>
 			<thead>
-			<tr class="multiple_header_table">
-				<th colspan="4">
-					Заявка
-				</th>
-			</tr>
 			<tr class="multiple_header_table">
 				<th>
 					Виробник
@@ -345,18 +345,30 @@ class Product extends CommonObject
 				</th>
 			</tr>
 		</thead>';
-		$obj = $db->fetch_object($res);
-		$productlist = explode(';', $obj->products_id);
-		$products = array();
-		foreach($productlist as $product=>$value){
-			if(!empty($value)) {
-				$item = explode('=', $value);
-				$products[$item[0]]=$item[1];
+
+		if(empty($products_id)&&$db->num_rows($res)) {
+			$obj = $db->fetch_object($res);
+			$productlist = explode(';', $obj->products_id);
+			$products = array();
+			foreach ($productlist as $product => $value) {
+				if (!empty($value)) {
+					$item = explode('=', $value);
+					$products[$item[0]] = $item[1];
+				}
+			}
+		}elseif(!empty($products_id)){
+			$product_id = explode(',',$products_id);
+			foreach($product_id as $item){
+				$products[$item] = 0;
 			}
 		}
+//		var_dump($products);
+//		die();
 		$out .= '<tbody>';
-
-		$result_table = $this->ShowProducts(0, implode(',', array_keys($products)), 'name'.($showprice==true?',price':''));
+		if(count($products))
+			$result_table = $this->ShowProducts(0, implode(',', array_keys($products)), 'name'.($showprice==true?',price':''));
+		else
+			$result_table = '';
 		$pos = 0;
 
 		while(gettype(strpos($result_table, '<tr id="tr', $pos)) == 'integer') {
@@ -386,6 +398,7 @@ class Product extends CommonObject
 	}
 
 	function ShowProducts($id_cat, $products_id = '', $fields = ''){
+
 		global $db;
 		if(!empty($fields))
 			$fields = explode(',', $fields);
@@ -394,7 +407,8 @@ class Product extends CommonObject
 			from `oc_product_to_category`
 			inner join `oc_product_attribute` on `oc_product_attribute`.`product_id`=`oc_product_to_category`.`product_id`';
 		if(empty($products_id))
-			$sql .= ' where `oc_product_to_category`.category_id='.$id_cat;
+			$sql .= ' where `oc_product_to_category`.category_id in (select '.$id_cat.' union select category_id from `oc_category`
+				where parent_id = '.$id_cat.')';
 		else
 			$sql .= ' where `oc_product_to_category`.product_id in ('.$products_id.')';
 		$sql .=' and `oc_product_attribute`.language_id=4
@@ -406,9 +420,10 @@ class Product extends CommonObject
 		while($obj = $db->fetch_object($res)){
 			$Producer[$obj->product_id] = trim($obj->text);
 		}
-		$sql = 'select lastname from llx_user
+		$sql = 'select distinct lastname from llx_user
 			inner join `llx_user_lineactive` on `llx_user_lineactive`.`fk_user` = `llx_user`.`rowid`
-			where `llx_user_lineactive`.`fk_lineactive` = '.$id_cat.'
+			where `llx_user_lineactive`.`fk_lineactive` in (select '.$id_cat.' union select category_id from `oc_category`
+				where parent_id = '.$id_cat.')
 			 and `llx_user_lineactive`.`active`=1';
 		$res = $db->query($sql);
 		if(!$res)
@@ -423,7 +438,8 @@ class Product extends CommonObject
 			left join `oc_product_description` on `oc_product_description`.`product_id` = `oc_product_to_category`.`product_id`
 			inner join `oc_product` on `oc_product`.`product_id` = `oc_product_to_category`.`product_id`';
 		if(empty($products_id))
-			$sql .= ' where `oc_product_to_category`.category_id='.$id_cat;
+			$sql .= ' where `oc_product_to_category`.category_id in (select '.$id_cat.' union select category_id from `oc_category`
+				where parent_id = '.$id_cat.')';
 		else
 			$sql .= ' where `oc_product_to_category`.product_id in ('.$products_id.')';
 		$sql .=' and `oc_product_description`.language_id=4
@@ -542,7 +558,7 @@ class Product extends CommonObject
 			}
 			if(!in_array($obj['parent_id'], $group))
 				$group[]=$obj['parent_id'];
-			$categries[$obj['category_id']]=array($obj['name'], $form->SymbolCounter('&gt;', $obj['path']));
+			$categries[$obj['category_id']]=array($obj['name'], $form->SymbolCounter('&gt;', $obj['path']), $obj['parent_id']);
 
 		}
 		//Subcategory
@@ -560,14 +576,25 @@ class Product extends CommonObject
 			}
 			$sub_category[$group_id]=explode(',', $subcatstr);
 		}
+//		echo '<pre>';
+//		var_dump($sub_category);
+//		echo '</pre>';
+//		die();
 		$out = '';
 		$index = 0;
 		$id_cat = $_REQUEST['id_cat'];
 		while(count($basic_group)) {
 			$catalog_id = $basic_group[0];
+//			if($catalog_id == 96){
+//				echo '<pre>';
+//				var_dump($categries[$catalog_id]);
+//				echo '</pre>';
+//				die();
+//			}
 			array_shift($basic_group);
-			if(isset($sub_category[$catalog_id])) {
-				$out .= '<ul '.($categries[$catalog_id][1]!=0?'class="subcatalog"':'').'>' .$categries[$catalog_id][0] . '</ul>';
+			if(isset($sub_category[$catalog_id]) || $categries[$catalog_id][1] == 1) {
+				//href="' .$_SERVER['PHP_SELF'].'?mainmenu='.$_REQUEST['mainmenu'].'&id_cat='.$catalog_id.'#cat'.$catalog_id.'"
+				$out .= '<ul id="cat'.$catalog_id.'" '.($categries[$catalog_id][1]!=0?'class="subcatalog parent'.$categries[$catalog_id][2].'" style="display:none"':' class="parent'.$categries[$catalog_id][2].'"').'>'.(isset($sub_category[$catalog_id])?'<img id="img'.$catalog_id.'" style="cursor:pointer" src="'.DOL_URL_ROOT.'/theme/eldy/img/object_folded.png">':'&nbsp;&nbsp;').'<a style="padding-left: 5px" onclick=OpenFolder('.$catalog_id.')>' .$categries[$catalog_id][0] . '</a></ul>';
 				for($i=count($sub_category[$catalog_id])-1; $i>=0; $i--) {
 					array_unshift($basic_group, $sub_category[$catalog_id][$i]);
 				}
@@ -576,9 +603,9 @@ class Product extends CommonObject
 					if($showfirstcategory_id)
 						return $catalog_id;
 					$id_cat = $catalog_id;
-					$out .= '<li id="cat'.$id_cat.'" class="selected"><a href="' .$_SERVER['PHP_SELF'].'?mainmenu='.$_REQUEST['mainmenu'].'&id_cat='.$id_cat.'#cat'.$id_cat.'">'.$categries[$catalog_id][0] . '</a></li>';
+					$out .= '<li id="cat'.$id_cat.'" class="selected parent'.$categries[$catalog_id][2].'"  style="display:none"><a href="' .$_SERVER['PHP_SELF'].'?mainmenu='.$_REQUEST['mainmenu'].'&id_cat='.$id_cat.'#cat'.$id_cat.'">'.$categries[$catalog_id][0] . '</a></li>';
 				}else{
-					$out .= '<li id="cat'.$catalog_id.'" '.($id_cat==$catalog_id?'class="selected"':'').'><a href="' .$_SERVER['PHP_SELF'].'?mainmenu='.$_REQUEST['mainmenu'].'&id_cat='.$catalog_id.'#cat'.$catalog_id.'">'.$categries[$catalog_id][0] . '</a></li>';
+					$out .= '<li id="cat'.$catalog_id.'" '.($id_cat==$catalog_id?'class="selected parent'.$categries[$catalog_id][2].'"':' class="parent'.$categries[$catalog_id][2].'"').'  style="display:none"><a onclick=OpenFolder('.$catalog_id.')>'.$categries[$catalog_id][0] . '</a></li>';
 				}
 			}
 			$index++;
