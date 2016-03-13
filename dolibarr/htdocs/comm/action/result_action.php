@@ -178,11 +178,17 @@ function saveaction($rowid, $createaction = false){
     }
     if(empty($rowid))
         $rowid = get_last_id();
+    $TypeAction = array('AC_GLOBAL', 'AC_CURRENT');
+    $sql = 'SELECT `code` from `llx_actioncomm` where id = '.$rowid;
+    $res = $db->query($sql);
+    $obj = $db->fetch_object($res);
 
-    $sql = 'update llx_actioncomm set datea=Now()
+
+    $sql = 'update llx_actioncomm set datea=Now() '.(in_array($obj->code, $TypeAction)?'':', percent = 100').'
     where llx_actioncomm.id in (select llx_societe_action.action_id from `llx_societe_action` where 1
     and llx_societe_action.rowid = '.$rowid.')
     and datea is null';
+//    die($sql);
     $res = $db->query($sql);
 //    if($res)
 //        dol_print_error($db);

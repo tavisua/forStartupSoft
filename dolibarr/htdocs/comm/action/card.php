@@ -223,12 +223,12 @@ if ($action == 'add')
 		setEventMessage($langs->trans("ErrorFieldRequired",$langs->transnoentitiesnoconv("DateEnd")), 'errors');
 	}
 
-	if (empty($conf->global->AGENDA_USE_EVENT_TYPE) && ! GETPOST('label'))
-	{
-		$error++; $donotclearsession=1;
-		$action = 'create';
-		setEventMessage($langs->trans("ErrorFieldRequired",$langs->transnoentitiesnoconv("Title")), 'errors');
-	}
+//	if (empty($conf->global->AGENDA_USE_EVENT_TYPE) && ! GETPOST('label'))
+//	{
+//		$error++; $donotclearsession=1;
+//		$action = 'create';
+//		setEventMessage($langs->trans("ErrorFieldRequired",$langs->transnoentitiesnoconv("Title")), 'errors');
+//	}
 
 	// Initialisation objet cactioncomm
 	if (! GETPOST('actioncode') > 0)	// actioncode is id
@@ -744,8 +744,8 @@ if ($action == 'create')
 
 	print '<table class="border" width="100%">';
 
-    // Title
-	print '<tr><td'.(empty($conf->global->AGENDA_USE_EVENT_TYPE)?' class="fieldrequired"':'').'>'.$langs->trans("Title").'</td><td><input type="text" id="label" name="label" size="60" value="'.GETPOST('label').'"></td></tr>';
+//    // Title
+//	print '<tr><td'.(empty($conf->global->AGENDA_USE_EVENT_TYPE)?' class="fieldrequired"':'').'>'.$langs->trans("Title").'</td><td><input type="text" id="label" name="label" size="60" value="'.GETPOST('label').'"></td></tr>';
 
     // Type of event
 //	if (! empty($conf->global->AGENDA_USE_EVENT_TYPE))
@@ -852,7 +852,7 @@ if ($action == 'create')
 			$listofuserid=dol_json_decode($_SESSION['assignedtouser'], true);
 		}
 	}
-	print $form->select_dolusers_forevent(($action=='create'?'add':'update'), 'assignedtouser', 1, '', 0, '', '', 0, 0, 0, 'AND u.statut != 0');
+	print $form->select_dolusers_forevent(($action=='create'?'add':'update'), 'assignedtouser', 1, '', 0, '', '', 0, 0, 0, 'AND u.statut != 0', 0, 1, 1);
 	if (in_array($user->id,array_keys($listofuserid))) print $langs->trans("MyAvailability").': <input id="transparency" type="checkbox" name="transparency"'.(((! isset($_GET['transparency']) && ! isset($_POST['transparency'])) || GETPOST('transparency'))?' checked="checked"':'').'> '.$langs->trans("Busy");
 	print '</td></tr>';
 
@@ -1154,8 +1154,8 @@ if ($id > 0)
 //		// Ref
 //		print '<tr><td width="30%">'.$langs->trans("Ref").'</td><td colspan="3">'.$object->id.'</td></tr>';
 
-		// Title
-		print '<tr><td'.(empty($conf->global->AGENDA_USE_EVENT_TYPE)?' class="fieldrequired"':'').'>'.$langs->trans("Title").'</td><td colspan="3"><input type="text" name="label" size="50" value="'.$object->label.'"></td></tr>';
+//		// Title
+//		print '<tr><td'.(empty($conf->global->AGENDA_USE_EVENT_TYPE)?' class="fieldrequired"':'').'>'.$langs->trans("Title").'</td><td colspan="3"><input type="text" name="label" size="50" value="'.$object->label.'"></td></tr>';
 
         // Type of event
 //		if (! empty($conf->global->AGENDA_USE_EVENT_TYPE))
@@ -1360,8 +1360,8 @@ if ($id > 0)
 			print '<tr><td>'.$langs->trans("Type").'</td><td colspan="3">'.$object->type.'</td></tr>';
 		}
 
-		// Title
-		print '<tr><td>'.$langs->trans("Title").'</td><td colspan="3">'.$object->label.'</td></tr>';
+//		// Title
+//		print '<tr><td>'.$langs->trans("Title").'</td><td colspan="3">'.$object->label.'</td></tr>';
 
         // Full day event
         print '<tr><td>'.$langs->trans("EventOnFullDay").'</td><td colspan="3">'.yn($object->fulldayevent).'</td></tr>';
@@ -1707,6 +1707,13 @@ print '
                 }
             }
         }
+        $("#exec_time").keypress(function(e){
+        	if(e.keyCode == 13){
+				CalcP2();
+        		return false;
+			}
+//        	console.log(e.keyCode == 13);
+        })
         function setP2(showalert){
 //            console.log($("select#apmin").val());
             if($("select#apmin").val() == -1) return;

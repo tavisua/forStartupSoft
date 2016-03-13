@@ -204,7 +204,7 @@ function CalcOutStandingActions($actioncode, $array, $id_usr=0, $responding=''){
             $sql .=" and `llx_actioncomm_resources`.fk_element in (select rowid from llx_user where 1 and `subdiv_id` = ".$user->subdiv_id.(empty($responding)?"":" and respon_id in(".$responding.")").")";
     $sql .= " and date(datep2) < '".date("Y-m-d")."'";
     $sql .=" and datea is null";
-    $sql .=" and `llx_c_actioncomm`.`active` = 1";
+    $sql .=" and `llx_actioncomm`.`active` = 1";
 //    if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'"){}
 //    if($actioncode == "'AC_TEL','AC_FAX','AC_EMAIL','AC_RDV','AC_INT','AC_OTH','AC_GLOBAL','AC_CURRENT','AC_DEP'" && $id_usr == 47){
 //        echo '<pre>';

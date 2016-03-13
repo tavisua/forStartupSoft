@@ -1289,12 +1289,17 @@ class Form
         return $out;
 
     }
-    function SymbolCounter($symbol, $str){
+    function SymbolCounter($symbol, $str, $category_id=0){
+
         $count=0;
-        for($i=0; $i<mb_strlen($str, 'UTF-8'); $i++){
-            if(mb_substr($str, $i, 4) == $symbol)
+        for($i=0; $i<strlen($str); $i++){
+            if(substr($str, $i, strlen($symbol)) == $symbol)
                 $count++;
         }
+//        if($category_id == 424){
+//            var_dump(strlen($symbol), $str, $count);
+//            die();
+//        }
         return $count;
     }
     function select_control($selected='', $htmlname, $disabled=0, $tablename, $fieldname, $userinfo, $readonly = true)
@@ -1347,7 +1352,7 @@ class Form
 //        }
         return $out;
     }
-    function select_dolusers($selected='', $htmlname='userid', $show_empty=0, $exclude='', $disabled=0, $include='', $enableonly='', $force_entity=0, $maxlength=0, $showstatus=0, $morefilter='')
+    function select_dolusers($selected='', $htmlname='userid', $show_empty=0, $exclude='', $disabled=0, $include='', $enableonly='', $force_entity=0, $maxlength=0, $showstatus=0, $morefilter='', $showrespon = 0, $showpost = 0, $showsubdiv = 0, $onlyMysubdiv = 0)
     {
         global $conf,$user,$langs;
 
@@ -1379,12 +1384,16 @@ class Form
         $out='';
 
         // On recherche les utilisateurs
-        $sql = "SELECT DISTINCT u.rowid, u.lastname as lastname, u.firstname, u.statut, u.login, u.admin, u.entity";
+        $sql = "SELECT DISTINCT u.rowid, u.lastname as lastname, u.firstname, u.`subdiv_id`, `subdivision`.`name` as subdivision, `llx_post`.`postname`, `responsibility`.name as respon_name, u.statut, u.login, u.admin, u.entity ";
+//        $sql = "SELECT DISTINCT u.rowid, u.lastname as lastname, u.firstname, u.statut, u.login, u.admin, u.entity";
         if (! empty($conf->multicompany->enabled) && $conf->entity == 1 && $user->admin && ! $user->entity)
         {
             $sql.= ", e.label";
         }
         $sql.= " FROM ".MAIN_DB_PREFIX ."user as u";
+        $sql.= " left join `subdivision` on `subdivision`.`rowid` = u.`subdiv_id`
+                 left join `responsibility` on `responsibility`.`rowid` = u.`respon_id`
+                 left join `llx_post` on `llx_post`.`rowid` = u.`post_id` ";
         if (! empty($conf->multicompany->enabled) && $conf->entity == 1 && $user->admin && ! $user->entity)
         {
             $sql.= " LEFT JOIN ".MAIN_DB_PREFIX ."entity as e ON e.rowid=u.entity";
@@ -1409,9 +1418,12 @@ class Form
         if (is_array($include) && $includeUsers) $sql.= " AND u.rowid IN ('".$includeUsers."')";
         if (! empty($conf->global->USER_HIDE_INACTIVE_IN_COMBOBOX)) $sql.= " AND u.statut <> 0";
         if (! empty($morefilter)) $sql.=" ".$morefilter;
+        $sql.= " AND u.active = 1";
         $sql.= " ORDER BY u.lastname ASC";
 
         dol_syslog(get_class($this)."::select_dolusers", LOG_DEBUG);
+//        var_dump($sql);
+//        die();
         $resql=$this->db->query($sql);
         if ($resql)
         {
@@ -1424,67 +1436,69 @@ class Form
 
                 $userstatic=new User($this->db);
 
-                while ($i < $num)
-                {
+                while ($i < $num) {
                     $obj = $this->db->fetch_object($resql);
+                    if ($onlyMysubdiv == 0 || $user->subdiv_id == $obj->subdiv_id) {
+                        $userstatic->id = $obj->rowid;
+                        $userstatic->lastname = $obj->lastname;
+                        $userstatic->firstname = $obj->firstname;
 
-                    $userstatic->id=$obj->rowid;
-                    $userstatic->lastname=$obj->lastname;
-                    $userstatic->firstname=$obj->firstname;
+                        $disableline = 0;
+                        if (is_array($enableonly) && count($enableonly) && !in_array($obj->rowid, $enableonly)) $disableline = 1;
 
-                    $disableline=0;
-                    if (is_array($enableonly) && count($enableonly) && ! in_array($obj->rowid,$enableonly)) $disableline=1;
-
-                    if ((is_object($selected) && $selected->id == $obj->rowid) || (! is_object($selected) && $selected == $obj->rowid))
-                    {
-                        $out.= '<option value="'.$obj->rowid.'"';
-                        if ($disableline) $out.= ' disabled="disabled"';
-                        $out.= ' selected="selected">';
-                    }
-                    else
-                    {
-                        $out.= '<option value="'.$obj->rowid.'"';
-                        if ($disableline) $out.= ' disabled="disabled"';
-                        $out.= '>';
-                    }
-
-                    $out.= $userstatic->getFullName($langs, 0, 0, $maxlength);
-                    // Complete name with more info
-                    $moreinfo=0;
-                    if (! empty($conf->global->MAIN_SHOW_LOGIN))
-                    {
-                    	$out.= ($moreinfo?' - ':' (').$obj->login;
-                    	$moreinfo++;
-                    }
-                    if ($showstatus >= 0)
-                    {
-                    	if ($obj->statut == 1 && $showstatus == 1)
-                    	{
-                    		$out.=($moreinfo?' - ':' (').$langs->trans('Enabled');
-                    		$moreinfo++;
-                    	}
-						if ($obj->statut == 0)
-						{
-							$out.=($moreinfo?' - ':' (').$langs->trans('Disabled');
-							$moreinfo++;
-						}
-					}
-                    if (! empty($conf->multicompany->enabled) && empty($conf->multicompany->transverse_mode) && $conf->entity == 1 && $user->admin && ! $user->entity)
-                    {
-                        if ($obj->admin && ! $obj->entity)
-                        {
-                        	$out.=($moreinfo?' - ':' (').$langs->trans("AllEntities");
-                        	$moreinfo++;
+                        if ((is_object($selected) && $selected->id == $obj->rowid) || (!is_object($selected) && $selected == $obj->rowid)) {
+                            $out .= '<option value="' . $obj->rowid . '"';
+                            if ($disableline) $out .= ' disabled="disabled"';
+                            $out .= ' selected="selected">';
+                        } else {
+                            $out .= '<option value="' . $obj->rowid . '"';
+                            if ($disableline) $out .= ' disabled="disabled"';
+                            $out .= '>';
                         }
-                        else
-                     {
-                        	$out.=($moreinfo?' - ':' (').$obj->label;
-                        	$moreinfo++;
-                     	}
-                    }
-					$out.=($moreinfo?')':'');
-                    $out.= '</option>';
 
+                        $out .= $userstatic->getFullName($langs, 0, 0, $maxlength);
+
+                        //Якщо показувати підрозділ
+                        if ($showsubdiv) {
+                            $out .= "|   |" . $obj->subdivision;
+                        }
+                        //якщо показувати сферу відповідальності
+                        if ($showrespon) {
+                            $out .= "|   |" . $obj->respon_name;
+                        }
+                        //Якщо показувати посаду
+                        if ($showpost) {
+                            $out .= "|   |" . $obj->postname;
+                        }
+
+                        // Complete name with more info
+                        $moreinfo = 0;
+                        if (!empty($conf->global->MAIN_SHOW_LOGIN)) {
+                            $out .= ($moreinfo ? ' - ' : ' (') . $obj->login;
+                            $moreinfo++;
+                        }
+                        if ($showstatus >= 0) {
+                            if ($obj->statut == 1 && $showstatus == 1) {
+                                $out .= ($moreinfo ? ' - ' : ' (') . $langs->trans('Enabled');
+                                $moreinfo++;
+                            }
+                            if ($obj->statut == 0) {
+                                $out .= ($moreinfo ? ' - ' : ' (') . $langs->trans('Disabled');
+                                $moreinfo++;
+                            }
+                        }
+                        if (!empty($conf->multicompany->enabled) && empty($conf->multicompany->transverse_mode) && $conf->entity == 1 && $user->admin && !$user->entity) {
+                            if ($obj->admin && !$obj->entity) {
+                                $out .= ($moreinfo ? ' - ' : ' (') . $langs->trans("AllEntities");
+                                $moreinfo++;
+                            } else {
+                                $out .= ($moreinfo ? ' - ' : ' (') . $obj->label;
+                                $moreinfo++;
+                            }
+                        }
+                        $out .= ($moreinfo ? ')' : '');
+                        $out .= '</option>';
+                    }
                     $i++;
                 }
             }
@@ -1528,7 +1542,7 @@ class Form
      * 	@return	string					HTML select string
      *  @see select_dolgroups
      */
-    function select_dolusers_forevent($action='', $htmlname='userid', $show_empty=0, $exclude='', $disabled=0, $include='', $enableonly='', $force_entity=0, $maxlength=0, $showstatus=0, $morefilter='')
+    function select_dolusers_forevent($action='', $htmlname='userid', $show_empty=0, $exclude='', $disabled=0, $include='', $enableonly='', $force_entity=0, $maxlength=0, $showstatus=0, $morefilter='', $showrespon = 0, $showpost = 0, $showsubdiv = 0, $onlyMysubdiv = 0)
     {
         global $conf,$user,$langs;
 
@@ -1545,7 +1559,7 @@ class Form
 		{
 			$out.='<input type="hidden" class="removedassignedhidden" name="removedassigned" value="">';
 			$out.='<script type="text/javascript" language="javascript">jQuery(document).ready(function () {    jQuery(".removedassigned").click(function() {        jQuery(".removedassignedhidden").val(jQuery(this).val());    });})</script>';
-			$out.=$this->select_dolusers('', $htmlname, $show_empty, $exclude, $disabled, $include, $enableonly, $force_entity, $maxlength, $showstatus, $morefilter);
+			$out.=$this->select_dolusers('', $htmlname, $show_empty, $exclude, $disabled, $include, $enableonly, $force_entity, $maxlength, $showstatus, $morefilter, $showrespon, $showpost, $showsubdiv, $onlyMysubdiv);
 			$out.='<input type="submit" class="button" name="'.$action.'assignedtouser" value="'.dol_escape_htmltag($langs->trans("Add")).'">';
 		}
 		$assignedtouser=array();

@@ -439,6 +439,9 @@ div.header_page, th.header_page, tr.header_table_sel, form.header_page, form.hea
     text-overflow: ellipsis; /* Добавляем многоточие */
 
 }
+.proposed{
+   background-color: #e2ffe2;
+}
 .scrolling-table tr{
     display: table;
     width: 400px;
@@ -513,6 +516,38 @@ div.header_page, th.header_page, tr.header_table_sel, form.header_page, form.hea
     z-index: 1;
     cursor: pointer;
 }
+#bookmarkActionPanel {
+    background: rgba(0, 0, 0, 0) linear-gradient(to bottom, rgba(119, 172, 42, 1) 0%, rgba(119, 172, 42, 1) 56%, rgba(86, 135, 16, 1) 100%) repeat scroll 0 0;
+    border-top: 1px solid #b4d18a;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+    position: fixed;
+    cursor: pointer;
+    right: -70px;
+    top: 125px;
+    transform: matrix(0, -1, 1, 0, 0, 0);
+    z-index: 3;
+}
+#ActionPanel{
+    background-color: #ffffff;
+    position: fixed;
+    right: -255px;
+    width: 250px;
+    height: 100%;
+    top: 50px;
+    z-index: 2;
+}
+
+#bookmarkActionPanel span {
+    color: #fff;
+    display: block;
+    font-family: proxima_novabold,arial;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 10px 10px 15px;
+    text-decoration: none;
+    text-shadow: 1px 0 1px #000;
+}
 .departure_taskitem{
     font-size: 6;
     height: 100%;
@@ -534,7 +569,7 @@ div.header_page, th.header_page, tr.header_table_sel, form.header_page, form.hea
     position: relative;
 }
 .tasklist, .tasklist tbody{
-    width: 957px;
+    width: 967px;
     vertical-align: top;
     border-collapse: collapse;
     border: none;

@@ -52,7 +52,7 @@ if(isset($_REQUEST['action'])) {
     $socid = $_REQUEST['socid'];
 }
 //echo '<pre>';
-//var_dump($_POST);
+//var_dump($_REQUEST);
 //echo '</pre>';
 //die();
 $langs->load("companies");
@@ -216,6 +216,7 @@ if (empty($reshook))
         $object->tva_intra             = GETPOST('tva_intra', 'alpha');
         $object->tva_assuj             = GETPOST('assujtva_value', 'alpha');
         $object->status                = GETPOST('status', 'alpha');
+        $object->lineactive            = GETPOST('lineactive');
 
         // Local Taxes
         $object->localtax1_assuj       = GETPOST('localtax1assuj_value', 'alpha');
@@ -1292,10 +1293,17 @@ else
 
         if($user->respon_alias == 'sale') {
             //Класифікація
-            print '<tr id="classifycation">';
+            print '<tr id="classifycation" style="display: none">';
             print '<td><label for="classifycation">' . $langs->trans("Classifycation") . '</label></td>';
             print '<td colspan="3" class="maxwidthonsmartphone">';
             print $formcompany->classifycation($object->id);
+            print '</td></tr>';
+
+            //Напрямки діяльності
+            print '<tr id="lineactive" style="display: none">';
+            print '<td><label for="lineactive">' . $langs->trans("LineActiveCustomer") . '</label></td>';
+            print '<td colspan="3" class="maxwidthonsmartphone">';
+            print $formcompany->lineactiveCusomter($object->id);
             print '</td></tr>';
         }
         // Discription
@@ -1349,7 +1357,10 @@ else
         {
             $object = new Societe($db);
             $res=$object->fetch($socid);
-
+//            echo '<pre>';
+//            var_dump($object);
+//            echo '</pre>';
+//            die();
             if ($res < 0) { dol_print_error($db,$object->error); exit; }
             $res=$object->fetch_optionals($object->id,$extralabels);
             //if ($res < 0) { dol_print_error($db); exit; }
@@ -2300,14 +2311,21 @@ else
                 $form->select_users((! empty($object->commercial_id)?$object->commercial_id:$user->id),'commercial_id',1); // Add current user by default
                 print '</td></tr>';
             }
+            if($user->respon_alias == 'sale') {
+                //Класифікація
+                print '<tr id="classifycation" style="display: none">';
+                print '<td><label for="classifycation">' . $langs->trans("Classifycation") . '</label></td>';
+                print '<td colspan="3" class="maxwidthonsmartphone">';
+                print $formcompany->classifycation($object->id);
+                print '</td></tr>';
 
-            //Класифікація
-            print '<tr id="classifycation">';
-            print '<td><label for="classifycation">'.$langs->trans("Classifycation").'</label></td>';
-            print '<td colspan="3" class="maxwidthonsmartphone">';
-            print $formcompany->classifycation($object->id);
-            print '</td></tr>';
-
+                //Напрямки діяльності
+                print '<tr id="lineactive" style="display: none">';
+                print '<td><label for="lineactive">' . $langs->trans("LineActiveCustomer") . '</label></td>';
+                print '<td colspan="3" class="maxwidthonsmartphone">';
+                print $formcompany->lineactiveCusomter($object->id,  $object->lineactive);
+                print '</td></tr>';
+            }
             // Discription
             print '<tr><td valign="top"><label for="remark">'.$langs->trans('Remark').'</label></td>';
             print '<td colspan="3"><textarea name="remark" id="remark" cols="40" rows="3" wrap="soft">';

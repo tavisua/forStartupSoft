@@ -33,7 +33,7 @@ print_fiche_titre($ActionArea);
 
 
 $object = new Societe($db);
-$socid = $_REQUEST['socid'];
+$socid = empty($_REQUEST['socid'])?0:$_REQUEST['socid'];
 $result=$object->fetch($socid);
 $soc_contact = new societecontact();
 $TableParam = array();
@@ -128,18 +128,21 @@ left join `llx_post` on `llx_post`.`rowid`= `llx_societe_contact`.`post_id`
 left join `responsibility` on `responsibility`.`rowid` = `llx_societe_contact`.`respon_id`
 where `llx_societe_contact`.`socid`='.$socid.'
 and `llx_societe_contact`.`active` = 1';
+//var_dump(!empty($socid)?$socid:0, $socid);
 //die($sql);
 $contacttable = new societecontact();
 //var_dump($_REQUEST['sortfield']);
-if(!isset($_REQUEST['sortfield']))
-    $contact = $contacttable->fShowTable($TableParam, $sql, "'".$tablename."'", $conf->theme, null, null, $readonly = array(), false);
-else
+
+if(!isset($_REQUEST['sortfield'])) {
+    $contact = $contacttable->fShowTable($TableParam, $sql, "'" . $tablename . "'", $conf->theme, null, null, $readonly = array(), false);
+}else
     $contact = $contacttable->fShowTable($TableParam, $sql, "'".$tablename."'", $conf->theme, $_REQUEST['sortfield'], $_REQUEST['sortorder']);
 unset($TableParam);
 
 $datep = new DateTime();
 
 $actiontabe = ShowActionTable();
+
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/action.html';
 llxFooter();
 exit();
@@ -198,7 +201,7 @@ function loadcontactlist($contactid){
 }
 function ShowActionTable(){
     global $db, $langs, $conf;
-    $sql = 'select fk_parent, datep from `llx_actioncomm` where fk_soc = '.$_REQUEST['socid'].' and fk_parent <> 0';
+    $sql = 'select fk_parent, datep from `llx_actioncomm` where fk_soc = '.(empty($_REQUEST['socid'])?0:$_REQUEST['socid']).' and fk_parent <> 0';
     $res = $db->query($sql);
     $nextaction = array();
     while($row = $db->fetch_object($res)){
@@ -215,7 +218,7 @@ function ShowActionTable(){
         left join `llx_societe_contact` on `llx_societe_contact`.rowid=`llx_actioncomm`.fk_contact
         left join `llx_societe_action` on `llx_actioncomm`.id = `llx_societe_action`.`action_id`
         left join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.rowid 
-        where fk_soc = '.$_REQUEST['socid'].' and `llx_actioncomm`.`active` = 1';
+        where fk_soc = '.(empty($_REQUEST['socid'])?0:$_REQUEST['socid']).' and `llx_actioncomm`.`active` = 1';
     $sql.=' order by `llx_actioncomm`.`datep` desc';
 
 //    die($sql);

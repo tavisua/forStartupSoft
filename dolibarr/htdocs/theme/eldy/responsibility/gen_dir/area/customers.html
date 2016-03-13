@@ -159,7 +159,7 @@
         }
     }
     function update_data(link){
-        var id_usr = document.getElementById('user_id').value;
+        var id_usr = <?=$user->id?>;
         $.ajax({
             url: link+'&id_usr='+id_usr,
             cache: false,

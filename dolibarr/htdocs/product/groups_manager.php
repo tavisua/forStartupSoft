@@ -110,7 +110,7 @@ function ShowCategories($showfirstcategory_id = false){
         }
         if(!in_array($obj['parent_id'], $group))
             $group[]=$obj['parent_id'];
-        $categries[$obj['category_id']]=array($obj['name'], $form->SymbolCounter('&gt;', $obj['path']));
+        $categries[$obj['category_id']]=array($obj['name'], $form->SymbolCounter('&gt;', $obj['path'], $obj['category_id']));
 
     }
     //Subcategory
@@ -134,8 +134,13 @@ function ShowCategories($showfirstcategory_id = false){
     while(count($basic_group)) {
         $catalog_id = $basic_group[0];
         array_shift($basic_group);
+        $tmp = isset($sub_category[$catalog_id]) || $categries[$catalog_id][1] == 1;
+//        if(424 == $catalog_id){
+//            var_dump($categries[$catalog_id]);
+//            die();
+//        }
         if(isset($sub_category[$catalog_id]) || $categries[$catalog_id][1] == 1) {
-            $out .= '<ul '.($categries[$catalog_id][1]!=0?'class="subcatalog"':'').'><a href="' .$_SERVER['PHP_SELF'].'?mainmenu=tools&id_cat='.$catalog_id.'#cat'.$catalog_id.'">' .$categries[$catalog_id][0] . '</a></ul>';
+            $out .= '<ul '.($categries[$catalog_id][1]!=0?'class="subcatalog"':'').'><a href="' .$_SERVER['PHP_SELF'].'?mainmenu=tools&id_cat='.$catalog_id.'#cat'.$catalog_id.'">'.$categries[$catalog_id][0] . '</a></ul>';
             for($i=count($sub_category[$catalog_id])-1; $i>=0; $i--) {
                 array_unshift($basic_group, $sub_category[$catalog_id][$i]);
             }
@@ -144,7 +149,7 @@ function ShowCategories($showfirstcategory_id = false){
                 if($showfirstcategory_id)
                     return $catalog_id;
                 $id_cat = $catalog_id;
-                $out .= '<li id="cat'.$id_cat.'" class="selected"><a href="' .$_SERVER['PHP_SELF'].'?mainmenu=tools&id_cat='.$id_cat.'#cat'.$id_cat.'">'.$categries[$catalog_id][0] . '</a></li>';
+                $out .= '<li id="cat'.$id_cat.'" class="selected"><a href="' .$_SERVER['PHP_SELF'].'?mainmenu=tools&id_cat='.$id_cat.'#cat'.$id_cat.'">'.$tmp.' '.$categries[$catalog_id][0] . '</a></li>';
             }else{
                 $out .= '<li id="cat'.$catalog_id.'" '.($id_cat==$catalog_id?'class="selected"':'').'><a href="' .$_SERVER['PHP_SELF'].'?mainmenu=tools&id_cat='.$catalog_id.'#cat'.$catalog_id.'">'.$categries[$catalog_id][0] . '</a></li>';
             }

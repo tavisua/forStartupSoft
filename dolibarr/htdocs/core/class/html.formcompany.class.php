@@ -720,6 +720,23 @@ class FormCompany
 	 *    @param    int			$disableautocomplete    1 To disable autocomplete features
 	 *    @return	string
 	 */
+	function lineactiveCusomter($id_cus=0, $lineactive = array(), $size=3, $htmlname='lineactive'){
+//		var_dump($lineactive);
+//		die();
+		$sql = 'select `rowid`, `name` from `llx_c_lineactive_customer` where active = 1';
+		$out = '<select id="'.$htmlname.'" name="'.$htmlname.($size>1?'[]':'').'" size="'.$size.'" '.($size!=1?'multiple=""':'').' class="combobox">';
+		if($size == 1)
+			$out .= '<option value="-1"></option>';
+		$res = $this->db->query($sql);
+		if(!$res)
+			dol_print_error($this->db);
+		while($item = $this->db->fetch_object($res)){
+			$out .= '<option value="'.$item->rowid.'" '.(in_array($item->rowid, $lineactive)||count($lineactive)==0&&$item->rowid==1?'selected="selected"':'').'>'.$item->name.'</option>';
+//			$out .= '<option value="'.$item->rowid.'" '.(count($set_active)==0&&$item->rowid==1?'selected="selected"':'').'>'.$item->name.'</option>';
+		}
+		$out .= '</select>';
+		return $out;
+	}
     function classifycation($id_cus=0, $id_mng=0){
         $out = '';
         if($id_cus == 0) {

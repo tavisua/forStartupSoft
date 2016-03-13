@@ -195,7 +195,7 @@ $(document).ready(function() {
         }
     }
     function ShowChoosedProducts(order_id){
-
+//        console.log($.cookie('products_id'));
         var products_id = '';
         if($.cookie('products_id') != null)
             products_id = $.cookie('products_id');
@@ -233,7 +233,8 @@ $(document).ready(function() {
             $('#showWithoutList').hide();
         }
 
-
+//        console.log($.cookie('products_id') != null, order_id);
+//        return;
 
         if($.cookie('products_id') != null)
             ShowChoosedProducts(order_id);

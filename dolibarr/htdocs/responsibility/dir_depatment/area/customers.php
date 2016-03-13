@@ -289,11 +289,16 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
     left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
     inner join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.`rowid`
     left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
+    left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm`=`llx_actioncomm`.id
     where `llx_societe`.active = 1
+    and `llx_actioncomm_resources`.`fk_element` = ".$user->id."
+    and `llx_actioncomm`.`active` = 1
     group by `llx_societe`.rowid, `responsibility`.`alias` ";
     $sql .= ' limit '.($page-1)*$per_page.','.$per_page;
-
-//  die($sql);
+//    echo '<pre>';
+//    var_dump($sql);
+//    echo '</pre>';
+//  die();
     $res = $db->query($sql);
     if(!$res){
         dol_print_error($db);
@@ -317,10 +322,16 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
         and (type = 'system' or type = 'user')) TypeCode on TypeCode.code = `llx_actioncomm`.code
         inner join `llx_user` on `llx_actioncomm`.`fk_user_author` = `llx_user`.`rowid`
         left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
+        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm`=`llx_actioncomm`.id
         where `llx_societe`.active = 1
+        and `llx_actioncomm_resources`.`fk_element` = ".$user->id."
         and `llx_actioncomm`.`id` not in (select `llx_societe_action`.`action_id` from llx_societe_action where action_id is not null)
+        and `llx_actioncomm`.`active` = 1
         limit 0,30";
-//    die($sql);
+//    echo '<pre>';
+//    var_dump($sql);
+//    echo '</pre>';
+//  die();
     $res = $db->query($sql);
     if(!$res){
         dol_print_error($db);
@@ -506,24 +517,35 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
                                 $table .='</td>';
                                 $full_text = trim($value);
                             }else {
-                                if(isset($actionfields[$fields[$num_col]->name])){
+                                if(isset($actionfields[$fields[$num_col]->name])) {
                                     $alias = $actionfields[$fields[$num_col]->name];
                                     $full_text = '';
-                                    switch($fields[$num_col]->name){
-                                        case 'lastdatecomerc':{
-                                            $full_text = !isset($lastaction[$row['rowid'].$alias]) ?
-                                                '<img src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/object_action.png">' : $lastaction[$row['rowid'].$alias];
-                                        }break;
-                                        case 'futuredatecomerc':{
-                                            $full_text = !isset($futureaction[$row['rowid'].$alias]) ?
-                                                '<img src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/object_action.png">' : $futureaction[$row['rowid'].$alias];
+                                    switch ($fields[$num_col]->name) {
+                                        case 'lastdatecomerc': {
+                                            $full_text = !isset($lastaction[$row['rowid'] . $alias]) ?
+                                                '<img src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/object_action.png">' : $lastaction[$row['rowid'] . $alias];
+                                        }
+                                            break;
+                                        case 'futuredatecomerc': {
+                                            $full_text = !isset($futureaction[$row['rowid'] . $alias]) ?
+                                                '<img src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/object_action.png">' : $futureaction[$row['rowid'] . $alias];
                                         }
                                     }
 
-                                    $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '"  style="width:' . ($col_width[$num_col - 1] + 2) . 'px; text-align: center;"><a href="../' . $actionfields[$fields[$num_col]->name] . '/action.php?socid=' . $row['rowid'] . '&idmenu=10425&mainmenu=area">' . ($full_text) . '</a> </td>';
+                                    $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '"  style="width:' . ($col_width[$num_col - 1]) . 'px; text-align: center;"><a href="../' . $actionfields[$fields[$num_col]->name] . '/action.php?socid=' . $row['rowid'] . '&idmenu=10425&mainmenu=area">' . ($full_text) . '</a> </td>';
+//                                    if ('4254' == $row['rowid']) {
+//                                        echo '<pre>';
+//                                        var_dump($actionfields);
+//                                        echo '</pre>';
+//                                        die();
+//                                        return $table;
+//                                    }
+
+
                                 }else{
-                                    $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '"  style="width:' . ($col_width[$num_col - 1] + 2) . 'px; text-align: center;"> </td>';
+                                    $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '"  style="width:' . ($col_width[$num_col - 1]) . 'px; text-align: center;">&nbsp;&nbsp;&nbsp;</td>';
                                 }
+
                             }
 
                             if(in_array(trim($fields[$num_col]->name), $prev_col))

@@ -83,7 +83,7 @@ class Societe extends CommonObject
     var $region_id;
     var $formofgoverment_id;
     var $categoryofcustomer_id;
-
+    var $lineactive=array();//напрямки діяльності
     /**
      * @deprecated Use state_code instead
      */
@@ -486,6 +486,7 @@ class Societe extends CommonObject
                 $this->db->commit();
 
                 $this->setclassification();
+                $this->setLineactive();
 
                 $ret = $this->update($this->id,$user,0,1,1,'add');
 
@@ -590,6 +591,26 @@ class Societe extends CommonObject
         if(!$res)return'';
         $obj = $this->db->fetch_object($res);
         return $obj->name;
+    }
+    function setLineactive(){
+        global $user;
+        $sql = 'update llx_societe_lineactive set active = 0 where fk_soc='.$this->id.' and fk_lineactive not in ('.(count($this->lineactive)>0?implode(',', $this->lineactive):0).')';
+        $res = $this->db->query($sql);
+        if(!$res)
+            dol_print_error($this->db);
+        foreach($this->lineactive as $item){
+            $sql = 'select rowid from llx_societe_lineactive where fk_soc='.$this->id.' and fk_lineactive='.$item;
+            $res = $this->db->query($sql);
+            if($this->db->num_rows($res) == 0)
+                $sql = "insert into llx_societe_lineactive(fk_soc,fk_lineactive,active,id_usr)
+                  values(".$this->id.", ".$item.", 1, ".$user->id.")";
+            else
+                $sql = "update llx_societe_lineactive set active = 1, id_usr=".$user->id." where fk_soc=".$this->id." and fk_lineactive=".$item;
+//            var_dump($sql);
+            $res = $this->db->query($sql);
+            if(!$res)
+                dol_print_error($this->db);
+        }
     }
     function setclassification(){
         global $user;
@@ -804,6 +825,8 @@ class Societe extends CommonObject
         $this->code_compta=trim($this->code_compta);
         $this->code_compta_fournisseur=trim($this->code_compta_fournisseur);
         $this->setclassification();
+        $this->setLineactive();
+
 //        // Check parameters
 //        if (! empty($conf->global->SOCIETE_MAIL_REQUIRED) && ! isValidEMail($this->email))
 //        {
@@ -1276,6 +1299,17 @@ class Societe extends CommonObject
                 $extrafields=new ExtraFields($this->db);
                 $extralabels=$extrafields->fetch_name_optionals_label($this->table_element,true);
                	$this->fetch_optionals($this->id,$extralabels);
+
+                //отримання напрямків діяльності
+                $sql = "select fk_lineactive from llx_societe_lineactive where fk_soc = ".$this->id." and active = 1";
+                $res = $this->db->query($sql);
+                if(!$res)
+                    dol_print_error($this->db);
+                if($this->db->num_rows($res)){
+                    while($item = $this->db->fetch_object($res)){
+                        $this->lineactive[]=$item->fk_lineactive;
+                    }
+                }
             }
             else
 			{

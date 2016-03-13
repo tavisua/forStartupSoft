@@ -1,4 +1,12 @@
 <a onclick="close_action();" class='overlay' id='type_action'></a>
+    <div id="savebtn" style="float: left; width: 400px">
+        <form action="<?=$_SERVER['REQUEST_URI']?>" method="get" style="float: left">
+            <input type="hidden" name="order_id" id="order_id" value="<?=$_REQUEST['order_id']?>">
+            <input type="hidden" name="type_action" value="with_list">
+            <input type="hidden" name="prepared_order" value="1">
+            <button style="width: 200px;height: 30px" >Додати товар зі списку</button>
+        </form>
+    </div>
      <div class="tabs" data-type="horizontal" data-role="controlgroup">
          <div class="inline-block tabsElem tabsElemActive">
              <div id="basic_part" onclick="selpage(event);" class="tab inline-block" data-role="button">Основна економічна частина</div>
@@ -14,7 +22,7 @@
          </div>
      </div>
     <div class="tabPage">
-        <table>
+        <table style="float: none">
             <thead>
                 <!--<tr class="multiple_header_table">-->
                     <!--<th colspan="13" class="basic_part">Основна економічна частина</th>-->
@@ -23,6 +31,7 @@
                     <!--<th colspan="5" class="features_part">Особливості</th>-->
                 <!--</tr>-->
                 <tr class="multiple_header_table">
+                    <th rowspan="2" style="width: 30px" class="middle_size"></th>
                     <th rowspan="2" style="width: 92px" class="middle_size">Виробник</th>
                     <th rowspan="2" style="width: 190px" class="middle_size">Назва товару</th>
                     <th rowspan="2" style="width: 80px" class="middle_size">№ по каталогу (артикул)</th>
@@ -74,10 +83,10 @@
             <?=$order?>
         </table>
 
-        <div style="color: #0000FF; font-weight: bold; font-size: 14px; padding: 5px 0px 5px 20px" id="title_question">Організаційні запитання:</div>
+        <div style="color: #0000FF; font-weight: bold; font-size: 14px; padding: 5px 0px 5px 20px" id="title_question">Відповіді на анкетні запитання:</div>
         <div id="typicalqueries">
         <div id="question" style="max-width: 450px; width: 450px; background-color: #ffffff">
-            <table class="middle_size" style="width: 80%">
+            <table class="middle_size" style="width: 100%;border-collapse: collapse">
                 <tbody>
                     <?=$question?>
                 </tbody>
@@ -86,7 +95,7 @@
         </div>
         <div style="text-align: center; width: 550px">
         <button style="width: 150px;height: 30px" onclick="saveorders();">Зберегти заявку</button>
-        <button style="width: 150px;height: 30px" onclick="close_registerform();">Відмінити</button>
+        <button style="width: 150px;height: 30px" onclick="returnToCurrentTask();">Відмінити</button>
         </div>
     </div>
 <input type="hidden" id="choosed_products" value="">
@@ -99,7 +108,21 @@
     }
 </style>
 <script>
+    function returnToCurrentTask(){
+        location.href = '/dolibarr/htdocs/current_plan.php?idmenu=10423&mainmenu=current_task&leftmenu=';
+    }
     function calculator(product_id){
+        var sale_price = parseFloat(Math.round($('#full_sale_price'+product_id).html()*100/1.2)/100);
+        $('#sale_price'+product_id).html(sale_price);
+        var incom = (sale_price - (parseFloat($('#price_per_party'+product_id).html().length==0?0: $('#price_per_party'+product_id).html())+
+                                    parseFloat($('#price_per_transport1'+product_id).html().length==0?0: $('#price_per_transport1'+product_id).html())+
+                                    parseFloat($('#price_per_transport2'+product_id).html().length==0?0: $('#price_per_transport2'+product_id).html())+
+                                    parseFloat($('#price_per_transport3'+product_id).html().length==0?0: $('#price_per_transport3'+product_id).html())));
+//        console.log(incom);
+        var incom_tax = .18*incom;
+        var VAT_tax = .2*incom;
+        $('#incom_tax'+product_id).html(Math.round(incom_tax*100)/100);
+        $('#VAT'+product_id).html(Math.round(VAT_tax*100)/100);
         var full_price_costs =
                 parseFloat($('#full_price_per_party'+product_id).html().length==0?0: $('#full_price_per_party'+product_id).html())+
                 parseFloat($('#price_per_download'+product_id).html().length==0?0: $('#price_per_download'+product_id).html())+
@@ -116,8 +139,10 @@
                 parseFloat($('#other'+product_id).html().length==0?0: $('#other'+product_id).html())+
                 parseFloat($('#incom_tax'+product_id).html().length==0?0: $('#incom_tax'+product_id).html())+
                 parseFloat($('#VAT'+product_id).html().length==0?0: $('#VAT'+product_id).html());
+//        console.log('full_price_costs', full_price_costs);
         $('#full_price_costs'+product_id).empty().html(full_price_costs);
         if($('#full_sale_price'+product_id).html().length>0){
+
             var absolute_diference = Math.round(($('#full_sale_price'+product_id).html()-full_price_costs)*100)/100;
             if(absolute_diference>0) {
                 $('#absolute_diference' + product_id).removeClass('fielderror');
@@ -129,35 +154,75 @@
             $('#absolute_diference'+product_id).html(absolute_diference);
             var percent_diference = Math.round((absolute_diference/$('#full_sale_price'+product_id).html())*100);
             $('#percent_diference'+product_id).html(percent_diference);
-            var sale_price = parseFloat(Math.round($('#full_sale_price'+product_id).html()*100/1.2)/100);
-            $('#sale_price'+product_id).html(sale_price);
-//                var incom_tax = .18*(sale_price - (parseFloat($('#price_per_party'+product_id).html().length==0?0: $('#price_per_party'+product_id).html())+
-//                                            parseFloat($('#price_per_transport1'+product_id).html().length==0?0: $('#price_per_transport1'+product_id).html())+
-//                                            parseFloat($('#price_per_transport2'+product_id).html().length==0?0: $('#price_per_transport2'+product_id).html())+
-//                                            parseFloat($('#price_per_transport3'+product_id).html().length==0?0: $('#price_per_transport3'+product_id).html())));
-//                $('#incom_tax'+product_id).html(incom_tax);
+
+
+
 
         }
 
 //            console.log( full_price_costs);
     };
     $(document).ready(function(){
-//                        <th colspan="13" class="basic_part">Основна економічна частина</th>
-//                <th colspan="10" class="addition_part">Додаткова економічна частина</th>
-//                <th colspan="4" class="result_part">Результат</th>
-//                <th colspan="5" class="features_part">Особливості</th>
+//        console.log('proposed_id', $.cookie('proposed_id'));
         $('.basic_part').show();
         $('.addition_part').hide();
         $('.result_part').hide();
         $('.features_part').hide();
+
+        //clear empty cookie
+        if($.cookie('proposed_id') != null) {
+            var propos_array = $.cookie('proposed_id').split(',');
+            for(var i = 0; i<propos_array.length; i++){
+                if($.cookie('pr'+propos_array[i]) == null) {
+                    propos_array.splice(i, 1);
+//                    console.log('#Col'+propos_array[i], $('#Col'+propos_array[i]).text(), $.cookie('pr'+propos_array[i]));
+                }
+            }
+            $.cookie('proposed_id', propos_array.toString());
+            console.log(propos_array );
+        }
+
         var table = document.getElementsByTagName('table')[1];
         table.id = 'orderlist';
-//        console.log(table);
         var tr = $('#orderlist').find('tbody').find('tr');
-        for(var i = 0; i<tr.length; i++){
+        for (var i = 0; i < tr.length; i++) {
             var product_id = tr[i].id.substr(2);
             calculator(product_id);
-//            console.log(tr[i].id);
+        }
+        $('.features_part').addClass('input');
+        if($.cookie('proposed_id') != null) {
+            var tbody = $('.tabPage').find('tbody');
+            var tr = tbody[0].getElementsByTagName('tr');
+            for(var i = 0; i<tr.length; i++){
+                var td = tr[i].getElementsByTagName('td');
+//                console.log();
+                if($('#art'+tr[i].id.substr(2)).attr('proposed') == '1'){
+                    $('#'+tr[i].id).prepend('<td style="text-align: center; cursor: pointer" title="Видалити запропонований запис" onclick="deleteproposeditem('+tr[i].id.substr(2)+');"><img src="/dolibarr/htdocs/theme/eldy/img/delete.png"></td>');
+                    for(var t = 0; t<3; t++){
+                        if(td[t].id.length == 0) {
+                            switch (t) {
+                                case 1:
+                                {
+                                    td[t].id = "producer"+tr[i].id.substr(2);
+                                }break;
+                                case 2:
+                                {
+                                    td[t].id = "name"+tr[i].id.substr(2);
+                                }break;
+                            }
+                        }
+                        $('#'+td[t].id).addClass('proposed');
+                        $('#'+td[t].id).attr('title', 'Запропоновано');
+                        if(!$('#'+td[4].id).hasClass('input')){
+//                            console.log($('#'+td[4].id).hasClass('input'));
+                            $('#'+td[4].id).addClass('input');
+                        }
+                    }
+                }else{
+                    $('#'+tr[i].id).prepend('<td></td>');
+                }
+            }
+//            console.log(tr.length)
         }
     })
     $(window).click(function(){
@@ -168,21 +233,39 @@
     $(function(){
         $('td').click(function(e){
             if($(this).hasClass('input')) {
-//                console.log(e.target.id);
+               var product_id = $(this).parent().attr('id').substr(2);
+                if(e.target.id.substr(0,3) == 'Col'){
+//                    console.log(e.target.id);
+                    product_id = e.target.id.substr(3);
+                    var full_sale_price = parseFloat($('#full_sale_price'+product_id).html());
+                    var dCol_ed = parseFloat($('#Col'+product_id).html());
+                    var UnitPrice = full_sale_price/dCol_ed;
+                }
                 var val = $(this).html();
-                var field = '<input type="text" id="edit" value="'+val+'" size=4>';
+                var field = '<input type="text" id="edit" value="'+val+'" '+($(this).hasClass('features_part')?'style="width:100%"':'size=4')+'>';
                 $(this).empty().append(field); //устанавливаем фокус на свеженарисованное поле
                 $('#edit').focus();
                 $('#edit').select();
                 $('#edit').blur(function() { //устанавливаем обработчик
                     var val = $(this).val(); //получаем то, что в поле находится
                     //находим ячейку, опустошаем, вставляем значение из поля
-                    var product_id = $(this).parent().parent().attr('id').substr(2);
                     $(this).parent().empty().html(val);
+
+                    if($(this).hasClass('features_part'))
+                        return;
+
+                    if(e.target.id.substr(0,3) == 'Col'){
+                        dCol_ed = parseFloat(val);
+                        var FullPrice = dCol_ed*UnitPrice;
+                        console.log(FullPrice, product_id);
+                        $('#full_sale_price'+product_id).empty();
+                        $('#full_sale_price'+product_id).html(FullPrice.toString());
+                    }
+
                     if(e.target.id.substr(0, ('full_price_per_unit').length) == 'full_price_per_unit'){
                         $('#price_per_unit'+product_id).empty().html(Math.round(val/1.2*100)/100);
                         var price_per_party = $('#Col'+product_id).html()*$('#price_per_unit'+product_id).html();
-                        $('#price_per_party'+product_id).empty().html(price_per_party);
+                        $('#price_per_party'+product_id).empty().html(Math.round(price_per_party/1.2*100)/100);
                         var full_price_per_party = $('#Col'+product_id).html()*val;
                         $('#full_price_per_party'+product_id).empty().html(full_price_per_party);
                     }else if(e.target.id.substr(0, ('full_price_per_transport').length) == 'full_price_per_transport'){
@@ -199,6 +282,18 @@
         });
 
     })
+    function deleteproposeditem(id){
+        if(confirm('Видалити запропонований запис?')){
+            var proposed_array = $.cookie('proposed_id').split(',');
+            var index = $.inArray(id.toString(), proposed_array);
+            proposed_array.splice($.inArray(id.toString(), proposed_array), 1);
+            console.log(proposed_array.toString());
+            $.cookie('proposed_id', proposed_array.toString());
+            $.cookie('pr'+id, null);
+            $('#tr'+id).remove();
+
+        }
+    }
     function selpage(event){
         $('.basic_part').hide();
         $('#basic_part').addClass('unactivepage');
@@ -212,8 +307,8 @@
         $('#'+event.target.id).removeClass('unactivepage');
     }
     function saveorders(){
-        if(confirm('Зберегти активну заявку?')) {
-            $('#questions_form').submit();
+        if(confirm('Зберегти звіт?')) {
+            console.log($.cookie('products_id'));
         }
     }
     function preparedorders(){

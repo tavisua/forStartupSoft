@@ -325,3 +325,6 @@ PaperFormatCAP5=Format P5 Canada
 PaperFormatCAP6=Format P6 Canada
 TypicalQuestion=Типові запитання
 Question=Питання
+Postname=Посада
+Begin=Дата початку пропозиції
+End=Дата закінчення пропозиції

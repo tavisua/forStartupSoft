@@ -9,12 +9,12 @@ require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 require_once $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/comm/action/class/actioncomm.class.php';
 
+
+$table = ShowTask();
 //echo '<pre>';
-//var_dump($_SERVER);
+//var_dump($table);
 //echo '</pre>';
 //die();
-$table = ShowTask();
-
 $HourlyPlan = $langs->trans('CurrentTask');
 llxHeader("",$HourlyPlan,"");
 print_fiche_titre($langs->trans('CurrentTask'));
@@ -36,6 +36,7 @@ function ShowTask(){
     if(!$res){
         dol_print_error($db);
     }
+//    die($sql);
     unset($taskID);
     unset($taskAuthor);
     $taskID[] = 0;
@@ -68,6 +69,7 @@ function ShowTask(){
 //    echo '<pre>';
 //    var_dump($assignedUser);
 //    echo '</pre>';
+//    var_dump($user->id, 'userid');
 //    die();
     //Завантажую завдання
     $sql = "select id, note, confirmdoc, `datec`, datep2, round((UNIX_TIMESTAMP(datep2)-UNIX_TIMESTAMP(datep))/60,0) iMinute, `dateconfirm`, fk_order_id, period, `percent`, `llx_c_groupoftask`.`name` groupoftask
@@ -75,6 +77,10 @@ function ShowTask(){
     left join llx_c_groupoftask on `llx_c_groupoftask`.`rowid` = fk_groupoftask
     where id in (".implode(",", $taskID).")
     order by datep asc";
+//    echo '<pre>';
+//    var_dump($sql);
+//    echo '</pre>';
+//    die();
     $res = $db->query($sql);
     if(!$res){
         dol_print_error($db);

@@ -1,0 +1,71 @@
+<input type="hidden" id="numpage" value="<?=$page?>">
+<div class="tabPage">
+    <form action="<?=$_SERVER['PHP_SELF']?>" method="post">
+        <table>
+            <tr>
+                <td>Найменування</td>
+                <td><input type="text" value="<?=$groupname?>" maxlength="128" size="60"></td>
+            </tr>
+            <tr>
+                <td colspan="2" style="text-align: center"><input type="button" type="SUBMIT" value="Зберегти"><input type="button" value="Відмінити" onclick="cancel();"></td>
+            </tr>
+        </table>
+    </form>
+
+    <table style="border-collapse: collapse;">
+        <tr>
+            <td colspan="2" style="text-align: center">Питання</td>
+        </tr>
+        <tr>
+            <td >
+            <div class="tabs" data-type="horizontal" data-role="controlgroup">
+                <div class="inline-block tabsElem tabsElemActive">
+                    <a id="first" class="unactivepage middle_size tab inline-block" href="<?=$_SERVER['PHP_SELF']?>?mainmenu=<?=$_REQUEST['mainmenu']?>&id_cat=<?=$_REQUEST['id_cat']?>&page=1#cat<?=$_REQUEST['id_cat']?>" data-role="button">Ціле</a>
+                </div>
+                <div class="inline-block tabsElem">
+                    <a id="second" class="unactivepage middle_size tab inline-block" href="<?=$_SERVER['PHP_SELF']?>?mainmenu=<?=$_REQUEST['mainmenu']?>&id_cat=<?=$_REQUEST['id_cat']?>&page=2#cat<?=$_REQUEST['id_cat']?>" data-role="button">Запчастини</a>
+                </div>
+                <div class="inline-block tabsElem">
+                    <a id="thirth" class="unactivepage middle_size tab inline-block" href="<?=$_SERVER['PHP_SELF']?>?mainmenu=<?=$_REQUEST['mainmenu']?>&id_cat=<?=$_REQUEST['id_cat']?>&page=3#cat<?=$_REQUEST['id_cat']?>" data-role="button">Робочі органи</a>
+                </div>
+            </div>
+            </td>
+        </tr>
+        <tr>
+            <?=$Question?>
+        </tr>
+    </table>
+</div>
+<script>
+    function cancel(){
+        location.href="<?=$_SERVER['PHP_SELF']?>?mainmenu=tools#cat<?=$_REQUEST['id_cat']?>"
+    }
+    function addquestion(){
+        if(confirm('Зберегти питання?')) {
+            $('#questionaction').val('addquestion');
+            $('form#addquestion').submit();
+        }
+    }
+    function deleteitem(id){
+        if(confirm('Видалити запитання?')) {
+            $('#questionaction').val('deletequestion');
+            $('#questionid').val(id);
+            $('form#addquestion').submit();
+        }
+    }
+    $(document).ready(function(){
+         $('#pagequestion').val($('#numpage').val());
+        $('.tabs').offset({top:$('.tabs').top+15})
+         switch($('#numpage').val()){
+            default:{
+                $('#first').removeClass( "unactivepage" ).addClass("activepage");
+            }break;
+            case '2':{
+                $('#second').removeClass( "unactivepage" ).addClass('activepage');
+            }break;
+            case '3':{
+                $('#thirth').removeClass( "unactivepage" ).addClass('activepage');
+            }break;
+        }
+    })
+</script>

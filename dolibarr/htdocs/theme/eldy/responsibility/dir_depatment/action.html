@@ -67,7 +67,7 @@
         <input type="hidden" value="<?=$_SERVER['REQUEST_URI']?>" name="backtopage">
         <input type="hidden" value="create" name="action">
         <input type="hidden" value="<?=$_GET['socid']?>" name="socid">
-        <input type="hidden" value="hourly_plan" name="mainmenu">
+        <input type="hidden" value="<?=$_REQUEST['mainmenu']?>" name="mainmenu">
         <input type="hidden" value="<?=$datep->format('d.m.Y')?>" name="datep">
 
         <button title="Скрити чи відобразити таблицю 'Дії'">    Скрити дії    </button>
@@ -75,7 +75,7 @@
         <button title="Додати запис в таблицю 'Дії'" onclick="AddAction();">    Додати дію    </button>
 
         <!--<button title="Додати запис в таблицю 'Дії'" onclick="location.href=location.href+'&action=add'">    Додати дію    </button>-->
-        <button title="Додати інформацію про потреби">    Потреби    </button>
+        <button title="Додати інформацію про потреби" onclick="AddOrder();">    Потреби    </button>
         <button>    В роботу    </button>
         <button>    Структура    </button>
         <button>    Повідомити    </button>
@@ -151,6 +151,7 @@
         }
         $('#action_body').attr('height', window.innerHeight - 420);
         setcallphonelink();
+        setActionPanelPosition();
     })
     function setcallphonelink(){
         var tbody = document.getElementById('contactlist_body');

@@ -737,9 +737,12 @@ class ActionComm extends CommonObject
         $this->db->begin();
 
         $sql = "UPDATE ".MAIN_DB_PREFIX."actioncomm ";
-        $sql.= " SET percent = '".$this->percentage."'";
+        $sql.= " SET label = ".($this->label ? "'".$this->db->escape($this->label)."'":"null");
         if ($this->fk_action > 0) $sql.= ", fk_action = '".$this->fk_action."'";
-        $sql.= ", label = ".($this->label ? "'".$this->db->escape($this->label)."'":"null");
+//        var_dump($this->authorid, $user->id);
+//        die();
+        if($this->authorid == $user->id && $this->percentage == 100 || $this->percentage != 100)
+            $sql.= ", percent = '".$this->percentage."'";
         $sql.= ", datep = ".(strval($this->datep)!='' ? "'".$this->db->idate($this->datep)."'" : 'null');
         $sql.= ", datep2 = ".(strval($this->datef)!='' ? "'".$this->db->idate($this->datef)."'" : 'null');
         $sql.= ", durationp = ".(isset($this->durationp) && $this->durationp >= 0 && $this->durationp != ''?"'".$this->durationp."'":"null");	// deprecated

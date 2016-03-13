@@ -1,0 +1,24 @@
+<div class="tabPage">
+    <form action="<?=$_SERVER['PHP_SELF']?>" method="post">
+        <table>
+            <tr>
+                <td>Найменування</td>
+                <td><input type="text" value="<?=$productname?>" maxlength="128" size="60"></td>
+            </tr>
+            <tr>
+                <td>Група/напрямок</td>
+                <td><?=$form->selectLineAction($_REQUEST['id_cat'], 'category_id', 1)?></td>
+            </tr>
+            <?=$Attibutes?>
+        </table>
+        <center>
+<!--<input class="button" type="submit" value="Наступний крок">-->
+        <input type="button" type="SUBMIT" value="Зберегти"><input type="button" value="Відмінити" onclick="cancel();">
+            </center>
+    </form>
+</div>
+<script>
+    function cancel(){
+        location.href="<?=$_SERVER['PHP_SELF']?>?mainmenu=tools&id_cat=<?=$_REQUEST['id_cat']?>#cat<?=$_REQUEST['id_cat']?>"
+    }
+</script>

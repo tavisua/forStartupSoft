@@ -43,7 +43,7 @@
             <th id="th_firstname"><?echo $langs->trans('Firstname')?></th>
             <th id="th_phonepro"><?echo $langs->trans('PhonePro')?></th>
             <th id="th_fax"><?echo $langs->trans('Fax')?></th>
-            <th id="th_phonemobile" style="width: 100px"><?echo $langs->trans('PhoneMobile')?></th>
+            <th id="th_phonemobile" style="width: 140px"><?echo $langs->trans('PhoneMobile')?></th>
             <th id="th_email"><?echo $langs->trans('Email')?></th>
             <th id="th_skype"><?echo $langs->trans('Skype')?></th>
             <th id="th_birthdate"><?echo $langs->trans('BirthdayDate')?></th>
@@ -133,6 +133,7 @@
 </style>
 <script>
     $(document).ready(function(){
+        $("#bookmarkActionPanel").show();
         var top =
         $('#showhide_contactlist').offset({top:$('#addcontact').offset().top, left:$('#addcontact').offset().left+$('#addcontact').width()+15});
         $('#contactlist').offset({top:$('#contactlist').offset().top-20});
@@ -152,7 +153,14 @@
             }
         }
         setcallphonelink();
+//        setActionPanelPosition();
     })
+    function showSMSform(phonenumber){
+        $('input#phone_number').val(phonenumber);
+        $('b#phone_numbertitle').text(phonenumber);
+        location.href = '#sendSMS';
+        $('#sendSMSform').show();
+    }
     function setcallphonelink(){
         var tbody = document.getElementById('contactlist_body');
         if(tbody != null){

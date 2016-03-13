@@ -10,6 +10,9 @@
     <!--<button onclick='close_action();'><?=$langs->trans('Cancel')?></button>-->
         <a class='close' title='Закрыть' href='#close'></a>
  </div>
+<input id="prepared_order" value="0" type="hidden">
+<input id="customername" value="<?=$customername?>" type="hidden">
+
 <div id="savebtn" style="display: none;float: left">
     <button style="width: 200px;height: 30px;float: left" onclick="showorders();">Відобразити заявку</button>
     <form action="<?=$_SERVER['REQUEST_URI']?>" method="get" style="float: left">
@@ -38,7 +41,7 @@
     <script>
         function ChangeActivePage(elem){
             elem.removeClass('unactivepage');
-//            console.log(elem);
+
             if(elem.attr('id') === $('b#WithList').attr('id')) {
                 $('b#WithoutList').addClass('unactivepage');
                 $('#btnaddunits').text('Додати товар зі списку');
@@ -99,6 +102,7 @@
     <form id="questions_form" action="?type_action=save_orders" method="post">
     <input type="hidden" value="" id = "order_id" name="order_id">
     <input type="hidden" value="" id = "products" name="products">
+    <input type="hidden" value="<?=$_REQUEST['socid']?>" id = "socid" name="socid">
     <input type="hidden" value="" id = "answer" name="answer">
     <input type="hidden" value="<?=$_REQUEST['mainmenu']?>" name="mainmenu">
     <input type="hidden" value="<?=$_REQUEST['idmenu']?>" name="idmenu">
@@ -119,7 +123,7 @@
                 Дата створен.
             </th>
             <th style="width: 200px" class="middle_size">
-                Клієнт
+                Контрагент/замовник
             </th>
             <th title="Попередня дата обробки" style="width: 60px" class="middle_size">
                 Попер. дата оброб.
@@ -144,12 +148,34 @@
         if($('table#orders').find('tbody').length == 0){
             $('table#orders').hide();
         }
+        if($('#customername').val().length > 0){
+            $('.titre').text('Заявки "'+$('#customername').val()+'"');
+            console.log($('.titre').length);
+        }
 
         if("<?=$_REQUEST['type_action']?>" == 'without_list'){
             $('#groupproducts').css('margin-top', 0);
-            console.log('set');
+//            console.log('set');
         }
-//        console.log();
+        var query = window.location.search.substring(1);
+        var vars = query.split("&");
+        for(var i = 0; i<vars.length; i++){
+            if(vars[i].substr(0, 'order_id'.length) == 'order_id'){
+                $('#order_id').val(vars[i].substr(9));
+            }
+//            console.log(vars[i]);
+            if(vars[i].substr(0, 'prepared_order'.length) == 'prepared_order'){
+                $('#prepared_order').val(1);
+                console.log($('#prepared_order').val());
+                $('#savebtn').find('form').remove();
+                var button =$('#savebtn').find('button')[0];
+                button.remove();
+                $('#savebtn').find('button').width(250);
+                $('#savebtn').find('button').text('Зберегти та повернутись до звіту');
+                break;
+            }
+        }
+//        console.log(vars);
             if($('#typicalqueries').height()>580)
                 $('#typicalqueries').height(580);
             patch_link();
@@ -176,7 +202,8 @@
                 $('#savebtn').show();
                 $('#createorderbtn').hide();
                 document.getElementsByClassName('multiple_header_table')[0].innerHTML += '<th style="width: 55px" class="middle_size">Потреба</th>';
-                $('tbody#products').width(985);
+                $('tbody#products').width(960);
+                $('.tabPage').width(1300);
             }
             for(var i = 0; i<$('tbody#products').find('tr').length;i++){
                 var tr = $('tbody#products').find('tr')[i];
@@ -210,7 +237,9 @@
     }
 
     function ShowAnswer() {
-        $('#total_price').hide();
+//        console.log($.cookie('answerId'));
+//        return;
+        $('#popupmenu').find('div#total_price').hide();
         var answer_id = '';
         if ($.cookie('answerId') != null) {
             answer_id = $.cookie('answerId').split(',');
@@ -232,10 +261,13 @@
                     $('#queries').width(550);
                 }
             })
+        }else{
+            $('#popup_table').empty();
         }
     }
     function ShowChoosedProducts(order_id){
-
+//        console.log($.cookie('products_id'));
+//        return;
         var products_id = '';
         if($.cookie('products_id') != null)
             products_id = $.cookie('products_id');
@@ -249,7 +281,7 @@
                     for (var i = 0; i < products_id.length; i++) {
                         if ($.cookie('p' + products_id[i]) != null)
                             $('td#td' + products_id[i]).text($.cookie('p' + products_id[i]));
-                        console.log(products_id[i]);
+                        console.log($.cookie('p' + products_id[i]));
                     }
                 }
                 if(document.getElementById('popup_table').getElementsByTagName('tbody').length > 0) {
@@ -267,9 +299,9 @@
         })
     }
     function showorders(order_id){
-        clearOrderCookie();
-        console.log(order_id);
-        if(order_id === undefined) {
+//        console.log(order_id === undefined || order_id == 0);
+//        return;
+        if(order_id === undefined || order_id == 0) {
             order_id = null;
             showpopupmenu(order_id);
         }else{
@@ -277,12 +309,15 @@
                 $('#questions_form').find('input#order_id').val(order_id);
                 $('#edit_orderid').val(order_id);
             }
+            console.log('test');
             $.ajax({
                 url: '<?=$_SERVER["PHP_SELF"]?>?type_action=getsavedorder&order_id='+(order_id==null?'':order_id),
                 cashe: false,
                 success: function(html){
-                    console.log(html);
+                    clearOrderCookie();
                     var obj = JSON.parse(html);
+//                    console.log(obj);
+//                    return;
                     $('b#WithoutList').removeClass('unactivepage');
                     $('b#WithList').removeClass('unactivepage');
                     if(obj.queries!=null) {
@@ -294,15 +329,22 @@
                         }
                     }else
                         $('b#WithoutList').addClass('unactivepage');
+//                    console.log(obj.products_id);
                     if(obj.products_id != null){
-                        $.cookie('products_id', Object.keys(obj.products_id).toString());
-                        var products_id = Object.keys(obj.products_id);
-//                    console.log(obj.queries['783']);
-                        for (var i = 0; i < Object.keys(obj.products_id).length; i++) {
-                            $.cookie('p' + products_id[i], obj.products_id[products_id[i]]);
+                        var products_id = createAssocieteArray(obj.products_id.split(';'));
+//                        console.log(products_id);
+//                        return;
+                        $.cookie('products_id', Object.keys(products_id).toString());
+                        var keys = Object.keys(products_id);
+                    console.log(products_id);
+                        for (var i = 0; i < Object.keys(products_id).length; i++) {
+                            $.cookie('p' + Object.keys(products_id)[i], products_id[Object.keys(products_id)[i]]);
+//                            console.log(products_id[Object.keys(products_id)[i]]);
                         }
                     }else
                         $('b#WithList').addClass('unactivepage');
+//                    console.log($.cookie('products_id'));
+//                    return;
 
                     showpopupmenu(order_id);
                 }
@@ -310,19 +352,30 @@
         }
 
     }
+    function createAssocieteArray(array){
+        var out={};
+        for(var i=0; i<array.length; i++){
+            var elem = array[i].split('=');
+//            console.log(i);
+            out[elem[0]] = elem[1];
+        }
+//        console.log(out);
+        return out;
+    }
     function showpopupmenu(order_id){
-//           console.log($.cookie('products_id'), $.cookie('answerId'))
+//       console.log($.cookie('products_id'), $.cookie('answerId'))
 //        return;
-        if(order_id == null && ($.cookie('products_id') == null || $.cookie('answerId') == null)){
+        if((order_id == null || order_id == 0) && ($.cookie('products_id') == null || $.cookie('answerId') == null)){
             $('#showWithList').hide();
             $('#showWithoutList').hide();
         }
-        console.log($.cookie('products_id'));
+//        console.log($('b#WithList').hasClass('unactivepage'));
+//        return;
 //        if($.cookie('products_id') != null)
 //            ShowChoosedProducts(order_id);
 //        else if($.cookie('answerId') != null)
 //            ShowAnswer();
-        if($('b#WithList').hasClass('unactivepage')) {
+        if($.cookie('products_id') != null) {
             ChangeActivePage($('b#WithList'));
         }else
             ChangeActivePage($('b#WithoutList'));
@@ -393,7 +446,7 @@
     });
     function OpenFolder(id_cat){
         var img = $('#cat'+id_cat).find('img');
-        console.log(img.attr('src') == '/dolibarr/htdocs/theme/eldy/img/object_folded.png');
+//        console.log(img.attr('src') == '/dolibarr/htdocs/theme/eldy/img/object_folded.png');
         if(img.attr('src') == '/dolibarr/htdocs/theme/eldy/img/object_folded.png') {
             img.attr('src', '/dolibarr/htdocs/theme/eldy/img/object_deployed.png');
             $('.parent' + id_cat).show();
@@ -417,30 +470,39 @@
 
     function setProductCount(elem){
         var id = elem.substr(3);
-        console.log(elem);
+//        console.log(elem);
 //        return;
-        var products_array=[];
 
-        if($.cookie('products_id') != null)
-            products_array = $.cookie('products_id').split(',');
+        var products_array=[];
+        var array_name = 'products_id';
+        var pref = 'p';
+        console.log($('#prepared_order').val());
+        if($('#prepared_order').val() == 1){
+            array_name = 'proposed_id';
+            pref = 'pr';
+        }
+//        console.log(array_name);
+        if($.cookie(array_name) != null)
+            products_array = $.cookie(array_name).split(',');
         if($('#Col'+id).val().length == 0){
-            $.cookie('p'+id, null);
+            $.cookie(pref+id, null);
             if($.inArray(id.toString(), products_array) != -1)
                 products_array.splice($.inArray(id.toString(), products_array), 1);
         }else{
-            $.cookie('p'+id, $('#Col'+id).val());
+            $.cookie(pref+id, $('#Col'+id).val());
 //            console.log($.inArray(id, products_array));
             if($.inArray(id.toString(), products_array) == -1)
                 products_array.push(id);
         }
-        $.cookie('products_id', products_array.toString());
+        $.cookie(array_name, products_array.toString());
+//        console.log($.cookie('proposed_id'));
     }
     function ShowProducts(){//Відображення кількості замовлених товарів
         if($.cookie('products_id') != null) {
             var product = $.cookie('products_id').split(',');
             for (var i = 0; i < product.length; i++) {
                 $('input#Col' + product[i]).val($.cookie('p' + product[i]));
-                console.log(product[i], $.cookie('p' + product[i]))
+//                console.log(product[i], $.cookie('p' + product[i]))
             }
         }
     }
@@ -468,6 +530,12 @@
         })
     }
     function choose_action(){
+        var link = $('#choose_typeaction').attr('action');
+        if($('#socid').val().length>0)
+        link += '&socid='+$('#socid').val();
+//        console.log(link);
+//        return;
+        $('#choose_typeaction').attr('action', link);
         $('#choose_typeaction').submit();
     }
     function strpos( haystack, needle, offset){ // Find position of first occurrence of a string

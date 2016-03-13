@@ -17,6 +17,10 @@ function setTime(link){
         }
     })
 }
+function AddOrder(){
+     $("#actionbuttons").attr('action', '/dolibarr/htdocs/orders.php?idmenu=10426&mainmenu=orders&leftmenu=');
+    console.log('test');
+}
 function saveorders(typicalqueries){
         //console.log(typicalqueries, $.cookie('products_id'), $.cookie('answerId'));
         //return;
@@ -36,6 +40,18 @@ function saveorders(typicalqueries){
             }
         }
 }
+function showHideActionPanel(){
+    console.log($('#bookmarkActionPanel').css('right') == '-70px');
+    var show = $('#bookmarkActionPanel').css('right') == '-70px';
+    if(show) {
+        $('#bookmarkActionPanel').css('right', 185);
+        $('#ActionPanel').css('right', 0);
+    }else{
+        $('#bookmarkActionPanel').css('right', -70);
+        $('#ActionPanel').css('right', -255);
+    }
+
+}
 function delete_answer(answer_id){
     if(confirm('Видалити відповідь?')){
         var answerId = $.cookie('answerId').split(',');
@@ -52,6 +68,10 @@ function delete_answer(answer_id){
 }
 function preparedorders(){
     //alert($('#questions_form').find('input#order_id').val());
+    if($('#prepared_order').val() == 1){
+        location.href ='/dolibarr/htdocs/orders.php?idmenu=10426&mainmenu=orders&leftmenu=&type_action=prepare_order&order_id='+$('#order_id').val();
+        return;
+    }
     if($.cookie('products_id') != null){
         var products_id = $.cookie('products_id').split(',');
         var JSON = '{';
@@ -110,6 +130,7 @@ function preparedorders(){
     $('#typicalqueries').show();
 }
 function clearOrderCookie(){
+
     if($.cookie('products_id') != null){
         var products_id = $.cookie('products_id').split(',');
         for(var i = 0; i<products_id.length; i++){
@@ -135,7 +156,24 @@ function ReinitPassword(){
         }
     })
 }
-
+function sendSMS(number, text, confirm){
+    number = $("#phone_number").val();
+    text = $("#textsms").val();
+    //console.log(number, text);
+    //return;
+    var send = 0;
+    if(confirm == true){
+        if(confirm('Відправити СМС повідомлення?'))
+            send = 1;
+    }else
+        send = 1;
+    if(send == 1) {
+        var blob = new Blob(['{"phone":"' + number + '","text":"' + text + '"}'], {type: "text/plain;charset=utf-8"});
+        saveAs(blob, "sms.json");
+        console.log('savefile');
+        close_registerform();
+    }
+}
 function Call(number){
     var blob = new Blob(['{"call":"'+number+'"}'], {type: "text/plain;charset=utf-8"});
     saveAs(blob, "call.json");

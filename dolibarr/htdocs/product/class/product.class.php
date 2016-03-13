@@ -461,7 +461,7 @@ class Product extends CommonObject
 				$table .= '<td style="width:101px"></td>';
 			$table .= '		<td style="width:201px">'.$obj->name.'</td>';
 			if(gettype($fields) == 'string' ||in_array('price',$fields))
-				$table .= '		<td style="width:81px" id="price'.$obj->product_id.'">'.round($obj->price, 1).'</td>';
+				$table .= '		<td style="width:51px" id="price'.$obj->product_id.'">'.round($obj->price, 1).'</td>';
 			if(gettype($fields) == 'string' ||in_array('currency',$fields))
 				$table .= '		<td style="width:61px">грн</td>';
 			if(gettype($fields) == 'string' ||in_array('type_price',$fields))

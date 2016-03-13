@@ -43,6 +43,9 @@
         $(window).load(function(){
             window.location.hash="#8h0m";
         })
+        function EditAction(rowid){
+            console.log(rowid);
+        }
         $(document).ready(function(){
             $('.tasklist').mousedown(function(e){
                 var pos = $(this).offset();
@@ -54,6 +57,7 @@
 //                console.log("X: " + Xinner + " Y: " + Yinner); // вывод результата в консоль
                 var tbody = $('.tasklist').find('tbody');
                 var task_id = 0;
+                var bEdit = false;
                 for(var i = tbody.length-1; i>=0; i--) {
                     if(task_id != 0)break;
                     var item = tbody[i];
@@ -63,15 +67,21 @@
                         TotalHeight += tr[t].clientHeight;
                         if(TotalHeight >= Yinner){
 //                            console.log(tr[t].id);
-                            if(tr[t].id.substr(0, 'empty'.length)!='empty')
+                            if(tr[t].id.substr(0, 'empty'.length)!='empty') {
                                 task_id = tr[t].id;
+                                if($('#'+tr[t].id).width() - 25 < Xinner)
+                                    bEdit = true;
+//                                console.log('width', $('#'+tr[t].id).width());
+                            }
                             break;
                         }
                     }
                 }
-
-//                console.log($("a#mainmenua_hourly_plan").attr('href'));
-//                return;
+                if(bEdit == true) {
+                    location.href = '/dolibarr/htdocs/comm/action/card.php?action=edit&id='+task_id+'&backtopage='+location.href;
+//                    console.log($("a#mainmenua_hourly_plan").attr('href'));
+                    return;
+                }
                 $.ajax({
                     url:'/dolibarr/htdocs/day_plan.php?action=gettaskcode&rowid='+task_id,
                     cache:false,
@@ -193,11 +203,11 @@
 //            $('#action').val('edit');
 //            $('#addaction').submit();
 //        }
-        function RedirectToAction(rowid){
-            return;
-            var tr = document.getElementById(rowid);
-            console.log(tr);
-        }
+//        function RedirectToAction(rowid){
+//            return;
+//            var tr = document.getElementById(rowid);
+//            console.log(tr);
+//        }
         function SetTaskParam(prev, task){
 //            if(task.id == '2113'){
 //                console.log(prev, task);

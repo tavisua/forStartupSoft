@@ -955,17 +955,59 @@ if (! function_exists("llxHeader"))
 	    // html header
 		top_htmlhead($head, $title, $disablejs, $disablehead, $arrayofjs, $arrayofcss);
 
-//        $loginphone_form = "<a href='#x' onclick='close_registerform();' class='overlay' id='login_phone'></a>
-//                     <div class='popup' id='login_phoneform' style='width: 300px;display: none'>
-//                        <form >
-//                            <input type='hidden' id='user_id' name='user_id' value=" . $user->id . ">
-//                            <b>".$langs->trans('RegisterPhone')."</b>
-//                            <input class='param' type='text' placeholder='Телефон' id='registerphone' maxlength='13' tabindex='1' value='+380' name='registerphone' data-name='phone'>
-//                        </form>
-//                        <button onclick='save_registeredphone();'>".$langs->trans('Register')."</button>
-//                        <button onclick='close_registerform();'>".$langs->trans('Cancel')."</button>
-//                            <a class='close' title='Закрыть' href='#close'></a>
-//                     </div>
+        $sendsms_form = '<a href="#x" onclick="close_registerform();" class="overlay" id="sendSMS"></a>
+                     <div class="popup" id="sendSMSform" style="width: 300px;display: none">
+                        <b id="phone_numbertitle">111</b>
+                        <form >
+                            <input type="hidden" id="phone_number" name="phone_number" value="">
+                            <textarea style="width:100%;" id="textsms" name="textsms"></textarea>
+                        </form>
+                        <button onclick="sendSMS();">'.$langs->trans("SendSMS").'</button>
+                        <button onclick="close_registerform();">'.$langs->trans("Cancel").'</button>
+                            <a class="close" title="Закрыть" href="#close"></a>
+                     </div>';
+        print $sendsms_form;
+        if(substr($_SERVER["SCRIPT_NAME"], strlen($_SERVER["SCRIPT_NAME"])-strlen('action.php')) && $_REQUEST['mainmenu'] == 'area') {//Ш
+            print '<div id="bookmarkActionPanel" onclick="showHideActionPanel();">
+                    <span>Панель інструментів</span>
+                    </div>
+                    <div id="ActionPanel" class="popupmenu">
+                        <table>
+                            <tbody>
+                                <tr>
+                                    <td class="middle_size" colspan="4"><b>Статус користувача</b></td>
+                                </tr>
+                                <tr>
+                                    <td class="middle_size" colspan="4">шкала часу</td>
+                                </tr>
+                                <tr>
+                                    <td class="middle_size" colspan="4"><b>Робочий стіл перемовника</b></td>
+                                </tr>
+                                <tr>
+                                    <td class="middle_size" colspan="4" style="padding-left: 10px">Телефонний довідник</td>
+                                </tr>
+                                <tr>
+                                    <td class="middle_size" colspan="4" style="padding-left: 10px">Абетки по попиту</td>
+                                </tr>
+                                <tr>
+                                    <td class="middle_size" colspan="4" style="padding-left: 10px">Прайси</td>
+                                </tr>
+                                <tr>
+                                    <td class="middle_size" colspan="4" style="padding-left: 10px"><a href="http://finance.i.ua/" target="_blank">Курси валют</a></td>
+                                </tr>
+                                <tr>
+                                    <td class="middle_size" colspan="4" style="padding-left: 10px">1С</td>
+                                </tr>
+                                <tr>
+                                    <td class="middle_size" colspan="4" style="padding-left: 10px;">Інше</td>
+                                </tr>
+                                <tr>
+                                    <td class="middle_size" colspan="4"><b>Пропозиції</b></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>';
+        }
 
 
 
@@ -1101,6 +1143,7 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
 //                    print '<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap-theme.min.css">';
 //                }
 //            }
+
             print '<link rel="stylesheet" type="text/css" href="'.DOL_URL_ROOT.'/admin/tools/template/design.css'.($ext?'?'.$ext:'').'"/>'."\n";//Стиль меню
 
             if (constant('JS_JQUERY_UI')) print '<link rel="stylesheet" type="text/css" href="'.JS_JQUERY_UI.'css/'.$jquerytheme.'/jquery-ui.min.css'.($ext?'?'.$ext:'').'" />'."\n";  // JQuery
@@ -1425,6 +1468,7 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
     }
 
     $conf->headerdone=1;	// To tell header was output
+
 }
 
 
@@ -1516,6 +1560,7 @@ function top_menu($head, $title='', $target='', $disablejs=0, $disablehead=0, $a
         // Wrapper to show tooltips
         print "\n".'<script type="text/javascript">
                     jQuery(document).ready(function () {
+                        $("#bookmarkActionPanel").hide();
                     	jQuery(function() {
                         	jQuery(".classfortooltip").tipTip({maxWidth: "'.dol_size(600,'width').'px", edgeOffset: 10, delay: 50, fadeIn: 50, fadeOut: 50});
                         });

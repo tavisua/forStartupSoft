@@ -31,9 +31,11 @@ function setvisiblbloks(){
     if(show){
         $('#assign_name').show();
         $('#classifycation').show();
+        $('#lineactive').show();
     }else{
         $('#assign_name').hide();
         $('#classifycation').hide();
+        $('#lineactive').hide();
     }
 }
 function addtownitem(val){

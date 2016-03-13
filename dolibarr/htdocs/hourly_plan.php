@@ -22,7 +22,7 @@ $table .= '<thead>
                 <tr class="multiple_header_table">
                     <th width="58" rowspan="2">Години</th>
                     <th rowspan="2">Хвилини</th>
-                    <th width="300px" colspan="9">Наявні завдання</th>
+                    <th width="300px" colspan="10">Наявні завдання</th>
                 </tr>
                 <tr class="multiple_header_table">
                     <th class="small_size">Тип</th>
@@ -30,10 +30,11 @@ $table .= '<thead>
                     <th class="small_size">Необх.</th>
                     <th class="small_size">Кінець</th>
                     <th class="small_size" width="150px">Направлення</th>
-                    <th class="small_size" width="150px">Замовник</th>
+                    <th class="small_size" width="150px">Контрагент/замовник</th>
                     <th class="small_size" width="200px">Задача</th>
                     <th class="small_size" width="150px">Примітка: Що зробить, кінцева мета, підтвердження</th>
-                    <th class="small_size" width="140px">Статус</th>
+                    <th class="small_size" width="128px">Статус</th>
+                    <th class="small_size" width="20px"></th>
                 </tr>
            </thead>';
 $row = 0;
@@ -134,18 +135,19 @@ while($row = $db->fetch_object($res)) {
 //        $task.='<tr><td style="height: '.($EmptyPeriod*($conf->browser->name == 'firefox' ? ($EmptyPeriod<=30?23.9:24) : 22)/10).'px" class="emptyitem"></td></tr>';
     }
     $DiffTime = sprintf('%02d:%02d', $DiffSec / 3600, ($DiffSec % 3600) / 60, $DiffSec % 60);
-    $task_table = '<div class="task_cell" style="float: left; width: ' . ($conf->browser->name == 'firefox' ? '23px' : '24px') . '"><img src="theme/' . $conf->theme . '/img/' . $iconitem . '" title="' . $langs->trans($row->title) . '"></div>
-           <div class="task_cell" style="float: left; width: ' . ($conf->browser->name == 'firefox' ? '42px' : '43px') . '">' . $datep->format('H:i') . '</div>
-           <div class="task_cell" style="float: left; width: 36px;">' . $DiffTime . '</div>
-           <div class="task_cell" style="float: left; width: 35px">' . $datep2->format('H:i') . '</div>
-           <div class="task_cell" style="float: left; width: 152px">' . trim($row->region_name) . ' район</div>
-           <div class="task_cell" style="float: left; width: 152px">' . trim($row->lastname) . '</div>
-           <div class="task_cell" style="float: left; width: 202px;">' . trim($row->note) . '</div>
-           <div class="task_cell" style="float: left; width: 152px;">' . trim($row->confirmdoc) . '</div>
-           <div class="task_cell" style="float: left; width: 130px; border-color: transparent">' . $status . '</div>';
+    $task_table = '<div onclick="RedirectToAction(' . $row->rowid . ');" class="task_cell" style="float: left; width: ' . ($conf->browser->name == 'firefox' ? '23px' : '24px') . '"><img src="theme/' . $conf->theme . '/img/' . $iconitem . '" title="' . $langs->trans($row->title) . '"></div>
+           <div onclick="RedirectToAction(' . $row->rowid . ');" class="task_cell" style="float: left; width: ' . ($conf->browser->name == 'firefox' ? '42px' : '43px') . '">' . $datep->format('H:i') . '</div>
+           <div onclick="RedirectToAction(' . $row->rowid . ');" class="task_cell" style="float: left; width: 36px;">' . $DiffTime . '</div>
+           <div onclick="RedirectToAction(' . $row->rowid . ');" class="task_cell" style="float: left; width: 35px">' . $datep2->format('H:i') . '</div>
+           <div onclick="RedirectToAction(' . $row->rowid . ');" class="task_cell" style="float: left; width: 152px">' . trim($row->region_name) . ' район</div>
+           <div onclick="RedirectToAction(' . $row->rowid . ');" class="task_cell" style="float: left; width: 152px">' . trim($row->lastname) . '</div>
+           <div onclick="RedirectToAction(' . $row->rowid . ');" class="task_cell" style="float: left; width: 202px;">' . trim($row->note) . '</div>
+           <div onclick="RedirectToAction(' . $row->rowid . ');" class="task_cell" style="float: left; width: 152px;">' . trim($row->confirmdoc) . '</div>
+           <div onclick="RedirectToAction(' . $row->rowid . ');" class="task_cell" style="float: left; width: 130px;">' . $status . '</div>
+           <div onclick="EditAction(' . $row->rowid . ');" class="task_cell" style="float: left; width: 20px; border-color: transparent"><img src="theme/eldy/img/edit.png"></div>';
 //    $task .= '<div id="'.$row->rowid.'" class="'.$classitem.'" style="height: 216px" >' . $task_table . '</div>';
 
-    $task .= '<tr id="' . $row->rowid . '" onclick="RedirectToAction(' . $row->rowid . ');"><td class="' . $classitem . '" >' . $task_table . '</td></tr>';
+    $task .= '<tr id="' . $row->rowid . '"><td class="' . $classitem . '" >' . $task_table . '</td></tr>';
 //    $task.='<tr id="'.$row->rowid.'"><td class="'.$classitem.'" style="height: '.($DiffSec/600*($conf->browser->name == 'firefox' ? ($DiffSec/60<=30?($DiffSec/60<15?22:23.8):23.7) : 22)).'px">'.$task_table.'</td></tr>';
     $prev_time = mktime($datep2->format('H'), $datep2->format('i'), $datep2->format('s'), $datep2->format('m'), $datep2->format('d'), $datep2->format('Y'));
 }

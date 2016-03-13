@@ -1,0 +1,45 @@
+ <a href="/dolibarr/htdocs/core/tools.php?mainmenu=tools"><?=$langs->trans('Tools')?></a>  /  <a href="/dolibarr/htdocs/product/pricelist_manager.php?mainmenu=tools"><?=$langs->trans('PriceListManager')?></a>
+ <div class="tabs" data-type="horizontal" data-role="controlgroup">
+     <div class="inline-block tabsElem tabsElemActive">
+         <a id="user" class="tabactive tab inline-block" href="/dolibarr/htdocs/product/groups_manager.php?mainmenu=tools" data-role="button"><?=$langs->trans('GroupPriceList')?></a>
+     </div>
+     <div class="inline-block tabsElem">
+         <a id="rights" class="tab inline-block" href="/dolibarr/htdocs/product/pricelist_manager.php?mainmenu=tools" data-role="button"><?=$langs->trans('ProductsAndServicesArea')?></a>
+     </div>
+ </div>
+ <div class="tabPage" style="width: 1530px">
+    <div style=" width:100%; height:1px; clear:both;">.</div>
+     <div style="float: left">
+         <div id="groupproducts_title">
+             <p>Каталог продукції</p>
+         </div>
+         <div id="groupproducts" >
+             <?=$Categories?>
+         </div>
+     </div>
+      <div style="float: left; min-height: 150px; width: 150px; margin-left: 15px; align-content: inherit">
+        <div class="vmenu">
+             <div class="blockvmenupair">
+                 <div class="menu_titre">
+                     <b><?=$langs->trans('Control')?></b>
+                 </div>
+                 <div class="menu_top"></div>
+                 <div class="menu_contenu">
+                     <a class="vsmenu" onclick="location.href='/dolibarr/htdocs/user/card.php?leftmenu=users&action=create&idmenu=5617&mainmenu=tools'" ><?=$langs->trans('NewItem')?></a>
+                     <br>
+                 </div>
+                 <div class="menu_end"></div>
+             </div>
+         </div>
+     </div>
+ <div style=" width:100%; height:1px; clear:both;">.</div>
+
+ </div>
+ <script>
+     $(document).ready(function(){
+
+         $('#products').attr('height', window.innerHeight - 320);
+         $('.tabPage').width(500);
+     })
+
+ </script>

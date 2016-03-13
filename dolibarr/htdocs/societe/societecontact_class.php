@@ -79,6 +79,8 @@ class societecontact {
     }
 
     public function selectPost($htmlname='post', $post=0){
+//        var_dump($post);
+//        die();
         global $db;
         $out = '';
         global $conf, $langs;
@@ -147,11 +149,16 @@ class societecontact {
     }
     public function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $sortorder='', $readonly = array(), $showtitle=false){
         global $user, $conf, $langs, $db;
-//        var_dump($sql);
-//        die();
-        if(empty($sortorder))
+
+
+        if(empty($sortorder)) {
             $result = $db->query($sql);
-        else{
+//        var_dump(!$result);
+//        die();
+//            if(!$result)
+//                dol_print_error($db);
+
+        }else{
 //            echo '<pre>';
 //            var_dump($sql);
 //            echo '</pre>';
@@ -159,6 +166,7 @@ class societecontact {
 //            echo '<pre>';
 //            var_dump($sql);
 //            echo '</pre>';
+
             $result = $this->mysqli->query($sql.' limit 1');
 
             $fields = $result->fetch_fields();
@@ -187,7 +195,7 @@ class societecontact {
         }
 
         $fields = $result->fetch_fields();
-//        var_dump($showtitle);
+//        var_dump($fields);
 //        die();
         if($showtitle) {
             $table = '<table class="scrolling-table" >' . "\r\n";
@@ -363,8 +371,24 @@ class societecontact {
 //                                            var_dump($value);
 //                                            die();
 //                                        }
-                                        $table .= '<table class="contactlist_contact"><tr><td>'.(trim($langs->trans($value))) . '</td>';
+                                        $style_item = '';
+                                        if(substr($fields[$num_col]->name, 0, strlen('mobile_phone')) == 'mobile_phone') {
+                                            $style_item = 'style="width: 130px;white-space: nowrap"';
+                                        }elseif(substr($fields[$num_col]->name, 0, strlen('email')) == 'email' && !empty($value)){
+                                            $value = '<a href="mailto:'.$value.'">'.$value.'</a>';
+                                        }elseif(substr($fields[$num_col]->name, 0, strlen('skype')) == 'skype' && !empty($value)){
+                                            $value = '<a href="skype:'.$value.'?call">'.$value.'</a>';
+                                        }
+                                        $table .= '<table class="contactlist_contact"><tr><td '.$style_item.'>'.trim($langs->trans($value)) . '</td>';
                                         if(!empty($value)) {
+                                            if(substr($fields[$num_col]->name, 0, strlen(mobile_phone)) == 'mobile_phone') {
+                                                $number = str_replace('+', '', $value);
+                                                $number = str_replace(' ', '', $number);
+                                                $number = str_replace('(', '', $number);
+                                                $number = str_replace(')', '', $number);
+                                                $number = str_replace('-', '', $number);
+                                                $table .= '<td style="width: 20px" onclick="showSMSform(' . $number . ');"><img id="sms' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/object_sms.png"></td>';
+                                            }
                                             $ID = "'#img" . $row['rowid'] . $fields[$num_col]->name . "'";
                                             if ($row[$call_pref . "_" . $fields[$num_col]->name] == 0)
                                                 $table .= '<td><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/uncheck.png" onclick = "change_switch_callfield($(' . $ID . '));">';
@@ -466,7 +490,6 @@ class societecontact {
 //        if(count($readonly)==0)
 //            $table .= '</form>'."\r\n";
 
-
         return $table;
     }
     function updateContact(){
@@ -529,35 +552,37 @@ class societecontact {
             var_dump($sql);
             dol_print_error($db);
         }
-        $obj = $db->fetch_object($res);
-        $this->rowid                    = $rowid;
-        $this->subdivision              = $obj->subdivision;//назва структурного підрозділу
-        $this->town_id                  = $obj->town_id;//ІД населеного пункту
-        $this->location                 = $obj->location;//назва населеного пункту
-        $this->post                     = $obj->post;//посада
-        $this->SphereOfResponsibility   = $obj->SphereOfResponsibility;//сфера відповідальності
-        $this->lastname                 = $obj->lastname;//прізвище
-        $this->firstname                = $obj->firstname;//ім'я побатькові
-        $this->work_phone               = $obj->work_phone;//робочий телефон
-        $this->call_work_phone          = $obj->call_work_phone;//дозвіл дзвонити
-        $this->fax                      = $obj->fax;//факс
-        $this->call_fax                 = $obj->call_fax;//дозвіл відправляти повідомлення
-        $this->mobile_phone1            = $obj->mobile_phone1;//мобільний телефон
-        $this->call_mobile_phone1       = $obj->call_mobile_phone1;//дозвіл дзвонити на мобільний телефон
-        $this->mobile_phone2            = $obj->mobile_phone2;//мобільний телефон
-        $this->call_mobile_phone2       = $obj->call_mobile_phone2;//дозвіл дзвонити на мобільний телефон
-        $this->email1                   = $obj->email1;//електронна пошта
-        $this->send_email1              = $obj->send_email1;//дозвіл відправляти повідомлення
-        $this->email2                   = $obj->email2;//електронна пошта
-        $this->send_email2              = $obj->send_email2;//дозвіл відправляти повідомлення
-        $this->skype                    = $obj->skype;//логін скайпу
-        $this->call_skype               = $obj->call_skype;//дозвіл дзвонити на скайп
-        if(!empty($obj->birthdaydate)) {
-            $date = new DateTime($obj->birthdaydate);
-            $this->birthdaydate = $date->format('d.m.Y');//дата народження
+        if($db->num_rows($res)>0) {
+            $obj = $db->fetch_object($res);
+            $this->rowid = $rowid;
+            $this->subdivision = $obj->subdivision;//назва структурного підрозділу
+            $this->town_id = $obj->town_id;//ІД населеного пункту
+            $this->location = $obj->location;//назва населеного пункту
+            $this->post = $obj->post;//посада
+            $this->SphereOfResponsibility = $obj->SphereOfResponsibility;//сфера відповідальності
+            $this->lastname = $obj->lastname;//прізвище
+            $this->firstname = $obj->firstname;//ім'я побатькові
+            $this->work_phone = $obj->work_phone;//робочий телефон
+            $this->call_work_phone = $obj->call_work_phone;//дозвіл дзвонити
+            $this->fax = $obj->fax;//факс
+            $this->call_fax = $obj->call_fax;//дозвіл відправляти повідомлення
+            $this->mobile_phone1 = $obj->mobile_phone1;//мобільний телефон
+            $this->call_mobile_phone1 = $obj->call_mobile_phone1;//дозвіл дзвонити на мобільний телефон
+            $this->mobile_phone2 = $obj->mobile_phone2;//мобільний телефон
+            $this->call_mobile_phone2 = $obj->call_mobile_phone2;//дозвіл дзвонити на мобільний телефон
+            $this->email1 = $obj->email1;//електронна пошта
+            $this->send_email1 = $obj->send_email1;//дозвіл відправляти повідомлення
+            $this->email2 = $obj->email2;//електронна пошта
+            $this->send_email2 = $obj->send_email2;//дозвіл відправляти повідомлення
+            $this->skype = $obj->skype;//логін скайпу
+            $this->call_skype = $obj->call_skype;//дозвіл дзвонити на скайп
+            if (!empty($obj->birthdaydate)) {
+                $date = new DateTime($obj->birthdaydate);
+                $this->birthdaydate = $date->format('d.m.Y');//дата народження
+            }
+            $this->send_birthdaydate = $obj->send_birthdaydate;//дозвіл поздоровляти
+            $this->socid = $obj->socid;
         }
-        $this->send_birthdaydate        = $obj->send_birthdaydate;//дозвіл поздоровляти
-        $this->socid                    = $obj->socid;
 
     }
     function fBuildEditForm($title, $field, $theme, $tablename){
