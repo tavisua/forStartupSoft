@@ -1302,7 +1302,7 @@ class Form
 //        }
         return $count;
     }
-    function select_control($selected='', $htmlname, $disabled=0, $tablename, $fieldname, $userinfo, $readonly = true)
+    function select_control($selectedval='', $htmlname, $disabled=0, $tablename, $fieldname, $userinfo, $readonly = true)
     {
         global $conf, $user, $langs;
 
@@ -1332,12 +1332,23 @@ class Form
                 }else {
                     $out .= '<select class="combobox" id="' . $htmlname . '" name="' . $htmlname . '"' . ($disabled ? ' disabled="disabled"' : '') . '>';
                     $out .= '<option value="0">&nbsp;</option>';
+                    if($htmlname == 'fk_subdivision'){
+                        if(!empty($selectedval))
+                            $selected = 'Всі підрозділи' == $selectedval;
+                        $out .= '<option value="-1" '.($selected?'selected="selected"':'').'>Всі підрозділи</option>';
+                    }
 //                    var_dump(get_object_vars($userinfo)[$htmlname]);
 //                    die();
                     while ($i < $num) {
                         $obj = $this->db->fetch_object($resql);
                         $selected = get_object_vars($userinfo)[$htmlname] == $obj->rowid;
-
+                        if($htmlname == 'fk_subdivision'){
+//                            if(!empty($selectedval)) {
+//                                var_dump($selectedval, $obj->name);
+//                                die();
+//                            }
+                            $selected = $obj->name == $selectedval;
+                        }
                         $out .= '<option value="' . $obj->rowid . '" '.($selected?'selected="selected"':'').'>' . $obj->name . '</option>';
                         $i++;
                     }
@@ -3724,6 +3735,28 @@ class Form
      *  @param  string	$htmlname    name of HTML select list
      * 	@return	string
      */
+    function GroupOfIssues($groupid='', $htmlname='issues'){
+//        if(!empty($groupid)){
+//            var_dump($groupid);
+//            die();
+//        }
+        $sql = 'select `llx_c_groupoforgissues`.rowid, `llx_c_groupoforgissues`.`issues`
+            from `llx_c_groupoforgissues`
+            where active = 1';
+        $res = $this->db->query($sql);
+        if(!$res)
+            dol_print_error($this->db);
+        $out= '<select class="combobox" name="'.$htmlname.'" id="'.$htmlname.'">
+            <option value="-1"></option>';
+
+        if($this->db->num_rows($res)>0){
+            while($obj = $this->db->fetch_object($res)){
+                $out.='<option value="'.$obj->rowid.'" '.($groupid==$obj->issues?'selected="selected"':'').'>'.$obj->issues.'</option>';
+            }
+        }
+        $out .= '</select>';
+        return $out;
+    }
     function selectCurrency($selected='UAN',$htmlname='currency_id')
     {
         global $conf,$langs,$user;

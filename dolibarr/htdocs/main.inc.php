@@ -978,7 +978,7 @@ if (! function_exists("llxHeader"))
                                     <td class="middle_size" colspan="4"><b>Статус користувача</b></td>
                                 </tr>
                                 <tr>
-                                    <td class="middle_size" colspan="4">шкала часу</td>
+                                    <td class="middle_size" colspan="4" style="width: 250px"><div id="timer" style="width: 75%;background-color: red;text-align: center">15cек</div></td>
                                 </tr>
                                 <tr>
                                     <td class="middle_size" colspan="4"><b>Робочий стіл перемовника</b></td>

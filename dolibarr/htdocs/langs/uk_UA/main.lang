@@ -109,6 +109,8 @@ postname=Посада
 begin=Початок
 end=Кінець
 proposition=Пропозиція
+GroupOfOrganizationalIssues=Група організаційних питань
+issues=Група питань
 
 LastConnexion=Дата останнього відвідування
 PreviousConnexion=Previous connection

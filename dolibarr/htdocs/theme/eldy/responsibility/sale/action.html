@@ -131,6 +131,7 @@
         height: 90px;
     }
 </style>
+<input type="hidden" id="starttimer" value="">
 <script>
     $(document).ready(function(){
         $("#bookmarkActionPanel").show();
@@ -155,6 +156,32 @@
         setcallphonelink();
 //        setActionPanelPosition();
     })
+    $(window).click(function(){
+        $('#starttimer').val('');
+        $('#timer').text('-1сек');
+        if($('#starttimer').val().length == 0) {
+            $('#starttimer').val(1);
+            Timer();
+        }
+    })
+    function Timer(){
+        var sec = $('#timer').text().substr(0, $('#timer').text().length-3);
+        sec = parseInt(sec)+1;
+        if(sec<=15) {
+            $('#timer').text(sec + 'сек');
+            $('#timer').css('width', sec*100/15+'%');
+            if(sec<10){
+                $('#timer').css('background-color', '#008000');
+            }else if(sec>=10&&sec<=15){
+                $('#timer').css('background-color', '#fbef7e');
+            }
+        }else {
+            $('#timer').css('background-color', 'red');
+            $('#timer').text('Бездіяльність');
+            return false;
+        }
+        setTimeout(Timer, 1000);
+    }
     function showSMSform(phonenumber){
         $('input#phone_number').val(phonenumber);
         $('b#phone_numbertitle').text(phonenumber);

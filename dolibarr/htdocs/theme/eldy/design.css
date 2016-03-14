@@ -529,7 +529,7 @@ div.header_page, th.header_page, tr.header_table_sel, form.header_page, form.hea
     z-index: 3;
 }
 #ActionPanel{
-    background-color: #ffffff;
+    background-color: #ffffff ;
     position: fixed;
     right: -255px;
     width: 250px;

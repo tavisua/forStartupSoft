@@ -56,7 +56,7 @@ if(isset($_REQUEST['action']) && $_REQUEST['action'] == 'update'){
         if(!in_array($item, $lineactive)){
             $sql = 'update llx_user_lineactive set active = 0, id_usr='.$user->id.
                 ' where fk_user='.$update_user->id.' and fk_lineactive='.$item.' and page='.$page.' limit 1';
-            die($sql);
+//            die($sql);
             $res = $db->query($sql);
             if(!$res)
                 dol_print_error($db);

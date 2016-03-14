@@ -83,7 +83,8 @@ $hookmanager->initHooks(array('admin'));
 // Put here declaration of dictionaries properties
 
 // Sort order to show dictionary (0 is space). All other dictionaries (added by modules) will be at end of this.
-$taborder=array(26,27,28,29,30,31,32,33,34,35,6,9,36,37,38,39,0,3,2,0,1,8,19,16,0,5,11,0,0,10,23,12,13,0,14,0,7,17,0,22,20,18,21,0,15,0,24,0,25);
+$taborder=array(26,27,28,29,30,31,32,33,34,35,6,9,36,37,38,39,0,40,41,
+		0,3,2,0,1,8,19,16,0,5,11,0,0,10,23,12,13,0,14,0,7,17,0,22,20,18,21,0,15,0,24,0,25);
 
 // Name of SQL tables of dictionaries
 $tabname=array();
@@ -126,6 +127,8 @@ $tabname[36]= MAIN_DB_PREFIX."c_finance_service";
 $tabname[37]= MAIN_DB_PREFIX."c_category_product_question";
 $tabname[38]= MAIN_DB_PREFIX."c_lineactive_customer";
 $tabname[39]= MAIN_DB_PREFIX."c_proposition";
+$tabname[40]= MAIN_DB_PREFIX."c_groupoforgissues";
+$tabname[41]= MAIN_DB_PREFIX."c_actiontoaddress";
 
 // Dictionary labels
 $tablib=array();
@@ -168,6 +171,8 @@ $tablib[36]= "FinanceService";
 $tablib[37]= "TypicalQuestion";
 $tablib[38]= "LineActiveCustomer";
 $tablib[39]= "Proposition";
+$tablib[40]= "GroupOfOrganizationalIssues";
+$tablib[41]= "ActionToAddress";
 
 // Requests to extract data
 $tabsql=array();
@@ -225,6 +230,13 @@ $tabsql[39]= "select llx_c_proposition.rowid, `llx_c_proposition`.`fk_lineactive
 	from `llx_c_proposition`
 	left join `llx_c_lineactive_customer` on `llx_c_lineactive_customer`.rowid = `llx_c_proposition`.`fk_lineactive`
 	left join `llx_post` on `llx_post`.`rowid` = `llx_c_proposition`.`fk_post`";
+$tabsql[40]= "select rowid, issues, active  from ".MAIN_DB_PREFIX."c_groupoforgissues where 1 and active = 1";
+$tabsql[41]= "select `llx_c_actiontoaddress`.`rowid`,  `llx_c_groupoforgissues`.`issues` fk_groupissues, case when `llx_c_actiontoaddress`.`fk_subdivision` = -1 then 'Всі підрозділи' else `subdivision`.`name` end fk_subdivision, `llx_c_actiontoaddress`.`action`,
+	`llx_c_actiontoaddress`.`responsible`,`llx_c_actiontoaddress`.`directly_responsible`
+	from llx_c_actiontoaddress
+	left join `llx_c_groupoforgissues` on `llx_c_groupoforgissues`.`rowid` = `llx_c_actiontoaddress`.`fk_groupissues`
+	left join `subdivision` on `subdivision`.`rowid` = `llx_c_actiontoaddress`.`fk_subdivision`";
+
 // Criteria to sort dictionaries
 $tabsqlsort=array();
 $tabsqlsort[1] ="country ASC, code ASC";
@@ -266,6 +278,8 @@ $tabsqlsort[36]="rowid ASC";
 $tabsqlsort[37]="rowid ASC";
 $tabsqlsort[38]="name ASC";
 $tabsqlsort[39]="rowid ASC";
+$tabsqlsort[40]="rowid ASC";
+$tabsqlsort[41]="rowid ASC";
 
 // Nom des champs en resultat de select pour affichage du dictionnaire
 $tabfield=array();
@@ -308,6 +322,8 @@ $tabfield[36]= "name";
 $tabfield[37]= "question";
 $tabfield[38]= "name";
 $tabfield[39]= "LineActiveCustomer,postname,begin,end,proposition";
+$tabfield[40]= "issues";
+$tabfield[41]= "fk_groupissues,fk_subdivision,action,responsible,directly_responsible";
 
 // Nom des champs d'edition pour modification d'un enregistrement
 $tabfieldvalue=array();
@@ -350,6 +366,8 @@ $tabfieldvalue[36]= "name";
 $tabfieldvalue[37]= "question";
 $tabfieldvalue[38]= "name";
 $tabfieldvalue[39]= "LineActiveCustomer,postname,begin,end,proposition,active";
+$tabfieldvalue[40]= "issues";
+$tabfieldvalue[41]= "fk_groupissues,fk_subdivision,action,responsible,directly_responsible,active";
 
 
 
@@ -394,6 +412,8 @@ $tabfieldinsert[36]= "name";
 $tabfieldinsert[37]= "question";
 $tabfieldinsert[38]= "name";
 $tabfieldinsert[39]= "fk_lineactive,fk_post,begin,end,text";
+$tabfieldinsert[40]= "issues";
+$tabfieldinsert[41]= "fk_groupissues,fk_subdivision,action,responsible,directly_responsible";
 
 // Nom du rowid si le champ n'est pas de type autoincrement
 // Example: "" if id field is "rowid" and has autoincrement on
@@ -438,6 +458,8 @@ $tabrowid[36]= "rowid";
 $tabrowid[37]= "rowid";
 $tabrowid[38]= "rowid";
 $tabrowid[39]= "rowid";
+$tabrowid[40]= "rowid";
+$tabrowid[41]= "rowid";
 
 // Condition to show dictionary in setup page
 $tabcond=array();
@@ -480,6 +502,8 @@ $tabcond[36]= true;
 $tabcond[37]= true;
 $tabcond[38]= true;
 $tabcond[39]= true;
+$tabcond[40]= true;
+$tabcond[41]= true;
 
 // List of help for fields
 $tabhelp=array();
@@ -522,6 +546,8 @@ $tabhelp[36] = array();
 $tabhelp[37] = array();
 $tabhelp[38] = array();
 $tabhelp[39] = array();
+$tabhelp[40] = array();
+$tabhelp[41] = array();
 
 // List of check for fields (NOT USED YET)
 $tabfieldcheck=array();
@@ -564,6 +590,8 @@ $tabfieldcheck[36] = array();
 $tabfieldcheck[37] = array();
 $tabfieldcheck[38] = array();
 $tabfieldcheck[39] = array();
+$tabfieldcheck[40] = array();
+$tabfieldcheck[41] = array();
 
 // Complete all arrays with entries found into modules
 complete_dictionary_with_modules($taborder,$tabname,$tablib,$tabsql,$tabsqlsort,$tabfield,$tabfieldvalue,$tabfieldinsert,$tabrowid,$tabcond,$tabhelp,$tabfieldcheck);
@@ -632,7 +660,8 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
     $listfieldinsert=explode(',',$tabfieldinsert[$id]);
     $listfieldmodify=explode(',',$tabfieldinsert[$id]);
     $listfieldvalue=explode(',',$tabfieldvalue[$id]);
-
+//var_dump($listfieldvalue);
+//	die();
     while(substr($tabfieldinsert[$id],0,1)==",")
         $tabfieldinsert[$id]= substr($tabfieldinsert[$id],1);
 
@@ -656,12 +685,15 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
 		if ($id == 34 && ($value == 'responsibility'))continue;
         if ($id == 35 && ($value == 'ed_name'))continue;
         if ($id == 39 && ($value == 'LineActiveCustomer' || $value == 'postname'))continue;
-//		var_dump($value);
+        if ($id == 41 && ($value == 'fk_groupissues' || $value == 'fk_subdivision'))continue;
+//		var_dump($_POST, $listfield);
 //		die();
         if ((! isset($_POST[$value]) || $_POST[$value]=='')
         	&& (! in_array($listfield[$f], array('decalage','module','accountancy_code','accountancy_code_sell','accountancy_code_buy')))  // Fields that are not mandatory
 		)
         {
+//				    var_dump($_POST[$value], $value);
+//   					die();
             $ok=0;
             $fieldnamekey=$listfield[$f];
             // We take translate key of field
@@ -682,6 +714,8 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
             setEventMessage($langs->transnoentities("ErrorFieldRequired", $langs->transnoentities($fieldnamekey)),'errors');
         }
     }
+//	    var_dump($ok, $listfield);
+//    die();
     // Other checks
     if ($tabname[$id] == MAIN_DB_PREFIX."c_actioncomm" && isset($_POST["type"]) && in_array($_POST["type"],array('system','systemauto'))) {
         $ok=0;
@@ -716,8 +750,7 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
 	// Clean some parameters
     if (isset($_POST["localtax1"]) && empty($_POST["localtax1"])) $_POST["localtax1"]='0';	// If empty, we force to 0
     if (isset($_POST["localtax2"]) && empty($_POST["localtax2"])) $_POST["localtax2"]='0';	// If empty, we force to 0
-//    var_dump($ok, GETPOST('actionadd'));
-//    die();
+
     // Si verif ok et action add, on ajoute la ligne
     if ($ok && GETPOST('actionadd'))
     {
@@ -752,7 +785,7 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
 
         $i=0;
         $added=0;
-//        var_dump($listfieldinsert);
+//        var_dump($listfieldinsert, $_POST);
 //        die($sql);
         foreach ($listfieldinsert as $f => $value)
         {
@@ -798,7 +831,8 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
                 }
 
                 if ($added) $sql .= ",";
-//                var_dump($listfieldvalue[$i], empty($_POST[$listfieldvalue[$i]])).'</br>';
+//                var_dump($listfieldvalue, $_POST[$listfieldvalue[$i]]).'</br>';
+//				die();
                 if ($_POST[$listfieldvalue[$i]] == '' || empty($_POST[$listfieldvalue[$i]])) {
 //                    echo $listfieldvalue[$i].'</br>';
                     $sql .= "null";
@@ -1061,9 +1095,7 @@ if ($id)
         $sql.=" ORDER BY ";
     }
     $sql.=$tabsqlsort[$id];
-//    if($id == 39){
-//        die($sql);
-//    }
+
     $sql.=$db->plimit($listlimit+1,$offset);
     //print $sql;
 //    die($sql);
@@ -1284,14 +1316,16 @@ if ($id)
 			print getTitleFieldOfList($langs->trans("Status"),0,$_SERVER["PHP_SELF"],"active",($page?'page='.$page.'&':'').'&id='.$id,"",'align="center"',$sortfield,$sortorder);
             print '<td colspan="3"  class="liste_titre">&nbsp;</td>';
             print '</tr>';
+
             while ($i < $num)
             {
                 $var = ! $var;
 
                 $obj = $db->fetch_object($resql);
 
-                //print_r($obj);
+                //print_r($obj)	;
                 print '<tr '.$bc[$var].' id="rowid-'.$obj->rowid.'">';
+
                 if ($action == 'edit' && ($rowid == (! empty($obj->rowid)?$obj->rowid:$obj->code)))
                 {
                     print '<form action="'.$_SERVER['PHP_SELF'].'?id='.$id.'" method="POST">';
@@ -1304,7 +1338,15 @@ if ($id)
                     $reshook=$hookmanager->executeHooks('editDictionaryFieldlist',$parameters,$obj, $tmpaction);    // Note that $action and $object may have been modified by some hooks
                     $error=$hookmanager->error; $errors=$hookmanager->errors;
 
-                    if (empty($reshook)) fieldList($fieldlist,$obj,$tabname[$id], 1);
+                    if (empty($reshook)) {
+//						if($id == 41){
+//							echo '<pre>';
+//							var_dump($obj);
+//							echo '</pre>';
+//							die('11');
+//						}
+						fieldList($fieldlist, $obj, $tabname[$id], 1);
+					}
 
                     print '<td colspan="3" align="right"><a name="'.(! empty($obj->rowid)?$obj->rowid:$obj->code).'">&nbsp;</a><input type="submit" class="button" name="actionmodify" value="'.$langs->trans("Modify").'">';
                     print '&nbsp;<input type="submit" class="button" name="actioncancel" value="'.$langs->trans("Cancel").'"></td>';
@@ -1618,6 +1660,14 @@ if($id == 35){
         })
     </script>';
 }
+//if($id == 41){
+//	$val = '<option value="-1">Всі підрозділи</option>';
+//	print '<script>
+//		$(document).ready(function(){
+//			$("#fk_subdivision option:nth-child(1)").after($('."'".$val."'".'));
+//		})
+//	</script>';
+//}
 
 //llxFooter();
 $db->close();
@@ -1633,6 +1683,13 @@ $db->close();
  */
 function fieldList($fieldlist,$obj='',$tabname='', $show=0)
 {
+//	var_dump($fieldlist, $obj);
+//	if($tabname == MAIN_DB_PREFIX."c_actiontoaddress"){
+//		echo '<pre>';
+//		var_dump($fieldlist, $obj);
+//		echo '</pre>';
+//        die();
+//    }
 	global $conf,$langs,$db;
 	global $form;
 	global $region_id;
@@ -1795,6 +1852,25 @@ function fieldList($fieldlist,$obj='',$tabname='', $show=0)
 			print '<td align="left">';
 			print $form->selectmeasurement($fieldlist[$field]);
 			print '</td>';
+		}
+		elseif($tabname == MAIN_DB_PREFIX."c_actiontoaddress" && in_array($fieldlist[$field], array('fk_groupissues', 'action','fk_subdivision')) )
+		{
+			if($fieldlist[$field] == 'fk_groupissues') {
+//				var_dump($obj->$fieldlist[$field]);
+//				die();
+				print '<td align="left">';
+				print $form->GroupOfIssues($obj->$fieldlist[$field], 'fk_groupissues');
+				print '</td>';
+			}elseif($fieldlist[$field] == 'action') {
+				print '<td align="left">';
+				print '<textarea id="action" name="action">'.$obj->$fieldlist[$field].'</textarea>';
+				print '</td>';
+			}elseif($fieldlist[$field] == 'fk_subdivision') {
+				$object = new User($db);
+				print '<td align="left">';
+				print $form->select_control($obj->$fieldlist[$field], 'fk_subdivision', 0, 'subdivision', 'name', $object, false);
+				print '</td>';
+			}
 		}
 		elseif($tabname == MAIN_DB_PREFIX."c_proposition")
 		{
