@@ -458,11 +458,12 @@ function ShowQuestion($id_cat, $page=1, $answer_id=''){
 }
 function ShowOrders(){
     global $db, $user;
-    $sql = 'select `llx_orders`.`rowid`, `llx_orders`.`dtCreated`, `llx_societe`.`nom` customer,
+    $sql = 'select `llx_orders`.`rowid`, `llx_orders`.`dtCreated`, case when `llx_societe`.rowid is null then `llx_user`.lastname else `llx_societe`.`nom` end customer,
         max(`llx_actioncomm`.`datep`) as date_exec, `llx_orders`.`status`
         from `llx_orders`
         left join `llx_societe`on `llx_societe`.`rowid`=`llx_orders`.`socid`
-        left join `llx_actioncomm` on `llx_actioncomm`.`fk_order_id`=`llx_orders`.`rowid`';
+        left join `llx_actioncomm` on `llx_actioncomm`.`fk_order_id`=`llx_orders`.`rowid`
+        left join `llx_user` on `llx_user`.`rowid`=`llx_orders`.`id_usr`';
     if(isset($_REQUEST['socid'])&& !empty($_REQUEST['socid'])){
         $sql.= ' where `llx_societe`.`rowid`='.$_REQUEST['socid'];
     }else{
@@ -478,24 +479,41 @@ function ShowOrders(){
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
-    $sql = 'select distinct `llx_orders`.`rowid`, `llx_user`.`lastname`
+    $sql = 'select distinct `llx_orders`.`rowid`, `llx_orders`.id_usr, `llx_user`.`lastname`
         from `llx_orders`
         left join `llx_actioncomm` on `llx_actioncomm`.`fk_order_id`=`llx_orders`.`rowid`
         left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm`=`llx_actioncomm`.`id`
         left join `llx_user` on `llx_user`.rowid = `llx_actioncomm_resources`.fk_element
-        where `llx_orders`.`id_usr` = '.$user->id.'
-        and `llx_orders`.`status` in (0,1,2)
-        and `llx_actioncomm_resources`.fk_element <> `llx_orders`.`id_usr`';
+        where `llx_orders`.`id_usr` = '.$user->id.' and `llx_orders`.`status` in (0,1,2)
+        and `llx_user`.`lastname` is not null';
     $res_purchase = $db->query($sql);
     if(!$res_purchase)
         dol_print_error($db);
+//    echo '<pre>';
+//    var_dump($db->num_rows($res_purchase));
+//    echo '</pre>';
+//    die();
+    if($db->num_rows($res_purchase) == 0 && $user->respon_alias == 'purchase') {
+        $sql = 'select distinct `llx_orders`.`rowid`, `llx_user`.`lastname`
+        from `llx_orders`
+        left join `llx_actioncomm` on `llx_actioncomm`.`fk_order_id`=`llx_orders`.`rowid`
+        left join `llx_user` on `llx_user`.rowid = `llx_orders`.`id_usr`
+        where `llx_orders`.`id_usr` = ' . $user->id . '
+        and `llx_orders`.`status` in (0,1,2)';
+        $res_purchase = $db->query($sql);
+        if(!$res_purchase)
+            dol_print_error($db);
+        }
+
     $purchase = array();
     while($obj = $db->fetch_object($res_purchase)){
-        if(!isset($purchase[$obj->rowid]))
+        if(!isset($purchase[$obj->rowid])) {
             $purchase[$obj->rowid] = $obj->lastname;
-        else
-            $purchase[$obj->rowid] .= ', '.$obj->lastname;
+        }else {
+            $purchase[$obj->rowid] .= ', ' . $obj->lastname;
+        }
     }
+
     $out = '<tbody>';
     $nom = 0;
     while($obj = $db->fetch_object($res)){

@@ -386,13 +386,14 @@ class ActionComm extends CommonObject
         $sql.= "'".$this->period."',";
         $sql.= " ".(! empty($this->order_id)?"'".$this->order_id."'":"null");
         $sql.= ")";
-//        die($sql);
+//        var_dump($sql);
         dol_syslog(get_class($this)."::add", LOG_DEBUG);
         $resql=$this->db->query($sql);
         if ($resql)
         {
             $this->id = $this->db->last_insert_id(MAIN_DB_PREFIX."actioncomm","id");
-
+//            var_dump($error);
+//            die();
             // Now insert assignedusers
 			if (! $error)
 			{
@@ -402,20 +403,21 @@ class ActionComm extends CommonObject
 			        {
 			        	$val=array('id'=>$val);
 			        }
+                    if($user->id != $val['id']) {
+                        $sql = "INSERT INTO " . MAIN_DB_PREFIX . "actioncomm_resources(fk_actioncomm, element_type, fk_element, mandatory, transparency, answer_status)";
+                        $sql .= " VALUES(" . $this->id . ", 'user', " . $val['id'] . ", " . (empty($val['mandatory']) ? '0' : $val['mandatory']) . ", " . (empty($val['transparency']) ? '0' : $val['transparency']) . ", " . (empty($val['answer_status']) ? '0' : $val['answer_status']) . ")";
 
-					$sql ="INSERT INTO ".MAIN_DB_PREFIX."actioncomm_resources(fk_actioncomm, element_type, fk_element, mandatory, transparency, answer_status)";
-					$sql.=" VALUES(".$this->id.", 'user', ".$val['id'].", ".(empty($val['mandatory'])?'0':$val['mandatory']).", ".(empty($val['transparency'])?'0':$val['transparency']).", ".(empty($val['answer_status'])?'0':$val['answer_status']).")";
-
-					$resql = $this->db->query($sql);
-					if (! $resql)
-					{
-						$error++;
-		           		$this->errors[]=$this->db->lasterror();
-					}
-					//var_dump($sql);exit;
+                        $resql = $this->db->query($sql);
+                        if (!$resql) {
+//                            dol_print_error($this->db);
+                            $error++;
+                            $this->errors[] = $this->db->lasterror();
+                        }
+                    }
+//					var_dump($sql);exit;
 				}
 			}
-
+//var_dump($error);exit;
             if (! $error)
             {
             	$action='create';
