@@ -140,7 +140,7 @@ $datep = new DateTime();
 
 $actiontabe = ShowActionTable();
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/dir_depatment/action.html';
-llxFooter();
+//llxFooter();
 exit();
 
 

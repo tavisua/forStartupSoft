@@ -190,12 +190,12 @@
             calculator(product_id);
         }
         $('.features_part').addClass('input');
+        var tbody = $('.tabPage').find('tbody');
+        var tr = tbody[0].getElementsByTagName('tr');
         if($.cookie('proposed_id') != null) {
-            var tbody = $('.tabPage').find('tbody');
-            var tr = tbody[0].getElementsByTagName('tr');
             for(var i = 0; i<tr.length; i++){
                 var td = tr[i].getElementsByTagName('td');
-//                console.log();
+                console.log($('#art'+tr[i].id.substr(2)).attr('proposed'));
                 if($('#art'+tr[i].id.substr(2)).attr('proposed') == '1'){
                     $('#'+tr[i].id).prepend('<td style="text-align: center; cursor: pointer" title="Видалити запропонований запис" onclick="deleteproposeditem('+tr[i].id.substr(2)+');"><img src="/dolibarr/htdocs/theme/eldy/img/delete.png"></td>');
                     for(var t = 0; t<3; t++){
@@ -219,10 +219,15 @@
                         }
                     }
                 }else{
-                    $('#'+tr[i].id).prepend('<td></td>');
+                    $('#'+tr[i].id).prepend('<td>&nbsp;</td>');
+//                    console.log('add');
                 }
             }
 //            console.log(tr.length)
+        }else{
+            for(var i = 0; i<tr.length; i++) {
+                $('#'+tr[i].id).prepend('<td>&nbsp;</td>');
+            }
         }
     })
     $(window).click(function(){
@@ -232,8 +237,10 @@
     });
     $(function(){
         $('td').click(function(e){
-            if($(this).hasClass('input')) {
+            if($(this).hasClass('input') && $('#edit').length == 0) {
                var product_id = $(this).parent().attr('id').substr(2);
+//                console.log($('#edit').length);
+//                return;
                 if(e.target.id.substr(0,3) == 'Col'){
 //                    console.log(e.target.id);
                     product_id = e.target.id.substr(3);

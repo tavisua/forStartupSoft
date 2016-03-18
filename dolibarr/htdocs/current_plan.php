@@ -20,7 +20,7 @@ llxHeader("",$HourlyPlan,"");
 print_fiche_titre($langs->trans('CurrentTask'));
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/current/header.php';
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/current/task.php';
-llxFooter();
+//llxFooter();
 return;
 
 function ShowTask(){

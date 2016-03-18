@@ -1171,6 +1171,34 @@ class User extends CommonObject
 	 *		@param	int		$nosyncmemberpass	0=Synchronize linked member (password), 1=Do not synchronize linked member
 	 *    	@return int 		        		<0 si KO, >=0 si OK
 	 */
+	function getLineActive(){
+		$sql = 'select fk_lineactive from llx_user_lineactive where fk_user = '.$this->id.' and active = 1';
+		$res = $this->db->query($sql);
+		if(!$res)
+			dol_print_error($this->db);
+		$lineactive = array();
+		while($obj = $this->db->fetch_object($res)){
+			if(!in_array($obj->fk_lineactive, $lineactive))
+				$lineactive[]=$obj->fk_lineactive;
+		}
+		foreach($lineactive as $item) {
+			$sql = 'select ' . $item . ' as category_id
+              union
+              select category_id from `oc_category`
+              where parent_id=' . $item . '
+              union
+              select parent_id from `oc_category`
+              where category_id=' . $item;
+			$res = $this->db->query($sql);
+			if(!$res)
+				dol_print_error($this->db);
+			while($obj = $this->db->fetch_object($res)){
+				if(!in_array($obj->category_id, $lineactive))
+					$lineactive[]=$obj->category_id;
+			}
+		}
+		return $lineactive;
+	}
 	function update($user,$notrigger=0,$nosyncmember=0,$nosyncmemberpass=0)
 	{
 		global $conf, $langs, $hookmanager;
@@ -1219,6 +1247,7 @@ class User extends CommonObject
 		$sql.= ", login = '".$this->db->escape($this->login)."'";
 		$sql.= ", admin = ".$this->admin;
 		$sql.= ", respon_id = ".$this->respon_id;
+		$sql.= ", post_id = ".$this->post_id;
 		$sql.= ", address = '".$this->db->escape($this->address)."'";
 		$sql.= ", zip = '".$this->db->escape($this->zip)."'";
 		$sql.= ", town = '".$this->db->escape($this->town)."'";

@@ -52,7 +52,7 @@ $dateQuery = new DateTime($date);
 //die();
 $actionURL = '/comm/action/card.php';
 $sql = "select `llx_actioncomm`.id as rowid, `llx_actioncomm`.datep, `llx_actioncomm`.datep2,
-        `llx_actioncomm`.`code`, `llx_actioncomm`.label, `regions`.`name` as region_name, `llx_user`.`lastname`,
+        `llx_actioncomm`.`code`, `llx_actioncomm`.label, `regions`.`name` as region_name, case when `llx_actioncomm`.fk_soc is null then `llx_user`.`lastname` else `llx_societe`.`nom` end lastname,
         `llx_actioncomm`.`note`, `llx_actioncomm`.`percent`, `llx_c_actioncomm`.`libelle` title, `llx_actioncomm`.confirmdoc,
         `llx_actioncomm`.priority
         from `llx_actioncomm`
@@ -61,14 +61,19 @@ $sql = "select `llx_actioncomm`.id as rowid, `llx_actioncomm`.datep, `llx_action
         left join `regions` on `regions`.rowid=`llx_societe`.region_id
         left join `llx_user` on `llx_user`.rowid= `llx_actioncomm`.fk_user_author
         left join `llx_c_actioncomm` on `llx_c_actioncomm`.`code` = `llx_actioncomm`.`code`
-        inner join `llx_actioncomm_resources` on `llx_actioncomm`.`id` =  `llx_actioncomm_resources`.`fk_actioncomm`
+        left join `llx_actioncomm_resources` on `llx_actioncomm`.`id` =  `llx_actioncomm_resources`.`fk_actioncomm`
         where fk_action in
               (select id from `llx_c_actioncomm`
               where `type` in ('system', 'user'))
-        and `llx_actioncomm_resources`.`fk_element`= ".$user->id."
+        and (`llx_actioncomm_resources`.`fk_element`= ".$user->id." or (`llx_actioncomm`.`fk_user_author`= ".$user->id." and `llx_actioncomm`.id not in (select `llx_actioncomm_resources`.`fk_actioncomm` from `llx_actioncomm_resources` where `llx_actioncomm_resources`.`fk_element`= ".$user->id.")))
         and `datep` between '".$dateQuery->format('Y-m-d')."' and date_add('".$dateQuery->format('Y-m-d')."', interval 1 day)
+        and `llx_actioncomm`.active = 1
         order by priority,datep";
 $res = $db->query($sql);
+//echo '<pre>';
+//var_dump($sql);
+//echo '</pre>';
+//die();
 //die($sql);
 $task = '';
 

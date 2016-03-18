@@ -1901,6 +1901,10 @@ else
         while($obj = $db->fetch_object($res)){
             $purchase_category[]=$obj->category_id;
         }
+//        echo '<pre>';
+//        var_dump($sales_category);
+//        echo '</pre>';
+//        die($object->categoryofcustomer_id);
         if(in_array($object->categoryofcustomer_id, $sales_category))
             print '<div class="inline-block tabsElem">
                             <a id="user" class=" tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('EconomicData').'</a>

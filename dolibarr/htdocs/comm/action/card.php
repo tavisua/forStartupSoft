@@ -167,6 +167,22 @@ if (GETPOST('removedassigned') || GETPOST('removedassigned') == '0')
 }
 
 // Add user to assigned list
+if($_GET['assignedJSON']){
+//	var_dump('{"6":{"id":"6","mandatory":0,"transparency":null},"43":{"id":"43","transparency":"on","mandatory":1}}</br>');
+	$author = substr($_SESSION['assignedtouser'], 0,strpos($_SESSION['assignedtouser'], 'null}')+strlen('null}'));
+//	var_dump($author.','.$_GET['assignedJSON'].'}</br>');
+//	die();
+//	$assignedtouser=array();
+	$_SESSION['assignedtouser']=$author.$_GET['assignedJSON'];
+//	$assignedtouser=dol_json_decode($_SESSION['assignedtouser'], true);
+//	$_SESSION['assignedtouser'] = $author.','.$_GET['assignedJSON'].'}';
+
+//	var_dump($author).'</br>';
+//	$_SESSION['assignedtouser'] = $_GET['assignedJSON'];
+//	var_dump($_SESSION['assignedtouser']).'</br>';
+//	var_du?mp($assignedtouser).'</br>';
+//	die();
+}
 if (GETPOST('addassignedtouser') || GETPOST('updateassignedtouser'))
 {
 	// Add a new user
@@ -179,6 +195,8 @@ if (GETPOST('addassignedtouser') || GETPOST('updateassignedtouser'))
 		}
 		$assignedtouser[GETPOST('assignedtouser')]=array('id'=>GETPOST('assignedtouser'), 'transparency'=>GETPOST('transparency'),'mandatory'=>1);
 		$_SESSION['assignedtouser']=dol_json_encode($assignedtouser);
+//		var_dump($_SESSION['assignedtouser']);
+//		die();
 	}
 	$donotclearsession=1;
 	if ($action == 'add') $action = 'create';
@@ -490,6 +508,7 @@ if ($action == 'update')
 
 		// Users
 		$listofuserid=array();
+
 		if (! empty($_SESSION['assignedtouser']))	// Now concat assigned users
 		{
 			// Restore array with key with same value than param 'id'
@@ -673,11 +692,13 @@ elseif($action == 'edit')
 $form = new Form($db);
 $formfile = new FormFile($db);
 $formactions = new FormActions($db);
-
 if ($action == 'create')
 {
 	$contact = new Contact($db);
     print '<div class="tabBar">';
+	print '<div id="addassignpanel" style="position: relative; z-index: 0; width: 30px">
+		<button style="width: 25px;height: 29px;" title="Додати користувачів зі списку" onclick="ShowaddAssignedUsersForm();"><img style="margin-left: -3px" src="../../../htdocs/theme/eldy/img/Add.png"></button>
+	</div>';
 	if (GETPOST("contactid"))
 	{
 		$result=$contact->fetch(GETPOST("contactid"));
@@ -732,7 +753,7 @@ if ($action == 'create')
 	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
 	print '<input type="hidden" name="action" value="add">';
 	print '<input type="hidden" id="showform1" value="0">';
-	print '<input type="hidden" name="mainmenu" value="'.$_REQUEST["mainmenu"].'">';
+	print '<input type="hidden" id="mainmenu" name="mainmenu" value="'.$_REQUEST["mainmenu"].'">';
 	print '<input type="hidden" name="parent_id" value="'.$_REQUEST["parent_id"].'">';
 	print '<input type="hidden" name="donotclearsession" value="1">';
 	print '<input type="hidden" name="backtopage" value="'.($backtopage != '1' ? $backtopage : $_SERVER["HTTP_REFERER"]).'">';
@@ -837,7 +858,7 @@ if ($action == 'create')
 //    }
 
 	// Assigned to
-	print '<tr><td class="nowrap">'.$langs->trans("ActionAffectedTo").'</td><td>';
+	print '<tr><td class="nowrap">'.$langs->trans("ActionAffectedTo").'</td><td style="vertical-align:top">';
 	$listofuserid=array();
 	if (empty($donotclearsession))
 	{
@@ -846,13 +867,18 @@ if ($action == 'create')
 		$_SESSION['assignedtouser']=dol_json_encode($listofuserid);
 	}
 	else
-	{
 		if (!empty($_SESSION['assignedtouser']))
 		{
 			$listofuserid=dol_json_decode($_SESSION['assignedtouser'], true);
 		}
-	}
+
+		$listofuserid=dol_json_decode($_SESSION['assignedtouser'], true);
+//		var_dump($listofuserid);
+//		die();
+
+
 	print $form->select_dolusers_forevent(($action=='create'?'add':'update'), 'assignedtouser', 1, '', 0, '', '', 0, 0, 0, 'AND u.statut != 0', 0, 1, 1);
+
 	if (in_array($user->id,array_keys($listofuserid))) print $langs->trans("MyAvailability").': <input id="transparency" type="checkbox" name="transparency"'.(((! isset($_GET['transparency']) && ! isset($_POST['transparency'])) || GETPOST('transparency'))?' checked="checked"':'').'> '.$langs->trans("Busy");
 	print '</td></tr>';
 
@@ -1635,6 +1661,7 @@ if ($id > 0)
 	    }
 	}
 }
+
 print '
  <script>
         $(document).ready(function(){
@@ -1645,7 +1672,30 @@ print '
             $("#contactid").addClass("combobox");
             $("#socid").removeClass("flat");
             $("#socid").addClass("combobox");
+            if($("#mainmenu").val().length>0){
+				setActionCode();
+            }
+//            console.log();
+//            return;
             ActionCodeChanged();
+            $("#assignedtouser").width(350);
+            $("#addassignpanel").offset({top:$("#addassignedtouser").offset().top-1,left:717})
+            $("a#sendSMS").attr("id", "addAssignedUsers");
+            $("div#sendSMSform").attr("id", "addAssignedUsersForm");
+            $("b#phone_numbertitle").html("'.("Вкажіть користувачів, що пов'язані з дією").'");
+            $("#addAssignedUsersForm").find("input").remove();
+            $("#addAssignedUsersForm").find("textarea").remove();
+            $("#addAssignedUsersForm").width(500);
+            var buttons = $("#addAssignedUsersForm").find("button");
+			buttons[0].innerText="Зберегти";
+			buttons[0].onclick=function(){
+				addAssignedUsers();
+			};
+			var assignedForm = $("#addAssignedUsersForm").find("form");
+			assignedForm = assignedForm[0];
+			assignedForm.innerHTML = "<select id=assegnedusers name=assignedusers[] size=20 class=combobox multiple>"+$("#assignedtouser").html()+"</select>";
+			$("#addAssignedUsersForm").find("select").width(500);
+//            console.log(assignedForm);
             $(".tabBar").width(800);
             $("#event_desc").on("click", redirect);
             $("#priority").on("change",ActionCodeChanged);
@@ -1655,6 +1705,11 @@ print '
 //            	url:
 //            })
         });
+
+        function ShowaddAssignedUsersForm(){
+			location.href ="#addAssignedUsers";
+			$("#addAssignedUsersForm").show();
+        }
         function redirect(){
             $("#redirect").submit();
         }
@@ -1740,33 +1795,7 @@ print '
 
             }
         }
-        function CalcP2(){
-        	var hour = parseInt(document.getElementById("aphour").value)+Math.floor($("#exec_time").val()/60);
-			document.getElementById("p2hour").value = hour<10?("0"+hour):hour;
-			var p2min = 0;
 
-			if(parseInt($("#exec_time").val())%60){
-
-				p2min = parseInt(document.getElementById("apmin").value)+parseInt($("#exec_time").val());
-				document.getElementById("p2hour").value =
-					parseInt(document.getElementById("aphour").value)+Math.floor(p2min/60);
-			}else{
-			   p2min = parseInt(document.getElementById("apmin").value);
-			   var hour = parseInt($("#exec_time").val())+parseInt(document.getElementById("aphour").value);
-			   document.getElementById("p2hour").value = hour<10?("0"+hour):hour;
-			}
-
-			var min="";
-			if(p2min%60<10)
-				min = "0"+(p2min%60).toString();
-			else
-				min = (p2min%60).toString();
-
-
-			var sHour = hour<10?("0"+hour.toString()):(hour.toString());
-			document.getElementById("p2hour").value = sHour;
-			document.getElementById("p2min").value = min;
-        }
         function ActionCodeChanged(){
             if(!$("#ap").val()){
                 var date = new Date();

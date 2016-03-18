@@ -138,7 +138,7 @@ $datep = new DateTime();
 
 $actiontabe = ShowActionTable();
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/action.html';
-llxFooter();
+//llxFooter();
 exit();
 
 

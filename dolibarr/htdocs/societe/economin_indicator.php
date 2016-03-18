@@ -251,4 +251,4 @@ if(in_array($object->categoryofcustomer_id, $sales_category)){
     </script>";
 }
 echo ob_get_clean();
-llxFooter();
+//llxFooter();

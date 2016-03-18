@@ -46,10 +46,24 @@ class SocAddress {
               kindofstreet_id,street_name,numberofhouse,kindoffice_id,numberofoffice,gps,email,site,workercount,sendpost,sendemail,
               active,id_usr,dtChange)
         values(
-        ".$socid.",".$this->Zip.",'".$this->whom."',".$this->kindaddress.",".$this->country_id.",".$this->state_id.",".$this->region_id.",
-        ".$this->kindlocality_id.",'".$this->location."',".$this->kindofstreet_id.",'".$this->street_name."','".$this->NumberOfHouse."',
-        ".$this->kindoffice_id.", '".$this->NumberOfOffice."','".$this->GPS."','".$this->e_mail."','".$this->site."',".$this->WorkerCount.",
-        ".$this->SendPost.",".$this->SendEmail.",1,".$user->id.", Now())";
+        ".$socid.",".$this->Zip.",".(!empty($this->whom)?"'".$db->escape(trim($this->whom))."'":"null").",
+        ".(!empty($this->kindaddress)?$this->kindaddress:"null").",
+        ".(!empty($this->country_id)?$this->country_id:"null").",
+        ".(!empty($this->state_id)?$this->state_id:"null").",
+        ".(!empty($this->region_id)?$this->region_id:"null").",
+        ".(!empty($this->kindlocality_id)?$this->kindlocality_id:"null").",
+        ".(!empty($this->location)?"'".$db->escape($this->location)."'":"null").",
+        ".(!empty($this->kindofstreet_id)?$this->kindofstreet_id:"null").",
+        ".(!empty($this->street_name)?"'".$this->street_name."'":"null").",
+        ".(!empty($this->NumberOfHouse)?"'".$this->NumberOfHouse."'":"null").",
+        ".(!empty($this->kindoffice_id)?$this->kindoffice_id:"null").",
+        ".(!empty($this->NumberOfHouse)?"'".$this->NumberOfHouse."'":"null").",
+        ".(!empty($this->GPS)?"'".$this->GPS."'":"null").",
+        ".(!empty($this->e_mail)?"'".$this->e_mail."'":"null").",
+        ".(!empty($this->site)?"'".$this->site."'":"null").",
+        ".(!empty($this->WorkerCount)?$this->WorkerCount:"null").",
+        ".(!empty($this->SendPost)?$this->SendPost:"0").",
+        ".(!empty($this->SendEmail)?$this->SendEmail:"0").",1,".$user->id.", Now())";
         $res = $db->query($sql);
         if(!$res)
             dol_print_error($db);
@@ -58,12 +72,13 @@ class SocAddress {
         global $db, $user;
         $sql = 'update llx_societe_address set ';
         $sql .= 'zip = '.(!empty($this->Zip)?"'".trim($this->Zip)."'":"null");
-        $sql .= ', whom = '.(!empty($this->whom)?"'".trim($this->whom)."'":"null");
+        $sql .= ', whom = '.(!empty($this->whom)?"'".$db->escape(trim($this->whom))."'":"null");
         $sql .= ', kindaddress = '.(!empty($this->kindaddress)?$this->kindaddress:"null");
         $sql .= ', country_id = '.(!empty($this->country_id)?$this->country_id:"null");
         $sql .= ', state_id = '.(!empty($this->state_id)?$this->state_id:"null");
+        $sql .= ', region_id = '.(!empty($this->region_id)?$this->region_id:"null");
         $sql .= ', kindlocality_id = '.(!empty($this->kindlocality_id)?$this->kindlocality_id:"null");
-        $sql .= ', location = '.(!empty($this->location)?"'".$this->location."'":"null");
+        $sql .= ', location = '.(!empty($this->location)?"'".$db->escape($this->location)."'":"null");
         $sql .= ', kindofstreet_id = '.(!empty($this->kindofstreet_id)?$this->kindofstreet_id:"null");
         $sql .= ', street_name = '.(!empty($this->street_name)?"'".$this->street_name."'":"null");
         $sql .= ', numberofhouse = '.(!empty($this->NumberOfHouse)?"'".$this->NumberOfHouse."'":"null");

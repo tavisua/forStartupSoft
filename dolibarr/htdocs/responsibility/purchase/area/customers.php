@@ -15,15 +15,19 @@ foreach($search as $elem) {
 $page = isset($_GET['page'])?$_GET['page']:1;
 $per_page = isset($_GET['per_page'])?$_GET['per_page']:30;
 
-$sql = 'select `llx_societe`.rowid, `llx_societe`.nom,
-`llx_societe`.`town`, round(`llx_societe_classificator`.`value`,0) as width, `llx_societe`.`remark`, " " deficit,
-" " task," " lastdate, " " lastdatecomerc, " " futuredatecomerc, " " exec_time, " " lastdateservice,
-" " futuredateservice, " " lastdateaccounts, " " futuredateaccounts, " " lastdatementor, " " futuredatementor
+$sql = "select distinct `llx_societe`.rowid, concat(case when `formofgavernment`.`name` is null then '' else `formofgavernment`.`name` end,' ',`llx_societe`.`nom`) nom,
+`llx_societe`.`town`, round(`llx_societe_classificator`.`value`,0) as width, `llx_societe`.`remark`, ' ' deficit,
+' ' task,' ' lastdate, ' ' lastdatecomerc, ' ' futuredatecomerc, ' ' exec_time, ' ' lastdateservice,
+' ' futuredateservice, ' ' lastdateaccounts, ' ' futuredateaccounts, ' ' lastdatementor, ' ' futuredatementor
 from `llx_societe` left join `category_counterparty` on `llx_societe`.`categoryofcustomer_id` = `category_counterparty`.rowid
 left join `formofgavernment` on `llx_societe`.`formofgoverment_id` = `formofgavernment`.rowid
 left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`
-where 1 ';
-$sql_count = 'select count(*) iCount from `llx_societe` where 1 ';
+left join `llx_societe_lineactive` on `llx_societe_lineactive`.fk_soc = `llx_societe`.rowid
+where 1 ";
+$sql_count = 'select count(*) iCount from
+(select distinct `llx_societe`.*  from `llx_societe`
+left join `llx_societe_lineactive` on `llx_societe_lineactive`.fk_soc = `llx_societe`.rowid
+where 1  ';
 
     $tmp = 'and `llx_societe`.`categoryofcustomer_id` in
 (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = '.$user->respon_id.')';
@@ -38,43 +42,81 @@ $sql_count = 'select count(*) iCount from `llx_societe` where 1 ';
 //echo '</pre>';
 
 if($user->login != 'admin') {
-    $tmp = ' and `llx_societe`.`fk_user_creat`=' . $user->id;
+    $tmp = ' and (`llx_societe`. fk_user_creat = '.$user->id.' or `llx_societe_lineactive`.`fk_lineactive` in ('.implode(',', $user->getLineActive()).'))';
     $sql.=$tmp;
     $sql_count.=$tmp;
 }
-if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])){
-    $phone_number = fPrepPhoneFilter($_REQUEST['filter']);
-    $sql_filter = "select llx_societe.rowid from llx_societe
-    left join `llx_societe_contact` on `llx_societe_contact`.`socid`=`llx_societe`.`rowid`
-    where `llx_societe`.`nom`  like '%".$_REQUEST['filter']."%'
-    or `llx_societe_contact`.`lastname`  like '%".$_REQUEST['filter']."%'
-    or `llx_societe_contact`.`firstname`  like '%".$_REQUEST['filter']."%'
-    or `llx_societe_contact`.`subdivision`  like '%".$_REQUEST['filter']."%'
-    or `llx_societe_contact`.`email1`  like '%".$_REQUEST['filter']."%'
-    or `llx_societe_contact`.`email2`  like '%".$_REQUEST['filter']."%'";
-    if(strlen($phone_number)>0) {
-        $sql_filter .=" or `llx_societe_contact` . `mobile_phone1`  like '%".$phone_number."%'
-        or `llx_societe_contact` . `mobile_phone2`  like '%".$phone_number."%' ";
-    }
-    $sql_filter .= "or `llx_societe_contact`.`skype`  like '%".$_REQUEST['filter']."%'";
-    $res = $db->query($sql_filter);
-    if(!$res)
-        dol_print_error($db);
-    $filterid = array();
-    if($db->num_rows($res))
-        while($obj = $db->fetch_object($res)){
-            $filterid[]=$obj->rowid;
+if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['lineactive'])&& !empty($_REQUEST['lineactive'])){
+    if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])) {
+        $phone_number = fPrepPhoneFilter($_REQUEST['filter']);
+        $sql_filter = "select llx_societe.rowid from llx_societe
+            left join `llx_societe_contact` on `llx_societe_contact`.`socid`=`llx_societe`.`rowid`
+            where 1 and `llx_societe`.`categoryofcustomer_id` = 9 and `llx_societe`.`nom`  like '%" . $_REQUEST['filter'] . "%'
+            or `llx_societe_contact`.`lastname`  like '%" . $_REQUEST['filter'] . "%'
+            or `llx_societe_contact`.`firstname`  like '%" . $_REQUEST['filter'] . "%'
+            or `llx_societe_contact`.`subdivision`  like '%" . $_REQUEST['filter'] . "%'
+            or `llx_societe_contact`.`email1`  like '%" . $_REQUEST['filter'] . "%'
+            or `llx_societe_contact`.`email2`  like '%" . $_REQUEST['filter'] . "%'";
+        if (strlen($phone_number) > 0) {
+            $sql_filter .= " or `llx_societe_contact` . `mobile_phone1`  like '%" . $phone_number . "%'
+        or `llx_societe_contact` . `mobile_phone2`  like '%" . $phone_number . "%' ";
         }
+        $sql_filter .= "or `llx_societe_contact`.`skype`  like '%" . $_REQUEST['filter'] . "%'";
+        $res = $db->query($sql_filter);
+        if (!$res)
+            dol_print_error($db);
+        $filterid = array();
+        if ($db->num_rows($res))
+            while ($obj = $db->fetch_object($res)) {
+                if (!in_array($obj->rowid, $filterid))
+                    $filterid[] = $obj->rowid;
+            }
+
+    }
+    if(isset($_REQUEST['lineactive'])&& !empty($_REQUEST['lineactive']) && $_REQUEST['lineactive'] != -1){
+
+        $sql_filter='select `llx_societe`.`rowid` from `llx_societe_lineactive`
+            inner join `llx_societe` on `llx_societe_lineactive`.`fk_soc`=`llx_societe`.`rowid`
+            inner join (select '.$_REQUEST['lineactive'].' as category_id
+              union
+              select category_id from `oc_category`
+              where parent_id='.$_REQUEST['lineactive'].'
+              union
+              select parent_id from `oc_category`
+              where category_id='.$_REQUEST['lineactive'].') lineactive on lineactive.category_id=`llx_societe_lineactive`.`fk_lineactive`
+            where 1
+            and `llx_societe`.`categoryofcustomer_id` in
+                (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = '.$user->respon_id.')';
+        $res = $db->query($sql_filter);
+        if (!$res)
+            dol_print_error($db);
+        $filterid = array();
+        if ($db->num_rows($res))
+            while ($obj = $db->fetch_object($res)) {
+                if (!in_array($obj->rowid, $filterid))
+                    $filterid[] = $obj->rowid;
+            }
+    }
     if(count($filterid)) {
         $sql .= ' and `llx_societe`.`rowid` in (' . implode(',', $filterid) . ') ';
         $sql_count .= ' and `llx_societe`.`rowid` in (' . implode(',', $filterid) . ')';
+    }else{
+        if(isset($_REQUEST['lineactive'])&& !empty($_REQUEST['lineactive']) && $_REQUEST['lineactive'] != -1) {
+            $sql .= ' and `llx_societe`.`rowid` in (0) ';
+            $sql_count .= ' and `llx_societe`.`rowid` in (0)';
+        }
     }
 }
+$sql_count.=') societe';
 $sql .= ' order by width desc, nom';
 $sql .= ' limit '.($page-1)*$per_page.','.$per_page;
+
 $res = $db->query($sql_count);
 $count = $db->fetch_object($res);
-//var_dump(ceil($count->iCount/$per_page));
+
+//echo '<pre>';
+//var_dump($sql);
+//echo '</pre>';
 //die();
 $total = ceil($count->iCount/$per_page);
 
@@ -196,7 +238,7 @@ $table = fShowTable($TableParam, $sql, "'" . $tablename . "'", $conf->theme, $_R
 
 //$row = $db_mysql->fShowTable($TableParam, $sql, "'" . $tablename . "'", $conf->theme, $_REQUEST['sortfield'], $_REQUEST['sortorder'], $readonly = array(-1), false);
 
-include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/area/customers.html');
+include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/purchase/area/customers.html');
 $prev_form = "<a href='#x' class='overlay' id='peview_form'></a>
                      <div class='popup' style='width: 300px;height: 150px'>
                      <textarea readonly id='prev_form' style='width: 100%;height: 100%;resize: none'></textarea>
@@ -311,6 +353,7 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
         left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
         where `llx_societe`.active = 1
         and `llx_actioncomm`.`id` not in (select `llx_societe_action`.`action_id` from llx_societe_action)
+        and `llx_actioncomm`.active = 1
         limit 0,30";
 //    die($sql);
     $res = $db->query($sql);

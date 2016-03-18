@@ -975,12 +975,6 @@ if (! function_exists("llxHeader"))
                         <table>
                             <tbody>
                                 <tr>
-                                    <td class="middle_size" colspan="4"><b>Статус користувача</b></td>
-                                </tr>
-                                <tr>
-                                    <td class="middle_size" colspan="4" style="width: 250px"><div id="timer" style="width: 75%;background-color: red;text-align: center">15cек</div></td>
-                                </tr>
-                                <tr>
                                     <td class="middle_size" colspan="4"><b>Робочий стіл перемовника</b></td>
                                 </tr>
                                 <tr>
@@ -1111,7 +1105,8 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
         $favicon=dol_buildpath('/theme/'.$conf->theme.'/img/favicon.ico',1);
         if (! empty($conf->global->MAIN_FAVICON_URL)) $favicon=$conf->global->MAIN_FAVICON_URL;
 //        print '<link rel="shortcut icon" type="image/x-icon" href="'.$favicon.'"/>'."\n";
-        print '<link rel="shortcut icon" type="image/x-icon" href="/dolibarr/htdocs/theme/eldy/img/tit.ico"/>'."\n";
+        if($conf->browser->name != "chrome")
+            print '<link rel="shortcut icon" type="image/x-icon" href="/dolibarr/htdocs/theme/eldy/img/tit.ico"/>'."\n";
 //        die($favicon);
         if (empty($conf->global->MAIN_OPTIMIZEFORTEXTBROWSER)) print '<link rel="top" title="'.$langs->trans("Home").'" href="'.(DOL_URL_ROOT?DOL_URL_ROOT:'/').'">'."\n";
         if (empty($conf->global->MAIN_OPTIMIZEFORTEXTBROWSER)) print '<link rel="copyright" title="GNU General Public License" href="http://www.gnu.org/copyleft/gpl.html#SEC1">'."\n";
@@ -1417,8 +1412,9 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
                 print '<script type="text/javascript" src="/dolibarr/htdocs/societe/js/soc.js'.($ext?'?'.$ext:'').'"></script>'."\n";
             }elseif(strpos($_SERVER["SCRIPT_NAME"],'dict.php')){
                 print '<script type="text/javascript" src="/dolibarr/htdocs/admin/js/dict.js'.($ext?'?'.$ext:'').'"></script>'."\n";
-            }else
-                print '<script type="text/javascript" src="/dolibarr/scripts/js/table_manager.js'.($ext?'?'.$ext:'').'"></script>'."\n";
+            }
+
+            print '<script type="text/javascript" src="/dolibarr/scripts/js/table_manager.js'.($ext?'?'.$ext:'').'"></script>'."\n";
 
 
             print '<script type="text/javascript" src="/dolibarr/htdocs/societe/js/jquery.maskedinput-1.2.2.js'.($ext?'?'.$ext:'').'"></script>'."\n";
@@ -1560,11 +1556,13 @@ function top_menu($head, $title='', $target='', $disablejs=0, $disablehead=0, $a
         // Wrapper to show tooltips
         print "\n".'<script type="text/javascript">
                     jQuery(document).ready(function () {
+                        Timer();
                         $("#bookmarkActionPanel").hide();
                     	jQuery(function() {
                         	jQuery(".classfortooltip").tipTip({maxWidth: "'.dol_size(600,'width').'px", edgeOffset: 10, delay: 50, fadeIn: 50, fadeOut: 50});
                         });
                     });
+
                 </script>';
     }
 
@@ -1651,7 +1649,7 @@ function top_menu($head, $title='', $target='', $disablejs=0, $disablehead=0, $a
 	    	$logouthtmltext.=$langs->trans("NoLogoutProcessWithAuthMode",$_SESSION["dol_authmode"]);
 	        $logouttext .= img_picto($langs->trans('Logout').":".$langs->trans('Logout'), 'logout.png', 'class="login"', 0, 0, 1);
 	    }
-        print '<div class="login_block">'."\n";
+        print '<div class="login_block" style="float: right">'."\n";
 
         print '<div style="width: 40px; float: right">';
         $toprightmenu.='<div class="login_block_user">';
@@ -1688,11 +1686,12 @@ function top_menu($head, $title='', $target='', $disablejs=0, $disablehead=0, $a
 	    print $toprightmenu;
 
 	    print "</div>\n";
+//    echo '<pre>';
+//    var_dump($_SERVER);
+//        echo '</pre>';
+//        die();
+        print '<div id="backgroundtimer" style="width: 40px; height: 45px;float: right; padding-right: 5px; background: url(http://'.$_SERVER["HTTP_HOST"].'/dolibarr/htdocs/theme/eldy/img/green_timer.png)"><div id="timer"  style="padding-left:5px;padding-top:15px;color:#ffffff;text-align: center;">0c.</div></div>';
 
-        if(empty($user->timePhoneConnect)||dol_now()-3600>=$user->timePhoneConnect)
-            print '<div style="width: 40px; float: right; padding-right: 5px"><img id="phone_indicator" src="/dolibarr/htdocs/theme/eldy/img/unactive_phone.png" title="'.$langs->trans('RegisterPhone').'" onclick="registerphone();"></div>';
-        else
-            print '<div style="width: 40px; float: right; padding-right: 5px"><img id="phone_indicator" src="/dolibarr/htdocs/theme/eldy/img/active_phone.png" title="'.$langs->trans('PhoneRegistered').'"></div>';
         print "</div>";
 	    unset($form);
     }

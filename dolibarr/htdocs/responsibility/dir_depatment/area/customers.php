@@ -15,14 +15,14 @@ foreach($search as $elem) {
 $page = isset($_GET['page'])?$_GET['page']:1;
 $per_page = isset($_GET['per_page'])?$_GET['per_page']:30;
 
-$sql = 'select `llx_societe`.rowid, `llx_societe`.nom,
-`llx_societe`.`town`, round(`llx_societe_classificator`.`value`,0) as width, `llx_societe`.`remark`, " " deficit,
-" " task," " lastdate, " " lastdatecomerc, " " futuredatecomerc, " " exec_time, " " lastdateservice,
-" " futuredateservice, " " lastdateaccounts, " " futuredateaccounts, " " lastdatementor, " " futuredatementor
+$sql = "select `llx_societe`.rowid, concat(case when `formofgavernment`.`name` is null then '' else `formofgavernment`.`name` end,' ',`llx_societe`.`nom`) nom,
+`llx_societe`.`town`, round(`llx_societe_classificator`.`value`,0) as width, `llx_societe`.`remark`, ' ' deficit,
+' ' task,' ' lastdate, ' ' lastdatecomerc, ' ' futuredatecomerc, ' ' exec_time, ' ' lastdateservice,
+' ' futuredateservice, ' ' lastdateaccounts, ' ' futuredateaccounts, ' ' lastdatementor, ' ' futuredatementor
 from `llx_societe` left join `category_counterparty` on `llx_societe`.`categoryofcustomer_id` = `category_counterparty`.rowid
 left join `formofgavernment` on `llx_societe`.`formofgoverment_id` = `formofgavernment`.rowid
 left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`
-where 1';
+where 1 ";
 $sql_count = 'select count(*) iCount from `llx_societe` where 1 ';
 
 if($user->login != 'admin') {
@@ -38,8 +38,9 @@ $sql .= ' and `llx_societe`.active = 1 ';
 $sql_count.=' and `llx_societe`.active = 1 ';
 //die($sql);
 //echo '<pre>';
-//var_dump($user->id);
+//var_dump($sql);
 //echo '</pre>';
+//die();
 
 
 if($user->login != 'admin') {

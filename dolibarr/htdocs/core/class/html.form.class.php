@@ -1571,7 +1571,9 @@ class Form
 			$out.='<input type="hidden" class="removedassignedhidden" name="removedassigned" value="">';
 			$out.='<script type="text/javascript" language="javascript">jQuery(document).ready(function () {    jQuery(".removedassigned").click(function() {        jQuery(".removedassignedhidden").val(jQuery(this).val());    });})</script>';
 			$out.=$this->select_dolusers('', $htmlname, $show_empty, $exclude, $disabled, $include, $enableonly, $force_entity, $maxlength, $showstatus, $morefilter, $showrespon, $showpost, $showsubdiv, $onlyMysubdiv);
-			$out.='<input type="submit" class="button" name="'.$action.'assignedtouser" value="'.dol_escape_htmltag($langs->trans("Add")).'">';
+            $out.='<input id="'.$action.'assignedtouser" type="submit" class="button" name="'.$action.'assignedtouser" value="'.dol_escape_htmltag($langs->trans("Add")).'">';
+//            $out.='<button style="width: 21px;height: 30px;margin-top: 15px"><img style="margin-left: -6px" src="../../../htdocs/theme/eldy/img/Add.png"></button>';
+//            $out.='<input type="submit" class="button"  value="+">';
 		}
 		$assignedtouser=array();
 		if (!empty($_SESSION['assignedtouser']))

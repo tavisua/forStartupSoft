@@ -244,6 +244,8 @@ function dol_json_decode($json, $assoc=false)
 	// Return an array
 	if ($out != '') eval('$array = '.$out.';');
 	else $array=array();
+//	var_dump($array);
+//	die();
     return $array;
 	// Return an object
 	if (! $assoc)

@@ -24,19 +24,22 @@ function strpos( haystack, needle, offset){ // Find position of first occurrence
 function setvisiblbloks(){
     var val_categories = ['0','4','6','7','1','9'];
     var show = false;
-    if($.inArray($('#categoryofcustomer').val(), val_categories) == -1){
+    if($.inArray($('#categoryofcustomer').val().toString, val_categories) == -1){
         show = true;
     }
-    console.log($('#categoryofcustomer').val(), $.inArray($('#categoryofcustomer').val(), val_categories));
+    console.log($('#categoryofcustomer').val(), $.inArray($('#categoryofcustomer').val().toString, val_categories));
     if(show){
         $('#assign_name').show();
         $('#classifycation').show();
         $('#lineactive').show();
+        console.log('show');
     }else{
         $('#assign_name').hide();
         $('#classifycation').hide();
         $('#lineactive').hide();
+        console.log('hide');
     }
+
 }
 function addtownitem(val){
     var item = '<input id="'+val.name+'" class="townitem" type="hidden" name="action" value="'+val.rowid+'">'
@@ -120,4 +123,39 @@ function change_select(rowid, tablename, col_name){
         console.log(link);
         update_data(link);
     }
+}
+ $(window).click(function(){
+    $('#timer').text('0сек');
+    $('#backgroundtimer').css('background', 'url(http://'+location.host+'/dolibarr/htdocs/theme/eldy/img/green_timer.png)');
+    $('#timer').css('color', '#ffffff');
+})
+function Timer(){
+    var sec = $('#timer').text().substr(0, $('#timer').text().length-1);
+
+    sec = parseInt(sec)+1;
+    $('#timer').text(sec + 'с');
+    if(sec<10){
+        $('#backgroundtimer').css('background', 'url(http://'+location.host+'/dolibarr/htdocs/theme/eldy/img/green_timer.png)');
+        $('#timer').css('color', '#ffffff');
+    }else if(sec>=10&&sec<15){
+        $('#backgroundtimer').css('background', 'url(http://'+location.host+'/dolibarr/htdocs/theme/eldy/img/yelow_timer.png)');
+        $('#timer').css('color', '#000000');
+    }else {
+        $('#backgroundtimer').css('background', 'url(http://' + location.host + '/dolibarr/htdocs/theme/eldy/img/red_timer.png)');
+        $('#timer').css('color', '#ffffff');
+    }
+//        if(sec<=15) {
+//
+////            $('#timer').css('width', sec*100/15+'%');
+////            if(sec<10){
+////                $('#timer').css('background-color', '#008000');
+////            }else if(sec>=10&&sec<=15){
+////                $('#timer').css('background-color', '#fbef7e');
+////            }
+//        }else {
+////            $('#timer').css('background-color', 'red');
+////            $('#timer').text(sec+'сек бездіяльності');
+////            return false;
+//        }
+    setTimeout(Timer, 1000);
 }

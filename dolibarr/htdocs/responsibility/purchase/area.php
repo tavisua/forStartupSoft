@@ -14,6 +14,10 @@ if(count($_POST)>0){
 //    echo '</pre>';
 //    die();
 }
+//echo '<pre>';
+//var_dump($_REQUEST);
+//echo '</pre>';
+//die();
 $Area = $langs->trans('Area');
 llxHeader("",$Area,"");
 print_fiche_titre($Area);
