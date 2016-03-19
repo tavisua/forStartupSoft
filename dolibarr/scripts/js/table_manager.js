@@ -17,6 +17,70 @@ function setTime(link){
         }
     })
 }
+function EditAction(rowid){
+    $('#action_id').val(rowid);
+    $('#action_item').val('edit');
+    $('#addaction').submit();
+}
+function ConfirmExec(id){
+    var src = $('img#confirm' + id).attr('src');
+    var img_src = (src.substr(src.length-'uncheck.png'.length, 'uncheck.png'.length));
+    if(img_src =='uncheck.png' &&  confirm('Установити відмітку про виконання роботи?')) {
+        $('img#confirm' + id).off();
+        for (var i = src.length; i > 0; i--) {
+            if (src.substr(i, 1) == "/") {
+                src = src.substr(0, i + 1) + 'Check.png';
+                break;
+            }
+        }
+        $('img#confirm' + id).attr('src', src);
+        var link = "http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=confirm_exec&rowid="+id;
+        $.ajax({
+            url: link,
+            cache: false,
+            success: function(html){
+                console.log(html, 'confirm_exec');
+            }
+        })
+    }
+}
+function previewNote(id){
+    var link = "http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=shownote&rowid="+id;
+    $.ajax({
+        url: link,
+        cache: false,
+        success: function(html){
+            $('#phone_numbertitle').text('');
+            $('#textsms').text(html);
+            console.log(html);
+            location.href = '#sendSMS';
+            $('#sendSMSform').find('button').remove();
+            $('#sendSMSform').show();
+        }
+    })
+}
+function ConfirmReceived(id){
+    var src = $('img#confirm' + id).attr('src');
+    var img_src = (src.substr(src.length-'uncheck.png'.length, 'uncheck.png'.length));
+    if(img_src =='uncheck.png' &&  confirm('Прийняти в роботу?')) {
+        $('img#confirm' + id).off();
+        for (var i = src.length; i > 0; i--) {
+            if (src.substr(i, 1) == "/") {
+                src = src.substr(0, i + 1) + 'Check.png';
+                break;
+            }
+        }
+        $('img#confirm' + id).attr('src', src);
+        var link = "http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=received_action&rowid="+id;
+        $.ajax({
+            url: link,
+            cache: false,
+            success: function(html){
+                console.log('received action');
+            }
+        })
+    }
+}
 function setActionCode(){
     //console.log('setActionCode');
     switch ($("#mainmenu").val()){
@@ -507,7 +571,45 @@ function addAssignedUsers(){
         assignedJSON+=',"'+select[i]+'":{"id":"'+select[i]+'","transparency":"on","mandatory":1}';
     }
     assignedJSON+="}";
-    location.href='?action=add&assignedJSON='+assignedJSON+'&mainmenu='+$('input#mainmenu').val();
+
+    //location.href='?action=add&assignedJSON='+assignedJSON+'&mainmenu='+$('input#mainmenu').val()+'&backtopage='+$('#backtopage').val();
+    //$('#addAssigned').find('#backpage').val($('#backtopage').val());
+    $('#addAssigned').find('#assignedJSON').val(assignedJSON);
+    //$('#addAssigned').find('#mm').val($('input#mainmenu').val());
+    //$('#addAssigned').find('#type_code').val($('select#actioncode').val());
+    //$('#addAssigned').find('#formaction').val('addassignedtouser');
+    var inputfield = $('#formaction').find('input');
+
+    for(var i = 0; i<inputfield.length; i++) {
+        //if(inputfield[i].attr('type'))
+        if(inputfield[i].type == 'hidden') {
+            $('#addAssigned').html($('#addAssigned').html()+inputfield[i].outerHTML);
+        }
+        else{
+            var elem = inputfield[i];
+            elem.style.display = 'none';
+             $('#addAssigned').html($('#addAssigned').html()+elem.outerHTML);
+            //console.log(elem.outerHTML);
+        }
+    }
+    var selectfield = $('#formaction').find('select');
+    for(var i = 0; i<selectfield.length; i++) {
+        //if(inputfield[i].attr('type'))
+        if(selectfield[i].type == 'hidden') {
+            $('#addAssigned').html($('#addAssigned').html()+inputfield[i].outerHTML);
+        }
+        else{
+            var elem = selectfield[i];
+            elem.style.display = 'none';
+             $('#addAssigned').html($('#addAssigned').html()+elem.outerHTML);
+            //console.log(elem.outerHTML);
+        }
+    }
+    $('#addAssigned').html($('#addAssigned').html()+'<input type="hidden" id = "addassignedtouser" name="addassignedtouser" value="Зберегти">');
+    //console.log($('#addAssigned').html());
+    //return;
+    $('#addAssigned').submit();
+
 }
 function setHightTable(table){
     var tbody = document.getElementById(table);

@@ -84,7 +84,7 @@ class ActionComm extends CommonObject
 
     var $datep;			// Date action start (datep)
     var $datef;			// Date action end (datep2)
-
+    var $datepreperform;
     /**
      * @var int -1=Unkown duration
      * @deprecated
@@ -204,7 +204,11 @@ class ActionComm extends CommonObject
     }
     function GetExecTime($code){
         global $db;
-        $sql = "select exec_time from llx_c_actioncomm where active = 1 and code='".$code."' limit 1";
+
+        if(!is_numeric(substr($code, 0, 1)))
+            $sql = "select exec_time from llx_c_actioncomm where active = 1 and code='".$code."' limit 1";
+        else
+            $sql = "select exec_time from llx_c_actioncomm where id='".$code."' limit 1";
         $res = $db->query($sql);
         if(!$res){
             var_dump($sql);
@@ -216,15 +220,20 @@ class ActionComm extends CommonObject
             $exec_time = 0;
         return $exec_time;
     }
+    function GetFreeTime($inputdate, $id_usr, $minutes, $prioritet = 0){
+        $date = new DateTime($inputdate);
+        $PlanTime = 0;
+        while(!$PlanTime) {
+            $PlanTime = $this->GetFirstFreeTime($date->format('Y-m-d'), $id_usr, $minutes, $prioritet);
+            $date = new DateTime(date('Y-m-d', mktime(8,0,0,$date->format('m'),$date->format('d'),$date->format('Y'))+ 86400));
+        }
+        return $PlanTime;
+    }
     function GetFirstFreeTime($date, $id_usr, $minutes, $prioritet = 0){
         $freetime = $this->GetFreeTimePeriod($date, $id_usr, $prioritet);
-//        echo '<pre>';
-//        var_dump($freetime);
-//        echo '</pre>';
-//        die();
         foreach($freetime as $period){
             if($minutes<=$period[1]) {
-                return  $period[0];
+                return  $period[2].' '.$period[0];
             }
         }
         return 0;
@@ -241,231 +250,410 @@ class ActionComm extends CommonObject
         $res = $db->query($sql);
         if(!$res)
             dol_print_error($db);
-        $time = mktime(8,0,0,$date->format('m'),$date->format('d'),$date->format('Y'));
+        $Now = new DateTime();
+//        var_dump($sql);
+//        die();
+        if($Now<$date)
+            $time = mktime(8,0,0,$date->format('m'),$date->format('d'),$date->format('Y'));
+        else
+            $time = mktime($Now->format('H'),$Now->format('i'),$Now->format('s'),$date->format('m'),$date->format('d'),$date->format('Y'));
 
         $freetime = array();
         while($obj = $db->fetch_object($res)){
             $tmp_date = new DateTime($obj->datep);
             $tmp_mk = mktime($tmp_date->format('H'), $tmp_date->format('i'),$tmp_date->format('s'),$tmp_date->format('m'), $tmp_date->format('d'),$tmp_date->format('Y'));
             if(($tmp_mk - $time)/60>0) {
-                $freetime[] = array(date('H.i.s', $time), ($tmp_mk - $time)/60);
+                $freetime[] = array(date('H.i.s', $time), ($tmp_mk - $time)/60, $date->format('Y-m-d'));
             }
             $tmp_date = new DateTime($obj->datep2);
             $time = mktime($tmp_date->format('H'), $tmp_date->format('i'),$tmp_date->format('s'),$tmp_date->format('m'), $tmp_date->format('d'),$tmp_date->format('Y'));
         }
         $tmp_mk = mktime(19,0,0,$date->format('m'),$date->format('d'),$date->format('Y'));
+//        var_dump(($tmp_mk - $time));
+//        die();
         if(($tmp_mk - $time)/60>0) {
-            $freetime[] = array(date('H.i.s', $time), ($tmp_mk - $time)/60);
+            $freetime[] = array(date('H.i.s', $time), ($tmp_mk - $time)/60, $date->format('Y-m-d'));
         }
         return $freetime;
     }
     function add($user,$notrigger=0)
     {
-//        echo '<pre>';
-//        var_dump($this);
-//        echo '</pre>';
-//        die();
-        global $langs,$conf,$hookmanager;
 
-        $error=0;
-        $now=dol_now();
+        global $langs, $conf, $hookmanager;
+
+        $error = 0;
+        $now = dol_now();
         // Check parameters
-        if (empty($this->userownerid))
-        {
-        	$this->errors[]='ErrorPropertyUserowneridNotDefined';
-        	return -1;
+        if (empty($this->userownerid)) {
+            $this->errors[] = 'ErrorPropertyUserowneridNotDefined';
+            return -1;
         }
 
         // Clean parameters
-        $this->label=dol_trunc(trim($this->label),128);
-        $this->location=dol_trunc(trim($this->location),128);
-        $this->note=dol_htmlcleanlastbr(trim($this->note));
-        if (empty($this->percentage))   $this->percentage = 0;
-        if (empty($this->priority) || ! is_numeric($this->priority)) $this->priority = 0;
+        $this->label = dol_trunc(trim($this->label), 128);
+        $this->location = dol_trunc(trim($this->location), 128);
+        $this->note = dol_htmlcleanlastbr(trim($this->note));
+        if (empty($this->percentage)) $this->percentage = 0;
+        if (empty($this->priority) || !is_numeric($this->priority)) $this->priority = 0;
         if (empty($this->fulldayevent)) $this->fulldayevent = 0;
-        if (empty($this->punctual))     $this->punctual = 0;
+        if (empty($this->punctual)) $this->punctual = 0;
         if (empty($this->transparency)) $this->transparency = 0;
         if ($this->percentage > 100) $this->percentage = 100;
         //if ($this->percentage == 100 && ! $this->dateend) $this->dateend = $this->date;
-        if (! empty($this->datep) && ! empty($this->datef))   $this->durationp=($this->datef - $this->datep);		// deprecated
+        if (!empty($this->datep) && !empty($this->datef)) $this->durationp = ($this->datef - $this->datep);        // deprecated
         //if (! empty($this->date)  && ! empty($this->dateend)) $this->durationa=($this->dateend - $this->date);
-        if (! empty($this->datep) && ! empty($this->datef) && $this->datep > $this->datef) $this->datef=$this->datep;
+        if (!empty($this->datep) && !empty($this->datef) && $this->datep > $this->datef) $this->datef = $this->datep;
         //if (! empty($this->date)  && ! empty($this->dateend) && $this->date > $this->dateend) $this->dateend=$this->date;
-        if (! isset($this->fk_project) || $this->fk_project < 0) $this->fk_project = 0;
-        if ($this->elementtype=='facture')  $this->elementtype='invoice';
-        if ($this->elementtype=='commande') $this->elementtype='order';
-        if ($this->elementtype=='contrat')  $this->elementtype='contract';
+        if (!isset($this->fk_project) || $this->fk_project < 0) $this->fk_project = 0;
+        if ($this->elementtype == 'facture') $this->elementtype = 'invoice';
+        if ($this->elementtype == 'commande') $this->elementtype = 'order';
+        if ($this->elementtype == 'contrat') $this->elementtype = 'contract';
 
-        if (is_object($this->contact) && $this->contact->id > 0 && ! ($this->contactid > 0)) $this->contactid = $this->contact->id;		// For backward compatibility. Using this->contact->xx is deprecated
+        if (is_object($this->contact) && $this->contact->id > 0 && !($this->contactid > 0)) $this->contactid = $this->contact->id;        // For backward compatibility. Using this->contact->xx is deprecated
 
-        $userownerid=$this->userownerid;
-        $userdoneid=$this->userdoneid;
+        $userownerid = $this->userownerid;
+        $userdoneid = $this->userdoneid;
 
         // Be sure assigned user is defined as an array of array('id'=>,'mandatory'=>,...).
-        if (empty($this->userassigned) || count($this->userassigned) == 0 || ! is_array($this->userassigned))
-        	$this->userassigned = array($userownerid=>array('id'=>$userownerid));
+        if (empty($this->userassigned) || count($this->userassigned) == 0 || !is_array($this->userassigned))
+            $this->userassigned = array($userownerid => array('id' => $userownerid));
 
-        if (! $this->type_id || ! $this->type_code)
-        {
-        	$key=empty($this->type_id)?$this->type_code:$this->type_id;
+        if (!$this->type_id || !$this->type_code) {
+            $key = empty($this->type_id) ? $this->type_code : $this->type_id;
 
             // Get id from code
-            $cactioncomm=new CActionComm($this->db);
-            $result=$cactioncomm->fetch($key);
+            $cactioncomm = new CActionComm($this->db);
+            $result = $cactioncomm->fetch($key);
 
-            if ($result > 0)
-            {
-                $this->type_id=$cactioncomm->id;
-                $this->type_code=$cactioncomm->code;
-            }
-            else if ($result == 0)
-            {
-                $this->error='Failed to get record with id '.$this->type_id.' code '.$this->type_code.' from dictionary "type of events"';
+            if ($result > 0) {
+                $this->type_id = $cactioncomm->id;
+                $this->type_code = $cactioncomm->code;
+            } else if ($result == 0) {
+                $this->error = 'Failed to get record with id ' . $this->type_id . ' code ' . $this->type_code . ' from dictionary "type of events"';
                 return -1;
-            }
-            else
-			{
-                $this->error=$cactioncomm->error;
+            } else {
+                $this->error = $cactioncomm->error;
                 return -1;
             }
         }
 
         // Check parameters
-        if (! $this->type_id)
-        {
-            $this->error="ErrorWrongParameters";
+        if (!$this->type_id) {
+            $this->error = "ErrorWrongParameters";
             return -1;
         }
 
         $this->db->begin();
+//        var_dump(array_keys($this->userassigned));
+//        die();
+        for ($i = count(array_keys($this->userassigned))>1?1:0; $i < count(array_keys($this->userassigned)); $i++) {
 
-        $sql = "INSERT INTO ".MAIN_DB_PREFIX."actioncomm";
-        $sql.= "(datec,";
-        $sql.= "datep,";
-        $sql.= "datep2,";
-        $sql.= "durationp,";	// deprecated
-        $sql.= "fk_action,";
-        $sql.= "code,";
-        $sql.= "fk_soc,";
-        $sql.= "fk_parent,";
-        $sql.= "fk_project,";
-        $sql.= "note,";
-        $sql.= "fk_contact,";
-        $sql.= "fk_user_author,";
-        $sql.= "fk_user_action,";
-        $sql.= "fk_user_done,";
-        $sql.= "label,percent,priority,fulldayevent,location,punctual,";
-        $sql.= "transparency,";
-        $sql.= "fk_element,";
-        $sql.= "elementtype,";
-        $sql.= "entity,";
-        $sql.= "confirmdoc,";
-        $sql.= "period,";
-        $sql.= "fk_order_id";
-        $sql.= ") VALUES (";
-        $sql.= "'".$this->db->idate($now)."',";
-        $sql.= (strval($this->datep)!=''?"'".$this->db->idate($this->datep)."'":"null").",";
-        $sql.= (strval($this->datef)!=''?"'".$this->db->idate($this->datef)."'":"null").",";
-        $sql.= ((isset($this->durationp) && $this->durationp >= 0 && $this->durationp != '')?"'".$this->durationp."'":"null").",";	// deprecated
-        $sql.= (isset($this->type_id)?$this->type_id:"null").",";
-        $sql.= (isset($this->type_code)?" '".$this->type_code."'":"null").",";
-        $sql.= ((isset($this->socid) && $this->socid > 0)?" '".$this->socid."'":"null").",";
-        $sql.= ((isset($this->parent_id) && $this->parent_id > 0)?" '".$this->parent_id."'":0).",";
-        $sql.= ((isset($this->fk_project) && $this->fk_project > 0)?" '".$this->fk_project."'":"null").",";
-        $sql.= " '".$this->db->escape($this->note)."',";
-        $sql.= ((isset($this->contactid) && $this->contactid > 0)?"'".$this->contactid."'":"null").",";
-        $sql.= (isset($user->id) && $user->id > 0 ? "'".$user->id."'":"null").",";
-        $sql.= ($userownerid>0?"'".$userownerid."'":"null").",";
-        $sql.= ($userdoneid>0?"'".$userdoneid."'":"null").",";
-        $sql.= "'".$this->db->escape($this->label)."','".$this->percentage."','".$this->priority."','".$this->fulldayevent."','".$this->db->escape($this->location)."','".$this->punctual."',";
-        $sql.= "'".$this->transparency."',";
-        $sql.= (! empty($this->fk_element)?$this->fk_element:"null").",";
-        $sql.= (! empty($this->elementtype)?"'".$this->elementtype."'":"null").",";
-        $sql.= $conf->entity.",";
-        $sql.= "'".$this->confirmdoc."',";
-        $sql.= "'".$this->period."',";
-        $sql.= " ".(! empty($this->order_id)?"'".$this->order_id."'":"null");
-        $sql.= ")";
-//        var_dump($sql);
-        dol_syslog(get_class($this)."::add", LOG_DEBUG);
-        $resql=$this->db->query($sql);
-        if ($resql)
-        {
-            $this->id = $this->db->last_insert_id(MAIN_DB_PREFIX."actioncomm","id");
-//            var_dump($error);
-//            die();
-            // Now insert assignedusers
-			if (! $error)
-			{
-				foreach($this->userassigned as $key => $val)
-				{
-			        if (! is_array($val))	// For backward compatibility when val=id
-			        {
-			        	$val=array('id'=>$val);
-			        }
-                    if($user->id != $val['id']) {
-                        $sql = "INSERT INTO " . MAIN_DB_PREFIX . "actioncomm_resources(fk_actioncomm, element_type, fk_element, mandatory, transparency, answer_status)";
-                        $sql .= " VALUES(" . $this->id . ", 'user', " . $val['id'] . ", " . (empty($val['mandatory']) ? '0' : $val['mandatory']) . ", " . (empty($val['transparency']) ? '0' : $val['transparency']) . ", " . (empty($val['answer_status']) ? '0' : $val['answer_status']) . ")";
+            $correctdate = false;
+            $cdatep=0;
+            $cdatef=0;
+            if(count(array_keys($this->userassigned))>1){
+                $correctdate = true;
+                $minute = ($this->datef-$this->datep)/60;
+                $freedate = new DateTime($this->GetFreeTime(date('Y-m-d',$this->datep),array_keys($this->userassigned)[$i],$minute, $this->priority));
 
-                        $resql = $this->db->query($sql);
-                        if (!$resql) {
-//                            dol_print_error($this->db);
-                            $error++;
-                            $this->errors[] = $this->db->lasterror();
+                $cdatep = mktime($freedate->format('H'),$freedate->format('i'),$freedate->format('s'),$freedate->format('m'),$freedate->format('d'),$freedate->format('Y'));
+                $cdatef = $cdatep+$minute*60;
+//                if(array_keys($this->userassigned)[$i] == 66) {
+//                    var_dump(array_keys($this->userassigned)[$i], $freedate, date('H:i:s', $cdatef));
+//                    die();
+//                }
+            }
+
+//            echo ($i) . '</br>';
+            $sql = "INSERT INTO " . MAIN_DB_PREFIX . "actioncomm";
+            $sql .= "(datec,";
+            $sql .= "datep,";
+            $sql .= "datep2,";
+            $sql .= "durationp,";    // deprecated
+            $sql .= "datepreperform,";    // deprecated
+            $sql .= "fk_action,";
+            $sql .= "code,";
+            $sql .= "fk_soc,";
+            $sql .= "fk_parent,";
+            $sql .= "fk_project,";
+            $sql .= "note,";
+            $sql .= "fk_contact,";
+            $sql .= "fk_user_author,";
+            $sql .= "fk_user_action,";
+            $sql .= "fk_user_done,";
+            $sql .= "label,percent,priority,fulldayevent,location,punctual,";
+            $sql .= "transparency,";
+            $sql .= "fk_element,";
+            $sql .= "elementtype,";
+            $sql .= "entity,";
+            $sql .= "confirmdoc,";
+            $sql .= "period,";
+            $sql .= "fk_groupoftask,";
+            $sql .= "fk_order_id";
+            $sql .= ") VALUES (";
+            $sql .= "'" . $this->db->idate($now) . "',";
+            if(!$correctdate) {
+                $sql .= (strval($this->datep) != '' ? "'" . $this->db->idate($this->datep) . "'" : "null") . ",";
+                $sql .= (strval($this->datef) != '' ? "'" . $this->db->idate($this->datef) . "'" : "null") . ",";
+            }else{
+                $sql .= (strval($cdatep) != '' ? "'" . $this->db->idate($cdatep) . "'" : "null") . ",";
+                $sql .= (strval($cdatef) != '' ? "'" . $this->db->idate($cdatef) . "'" : "null") . ",";
+            }
+            $sql .= ((isset($this->durationp) && $this->durationp >= 0 && $this->durationp != '') ? "'" . $this->durationp . "'" : "null") . ",";    // deprecated
+            $sql .= (strval($this->datepreperform) != '' ? "'" . $this->db->idate($this->datepreperform) . "'" : "null") . ",";
+            $sql .= (isset($this->type_id) ? $this->type_id : "null") . ",";
+            $sql .= (isset($this->type_code) ? " '" . $this->type_code . "'" : "null") . ",";
+            $sql .= ((isset($this->socid) && $this->socid > 0) ? " '" . $this->socid . "'" : "null") . ",";
+            $sql .= ((isset($this->parent_id) && $this->parent_id > 0) ? " '" . $this->parent_id . "'" : 0) . ",";
+            $sql .= ((isset($this->fk_project) && $this->fk_project > 0) ? " '" . $this->fk_project . "'" : "null") . ",";
+            $sql .= " '" . $this->db->escape($this->note) . "',";
+            $sql .= ((isset($this->contactid) && $this->contactid > 0) ? "'" . $this->contactid . "'" : "null") . ",";
+            $sql .= (isset($user->id) && $user->id > 0 ? "'" . $user->id . "'" : "null") . ",";
+            $sql .= ($userownerid > 0 ? "'" . $userownerid . "'" : "null") . ",";
+            $sql .= ($userdoneid > 0 ? "'" . $userdoneid . "'" : "null") . ",";
+            $sql .= "'" . $this->db->escape($this->label) . "','" . $this->percentage . "','" . $this->priority . "','" . $this->fulldayevent . "','" . $this->db->escape($this->location) . "','" . $this->punctual . "',";
+            $sql .= "'" . $this->transparency . "',";
+            $sql .= (!empty($this->fk_element) ? $this->fk_element : "null") . ",";
+            $sql .= (!empty($this->elementtype) ? "'" . $this->elementtype . "'" : "null") . ",";
+            $sql .= $conf->entity . ",";
+            $sql .= "'" . $this->confirmdoc . "',";
+            $sql .=  (!empty($this->period)?("'".$this->period."'"):"null") . ",";
+            $sql .= "'" . $this->groupoftask . "',";
+            $sql .= " " . (!empty($this->order_id) ? "'" . $this->order_id . "'" : "null");
+            $sql .= ")";
+//                    var_dump($sql);
+            dol_syslog(get_class($this) . "::add", LOG_DEBUG);
+            $resql=$this->db->query($sql);
+            if(!$resql)
+                dol_print_error($this->db);
+//            $resql = 1;
+//            echo '<pre>';
+//            var_dump(array_keys($this->userassigned)[$i]);
+//            echo '</pre>';
+
+            if ($resql) {
+                $this->id = $this->db->last_insert_id(MAIN_DB_PREFIX . "actioncomm", "id");
+                //            var_dump($error);
+                //            die();
+                // Now insert assignedusers
+                if (!$error) {
+//                    for($k=0;$k<count(array_keys($this->userassigned));$k++){
+                    if ($i > 0){
+//                        var_dump($this->userassigned[array_keys($this->userassigned)[$i]]) . '</br>';
+                        $val = $this->userassigned[array_keys($this->userassigned)[$i]];
+                        if (! is_array($val))	// For backward compatibility when val=id
+                        {
+                            $val=array('id'=>$val);
+                        }
+                        if($user->id != $val['id']) {
+                            $sql = "INSERT INTO " . MAIN_DB_PREFIX . "actioncomm_resources(fk_actioncomm, element_type, fk_element, mandatory, transparency, answer_status)";
+                            $sql .= " VALUES(" . $this->id . ", 'user', " . $val['id'] . ", " . (empty($val['mandatory']) ? '0' : $val['mandatory']) . ", " . (empty($val['transparency']) ? '0' : $val['transparency']) . ", " . (empty($val['answer_status']) ? '0' : $val['answer_status']) . ")";
+
+                            $resql = $this->db->query($sql);
+                            if (!$resql) {
+    //                            dol_print_error($this->db);
+                                $error++;
+                                $this->errors[] = $this->db->lasterror();
+                            }
                         }
                     }
-//					var_dump($sql);exit;
-				}
-			}
-//var_dump($error);exit;
-            if (! $error)
-            {
-            	$action='create';
+//                    foreach($this->userassigned as $key => $val)
+//                    {
+//                        if (! is_array($val))	// For backward compatibility when val=id
+//                        {
+//                            $val=array('id'=>$val);
+//                        }
+//                        if($user->id != $val['id']) {
+//                            $sql = "INSERT INTO " . MAIN_DB_PREFIX . "actioncomm_resources(fk_actioncomm, element_type, fk_element, mandatory, transparency, answer_status)";
+//                            $sql .= " VALUES(" . $this->id . ", 'user', " . $val['id'] . ", " . (empty($val['mandatory']) ? '0' : $val['mandatory']) . ", " . (empty($val['transparency']) ? '0' : $val['transparency']) . ", " . (empty($val['answer_status']) ? '0' : $val['answer_status']) . ")";
+//
+//                            $resql = $this->db->query($sql);
+//                            if (!$resql) {
+//    //                            dol_print_error($this->db);
+//                                $error++;
+//                                $this->errors[] = $this->db->lasterror();
+//                            }
+//                        }
+//    //					var_dump($sql);exit;
+//                    }
+                }
+                //var_dump($error);exit;
 
-	            // Actions on extra fields (by external module or standard code)
-				// FIXME le hook fait double emploi avec le trigger !!
-            	$hookmanager->initHooks(array('actioncommdao'));
-	            $parameters=array('actcomm'=>$this->id);
-	            $reshook=$hookmanager->executeHooks('insertExtraFields',$parameters,$this,$action);    // Note that $action and $object may have been modified by some hooks
-	            if (empty($reshook))
-	            {
-	            	if (empty($conf->global->MAIN_EXTRAFIELDS_DISABLED)) // For avoid conflicts if trigger used
-	            	{
-	            		$result=$this->insertExtraFields();
-	            		if ($result < 0)
-	            		{
-	            			$error++;
-	            		}
-	            	}
-	            }
-	            else if ($reshook < 0) $error++;
-            }
-
-            if (! $error && ! $notrigger)
-            {
-                // Call trigger
-                $result=$this->call_trigger('ACTION_CREATE',$user);
-                if ($result < 0) { $error++; }
-                // End call triggers
-            }
-
-            if (! $error)
-            {
-            	$this->db->commit();
-            	return $this->id;
             }
             else
-           {
-	           	$this->db->rollback();
-	           	return -1;
+            {
+                $this->db->rollback();
+                $this->error=$this->db->lasterror();
+                return -1;
             }
         }
-        else
+        if (! $error)
         {
-            $this->db->rollback();
-            $this->error=$this->db->lasterror();
-            return -1;
+            $action='create';
+
+            // Actions on extra fields (by external module or standard code)
+            // FIXME le hook fait double emploi avec le trigger !!
+            $hookmanager->initHooks(array('actioncommdao'));
+            $parameters=array('actcomm'=>$this->id);
+            $reshook=$hookmanager->executeHooks('insertExtraFields',$parameters,$this,$action);    // Note that $action and $object may have been modified by some hooks
+            if (empty($reshook))
+            {
+                if (empty($conf->global->MAIN_EXTRAFIELDS_DISABLED)) // For avoid conflicts if trigger used
+                {
+                    $result=$this->insertExtraFields();
+                    if ($result < 0)
+                    {
+                        $error++;
+                    }
+                }
+            }
+            else if ($reshook < 0) $error++;
         }
+
+        if (! $error && ! $notrigger)
+        {
+            // Call trigger
+            $result=$this->call_trigger('ACTION_CREATE',$user);
+            if ($result < 0) { $error++; }
+            // End call triggers
+        }
+
+       if (! $error){
+           $this->db->commit();
+            return $this->id;
+       }else{
+            $this->db->rollback();
+            return -1;
+       }
+//        $sql = "INSERT INTO ".MAIN_DB_PREFIX."actioncomm";
+//        $sql.= "(datec,";
+//        $sql.= "datep,";
+//        $sql.= "datep2,";
+//        $sql.= "durationp,";	// deprecated
+//        $sql.= "fk_action,";
+//        $sql.= "code,";
+//        $sql.= "fk_soc,";
+//        $sql.= "fk_parent,";
+//        $sql.= "fk_project,";
+//        $sql.= "note,";
+//        $sql.= "fk_contact,";
+//        $sql.= "fk_user_author,";
+//        $sql.= "fk_user_action,";
+//        $sql.= "fk_user_done,";
+//        $sql.= "label,percent,priority,fulldayevent,location,punctual,";
+//        $sql.= "transparency,";
+//        $sql.= "fk_element,";
+//        $sql.= "elementtype,";
+//        $sql.= "entity,";
+//        $sql.= "confirmdoc,";
+//        $sql.= "period,";
+//        $sql.= "fk_groupoftask,";
+//        $sql.= "fk_order_id";
+//        $sql.= ") VALUES (";
+//        $sql.= "'".$this->db->idate($now)."',";
+//        $sql.= (strval($this->datep)!=''?"'".$this->db->idate($this->datep)."'":"null").",";
+//        $sql.= (strval($this->datef)!=''?"'".$this->db->idate($this->datef)."'":"null").",";
+//        $sql.= ((isset($this->durationp) && $this->durationp >= 0 && $this->durationp != '')?"'".$this->durationp."'":"null").",";	// deprecated
+//        $sql.= (isset($this->type_id)?$this->type_id:"null").",";
+//        $sql.= (isset($this->type_code)?" '".$this->type_code."'":"null").",";
+//        $sql.= ((isset($this->socid) && $this->socid > 0)?" '".$this->socid."'":"null").",";
+//        $sql.= ((isset($this->parent_id) && $this->parent_id > 0)?" '".$this->parent_id."'":0).",";
+//        $sql.= ((isset($this->fk_project) && $this->fk_project > 0)?" '".$this->fk_project."'":"null").",";
+//        $sql.= " '".$this->db->escape($this->note)."',";
+//        $sql.= ((isset($this->contactid) && $this->contactid > 0)?"'".$this->contactid."'":"null").",";
+//        $sql.= (isset($user->id) && $user->id > 0 ? "'".$user->id."'":"null").",";
+//        $sql.= ($userownerid>0?"'".$userownerid."'":"null").",";
+//        $sql.= ($userdoneid>0?"'".$userdoneid."'":"null").",";
+//        $sql.= "'".$this->db->escape($this->label)."','".$this->percentage."','".$this->priority."','".$this->fulldayevent."','".$this->db->escape($this->location)."','".$this->punctual."',";
+//        $sql.= "'".$this->transparency."',";
+//        $sql.= (! empty($this->fk_element)?$this->fk_element:"null").",";
+//        $sql.= (! empty($this->elementtype)?"'".$this->elementtype."'":"null").",";
+//        $sql.= $conf->entity.",";
+//        $sql.= "'".$this->confirmdoc."',";
+//        $sql.= "'".$this->period."',";
+//        $sql.= "'".$this->groupoftask."',";
+//        $sql.= " ".(! empty($this->order_id)?"'".$this->order_id."'":"null");
+//        $sql.= ")";
+////        var_dump($sql);
+//        dol_syslog(get_class($this)."::add", LOG_DEBUG);
+//        $resql=$this->db->query($sql);
+//        if ($resql)
+//        {
+//            $this->id = $this->db->last_insert_id(MAIN_DB_PREFIX."actioncomm","id");
+////            var_dump($error);
+////            die();
+//            // Now insert assignedusers
+//			if (! $error)
+//			{
+//				foreach($this->userassigned as $key => $val)
+//				{
+//			        if (! is_array($val))	// For backward compatibility when val=id
+//			        {
+//			        	$val=array('id'=>$val);
+//			        }
+//                    if($user->id != $val['id']) {
+//                        $sql = "INSERT INTO " . MAIN_DB_PREFIX . "actioncomm_resources(fk_actioncomm, element_type, fk_element, mandatory, transparency, answer_status)";
+//                        $sql .= " VALUES(" . $this->id . ", 'user', " . $val['id'] . ", " . (empty($val['mandatory']) ? '0' : $val['mandatory']) . ", " . (empty($val['transparency']) ? '0' : $val['transparency']) . ", " . (empty($val['answer_status']) ? '0' : $val['answer_status']) . ")";
+//
+//                        $resql = $this->db->query($sql);
+//                        if (!$resql) {
+////                            dol_print_error($this->db);
+//                            $error++;
+//                            $this->errors[] = $this->db->lasterror();
+//                        }
+//                    }
+////					var_dump($sql);exit;
+//				}
+//			}
+////var_dump($error);exit;
+//            if (! $error)
+//            {
+//            	$action='create';
+//
+//	            // Actions on extra fields (by external module or standard code)
+//				// FIXME le hook fait double emploi avec le trigger !!
+//            	$hookmanager->initHooks(array('actioncommdao'));
+//	            $parameters=array('actcomm'=>$this->id);
+//	            $reshook=$hookmanager->executeHooks('insertExtraFields',$parameters,$this,$action);    // Note that $action and $object may have been modified by some hooks
+//	            if (empty($reshook))
+//	            {
+//	            	if (empty($conf->global->MAIN_EXTRAFIELDS_DISABLED)) // For avoid conflicts if trigger used
+//	            	{
+//	            		$result=$this->insertExtraFields();
+//	            		if ($result < 0)
+//	            		{
+//	            			$error++;
+//	            		}
+//	            	}
+//	            }
+//	            else if ($reshook < 0) $error++;
+//            }
+//
+//            if (! $error && ! $notrigger)
+//            {
+//                // Call trigger
+//                $result=$this->call_trigger('ACTION_CREATE',$user);
+//                if ($result < 0) { $error++; }
+//                // End call triggers
+//            }
+//
+//            if (! $error)
+//            {
+//            	$this->db->commit();
+//            	return $this->id;
+//            }
+//            else
+//           {
+//	           	$this->db->rollback();
+//	           	return -1;
+//            }
+//        }
+//        else
+//        {
+//            $this->db->rollback();
+//            $this->error=$this->db->lasterror();
+//            return -1;
+//        }
 
     }
 
@@ -487,6 +675,7 @@ class ActionComm extends CommonObject
         $sql.= " a.datep2,";
         $sql.= " a.durationp,";	// deprecated
         $sql.= " a.datec,";
+        $sql.= " a.datepreperform,";
         $sql.= " a.tms as datem,";
         $sql.= " a.code, a.label, a.note,";
         $sql.= " a.fk_soc,";
@@ -532,6 +721,7 @@ class ActionComm extends CommonObject
                 $this->label				= $obj->label;
                 $this->datep				= $this->db->jdate($obj->datep);
                 $this->datef				= $this->db->jdate($obj->datep2);
+                $this->datepreperform       = $this->db->jdate($obj->datepreperform);
 //				$this->durationp			= $this->durationp;					// deprecated
                 $this->period               = $obj->period;
                 $this->groupoftask          = $obj->fk_groupoftask;
@@ -569,6 +759,7 @@ class ActionComm extends CommonObject
 
                 $this->fk_element			= $obj->fk_element;
                 $this->elementtype			= $obj->elementtype;
+                $this->fetch_userassigned();
             }
             $this->db->free($resql);
         }
@@ -725,11 +916,11 @@ class ActionComm extends CommonObject
         if ($this->fk_project < 0) $this->fk_project = 0;
 
         // Check parameters
-        if ($this->percentage == 0 && $this->userdoneid > 0)
-        {
-            $this->error="ErrorCantSaveADoneUserWithZeroPercentage";
-            return -1;
-        }
+//        if ($this->percentage == 0 && $this->userdoneid > 0)
+//        {
+//            $this->error="ErrorCantSaveADoneUserWithZeroPercentage";
+//            return -1;
+//        }
 
         $socid=($this->socid?$this->socid:((isset($this->societe->id) && $this->societe->id > 0) ? $this->societe->id : 0));
         $contactid=($this->contactid?$this->contactid:((isset($this->contact->id) && $this->contact->id > 0) ? $this->contact->id : 0));
@@ -747,6 +938,7 @@ class ActionComm extends CommonObject
             $sql.= ", percent = '".$this->percentage."'";
         $sql.= ", datep = ".(strval($this->datep)!='' ? "'".$this->db->idate($this->datep)."'" : 'null');
         $sql.= ", datep2 = ".(strval($this->datef)!='' ? "'".$this->db->idate($this->datef)."'" : 'null');
+        $sql.= ", datepreperform = ".(strval($this->datepreperform->format('Y-m-d'))!='' ? "'".$this->db->idate($this->datepreperform->format('Y-m-d'))."'" : 'null');
         $sql.= ", durationp = ".(isset($this->durationp) && $this->durationp >= 0 && $this->durationp != ''?"'".$this->durationp."'":"null");	// deprecated
         $sql.= ", note = ".($this->note ? "'".$this->db->escape($this->note)."'":"null");
         $sql.= ", fk_project =". ($this->fk_project > 0 ? "'".$this->fk_project."'":"null");
@@ -760,9 +952,14 @@ class ActionComm extends CommonObject
         $sql.= ", fk_user_action=".($userownerid > 0 ? "'".$userownerid."'":"null");
         $sql.= ", fk_user_done=".($userdoneid > 0 ? "'".$userdoneid."'":"null");
         $sql.= ", fk_groupoftask=".($this->groupoftask > 0 ? $this->groupoftask :"null");
+        $sql.= ", period=".(!empty($this->period) ?("'".$this->period."'") :"null");
         if (! empty($this->fk_element)) $sql.= ", fk_element=".($this->fk_element?$this->fk_element:"null");
         if (! empty($this->elementtype)) $sql.= ", elementtype=".($this->elementtype?"'".$this->elementtype."'":"null");
         $sql.= " WHERE id=".$this->id;
+//		echo '<pre>';
+//		var_dump($sql);
+//		echo '</pre>';
+//		die();
 //        die($sql);
         dol_syslog(get_class($this)."::update", LOG_DEBUG);
         if ($this->db->query($sql))

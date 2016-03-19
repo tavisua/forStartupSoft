@@ -72,7 +72,7 @@ function ShowTask(){
 //    var_dump($user->id, 'userid');
 //    die();
     //Завантажую завдання
-    $sql = "select id, note, confirmdoc, `datec`, datep2, round((UNIX_TIMESTAMP(datep2)-UNIX_TIMESTAMP(datep))/60,0) iMinute, `dateconfirm`, fk_order_id, period, `percent`, `llx_c_groupoftask`.`name` groupoftask
+    $sql = "select id, note, confirmdoc, `datec`, datep2, round((UNIX_TIMESTAMP(datep2)-UNIX_TIMESTAMP(datep))/60,0) iMinute, `dateconfirm`,`datepreperform`, fk_order_id, period, `percent`, `llx_c_groupoftask`.`name` groupoftask
     from `llx_actioncomm`
     left join llx_c_groupoftask on `llx_c_groupoftask`.`rowid` = fk_groupoftask
     where id in (".implode(",", $taskID).")
@@ -98,7 +98,7 @@ function ShowTask(){
             $users = explode(',',$assignedUser[$obj->id]);
             $add = in_array($user->id, $users);
         }
-        if($add){
+if($add){
             $class = fmod($numrow++,2)==0?'impair':'pair';
             $datec = new DateTime($obj->datec);
             $table.='<tr id="tr'.$obj->id.'" class="'.$class.'">';
@@ -107,29 +107,38 @@ function ShowTask(){
             $table.='<td style="width:51px" class="small_size">'.$datec->format('d.m.y').'</td>';
             $tmp_user->fetch($taskAuthor[$obj->id]);
             $table.='
-            <td style="width:103px">'.mb_strtolower($langs->trans(ucfirst($tmp_user->respon_alias)), 'UTF-8').'</td>
-            <td style="width:103px">'.$tmp_user->lastname.'</td>';
+            <td style="width:101px">'.mb_strtolower($langs->trans(ucfirst($tmp_user->respon_alias)), 'UTF-8').'</td>
+            <td style="width:101px">'.$tmp_user->lastname.'</td>';
             if(empty($assignedUser[$obj->id])){
                 $table.='
-                <td style="width:102px">'.mb_strtolower($langs->trans(ucfirst($tmp_user->respon_alias)), 'UTF-8').'</td>
-                <td style="width:102px">'.$tmp_user->lastname.'</td>';
+                <td style="width:101px">'.mb_strtolower($langs->trans(ucfirst($tmp_user->respon_alias)), 'UTF-8').'</td>
+                <td style="width:101px">'.$tmp_user->lastname.'</td>';
             }else{
                 $users = explode(',',$assignedUser[$obj->id]);
                 $tmp_user->fetch($users[0]);
-                $table.='<td style="width:102px">'.mb_strtolower($langs->trans(ucfirst($tmp_user->respon_alias)), 'UTF-8').'</td>
-                <td style="width:102px">'.$tmp_user->lastname.'</td>';
+                $table.='<td style="width:101px">'.mb_strtolower($langs->trans(ucfirst($tmp_user->respon_alias)), 'UTF-8').'</td>
+                <td style="width:101px">'.$tmp_user->lastname.'</td>';
             }
             $table.='<td style="width:81px">'.$obj->groupoftask.'</td>';
-            $table.='<td style="width:101px">'.$obj->note.'</td>';
+            $table.='<td style="width:101px">'.(mb_strlen($obj->note, 'UTF-8')>20?(mb_substr($obj->note, 0, 20).'<img id="prev' . $obj->id .'note" onclick="previewNote(' . $obj->id . ');" style="vertical-align: middle" title="Передивитись" src="/dolibarr/htdocs/theme/eldy/img/object-more.png">'):$obj->note).'</td>';
             $table.='<td style="width:81px">'.(empty($obj->confirmdoc)?'':$obj->confirmdoc).'</td>';
-            $table.='<td style="width:61px"></td>';
+            if(!empty($obj->datepreperform)) {
+                $predate = new DateTime($obj->datepreperform);
+                $table .= '<td style="width:61px" class="small_size">'.$predate->format('d.m.y').'</td>';//попередньо виконати до
+            }else{
+                $table .= '<td style="width:61px"></td>';
+            }
             $deadline = new DateTime($obj->datep2);
             $table.='<td style="width:51px" class="small_size">'.$deadline->format('d.m.y').'</br>'.$deadline->format('H:i').'</td>';
             if(!empty($obj->dateconfirm)) {
                 $dateconfirm = new DateTime($obj->dateconfirm);
                 $table .= '<td style="width:51px" class="small_size">' . $dateconfirm->format('d.m.y') . '</br>' . $dateconfirm->format('H:i') . '</td>';
-            }else
-                $table .= '<td style="width:51px; text-align: center"><img src="/dolibarr/htdocs/theme/eldy/img/uncheck.png" onclick="ConfirmReceived('.$obj->id.');" id="confirm'.$obj->id.'"></td>';
+            }else {
+                if($tmp_user->id == $user->id)
+                    $table .= '<td style="width:51px; text-align: center"><img src="/dolibarr/htdocs/theme/eldy/img/uncheck.png" onclick="ConfirmReceived(' . $obj->id . ');" id="confirm' . $obj->id . '"></td>';
+                else
+                    $table .= '<td style="width:51px; text-align: center">&nbsp;</td>';
+            }
             //Дії виконавця
             $lastaction = $Actions->GetLastAction($obj->id, 'datep');
             if(empty($lastaction)){
@@ -138,7 +147,7 @@ function ShowTask(){
                 $date = new DateTime($lastaction);
                 $lastaction = $date->format('d.m.Y');
             }
-            $table .= '<td style="width:76px"><a href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu=current_task">'.$lastaction.'</a></td>';
+            $table .= '<td style="width:76px"><a href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu=global_task">'.$lastaction.'</a></td>';
             $table .= '<td style="width:76px"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td>';
             $table .= '<td style="width:41px">'.$obj->iMinute.'</td>';
             //Дії наставника
@@ -162,14 +171,11 @@ function ShowTask(){
             else
                 $status='ActionDoneShort';
             $table .= '<td '.$style.'; width:51px" class="small_size">'.$langs->trans($status).'</td>';
-            $table .= '<td  style="width:51px">&nbsp;</td>';
+            if($taskAuthor[$obj->id] == $user->id)
+                 $table .= '<td style="width:51px; text-align: center"><img src="/dolibarr/htdocs/theme/eldy/img/uncheck.png" onclick="ConfirmExec(' . $obj->id . ');" id="confirm' . $obj->id . '"></td>';
+            else
+                $table .= '<td  style="width:51px">&nbsp;</td>';
             $table .= '<td  style="width:25px"><img id="img_"'.$obj->id.' onclick="EditAction('.$obj->id.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Edit').'" src="/dolibarr/htdocs/theme/eldy/img/edit.png"></td>';
-            if($user->respon_alias == 'purchase'){
-                if(empty($obj->fk_order_id))
-                    $table.='<td style="width:25px"></td>';
-                else
-                    $table .= '<td  style="width:25px"><img id="img_prep"'.$obj->id.' onclick="PrepareOrder('.$obj->fk_order_id.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('RedirectToOrder').'" src="/dolibarr/htdocs/theme/eldy/img/addfile.png"></td>';
-            }
             $table.='</tr>';
         }
     }

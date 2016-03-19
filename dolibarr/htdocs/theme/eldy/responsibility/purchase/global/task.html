@@ -76,28 +76,6 @@
 ////console.log(TotalWidth, widths);
         $('#reference_body').width(TotalWidth+30);
     })
-    function ConfirmReceived(id){
-        var src = $('img#confirm' + id).attr('src');
-        var img_src = (src.substr(src.length-'uncheck.png'.length, 'uncheck.png'.length));
-        if(img_src =='uncheck.png' &&  confirm('Прийняти в роботу?')) {
-            $('img#confirm' + id).off();
-            for (var i = src.length; i > 0; i--) {
-                if (src.substr(i, 1) == "/") {
-                    src = src.substr(0, i + 1) + 'Check.png';
-                    break;
-                }
-            }
-            $('img#confirm' + id).attr('src', src);
-            var link = "http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=received_action&rowid="+id;
-            $.ajax({
-                url: link,
-                cache: false,
-                success: function(html){
-                    console.log('received action');
-                }
-            })
-        }
-    }
 
 </script>
 <script type="text/javascript">
@@ -117,9 +95,5 @@
             }
         }
     })
-    function EditAction(rowid){
-        $('#action_id').val(rowid);
-        $('#action_item').val('edit');
-        $('#addaction').submit();
-    }
+
 </script>

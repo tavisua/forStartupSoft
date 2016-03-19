@@ -17,6 +17,7 @@ $AsOfTheDate = $langs->trans('AsOfTheOfDate');
 //var_dump($_SERVER["REQUEST_URI"]);
 //echo '</pre>';
 //die();
+
 $sql = 'select regions.rowid, regions.state_id, trim(states.name) as states_name, trim(regions.name) as regions_name from states, regions, '.MAIN_DB_PREFIX.'user_regions ur
     where ur.fk_user='.$user->id.' and ur.fk_id=regions.rowid and regions.state_id=states.rowid order by regions_name asc, states_name asc';
 //die($sql);
@@ -100,7 +101,7 @@ if($db->num_rows($res) > 0) {
 }
 $CreateCompany = $langs->trans('CreateCompany');
 
-include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/global/header.html');
+include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/purchase/global/header.html');
 return;
 
 function decrease_word($text){

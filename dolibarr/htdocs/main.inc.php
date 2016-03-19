@@ -955,18 +955,7 @@ if (! function_exists("llxHeader"))
 	    // html header
 		top_htmlhead($head, $title, $disablejs, $disablehead, $arrayofjs, $arrayofcss);
 
-        $sendsms_form = '<a href="#x" onclick="close_registerform();" class="overlay" id="sendSMS"></a>
-                     <div class="popup" id="sendSMSform" style="width: 300px;display: none">
-                        <b id="phone_numbertitle">111</b>
-                        <form >
-                            <input type="hidden" id="phone_number" name="phone_number" value="">
-                            <textarea style="width:100%;" id="textsms" name="textsms"></textarea>
-                        </form>
-                        <button onclick="sendSMS();">'.$langs->trans("SendSMS").'</button>
-                        <button onclick="close_registerform();">'.$langs->trans("Cancel").'</button>
-                            <a class="close" title="Закрыть" href="#close"></a>
-                     </div>';
-        print $sendsms_form;
+
         if(substr($_SERVER["SCRIPT_NAME"], strlen($_SERVER["SCRIPT_NAME"])-strlen('action.php')) && $_REQUEST['mainmenu'] == 'area') {//Ш
             print '<div id="bookmarkActionPanel" onclick="showHideActionPanel();">
                     <span>Панель інструментів</span>
@@ -1140,7 +1129,7 @@ function top_htmlhead($head, $title='', $disablejs=0, $disablehead=0, $arrayofjs
 //            }
 
             print '<link rel="stylesheet" type="text/css" href="'.DOL_URL_ROOT.'/admin/tools/template/design.css'.($ext?'?'.$ext:'').'"/>'."\n";//Стиль меню
-
+//die($jquerytheme);
             if (constant('JS_JQUERY_UI')) print '<link rel="stylesheet" type="text/css" href="'.JS_JQUERY_UI.'css/'.$jquerytheme.'/jquery-ui.min.css'.($ext?'?'.$ext:'').'" />'."\n";  // JQuery
             else print '<link rel="stylesheet" type="text/css" href="'.DOL_URL_ROOT.'/includes/jquery/css/'.$jquerytheme.'/jquery-ui-latest.custom.css'.($ext?'?'.$ext:'').'" />'."\n";    // JQuery
             print '<link rel="stylesheet" type="text/css" href="'.DOL_URL_ROOT.'/includes/jquery/plugins/tiptip/tipTip.css'.($ext?'?'.$ext:'').'" />'."\n";                           // Tooltip
@@ -1496,7 +1485,18 @@ function top_menu($head, $title='', $target='', $disablejs=0, $disablehead=0, $a
     if (empty($conf->headerdone)) top_htmlhead($head, $title, $disablejs, $disablehead, $arrayofjs, $arrayofcss);
 
     print '<body id="mainbody">';
-
+        $sendsms_form = '<a href="#x" onclick="close_registerform();" class="overlay" id="sendSMS"></a>
+                     <div class="popup" id="sendSMSform" style="width: 300px;display: none">
+                        <b id="phone_numbertitle">111</b>
+                        <form >
+                            <input type="hidden" id="phone_number" name="phone_number" value="">
+                            <textarea style="width:100%;" id="textsms" name="textsms"></textarea>
+                        </form>
+                        <button onclick="sendSMS();">'.$langs->trans("SendSMS").'</button>
+                        <button onclick="close_registerform();">'.$langs->trans("Cancel").'</button>
+                            <a class="close" title="Закрыть" href="#close"></a>
+                     </div>';
+        print $sendsms_form;
     if ($conf->use_javascript_ajax)
     {
         if (empty($conf->dol_use_jmobile) && ! empty($conf->global->MAIN_MENU_USE_JQUERY_LAYOUT))
