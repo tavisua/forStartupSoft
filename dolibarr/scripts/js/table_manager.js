@@ -59,6 +59,32 @@ function previewNote(id){
         }
     })
 }
+function RedirectAction(id){
+
+    //var td = $('#imgManager_'+id);
+    //console.log(td.offset());
+    ////var tbody = $('table.setdate').find('tbody');
+    ////tbody[0].innerHTML = '';
+    //$("#popupmenu").find('th').remove();
+    //var tbody = $('table.setdate').find('tbody');
+    //tbody.empty().html(
+    //    '<tr>' +
+    //    '<td class="middle_size" style="cursor: pointer" title="">Продублювати</td>' +
+    //    '</tr>')
+    //
+    //$("#popupmenu").attr('type_action', id);
+    //$("#popupmenu").show();
+    //$("#popupmenu").offset({
+    //    top: td.offset().top,
+    //    left: td.offset().left-50});
+    if(confirm('Продублювати завдання?')){
+        var input_html = '<input type="hidden" value="1" name="duplicate_action">';
+        $('#addaction').html($('#addaction').html()+input_html);
+        $('#action_id').val(id);
+        $('#action_item').val('edit');
+        $('#addaction').submit();
+    }
+}
 function ConfirmReceived(id){
     var src = $('img#confirm' + id).attr('src');
     var img_src = (src.substr(src.length-'uncheck.png'.length, 'uncheck.png'.length));

@@ -99,8 +99,8 @@ include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/respo
 
 //print '</br>';
 //print'<div style="float: left">test</div>';
-llxFooter();
-
+//llxFooter();
+llxPopupMenu();
 exit();
 function GetBestUserID(){
     global $db, $user;

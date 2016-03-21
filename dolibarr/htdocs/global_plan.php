@@ -20,7 +20,8 @@ llxHeader("",$HourlyPlan,"");
 print_fiche_titre($langs->trans('GlobalTask'));
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/global/header.php';
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/global/task.php';
-llxFooter();
+llxPopupMenu();
+//llxFooter();
 return;
 
 function ShowTask(){
@@ -175,6 +176,7 @@ function ShowTask(){
             else
                 $table .= '<td  style="width:51px">&nbsp;</td>';
             $table .= '<td  style="width:25px"><img id="img_"'.$obj->id.' onclick="EditAction('.$obj->id.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Edit').'" src="/dolibarr/htdocs/theme/eldy/img/edit.png"></td>';
+            $table .= '<td  style="width:25px"><img id="imgManager_'.$obj->id.'" onclick="RedirectAction('.$obj->id.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Redirect').'" src="/dolibarr/htdocs/theme/eldy/img/redirect.png"></td>';
             $table.='</tr>';
         }
     }

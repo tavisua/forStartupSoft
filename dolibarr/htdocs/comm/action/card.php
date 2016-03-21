@@ -113,7 +113,6 @@ if($_GET['action']=='get_exectime'){
     if(!$res){
         dol_print_error($db);
     }
-    return 1;
     exit();
 }elseif($_GET['action']=='get_freetime'){
 

@@ -1043,6 +1043,22 @@ if (! function_exists("llxHeader"))
  *
  *  @return	void
  */
+function llxPopupMenu(){
+                print'
+    <div id="popupmenu" style="display: none; position: relative; left: 150px; top: 150px; z-index: 10; width: 250px">
+        <table class="setdate" style="background: #ffffff">
+            <thead><tr class="multiple_header_table" style="width: 100px"><th class="middle_size">Вкажіть дату на яку відобразити завдання</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td class="middle_size" onclick="setdate();" style="cursor: pointer">1</td>
+                </tr>
+                <tr>
+                    <td class="middle_size" onclick="setdate();" style="cursor: pointer">2</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>';
+}
 function top_httphead()
 {
     global $conf;
@@ -1497,6 +1513,7 @@ function top_menu($head, $title='', $target='', $disablejs=0, $disablehead=0, $a
                             <a class="close" title="Закрыть" href="#close"></a>
                      </div>';
         print $sendsms_form;
+
     if ($conf->use_javascript_ajax)
     {
         if (empty($conf->dol_use_jmobile) && ! empty($conf->global->MAIN_MENU_USE_JQUERY_LAYOUT))
