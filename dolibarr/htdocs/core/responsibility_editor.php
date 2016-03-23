@@ -1,6 +1,10 @@
 <?php
 global $db, $user;
 require '../main.inc.php';
+//echo '<pre>';
+//var_dump($_REQUEST);
+//echo '</pre>';
+//die();
 if(count($_POST)>0) {
 
     $sql = 'update responsibility set name = "'.$db->escape(GETPOST('name')).'", alias = "'.$db->escape(GETPOST('alias')).'", showlineactive='.(isset($_POST['ShowLineActive'])?1:0).' where rowid='.GETPOST('rowid');

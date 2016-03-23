@@ -144,6 +144,8 @@ function GetDateOutStandingActions($actioncode, $id_usr){
     return $array;
 }
 function CalcOutStandingActions($actioncode, $array, $id_usr){
+//    var_dump($actioncode, $array, $id_usr);
+//    die();
     global $db, $user;
     $sql = "select count(*) as iCount  from `llx_actioncomm`
     inner join
@@ -154,7 +156,7 @@ function CalcOutStandingActions($actioncode, $array, $id_usr){
         if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'" || $user->login !="admin")
             $sql .=" and `llx_actioncomm_resources`.fk_element = ".$id_usr;
     $sql .= " and datep2 < '".date("Y-m-d")."'";
-    $sql .=" and datea is null";
+    $sql .=" and and llx_actioncomm.`percent` <> 100";
 //    if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'"){}
 //        else
 //    echo '<pre>';

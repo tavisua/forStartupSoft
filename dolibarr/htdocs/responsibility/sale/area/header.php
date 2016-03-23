@@ -24,8 +24,8 @@ $res = $db->query($sql);
 
 $region_id = 0;
 
-if(strlen(GETPOST('state_filter'))>0) {//Если изменялся регион
-    $region_id = GETPOST('state_filter');
+if(isset($_REQUEST['state_filter'])) {//Если изменялся регион
+    $region_id = $_REQUEST['state_filter'];
 //    var_dump(GETPOST('state_filter'), 'all');
 }
 if($db->num_rows($res)>0) {
@@ -47,7 +47,6 @@ if($db->num_rows($res)>0) {
     $AreaList .= '</select></form>';
 }
 
-$_SESSION['region_id'] = $region_id;
 
 //$region_id = 210;
 $sql = "select `classifycation`.name, SUM(b.value) value from `classifycation` left join

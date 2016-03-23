@@ -256,6 +256,7 @@ if(GETPOST('assignedJSON')){
 //	var_du?mp($assignedtouser).'</br>';
 //	die();
 }
+
 if (GETPOST('addassignedtouser') || GETPOST('updateassignedtouser'))
 {
 	// Add a new user
@@ -397,9 +398,8 @@ if ($action == 'add')
 				if ($value['id'] > 0) $object->userownerid=$value['id'];
 				$object->transparency = (GETPOST("transparency")=='on'?1:0);
 			}
-
-			$object->userassigned[$value['id']]=array('id'=>$value['id'], 'transparency'=>(GETPOST("transparency")=='on'?1:0));
-
+			if ($value['id'] > 0)
+				$object->userassigned[$value['id']]=array('id'=>$value['id'], 'transparency'=>(GETPOST("transparency")=='on'?1:0));
 			$i++;
 		}
 
@@ -841,8 +841,8 @@ if ($action == 'create')
                             $("#doneby").val(-1);
                         }
                    });
-                   $("#actioncode").change(function() {
-                        if ($("#actioncode").val() == "AC_RDV") $("#dateend").addClass("fieldrequired");
+                   $("select#actioncode").change(function() {
+                        if ($("select#actioncode").val() == "AC_RDV") $("#dateend").addClass("fieldrequired");
                         else $("#dateend").removeClass("fieldrequired");
                    });
                })';
@@ -949,13 +949,6 @@ if ($action == 'create')
 	$formactions->form_select_status_action('formaction',$percent,1,'complete');
 	print '</td></tr>';
 
-    // Period
-//    if (GETPOST("actioncode") == "AC_GLOBAL")
-//    {
-//    var_dump((GETPOST("actioncode") != "AC_GLOBAL"));
-//        die(GETPOST("actioncode"));
-		print '<tr id="period"><td>'.$langs->trans("Period").'</td><td colspan="3">'.$form->select_period('selperiod',$period).'</td></tr>';
-//    }
 
 	// Assigned to
 	print '<tr><td class="nowrap">'.$langs->trans("ActionAffectedTo").'</td><td style="vertical-align:top">';
@@ -973,14 +966,21 @@ if ($action == 'create')
 		}
 
 		$listofuserid=dol_json_decode($_SESSION['assignedtouser'], true);
-//		var_dump($listofuserid);
-//		die();
+		foreach(array_keys($listofuserid) as $key) {
+			if($key<=0) {
+				unset($listofuserid[$key]);
+//				var_dump($assignedtouser);
+//				die();
+			}
+		}
 
 
 	print $form->select_dolusers_forevent(($action=='create'?'add':'update'), 'assignedtouser', 1, '', 0, '', '', 0, 0, 0, 'AND u.statut != 0', 0, 1, 1);
 
 	if (in_array($user->id,array_keys($listofuserid))) print $langs->trans("MyAvailability").': <input id="transparency" type="checkbox" name="transparency"'.(((! isset($_GET['transparency']) && ! isset($_POST['transparency'])) || GETPOST('transparency'))?' checked="checked"':'').'> '.$langs->trans("Busy");
 	print '</td></tr>';
+
+
 
 	// Realised by
 	if (! empty($conf->global->AGENDA_ENABLE_DONEBY))
@@ -1012,7 +1012,13 @@ if ($action == 'create')
 	}
 
 	print '</td></tr>';
-
+	    // Period
+//    if (GETPOST("actioncode") == "AC_GLOBAL")
+//    {
+//    var_dump((GETPOST("actioncode") != "AC_GLOBAL"));
+//        die(GETPOST("actioncode"));
+		print '<tr id="period"><td>'.$langs->trans("Period").'</td><td colspan="3">'.$form->select_period('selperiod',$period).'</td></tr>';
+//    }
 		print '<tr><td class="nowrap">Попередньо виконати до</td><td colspan="3">';
 		$form->select_date($datep?$datep:$object->datep,'preperform',0,0,0,"action",1,0,0,0,'fulldaystart');
 		print '</td></tr>';
@@ -1940,8 +1946,9 @@ print '
             dpChangeDay("ap","dd.MM.yyyy");
 //            if($("#actioncode").val() != 0)
 //            	setP2();
-            $("#redirect_actioncode").val($("#actioncode").val());
-            if($("#actioncode").val() == "AC_GLOBAL" || $("#actioncode").val() == "AC_CURRENT"){
+            $("#redirect_actioncode").val($("input#actioncode").val());
+            console.log($("select#actioncode").val());
+            if($("select#actioncode").val() == "AC_GLOBAL" || $("select#actioncode").val() == "AC_CURRENT"){
                 $("#period").show();
             }else{
                 $("#period").hide();

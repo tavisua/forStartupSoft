@@ -40,6 +40,7 @@ while($obj = $db->fetch_object($res)){
     else
         $Code .= ",'".$obj->code."'";
 }
+//die($Code);
 $lineaction = array();
 $lineaction = CalcOutStandingActions($Code, $lineaction, $user->id);
 $lineaction = CalcFutureActions($Code, $lineaction, $user->id);
@@ -262,9 +263,10 @@ function CalcOutStandingActions($actioncode, $array, $id_usr){
         if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'" || $user->login !="admin")
             $sql .=" and fk_user_author = ".$id_usr;
     $sql .= " and datep2 < '".date("Y-m-d")."'";
-    $sql .=" and datea is null";
+    $sql .=" and llx_actioncomm.`percent` <> 100";
 //    if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'"){}
 //        else
+//    if($actioncode == "'AC_TEL','AC_FAX','AC_EMAIL','AC_RDV','AC_INT','AC_OTH','AC_DEP'")
 //            die($sql);
     $res = $db->query($sql);
     if($db->num_rows($res)) {
@@ -314,12 +316,13 @@ function ShowTable(){
     $outstanding_actions = array();
     $sql = "select `llx_societe`.`region_id`, count(*) as iCount  from `llx_actioncomm`
     inner join
-    (select id from `llx_c_actioncomm` where type in ('system','user') and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
+    (select id from `llx_c_actioncomm` where type in ('system','user')  and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
     left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
     where 1";
     $sql .= " and datep2 < '".date("Y-m-d")."'";
-    $sql .=" and datea is null
-    group by `llx_societe`.`region_id`";
+    $sql .=" and llx_actioncomm.percent <> 100";
+    $sql .="and `llx_actioncomm`.`code` not in ('AC_GLOBAL', 'AC_CURRENT')";
+    $sql .="group by `llx_societe`.`region_id`";
     $res = $db->query($sql);
     while($obj = $db->fetch_object($res)){
         $outstanding_actions[$obj->region_id]=$obj->iCount;
@@ -335,7 +338,7 @@ function ShowTable(){
     for($i=0; $i<9; $i++) {
         $sql = "select `llx_societe`.`region_id`, count(*) as iCount  from `llx_actioncomm`
         inner join
-        (select id from `llx_c_actioncomm` where type in ('system','user') and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
+        (select id from `llx_c_actioncomm` where type in ('system','user')  and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
         left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
         inner join `llx_actioncomm_resources` on `llx_actioncomm`.`id` =  `llx_actioncomm_resources`.`fk_actioncomm`
         where 1 ";

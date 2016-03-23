@@ -157,6 +157,7 @@
         }
         setcallphonelink();
 //        setActionPanelPosition();
+        LoadProposition();
     })
     function showSMSform(phonenumber){
         $('input#phone_number').val(phonenumber);
@@ -172,7 +173,7 @@
                 var id = tr[i].id.substr(2);
                 var td = tr[i].getElementsByTagName('td');
                 for(var t = 0; t<td.length; t++){
-                    if(td[t].id.substr(id.length) == 'mobile_phone1'){
+                    if(td[t].id.substr(id.length) == 'mobile_phone1' || td[t].id.substr(id.length) == 'mobile_phone2' || td[t].id.substr(id.length) == 'work_phone' || td[t].id.substr(id.length) == 'fax'){
                         var phone_tr = td[t].getElementsByTagName('tr');
                         for(var phone = 0; phone<phone_tr.length; phone++){
                             var number_cell = phone_tr[phone].getElementsByTagName('td');

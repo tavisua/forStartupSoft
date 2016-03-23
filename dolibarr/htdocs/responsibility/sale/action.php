@@ -10,6 +10,9 @@ if(isset($_REQUEST['action'])||isset($_POST['action'])){
     }elseif($_POST['action'] == 'save'){
         saveaction();
         exit();
+    }elseif($_REQUEST['action'] == 'getProposition'){
+        echo getPropostion($_REQUEST['socid']);
+        exit();
     }
 }
 
@@ -148,6 +151,26 @@ include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/respo
 exit();
 
 
+
+function getPropostion($socid){
+    global $db;
+    $sql ='select distinct `llx_post`.rowid, `llx_post`.postname from `llx_c_proposition`
+        inner join `llx_post` on `llx_post`.`rowid` = `llx_c_proposition`.`fk_post`
+        where 1
+        and (Now() between `begin` and `end` )
+        or `end` is null
+        and `llx_c_proposition`.active = 1;';
+    $res_prop = $db->query($sql);
+    if(!$res_prop)
+        dol_print_error($db);
+    $out = '';
+    while($obj = $db->fetch_object($res_prop)){
+        $out .= '<tr>
+                    <td class="middle_size" style="padding-left: 10px;" colspan="4" id="'.$obj->rowid.'">'.$obj->postname.'</td>
+                </tr>';
+    }
+    return $out;
+}
 function selectcontact($socid, $contactid=0){
     global $db;
     $out='<select id="contact" class="combobox" size="1" name="contact" onchange="loadcontactlist();">'."\r\n";

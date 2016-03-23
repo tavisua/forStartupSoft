@@ -45,6 +45,7 @@ if(isset($_REQUEST['action'])&&$_REQUEST['action']=='getpass'){
     exit();
 }
 
+
 if (! empty($conf->ldap->enabled)) require_once DOL_DOCUMENT_ROOT.'/core/class/ldap.class.php';
 if (! empty($conf->adherent->enabled)) require_once DOL_DOCUMENT_ROOT.'/adherents/class/adherent.class.php';
 if (! empty($conf->multicompany->enabled)) dol_include_once('/multicompany/class/actions_multicompany.class.php');
@@ -109,6 +110,7 @@ $hookmanager->initHooks(array('usercard','globalcard'));
 /**
  * Actions
  */
+
 
 if ($action == 'confirm_disable' && $confirm == "yes" && $candisableuser)
 {
@@ -1089,6 +1091,10 @@ else
     if ($id > 0)
     {
         $object->fetch($id);
+//	echo '<pre>';
+//	var_dump($object);
+//	echo '</pre>';
+//	die('111');
         if ($res < 0) { dol_print_error($db,$object->error); exit; }
         $res=$object->fetch_optionals($object->id,$extralabels);
 

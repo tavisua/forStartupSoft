@@ -107,8 +107,31 @@ function ConfirmReceived(id){
         })
     }
 }
+function getParameterByName(name, url) {
+    if (!url) url = window.location.href;
+    url = url.toLowerCase(); // This is just to avoid case sensitiveness
+    name = name.replace(/[\[\]]/g, "\\$&").toLowerCase();// This is just to avoid case sensitiveness for query parameter name
+    var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+        results = regex.exec(url);
+    if (!results) return null;
+    if (!results[2]) return '';
+    return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
+function LoadProposition(){
+    console.log(getParameterByName('socid'));
+    $.ajax({
+        url:'/dolibarr/htdocs/responsibility/sale/action.php?action=getProposition',
+        cache:false,
+        success:function(html){
+            var table = $('#ActionPanel').find('table');
+            var tbody = table.find('tbody')
+            //console.log(html);
+            tbody.html(tbody.html()+html);
+        }
+    })
+}
 function setActionCode(){
-    //console.log('setActionCode');
+    console.log('setActionCode');
     switch ($("#mainmenu").val()){
         case "global_task":{
             $("#actioncode [value='AC_GLOBAL']").attr("selected", "selected");
@@ -594,7 +617,8 @@ function addAssignedUsers(){
     var assignedJSON="";
 
     for(var i=0; i<select.length; i++){
-        assignedJSON+=',"'+select[i]+'":{"id":"'+select[i]+'","transparency":"on","mandatory":1}';
+        if(select[i]>0)
+            assignedJSON+=',"'+select[i]+'":{"id":"'+select[i]+'","transparency":"on","mandatory":1}';
     }
     assignedJSON+="}";
 

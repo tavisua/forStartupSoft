@@ -684,7 +684,11 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
         if ($id == 30 && ($value == 'Model' || $value == 'Description'||($value == 'Trademark'&&!isset($_POST['Trademark']))))continue;
 		if ($id == 34 && ($value == 'responsibility'))continue;
         if ($id == 35 && ($value == 'ed_name'))continue;
-        if ($id == 39 && ($value == 'LineActiveCustomer' || $value == 'postname'))continue;
+        if ($id == 39 && ($value == 'LineActiveCustomer' || $value == 'postname'|| $value == 'end')){
+//            if($value == 'end')
+//                unset($_POST['end']);
+            continue;
+        }
         if ($id == 41 && ($value == 'fk_groupissues' || $value == 'fk_subdivision'))continue;
 //		var_dump($_POST, $listfield);
 //		die();
@@ -807,11 +811,11 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
 				}else{
 					switch($listfieldvalue[$i]){
 						case 'LineActiveCustomer':{
-							$sql .= empty($_POST['lineactive'])?"null,":$_POST['lineactive'].",";
+							$sql .= empty($_POST['fk_lineactive'])?"null,":$_POST['fk_lineactive'].",";
 						}break;
 						case 'postname':{
 //							var_dump($_POST['post']);
-							$sql .= empty($_POST['post'])?"null,":$_POST['post'].",";
+							$sql .= empty($_POST['fk_post'])?"null,":$_POST['fk_post'].",";
 						}break;
 						default:{
 							$sql .=	"'".($_POST[$listfieldvalue[$i]])."'";

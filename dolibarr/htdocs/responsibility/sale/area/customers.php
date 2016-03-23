@@ -5,7 +5,9 @@
  * Date: 07.11.2015
  * Time: 11:32
  */
- $region_id = $_SESSION['region_id'];
+$region_id = $_SESSION['state_filter'];
+//var_dump($region_id);
+//die();
 $search = explode(',',$_GET['search']);
 $search_array = array();
 foreach($search as $elem) {
@@ -36,10 +38,11 @@ if($user->login != 'admin') {
 }
 $sql .= ' and `llx_societe`.active = 1 ';
 $sql_count.=' and `llx_societe`.active = 1 ';
-//die($sql);
+
 //echo '<pre>';
-//var_dump($user->id);
+//var_dump($sql);
 //echo '</pre>';
+//die();
 
 
 if($user->login != 'admin') {
@@ -290,10 +293,10 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
     left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
     inner join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.`rowid`
     left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
-    where `llx_societe`.active = 1
-    and `llx_societe`.`fk_user_creat` = ".$user->id."
-    group by `llx_societe`.rowid, `responsibility`.`alias` ";
-    $sql .= ' limit '.($page-1)*$per_page.','.$per_page;
+    where `llx_societe`.active = 1";
+//    $sql .= "and `llx_societe`.`fk_user_creat` = ".$user->id;
+    $sql .= " group by `llx_societe`.rowid, `responsibility`.`alias` ";
+//    $sql .= ' limit '.($page-1)*$per_page.','.$per_page;
 
 //  die($sql);
     $res = $db->query($sql);
@@ -308,7 +311,9 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
             }
         }
     }
+//    echo '<pre>';
 //    var_dump($lastaction);
+//    echo '</pre>';
 //    die();
     $futureaction = array();
     $sql = "select `llx_societe`.rowid, llx_actioncomm.datep, `responsibility`.`alias`
@@ -319,11 +324,10 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
         and (type = 'system' or type = 'user')) TypeCode on TypeCode.code = `llx_actioncomm`.code
         inner join `llx_user` on `llx_actioncomm`.`fk_user_author` = `llx_user`.`rowid`
         left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
-        where `llx_societe`.active = 1
-        and `llx_societe`.`fk_user_creat` = ".$user->id."
-        and `llx_actioncomm`.`id` not in (select `llx_societe_action`.`action_id` from llx_societe_action where action_id is not null)
-        and `llx_actioncomm`.active = 1
-        limit 0,30";
+        where `llx_societe`.active = 1";
+//     $sql .= "and `llx_societe`.`fk_user_creat` = ".$user->id."
+     $sql .= " and `llx_actioncomm`.`id` not in (select `llx_societe_action`.`action_id` from llx_societe_action where action_id is not null)
+        and `llx_actioncomm`.active = 1";
 //    die($sql);
     $res = $db->query($sql);
     if(!$res){

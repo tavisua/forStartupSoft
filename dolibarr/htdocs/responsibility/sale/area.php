@@ -10,15 +10,20 @@ require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
 if(count($_POST)>0){
     $_SESSION['region_id'] = GETPOST('state_filter', 'int');
 }
-//echo '<pre>';
-//var_dump($_REQUEST);
-//echo '</pre>';
-//die();
+
 $Area = $langs->trans('Area');
 llxHeader("",$Area,"");
 print_fiche_titre($Area);
 //print '<div>';
+if(isset($_REQUEST["state_filter"]))
+    $_SESSION["state_filter"] = $_REQUEST["state_filter"];
+elseif(isset($_SESSION["state_filter"]))
+    $_REQUEST["state_filter"]=$_SESSION["state_filter"];
 
+//echo '<pre>';
+//var_dump($_REQUEST["state_filter"], $_SESSION["state_filter"]);
+//echo '</pre>';
+//die();
 //Шапка сторінки
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/sale/area/header.php';
 //Перелік контрагентів

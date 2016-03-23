@@ -175,8 +175,15 @@ function ShowTask(){
                  $table .= '<td style="width:51px; text-align: center"><img src="/dolibarr/htdocs/theme/eldy/img/uncheck.png" onclick="ConfirmExec(' . $obj->id . ');" id="confirm' . $obj->id . '"></td>';
             else
                 $table .= '<td  style="width:51px">&nbsp;</td>';
-            $table .= '<td  style="width:25px"><img id="img_"'.$obj->id.' onclick="EditAction('.$obj->id.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Edit').'" src="/dolibarr/htdocs/theme/eldy/img/edit.png"></td>';
-            $table .= '<td  style="width:25px"><img id="imgManager_'.$obj->id.'" onclick="RedirectAction('.$obj->id.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Redirect').'" src="/dolibarr/htdocs/theme/eldy/img/redirect.png"></td>';
+//            $table .= '<td  style="width:25px"><img id="img_"'.$obj->id.' onclick="EditAction('.$obj->id.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Edit').'" src="/dolibarr/htdocs/theme/eldy/img/edit.png"></td>';
+//            $table .= '<td  style="width:25px"><img id="imgManager_'.$obj->id.'" onclick="RedirectAction('.$obj->id.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Redirect').'" src="/dolibarr/htdocs/theme/eldy/img/redirect.png"></td>';
+            if($taskAuthor[$obj->id] == $user->id)
+                $table .= '<td  style="width:25px"><img id="img_"'.$obj->id.' onclick="EditAction('.$obj->id.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Edit').'" src="/dolibarr/htdocs/theme/eldy/img/edit.png"></td>';
+            else
+                $table .= '<td  style="width:25px">&nbsp;</td>';
+
+//            $table .= '<td  style="width:25px"><img id="imgManager_"'.$obj->id.' onclick="RedirectAction('.$obj->id.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Redirect').'" src="/dolibarr/htdocs/theme/eldy/img/redirect.png"></td>';
+            $table .= '<td  style="width:25px">&nbsp;</td>';
             $table.='</tr>';
         }
     }

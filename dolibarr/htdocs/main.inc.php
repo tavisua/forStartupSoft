@@ -985,7 +985,7 @@ if (! function_exists("llxHeader"))
                                     <td class="middle_size" colspan="4" style="padding-left: 10px;">Інше</td>
                                 </tr>
                                 <tr>
-                                    <td class="middle_size" colspan="4"><b>Пропозиції</b></td>
+                                    <td class="middle_size" colspan="4"><b>Пропозиції для посад</b></td>
                                 </tr>
                             </tbody>
                         </table>

@@ -31,7 +31,7 @@ function ShowTask(){
         where fk_action in
               (select id from `llx_c_actioncomm`
               where `code` in ('AC_CURRENT'))
-              and percent != 100 and datea is NULL";
+              and percent != 100";
     $res = $db->query($sql);
     if(!$res){
         dol_print_error($db);
@@ -98,7 +98,7 @@ function ShowTask(){
             $users = explode(',',$assignedUser[$obj->id]);
             $add = in_array($user->id, $users);
         }
-if($add){
+        if($add){
             $class = fmod($numrow++,2)==0?'impair':'pair';
             $datec = new DateTime($obj->datec);
             $table.='<tr id="tr'.$obj->id.'" class="'.$class.'">';
@@ -175,8 +175,13 @@ if($add){
                  $table .= '<td style="width:51px; text-align: center"><img src="/dolibarr/htdocs/theme/eldy/img/uncheck.png" onclick="ConfirmExec(' . $obj->id . ');" id="confirm' . $obj->id . '"></td>';
             else
                 $table .= '<td  style="width:51px">&nbsp;</td>';
-            $table .= '<td  style="width:25px"><img id="img_"'.$obj->id.' onclick="EditAction('.$obj->id.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Edit').'" src="/dolibarr/htdocs/theme/eldy/img/edit.png"></td>';
-            $table .= '<td  style="width:25px"><img id="imgManager_"'.$obj->id.' onclick="RedirectAction('.$obj->id.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Redirect').'" src="/dolibarr/htdocs/theme/eldy/img/redirect.png"></td>';
+            if($taskAuthor[$obj->id] == $user->id)
+                $table .= '<td  style="width:25px"><img id="img_"'.$obj->id.' onclick="EditAction('.$obj->id.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Edit').'" src="/dolibarr/htdocs/theme/eldy/img/edit.png"></td>';
+            else
+                $table .= '<td  style="width:25px">&nbsp;</td>';
+
+//            $table .= '<td  style="width:25px"><img id="imgManager_"'.$obj->id.' onclick="RedirectAction('.$obj->id.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Redirect').'" src="/dolibarr/htdocs/theme/eldy/img/redirect.png"></td>';
+            $table .= '<td  style="width:25px">&nbsp;</td>';
             $table.='</tr>';
         }
     }

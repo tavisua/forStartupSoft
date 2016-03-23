@@ -299,7 +299,7 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
 //    echo '<pre>';
 //    var_dump($sql);
 //    echo '</pre>';
-//  die();
+//    die();
     $res = $db->query($sql);
     if(!$res){
         dol_print_error($db);
@@ -312,7 +312,9 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
             }
         }
     }
+//    echo '<pre>';
 //    var_dump($lastaction);
+//    echo '</pre>';
 //    die();
     $futureaction = array();
     $sql = "select `llx_societe`.rowid, llx_actioncomm.datep, `responsibility`.`alias`

@@ -3,7 +3,7 @@ require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/core/modules/societe/modules_societe.class.php';
 require_once DOL_DOCUMENT_ROOT.'/societe/societecontact_class.php';
 
-if(isset($_REQUEST['action'])||isset($_POST['action'])){
+if(isset($_REQUEST['action'])){
     if($_REQUEST['action'] == 'loadcontactlist'){
         echo loadcontactlist($_REQUEST['contactid']);
         exit();

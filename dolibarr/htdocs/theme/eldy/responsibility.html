@@ -22,8 +22,10 @@
         for(var index = 0; index<imglist.length; index++){
             if(imglist[index].id.substr(0, 4) == 'img_'){
                 var ID = imglist[index].id.substr(4);
-                document.getElementById(imglist[index].id).onclick = function(){edit_respon(ID)};
-//                console.log(ID);
+                var img_html = document.getElementById(imglist[index].id).outerHTML.substr(0, strpos(document.getElementById(imglist[index].id).outerHTML, 'edit_item('));
+                img_html+='edit_respon('+ID+');">';
+                document.getElementById(imglist[index].id).outerHTML = img_html;
+//                console.log(document.getElementById(imglist[index].id).outerHTML);
             }
         }
         var tbody = document.getElementById('reference_body');
@@ -41,12 +43,24 @@
             }
         }
     })
+    $(function(){
+        $('img').click(function(e){
+            if(e.target.id.substr(0, 4) == 'img_'){
+                var ID = e.target.id.substr(4);
+                edit_respon(ID);
+            }
+
+        })
+    })
     function edit_respon(ID){
+//        console.log(ID);
         location.href = 'http://'+location.hostname+'/dolibarr/htdocs/core/responsibility_editor.php?rowid='+ID+'&mainmenu=tools';
     }
 
 </script>
+
 <script>
+
     $(document).ready(function(){
         $('#reference_body').attr('height', window.innerHeight - 360);
         var th = document.getElementsByTagName('th');
