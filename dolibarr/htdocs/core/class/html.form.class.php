@@ -1581,7 +1581,8 @@ class Form
 			$assignedtouser=dol_json_decode($_SESSION['assignedtouser'], true);
 		}
 		$nbassignetouser=count($assignedtouser);
-
+//        var_dump($assignedtouser);
+//        die();
 		if ($nbassignetouser && $action != 'view') $out.='<br>';
 		$i=0; $ownerid=0;
 		foreach($assignedtouser as $key => $value)

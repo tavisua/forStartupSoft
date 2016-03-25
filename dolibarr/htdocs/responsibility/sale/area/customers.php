@@ -39,10 +39,6 @@ if($user->login != 'admin') {
 $sql .= ' and `llx_societe`.active = 1 ';
 $sql_count.=' and `llx_societe`.active = 1 ';
 
-//echo '<pre>';
-//var_dump($sql);
-//echo '</pre>';
-//die();
 
 
 if($user->login != 'admin') {
@@ -52,20 +48,20 @@ if($user->login != 'admin') {
 }
 
 if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])){
-    $phone_number = fPrepPhoneFilter($_REQUEST['filter']);
+    $phone_number = fPrepPhoneFilter($db->escape($_REQUEST['filter']));
     $sql_filter = "select llx_societe.rowid from llx_societe
     left join `llx_societe_contact` on `llx_societe_contact`.`socid`=`llx_societe`.`rowid`
-    where `llx_societe`.`nom`  like '%".$_REQUEST['filter']."%' 
-    or `llx_societe_contact`.`lastname`  like '%".$_REQUEST['filter']."%'
-    or `llx_societe_contact`.`firstname`  like '%".$_REQUEST['filter']."%'
-    or `llx_societe_contact`.`subdivision`  like '%".$_REQUEST['filter']."%'
-    or `llx_societe_contact`.`email1`  like '%".$_REQUEST['filter']."%'
-    or `llx_societe_contact`.`email2`  like '%".$_REQUEST['filter']."%'";
+    where `llx_societe`.`nom`  like '%".$db->escape($_REQUEST['filter'])."%'
+    or `llx_societe_contact`.`lastname`  like '%".$db->escape($_REQUEST['filter'])."%'
+    or `llx_societe_contact`.`firstname`  like '%".$db->escape($_REQUEST['filter'])."%'
+    or `llx_societe_contact`.`subdivision`  like '%".$db->escape($_REQUEST['filter'])."%'
+    or `llx_societe_contact`.`email1`  like '%".$db->escape($_REQUEST['filter'])."%'
+    or `llx_societe_contact`.`email2`  like '%".$db->escape($_REQUEST['filter'])."%'";
     if(strlen($phone_number)>0) {
         $sql_filter .=" or `llx_societe_contact` . `mobile_phone1`  like '%".$phone_number."%'
         or `llx_societe_contact` . `mobile_phone2`  like '%".$phone_number."%' ";
     }
-    $sql_filter .= "or `llx_societe_contact`.`skype`  like '%".$_REQUEST['filter']."%'";
+    $sql_filter .= "or `llx_societe_contact`.`skype`  like '%".$db->escape($_REQUEST['filter'])."%'";
 
     $res = $db->query($sql_filter);
     if(!$res)
@@ -75,6 +71,8 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])){
         while($obj = $db->fetch_object($res)){
             $filterid[]=$obj->rowid;
         }
+//    var_dump($filterid);
+//    die();
     if(count($filterid)) {
         $sql .= ' and `llx_societe`.`rowid` in (' . implode(',', $filterid) . ') ';
         $sql_count .= ' and `llx_societe`.`rowid` in (' . implode(',', $filterid) . ')';
@@ -89,7 +87,11 @@ $count = $db->fetch_object($res);
 //var_dump(ceil($count->iCount/$per_page));
 //die();
 $total = ceil($count->iCount/$per_page);
-//die($sql);
+
+//echo '<pre>';
+//var_dump($sql);
+//echo '</pre>';
+//die();
 $TableParam = array();
 $ColParam['title']='';
 $ColParam['width']='178';
@@ -247,7 +249,6 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
 //            var_dump($sql);
 //            echo '</pre>';
 //            die();
-
     if(empty($sortorder))
         $result = $db->query($sql);
     else{
@@ -279,11 +280,17 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
             $num_col++;
         }
     }
+    $rowidList=array();
+    while($obj = $db->fetch_object($result)){
+        $rowidList[]=$obj->rowid;
+    }
+    mysqli_data_seek($result, 0);
+//    var_dump(implode(',',$rowidList));
+//    die();
     $actionfields = array('futuredatecomerc'=>'sale', 'lastdatecomerc'=>'sale',  'lastdateservice'=>'service', 'lastdateaccounts'=>'accounts',  'lastdatementor'=>'mentor');
     if(!$result)return;
     $page = isset($_GET['page'])?$_GET['page']:1;
     $per_page = isset($_GET['per_page'])?$_GET['per_page']:30;
-
     $lastaction = array();
     $sql = "select `llx_societe`.rowid, max(`llx_societe_action`.`dtChange`) dtChange, `responsibility`.`alias`
     from `llx_societe`
@@ -293,7 +300,9 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
     left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
     inner join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.`rowid`
     left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
-    where `llx_societe`.active = 1";
+    where 1";
+    if(count($rowidList)>0)
+        $sql .=" and `llx_societe`.rowid in (".implode(',', $rowidList).")";
 //    $sql .= "and `llx_societe`.`fk_user_creat` = ".$user->id;
     $sql .= " group by `llx_societe`.rowid, `responsibility`.`alias` ";
 //    $sql .= ' limit '.($page-1)*$per_page.','.$per_page;
@@ -324,7 +333,10 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
         and (type = 'system' or type = 'user')) TypeCode on TypeCode.code = `llx_actioncomm`.code
         inner join `llx_user` on `llx_actioncomm`.`fk_user_author` = `llx_user`.`rowid`
         left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
-        where `llx_societe`.active = 1";
+    where 1";
+    if(count($rowidList)>0)
+        $sql .=" and `llx_societe`.rowid in (".implode(',', $rowidList).")";
+
 //     $sql .= "and `llx_societe`.`fk_user_creat` = ".$user->id."
      $sql .= " and `llx_actioncomm`.`id` not in (select `llx_societe_action`.`action_id` from llx_societe_action where action_id is not null)
         and `llx_actioncomm`.active = 1";
@@ -341,7 +353,6 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
             }
         }
     }
-
     $fields = $result->fetch_fields();
 //        var_dump($showtitle);
 //        die();
@@ -456,7 +467,6 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
                         </div>";
         }
     }
-
     while($row = $result->fetch_assoc()) {
         $count++;
         $class = fmod($count,2)==1?("impair"):("pair");

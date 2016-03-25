@@ -59,24 +59,7 @@ function previewNote(id){
         }
     })
 }
-function RedirectAction(id){
-
-    //var td = $('#imgManager_'+id);
-    //console.log(td.offset());
-    ////var tbody = $('table.setdate').find('tbody');
-    ////tbody[0].innerHTML = '';
-    //$("#popupmenu").find('th').remove();
-    //var tbody = $('table.setdate').find('tbody');
-    //tbody.empty().html(
-    //    '<tr>' +
-    //    '<td class="middle_size" style="cursor: pointer" title="">Продублювати</td>' +
-    //    '</tr>')
-    //
-    //$("#popupmenu").attr('type_action', id);
-    //$("#popupmenu").show();
-    //$("#popupmenu").offset({
-    //    top: td.offset().top,
-    //    left: td.offset().left-50});
+function DuplicateAction(id){
     if(confirm('Продублювати завдання?')){
         var input_html = '<input type="hidden" value="1" name="duplicate_action">';
         $('#addaction').html($('#addaction').html()+input_html);
@@ -613,18 +596,30 @@ function save_item(tablename, paramfield, sendtable){
 function addAssignedUsers(){
     var select = $("#assegnedusers").val();
 //        	{"4":{"id":"4","transparency":"on","mandatory":1}
+//    console.log(select);
+//    return;
 
     var assignedJSON="";
 
     for(var i=0; i<select.length; i++){
-        if(select[i]>0)
-            assignedJSON+=',"'+select[i]+'":{"id":"'+select[i]+'","transparency":"on","mandatory":1}';
+        if($.isNumeric(select[i])){
+            if (select[i] > 0)
+                    assignedJSON += ',"' + select[i] + '":{"id":"' + select[i] + '","transparency":"on","mandatory":1}';
+        }else {
+           var rowidList = select[i].split(',');
+            console.log(rowidList);
+            for (var d = 0; d < rowidList.length; d++) {
+                assignedJSON += ',"' + rowidList[d] + '":{"id":"' + rowidList[d] + '","transparency":"on","mandatory":1}';
+            }
+        }
     }
     assignedJSON+="}";
-
+    $('#addAssigned').find('#assignedJSON').val(assignedJSON);
+    //console.log($('#assignedJSON').val());
+    //return;
     //location.href='?action=add&assignedJSON='+assignedJSON+'&mainmenu='+$('input#mainmenu').val()+'&backtopage='+$('#backtopage').val();
     //$('#addAssigned').find('#backpage').val($('#backtopage').val());
-    $('#addAssigned').find('#assignedJSON').val(assignedJSON);
+
     //$('#addAssigned').find('#mm').val($('input#mainmenu').val());
     //$('#addAssigned').find('#type_code').val($('select#actioncode').val());
     //$('#addAssigned').find('#formaction').val('addassignedtouser');
@@ -646,10 +641,23 @@ function addAssignedUsers(){
     for(var i = 0; i<selectfield.length; i++) {
         //if(inputfield[i].attr('type'))
         if(selectfield[i].type == 'hidden') {
-            $('#addAssigned').html($('#addAssigned').html()+inputfield[i].outerHTML);
+            $('#addAssigned').html($('#addAssigned').html()+selectfield[i].outerHTML);
         }
         else{
             var elem = selectfield[i];
+            elem.style.display = 'none';
+             $('#addAssigned').html($('#addAssigned').html()+elem.outerHTML);
+            //console.log(elem.outerHTML);
+        }
+    }
+    var textfield = $('#formaction').find('textarea');
+    for(var i = 0; i<textfield.length; i++) {
+        //if(inputfield[i].attr('type'))
+        if(textfield[i].type == 'hidden') {
+            $('#addAssigned').html($('#addAssigned').html()+textfield[i].outerHTML);
+        }
+        else{
+            var elem = textfield[i];
             elem.style.display = 'none';
              $('#addAssigned').html($('#addAssigned').html()+elem.outerHTML);
             //console.log(elem.outerHTML);

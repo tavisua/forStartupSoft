@@ -156,7 +156,7 @@ function CalcOutStandingActions($actioncode, $array, $id_usr){
         if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'" || $user->login !="admin")
             $sql .=" and `llx_actioncomm_resources`.fk_element = ".$id_usr;
     $sql .= " and datep2 < '".date("Y-m-d")."'";
-    $sql .=" and and llx_actioncomm.`percent` <> 100";
+    $sql .=" and llx_actioncomm.`percent` <> 100";
 //    if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'"){}
 //        else
 //    echo '<pre>';

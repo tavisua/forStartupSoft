@@ -8,7 +8,7 @@
 require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 require_once $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/comm/action/class/actioncomm.class.php';
-
+unset($_SESSION['assignedtouser']);
 
 $table = ShowTask();
 //echo '<pre>';
@@ -180,8 +180,8 @@ function ShowTask(){
             else
                 $table .= '<td  style="width:25px">&nbsp;</td>';
 
-//            $table .= '<td  style="width:25px"><img id="imgManager_"'.$obj->id.' onclick="RedirectAction('.$obj->id.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Redirect').'" src="/dolibarr/htdocs/theme/eldy/img/redirect.png"></td>';
-            $table .= '<td  style="width:25px">&nbsp;</td>';
+            $table .= '<td  style="width:25px;text-align: center"><img id="imgManager_"'.$obj->id.' onclick="DuplicateAction('.$obj->id.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Duplicate').'" src="/dolibarr/htdocs/theme/eldy/img/object_duplicate.png"></td>';
+//            $table .= '<td  style="width:25px">&nbsp;</td>';
             $table.='</tr>';
         }
     }

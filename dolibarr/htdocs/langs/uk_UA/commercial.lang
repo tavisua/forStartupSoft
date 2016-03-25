@@ -11,6 +11,7 @@ DeleteAction=Delete an event/task
 NewAction=New event/task
 AddAction=Додати дію/завдання
 AddAnAction=Додати дію/завдання
+DuplicateAction=Дублювати дію
 AddItem=Додати
 AddActionRendezVous=Create a Rendez-vous event
 Rendez-Vous=Rendezvous

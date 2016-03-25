@@ -26,7 +26,10 @@
  *       \ingroup    agenda
  *       \brief      Page for event card
  */
-
+//echo '<pre>';
+//var_dump($_REQUEST);
+//echo '</pre>';
+//die();
 require '../../main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
 
@@ -36,6 +39,7 @@ if($_GET['action']=='get_exectime'){
 	$exec_time = $Action->GetExecTime($_GET['code']);
     echo $exec_time;
     exit();
+
 }elseif($_GET['action']=='get_contactlist'){
     require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
     $form = new Form($db);
@@ -160,6 +164,13 @@ $origin=GETPOST('origin','alpha');
 $originid=GETPOST('originid','int');
 if ($cancel)
 {
+	$listofuserid = dol_json_decode($_SESSION['assignedtouser'],1);
+	foreach (array_keys($listofuserid) as $key) {
+		if ($key != $user->id) {
+			unset($listofuserid[$key]);
+		}
+	}
+	$_SESSION['assignedtouser'] = dol_json_encode($listofuserid);
     $Location = "Location: ".str_replace("'",'', $backtopage);
     header($Location);
     exit;
@@ -242,6 +253,13 @@ if (GETPOST('removedassigned') || GETPOST('removedassigned') == '0')
 // Add user to assigned list
 if(GETPOST('assignedJSON')){
 //	var_dump('{"6":{"id":"6","mandatory":0,"transparency":null},"43":{"id":"43","transparency":"on","mandatory":1}}</br>');
+	$userlist=dol_json_decode($_SESSION['assignedtouser'], true);
+
+	if(!isset($userlist[array_keys($userlist)[0]]["mandatory"])) {
+		$_SESSION['assignedtouser'] = '{"' . $user->id . '":{"id":"' . $user->id . '","mandatory":0,"transparency":null}}';
+	}
+//	var_dump($_SESSION['assignedtouser']);
+//	die();
 	$author = substr($_SESSION['assignedtouser'], 0,strpos($_SESSION['assignedtouser'], 'null}')+strlen('null}'));
 //	var_dump($author.','.$_GET['assignedJSON'].'}</br>');
 //	die();
@@ -257,7 +275,7 @@ if(GETPOST('assignedJSON')){
 //	die();
 }
 
-if (GETPOST('addassignedtouser') || GETPOST('updateassignedtouser'))
+if (GETPOST('addassignedtouser') || GETPOST('updateassignedtouser') || GETPOST('duplicate_action'))
 {
 	// Add a new user
 	if (GETPOST('assignedtouser') > 0)
@@ -341,7 +359,6 @@ if ($action == 'add')
 //	echo '<pre>';
 //	var_dump($error);
 //	echo '</pre>';
-//	die();
 	if (! $error)
 	{
 
@@ -356,9 +373,9 @@ if ($action == 'add')
 		$object->label = trim(GETPOST('label'));
 		$object->fk_element = GETPOST("fk_element");
 		$object->elementtype = GETPOST("elementtype");
-        $object->period = GETPOST("selperiod");
-        $object->parent_id= GETPOST("parent_id");
-        $object->groupoftask= GETPOST("groupoftask");
+		$object->period = GETPOST("selperiod");
+		$object->parent_id= GETPOST("parent_id");
+		$object->groupoftask= GETPOST("groupoftask");
 //        die($object->parent_id);
 		if (! GETPOST('label'))
 		{
@@ -388,8 +405,8 @@ if ($action == 'add')
 		$listofuserid=array();
 
 		if (! empty($_SESSION['assignedtouser'])) {
-            $listofuserid = dol_json_decode($_SESSION['assignedtouser']);
-        }
+			$listofuserid = dol_json_decode($_SESSION['assignedtouser']);
+		}
 		$i=0;
 		foreach($listofuserid as $key => $value)
 		{
@@ -404,6 +421,7 @@ if ($action == 'add')
 		}
 
 	}
+//	die();
 
 	if (! $error && ! empty($conf->global->AGENDA_ENABLE_DONEBY))
 	{
@@ -778,12 +796,24 @@ if ($action == 'mupdate')
 /*
  * View
  */
-
+//echo '<pre>';
+//var_dump($_REQUEST);
+//echo '</pre>';
+//die();
 $help_url='EN:Module_Agenda_En|FR:Module_Agenda|ES:M&omodulodulo_Agenda';
-if ($action == 'create')
-    llxHeader('',$langs->trans("AddAction"),$help_url);
-elseif($action == 'edit')
-    llxHeader('',$langs->trans("EditAction"),$help_url);
+if ($action == 'create') {
+	if(!isset($_REQUEST["duplicate_action"]))
+		llxHeader('', $langs->trans("AddAction"), $help_url);
+	else
+		llxHeader('', $langs->trans("DuplicateAction"), $help_url);
+
+}
+elseif($action == 'edit') {
+	if(!isset($_REQUEST["duplicate_action"]))
+		llxHeader('', $langs->trans("EditAction"), $help_url);
+	else
+		llxHeader('', $langs->trans("DuplicateAction"), $help_url);
+}
 
 $form = new Form($db);
 $formfile = new FormFile($db);
@@ -791,6 +821,10 @@ $formactions = new FormActions($db);
 
 if ($action == 'create')
 {
+//	echo '<pre>';
+//	var_dump($_POST);
+//	echo '</pre>';
+//	die();
 	$contact = new Contact($db);
     print '<div class="tabBar">';
 	print '<form id="addAssigned" action="'.$_SERVER['PHP_SELF'].'" method="POST">';
@@ -861,7 +895,12 @@ if ($action == 'create')
 	if (empty($conf->global->AGENDA_USE_EVENT_TYPE)) print '<input type="hidden" id="actioncode" name="actioncode" value="'.dol_getIdFromCode($db, $_REQUEST["actioncode"], 'c_actioncomm').'">';
 
 	if (GETPOST("actioncode") == 'AC_RDV') print_fiche_titre($langs->trans("AddActionRendezVous"));
-	else print_fiche_titre($langs->trans("AddAnAction"));
+	else {
+		if(!isset($_REQUEST["duplicate_action"]))
+			print_fiche_titre($langs->trans("AddAnAction"));
+		else
+			print_fiche_titre($langs->trans("DuplicateAction"));
+	}
 
 	print '<table class="border" width="100%">';
 
@@ -953,27 +992,36 @@ if ($action == 'create')
 	// Assigned to
 	print '<tr><td class="nowrap">'.$langs->trans("ActionAffectedTo").'</td><td style="vertical-align:top">';
 	$listofuserid=array();
+//	var_dump(empty($donotclearsession));
+//	die();
 	if (empty($donotclearsession))
 	{
 		$assignedtouser=GETPOST("assignedtouser")?GETPOST("assignedtouser"):(! empty($object->userownerid) && $object->userownerid > 0 ? $object->userownerid : $user->id);
 		if ($assignedtouser) $listofuserid[$assignedtouser]=array('id'=>$assignedtouser,'mandatory'=>0,'transparency'=>$object->transparency);	// Owner first
 		$_SESSION['assignedtouser']=dol_json_encode($listofuserid);
 	}
-	else
-		if (!empty($_SESSION['assignedtouser']))
-		{
-			$listofuserid=dol_json_decode($_SESSION['assignedtouser'], true);
-		}
-
+	elseif (!empty($_SESSION['assignedtouser']))
+	{
 		$listofuserid=dol_json_decode($_SESSION['assignedtouser'], true);
-		foreach(array_keys($listofuserid) as $key) {
-			if($key<=0) {
+	}
+
+
+	if(isset($_REQUEST["duplicate_action"])) {//if duplicate action, change author action
+		$listofuserid[$user->id] = $listofuserid[array_keys($listofuserid)[0]];
+		$listofuserid[$user->id]['id']=$user->id;
+		foreach (array_keys($listofuserid) as $key) {
+			if ($key != $user->id) {
 				unset($listofuserid[$key]);
-//				var_dump($assignedtouser);
-//				die();
 			}
 		}
+		$_SESSION['assignedtouser'] = dol_json_encode($listofuserid);
 
+		$userlist=dol_json_decode($_SESSION['assignedtouser'], true);
+
+		if(!isset($userlist[array_keys($userlist)[0]]["mandatory"])) {
+			$_SESSION['assignedtouser'] = '{"' . $user->id . '":{"id":"' . $user->id . '","mandatory":0,"transparency":null}}';
+		}
+	}
 
 	print $form->select_dolusers_forevent(($action=='create'?'add':'update'), 'assignedtouser', 1, '', 0, '', '', 0, 0, 0, 'AND u.statut != 0', 0, 1, 1);
 
@@ -994,9 +1042,10 @@ if ($action == 'create')
 	print '<td>';
 	$percent=-1;
 	$respon = array();
+
 	if(count($listofuserid) == 1) {
 		$respon[] = $user->respon_id;
-		$formactions->select_groupoftask('groupoftask', $respon);
+		$formactions->select_groupoftask('groupoftask', $respon, GETPOST('groupoftask'));
 	}else{
 		$assigneduser = new User($db);
 		foreach($listofuserid as $id_usr){
@@ -1008,7 +1057,7 @@ if ($action == 'create')
 		}
 //		var_dump($respon);
 //		die();
-		$formactions->select_groupoftask('groupoftask', $respon);
+		$formactions->select_groupoftask('groupoftask', $respon, GETPOST('groupoftask'));
 	}
 
 	print '</td></tr>';
@@ -1017,7 +1066,7 @@ if ($action == 'create')
 //    {
 //    var_dump((GETPOST("actioncode") != "AC_GLOBAL"));
 //        die(GETPOST("actioncode"));
-		print '<tr id="period"><td>'.$langs->trans("Period").'</td><td colspan="3">'.$form->select_period('selperiod',$period).'</td></tr>';
+		print '<tr id="period"><td>'.$langs->trans("Period").'</td><td colspan="3">'.$form->select_period('selperiod', empty(GETPOST('selperiod'))?$period:GETPOST('selperiod')).'</td></tr>';
 //    }
 		print '<tr><td class="nowrap">Попередньо виконати до</td><td colspan="3">';
 		$form->select_date($datep?$datep:$object->datep,'preperform',0,0,0,"action",1,0,0,0,'fulldaystart');
@@ -1159,7 +1208,6 @@ if ($action == 'create')
 //        <img class="hideonsmartphone" border="0" title="" alt="" src="/dolibarr/htdocs/theme/eldy/img/info.png">';
     print $form->select_confirmdoc();
     print '</td></tr>';
-
     // Other attributes
     $parameters=array('id'=>$object->id);
     $reshook=$hookmanager->executeHooks('formObjectOptions',$parameters,$object,$action);    // Note that $action and $object may have been modified by hook
@@ -1198,7 +1246,7 @@ if ($action == 'create')
 }
 
 // View or edit
-if ($id > 0)
+if ($id > 0 )
 {
 	$result1=$object->fetch($id);
 	$result2=$object->fetch_thirdparty();
@@ -1230,10 +1278,30 @@ if ($id > 0)
 	{
 		print $form->formconfirm("card.php?id=".$id,$langs->trans("DeleteAction"),$langs->trans("ConfirmDeleteAction"),"confirm_delete",'','',1);
 	}
-
+//var_dump($action);
+//	die();
 	if ($action == 'edit')
 	{
-        print_fiche_titre($langs->trans("EditAction"));
+		$listofuserid = array();
+		if(isset($_REQUEST["duplicate_action"])) {//if duplicate action, change author action
+			$listofuserid = dol_json_decode($_SESSION['assignedtouser'],1);
+			$listofuserid[$user->id] = $listofuserid[array_keys($listofuserid)[0]];
+			$listofuserid[$user->id]['id']=$user->id;
+			foreach (array_keys($listofuserid) as $key) {
+				if ($key != $user->id) {
+					unset($listofuserid[$key]);
+				}
+			}
+			$_SESSION['assignedtouser'] = dol_json_encode($listofuserid);
+
+			if(!isset($_SESSION['assignedtouser'])||empty($_SESSION['assignedtouser'])) {
+				$_SESSION['assignedtouser'] = '{"' . $user->id . '":{"id":"' . $user->id . '","mandatory":0,"transparency":null}}';
+			}
+		}
+		if(!isset($_REQUEST["duplicate_action"]))
+        	print_fiche_titre($langs->trans("EditAction"));
+		else
+			print_fiche_titre($langs->trans("DuplicateAction"));
 	    if (! empty($conf->use_javascript_ajax))
         {
             print "\n".'<script type="text/javascript">';
@@ -1265,20 +1333,33 @@ if ($id > 0)
             print '</script>'."\n";
         }
 //        print '<div class="tabPage">';
-	print '<div id="addassignpanel" style="position: relative; z-index: 0; width: 30px">
-		<button style="width: 25px;height: 29px;" title="Додати користувачів зі списку" onclick="ShowaddAssignedUsersForm();"><img style="margin-left: -3px" src="../../../htdocs/theme/eldy/img/Add.png"></button>
-	</div>';
+		print '<div id="addassignpanel" style="position: relative; z-index: 0; width: 30px">
+			<button style="width: 25px;height: 29px;" title="Додати користувачів зі списку" onclick="ShowaddAssignedUsersForm();"><img style="margin-left: -3px" src="../../../htdocs/theme/eldy/img/Add.png"></button>
+		</div>';
+		print '<form id="addAssigned" action="'.$_SERVER['PHP_SELF'].'" method="POST">';
+		print '<input type="hidden" id = "assignedJSON" name="assignedJSON" value="">';
+		print '</form>';
         print '<form id="redirect" action="/dolibarr/htdocs/comm/action/result_action.php" method="get">
                 <input type="hidden" name="backtopage" value="'.($backtopage != '1'? $backtopage : $_SERVER["HTTP_REFERER"]).'">
-                <input type="hidden" name="id" value="'.$id.'">
                 <input type="hidden" name="mainmenu" value="'.$_REQUEST["mainmenu"].'">
-                <input type="hidden" value="" id="redirect_actioncode" name="actioncode">
-                <input type="hidden" name="action" value="edit">
-        </form>';
+                <input type="hidden" value="" id="redirect_actioncode" name="actioncode">';
+		if(!isset($_REQUEST["duplicate_action"]))
+			print '<input type="hidden" name="id" value="'.$id.'">
+                <input type="hidden" name="action" value="edit">';
+		else
+			print '<input type="hidden" name="id" value="">
+                <input type="hidden" name="action" value="add">';
+        print '</form>';
 		print '<form id = "formaction" name="formaction" action="'.$_SERVER['PHP_SELF'].'" method="POST">';
 		print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-		print '<input type="hidden" name="action" value="update">';
-		print '<input type="hidden" name="id" value="'.$id.'">';
+		if(!isset($_REQUEST["duplicate_action"])) {
+			print '<input type="hidden" name="action" value="update">';
+			print '<input type="hidden" name="id" value="' . $id . '">';
+		}else {
+			print '<input type="hidden" name="action" value="add">';
+			print '<input type="hidden" name="id" value="">';
+		}
+
 		print '<input type="hidden" name="ref_ext" value="'.$object->ref_ext.'">';
 		print '<input type="hidden" id="showform" value="0">';
 		print '<input type="hidden" id="id_usr" value="'.$user->id.'">';
@@ -1322,6 +1403,8 @@ if ($id > 0)
 		// Status
 		print '<tr><td class="nowrap">'.$langs->trans("Status").' / '.$langs->trans("Percentage").'</td><td colspan="3">';
 		$percent=GETPOST("percentage")?GETPOST("percentage"):$object->percentage;
+		if(isset($_REQUEST["duplicate_action"]))
+			$percent = -1;
 		$formactions->form_select_status_action('formaction',$percent,1);
 		print '</td></tr>';
 		// Period
@@ -1330,7 +1413,7 @@ if ($id > 0)
 //    var_dump((GETPOST("actioncode") != "AC_GLOBAL"));
 //        die(GETPOST("actioncode"));
 //		echo '<pre>';
-//		var_dump($object->period);
+//		var_dump($_SESSION['assignedtouser']);
 //		echo '</pre>';
 //		die();
 		print '<tr id="period"><td>'.$langs->trans("Period").'</td><td colspan="3">'.$form->select_period('selperiod', $object->period).'</td></tr>';
@@ -1381,7 +1464,7 @@ if ($id > 0)
 		print '<td>';
 
 		$percent=-1;
-//		var_dump(count($listofuserid));
+//		var_dump($object->groupoftask);
 //		die();
 		$respon = array();
 		if(count($listofuserid) == 1) {
@@ -1483,6 +1566,7 @@ if ($id > 0)
 
 		print '</form>';
 //        print '</div>';
+//		unset($_REQUEST["duplicate_action"]);
 
 	}
 	else
@@ -1792,6 +1876,7 @@ print "<script>
 print '
  <script type="text/javascript">
         $(document).ready(function(){
+//        	console.log();
             $("#actioncode").removeClass("flat");
             $("#actioncode").addClass("combobox");
             $("#actioncode").unbind("change");
@@ -1825,9 +1910,22 @@ print '
 			};
 			var assignedForm = $("#addAssignedUsersForm").find("form");
 			assignedForm = assignedForm[0];
+			assignedForm.id = "selectAssignedUser";
+//			var selectHTML = $("#assignedtouser").html().substr(strpos($("#assignedtouser").html(), "</option>")+"</option>".length);
+//			sale
+//			purchase
+//			dir_depatment
+//			gen_dir
 			assignedForm.innerHTML = "<select id=assegnedusers name=assignedusers[] size=20 class=combobox multiple>"+$("#assignedtouser").html()+"</select>";
+			console.log($("#selectgroupoftask").val(), $("#selectgroupoftask option:selected").val());
+//			$("#assegnedusers").prepend($("<option value='.getUsersByRespon('purchase').'>Постачальники</option>"));
+//			$("#assegnedusers").prepend($("<option value='.getUsersByRespon('sale').'>Торгівельні агенти</option>"));
+//			$("#assegnedusers").prepend($("<option value='.getUsersByRespon('dir_depatment').'>Директори департаментів</option>"));
+//			<option value="sale">Торгівельні агенти</option>
+//		    <option value="dir_depatment">Директори департаментів</option>
+//		    <option value="purchase">Постачальники</option>
 			$("#addAssignedUsersForm").find("select").width(500);
-//            console.log(assignedForm);
+
             $(".tabBar").width(800);
             $("#event_desc").on("click", redirect);
             $("#priority").on("change",ActionCodeChanged);
@@ -1947,7 +2045,7 @@ print '
 //            if($("#actioncode").val() != 0)
 //            	setP2();
             $("#redirect_actioncode").val($("input#actioncode").val());
-            console.log($("select#actioncode").val());
+//            console.log($("select#actioncode").val());
             if($("select#actioncode").val() == "AC_GLOBAL" || $("select#actioncode").val() == "AC_CURRENT"){
                 $("#period").show();
             }else{
@@ -1976,3 +2074,20 @@ print '
 //llxFooter();
 
 $db->close();
+exit();
+function getUsersByRespon($respon)
+{
+	global $db;
+	$sql = "select `llx_user`.`rowid` from llx_user
+		inner join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
+		where 1
+		and `responsibility`.active = 1
+		and `llx_user`.`active`=1
+		and `responsibility`.`alias`='" .$respon . "'";
+	$res = $db->query($sql);
+	$rowidList = array();
+	while ($obj = $db->fetch_object($res)) {
+		$rowidList[] = $obj->rowid;
+	}
+	return implode(',', $rowidList);
+}

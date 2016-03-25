@@ -64,8 +64,10 @@ class FormActions
 			union
 			(select rowid, name
 			from `llx_c_groupoftask`
-			where `llx_c_groupoftask`.`fk_respon_id` in ('.implode(',',$respon_id).')
-			and active = 1)
+			where 1 ';
+		if(count($respon_id))
+			$sql .= ' and `llx_c_groupoftask`.`fk_respon_id` in ('.implode(',',$respon_id).')';
+		$sql .= 'and active = 1)
 			order by name';
 //		var_dump($sql);
 		$res = $this->db->query($sql);
