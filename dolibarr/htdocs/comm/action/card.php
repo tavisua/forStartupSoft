@@ -821,10 +821,6 @@ $formactions = new FormActions($db);
 
 if ($action == 'create')
 {
-//	echo '<pre>';
-//	var_dump($_POST);
-//	echo '</pre>';
-//	die();
 	$contact = new Contact($db);
     print '<div class="tabBar">';
 	print '<form id="addAssigned" action="'.$_SERVER['PHP_SELF'].'" method="POST">';
@@ -883,7 +879,7 @@ if ($action == 'create')
         print '</script>'."\n";
     }
 
-	print '<form id="formaction" name="formaction" action="'.$_SERVER['PHP_SELF'].'" method="POST">';
+		print '<form id="formaction" name="formaction" action="'.$_SERVER['PHP_SELF'].'" method="POST">';
 	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
 	print '<input type="hidden" name="action" value="add">';
 	print '<input type="hidden" id="showform1" value="0">';
@@ -903,11 +899,7 @@ if ($action == 'create')
 	}
 
 	print '<table class="border" width="100%">';
-
-//    // Title
-//	print '<tr><td'.(empty($conf->global->AGENDA_USE_EVENT_TYPE)?' class="fieldrequired"':'').'>'.$langs->trans("Title").'</td><td><input type="text" id="label" name="label" size="60" value="'.GETPOST('label').'"></td></tr>';
-
-    // Type of event
+//    // Type of event
 //	if (! empty($conf->global->AGENDA_USE_EVENT_TYPE))
 //	{
     print '<tr><td width="30%"><span class="fieldrequired">'.$langs->trans("ActionType").'</span></b></td><td>';
@@ -1028,8 +1020,6 @@ if ($action == 'create')
 	if (in_array($user->id,array_keys($listofuserid))) print $langs->trans("MyAvailability").': <input id="transparency" type="checkbox" name="transparency"'.(((! isset($_GET['transparency']) && ! isset($_POST['transparency'])) || GETPOST('transparency'))?' checked="checked"':'').'> '.$langs->trans("Busy");
 	print '</td></tr>';
 
-
-
 	// Realised by
 	if (! empty($conf->global->AGENDA_ENABLE_DONEBY))
 	{
@@ -1062,17 +1052,14 @@ if ($action == 'create')
 
 	print '</td></tr>';
 	    // Period
-//    if (GETPOST("actioncode") == "AC_GLOBAL")
-//    {
-//    var_dump((GETPOST("actioncode") != "AC_GLOBAL"));
-//        die(GETPOST("actioncode"));
-		print '<tr id="period"><td>'.$langs->trans("Period").'</td><td colspan="3">'.$form->select_period('selperiod', empty(GETPOST('selperiod'))?$period:GETPOST('selperiod')).'</td></tr>';
-//    }
+
+//		print '<tr id="period"><td>'.$langs->trans("Period").'</td><td colspan="3"></td></tr>';
+
 		print '<tr><td class="nowrap">Попередньо виконати до</td><td colspan="3">';
 		$form->select_date($datep?$datep:$object->datep,'preperform',0,0,0,"action",1,0,0,0,'fulldaystart');
 		print '</td></tr>';
 	print '</table>';
-	print '<br><br>';
+	print '<br>';
 	print '<table class="border" width="100%">';
 
 
@@ -1864,9 +1851,6 @@ if ($id > 0 )
 	    }
 	}
 }
-//$jquerytheme = 'smoothness';
-//            if (constant('JS_JQUERY_UI')) print '<link rel="stylesheet" type="text/css" href="'.JS_JQUERY_UI.'css/'.$jquerytheme.'/jquery-ui.min.css'.($ext?'?'.$ext:'').'" />'."\n";  // JQuery
-//            else print '<link rel="stylesheet" type="text/css" href="'.DOL_URL_ROOT.'/includes/jquery/css/'.$jquerytheme.'/jquery-ui-latest.custom.css'.($ext?'?'.$ext:'').'" />'."\n";    // JQuery
 print "<script>
     jQuery(function($) {
         $.mask.definitions['~']='[+-]';
@@ -1887,15 +1871,17 @@ print '
             if($("#mainmenu").length>0 && $("#mainmenu").val().length>0){
 				setActionCode();
             }
+//				$("#addassignpanel").offset({top:$("#updateassignedtouser").offset().top-27,left:663});
 //            console.log();
 //            return;
+			console.log($("#updateassignedtouser").length);
             ActionCodeChanged();
             $("#assignedtouser").width(350);
             if($("#addassignedtouser").length>0)
             	$("#addassignpanel").offset({top:$("#addassignedtouser").offset().top-1,left:717});
 			else if($("#updateassignedtouser").length>0){
 				$("#addassignpanel").offset({top:$("#updateassignedtouser").offset().top-27,left:663});
-				console.log("test");
+
 			}
             $("a#sendSMS").attr("id", "addAssignedUsers");
             $("div#sendSMSform").attr("id", "addAssignedUsersForm");
@@ -1918,9 +1904,9 @@ print '
 //			gen_dir
 			assignedForm.innerHTML = "<select id=assegnedusers name=assignedusers[] size=20 class=combobox multiple>"+$("#assignedtouser").html()+"</select>";
 			console.log($("#selectgroupoftask").val(), $("#selectgroupoftask option:selected").val());
-//			$("#assegnedusers").prepend($("<option value='.getUsersByRespon('purchase').'>Постачальники</option>"));
-//			$("#assegnedusers").prepend($("<option value='.getUsersByRespon('sale').'>Торгівельні агенти</option>"));
-//			$("#assegnedusers").prepend($("<option value='.getUsersByRespon('dir_depatment').'>Директори департаментів</option>"));
+			$("#assegnedusers").prepend($("<option value='.getUsersByRespon('purchase').'>Постачальники</option>"));
+			$("#assegnedusers").prepend($("<option value='.getUsersByRespon('sale').'>Торгівельні агенти</option>"));
+			$("#assegnedusers").prepend($("<option value='.getUsersByRespon('dir_depatment').'>Директори департаментів</option>"));
 //			<option value="sale">Торгівельні агенти</option>
 //		    <option value="dir_depatment">Директори департаментів</option>
 //		    <option value="purchase">Постачальники</option>
