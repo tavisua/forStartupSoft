@@ -58,6 +58,7 @@ if($action =='cancel') {
     $soc_contact->SphereOfResponsibility    = GETPOST('SphereOfResponsibility');
     $soc_contact->town_id                   = GETPOST('town_id');
     $soc_contact->lastname                  = GETPOST('lastname');
+    $soc_contact->location                  = GETPOST('location');
     $soc_contact->firstname                 = GETPOST('firstname');
     $soc_contact->work_phone                = GETPOST('work_phone');
     $soc_contact->call_work_phone           = GETPOST('call_work_phone');
@@ -77,7 +78,7 @@ if($action =='cancel') {
     $soc_contact->send_birthdaydate         = GETPOST('send_birthdaydate');
     $soc_contact->socid                     = GETPOST('socid');
 //    echo '<pre>';
-//    var_dump($soc_contact);
+//    var_dump(empty($soc_contact->rowid));
 //    echo '</pre>';
 //    die();
     $error = 0;

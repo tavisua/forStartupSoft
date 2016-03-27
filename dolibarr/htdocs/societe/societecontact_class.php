@@ -42,14 +42,17 @@ class societecontact {
 //        die();
         global $db, $user;
         $date = new DateTime($this->birthdaydate);
-        $sql="insert `llx_societe_contact`(subdivision, post_id, respon_id, lastname, firstname, work_phone,
+        $sql="insert `llx_societe_contact`(subdivision, town_id, location, post_id, respon_id, lastname, firstname,  work_phone,
         call_work_phone,fax,call_fax,mobile_phone1,call_mobile_phone1,mobile_phone2,call_mobile_phone2,
         email1,send_email1,email2,send_email2,skype,call_skype,birthdaydate,send_birthdaydate,socid,active,id_usr)
         values(";
-        $sql.= empty($this->subdivision)?"null":"'".$db->escape(trim($this->subdivision))."'";
-        $sql.= ", ".$this->post.", ".(empty($this->SphereOfResponsibility)?'null':$this->SphereOfResponsibility).", ";
+        $sql.= empty($this->subdivision)?"null":"'".$db->escape(trim($this->subdivision))."', ";
+        $sql.= (empty($this->town_id)?("null"):$this->town_id).", ";
+        $sql.= (empty($this->location)?("null"):"'".$db->escape(trim($this->location))."'").", ";
+        $sql.= $this->post.", ".(empty($this->SphereOfResponsibility)?'null':$this->SphereOfResponsibility).", ";
         $sql.= (empty($this->lastname)?("null"):("'".$db->escape(trim($this->lastname))."'")).", ";
         $sql.= (empty($this->firstname)?("null"):"'".$db->escape(trim($this->firstname))."'").", ";
+
         $sql.= (empty($this->work_phone)?("null"):"'".$db->escape(trim($this->work_phone))."'").", ";
         $sql.= (empty($this->call_work_phone)?'0':'1').", ";
         $sql.= (empty($this->fax)?"null":"'".trim($this->fax)."'").", ";
@@ -503,7 +506,8 @@ class societecontact {
         `subdivision`= "'.$db->escape(trim($this->subdivision)).'",
         `town_id` = '.(empty($this->town_id)?0:$this->town_id).',
         `post_id` = '.(empty($this->post)?0:$this->post).',
-        `respon_id`= '.(empty($this->$SphereOfResponsibility)?"null":$this->SphereOfResponsibility).',
+        `respon_id`= '.(empty($this->SphereOfResponsibility)?"null":$this->SphereOfResponsibility).',
+        `location`= '.(empty($this->location)?"null":$this->location).',
         `lastname` = "'.$db->escape(trim($this->lastname)).'",
         `firstname` = "'.$db->escape(trim($this->firstname)).'",
         `work_phone`= "'.trim($this->work_phone).'",
