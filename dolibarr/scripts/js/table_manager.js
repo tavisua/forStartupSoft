@@ -593,6 +593,32 @@ function save_item(tablename, paramfield, sendtable){
         //location.href='';
     }
 }
+function AddResultAction(){
+    var link = '/dolibarr/htdocs/comm/action/result_action.php';
+    var inputaction = $("#actionbuttons").find('input');
+    for(var i = 0; i<inputaction.length; i++) {
+        if(inputaction[i].name == 'action'){
+            inputaction[i].value = 'addonlyresult';
+        }
+    }
+    $("#actionbuttons").attr('method', 'get');
+    $("#actionbuttons").attr('action', link);
+    //console.log(link);
+    //
+    //location.href=link;
+}
+function EditAction(rowid){
+    var search = location.search.substr(1);
+    search.split('&').forEach(function(item){
+        item = item.split('=');
+        if(item[0]=='mainmenu'){
+            $('#mainmenu_action').val(item[1]);
+        }
+    })
+    $('#action_id').val(rowid);
+    $('#edit_action').val('edit');
+    $('#redirect').submit();
+}
 function addAssignedUsers(){
     var select = $("#assegnedusers").val();
 //        	{"4":{"id":"4","transparency":"on","mandatory":1}

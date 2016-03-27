@@ -204,7 +204,7 @@ function ShowActionTable(){
         $nextaction[$row->fk_parent] = $row->datep;
     }
 
-    $sql='select `llx_actioncomm`.id as rowid, `llx_actioncomm`.`datep`, `llx_societe_action`.dtChange as `datec`, `llx_user`.lastname,
+    $sql = 'select `llx_actioncomm`.id as rowid, `llx_actioncomm`.`datep`, `llx_societe_action`.dtChange as `datec`, `llx_user`.lastname,
         concat(case when `llx_societe_contact`.lastname is null then "" else `llx_societe_contact`.lastname end,
         case when `llx_societe_contact`.firstname is null then "" else `llx_societe_contact`.firstname end) as contactname,
         TypeCode.code kindaction, `llx_societe_action`.`said`, `llx_societe_action`.`answer`,`llx_societe_action`.`argument`,
@@ -214,8 +214,19 @@ function ShowActionTable(){
         left join `llx_societe_contact` on `llx_societe_contact`.rowid=`llx_actioncomm`.fk_contact
         left join `llx_societe_action` on `llx_actioncomm`.id = `llx_societe_action`.`action_id`
         left join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.rowid
-        where fk_soc = '.$_REQUEST['socid'].' and `llx_actioncomm`.`active` = 1';
-    $sql.=' order by `llx_actioncomm`.`datep` desc';
+        where fk_soc = '.(empty($_REQUEST['socid'])?0:$_REQUEST['socid']).' and `llx_actioncomm`.`active` = 1
+        union
+        select null, `llx_societe_action`.dtChange datep, `llx_societe_action`.dtChange as `datec`, `llx_user`.lastname,
+        concat(case when `llx_societe_contact`.lastname is null then "" else `llx_societe_contact`.lastname end,
+        case when `llx_societe_contact`.firstname is null then "" else `llx_societe_contact`.firstname end) as contactname, null, `llx_societe_action`.`said`, `llx_societe_action`.`answer`,`llx_societe_action`.`argument`,
+        `llx_societe_action`.`said_important`, `llx_societe_action`.`result_of_action`, `llx_societe_action`.`work_before_the_next_action`
+        from `llx_societe_action`
+        left join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.rowid
+        left join `llx_societe_contact` on `llx_societe_contact`.rowid=`llx_societe_action`.`contactid`
+        where `llx_societe_action`.socid='.(empty($_REQUEST['socid'])?0:$_REQUEST['socid']).'
+        and `llx_societe_action`.`action_id` is null
+        and `llx_societe_action`.`active` = 1
+        order by `datep` desc';
 
 //    die($sql);
     $res = $db->query($sql);
@@ -282,6 +293,10 @@ function ShowActionTable(){
                 $classitem = 'departure_taskitem';
                 $iconitem = 'object_departure_task.png';
                 $title=$langs->trans('ActionDepartureMeeteng');
+            }break;
+            default:{
+                $iconitem = 'object_call2.png';
+                $title=$langs->trans('ActionAC_RDV');
             }break;
         }
         $dateaction = new DateTime($row->datep);

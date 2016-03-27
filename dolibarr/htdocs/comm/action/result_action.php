@@ -6,18 +6,20 @@
  * Time: 13:45
  */
 require '../../main.inc.php';
-if(isset($_POST['action']) && ($_POST['action'] == 'update' || $_POST['action'] == 'update_and_create')){
-//    echo '<pre>';
-//    var_dump($_POST);
-//    echo '</pre>';
-//    die();
+if(isset($_POST['action']) && ($_POST['action'] == 'update' || $_POST['action'] == 'update_and_create' || $_POST['action'] == 'addonlyresult')){
     saveaction($_POST['rowid'], ($_POST['action'] == 'update_and_create'));
 }
-
+//echo '<pre>';
+//var_dump($_POST);
+//echo '</pre>';
+//die();
 require_once DOL_DOCUMENT_ROOT.'/core/lib/agenda.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
 global $user, $db;
-llxHeader('',$langs->trans("EditAction"),$help_url);
+if($_GET['action'] == 'addonlyresult')
+    llxHeader('',$langs->trans("AddResultAction"),$help_url);
+else
+    llxHeader('',$langs->trans("EditAction"),$help_url);
 $action_id = 0;
 if(isset($_REQUEST["id"])){
     $action_id = $_REQUEST["id"];
@@ -29,14 +31,17 @@ if(isset($_REQUEST["id"])){
 }
 $object = new ActionComm($db);
 $object->fetch($action_id);
+
 //echo '<pre>';
-//var_dump($object->resultaction);
+//var_dump($object->socid);
 //echo '</pre>';
 //die();
 
 $head=actions_prepare_head($object);
-
-print_fiche_titre($langs->trans("EditAction"));
+if($_GET['action'] == 'addonlyresult')
+    print_fiche_titre($langs->trans("AddResultAction"));
+else
+    print_fiche_titre($langs->trans("EditAction"));
 if (! empty($conf->use_javascript_ajax))
 {
     print "\n".'<script type="text/javascript">';
@@ -76,10 +81,18 @@ if (! empty($conf->use_javascript_ajax))
 //print '<input type="hidden" name="backtopage" value="'.$_GET['backtopage'].'">';
 //if (empty($conf->global->AGENDA_USE_EVENT_TYPE)) print '<input type="hidden" name="actioncode" value="'.$object->type_code.'">';
 
-dol_fiche_head($head, 'event_desc', $langs->trans("Action"),0,'action');
+if($_GET['action'] != 'addonlyresult') {
+    dol_fiche_head($head, 'event_desc', $langs->trans("Action"), 0, 'action');
+    $contactlist='';
+}else {
+    $form = new Form($db);
+    $contactlist = '<tr><td>Контактне лице</br>'.$form->selectcontacts($_GET['socid'], '', 'contactid', 1).'</td></tr>';
+}
+//var_dump(htmlspecialchars($contactlist));
+//die();
 
 $societe = new Societe($db);
-$societe->fetch($object->socid);
+$societe->fetch(empty($object->socid)&&$_GET['action'] == 'addonlyresult'?$_GET['socid']:$object->socid);
 //echo '<pre>';
 //var_dump($object->resultaction->work_before_the_next_action);
 //echo '</pre>';
@@ -134,14 +147,18 @@ function saveaction($rowid, $createaction = false){
 //    echo '</pre>';
 //    var_dump(empty($rowid));
 //    die();
-    $socid = get_soc_id($_REQUEST['actionid']);
+    if($_REQUEST['action'] == 'addonlyresult')
+        $socid = $_REQUEST['socid'];
+    else
+        $socid = get_soc_id($_REQUEST['actionid']);
     if(empty($rowid)){
-        $sql='insert into llx_societe_action(`action_id`, `socid`, `said`,`answer`,
-          `argument`,`said_important`,`result_of_action`,`work_before_the_next_action`,`id_usr`) values(';
+        $sql='insert into llx_societe_action(`action_id`, `socid`, `contactid`, `said`,`answer`,
+          `argument`,`said_important`,`result_of_action`,`work_before_the_next_action`,`id_usr`, `new`) values(';
         if(empty($_REQUEST['actionid'])) $sql.='null,';
         else $sql.=$_REQUEST['actionid'].',';
         if(empty($socid)) $sql.='null,';
         else $sql.=$socid.',';
+        $sql.=(empty($_REQUEST['contactid'])?"null":$_REQUEST['contactid']).', ';
         if(empty($_REQUEST['said'])) $sql.='null,';
         else $sql.='"'.$db->escape($_REQUEST['said']).'",';
         if(empty($_REQUEST['answer'])) $sql.='null,';
@@ -160,41 +177,49 @@ function saveaction($rowid, $createaction = false){
 //            $value = $date->format('Y-m-d');
 //            $sql .= '"' .$value . '",';
 //        }
-        $sql .= $user->id.")";
+        $sql .= $user->id.", 1)";
     }else {
         $sql = 'update llx_societe_action set ';
+        $sql.='`contactid`='.(empty($_REQUEST['contactid'])?'null':$_REQUEST['contactid']).', ';
         $sql.='`said`='.(empty($_REQUEST['said'])?'null':"'".$db->escape($_REQUEST['said'])."'").', ';
         $sql.='`answer`='.(empty($_REQUEST['answer'])?'null':"'".$db->escape($_REQUEST['answer'])."'").', ';
         $sql.='`argument`='.(empty($_REQUEST['argument'])?'null':"'".$db->escape($_REQUEST['argument'])."'").', ';
         $sql.='`said_important`='.(empty($_REQUEST['said_important'])?'null':"'".$db->escape($_REQUEST['said_important'])."'").', ';
         $sql.='`result_of_action`='.(empty($_REQUEST['result_of_action'])?'null':"'".$db->escape($_REQUEST['result_of_action'])."'").', ';
         $sql.='`work_before_the_next_action`='.(empty($_REQUEST['work_before_the_next_action'])?'null':"'".$db->escape($_REQUEST['work_before_the_next_action'])."'").', ';
+        $sql.='`new`=1, ';
         $sql.='`id_usr`='.$user->id.' ';
         $sql.='where rowid='.$rowid;
     }
+//    echo '<pre>';
+//    var_dump($sql);
+//    echo '</pre>';
+//    die();
     $res = $db->query($sql);
     if(!$res){
         dol_print_error($db);
     }
-    if(empty($rowid))
-        $rowid = get_last_id();
-    $TypeAction = array('AC_GLOBAL', 'AC_CURRENT');
-    $sql = 'SELECT `code` from `llx_actioncomm` where id = '.$rowid;
-    $res = $db->query($sql);
-    $obj = $db->fetch_object($res);
+    if($_REQUEST['action'] != 'addonlyresult') {
+        if (empty($rowid))
+            $rowid = get_last_id();
+        $TypeAction = array('AC_GLOBAL', 'AC_CURRENT');
+        $sql = 'SELECT `code` from `llx_actioncomm` where id = ' . $rowid;
+        $res = $db->query($sql);
+        $obj = $db->fetch_object($res);
 
 
-    $sql = 'update llx_actioncomm set datea=Now() '.(in_array($obj->code, $TypeAction)?'':', percent = 100').'
-    where llx_actioncomm.id in (select llx_societe_action.action_id from `llx_societe_action` where 1
-    and llx_societe_action.rowid = '.$rowid.')
-    and datea is null';
+        $sql = 'update llx_actioncomm set datea=Now() ' . (in_array($obj->code, $TypeAction) ? '' : ', percent = 100') . '
+            where llx_actioncomm.id in (select llx_societe_action.action_id from `llx_societe_action` where 1
+            and llx_societe_action.rowid = ' . $rowid . ')
+            and datea is null';
 //    die($sql);
-    $res = $db->query($sql);
+        $res = $db->query($sql);
 //    if($res)
 //        dol_print_error($db);
 
 //    die(substr($_REQUEST['backtopage'], 1, strlen($_REQUEST['backtopage'])-2));
 //    die(DOL_URL_ROOT);
+    }
     if(!$createaction)
         header("Location: ".substr($_REQUEST['backtopage'], 1, strlen($_REQUEST['backtopage'])-2));
     else{

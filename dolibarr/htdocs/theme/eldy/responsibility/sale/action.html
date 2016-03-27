@@ -69,12 +69,13 @@
         <input type="hidden" value="<?=$_SERVER['REQUEST_URI']?>" name="backtopage">
         <input type="hidden" value="create" name="action">
         <input type="hidden" value="<?=$_GET['socid']?>" name="socid">
-        <input type="hidden" value="hourly_plan" name="mainmenu">
+        <input type="hidden" value="<?=$_REQUEST['mainmenu']?>" name="mainmenu">
         <input type="hidden" value="<?=$datep->format('d.m.Y')?>" name="datep">
 
         <button title="Скрити чи відобразити таблицю 'Дії'">    Скрити дії    </button>
 
-        <button title="Додати запис в таблицю 'Дії'" onclick="AddAction();">    Додати дію    </button>
+        <button title="Запланувати дію" onclick="AddAction();">    Додати дію    </button>
+        <button title="Додати результат перемовин в таблицю 'Дії'" onclick="AddResultAction()">    Додати результат перемовин    </button>
 
         <!--<button title="Додати запис в таблицю 'Дії'" onclick="location.href=location.href+'&action=add'">    Додати дію    </button>-->
         <button title="Додати інформацію про потреби">    Потреби    </button>
@@ -118,9 +119,9 @@
     <!--<input type="hidden" name="id" value="" id="action_id">-->
 <!--</form>-->
 <form id="redirect" action="/dolibarr/htdocs/comm/action/result_action.php" method="get">
+    <input type="hidden" name="mainmenu" value="<?=$_REQUEST['mainmenu']?>" id="mainmenu_action">
     <input type="hidden" name="backtopage" value="'<?=$_SERVER['REQUEST_URI']?>'">
     <input type="hidden" name="id" value="" id="action_id">
-    <input type="hidden" name="mainmenu" value="<?=$_REQUEST['mainmenu']?>">
     <input type="hidden" value="<?=$actioncode?>" id="redirect_actioncode" name="actioncode">
     <input type="hidden" name="action" value="edit" id="edit_action">
 </form>
@@ -159,6 +160,7 @@
 //        setActionPanelPosition();
         LoadProposition();
     })
+
     function showSMSform(phonenumber){
         $('input#phone_number').val(phonenumber);
         $('b#phone_numbertitle').text(phonenumber);
@@ -196,11 +198,6 @@
         var i = haystack.indexOf( needle, offset ); // returns -1
         return i >= 0 ? i : false;
     }
-    function EditAction(rowid){
-        $('#action_id').val(rowid);
-        $('#edit_action').val('edit');
-        $('#redirect').submit();
-    }
     function ShowHideContactList(object){
         if($('#'+object.attr('id')).text().trim()=='Скрити контакти') {
             $('#' + object.attr('id')).text('Відобразити контакти');
@@ -229,5 +226,27 @@
         $("#actionbuttons").attr('action', '/dolibarr/htdocs/comm/action/card.php');
         console.log($("#actionbuttons").attr('action'));
     }
+    $(function(){
+        $('td').mouseover(function(e){
+            var text = $('#'+e.target.id).text();
+             console.log(text.substr(text.length-3)=='...');
+            if(text.substr(text.length-3)=='...') {
+                var id = e.target.id.substr(0,1)=='_'?e.target.id:'_'+e.target.id;
+//                console.log($('input#'+id).val());
+//                return;
+                $('#popupmenu').css('width',350);
+                $('#popupmenu').css('height',250);
+                $('#popupmenu').html('<div><textarea style="width: 100%;height: 100%">'+$('input#'+id).val()+'</textarea></div>');
+
+                $('#popupmenu').show();
+                $('#popupmenu').offset({top:$('#'+e.target.id).offset().top,left:$('#'+e.target.id).offset().left});
+//                console.log($('#'+e.target.id).offset());
+
+            }
+        })
+        $('#popupmenu').mouseout(function(e){
+            $('#popupmenu').hide();
+        })
+    })
 
 </script>

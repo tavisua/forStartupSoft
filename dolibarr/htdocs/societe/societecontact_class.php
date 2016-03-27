@@ -504,10 +504,10 @@ class societecontact {
         $date = new DateTime($this->birthdaydate);
         $sql='update `llx_societe_contact` set
         `subdivision`= "'.$db->escape(trim($this->subdivision)).'",
-        `town_id` = '.(empty($this->town_id)?0:$this->town_id).',
+        `town_id` = '.(empty($this->town_id)||empty($this->location)?0:$this->town_id).',
         `post_id` = '.(empty($this->post)?0:$this->post).',
         `respon_id`= '.(empty($this->SphereOfResponsibility)?"null":$this->SphereOfResponsibility).',
-        `location`= '.(empty($this->location)?"null":$this->location).',
+        `location`= '.(empty($this->location)?"null":("'".$this->location."'")).',
         `lastname` = "'.$db->escape(trim($this->lastname)).'",
         `firstname` = "'.$db->escape(trim($this->firstname)).'",
         `work_phone`= "'.trim($this->work_phone).'",
