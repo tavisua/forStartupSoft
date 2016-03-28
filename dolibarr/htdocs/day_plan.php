@@ -42,7 +42,10 @@ if(isset($_REQUEST['action'])){
                     }
                 }break;
                 case 'outstand':{
-                    $array = GetDateOutStandingActions("'AC_AREA'", $user->id);
+                    if($user->respon_alias == 'purchase')
+                        $array = GetDateOutStandingActions("'AC_LINEACTIVE'", $user->id);
+                    else
+                        $array = GetDateOutStandingActions("'AC_AREA'", $user->id);
                 }
             }
             if(count($array)>1) {
@@ -111,7 +114,7 @@ exit();
 function GetDateOutStandingActions($actioncode, $id_usr){
     global $db, $user;
 
-    if($actioncode == "'ALL'" || $actioncode == "'AC_AREA'"){
+    if($actioncode == "'ALL'" || $actioncode == "'AC_AREA'"|| $actioncode == "'AC_LINEACTIVE'"){
         $sql = "select `code` from `llx_c_actioncomm` where type in ('user','system')";
         if($actioncode == "'AC_AREA'")
             $sql.=" and `code` not in ('AC_GLOBAL', 'AC_CURRENT')";
@@ -132,7 +135,7 @@ function GetDateOutStandingActions($actioncode, $id_usr){
         if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'" || $user->login !="admin")
             $sql .=" and llx_actioncomm_resources.fk_element = ".$id_usr;
     $sql .= " and datep2 < '".date("Y-m-d")."'";
-    $sql .=" and percent <> 100 and datea is null";
+    $sql .=" and percent <> 100";
     $sql .=" order by date_action";
     $res = $db->query($sql);
     if($db->num_rows($res)) {

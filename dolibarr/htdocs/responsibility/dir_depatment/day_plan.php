@@ -358,7 +358,7 @@ function ShowTable(){
     }
     $table.='</tr>';
 
-    $sql = "select rowid, lastname from llx_user where 1 ".(empty($user->subdiv_id)?"":"and`subdiv_id` = ".$user->subdiv_id) ;
+    $sql = "select rowid, lastname, firstname from llx_user where 1 ".(empty($user->subdiv_id)?"":"and`subdiv_id` = ".$user->subdiv_id) ;
     $userlist = $db->query($sql);
     if(!$userlist)
         dol_print_error($db);
@@ -366,7 +366,7 @@ function ShowTable(){
     while($obj = $db->fetch_object($userlist)){
         $class=(fmod($nom++,2)==0?"impair":"pair");
         $table.='<tr id = "'.$obj->rowid.'" class="'.$class.'">
-            <td class="middle_size" style="width:106px">'.$obj->lastname.'</td>
+            <td class="middle_size" style="width:106px">'.$obj->lastname.' '.mb_substr($obj->firstname, 0, 1, 'UTF-8').'.'.mb_substr($obj->firstname, mb_strrpos($obj->firstname, ' ','UTF-8')+1, 1, 'UTF-8').'.</td>
             <td class="middle_size" style="width:146px">Всього задач</td>';
             $totaltask = array();
             $totaltask = CalcOutStandingActions($Code, $totaltask, $obj->rowid);
@@ -456,7 +456,7 @@ function ShowTable(){
     while($obj = $db->fetch_object($userlist)){
         $class=(fmod($nom++,2)==0?"impair":"pair");
         $table.='<tr id = "'.$obj->rowid.'" class="'.$class.'">
-            <td class="middle_size" style="width:106px">'.$obj->lastname.'</td>
+            <td class="middle_size" style="width:106px">'.$obj->lastname.' '.mb_substr($obj->firstname, 0, 1, 'UTF-8').'.'.mb_substr($obj->firstname, mb_strrpos($obj->firstname, ' ','UTF-8')+1, 1, 'UTF-8').'.</td>
             <td class="middle_size" style="width:146px">Всього глобальні задачі (ТОПЗ)</td>';
             $totaltask = array();
             $totaltask = CalcOutStandingActions($Code, $totaltask, $obj->rowid);
@@ -543,7 +543,7 @@ function ShowTable(){
     while($obj = $db->fetch_object($userlist)){
         $class=(fmod($nom++,2)==0?"impair":"pair");
         $table.='<tr id = "'.$obj->rowid.'" class="'.$class.'">
-            <td class="middle_size" style="width:106px">'.$obj->lastname.'</td>
+            <td class="middle_size" style="width:106px">'.$obj->lastname.' '.mb_substr($obj->firstname, 0, 1, 'UTF-8').'.'.mb_substr($obj->firstname, mb_strrpos($obj->firstname, ' ','UTF-8')+1, 1, 'UTF-8').'.</td>
             <td class="middle_size" style="width:146px">Всього поточних задач</td>';
             $task = array();
             $task = CalcOutStandingActions($Code, $task, $obj->rowid);
@@ -804,7 +804,7 @@ function ShowTable(){
             }
         }
     }
-    $sql = "select `regions`.rowid, llx_user.lastname,`regions`.`name` from llx_user
+    $sql = "select `regions`.rowid, llx_user.lastname, llx_user.firstname,`regions`.`name` from llx_user
         left join `llx_user_regions` on `llx_user_regions`.`fk_user` = llx_user.rowid
         left join `regions` on `regions`.`rowid` = `llx_user_regions`.`fk_id`
         where 1 ".(empty($user->subdiv_id)?"":" and subdiv_id=".$user->subdiv_id)."
@@ -821,7 +821,7 @@ function ShowTable(){
     while($obj = $db->fetch_object($res)){
         $class=(fmod($nom++,2)==0?"impair":"pair");
         $table .= '<tr class = "'.$class.'"id = "'.$obj->rowid.'">
-        <td>'.$obj->lastname.'</td>
+        <td>'.$obj->lastname.' '.mb_substr($obj->firstname, 0, 1, 'UTF-8').'.'.mb_substr($obj->firstname, mb_strrpos($obj->firstname, ' ','UTF-8')+1, 1, 'UTF-8').'.</td>
         <td>'.$obj->name.'</td>';
         //% виконання запланованого по факту
         for($i=8; $i>=0; $i--){

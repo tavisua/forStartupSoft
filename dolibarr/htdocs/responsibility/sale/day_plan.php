@@ -311,7 +311,7 @@ function ShowTable(){
                 $future_actions[$obj->region_id.'_month']=$obj->iCount;
         }
     }
-    
+
     //Прострочені дії
     $outstanding_actions = array();
     $sql = "select `llx_societe`.`region_id`, count(*) as iCount  from `llx_actioncomm`
@@ -321,12 +321,15 @@ function ShowTable(){
     where 1";
     $sql .= " and datep2 < '".date("Y-m-d")."'";
     $sql .=" and llx_actioncomm.percent <> 100";
-    $sql .="and `llx_actioncomm`.`code` not in ('AC_GLOBAL', 'AC_CURRENT')";
-    $sql .="group by `llx_societe`.`region_id`";
+    $sql .=" and `llx_actioncomm`.`code` not in ('AC_GLOBAL', 'AC_CURRENT')";
+    $sql .=" group by `llx_societe`.`region_id`";
     $res = $db->query($sql);
-    while($obj = $db->fetch_object($res)){
-        $outstanding_actions[$obj->region_id]=$obj->iCount;
-    }
+    if(!$res)
+        dol_print_error($db);
+    if($db->num_rows($res)>0)
+        while($obj = $db->fetch_object($res)){
+            $outstanding_actions[$obj->region_id]=$obj->iCount;
+        }
 //    echo '<pre>';
 //    var_dump($sql);
 //    echo '</pre>';
@@ -423,8 +426,8 @@ function ShowTable(){
     while($obj = $db->fetch_object($res)){
         $class=(fmod($nom++,2)==0?"impair":"pair");
         $table.='<tr id = "'.$obj->rowid.'" class="'.$class.'">
-            <td class="middle_size" style="width:106px">'.$obj->states_name.'</td>
-            <td class="middle_size" style="width:146px">'.str_replace('-', '- ',$obj->regions_name).'</td>';
+            <td class="middle_size" style="width:106px"><a target="_blank" href="/dolibarr/htdocs/responsibility/sale/area.php?state_filter='.$obj->rowid.'">'.$obj->states_name.'</a></td>
+            <td class="middle_size" style="width:146px"><a target="_blank" href="/dolibarr/htdocs/responsibility/sale/area.php?state_filter='.$obj->rowid.'">'.str_replace('-', '- ',$obj->regions_name).'</a></td>';
             //% виконання запланованого по факту
 
             for($i=8; $i>=0; $i--){

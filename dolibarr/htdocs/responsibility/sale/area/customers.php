@@ -48,21 +48,25 @@ if($user->login != 'admin') {
 }
 
 if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])){
-    $phone_number = fPrepPhoneFilter($db->escape($_REQUEST['filter']));
-    $sql_filter = "select llx_societe.rowid from llx_societe
-    left join `llx_societe_contact` on `llx_societe_contact`.`socid`=`llx_societe`.`rowid`
-    where `llx_societe`.`nom`  like '%".$db->escape($_REQUEST['filter'])."%'
-    or `llx_societe_contact`.`lastname`  like '%".$db->escape($_REQUEST['filter'])."%'
-    or `llx_societe_contact`.`firstname`  like '%".$db->escape($_REQUEST['filter'])."%'
-    or `llx_societe_contact`.`subdivision`  like '%".$db->escape($_REQUEST['filter'])."%'
-    or `llx_societe_contact`.`email1`  like '%".$db->escape($_REQUEST['filter'])."%'
-    or `llx_societe_contact`.`email2`  like '%".$db->escape($_REQUEST['filter'])."%'";
-    if(strlen($phone_number)>0) {
-        $sql_filter .=" or `llx_societe_contact` . `mobile_phone1`  like '%".$phone_number."%'
-        or `llx_societe_contact` . `mobile_phone2`  like '%".$phone_number."%' ";
+    if($_REQUEST['filter']!='today') {
+        $phone_number = fPrepPhoneFilter($db->escape($_REQUEST['filter']));
+        $sql_filter = "select llx_societe.rowid from llx_societe
+            left join `llx_societe_contact` on `llx_societe_contact`.`socid`=`llx_societe`.`rowid`
+            where `llx_societe`.`nom`  like '%" . $db->escape($_REQUEST['filter']) . "%'
+            or `llx_societe_contact`.`lastname`  like '%" . $db->escape($_REQUEST['filter']) . "%'
+            or `llx_societe_contact`.`firstname`  like '%" . $db->escape($_REQUEST['filter']) . "%'
+            or `llx_societe_contact`.`subdivision`  like '%" . $db->escape($_REQUEST['filter']) . "%'
+            or `llx_societe_contact`.`email1`  like '%" . $db->escape($_REQUEST['filter']) . "%'
+            or `llx_societe_contact`.`email2`  like '%" . $db->escape($_REQUEST['filter']) . "%'";
+        if (strlen($phone_number) > 0) {
+            $sql_filter .= " or `llx_societe_contact` . `mobile_phone1`  like '%" . $phone_number . "%'
+        or `llx_societe_contact` . `mobile_phone2`  like '%" . $phone_number . "%' ";
+        }
+        $sql_filter .= "or `llx_societe_contact`.`skype`  like '%" . $db->escape($_REQUEST['filter']) . "%'";
+    }else{
+        $sql_filter="select fk_soc as rowid from `llx_actioncomm`
+          where datep between '".date('Y-m-d')."' and adddate('".date('Y-m-d')."', interval 1 day)";
     }
-    $sql_filter .= "or `llx_societe_contact`.`skype`  like '%".$db->escape($_REQUEST['filter'])."%'";
-
     $res = $db->query($sql_filter);
     if(!$res)
         dol_print_error($db);

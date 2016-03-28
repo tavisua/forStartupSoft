@@ -444,29 +444,29 @@
             }
         }
     });
-    function OpenFolder(id_cat){
-        var img = $('#cat'+id_cat).find('img');
-//        console.log(img.attr('src') == '/dolibarr/htdocs/theme/eldy/img/object_folded.png');
-        if(img.attr('src') == '/dolibarr/htdocs/theme/eldy/img/object_folded.png') {
-            img.attr('src', '/dolibarr/htdocs/theme/eldy/img/object_deployed.png');
-            $('.parent' + id_cat).show();
-        }else{
-            img.attr('src', '/dolibarr/htdocs/theme/eldy/img/object_folded.png');
-            $('.parent' + id_cat).hide();
-        }
-        $.ajax({
-            url:'/dolibarr/htdocs/orders.php?idmenu=10426&mainmenu=orders&leftmenu=&type_action=showproducts&id_cat='+id_cat,
-            cache: false,
-            success:function(html){
-                $('#products').empty().html(html);
-                for(var i = 0; i<$('tbody#products').find('tr').length;i++){
-                    var tr = $('tbody#products').find('tr')[i];
-                    tr.innerHTML+='<td id = "td'+tr.id.substr(2)+'" style="width:50px; text-align: center"><input id="Col'+tr.id.substr(2)+'"  onblur="setProductCount('+"'Col"+tr.id.substr(2)+"'"+');" class="product_count" value="" type="text" size="4"></td>';
-                }
-                ShowProducts();
-            }
-        })
-    }
+//    function OpenFolder(id_cat){
+//        var img = $('#cat'+id_cat).find('img');
+////        console.log(img.attr('src') == '/dolibarr/htdocs/theme/eldy/img/object_folded.png');
+//        if(img.attr('src') == '/dolibarr/htdocs/theme/eldy/img/object_folded.png') {
+//            img.attr('src', '/dolibarr/htdocs/theme/eldy/img/object_deployed.png');
+//            $('.parent' + id_cat).show();
+//        }else{
+//            img.attr('src', '/dolibarr/htdocs/theme/eldy/img/object_folded.png');
+//            $('.parent' + id_cat).hide();
+//        }
+//        $.ajax({
+//            url:'/dolibarr/htdocs/orders.php?idmenu=10426&mainmenu=orders&leftmenu=&type_action=showproducts&id_cat='+id_cat,
+//            cache: false,
+//            success:function(html){
+//                $('#products').empty().html(html);
+//                for(var i = 0; i<$('tbody#products').find('tr').length;i++){
+//                    var tr = $('tbody#products').find('tr')[i];
+//                    tr.innerHTML+='<td id = "td'+tr.id.substr(2)+'" style="width:50px; text-align: center"><input id="Col'+tr.id.substr(2)+'"  onblur="setProductCount('+"'Col"+tr.id.substr(2)+"'"+');" class="product_count" value="" type="text" size="4"></td>';
+//                }
+//                ShowProducts();
+//            }
+//        })
+//    }
 
     function setProductCount(elem){
         var id = elem.substr(3);
@@ -497,15 +497,15 @@
         $.cookie(array_name, products_array.toString());
 //        console.log($.cookie('proposed_id'));
     }
-    function ShowProducts(){//Відображення кількості замовлених товарів
-        if($.cookie('products_id') != null) {
-            var product = $.cookie('products_id').split(',');
-            for (var i = 0; i < product.length; i++) {
-                $('input#Col' + product[i]).val($.cookie('p' + product[i]));
-//                console.log(product[i], $.cookie('p' + product[i]))
-            }
-        }
-    }
+//    function ShowProducts(){//Відображення кількості замовлених товарів
+//        if($.cookie('products_id') != null) {
+//            var product = $.cookie('products_id').split(',');
+//            for (var i = 0; i < product.length; i++) {
+//                $('input#Col' + product[i]).val($.cookie('p' + product[i]));
+////                console.log(product[i], $.cookie('p' + product[i]))
+//            }
+//        }
+//    }
     function close_action(){
         location.href = '#x';
         $('#actionform').hide();

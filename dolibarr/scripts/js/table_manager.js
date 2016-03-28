@@ -615,13 +615,88 @@ function EditAction(rowid){
             $('#mainmenu_action').val(item[1]);
         }
     })
-    if(rowid.substr(0,1)=='_') {
+    console.log(!$.isNumeric(rowid), rowid);
+    if(!$.isNumeric(rowid)) {
         $('#onlyresult').val(1);
         $('#action_id').val(rowid.substr(1));
     }else
         $('#action_id').val(rowid);
     $('#edit_action').val('edit');
     $('#redirect').submit();
+}
+function ShowProducts(){//Відображення кількості замовлених товарів
+    if($.cookie('products_id') != null) {
+        var product = $.cookie('products_id').split(',');
+        for (var i = 0; i < product.length; i++) {
+            $('input#Col' + product[i]).val($.cookie('p' + product[i]));
+//                console.log(product[i], $.cookie('p' + product[i]))
+        }
+    }
+}
+function OpenFolder(id_cat, showeditfield){
+    console.log(showeditfield);
+    var img = $('#cat'+id_cat).find('img');
+//        console.log(img.attr('src') == '/dolibarr/htdocs/theme/eldy/img/object_folded.png');
+    if(img.attr('src') == '/dolibarr/htdocs/theme/eldy/img/object_folded.png') {
+        img.attr('src', '/dolibarr/htdocs/theme/eldy/img/object_deployed.png');
+        $('.parent' + id_cat).show();
+    }else{
+        img.attr('src', '/dolibarr/htdocs/theme/eldy/img/object_folded.png');
+        $('.parent' + id_cat).hide();
+    }
+
+    $.ajax({
+        url: '/dolibarr/htdocs/orders.php?idmenu=10426&mainmenu=orders&leftmenu=&type_action=showproducts&id_cat=' + id_cat,
+        cache: false,
+        success: function (html) {
+            $('#products').empty().html(html);
+            if(showeditfield == 1) {
+                for (var i = 0; i < $('tbody#products').find('tr').length; i++) {
+                    var tr = $('tbody#products').find('tr')[i];
+                    tr.innerHTML += '<td id = "td' + tr.id.substr(2) + '" style="width:50px; text-align: center"><input id="Col' + tr.id.substr(2) + '"  onblur="setProductCount(' + "'Col" + tr.id.substr(2) + "'" + ');" class="product_count" value="" type="text" size="4"></td>';
+                }
+            }
+            ShowProducts();
+        }
+    })
+
+}
+    function ShowTask(object){
+        var id = object.attr('id');
+        //console.log(id);
+        var td = $('#'+id);
+        if(id.substr(0, 'current'.length)=='current'||
+                id.substr(0, 'global'.length)=='global'||
+                id.substr(0, 'total'.length)=='total' ||
+                id.substr(0, 'outstand'.length)=='outstand'
+
+        ){}else
+            return;
+        $.ajax({
+            url:'/dolibarr/htdocs/day_plan.php?action=getdateaction&type_action='+id,
+            cache:false,
+            success:function(html){
+                if(td.text() == '1'){
+                    location.href = 'http://'+location.hostname+'/dolibarr/htdocs/hourly_plan.php?idmenu=10420&mainmenu=hourly_plan&leftmenu=&date='+html;
+                }else {
+                    $("#popupmenu").find('table').addClass('setdate');
+                    console.log(html);
+                    var tbody = $('table.setdate').find('tbody');
+                    tbody[0].innerHTML = html;
+                    $("#popupmenu").attr('type_action', id);
+                    $("#popupmenu").show();
+                    $("#popupmenu").offset({
+                        top: td.offset().top - 50,
+                        left: td.offset().left - $('#reference_body').width()
+                    });
+                }
+            }
+        })
+
+
+    }
+function TodayActionCustomerFilter(){
+    location.href='?filter=today';
 }
 function addAssignedUsers(){
     var select = $("#assegnedusers").val();

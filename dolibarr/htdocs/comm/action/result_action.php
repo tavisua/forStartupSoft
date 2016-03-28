@@ -14,7 +14,7 @@ if(isset($_POST['action']) && ($_POST['action'] == 'update' || $_POST['action'] 
     saveaction($_POST['rowid'], (substr($_POST['action'],strlen($_POST['action'])-strlen('_and_create') )== '_and_create'));
 }
 //echo '<pre>';
-//var_dump($_REQUEST);
+//var_dump(isset($_REQUEST['onlyresult']), empty($_REQUEST['onlyresult']));
 //echo '</pre>';
 //die();
 require_once DOL_DOCUMENT_ROOT.'/core/lib/agenda.lib.php';
@@ -22,7 +22,7 @@ require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
 global $user, $db;
 if($_GET['action'] == 'addonlyresult' && $_GET['action'] == 'addonlyresult_and_create') {
     llxHeader('', $langs->trans("AddResultAction"), $help_url);
-}elseif(isset($_REQUEST["onlyresult"])){
+}elseif(isset($_REQUEST["onlyresult"])&&$_REQUEST["onlyresult"]=='1'){
     llxHeader('', $langs->trans("EditResultAction"), $help_url);
 }else
     llxHeader('',$langs->trans("EditAction"),$help_url);
@@ -32,7 +32,7 @@ $socid = 0;
 if (isset($_REQUEST["id"])) {
     $action_id = $_REQUEST["id"];
     $sql = "select * from llx_societe_action where 1 ";
-    if(!isset($_REQUEST["onlyresult"]))
+    if(!isset($_REQUEST["onlyresult"]) || empty($_REQUEST['onlyresult']))
         $sql.="and action_id=" . $_REQUEST["id"];
     else
         $sql.="and rowid=" . $_REQUEST["id"];
@@ -41,25 +41,23 @@ if (isset($_REQUEST["id"])) {
         dol_print_error($db);
     }
 }
-if(!isset($_REQUEST["onlyresult"])) {
+if(!isset($_REQUEST["onlyresult"])||empty($_REQUEST["onlyresult"])) {
     $object = new ActionComm($db);
     $object->fetch($action_id);
-    $socid = $object->socid;
-}else{
-    $object = $db->fetch_object($res);
     $socid = $object->socid;
 //    echo '<pre>';
 //    var_dump($object);
 //    echo '</pre>';
 //    die();
+}else{
+    $object = $db->fetch_object($res);
+    $socid = $object->socid;
 }
-
-
 
 $head=actions_prepare_head($object);
 if($_GET['action'] == 'addonlyresult')
     print_fiche_titre($langs->trans("AddResultAction"));
-elseif(isset($_REQUEST["onlyresult"])){
+elseif(isset($_REQUEST["onlyresult"])&&$_REQUEST["onlyresult"]=='1'){
     print_fiche_titre($langs->trans("EditResultAction"));
 }else
     print_fiche_titre($langs->trans("EditAction"));
@@ -102,7 +100,7 @@ if (! empty($conf->use_javascript_ajax))
 //print '<input type="hidden" name="backtopage" value="'.$_GET['backtopage'].'">';
 //if (empty($conf->global->AGENDA_USE_EVENT_TYPE)) print '<input type="hidden" name="actioncode" value="'.$object->type_code.'">';
 
-if(!($_GET['action'] == 'addonlyresult' || (isset($_REQUEST["onlyresult"])))) {
+if(!($_GET['action'] == 'addonlyresult' || (isset($_REQUEST["onlyresult"])&&$_REQUEST["onlyresult"]=='1'))) {
     dol_fiche_head($head, 'event_desc', $langs->trans("Action"), 0, 'action');
     $contactlist='';
 }else {

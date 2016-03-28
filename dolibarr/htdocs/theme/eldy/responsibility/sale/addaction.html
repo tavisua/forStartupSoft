@@ -26,8 +26,8 @@
     <form id="addaction" action="" method="post">
         <input id="backtopage" type="hidden" value="<?=$_GET['backtopage']?>" name="backtopage">
         <input id="rowid" name="rowid" type="hidden" value="<?=empty($object->resultaction['rowid'])?$object->rowid:$object->resultaction['rowid']?>">
-        <input id="actionid" name="actionid" type="hidden" value="<?=!isset($_REQUEST['onlyresult'])?$_GET['id']:''?>">
-        <input id="socid" name="socid" type="hidden" value="<?=isset($_REQUEST['onlyresult'])?$object->socid:''?>">
+        <input id="actionid" name="actionid" type="hidden" value="<?=!isset($_REQUEST['onlyresult'])||empty($_REQUEST['onlyresult'])?$_GET['id']:''?>">
+        <input id="socid" name="socid" type="hidden" value="<?=isset($_REQUEST['onlyresult'])&&!empty($_REQUEST['onlyresult'])?$object->socid:$_REQUEST['socid']?>">
         <input id="mainmenu" name="mainmenu" type="hidden" value="<?=$_GET['mainmenu']?>">
         <input type="hidden" value="<?=$_GET['actioncode']?>" name="actioncode">
         <input id="action" name="action" type="hidden" value="">

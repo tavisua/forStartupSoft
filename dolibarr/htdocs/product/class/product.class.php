@@ -387,7 +387,7 @@ class Product extends CommonObject
 		$form = new Form($db);
 		empty($page)?$page=1:$page;
 		global $conf;
-		$Categories = $this->ShowCategories();
+		$Categories = $this->ShowCategories(false, false);
 		$id_cat = $_REQUEST['id_cat'];
 		if(empty($id_cat))
 			$id_cat = $this->ShowCategories(true);
@@ -537,7 +537,7 @@ class Product extends CommonObject
 		}
 
 	}
-	function ShowCategories($showfirstcategory_id = false){
+	function ShowCategories($showfirstcategory_id = false, $showeditfield = true){
 		global $db, $langs;
 		$form = new Form($db);
 		$sql = "SELECT DISTINCT c.category_id, c.parent_id, cd2.name,  (SELECT  GROUP_CONCAT(cd1.name ORDER BY level SEPARATOR ' &gt; ')
@@ -594,7 +594,7 @@ class Product extends CommonObject
 			array_shift($basic_group);
 			if(isset($sub_category[$catalog_id]) || $categries[$catalog_id][1] == 1) {
 				//href="' .$_SERVER['PHP_SELF'].'?mainmenu='.$_REQUEST['mainmenu'].'&id_cat='.$catalog_id.'#cat'.$catalog_id.'"
-				$out .= '<ul id="cat'.$catalog_id.'" '.($categries[$catalog_id][1]!=0?'class="subcatalog parent'.$categries[$catalog_id][2].'" style="display:none"':' class="parent'.$categries[$catalog_id][2].'"').'>'.(isset($sub_category[$catalog_id])?'<img id="img'.$catalog_id.'" style="cursor:pointer" src="'.DOL_URL_ROOT.'/theme/eldy/img/object_folded.png">':'&nbsp;&nbsp;').'<a style="padding-left: 5px" onclick=OpenFolder('.$catalog_id.')>' .$categries[$catalog_id][0] . '</a></ul>';
+				$out .= '<ul id="cat'.$catalog_id.'" '.($categries[$catalog_id][1]!=0?'class="subcatalog parent'.$categries[$catalog_id][2].'" style="display:none"':' class="parent'.$categries[$catalog_id][2].'"').'>'.(isset($sub_category[$catalog_id])?'<img id="img'.$catalog_id.'" style="cursor:pointer" src="'.DOL_URL_ROOT.'/theme/eldy/img/object_folded.png">':'&nbsp;&nbsp;').'<a style="padding-left: 5px" onclick="OpenFolder('.$catalog_id.', '.($showeditfield?'1':'0').')">' .$categries[$catalog_id][0] . '</a></ul>';
 				for($i=count($sub_category[$catalog_id])-1; $i>=0; $i--) {
 					array_unshift($basic_group, $sub_category[$catalog_id][$i]);
 				}
@@ -605,7 +605,7 @@ class Product extends CommonObject
 					$id_cat = $catalog_id;
 					$out .= '<li id="cat'.$id_cat.'" class="selected parent'.$categries[$catalog_id][2].'"  style="display:none"><a href="' .$_SERVER['PHP_SELF'].'?mainmenu='.$_REQUEST['mainmenu'].'&id_cat='.$id_cat.'#cat'.$id_cat.'">'.$categries[$catalog_id][0] . '</a></li>';
 				}else{
-					$out .= '<li id="cat'.$catalog_id.'" '.($id_cat==$catalog_id?'class="selected parent'.$categries[$catalog_id][2].'"':' class="parent'.$categries[$catalog_id][2].'"').'  style="display:none"><a onclick=OpenFolder('.$catalog_id.')>'.$categries[$catalog_id][0] . '</a></li>';
+					$out .= '<li id="cat'.$catalog_id.'" '.($id_cat==$catalog_id?'class="selected parent'.$categries[$catalog_id][2].'"':' class="parent'.$categries[$catalog_id][2].'"').'  style="display:none"><a onclick="OpenFolder('.$catalog_id.', '.($showeditfield?'1':'0').')">'.$categries[$catalog_id][0] . '</a></li>';
 				}
 			}
 			$index++;

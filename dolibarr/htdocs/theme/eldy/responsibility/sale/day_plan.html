@@ -335,39 +335,39 @@
 
 
 
-    function ShowTask(object){
-        var id = object.attr('id');      
-        console.log(id);
-        var td = $('#'+id);
-        if(id.substr(0, 'current'.length)=='current'||
-                id.substr(0, 'global'.length)=='global'||
-                id.substr(0, 'total'.length)=='total' ||
-                id.substr(0, 'outstand'.length)=='outstand'
-
-        ){}else
-            return;
-        $.ajax({
-            url:'/dolibarr/htdocs/day_plan.php?action=getdateaction&type_action='+id,
-            cache:false,
-            success:function(html){
-                if(td.text() == '1'){
-                    location.href = 'http://'+location.hostname+'/dolibarr/htdocs/hourly_plan.php?idmenu=10420&mainmenu=hourly_plan&leftmenu=&date='+html;
-                    console.log(html);
-                }else {
-                    var tbody = $('table.setdate').find('tbody');
-                    tbody[0].innerHTML = html;
-                    $("#popupmenu").attr('type_action', id);
-                    $("#popupmenu").show();
-                    $("#popupmenu").offset({
-                        top: td.offset().top - 50,
-                        left: td.offset().left - $('#reference_body').width()
-                    });
-                }
-            }
-        })
-
-
-    }
+//    function ShowTask(object){
+//        var id = object.attr('id');
+//        console.log(id);
+//        var td = $('#'+id);
+//        if(id.substr(0, 'current'.length)=='current'||
+//                id.substr(0, 'global'.length)=='global'||
+//                id.substr(0, 'total'.length)=='total' ||
+//                id.substr(0, 'outstand'.length)=='outstand'
+//
+//        ){}else
+//            return;
+//        $.ajax({
+//            url:'/dolibarr/htdocs/day_plan.php?action=getdateaction&type_action='+id,
+//            cache:false,
+//            success:function(html){
+//                if(td.text() == '1'){
+//                    location.href = 'http://'+location.hostname+'/dolibarr/htdocs/hourly_plan.php?idmenu=10420&mainmenu=hourly_plan&leftmenu=&date='+html;
+//                }else {
+//                    console.log(html);
+//                    var tbody = $('table.setdate').find('tbody');
+//                    tbody[0].innerHTML = html;
+//                    $("#popupmenu").attr('type_action', id);
+//                    $("#popupmenu").show();
+//                    $("#popupmenu").offset({
+//                        top: td.offset().top - 50,
+//                        left: td.offset().left - $('#reference_body').width()
+//                    });
+//                }
+//            }
+//        })
+//
+//
+//    }
     function setdate(id){
 //        console.log($('#'+id).text());
 //        console.log($("#popupmenu").attr('type_action').substr(0, 'current'.length));
