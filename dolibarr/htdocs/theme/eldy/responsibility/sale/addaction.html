@@ -25,9 +25,9 @@
 <div  id="ActionList">
     <form id="addaction" action="" method="post">
         <input id="backtopage" type="hidden" value="<?=$_GET['backtopage']?>" name="backtopage">
-        <input id="rowid" name="rowid" type="hidden" value="<?=$object->resultaction['rowid']?>">
-        <input id="actionid" name="actionid" type="hidden" value="<?=$_GET['id']?>">
-        <input id="socid" name="socid" type="hidden" value="">
+        <input id="rowid" name="rowid" type="hidden" value="<?=empty($object->resultaction['rowid'])?$object->rowid:$object->resultaction['rowid']?>">
+        <input id="actionid" name="actionid" type="hidden" value="<?=!isset($_REQUEST['onlyresult'])?$_GET['id']:''?>">
+        <input id="socid" name="socid" type="hidden" value="<?=isset($_REQUEST['onlyresult'])?$object->socid:''?>">
         <input id="mainmenu" name="mainmenu" type="hidden" value="<?=$_GET['mainmenu']?>">
         <input type="hidden" value="<?=$_GET['actioncode']?>" name="actioncode">
         <input id="action" name="action" type="hidden" value="">
@@ -38,37 +38,37 @@
             <tr>
                 <td>
                     &nbsp;&nbsp;&nbsp;<?echo $langs->trans('WhatSaidHim')?></br>
-                    <textarea id="said" class="edit_text" name="said" maxlength="255"><?=$object->resultaction['said']?></textarea>
+                    <textarea id="said" class="edit_text" name="said" maxlength="255"><?=empty($object->resultaction['said'])?$object->said:$object->resultaction['said']?></textarea>
                 </td>
             </tr>
             <tr>
                 <td>
                     &nbsp;&nbsp;&nbsp;<?echo $langs->trans('WhatAnswer')?></br>
-                    <textarea id="answer" class="edit_text" name="answer" maxlength="255"><?=$object->resultaction['answer']?></textarea>
+                    <textarea id="answer" class="edit_text" name="answer" maxlength="255"><?=empty($object->resultaction['answer'])?$object->answer:$object->resultaction['answer']?></textarea>
                 </td>
             </tr>
             <tr>
                 <td>
                     &nbsp;&nbsp;&nbsp;<?echo $langs->trans('HerArgument')?></br>
-                    <textarea id="argument" class="edit_text" name="argument" maxlength="255"><?=$object->resultaction['argument']?></textarea>
+                    <textarea id="argument" class="edit_text" name="argument" maxlength="255"><?=empty($object->resultaction['argument'])?$object->argument:$object->resultaction['argument']?></textarea>
                 </td>
             </tr>
             <tr>
                 <td>
                     &nbsp;&nbsp;&nbsp;<?echo $langs->trans('SaidImportant')?>
-                    <textarea id="said_important" class="edit_text" name="said_important" maxlength="255"><?=$object->resultaction['said_important']?></textarea>
+                    <textarea id="said_important" class="edit_text" name="said_important" maxlength="255"><?=empty($object->resultaction['said_important'])?$object->said_important:$object->resultaction['said_important']?></textarea>
                 </td>
             </tr>
             <tr>
                 <td>
                     &nbsp;&nbsp;&nbsp;<?echo $langs->trans('ResultAction')?>
-                    <textarea id="result_of_action" class="edit_text" name="result_of_action" maxlength="255"><?=$object->resultaction['result_of_action']?></textarea>
+                    <textarea id="result_of_action" class="edit_text" name="result_of_action" maxlength="255"><?=empty($object->resultaction['result_of_action'])?$object->result_of_action:$object->resultaction['result_of_action']?></textarea>
                 </td>
             </tr>
             <tr>
                 <td>
                     &nbsp;&nbsp;&nbsp;<?echo $langs->trans('WorkBeforeAction')?>
-                    <textarea id="work_before_the_next_action" class="edit_text" name="work_before_the_next_action" maxlength="255"><?=$object->resultaction['work_before_the_next_action']?></textarea>
+                    <textarea id="work_before_the_next_action" class="edit_text" name="work_before_the_next_action" maxlength="255"><?=empty($object->resultaction['work_before_the_next_action'])?$object->work_before_the_next_action:$object->resultaction['work_before_the_next_action']?></textarea>
                 </td>
             </tr>
         </table>
@@ -118,6 +118,8 @@
         $("#addaction").attr('action', '/dolibarr/htdocs/comm/action/result_action.php');
         if(param.action == 'addonlyresult')
             $("#action").val('addonlyresult');
+        else if(param.onlyresult.length > 0)
+            $("#action").val('updateonlyresult');
         else
             $("#action").val('update');
         $("#addaction").submit();
@@ -125,8 +127,19 @@
         console.log($("addaction").attr('action'));
     }
     function saveandcreate(){
+        var search = location.search.substr(1);
+        var param = {};
+        search.split('&').forEach(function(item){
+            item = item.split('=');
+            param[item[0]]=item[1];
+        })
         $("#addaction").attr('action', '/dolibarr/htdocs/comm/action/result_action.php');
-        $("#action").val('update_and_create');
+        if(param.action == 'addonlyresult')
+            $("#action").val('addonlyresult_and_create');
+        else if(param.onlyresult.length > 0)
+            $("#action").val('updateonlyresult_and_create');
+        else
+            $("#action").val('update_and_create');
         $("#addaction").submit();
     }
 //    function loadcontactlist(){

@@ -33,6 +33,7 @@ responsibility=Сфера відповідальності
 Responsibility=Сфера відповідальності
 RedirectToOrder=Перейти на заявку
 AddResultAction=Додати результат перемовин
+EditResultAction=Редагувати результат перемовин
 
 ErrorFieldRequired=Поле '%s' є обов'язковим
 ErrorFieldFormat=Поле '%s' містить помилкове значення

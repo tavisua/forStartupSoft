@@ -615,7 +615,11 @@ function EditAction(rowid){
             $('#mainmenu_action').val(item[1]);
         }
     })
-    $('#action_id').val(rowid);
+    if(rowid.substr(0,1)=='_') {
+        $('#onlyresult').val(1);
+        $('#action_id').val(rowid.substr(1));
+    }else
+        $('#action_id').val(rowid);
     $('#edit_action').val('edit');
     $('#redirect').submit();
 }

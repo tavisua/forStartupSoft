@@ -1072,6 +1072,8 @@ class Form
      */
     function selectcontacts($socid,$selected='',$htmlname='contactid',$showempty=0,$exclude='',$limitto='',$showfunction=0, $moreclass='', $options_only=false, $showsoc=0, $forcecombo=0, $events=array())
     {
+//        var_dump($socid,$selected);
+//        die();
         global $conf,$langs;
 
         $langs->load('companies');

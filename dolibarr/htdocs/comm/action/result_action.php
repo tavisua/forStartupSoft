@@ -6,41 +6,62 @@
  * Time: 13:45
  */
 require '../../main.inc.php';
-if(isset($_POST['action']) && ($_POST['action'] == 'update' || $_POST['action'] == 'update_and_create' || $_POST['action'] == 'addonlyresult')){
-    saveaction($_POST['rowid'], ($_POST['action'] == 'update_and_create'));
+if(isset($_POST['action']) && ($_POST['action'] == 'update' || $_POST['action'] == 'update_and_create'
+        || $_POST['action'] == 'addonlyresult' || $_POST['action'] == 'updateonlyresult'
+    || $_POST['action'] == 'addonlyresulte_and_create' || $_POST['action'] == 'updateonlyresult_and_create')){
+//    var_dump((substr($_POST['action'],strlen($_POST['action'])-strlen('_and_create') )== '_and_create'));
+//    die();
+    saveaction($_POST['rowid'], (substr($_POST['action'],strlen($_POST['action'])-strlen('_and_create') )== '_and_create'));
 }
 //echo '<pre>';
-//var_dump($_POST);
+//var_dump($_REQUEST);
 //echo '</pre>';
 //die();
 require_once DOL_DOCUMENT_ROOT.'/core/lib/agenda.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
 global $user, $db;
-if($_GET['action'] == 'addonlyresult')
-    llxHeader('',$langs->trans("AddResultAction"),$help_url);
-else
+if($_GET['action'] == 'addonlyresult' && $_GET['action'] == 'addonlyresult_and_create') {
+    llxHeader('', $langs->trans("AddResultAction"), $help_url);
+}elseif(isset($_REQUEST["onlyresult"])){
+    llxHeader('', $langs->trans("EditResultAction"), $help_url);
+}else
     llxHeader('',$langs->trans("EditAction"),$help_url);
 $action_id = 0;
-if(isset($_REQUEST["id"])){
+$socid = 0;
+
+if (isset($_REQUEST["id"])) {
     $action_id = $_REQUEST["id"];
-    $sql = "select * from llx_societe_action where action_id=".$_REQUEST["id"];
+    $sql = "select * from llx_societe_action where 1 ";
+    if(!isset($_REQUEST["onlyresult"]))
+        $sql.="and action_id=" . $_REQUEST["id"];
+    else
+        $sql.="and rowid=" . $_REQUEST["id"];
     $res = $db->query($sql);
-    if(!$res){
+    if (!$res) {
         dol_print_error($db);
     }
 }
-$object = new ActionComm($db);
-$object->fetch($action_id);
+if(!isset($_REQUEST["onlyresult"])) {
+    $object = new ActionComm($db);
+    $object->fetch($action_id);
+    $socid = $object->socid;
+}else{
+    $object = $db->fetch_object($res);
+    $socid = $object->socid;
+//    echo '<pre>';
+//    var_dump($object);
+//    echo '</pre>';
+//    die();
+}
 
-//echo '<pre>';
-//var_dump($object->socid);
-//echo '</pre>';
-//die();
+
 
 $head=actions_prepare_head($object);
 if($_GET['action'] == 'addonlyresult')
     print_fiche_titre($langs->trans("AddResultAction"));
-else
+elseif(isset($_REQUEST["onlyresult"])){
+    print_fiche_titre($langs->trans("EditResultAction"));
+}else
     print_fiche_titre($langs->trans("EditAction"));
 if (! empty($conf->use_javascript_ajax))
 {
@@ -81,12 +102,12 @@ if (! empty($conf->use_javascript_ajax))
 //print '<input type="hidden" name="backtopage" value="'.$_GET['backtopage'].'">';
 //if (empty($conf->global->AGENDA_USE_EVENT_TYPE)) print '<input type="hidden" name="actioncode" value="'.$object->type_code.'">';
 
-if($_GET['action'] != 'addonlyresult') {
+if(!($_GET['action'] == 'addonlyresult' || (isset($_REQUEST["onlyresult"])))) {
     dol_fiche_head($head, 'event_desc', $langs->trans("Action"), 0, 'action');
     $contactlist='';
 }else {
     $form = new Form($db);
-    $contactlist = '<tr><td>Контактне лице</br>'.$form->selectcontacts($_GET['socid'], '', 'contactid', 1).'</td></tr>';
+    $contactlist = '<tr><td>Контактне лице</br>'.$form->selectcontacts(empty($_GET['socid'])?$object->socid:$_GET['socid'], $object->contactid, 'contactid', 1).'</td></tr>';
 }
 //var_dump(htmlspecialchars($contactlist));
 //die();
@@ -94,7 +115,7 @@ if($_GET['action'] != 'addonlyresult') {
 $societe = new Societe($db);
 $societe->fetch(empty($object->socid)&&$_GET['action'] == 'addonlyresult'?$_GET['socid']:$object->socid);
 //echo '<pre>';
-//var_dump($object->resultaction->work_before_the_next_action);
+//var_dump($object);
 //echo '</pre>';
 //die();
 
@@ -147,7 +168,7 @@ function saveaction($rowid, $createaction = false){
 //    echo '</pre>';
 //    var_dump(empty($rowid));
 //    die();
-    if($_REQUEST['action'] == 'addonlyresult')
+    if((substr($_REQUEST['action'], 0, strlen('addonlyresult')) == 'addonlyresult' || substr($_REQUEST['action'], 0, strlen('updateonlyresult')) == 'updateonlyresult'))
         $socid = $_REQUEST['socid'];
     else
         $socid = get_soc_id($_REQUEST['actionid']);
@@ -199,7 +220,7 @@ function saveaction($rowid, $createaction = false){
     if(!$res){
         dol_print_error($db);
     }
-    if($_REQUEST['action'] != 'addonlyresult') {
+    if(!(substr($_REQUEST['action'], 0, strlen('addonlyresult')) == 'addonlyresult' || substr($_REQUEST['action'], 0, strlen('updateonlyresult')) == 'updateonlyresult')) {
         if (empty($rowid))
             $rowid = get_last_id();
         $TypeAction = array('AC_GLOBAL', 'AC_CURRENT');
@@ -220,9 +241,14 @@ function saveaction($rowid, $createaction = false){
 //    die(substr($_REQUEST['backtopage'], 1, strlen($_REQUEST['backtopage'])-2));
 //    die(DOL_URL_ROOT);
     }
-    if(!$createaction)
-        header("Location: ".substr($_REQUEST['backtopage'], 1, strlen($_REQUEST['backtopage'])-2));
-    else{
+//    var_dump();
+//    die();
+    if(!$createaction) {
+        if(substr($_REQUEST['backtopage'], 0, 1) == "'" && substr($_REQUEST['backtopage'], strlen($_REQUEST['backtopage'])-1, 1) == "'")
+            header("Location: " . substr($_REQUEST['backtopage'], 1, strlen($_REQUEST['backtopage']) - 2));
+        else
+            header("Location: " . $_REQUEST['backtopage']);
+    }else{
         $link = "http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/comm/action/card.php?mainmenu=".$_REQUEST['mainmenu']."&actioncode=".$_REQUEST['actioncode']."&socid=".$socid."&action=create&parent_id=".$_REQUEST["actionid"]."&backtopage=".urlencode(htmlspecialchars(substr($_REQUEST['backtopage'], 1, strlen($_REQUEST['backtopage'])-2)));
 //        die($link);
         header("Location: ".$link);

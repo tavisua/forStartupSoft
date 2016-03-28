@@ -164,6 +164,20 @@ $origin=GETPOST('origin','alpha');
 $originid=GETPOST('originid','int');
 if ($cancel)
 {
+//	echo '<pre>';
+//	var_dump($_REQUEST);
+//	echo '</pre>';
+//	die();
+	if(empty($backtopage)){
+		global $db;
+		$sql = 'select fk_soc from `llx_actioncomm` where id='.$_REQUEST['id'];
+		$res = $db->query($sql);
+		if(!$res)
+			dol_print_error($db);
+		$obj = $db->fetch_object($res);
+		$backtopage='/dolibarr/htdocs/responsibility/sale/action.php?socid='.$obj->fk_soc.'&idmenu=10425&mainmenu=area';
+	}
+
 	$listofuserid = dol_json_decode($_SESSION['assignedtouser'],1);
 	foreach (array_keys($listofuserid) as $key) {
 		if ($key != $user->id) {
