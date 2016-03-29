@@ -239,6 +239,7 @@ function ShowActionTable(){
     if($db->num_rows($res)==0){
         $out .= '<tr class="impair">
             <td style="widtd: 80px" class="middle_size">&nbsp;</td>
+            <td style="widtd: 80px" class="middle_size">&nbsp;</td>
             <td style="widtd: 100px" class="middle_size">&nbsp;</td>
             <td style="widtd: 80px" class="middle_size">&nbsp;</td>
             <td style="widtd: 50px" class="middle_size">&nbsp;</td>

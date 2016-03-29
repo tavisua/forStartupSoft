@@ -46,6 +46,7 @@ include_once $_SERVER["DOCUMENT_ROOT"] . '/dolibarr/htdocs/core/lib/json.lib.php
  * @return 	mixed				Return value of static property
  * @deprecated Dolibarr now requires 5.3.0+
  */
+
 function getStaticMember($class, $member)
 {
 	// This part is deprecated. Uncomment if for php 5.2.*, and comment next isset class::member
@@ -102,6 +103,7 @@ function getDoliDBInstance($type, $host, $user, $pass, $name, $port)
  * 	@param	int		$shared		1=Return shared entities
  * 	@return	mixed				Entity id(s) to use
  */
+
 function getEntity($element=false, $shared=false)
 {
 	global $conf, $mc;

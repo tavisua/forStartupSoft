@@ -695,6 +695,87 @@ function OpenFolder(id_cat, showeditfield){
 
 
     }
+function GetPerformers(){
+    var html = '';
+    if(!strpos(location.search, 'performer')) {
+        var performer = $('.performer');
+        var array = {};
+        for (var i = 0; i < performer.length; i++) {
+            array[$('#' + performer[i].id).attr('id_usr')] = $('#' + performer[i].id).text();
+        }
+        var keys = new Array();
+        var values = new Array();
+        $.each(array, function (index, value) {
+            keys.push(index);
+            values.push(value);
+        })
+
+        for (var i = 0; i < values.length - 1; i++) {
+            if (values[i] > values[i + 1]) {
+                //console.log(i, values);
+                $val1 = values[i];
+                $val2 = values[i + 1];
+                $key1 = keys[i];
+                $key2 = keys[i + 1];
+                values[i] = $val2;
+                values[i + 1] = $val1;
+                keys[i] = $key2;
+                keys[i + 1] = $key1;
+                //console.log(i, values);
+                i = -1;
+            }
+        }
+
+
+        html = '<tr>' +
+            '<td class="middle_size" onclick="setPerformetFilter(0);" style="cursor: pointer; width: 250px"><b>Всі завдання</b></td>'+
+            '</tr>';
+        $.each(keys, function (index, value) {
+            html += '<tr>' +
+                '<td class="middle_size" onclick="setPerformetFilter(' + value + ');" style="cursor: pointer; width: 250px">' + array[value] + '</td>' +
+                '</tr>'
+        })
+        $.cookie('performers', html);
+    }else{
+        html =  $.cookie('performers');
+    }
+    $('#popupmenu').find('table').find('thead').find('th').html('Виберіть виконавця')
+    //$('#popupmenu').find('table').find('thead').empty().html();
+    $('#popupmenu').find('table').find('tbody').empty();
+    $('#popupmenu').find('table').find('tbody').html(html);
+    $('#popupmenu').show();
+    $('#popupmenu').offset({top:$('#PerformerFilter').offset().top-50,left:$('#PerformerFilter').offset().left-50});
+}
+function setPerformetFilter(id_usr){
+    if(id_usr!=0)
+        location.href='?mainmenu='+GetMainMenu()+'&performer='+id_usr;
+    else
+        location.href='?mainmenu='+GetMainMenu();
+}
+function GetMainMenu(){
+    var mainmenu = '';
+    if(strpos(location.pathname,'current_plan')!=false){
+        mainmenu='current_task';
+    }else if(strpos(location.pathname,'global_plan')!=false){
+        mainmenu='global_task';
+    }else{
+        mainmenu='area';
+    }
+    return mainmenu;
+}
+function GetUserPlan(link){
+    $.ajax({
+        url:link,
+        cache:false,
+        success:function(html){
+            console.log(html);
+            var obj = $.parseJSON(html);
+            $('#my_fact').html(obj.fakt_today);
+            $('#my_plan').html(obj.future_today);
+            $('#my_outstanding').html(obj.outstanding);
+        }
+    })
+}
 function TodayActionCustomerFilter(){
     location.href='?filter=today';
 }

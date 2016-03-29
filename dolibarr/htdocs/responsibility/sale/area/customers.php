@@ -73,9 +73,12 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])){
     $filterid = array();
     if($db->num_rows($res))
         while($obj = $db->fetch_object($res)){
-            $filterid[]=$obj->rowid;
+            if(!empty($obj->rowid))
+                $filterid[]=$obj->rowid;
         }
+//    echo'<pre>';
 //    var_dump($filterid);
+//    echo'</pre>';
 //    die();
     if(count($filterid)) {
         $sql .= ' and `llx_societe`.`rowid` in (' . implode(',', $filterid) . ') ';

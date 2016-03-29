@@ -1825,7 +1825,6 @@ function fieldList($fieldlist,$obj='',$tabname='', $show=0)
 		//Сфера відповідальності
         elseif ($fieldlist[$field] == 'responsibility' && ($tabname ==  MAIN_DB_PREFIX."c_groupoftask"))
 		{
-			require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/societe/societecontact_class.php';
 			$soc_contact = new societecontact();
             print '<td align="left">';
             print $soc_contact->selectResponsibility('responsibility',$soc_contact->SphereOfResponsibility);

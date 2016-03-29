@@ -7,12 +7,13 @@
  */
 require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
+
 require_once $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/comm/action/class/actioncomm.class.php';
 unset($_SESSION['assignedtouser']);
 
 $table = ShowTask();
 //echo '<pre>';
-//var_dump($table);
+//var_dump($_REQUEST);
 //echo '</pre>';
 //die();
 $HourlyPlan = $langs->trans('CurrentTask');
@@ -21,6 +22,7 @@ print_fiche_titre($langs->trans('CurrentTask'));
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/current/header.php';
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/current/task.php';
 //llxFooter();
+llxPopupMenu();
 return;
 
 function ShowTask(){
@@ -92,11 +94,15 @@ function ShowTask(){
     $Actions = new ActionComm($db);
     while($obj = $db->fetch_object($res)){
         $add = false;
-        if($taskAuthor[$obj->id] == $user->id)
+        if ($taskAuthor[$obj->id] == $user->id)
             $add = true;
-        else{
-            $users = explode(',',$assignedUser[$obj->id]);
+        else {
+            $users = explode(',', $assignedUser[$obj->id]);
             $add = in_array($user->id, $users);
+        }
+        if(isset($_GET['performer']) && !empty($_GET['performer'])) {//If set performer filter
+            $users = explode(',', $assignedUser[$obj->id]);
+            $add = $taskAuthor[$obj->id] == $user->id && in_array($_GET['performer'], $users);
         }
         if($add){
             $class = fmod($numrow++,2)==0?'impair':'pair';
@@ -112,12 +118,12 @@ function ShowTask(){
             if(empty($assignedUser[$obj->id])){
                 $table.='
                 <td style="width:101px">'.mb_strtolower($langs->trans(ucfirst($tmp_user->respon_alias)), 'UTF-8').'</td>
-                <td style="width:101px">'.$tmp_user->lastname.'</td>';
+                <td style="width:101px" id="id_usr'.$tmp_user->id.'" id_usr="'.$tmp_user->id.'" class="performer">'.$tmp_user->lastname.'</td>';
             }else{
                 $users = explode(',',$assignedUser[$obj->id]);
                 $tmp_user->fetch($users[0]);
                 $table.='<td style="width:101px">'.mb_strtolower($langs->trans(ucfirst($tmp_user->respon_alias)), 'UTF-8').'</td>
-                <td style="width:101px">'.$tmp_user->lastname.'</td>';
+                <td style="width:101px" id="id_usr'.$tmp_user->id.'" id_usr="'.$tmp_user->id.'" class="performer">'.$tmp_user->lastname.'</td>';
             }
             $table.='<td style="width:81px">'.$obj->groupoftask.'</td>';
             $table.='<td style="width:101px">'.(mb_strlen($obj->note, 'UTF-8')>20?(mb_substr($obj->note, 0, 20).'<img id="prev' . $obj->id .'note" onclick="previewNote(' . $obj->id . ');" style="vertical-align: middle" title="Передивитись" src="/dolibarr/htdocs/theme/eldy/img/object-more.png">'):$obj->note).'</td>';
