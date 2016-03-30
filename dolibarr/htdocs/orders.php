@@ -65,7 +65,7 @@ if(isset($_REQUEST['type_action'])){
             $product_static = new Product($db);
             echo '<div class="tabPage" style="width: 1000px">';
             echo '    <div id="groupproducts" style="float: left">';
-            $categories = $product_static->ShowCategories();
+            $categories = $product_static->ShowCategories(false, true);
             echo $categories;
 //            <a href="/dolibarr/htdocs/orders.php?mainmenu=orders&id_cat=446#cat446">
             echo '    </div>';
@@ -737,7 +737,7 @@ function SendTaskForPurchase($order_id)
         $action = new ActionComm($db);
         $exec_minuted = $action->GetExecTime('AC_CURRENT');
         $freetime = $action->GetFirstFreeTime(date('Y-m-d'), $id_usr, $exec_minuted);
-        $date = new DateTime(date('Y-m-d').' '.$freetime);
+        $date = new DateTime($freetime);
         $action->datep = mktime($date->format('h'),$date->format('i'),$date->format('s'),$date->format('m'),$date->format('d'),$date->format('Y'));
         $action->datef = $action->datep + $exec_minuted*60;
         $action->type_code = 'AC_CURRENT';

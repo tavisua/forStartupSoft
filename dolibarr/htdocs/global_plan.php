@@ -95,10 +95,10 @@ function ShowTask(){
             $users = explode(',',$assignedUser[$obj->id]);
             $add = in_array($user->id, $users);
         }
-//        if($obj->id == 8080) {
-//            var_dump($assignedUser[$obj->id]);
-//            die();
-//        }
+        if(isset($_GET['performer']) && !empty($_GET['performer'])) {//If set performer filter
+            $users = explode(',', $assignedUser[$obj->id]);
+            $add =  in_array($_GET['performer'], $users);
+        }
         if($add){
             $class = fmod($numrow++,2)==0?'impair':'pair';
             $datec = new DateTime($obj->datec);
@@ -113,12 +113,12 @@ function ShowTask(){
             if(empty($assignedUser[$obj->id])){
                 $table.='
                 <td style="width:101px">'.mb_strtolower($langs->trans(ucfirst($tmp_user->respon_alias)), 'UTF-8').'</td>
-                <td style="width:101px">'.$tmp_user->lastname.'</td>';
+                <td style="width:101px" id="id_usr'.$tmp_user->id.'" id_usr="'.$tmp_user->id.'" class="performer">'.$tmp_user->lastname.'</td>';
             }else{
                 $users = explode(',',$assignedUser[$obj->id]);
                 $tmp_user->fetch($users[0]);
                 $table.='<td style="width:101px">'.mb_strtolower($langs->trans(ucfirst($tmp_user->respon_alias)), 'UTF-8').'</td>
-                <td style="width:101px">'.$tmp_user->lastname.'</td>';
+                <td style="width:101px" id="id_usr'.$tmp_user->id.'" id_usr="'.$tmp_user->id.'" class="performer">'.$tmp_user->lastname.'</td>';
             }
             $table.='<td style="width:81px">'.$obj->groupoftask.'</td>';
             $table.='<td style="width:101px">'.(mb_strlen($obj->note, 'UTF-8')>20?(mb_substr($obj->note, 0, 20).'<img id="prev' . $obj->id .'note" onclick="previewNote(' . $obj->id . ');" style="vertical-align: middle" title="Передивитись" src="/dolibarr/htdocs/theme/eldy/img/object-more.png">'):$obj->note).'</td>';

@@ -709,7 +709,7 @@ function GetPerformers(){
             keys.push(index);
             values.push(value);
         })
-
+        sort = false;
         for (var i = 0; i < values.length - 1; i++) {
             if (values[i] > values[i + 1]) {
                 //console.log(i, values);
@@ -722,7 +722,12 @@ function GetPerformers(){
                 keys[i] = $key2;
                 keys[i + 1] = $key1;
                 //console.log(i, values);
+                i --;
+                sort = true;
+            }
+            if(i == values.length - 1 && sort == true){
                 i = -1;
+                sort = false;
             }
         }
 

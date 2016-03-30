@@ -16,9 +16,9 @@ $table = ShowTask();
 //var_dump($_REQUEST);
 //echo '</pre>';
 //die();
-$HourlyPlan = $langs->trans('CurrentTask');
-llxHeader("",$HourlyPlan,"");
-print_fiche_titre($langs->trans('CurrentTask'));
+$Title = $langs->trans('CurrentTask');
+llxHeader("",$Title,"");
+print_fiche_titre($Title);
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/current/header.php';
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/current/task.php';
 //llxFooter();
@@ -71,7 +71,7 @@ function ShowTask(){
 //    echo '<pre>';
 //    var_dump($assignedUser);
 //    echo '</pre>';
-//    var_dump($user->id, 'userid');
+////    var_dump($user->id, 'userid');
 //    die();
     //Завантажую завдання
     $sql = "select id, note, confirmdoc, `datec`, datep2, round((UNIX_TIMESTAMP(datep2)-UNIX_TIMESTAMP(datep))/60,0) iMinute, `dateconfirm`,`datepreperform`, fk_order_id, period, `percent`, `llx_c_groupoftask`.`name` groupoftask
@@ -102,7 +102,7 @@ function ShowTask(){
         }
         if(isset($_GET['performer']) && !empty($_GET['performer'])) {//If set performer filter
             $users = explode(',', $assignedUser[$obj->id]);
-            $add = $taskAuthor[$obj->id] == $user->id && in_array($_GET['performer'], $users);
+            $add =  in_array($_GET['performer'], $users);
         }
         if($add){
             $class = fmod($numrow++,2)==0?'impair':'pair';
@@ -187,6 +187,12 @@ function ShowTask(){
                 $table .= '<td  style="width:25px">&nbsp;</td>';
 
             $table .= '<td  style="width:25px;text-align: center"><img id="imgManager_"'.$obj->id.' onclick="DuplicateAction('.$obj->id.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Duplicate').'" src="/dolibarr/htdocs/theme/eldy/img/object_duplicate.png"></td>';
+            if($user->respon_alias == 'purchase'){
+                if(empty($obj->fk_order_id))
+                    $table.='<td style="width:25px"></td>';
+                else
+                    $table .= '<td  style="width:25px"><img id="img_prep"'.$obj->id.' onclick="PrepareOrder('.$obj->fk_order_id.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('RedirectToOrder').'" src="/dolibarr/htdocs/theme/eldy/img/addfile.png"></td>';
+            }
 //            $table .= '<td  style="width:25px">&nbsp;</td>';
             $table.='</tr>';
         }
