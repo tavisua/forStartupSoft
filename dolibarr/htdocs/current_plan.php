@@ -126,7 +126,7 @@ function ShowTask(){
                 <td style="width:101px" id="id_usr'.$tmp_user->id.'" id_usr="'.$tmp_user->id.'" class="performer">'.$tmp_user->lastname.'</td>';
             }
             $table.='<td style="width:81px">'.$obj->groupoftask.'</td>';
-            $table.='<td style="width:101px">'.(mb_strlen($obj->note, 'UTF-8')>20?(mb_substr($obj->note, 0, 20).'<img id="prev' . $obj->id .'note" onclick="previewNote(' . $obj->id . ');" style="vertical-align: middle" title="Передивитись" src="/dolibarr/htdocs/theme/eldy/img/object-more.png">'):$obj->note).'</td>';
+            $table.='<td style="width:101px">'.(mb_strlen($obj->note, 'UTF-8')>20?(mb_substr($obj->note, 0, 20, 'UTF-8').'<img id="prev' . $obj->id .'note" onclick="previewNote(' . $obj->id . ');" style="vertical-align: middle" title="Передивитись" src="/dolibarr/htdocs/theme/eldy/img/object-more.png">'):$obj->note).'</td>';
             $table.='<td style="width:81px">'.(empty($obj->confirmdoc)?'':$obj->confirmdoc).'</td>';
             if(!empty($obj->datepreperform)) {
                 $predate = new DateTime($obj->datepreperform);

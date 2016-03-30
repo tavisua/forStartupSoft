@@ -65,6 +65,8 @@ function DuplicateAction(id){
         $('#addaction').html($('#addaction').html()+input_html);
         $('#action_id').val(id);
         $('#action_item').val('edit');
+        //console.log(document.getElementById('addaction'));
+        //return;
         $('#addaction').submit();
     }
 }
