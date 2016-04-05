@@ -17,7 +17,22 @@ if(count($_POST)>0) {
     $id_respon = array();
     if(!empty($_POST['id_respon'])) {
         $id_respon = explode(';', GETPOST('id_respon'));
-        $sql = 'delete from responsibility_param where fx_responsibility = ' . GETPOST('rowid') . ' and fx_category_counterparty not in (' . implode(',', $id_respon) . ')';
+        $num = 0;
+        foreach($id_respon as $id){
+            if(!is_numeric($id)) {
+                $id = "'" . $id . "'";
+                $id_respon[$num]=$id;
+            }
+            $num++;
+        }
+//        var_dump($id_respon);
+//        die();
+        $sql = 'delete from responsibility_param where fx_responsibility = ' . GETPOST('rowid') . '
+            and (
+                (fx_category_counterparty not in (' . implode(',', $id_respon) . ') and other_category is null)
+            or
+                (other_category not in (' . implode(',', $id_respon) . ') and fx_category_counterparty is null)
+            )';
     }else{
         $sql = 'delete from responsibility_param where fx_responsibility = ' . GETPOST('rowid');
     }
@@ -27,7 +42,7 @@ if(count($_POST)>0) {
         dol_print_error($db);
     }
     foreach($id_respon as $id){
-        $sql = 'insert responsibility_param (fx_responsibility,fx_category_counterparty) values('.GETPOST('rowid').', '.$id.')';
+        $sql = 'insert responsibility_param (fx_responsibility, '.(is_numeric($id)?'fx_category_counterparty':'other_category').') values('.GETPOST('rowid').', '.$id.')';
         $res = $db->query($sql);
 //        if(!$res){
 //            var_dump($sql);
@@ -45,7 +60,7 @@ $SphereOfResponsibility = $langs->trans('SphereOfResponsibility');
 $title = $langs->trans('EditSphereOfResponsibility');
 llxHeader("",$title,"");
 print_fiche_titre($title);
-$sql = 'select fx_category_counterparty from responsibility_param where fx_responsibility = '.$_REQUEST['rowid'];
+$sql = 'select case when fx_category_counterparty is not null then fx_category_counterparty else other_category end fx_category_counterparty  from responsibility_param where fx_responsibility = '.$_REQUEST['rowid'];
 $res = $db->query($sql);
 if(!$res){
     var_dump($sql);
@@ -53,8 +68,14 @@ if(!$res){
 }
 $id_respon = array();
 while($row = $db->fetch_object($res)){
-    $id_respon[] = $row->fx_category_counterparty;
+    if(!is_numeric($row->fx_category_counterparty))
+        $id_respon[] = "'".$row->fx_category_counterparty."'";
+    else
+        $id_respon[] = $row->fx_category_counterparty;
 }
+//        var_dump(in_array("'users'", $id_respon));
+//        die();
+
 $sql = 'select rowid, name from category_counterparty where active = 1 order by trim(name)';
 $res = $db->query($sql);
 $selector = '<select id = "select_respon" multiple size="5" name="select_respon">';
@@ -65,6 +86,7 @@ while($row = $db->fetch_object($res)){
     else
         $selector .= '<option value="'.$row->rowid.'"> '.$row->name.'</option>\r\n';
 }
+$selector .= '<option value="users" '.(in_array("'users'", $id_respon)?'selected = "selected"':'').'>Співробітники</option>\r\n';
 $selector .= '</select>';
 
 $sql = 'select name,alias,showlineactive from responsibility where rowid='.$_REQUEST['rowid'];

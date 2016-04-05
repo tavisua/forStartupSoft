@@ -96,12 +96,13 @@ for($i = 0; $i<9; $i++){
         }
     }
 }
-include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/day_plan.html';
 
+include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/day_plan.html';
+llxPopupMenu();
 //print '</br>';
 //print'<div style="float: left">test</div>';
 //llxFooter();
-llxPopupMenu();
+
 exit();
 function GetBestUserID(){
     global $db, $user;

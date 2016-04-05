@@ -7,18 +7,24 @@
             <td><?= $societe->getCategoryOfCustomer();?></td>
             <td><b>Заголовок</b></td>
             <td><?=$object->label?></td>
+            <td><b>Статус</b></td>
+            <td><?=$formactions->form_select_status_action('formaction',$percent,1,'complete');?></td>
         </tr>
         <tr>
             <td><b>Назва контрагента</b></td>
             <td><?= $societe->name?></td>
             <td><b>Тип дії</b></td>
             <td><?=$langs->trans($object->type)?></td>
+            <td></td>
+            <td></td>
         </tr>
         <tr>
             <td><b>Форма правління</b></td>
             <td><?=$societe->getFormOfGoverment();?></td>
             <td><b>Контакт</b></td>
             <td><?=$societe->getContactname($object->contactid)?></td>
+            <td></td>
+            <td></td>
         </tr>
     </table>
 </div>
@@ -30,6 +36,7 @@
         <input id="socid" name="socid" type="hidden" value="<?=isset($_REQUEST['onlyresult'])&&!empty($_REQUEST['onlyresult'])?$object->socid:$_REQUEST['socid']?>">
         <input id="mainmenu" name="mainmenu" type="hidden" value="<?=$_GET['mainmenu']?>">
         <input type="hidden" value="<?=$_GET['actioncode']?>" name="actioncode">
+        <input type="hidden" value="" name="complete">
         <input id="action" name="action" type="hidden" value="">
 
         </br>
@@ -92,6 +99,12 @@
         $("#product").mask("a*-999-a999");
         $("#eyescript").mask("~9.99 ~9.99 999");
     });
+    $('select#selectcomplete').change(function(e){
+        setComplete();
+    })
+    $('input#valcomplete').change(function(e){
+        setComplete();
+    })
 </script>
 <script type="text/javascript">
     $(document).ready(function(){
@@ -104,6 +117,9 @@
         var link = $('#backtopage').val();
         link = 'http://'+location.hostname+link.substr(1, link.length-2);
         location.href = link;
+    }
+    function setComplete(){
+        console.log($('input#valcomplete').val());
     }
     function save(){
         var search = location.search.substr(1);
@@ -133,10 +149,12 @@
             item = item.split('=');
             param[item[0]]=item[1];
         })
+//        console.log(param.onlyresult !== undefined);
+//        return;
         $("#addaction").attr('action', '/dolibarr/htdocs/comm/action/result_action.php');
         if(param.action == 'addonlyresult')
             $("#action").val('addonlyresult_and_create');
-        else if(param.onlyresult.length > 0)
+        else if(param.onlyresult !== undefined)
             $("#action").val('updateonlyresult_and_create');
         else
             $("#action").val('update_and_create');

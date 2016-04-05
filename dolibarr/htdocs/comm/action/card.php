@@ -1068,6 +1068,7 @@ if ($action == 'create')
 	    // Period
 
 //		print '<tr id="period"><td>'.$langs->trans("Period").'</td><td colspan="3"></td></tr>';
+	print '<tr id="period"><td>'.$langs->trans("Period").'</td><td colspan="3">'.$form->select_period('selperiod', $object->period).'</td></tr>';
 
 		print '<tr><td class="nowrap">Попередньо виконати до</td><td colspan="3">';
 		$form->select_date($datep?$datep:$object->datep,'preperform',0,0,0,"action",1,0,0,0,'fulldaystart');
@@ -2045,7 +2046,7 @@ print '
 //            if($("#actioncode").val() != 0)
 //            	setP2();
             $("#redirect_actioncode").val($("input#actioncode").val());
-//            console.log($("select#actioncode").val());
+            console.log("showperiod", $("select#actioncode").val() == "AC_CURRENT");
             if($("select#actioncode").val() == "AC_GLOBAL" || $("select#actioncode").val() == "AC_CURRENT"){
                 $("#period").show();
             }else{

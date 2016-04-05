@@ -6,6 +6,7 @@
             <input type="hidden" name="prepared_order" value="1">
             <button style="width: 200px;height: 30px" >Додати товар зі списку</button>
         </form>
+        <button style="width: 200px;height: 30px" >Відіслати звіт замовнику</button>
     </div>
      <div class="tabs" data-type="horizontal" data-role="controlgroup">
          <div class="inline-block tabsElem tabsElemActive">
@@ -95,7 +96,7 @@
         </div>
         <div style="text-align: center; width: 550px">
         <button style="width: 150px;height: 30px" onclick="saveorders();">Зберегти заявку</button>
-        <button style="width: 150px;height: 30px" onclick="returnToCurrentTask();">Відмінити</button>
+        <button style="width: 150px;height: 30px" onclick="returnToCurrentTask();">Повернутись</button>
         </div>
     </div>
 <input type="hidden" id="choosed_products" value="">
@@ -179,7 +180,7 @@
                 }
             }
             $.cookie('proposed_id', propos_array.toString());
-            console.log(propos_array );
+//            console.log(propos_array );
         }
 
         var table = document.getElementsByTagName('table')[1];
@@ -195,7 +196,7 @@
         if($.cookie('proposed_id') != null) {
             for(var i = 0; i<tr.length; i++){
                 var td = tr[i].getElementsByTagName('td');
-                console.log($('#art'+tr[i].id.substr(2)).attr('proposed'));
+//                console.log(td[0]);
                 if($('#art'+tr[i].id.substr(2)).attr('proposed') == '1'){
                     $('#'+tr[i].id).prepend('<td style="text-align: center; cursor: pointer" title="Видалити запропонований запис" onclick="deleteproposeditem('+tr[i].id.substr(2)+');"><img src="/dolibarr/htdocs/theme/eldy/img/delete.png"></td>');
                     for(var t = 0; t<3; t++){
@@ -315,7 +316,94 @@
     }
     function saveorders(){
         if(confirm('Зберегти звіт?')) {
-            console.log($.cookie('products_id'));
+//Col
+//Ed
+//price_per_unit
+//full_price_per_unit
+//price_per_party
+//full_price_per_party
+//price_per_download
+//price_per_transport
+//full_price_per_transport1
+//price_per_transport2
+//full_price_per_transport2
+//price_per_transport3
+//full_price_per_transport3
+//prep_sale
+//use_owner_transport
+//departure_to_customer
+//service_costs
+//other_gratitude
+//loading_unloading
+//bank_cost
+//other
+//incom_tax
+//VAT
+//price_costs
+//full_price_costs
+//sale_price
+//full_sale_price
+//absolute_diference
+//percent_diference
+//min_advance
+//dead_line_advance
+//dead_line_payment
+//supply
+//note
+            var tr = $('#orderlist').find('tbody').find(('tr'));
+            $.each(tr, function(key){
+                var id = tr[key].id.substr(2);
+                var td = $('#'+tr[key].id).find('td');
+                var proposed = $('#producer'+id).hasClass('proposed');
+                var item = {'type_action':'savepreparedraport',
+                            'rowid':$('td#art'+id).attr('rowid'),
+                            'fk_product_id':id,
+                            'proposed':proposed,
+                            'fk_order':'<?=$_GET["order_id"]?>',
+                            'Col':$('td#Col'+id).text(),
+                            'price_per_unit':$('td#price_per_unit'+id).text(),
+                            'full_price_per_unit':$('td#full_price_per_unit'+id).text(),
+                            'price_per_party':$('td#price_per_party'+id).text(),
+                            'full_price_per_party':$('td#full_price_per_party'+id).text(),
+                            'price_per_download':$('td#price_per_download'+id).text(),
+                            'price_per_transport':$('td#price_per_transport'+id).text(),
+                            'full_price_per_transport1':$('td#full_price_per_transport1'+id).text(),
+                            'price_per_transport2':$('td#price_per_transport2'+id).text(),
+                            'full_price_per_transport2':$('td#full_price_per_transport2'+id).text(),
+                            'price_per_transport3':$('td#price_per_transport3'+id).text(),
+                            'full_price_per_transport3':$('td#full_price_per_transport3'+id).text(),
+                            'prep_sale':$('td#prep_sale'+id).text(),
+                            'use_owner_transport':$('td#use_owner_transport'+id).text(),
+                            'departure_to_customer':$('td#departure_to_customer'+id).text(),
+                            'service_costs':$('td#service_costs'+id).text(),
+                            'other_gratitude':$('td#other_gratitude'+id).text(),
+                            'loading_unloading':$('td#loading_unloading'+id).text(),
+                            'bank_cost':$('td#bank_cost'+id).text(),
+                            'other':$('td#other'+id).text(),
+                            'incom_tax':$('td#incom_tax'+id).text(),
+                            'VAT':$('td#VAT'+id).text(),
+                            'price_costs':$('td#price_costs'+id).text(),
+                            'full_price_costs':$('td#full_price_costs'+id).text(),
+                            'sale_price':$('td#sale_price'+id).text(),
+                            'full_sale_price':$('td#full_sale_price'+id).text(),
+                            'absolute_diference':$('td#absolute_diference'+id).text(),
+                            'percent_diference':$('td#percent_diference'+id).text(),
+                            'min_advance':$('td#min_advance'+id).text(),
+                            'dead_line_advance':$('td#dead_line_advance'+id).text(),
+                            'dead_line_payment':$('td#dead_line_payment'+id).text(),
+                            'supply':$('td#supply'+id).text(),
+                            'note':$('td#note'+id).text(),
+                        }
+                $.ajax({
+                    dataType: 'json',
+                    url:'/dolibarr/htdocs/orders.php',
+                    data:item,
+                    cache:false,
+                    success:function(result){
+                    },
+                    type: 'post'
+                })
+            })
         }
     }
     function preparedorders(){

@@ -38,7 +38,7 @@ function ShowActionTable(){
         $nextaction[$row->fk_parent] = $row->datep;
     }
 
-    $sql='select `llx_actioncomm`.id as rowid, `llx_societe_action`.dtChange as `datec`, `llx_user`.lastname,
+    $sql='select `llx_actioncomm`.id as rowid, `llx_actioncomm`.`datep`, `llx_societe_action`.dtChange as `datec`, `llx_user`.lastname,
         concat(case when `llx_societe_contact`.lastname is null then "" else `llx_societe_contact`.lastname end,
         case when `llx_societe_contact`.firstname is null then "" else `llx_societe_contact`.firstname end) as contactname,
         TypeCode.code kindaction, `llx_societe_action`.`said`, `llx_societe_action`.`answer`,`llx_societe_action`.`argument`,
@@ -56,10 +56,11 @@ function ShowActionTable(){
         dol_print_error($db);
     }
     $out = '<tbody>';
-//    var_dump($sql);
+//    var_dump($db->num_rows($res));
 //    die();
     if($db->num_rows($res)==0){
         $out .= '<tr class="impair">
+            <td style="widtd: 80px" class="middle_size">&nbsp;</td>
             <td style="widtd: 80px" class="middle_size">&nbsp;</td>
             <td style="widtd: 100px" class="middle_size">&nbsp;</td>
             <td style="widtd: 80px" class="middle_size">&nbsp;</td>
@@ -117,7 +118,9 @@ function ShowActionTable(){
                 $title=$langs->trans('ActionDepartureMeeteng');
             }break;
         }
+        $dateaction = new DateTime($row->datep);
         $out .= '<tr class="'.(fmod($num++, 2)==0?'impair':'pair').'">
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'dtAction" style="widtd: 80px" class="middle_size">'.(empty($row->datep)?'':($dateaction->format('d.m.y').'</br>'.$dateaction->format('H:i'))).'</td>
             <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'dtChange" style="widtd: 80px" class="middle_size">'.(empty($row->datec)?'':$dtChange->format('d.m.y H:i:s')).'</td>
             <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'lastname" style="widtd: 100px" class="middle_size">'.$row->lastname.'</td>
             <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'contactname" style="widtd: 80px" class="middle_size">'.$row->contactname.'</td>

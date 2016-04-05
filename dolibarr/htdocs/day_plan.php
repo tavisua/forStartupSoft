@@ -109,6 +109,7 @@ if(isset($_REQUEST['action'])){
 }
 
 header("Location: http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/responsibility/".$user->respon_alias."/day_plan.php?idmenu=10419&mainmenu=plan_of_days&leftmenu=");
+
 exit();
 
 function GetDateOutStandingActions($actioncode, $id_usr){

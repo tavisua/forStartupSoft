@@ -35,6 +35,7 @@ RedirectToOrder=Перейти на заявку
 AddResultAction=Додати результат перемовин
 EditResultAction=Редагувати результат перемовин
 
+
 ErrorFieldRequired=Поле '%s' є обов'язковим
 ErrorFieldFormat=Поле '%s' містить помилкове значення
 ErrorFileDoesNotExists=Файл %s не існує
@@ -664,6 +665,7 @@ SphereOfResponsibilityShort=Сфера відпов.
 EditSphereOfResponsibility=Редагувати сферу відповідальності
 SelectKindCustomersWhoShowAreasPage=Категорії, що будуть відображатись на вкладці "Район"
 CategoryCustomer=Категорія контрагента
+CategoriesContractors=Категорії контрагентів
 FormOfGovernment=Форма правління
 KindAddress=Вид адреси
 Priority=Пріоритет

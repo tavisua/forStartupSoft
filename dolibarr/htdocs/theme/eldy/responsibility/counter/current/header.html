@@ -1,0 +1,95 @@
+<div style=" width:100%; height:1px; clear:both;">.</div>
+<div class="areas_header" id = "lefttable">
+        <table id="headercontrol" >
+            <tr id="today">
+                <td>
+                    <?echo $TitleToday?>
+                </td>
+                <td class="autoinsert">
+                    <?echo $Today?>
+                </td>
+            </tr>
+            <tr id="worker">
+                <td>
+                    <?echo $Worker?>
+                </td>
+                <td class="autoinsert">
+                    <?echo $user->lastname?>
+                </td>
+            </tr>
+
+            <tr id="action" style="text-align: center">
+                <td colspan="2">
+                    <form id="addaction" method="post" action="/dolibarr/htdocs/comm/action/card.php">
+                        <input type="hidden" value="'/dolibarr/htdocs/current_plan.php?idmenu=10423&mainmenu=current_task&leftmenu='" name="backtopage">
+                        <input type="hidden" value="create" id="action_item" name="action">
+                        <input type="hidden" value="current_task" name="mainmenu">
+                        <input type="hidden" value="AC_CURRENT" name="actioncode">
+                        <input type="hidden" value="" name="datep">
+                        <input type="hidden" name="id" value="" id="action_id">
+                        <input type="hidden" name="preperform" value="" id="preperform">
+                        <button title="Додати запис в таблицю 'Дії'" type="submit"> Додати дію </button>
+                    </form>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+
+<div class="areas_header" id="comerc">
+    <table class="classifycation" >
+        <tr>
+            <td>Виконав.</td>
+            <td colspan="2" class="autoinsert"><?echo $user->lastname?></td>
+        </tr>
+        <tr>
+            <td colspan="3" align="center">Дії на сьогодні</td>
+        </tr>
+
+    <tr>
+        <td >факт</td>
+        <td>план</td>
+        <td>простроч.</td>
+    </tr>
+    <tr>
+        <td class="autoinsert" id="my_fact"></td>
+        <td class="autoinsert" id="my_plan"></td>
+        <td class="autoinsert" id="my_outstanding"></td>
+    </tr>
+    </table>
+
+</div>
+
+<div class="areas_header" id="mentor">
+    <table class="classifycation">
+        <tr>
+            <td>Наставн.</td>
+            <td colspan="2" class="autoinsert">&nbsp;</td>
+        </tr>
+        <tr>
+            <td colspan="3" align="center">Дії на сьогодні</td>
+        </tr>
+
+        <tr>
+            <td >факт</td>
+            <td>план</td>
+            <td>простроч.</td>
+        </tr>
+        <tr>
+            <td class="autoinsert">&nbsp;</td>
+            <td class="autoinsert">&nbsp;</td>
+            <td class="autoinsert">&nbsp;</td>
+        </tr>
+    </table>
+</div>
+<div style=" width:100%; height:1px; clear:both;">.</div>
+<script>
+    $(document).ready(function(){
+        var mainmenu = '<?=$_REQUEST["mainmenu"]?>';
+        if(mainmenu.length==0){
+            mainmenu = GetMainMenu();
+        }
+        var link = '/dolibarr/htdocs/day_plan.php?action=getuserplan&mainmenu='+mainmenu+'&id_usr=<?=$user->id?>';
+        GetUserPlan(link);
+    })
+</script>

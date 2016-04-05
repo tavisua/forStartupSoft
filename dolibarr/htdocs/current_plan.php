@@ -153,7 +153,7 @@ function ShowTask(){
                 $date = new DateTime($lastaction);
                 $lastaction = $date->format('d.m.Y');
             }
-            $table .= '<td style="width:76px"><a href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu=global_task">'.$lastaction.'</a></td>';
+            $table .= '<td style="width:76px"><a href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu='.$_REQUEST['mainmenu'].'">'.$lastaction.'</a></td>';
             $table .= '<td style="width:76px"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td>';
             $table .= '<td style="width:41px">'.$obj->iMinute.'</td>';
             //Дії наставника

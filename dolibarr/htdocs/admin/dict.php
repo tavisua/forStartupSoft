@@ -226,7 +226,7 @@ $tabsql[36]= "select rowid, name, active from ".MAIN_DB_PREFIX."c_finance_servic
 $tabsql[37]= "select rowid, question, active  from ".MAIN_DB_PREFIX."c_category_product_question where category_id is null";
 $tabsql[38]= "select rowid, name, active  from ".MAIN_DB_PREFIX."c_lineactive_customer where 1";
 $tabsql[39]= "select llx_c_proposition.rowid, `llx_c_proposition`.`fk_lineactive`, `llx_c_proposition`.`fk_post`, `llx_c_lineactive_customer`.`name` as LineActiveCustomer, `llx_post`.`postname`,
-	`llx_c_proposition`.`begin`,`llx_c_proposition`.`end`,`llx_c_proposition`.`text` proposition,`llx_c_proposition`.`active`
+	`llx_c_proposition`.`begin`,`llx_c_proposition`.`end`,`llx_c_proposition`.`text` proposition, `llx_c_proposition`.`description`, `llx_c_proposition`.`active`
 	from `llx_c_proposition`
 	left join `llx_c_lineactive_customer` on `llx_c_lineactive_customer`.rowid = `llx_c_proposition`.`fk_lineactive`
 	left join `llx_post` on `llx_post`.`rowid` = `llx_c_proposition`.`fk_post`";
@@ -321,7 +321,7 @@ $tabfield[35]= "name,ed_name";
 $tabfield[36]= "name";
 $tabfield[37]= "question";
 $tabfield[38]= "name";
-$tabfield[39]= "LineActiveCustomer,postname,begin,end,proposition";
+$tabfield[39]= "LineActiveCustomer,postname,begin,end,proposition,description";
 $tabfield[40]= "issues";
 $tabfield[41]= "fk_groupissues,fk_subdivision,action,responsible,directly_responsible";
 
@@ -365,7 +365,7 @@ $tabfieldvalue[35]= "name,ed_name";
 $tabfieldvalue[36]= "name";
 $tabfieldvalue[37]= "question";
 $tabfieldvalue[38]= "name";
-$tabfieldvalue[39]= "LineActiveCustomer,postname,begin,end,proposition,active";
+$tabfieldvalue[39]= "LineActiveCustomer,postname,begin,end,proposition,description,active";
 $tabfieldvalue[40]= "issues";
 $tabfieldvalue[41]= "fk_groupissues,fk_subdivision,action,responsible,directly_responsible,active";
 
@@ -411,7 +411,7 @@ $tabfieldinsert[35]= "name,fx_measurement";
 $tabfieldinsert[36]= "name";
 $tabfieldinsert[37]= "question";
 $tabfieldinsert[38]= "name";
-$tabfieldinsert[39]= "fk_lineactive,fk_post,begin,end,text";
+$tabfieldinsert[39]= "fk_lineactive,fk_post,begin,end,text,description";
 $tabfieldinsert[40]= "issues";
 $tabfieldinsert[41]= "fk_groupissues,fk_subdivision,action,responsible,directly_responsible";
 
@@ -684,7 +684,7 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
         if ($id == 30 && ($value == 'Model' || $value == 'Description'||($value == 'Trademark'&&!isset($_POST['Trademark']))))continue;
 		if ($id == 34 && ($value == 'responsibility'))continue;
         if ($id == 35 && ($value == 'ed_name'))continue;
-        if ($id == 39 && ($value == 'LineActiveCustomer' || $value == 'postname'|| $value == 'end')){
+        if ($id == 39 && ($value == 'LineActiveCustomer' || $value == 'postname'|| $value == 'end'|| $value == 'description')){
 //            if($value == 'end')
 //                unset($_POST['end']);
             continue;
@@ -1685,7 +1685,7 @@ $db->close();
  *  @param		string	$tabname		Name of SQL table
  *	@return		void
  */
-function fieldList($fieldlist,$obj='',$tabname='', $show=0)
+function fieldList($fieldlist,$obj='',$tabname='', $show=0)//Відображення полів для вводу/редагування
 {
 //	var_dump($fieldlist, $obj);
 //	if($tabname == MAIN_DB_PREFIX."c_actiontoaddress"){
@@ -1907,9 +1907,9 @@ function fieldList($fieldlist,$obj='',$tabname='', $show=0)
 				$param = "'/dolibarr/htdocs/core/','".$fieldlist[$field]."','dd/MM/yyyy','uk_UA'";
                 print ' <button onclick="showDP('.$param.');" class="dpInvisibleButtons" type="button" id="apButton"><img border="0" class="datecallink" title="Select a date" alt="" src="/dolibarr/htdocs/theme/eldy/img/object_calendarday.png"></button>';
 				print '</td>';
-			}elseif($fieldlist[$field] == 'proposition'){
+			}elseif($fieldlist[$field] == 'proposition' || $fieldlist[$field] == 'description'){
 				print '<td align="left">';
-				print '<textarea id="proposition" name="proposition">'.(isset($obj->$fieldlist[$field])?$obj->$fieldlist[$field]:'').'</textarea>';
+				print '<textarea id="'.$fieldlist[$field].'" name="'.$fieldlist[$field].'" '.($fieldlist[$field] == 'description'?'maxlength="250"':'').'>'.(isset($obj->$fieldlist[$field])?$obj->$fieldlist[$field]:'').'</textarea>';
 				print '</td>';
 			}
 			print '<style>

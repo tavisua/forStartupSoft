@@ -1045,9 +1045,11 @@ if (! function_exists("llxHeader"))
  */
 function llxPopupMenu(){
                 print'
-    <div id="popupmenu" style="display: none; position: relative; left: 150px; top: 150px; z-index: 10; width: 250px">
+    <div id="popupmenu" style="display: none; position: absolute; left: 150px; top: 150px; z-index: 10; width: 90px">
         <table class="setdate" style="background: #ffffff">
-            <thead><tr class="multiple_header_table" style="width: 100px"><th class="middle_size">Вкажіть дату на яку відобразити завдання</th></tr></thead>
+            <thead><tr class="multiple_header_table" style="width: 100px"><th class="middle_size">Вкажіть дату на яку відобразити завдання</th>
+            <a class="close" onclick="ClosePopupMenu();" title="Закрити"></a>
+                </tr></thead>
             <tbody>
                 <tr>
                     <td class="middle_size" onclick="setdate();" style="cursor: pointer">1</td>

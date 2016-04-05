@@ -628,7 +628,6 @@ $form = new Form($db);
 $formother=new FormOther($db);
 
 llxHeader('',$langs->trans("UserCard"));
-
 if (($action == 'create') || ($action == 'adduserldap'))
 {
     /* ************************************************************************** */

@@ -114,14 +114,20 @@ function decrease_word($text){
 }
 function LineActive(){
     global $db, $user;
+//    $sql = 'select `oc_category_description`.category_id, `oc_category_description`.name from `oc_category_description`
+//            inner join
+//                (select category_id from `oc_category`
+//                where parent_id  in (select fk_lineactive from `llx_user_lineactive`
+//                where fk_user = '.$user->id.'
+//                and active = 1)
+//                union
+//                select fk_lineactive from `llx_user_lineactive`
+//                where fk_user = '.$user->id.'
+//                and active = 1) lineactive on lineactive.category_id = `oc_category_description`.category_id
+//            where `oc_category_description`.language_id = 4';
     $sql = 'select `oc_category_description`.category_id, `oc_category_description`.name from `oc_category_description`
             inner join
-                (select category_id from `oc_category`
-                where parent_id  in (select fk_lineactive from `llx_user_lineactive`
-                where fk_user = '.$user->id.'
-                and active = 1)
-                union
-                select fk_lineactive from `llx_user_lineactive`
+                (select fk_lineactive as category_id from `llx_user_lineactive`
                 where fk_user = '.$user->id.'
                 and active = 1) lineactive on lineactive.category_id = `oc_category_description`.category_id
             where `oc_category_description`.language_id = 4';

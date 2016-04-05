@@ -19,6 +19,7 @@ if(isset($_POST['action']) && ($_POST['action'] == 'update' || $_POST['action'] 
 //die();
 require_once DOL_DOCUMENT_ROOT.'/core/lib/agenda.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
+require_once DOL_DOCUMENT_ROOT.'/core/class/html.formactions.class.php';
 global $user, $db;
 if($_GET['action'] == 'addonlyresult' && $_GET['action'] == 'addonlyresult_and_create') {
     llxHeader('', $langs->trans("AddResultAction"), $help_url);
@@ -116,6 +117,7 @@ $societe->fetch(empty($object->socid)&&$_GET['action'] == 'addonlyresult'?$_GET[
 //var_dump($object);
 //echo '</pre>';
 //die();
+$formactions = new FormActions($db);
 
 //print '<div class="tabBar">';
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/addaction.html';

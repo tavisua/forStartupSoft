@@ -682,14 +682,14 @@ function OpenFolder(id_cat, showeditfield){
                     location.href = 'http://'+location.hostname+'/dolibarr/htdocs/hourly_plan.php?idmenu=10420&mainmenu=hourly_plan&leftmenu=&date='+html;
                 }else {
                     $("#popupmenu").find('table').addClass('setdate');
-                    console.log(html);
+                    console.log(document.getElementById('popupmenu'));
                     var tbody = $('table.setdate').find('tbody');
                     tbody[0].innerHTML = html;
                     $("#popupmenu").attr('type_action', id);
                     $("#popupmenu").show();
                     $("#popupmenu").offset({
                         top: td.offset().top - 50,
-                        left: td.offset().left - $('#reference_body').width()
+                        left: td.offset().left
                     });
                 }
             }
@@ -697,6 +697,9 @@ function OpenFolder(id_cat, showeditfield){
 
 
     }
+function ClosePopupMenu(){
+    $("#popupmenu").hide()
+}
 function GetPerformers(){
     var html = '';
     if(!strpos(location.search, 'performer')) {

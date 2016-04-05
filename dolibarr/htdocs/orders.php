@@ -16,7 +16,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 //var_dump($_REQUEST);
 //echo '</pre>';
 //die();
-$execption = array('get_choosed_product', 'showorders', 'get_typical_question', 'get_question', 'save_orders', 'del_query', 'showproducts', 'getsavedorder');
+$execption = array('get_choosed_product', 'showorders', 'get_typical_question', 'get_question', 'save_orders', 'del_query', 'showproducts', 'getsavedorder', 'savepreparedraport');
 
 if(isset($_REQUEST['type_action']) && !in_array($_REQUEST['type_action'],$execption) || !isset($_REQUEST['type_action'])) {
     $Orders = $langs->trans('Orders');
@@ -40,6 +40,100 @@ if(isset($_REQUEST['type_action'])){
             $sql = 'update llx_orders set status = -1, id_usr='.$user->id.' where rowid='.$_REQUEST['order_id'];
             $res = $db->query($sql);
 //            header("Location: ".$_SERVER["HTTP_REFERER"]);
+            exit();
+        }break;
+        case 'savepreparedraport':{
+
+            if(empty($_REQUEST['rowid'])){
+                $sql = "insert into llx_order_prepare(`fk_order`,`fk_product_id`,`proposed`,`Col`,`price_per_unit`,
+                        `full_price_per_unit`,`price_per_party`,`full_price_per_party`,`price_per_download`,
+                        `price_per_transport`,`full_price_per_transport1`,`price_per_transport2`,`full_price_per_transport2`,
+                        `price_per_transport3`,`full_price_per_transport3`,`prep_sale`,`use_owner_transport`,
+                        `departure_to_customer`,`service_costs`,`other_gratitude`,`loading_unloading`,`bank_cost`,`other`,
+                        `incom_tax`,`VAT`,`price_costs`,`full_price_costs`,`sale_price`,`full_sale_price`,
+                        `absolute_diference`,`percent_diference`,`min_advance`,`dead_line_advance`,`dead_line_payment`,
+                        `supply`,`note`,`id_usr`) values(
+                        ".$_REQUEST['fk_order'].",".$_REQUEST['fk_product_id'].",".($_REQUEST['proposed']=='true'?'1':'0').",".(empty($_REQUEST['Col'])?"null":$_REQUEST['Col']).",".(empty($_REQUEST['price_per_unit'])?"null":$_REQUEST['price_per_unit']).",
+                        ".(empty($_REQUEST['full_price_per_unit'])?"null":$_REQUEST['full_price_per_unit']).",
+                        ".(empty($_REQUEST['price_per_party'])?"null":$_REQUEST['price_per_party']).",
+                        ".(empty($_REQUEST['full_price_per_party'])?"null":$_REQUEST['full_price_per_party']).",
+                        ".(empty($_REQUEST['price_per_download'])?"null":$_REQUEST['price_per_download']).",
+                        ".(empty($_REQUEST['price_per_transport'])?"null":$_REQUEST['price_per_transport']).",
+                        ".(empty($_REQUEST['full_price_per_transport1'])?"null":$_REQUEST['full_price_per_transport1']).",
+                        ".(empty($_REQUEST['price_per_transport2'])?"null":$_REQUEST['price_per_transport2']).",
+                        ".(empty($_REQUEST['full_price_per_transport2'])?"null":$_REQUEST['full_price_per_transport2']).",
+                        ".(empty($_REQUEST['price_per_transport3'])?"null":$_REQUEST['price_per_transport3']).",
+                        ".(empty($_REQUEST['full_price_per_transport3'])?"null":$_REQUEST['full_price_per_transport3']).",
+                        ".(empty($_REQUEST['prep_sale'])?"null":$_REQUEST['prep_sale']).",
+                        ".(empty($_REQUEST['use_owner_transport'])?"null":$_REQUEST['use_owner_transport']).",
+                        ".(empty($_REQUEST['departure_to_customer'])?"null":$_REQUEST['departure_to_customer']).",
+                        ".(empty($_REQUEST['service_costs'])?"null":$_REQUEST['service_costs']).",
+                        ".(empty($_REQUEST['other_gratitude'])?"null":$_REQUEST['other_gratitude']).",
+                        ".(empty($_REQUEST['loading_unloading'])?"null":$_REQUEST['loading_unloading']).",
+                        ".(empty($_REQUEST['bank_cost'])?"null":$_REQUEST['bank_cost']).",
+                        ".(empty($_REQUEST['other'])?"null":$_REQUEST['other']).",
+                        ".(empty($_REQUEST['incom_tax'])?"null":$_REQUEST['incom_tax']).",
+                        ".(empty($_REQUEST['VAT'])?"null":$_REQUEST['VAT']).",
+                        ".(empty($_REQUEST['price_costs'])?"null":$_REQUEST['price_costs']).",
+                        ".(empty($_REQUEST['full_price_costs'])?"null":$_REQUEST['full_price_costs']).",
+                        ".(empty($_REQUEST['sale_price'])?"null":$_REQUEST['sale_price']).",
+                        ".(empty($_REQUEST['full_sale_price'])?"null":$_REQUEST['full_sale_price']).",
+                        ".(empty($_REQUEST['absolute_diference'])?"null":$_REQUEST['absolute_diference']).",
+                        ".(empty($_REQUEST['percent_diference'])?"null":$_REQUEST['percent_diference']).",
+                        ".(empty($_REQUEST['min_advance'])?"null":("'".$_REQUEST['min_advance'])."'").",
+                        ".(empty($_REQUEST['dead_line_advance'])?"null":("'".$_REQUEST['dead_line_advance'])."'").",
+                        ".(empty($_REQUEST['dead_line_payment'])?"null":("'".$_REQUEST['dead_line_payment'])."'").",
+                        ".(empty($_REQUEST['supply'])?"null":("'".$_REQUEST['supply'])."'").",
+                        ".(empty($_REQUEST['note'])?"null":("'".$_REQUEST['note'])."'").",
+                        ".$user->id.")";
+            }else{
+                $sql = "update llx_order_prepare set ";
+                $sql.= "`proposed`=".($_REQUEST['proposed']=='true'?'1':'0').",";
+                $sql.= "`Col`=".(empty($_REQUEST['Col'])?"null":$_REQUEST['Col']).",";
+                $sql.= "`price_per_unit`=".(empty($_REQUEST['price_per_unit'])?"null":$_REQUEST['price_per_unit']).", ";
+                $sql.= "`full_price_per_unit`=".(empty($_REQUEST['full_price_per_unit'])?"null":$_REQUEST['full_price_per_unit']).",";
+                $sql.= "`price_per_party`=".(empty($_REQUEST['price_per_party'])?"null":$_REQUEST['price_per_party']).",";
+                $sql.= "`full_price_per_party`=".(empty($_REQUEST['full_price_per_party'])?"null":$_REQUEST['full_price_per_party']).",";
+                $sql.= "`price_per_download`=".(empty($_REQUEST['price_per_download'])?"null":$_REQUEST['price_per_download']).",";
+                $sql.= "`price_per_transport`=".(empty($_REQUEST['price_per_transport'])?"null":$_REQUEST['price_per_transport']).",";
+                $sql.= "`full_price_per_transport1`=".(empty($_REQUEST['full_price_per_transport1'])?"null":$_REQUEST['full_price_per_transport1']).",";
+                $sql.= "`price_per_transport2`=".(empty($_REQUEST['price_per_transport2'])?"null":$_REQUEST['price_per_transport2']).",";
+                $sql.= "`full_price_per_transport2`=".(empty($_REQUEST['full_price_per_transport2'])?"null":$_REQUEST['full_price_per_transport2']).",";
+                $sql.= "`price_per_transport3`=".(empty($_REQUEST['price_per_transport3'])?"null":$_REQUEST['price_per_transport3']).",";
+                $sql.= "`full_price_per_transport3`=".(empty($_REQUEST['full_price_per_transport3'])?"null":$_REQUEST['full_price_per_transport3']).",";
+                $sql.= "`prep_sale`=".(empty($_REQUEST['prep_sale'])?"null":$_REQUEST['prep_sale']).",";
+                $sql.= "`use_owner_transport`=".(empty($_REQUEST['use_owner_transport'])?"null":$_REQUEST['use_owner_transport']).",";
+                $sql.= "`departure_to_customer`=".(empty($_REQUEST['departure_to_customer'])?"null":$_REQUEST['departure_to_customer']).",";
+                $sql.= "`service_costs`=".(empty($_REQUEST['service_costs'])?"null":$_REQUEST['service_costs']).",";
+                $sql.= "`other_gratitude`=".(empty($_REQUEST['other_gratitude'])?"null":$_REQUEST['other_gratitude']).",";
+                $sql.= "`loading_unloading`=".(empty($_REQUEST['loading_unloading'])?"null":$_REQUEST['loading_unloading']).",";
+                $sql.= "`bank_cost`=".(empty($_REQUEST['bank_cost'])?"null":$_REQUEST['bank_cost']).",";
+                $sql.= "`other`=".(empty($_REQUEST['other'])?"null":$_REQUEST['other']).",";
+                $sql.= "`incom_tax`=".(empty($_REQUEST['incom_tax'])?"null":$_REQUEST['incom_tax']).",";
+                $sql.= "`VAT`=".(empty($_REQUEST['VAT'])?"null":$_REQUEST['VAT']).",";
+                $sql.= "`price_costs`=".(empty($_REQUEST['price_costs'])?"null":$_REQUEST['price_costs']).",";
+                $sql.= "`full_price_costs`=".(empty($_REQUEST['full_price_costs'])?"null":$_REQUEST['full_price_costs']).",";
+                $sql.= "`sale_price`=".(empty($_REQUEST['sale_price'])?"null":$_REQUEST['sale_price']).",";
+                $sql.= "`full_sale_price`=".(empty($_REQUEST['full_sale_price'])?"null":$_REQUEST['full_sale_price']).",";
+                $sql.= "`absolute_diference`=".(empty($_REQUEST['absolute_diference'])?"null":$_REQUEST['absolute_diference']).",";
+                $sql.= "`percent_diference`=".(empty($_REQUEST['percent_diference'])?"null":$_REQUEST['percent_diference']).",";
+                $sql.= "`min_advance`=".(empty($_REQUEST['min_advance'])?"null":("'".$_REQUEST['min_advance'])."'").",";
+                $sql.= "`dead_line_advance`=".(empty($_REQUEST['dead_line_advance'])?"null":("'".$_REQUEST['dead_line_advance'])."'").",";
+                $sql.= "`dead_line_payment`=".(empty($_REQUEST['dead_line_payment'])?"null":("'".$_REQUEST['dead_line_payment'])."'").",";
+                $sql.= "`supply`=".(empty($_REQUEST['supply'])?"null":("'".$_REQUEST['supply'])."'").",";
+                $sql.= "`note`=".(empty($_REQUEST['note'])?"null":("'".$_REQUEST['note'])."'").",";
+                $sql.= "`id_usr`=".$user->id;
+                $sql.= " where 1 ";
+                $sql.= "and rowid=".$_REQUEST['rowid'];
+
+
+            }
+//            echo '<pre>';
+//            var_dump($sql);
+//            echo '</pre>';
+            $res = $db->query($sql);
+            if(!$res)
+                dol_print_error($db);
             exit();
         }break;
         case 'showproducts':{
@@ -592,7 +686,28 @@ function ShowPrepareOrder($orders_id = 0, $products = array())
             }
     }
 //var_dump($products);
+    $prepared_raport = array();
+    if($orders_id != 0){//Load prepared rapor
+        $sql = 'select rowid,fk_order,fk_product_id,proposed,Col,price_per_unit,full_price_per_unit,price_per_party,
+              full_price_per_party,price_per_download,price_per_transport,full_price_per_transport1,price_per_transport2,
+              full_price_per_transport2,price_per_transport3,full_price_per_transport3,prep_sale,use_owner_transport,
+              departure_to_customer,service_costs,other_gratitude,loading_unloading,bank_cost,other,incom_tax,VAT,price_costs,
+              full_price_costs,sale_price,full_sale_price,absolute_diference,percent_diference,min_advance,
+              dead_line_advance,dead_line_payment,supply,note
+            from llx_order_prepare
+            where fk_order ='.$orders_id;
+        $res_raport = $db->query($sql);
+        if(!$res_raport)
+            dol_print_error($db);
+        while($item = $db->fetch_object($res_raport)){
+            $prepared_raport[$item->fk_product_id] = (array)$item;
+        }
 
+    }
+//            echo '<pre>';
+//            var_dump($prepared_raport);
+//            echo '</pre>';
+//            die();
     $out .= '<tbody>';
     $product_class = new Product($db);
     $result_table = $product_class->ShowProducts(0, str_replace('-','', implode(',', array_keys($products))), 'name');
@@ -603,41 +718,41 @@ function ShowPrepareOrder($orders_id = 0, $products = array())
         $pos = strpos($result_table, '<tr id="tr', $pos);
         $product_id = substr($result_table, $pos+10, strpos($result_table, '"', $pos+10)-($pos+10));
         $result_table = substr($result_table, 0, strpos($result_table, '</tr>', $pos+10)).
-                '<td '.(in_array($product_id, array_keys($products))?'proposed="1"':'').' id="art'.$product_id.'"></td>
+                '<td '.(in_array($product_id, array_keys($products))?'proposed="1"':'').' id="art'.$product_id.'" '.(isset($prepared_raport[$product_id])?('rowid="'.$prepared_raport[$product_id]['rowid'].'"'):'').'></td>
                  <td id="Col'.$product_id.'" style="width:50px; text-align: center">'.$products[in_array($product_id, array_keys($products))?$product_id:-$product_id].'</td>
                  <td id="Ed'.$product_id.'"></td>
-                 <td class="basic_part autocalc" id="price_per_unit'.$product_id.'"></td>
-                 <td class="basic_part input" id="full_price_per_unit'.$product_id.'"></td>
-                 <td class="basic_part autocalc" id="price_per_party'.$product_id.'"></td>
-                 <td class="basic_part autocalc" id="full_price_per_party'.$product_id.'"></td>
-                 <td class="basic_part input" id="price_per_download'.$product_id.'"></td>
-                 <td class="basic_part autocalc" id="price_per_transport1'.$product_id.'"></td>
-                 <td class="basic_part input" id="full_price_per_transport1'.$product_id.'"></td>
-                 <td class="basic_part autocalc" id="price_per_transport2'.$product_id.'"></td>
-                 <td class="basic_part input" id="full_price_per_transport2'.$product_id.'"></td>
-                 <td class="basic_part autocalc" id="price_per_transport3'.$product_id.'"></td>
-                 <td class="basic_part input" id="full_price_per_transport3'.$product_id.'"></td>
-                 <td class="basic_part input" id="prep_sale'.$product_id.'"></td>
-                 <td class="basic_part input" id="use_owner_transport'.$product_id.'"></td>
-                 <td class="addition_part input" id="departure_to_customer'.$product_id.'"></td>
-                 <td class="addition_part input" id="service_costs'.$product_id.'"></td>
-                 <td class="addition_part input" id="other_gratitude'.$product_id.'"></td>
-                 <td class="addition_part input" id="loading_unloading'.$product_id.'"></td>
-                 <td class="addition_part input" id="bank_cost'.$product_id.'"></td>
-                 <td class="addition_part input" id="other'.$product_id.'"></td>
-                 <td class="addition_part autocalc" id="incom_tax'.$product_id.'"></td>
-                 <td class="addition_part autocalc" id="VAT'.$product_id.'"></td>
-                 <td class="addition_part" id="price_costs'.$product_id.'"></td>
-                 <td class="addition_part autocalc" id="full_price_costs'.$product_id.'"></td>
-                 <td class="result_part autocalc" id="sale_price'.$product_id.'"></td>
-                 <td class="result_part input" id="full_sale_price'.$product_id.'">'.$price[$product_id]*$products[in_array($product_id, array_keys($products))?$product_id:-$product_id].'</td>
-                 <td class="result_part autocalc" id="absolute_diference'.$product_id.'"></td>
-                 <td class="result_part autocalc" id="percent_diference'.$product_id.'"></td>
-                 <td class="features_part" id="'.$product_id.'"></td>
-                 <td class="features_part" id="'.$product_id.'"></td>
-                 <td class="features_part" id="'.$product_id.'"></td>
-                 <td class="features_part" id="'.$product_id.'"></td>
-                 <td class="features_part" id="'.$product_id.'"></td>
+                 <td class="basic_part autocalc" id="price_per_unit'.$product_id.'">'.$prepared_raport[$product_id]['price_per_unit'].'</td>
+                 <td class="basic_part input" id="full_price_per_unit'.$product_id.'">'.$prepared_raport[$product_id]['full_price_per_unit'].'</td>
+                 <td class="basic_part autocalc" id="price_per_party'.$product_id.'">'.$prepared_raport[$product_id]['price_per_party'].'</td>
+                 <td class="basic_part autocalc" id="full_price_per_party'.$product_id.'">'.$prepared_raport[$product_id]['full_price_per_party'].'</td>
+                 <td class="basic_part input" id="price_per_download'.$product_id.'">'.$prepared_raport[$product_id]['price_per_download'].'</td>
+                 <td class="basic_part autocalc" id="price_per_transport1'.$product_id.'">'.$prepared_raport[$product_id]['price_per_transport1'].'</td>
+                 <td class="basic_part input" id="full_price_per_transport1'.$product_id.'">'.$prepared_raport[$product_id]['full_price_per_transport1'].'</td>
+                 <td class="basic_part autocalc" id="price_per_transport2'.$product_id.'">'.$prepared_raport[$product_id]['price_per_transport2'].'</td>
+                 <td class="basic_part input" id="full_price_per_transport2'.$product_id.'">'.$prepared_raport[$product_id]['full_price_per_transport2'].'</td>
+                 <td class="basic_part autocalc" id="price_per_transport3'.$product_id.'">'.$prepared_raport[$product_id]['price_per_transport3'].'</td>
+                 <td class="basic_part input" id="full_price_per_transport3'.$product_id.'">'.$prepared_raport[$product_id]['full_price_per_transport3'].'</td>
+                 <td class="basic_part input" id="prep_sale'.$product_id.'">'.$prepared_raport[$product_id]['prep_sale'].'</td>
+                 <td class="basic_part input" id="use_owner_transport'.$product_id.'">'.$prepared_raport[$product_id]['use_owner_transport'].'</td>
+                 <td class="addition_part input" id="departure_to_customer'.$product_id.'">'.$prepared_raport[$product_id]['departure_to_customer'].'</td>
+                 <td class="addition_part input" id="service_costs'.$product_id.'">'.$prepared_raport[$product_id]['service_costs'].'</td>
+                 <td class="addition_part input" id="other_gratitude'.$product_id.'">'.$prepared_raport[$product_id]['other_gratitude'].'</td>
+                 <td class="addition_part input" id="loading_unloading'.$product_id.'">'.$prepared_raport[$product_id]['loading_unloading'].'</td>
+                 <td class="addition_part input" id="bank_cost'.$product_id.'">'.$prepared_raport[$product_id]['bank_cost'].'</td>
+                 <td class="addition_part input" id="other'.$product_id.'">'.$prepared_raport[$product_id]['other'].'</td>
+                 <td class="addition_part autocalc" id="incom_tax'.$product_id.'">'.$prepared_raport[$product_id]['incom_tax'].'</td>
+                 <td class="addition_part autocalc" id="VAT'.$product_id.'">'.$prepared_raport[$product_id]['VAT'].'</td>
+                 <td class="addition_part" id="price_costs'.$product_id.'">'.$prepared_raport[$product_id]['price_costs'].'</td>
+                 <td class="addition_part autocalc" id="full_price_costs'.$product_id.'">'.$prepared_raport[$product_id]['full_price_costs'].'</td>
+                 <td class="result_part autocalc" id="sale_price'.$product_id.'">'.$prepared_raport[$product_id]['sale_price'].'</td>
+                 <td class="result_part input" id="full_sale_price'.$product_id.'">'.(isset($prepared_raport[$product_id])?$prepared_raport[$product_id]['full_sale_price']:($price[$product_id]*$products[in_array($product_id, array_keys($products))?$product_id:-$product_id])).'</td>
+                 <td class="result_part autocalc" id="absolute_diference'.$product_id.'">'.$prepared_raport[$product_id]['absolute_diference'].'</td>
+                 <td class="result_part autocalc" id="percent_diference'.$product_id.'">'.$prepared_raport[$product_id]['percent_diference'].'</td>
+                 <td class="features_part" id="min_advance'.$product_id.'">'.$prepared_raport[$product_id]['min_advance'].'</td>
+                 <td class="features_part" id="dead_line_advance'.$product_id.'">'.$prepared_raport[$product_id]['dead_line_advance'].'</td>
+                 <td class="features_part" id="dead_line_payment'.$product_id.'">'.$prepared_raport[$product_id]['dead_line_payment'].'</td>
+                 <td class="features_part" id="supply'.$product_id.'">'.$prepared_raport[$product_id]['supply'].'</td>
+                 <td class="features_part" id="note'.$product_id.'">'.$prepared_raport[$product_id]['note'].'</td>
                 '.substr($result_table, strpos($result_table, '</tr>', $pos+10));
         $pos++;
     }
