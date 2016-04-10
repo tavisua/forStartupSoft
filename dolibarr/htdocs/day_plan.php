@@ -159,7 +159,8 @@ function CalcOutStandingActions($actioncode, $array, $id_usr){
     where 1";
         if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'" || $user->login !="admin")
             $sql .=" and `llx_actioncomm_resources`.fk_element = ".$id_usr;
-    $sql .= " and datep2 < '".date("Y-m-d")."'";
+
+    $sql .= " and datep2 between '".date("Y-m-d")."' and Now()";
     $sql .=" and llx_actioncomm.`percent` <> 100";
 //    if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'"){}
 //        else
@@ -187,7 +188,9 @@ function CalcFaktActions($actioncode, $array, $id_usr){
         (select id from `llx_c_actioncomm` where code in(".$actioncode.") and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
         left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
         inner join `llx_actioncomm_resources` on `llx_actioncomm`.`id` =  `llx_actioncomm_resources`.`fk_actioncomm`
-        where 1";
+        where 1
+        and `llx_actioncomm`.`active` = 1
+        ";
         if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'" || $id_usr != 1)
             $sql .=" and `llx_actioncomm_resources`.fk_element = ".$id_usr;
         if($i<8) {
@@ -199,7 +202,7 @@ function CalcFaktActions($actioncode, $array, $id_usr){
         }else {
                 $sql .= " and datep2 between date_add('" . date("Y-m-d") . "', interval -31 day) and '" . date("Y-m-d") . "'";
         }
-        $sql .=" and datea is not null";
+        $sql .=" and percent = 100";
 //        if($i == 7 && ($id_usr != 1))
         $res = $db->query($sql);
         while($res && $obj = $db->fetch_object($res)){

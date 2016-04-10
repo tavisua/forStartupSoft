@@ -9,6 +9,7 @@ function setTime(link){
         url:link,
         cache: false,
         success: function(html){
+            console.log('freetime', html);
             var hour = html.substr(0,2);
             var min = html.substr(3,2);
             $("#aphour [value='"+hour+"']").attr("selected", "selected");
@@ -17,11 +18,14 @@ function setTime(link){
         }
     })
 }
-function EditAction(rowid){
-    $('#action_id').val(rowid);
-    $('#action_item').val('edit');
-    $('#addaction').submit();
-}
+//function EditAction(rowid){
+//    //alert(rowid);
+//    //console.log(location.search);
+//    //return;
+//    $('#action_id').val(rowid);
+//    $('#action_item').val('edit');
+//    $('#addaction').submit();
+//}
 function ConfirmExec(id){
     var src = $('img#confirm' + id).attr('src');
     var img_src = (src.substr(src.length-'uncheck.png'.length, 'uncheck.png'.length));
@@ -102,10 +106,60 @@ function getParameterByName(name, url) {
     if (!results[2]) return '';
     return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
+function SaveResultProporition(contactid){
+    var date = new Date();
+    var sDate = date.getDate()+'.'+date.getMonth()+'.'+date.getFullYear();
+    var param ={
+        backtopage: location.href,
+        action:'addonlyresult',
+        socid:getParameterByName('socid'),
+        mainmenu:'area',
+        datep:date,
+        said:$('textarea#askProposed').text(),
+        contactid:contactid
+    }
+    $('#redirect').find('#action_id').remove();
+    $('#redirect').find('#onlyresult').remove();
+    $('#redirect').find('#redirect_actioncode').remove();
+    $('#redirect').find('#complete').remove();
+    for(var i=0; i<Object.keys(param).length; i++) {
+        $('#redirect').append('<input type="hidden" name="'+Object.keys(param)[i]+'" value="' + param[Object.keys(param)[i]] + '">');
+    }
+    //<input type="hidden" name="mainmenu" value="area" id="mainmenu_action">
+    //<input type="hidden" name="backtopage" value="'/dolibarr/htdocs/responsibility/sale/action.php?socid=4500&idmenu=10425&mainmenu=area'">
+    //<input type="hidden" name="id" value="" id="action_id">
+    //<input type="hidden" name="socid" value="" id="soc_id">
+    //<input type="hidden" name="onlyresult" value="" id="onlyresult">
+    //<input type="hidden" name="complete" value="" id="complete">
+    //<input type="hidden" value="" id="redirect_actioncode" name="actioncode">
+    //<input type="hidden" name="action" value="edit" id="edit_action">
+
+
+
+    $('#redirect').find('input#soc_id').val(getParameterByName('socid'));
+    $('#redirect').submit();
+
+    //console.log(link);
+}
 function LoadProposition(){
-    console.log(getParameterByName('socid'));
+    //console.log(getParameterByName('socid'));
+    //$.ajax({
+    //    dataType: 'json',
+    //    url:'/dolibarr/htdocs/orders.php',
+    //    data:item,
+    //    cache:false,
+    //    success:function(result){
+    //    },
+    //    type: 'post'
+    //})
+    var param = {
+        action:'getProposition',
+        socid:getParameterByName('socid')
+    }
     $.ajax({
-        url:'/dolibarr/htdocs/responsibility/sale/action.php?action=getProposition',
+        dataType: 'json',
+        url:'/dolibarr/htdocs/responsibility/sale/action.php',
+        data: param,
         cache:false,
         success:function(html){
             var table = $('#ActionPanel').find('table');
@@ -115,8 +169,55 @@ function LoadProposition(){
         }
     })
 }
+function showProposed(id,contactid){
+    //console.log(id);
+    var param = {
+        id:id,
+        action:'showProposition',
+        contactid:contactid
+    }
+    $.ajax({
+        url:'/dolibarr/htdocs/responsibility/sale/action.php',
+        data: param,
+        cache:false,
+        success:function(html){
+            //console.log('test');
+            $('#popupmenu').css('width','auto');
+            //$('#popupmenu').css('height',250);
+            $('#popupmenu').empty().html(html);
+
+            $('#popupmenu').show();
+            $('#popupmenu').offset({top:$('#contactlist').offset().top-30,left:$('#contactlist').offset().left+$('#contactlist').width()/2});
+            $('#popupmenu').attr('TitleProposed', 1);
+        }
+    })
+}
+function showTitleProposed(post_id, lineactive, contactid){
+    var param = {
+        post_id: post_id,
+        lineactive: lineactive,
+        action:'showTitleProposition',
+        contactid:contactid
+    }
+
+    $.ajax({
+        url:'/dolibarr/htdocs/responsibility/sale/action.php',
+        data: param,
+        cache:false,
+        success:function(html){
+            //console.log('test');
+            $('#popupmenu').css('width',250);
+            //$('#popupmenu').css('height',250);
+            $('#popupmenu').empty().html(html);
+
+            $('#popupmenu').show();
+            $('#popupmenu').offset({top:$('#contactlist').offset().top,left:$('#contactlist').offset().left+$('#contactlist').width()/2});
+            $('#popupmenu').attr('TitleProposed', 1);
+        }
+    })
+}
 function setActionCode(){
-    console.log('setActionCode');
+    //console.log('setActionCode');
     switch ($("#mainmenu").val()){
         case "global_task":{
             $("#actioncode [value='AC_GLOBAL']").attr("selected", "selected");
@@ -125,6 +226,25 @@ function setActionCode(){
             $("#actioncode [value='AC_CURRENT']").attr("selected", "selected");
         }break;
     }
+}
+function CalcP(date, minute, id_usr){
+    if(minute.length == 0)
+        return;
+    console.log(date, minute, id_usr);
+    //if(date.substr(0,1)!="'")
+    //    date = "'"+date+"'";
+    $.ajax({
+        url:'/dolibarr/htdocs/comm/action/card.php?date='+date+'&minute='+minute+'&id_usr='+id_usr+'&action=get_freetime',
+        cache:false,
+        success:function(result){
+            var time = result.substr(10,6);
+            $('#aphour [value='+time.substr(1,2)+']').attr("selected","selected");
+            $('#apmin  [value='+time.substr(4,2)+']').attr("selected","selected");
+            console.log(time.substr(4,2).trim());
+            CalcP2();
+
+        }
+    })
 }
 function CalcP2(){
     var hour = parseInt(document.getElementById("aphour").value)+Math.floor($("#exec_time").val()/60);
@@ -155,7 +275,7 @@ function CalcP2(){
     //var sHour = hour<10?("0"+hour.toString()):(hour.toString());
     //document.getElementById("p2hour").value = sHour;
     document.getElementById("p2min").value = min;
-        }
+}
 function AddOrder(){
      $("#actionbuttons").attr('action', '/dolibarr/htdocs/orders.php?idmenu=10426&mainmenu=orders&leftmenu=');
     console.log('test');
@@ -595,7 +715,9 @@ function save_item(tablename, paramfield, sendtable){
         //location.href='';
     }
 }
+
 function AddResultAction(){
+    alert('test');
     var link = '/dolibarr/htdocs/comm/action/result_action.php';
     var inputaction = $("#actionbuttons").find('input');
     for(var i = 0; i<inputaction.length; i++) {
@@ -609,21 +731,25 @@ function AddResultAction(){
     //
     //location.href=link;
 }
-function EditAction(rowid){
+function EditAction(rowid, actioncode){
     var search = location.search.substr(1);
     search.split('&').forEach(function(item){
         item = item.split('=');
         if(item[0]=='mainmenu'){
             $('#mainmenu_action').val(item[1]);
+        }else if(item[0]=='socid'){
+            $('#soc_id').val(item[1]);
         }
     })
-    console.log(!$.isNumeric(rowid), rowid);
+    //console.log(search);
+    //return;
     if(!$.isNumeric(rowid)) {
         $('#onlyresult').val(1);
         $('#action_id').val(rowid.substr(1));
     }else
         $('#action_id').val(rowid);
     $('#edit_action').val('edit');
+    $('#redirect_actioncode').val(actioncode);
     $('#redirect').submit();
 }
 function ShowProducts(){//Відображення кількості замовлених товарів
@@ -1242,6 +1368,7 @@ function change_switch_callfield(obj){
     });
 
 }
+
 function save_data(link){
     //console.log('http://'+location.hostname+'/dolibarr/htdocs/DBManager/dbManager.php?save=1&'+link);
     //return;

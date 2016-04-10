@@ -153,7 +153,11 @@ class societecontact {
     public function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $sortorder='', $readonly = array(), $showtitle=false){
         global $user, $conf, $langs, $db;
 
-
+//            echo '<pre>';
+//            var_dump($sql);
+//            echo '</pre>';
+//            die();
+        $notShowedFields = array('rowid', 'socid', 'post_id');
         if(empty($sortorder)) {
             $result = $db->query($sql);
 //        var_dump(!$result);
@@ -169,13 +173,15 @@ class societecontact {
 //            echo '<pre>';
 //            var_dump($sql);
 //            echo '</pre>';
-
             $result = $this->mysqli->query($sql.' limit 1');
 
             $fields = $result->fetch_fields();
+
             $num_col=0;
+
             for($i=1;$i<count($fields);$i++){
-                if($fields[$i]->name != 'rowid' && !isset($title[$num_col]['hidden'])){
+
+                if(!in_array($fields[$i]->name, $notShowedFields) && !isset($title[$num_col]['hidden'])){
 //                var_dump($num_col.' '.$fields[$i]->name.'</br>');
                     if($num_col == $sortfield) {
                         if (substr($fields[$i]->name, 0, 2) != 's_') {
@@ -212,6 +218,8 @@ class societecontact {
         $num_col = 0;
         $additionparam = false;
         $colindex = 0;
+
+
         foreach ($title as $column) {
             if (!isset($column['hidden'])) {
                 if($showtitle) {
@@ -299,9 +307,35 @@ class societecontact {
             }
             $table .= '<td id="0" >&nbsp;</td>';
         }
+        $obj = $db->fetch_object($result);
+//        echo '<pre>';
+//        var_dump($result);
+//        echo '</pre>';
+//        die();
+        $sql = 'select distinct `llx_societe_contact`.post_id, `llx_c_proposition`.`fk_lineactive` from `llx_societe_contact`
+            inner join `llx_societe` on `llx_societe`.rowid = `llx_societe_contact`.`socid`
+            inner join `llx_c_proposition` on `llx_c_proposition`.`fk_post` = `llx_societe_contact`.post_id
+            left join `llx_societe_lineactive` on `llx_societe_lineactive`.`fk_soc`= `llx_societe`.rowid
+            where `llx_societe_contact`.`socid`='.(empty($obj->socid)?$_REQUEST['socid']:$obj->socid).'
+            and `llx_societe_contact`.`active` = 1
+            and `llx_c_proposition`.active = 1
+            and `llx_c_proposition`.`begin`<=Now() and `llx_c_proposition`.`end`>= Now()';
+
+//        $sql.='and `llx_societe_lineactive`.`fk_lineactive` = `llx_c_proposition`.`fk_lineactive`;';
+        $resPost = $db->query($sql);
+//        echo '<pre>';
+//        var_dump($resPost);
+//        echo '</pre>';
+//        die();
+        if(!$resPost)
+            dol_print_error($db);
+        $postArray = array();
+        while($obj = $db->fetch_object($resPost)){
+            $postArray[$obj->post_id] = $obj->fk_lineactive;
+        }
+        mysqli_data_seek($result, 0);
         while($row = $result->fetch_assoc()) {
-//            var_dump($row);
-//            die();
+
             $count++;
             $class = fmod($count,2)==1?("impair"):("pair");
             $table .= "<tr id = tr".$row['rowid']." class='".$class."'>\r\n";
@@ -316,133 +350,140 @@ class societecontact {
 //            echo '</br>';
             $num_col = 0;
             foreach($row as $cell=>$value){
-                if($fields[$num_col]->type == 10) {//Якщо тип поля - дата - перетворюю на правильний формат
-                    if(!empty($value)) {
-                        $date = new DateTime($value);
-                        $value = $date->format('d.m.Y');
-                    }
-                }
-
-                $col_name = "'".$fields[$num_col]->name."'";
-
-                if(!in_array($cell, $ignorfields) && !in_array($cell, $duplexfields)) {
-                    if( count($readonly)==0)//Формирую форму для редактирования
-//                        $edit_form.=$this->fBuildEditForm($title[$num_col-1], $fields[$num_col], $theme, $tablename);
-//                    var_dump($title[$num_col-1]['title'].' '.$cell.' '.!isset($title[$num_col-1]['hidden']).'</br>');
-                    if(!isset($title[$num_col-1]['hidden'])) {
-//                        echo '<pre>';
-//                        var_dump($title[$num_col-1]['title']);
-//                        echo '</pre>';
-                        if(count($readonly)==0)
-                            $width = ($title[$num_col-1]['width'])!=''?($title[$num_col-1]['width'].'px'):('auto');
-                        else
-                            $width = ($title[$num_col-1]['width'])!=''?($title[$num_col-1]['width']+(($num_col-1)*1.5).'px'):('auto');
-
-                        if ($fields[$num_col]->type == 16) {
-                            if(count($readonly)==0) {
-                                if ($value == '1') {
-                                    $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');" > </td>';
-                                } else {
-                                    $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_off.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');"> </td>';
-                                }
-                            }else{
-                                if(in_array($row['rowid'], $readonly)){
-                                    $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png"> </td>';
-                                }else{
-                                    $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_off.png"> </td>';
-                                }
-                            }
-                        } elseif (!empty($title[$num_col - 1]['action'])) {
-                            $link = "'" . $title[$num_col - 1]["action"] . '&' . $title[$num_col - 1]["param"] . '=' . $row['rowid'] . "'";
-                            $table .= '<td style="width: ' . $width . '" id="' . $row['rowid'] . $fields[$num_col]->name . '">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . $title[$num_col - 1]["icon_src"] . '" onclick="goto_link(' . $link . ');" > </td>';
-//                        echo'<pre>';
-//                        var_dump($title[$num_col-1]["action"]);
-//                        echo'</pre>';
-                        } else {
-                            if (substr($fields[$num_col]->name, 0, 2) != 's_') {
-//                                if(!empty($value)) {
-                                    $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" >';
-                                    if($fields[$num_col]->name == 'work_phone' || $fields[$num_col]->name == 'fax' || $fields[$num_col]->name == 'mobile_phone1'||
-                                        $fields[$num_col]->name == 'email1' || $fields[$num_col]->name =='skype' || $fields[$num_col]->name == 'birthdaydate') {
-
-                                        $call_pref='';
-                                        if($fields[$num_col]->name == 'work_phone' || $fields[$num_col]->name == 'fax'|| $fields[$num_col]->name == 'mobile_phone1' || $fields[$num_col]->name == 'skype')
-                                            $call_pref = 'call';
-                                        elseif(substr($fields[$num_col]->name, 0, 5) == 'email' || $fields[$num_col]->name == 'birthdaydate')
-                                            $call_pref = 'send';
-//                                        if($fields[$num_col]->name == 'birthdaydate'){
-//                                            var_dump($value);
-//                                            die();
-//                                        }
-                                        $style_item = '';
-                                        if(substr($fields[$num_col]->name, 0, strlen('mobile_phone')) == 'mobile_phone') {
-                                            $style_item = 'style="width: 130px;white-space: nowrap"';
-                                        }elseif(substr($fields[$num_col]->name, 0, strlen('email')) == 'email' && !empty($value)){
-                                            $value = '<a href="mailto:'.$value.'">'.$value.'</a>';
-                                        }elseif(substr($fields[$num_col]->name, 0, strlen('skype')) == 'skype' && !empty($value)){
-                                            $value = '<a href="skype:'.$value.'?call">'.$value.'</a>';
-                                        }
-                                        $table .= '<table class="contactlist_contact"><tr><td '.$style_item.'>'.trim($langs->trans($value)) . '</td>';
-                                        if(!empty($value)) {
-                                            if(substr($fields[$num_col]->name, 0, strlen(mobile_phone)) == 'mobile_phone') {
-                                                $number = str_replace('+', '', $value);
-                                                $number = str_replace(' ', '', $number);
-                                                $number = str_replace('(', '', $number);
-                                                $number = str_replace(')', '', $number);
-                                                $number = str_replace('-', '', $number);
-                                                $table .= '<td style="width: 20px" onclick="showSMSform(' . $number . ');"><img id="sms' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/object_sms.png"></td>';
-                                            }
-                                            $ID = "'#img" . $row['rowid'] . $fields[$num_col]->name . "'";
-                                            if ($row[$call_pref . "_" . $fields[$num_col]->name] == 0)
-                                                $table .= '<td><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/uncheck.png" onclick = "change_switch_callfield($(' . $ID . '));">';
-                                            else
-                                                $table .= '<td><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/check.png" onclick = "change_switch_callfield($(' . $ID . '));">';
-                                            $table .= '</td></tr>';
-                                            if (($fields[$num_col]->name == 'mobile_phone1' || $fields[$num_col]->name == 'email1') && !empty($row[$fields[$num_col + 2]->name])) {
-                                                $ID = "'#img" . $row['rowid'] . $fields[$num_col + 2]->name . "'";
-                                                $table .= '<tr><td>' . $row[$fields[$num_col + 2]->name] . '</td>';
-                                                if ($row[$call_pref . "_" . $fields[$num_col + 2]->name] == 0)
-                                                    $table .= '<td><img id="img' . $row['rowid'] . $fields[$num_col + 2]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/uncheck.png" onclick = "change_switch_callfield($(' . $ID . '));">';
-                                                else
-                                                    $table .= '<td><img id="img' . $row['rowid'] . $fields[$num_col + 2]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/check.png" onclick = "change_switch_callfield($(' . $ID . '));">';
-//                                            echo '<pre>';
-//                                            var_dump($cell, $row[$fields[$num_col+2]->name]) . '</br>';
-//                                            echo '</pre>';
-                                                $table .= '</td>';
-                                            }
-                                        }
-                                        $table .= '</tr>';
-                                        $table .= '</table>';
-                                    }else
-                                        $table .= (trim($langs->trans($value))) . ' </td>';
-//                                }else
-//                                    $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" > </td>';
-                            }
-                            else {
-
-                                if (substr($fields[$num_col]->name, 0, 6) == 's_llx_') {
-                                    $stpos = 7;
-                                } else
-                                    $stpos = 3;
-                                $s_table = substr($fields[$num_col]->name, 2, strpos($fields[$num_col]->name, '_', $stpos) - 2);
-                                $s_fieldname = substr($fields[$num_col]->name, strpos($fields[$num_col]->name, '_', $stpos) + 1);
-
-                                $selectlist = substr($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], 0, strpos($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], $value) - 1) . ' selected = "selected" ' . substr($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], strpos($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], $value) - 1);
-                                $selectlist = str_replace('class="edit_' . substr($fields[$num_col]->name, 2) . '"', '', $selectlist);
-
-                                if (isset($title[$num_col - 1]["detailfield"])) {
-                                    $selectlist = str_replace('id="edit_' . substr($fields[$num_col]->name, 2) . '"', 'id="select' . $row['rowid'] . $title[$num_col - 1]["detailfield"] . '"', $selectlist);
-                                    $detailfield = "'" . $title[$num_col - 1]["detailfield"] . "'";
-                                    $selectlist = str_replace('<select', '<select onChange="change_select(' . $row['rowid'] . ', ' . $tablename . ', ' . $detailfield . ');"', $selectlist);
-                                }
-//                            echo '<pre>';
-//                            var_dump(htmlspecialchars($selectlist));
-//                            echo '</pre>';
-//                            die();
-                                $table .= '<td  id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" >' . $selectlist . '</td>';
-//                            $table .= '<td class = "combobox" id="' . $row['rowid'] . $fields[$num_col]->name . '">' . $value . '</td>';
-                            }
+//                var_dump($postArray[$row['post_id']], array_keys($postArray));
+//                die();
+                $proposed = isset($row['post_id'])&&in_array($row['post_id'], array_keys($postArray));
+                if(!in_array($fields[$num_col]->name, $notShowedFields)) {
+                    if ($fields[$num_col]->type == 10) {//Якщо тип поля - дата - перетворюю на правильний формат
+                        if (!empty($value)) {
+                            $date = new DateTime($value);
+                            $value = $date->format('d.m.Y');
                         }
+                    }
+
+                    $col_name = "'" . $fields[$num_col]->name . "'";
+
+                    if (!in_array($cell, $ignorfields) && !in_array($cell, $duplexfields)) {
+                        if (count($readonly) == 0)//Формирую форму для редактирования
+                            //                        $edit_form.=$this->fBuildEditForm($title[$num_col-1], $fields[$num_col], $theme, $tablename);
+                            //                    var_dump($title[$num_col-1]['title'].' '.$cell.' '.!isset($title[$num_col-1]['hidden']).'</br>');
+                            if (!isset($title[$num_col - 1]['hidden'])) {
+                                //                        echo '<pre>';
+                                //                        var_dump($title[$num_col-1]['title']);
+                                //                        echo '</pre>';
+                                if (count($readonly) == 0)
+                                    $width = ($title[$num_col - 1]['width']) != '' ? ($title[$num_col - 1]['width'] . 'px') : ('auto');
+                                else
+                                    $width = ($title[$num_col - 1]['width']) != '' ? ($title[$num_col - 1]['width'] + (($num_col - 1) * 1.5) . 'px') : ('auto');
+
+                                if ($fields[$num_col]->type == 16) {
+                                    if (count($readonly) == 0) {
+                                        if ($value == '1') {
+                                            $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');" > </td>';
+                                        } else {
+                                            $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_off.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');"> </td>';
+                                        }
+                                    } else {
+                                        if (in_array($row['rowid'], $readonly)) {
+                                            $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png"> </td>';
+                                        } else {
+                                            $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_off.png"> </td>';
+                                        }
+                                    }
+                                } elseif (!empty($title[$num_col - 1]['action'])) {
+                                    $link = "'" . $title[$num_col - 1]["action"] . '&' . $title[$num_col - 1]["param"] . '=' . $row['rowid'] . "'";
+                                    $table .= '<td style="width: ' . $width . '" id="' . $row['rowid'] . $fields[$num_col]->name . '">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . $title[$num_col - 1]["icon_src"] . '" onclick="goto_link(' . $link . ');" > </td>';
+                                    //                        echo'<pre>';
+                                    //                        var_dump($title[$num_col-1]["action"]);
+                                    //                        echo'</pre>';
+                                } else {
+                                    if (substr($fields[$num_col]->name, 0, 2) != 's_') {
+                                        //                                if(!empty($value)) {
+                                        $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" >';
+                                        if ($fields[$num_col]->name == 'work_phone' || $fields[$num_col]->name == 'fax' || $fields[$num_col]->name == 'mobile_phone1' ||
+                                            $fields[$num_col]->name == 'email1' || $fields[$num_col]->name == 'skype' || $fields[$num_col]->name == 'birthdaydate'
+                                        ) {
+
+                                            $call_pref = '';
+                                            if ($fields[$num_col]->name == 'work_phone' || $fields[$num_col]->name == 'fax' || $fields[$num_col]->name == 'mobile_phone1' || $fields[$num_col]->name == 'skype')
+                                                $call_pref = 'call';
+                                            elseif (substr($fields[$num_col]->name, 0, 5) == 'email' || $fields[$num_col]->name == 'birthdaydate')
+                                                $call_pref = 'send';
+                                            //                                        if($fields[$num_col]->name == 'birthdaydate'){
+                                            //                                            var_dump($value);
+                                            //                                            die();
+                                            //                                        }
+                                            $style_item = '';
+                                            if (substr($fields[$num_col]->name, 0, strlen('mobile_phone')) == 'mobile_phone') {
+                                                $style_item = 'style="width: 130px;white-space: nowrap"';
+                                            } elseif (substr($fields[$num_col]->name, 0, strlen('email')) == 'email' && !empty($value)) {
+                                                $value = '<a href="mailto:' . $value . '">' . $value . '</a>';
+                                            } elseif (substr($fields[$num_col]->name, 0, strlen('skype')) == 'skype' && !empty($value)) {
+                                                $value = '<a href="skype:' . $value . '?call">' . $value . '</a>';
+                                            }
+                                            $table .= '<table class="contactlist_contact"><tr><td ' . $style_item . '>' . trim($langs->trans($value)) . '</td>';
+                                            if (!empty($value)) {
+                                                if (substr($fields[$num_col]->name, 0, strlen(mobile_phone)) == 'mobile_phone') {
+                                                    $number = str_replace('+', '', $value);
+                                                    $number = str_replace(' ', '', $number);
+                                                    $number = str_replace('(', '', $number);
+                                                    $number = str_replace(')', '', $number);
+                                                    $number = str_replace('-', '', $number);
+                                                    if($proposed)
+                                                        $table .= '<td style="width: 20px" onclick="showTitleProposed('.$row['post_id'].','.$postArray[$row['post_id']].','.$row['rowid'].');"><img id="proposedIcon' . $row['rowid'] . $fields[$num_col]->name . '" title = "'.$langs->trans('Proposition').'" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/strawberry.png"></td>';
+                                                    $table .= '<td style="width: 20px" onclick="showSMSform(' . $number . ');"><img id="sms' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/object_sms.png"></td>';
+                                                }
+                                                $ID = "'#img" . $row['rowid'] . $fields[$num_col]->name . "'";
+                                                if ($row[$call_pref . "_" . $fields[$num_col]->name] == 0)
+                                                    $table .= '<td><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/uncheck.png" onclick = "change_switch_callfield($(' . $ID . '));">';
+                                                else
+                                                    $table .= '<td><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/check.png" onclick = "change_switch_callfield($(' . $ID . '));">';
+                                                $table .= '</td></tr>';
+                                                if (($fields[$num_col]->name == 'mobile_phone1' || $fields[$num_col]->name == 'email1') && !empty($row[$fields[$num_col + 2]->name])) {
+                                                    $ID = "'#img" . $row['rowid'] . $fields[$num_col + 2]->name . "'";
+                                                    $table .= '<tr><td>' . $row[$fields[$num_col + 2]->name] . '</td>';
+                                                    if ($row[$call_pref . "_" . $fields[$num_col + 2]->name] == 0)
+                                                        $table .= '<td><img id="img' . $row['rowid'] . $fields[$num_col + 2]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/uncheck.png" onclick = "change_switch_callfield($(' . $ID . '));">';
+                                                    else
+                                                        $table .= '<td><img id="img' . $row['rowid'] . $fields[$num_col + 2]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/check.png" onclick = "change_switch_callfield($(' . $ID . '));">';
+                                                    //                                            echo '<pre>';
+                                                    //                                            var_dump($cell, $row[$fields[$num_col+2]->name]) . '</br>';
+                                                    //                                            echo '</pre>';
+                                                    $table .= '</td>';
+                                                }
+                                            }
+                                            $table .= '</tr>';
+                                            $table .= '</table>';
+                                        } else
+                                            $table .= (trim($langs->trans($value))) . ' </td>';
+                                        //                                }else
+                                        //                                    $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" > </td>';
+                                    } else {
+
+                                        if (substr($fields[$num_col]->name, 0, 6) == 's_llx_') {
+                                            $stpos = 7;
+                                        } else
+                                            $stpos = 3;
+                                        $s_table = substr($fields[$num_col]->name, 2, strpos($fields[$num_col]->name, '_', $stpos) - 2);
+                                        $s_fieldname = substr($fields[$num_col]->name, strpos($fields[$num_col]->name, '_', $stpos) + 1);
+
+                                        $selectlist = substr($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], 0, strpos($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], $value) - 1) . ' selected = "selected" ' . substr($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], strpos($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], $value) - 1);
+                                        $selectlist = str_replace('class="edit_' . substr($fields[$num_col]->name, 2) . '"', '', $selectlist);
+
+                                        if (isset($title[$num_col - 1]["detailfield"])) {
+                                            $selectlist = str_replace('id="edit_' . substr($fields[$num_col]->name, 2) . '"', 'id="select' . $row['rowid'] . $title[$num_col - 1]["detailfield"] . '"', $selectlist);
+                                            $detailfield = "'" . $title[$num_col - 1]["detailfield"] . "'";
+                                            $selectlist = str_replace('<select', '<select onChange="change_select(' . $row['rowid'] . ', ' . $tablename . ', ' . $detailfield . ');"', $selectlist);
+                                        }
+                                        //                            echo '<pre>';
+                                        //                            var_dump(htmlspecialchars($selectlist));
+                                        //                            echo '</pre>';
+                                        //                            die();
+                                        $table .= '<td  id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" >' . $selectlist . '</td>';
+                                        //                            $table .= '<td class = "combobox" id="' . $row['rowid'] . $fields[$num_col]->name . '">' . $value . '</td>';
+                                    }
+                                }
+                            }
                     }
                 }
                 $num_col++;

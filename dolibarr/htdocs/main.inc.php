@@ -381,6 +381,8 @@ if($_SERVER['PHP_SELF'] =='/dolibarr/htdocs/autocall/index.php') {
     define("NOLOGIN",1);
 //    var_dump(defined('NOLOGIN'));
 //    die();
+}elseif($_SERVER['PHP_SELF'] =='/dolibarr/htdocs/patch_time.php') {
+        define("NOLOGIN",1);
 }
 //die($_SERVER['PHP_SELF']);
 if (! defined('NOLOGIN'))

@@ -127,12 +127,12 @@ exit();
 
 function Contractors($id_usr){
     global $db;
-    $sql = "select case when `responsibility_param`.`fx_category_counterparty` is null then `other_category` else `fx_category_counterparty` end `fx_category_counterparty`,
-        `category_counterparty`.`name`
-         from `responsibility_param`
-        inner join (select rowid from `responsibility`
-        where alias ='counter') counter on counter.rowid=responsibility_param.fx_responsibility
-        left join `category_counterparty` on `category_counterparty`.`rowid` = `responsibility_param`.`fx_category_counterparty`";
+    $sql = "select distinct case when `responsibility_param`.`fx_category_counterparty` is null then `other_category` else `fx_category_counterparty` end `fx_category_counterparty`, `category_counterparty`.`name`
+        from `responsibility_param`
+        inner join (select rowid from `responsibility` where alias ='counter') counter on counter.rowid=responsibility_param.fx_responsibility
+        left join `category_counterparty` on `category_counterparty`.`rowid` = `responsibility_param`.`fx_category_counterparty`
+        where `category_counterparty`.`active` = 1
+        or `responsibility_param`.`fx_category_counterparty` is null";
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
@@ -142,7 +142,7 @@ function Contractors($id_usr){
     while($obj = $db->fetch_object($res_contractors)){
         $contractors[]=$obj->fk_categories;
     }
-
+//    die($sql);
     $out = '<select id="contractors" name="contractors[]" class="combobox" multiple="multiple" size="30" style="width: 80%">';
     while($obj = $db->fetch_object($res)){
         $selected = in_array($obj->fx_category_counterparty, $contractors);

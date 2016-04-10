@@ -28,6 +28,8 @@
         </tr>
     </table>
 </div>
+
+</br>
 <div  id="ActionList">
     <form id="addaction" action="" method="post">
         <input id="backtopage" type="hidden" value="<?=$_GET['backtopage']?>" name="backtopage">
@@ -36,7 +38,7 @@
         <input id="socid" name="socid" type="hidden" value="<?=isset($_REQUEST['onlyresult'])&&!empty($_REQUEST['onlyresult'])?$object->socid:$_REQUEST['socid']?>">
         <input id="mainmenu" name="mainmenu" type="hidden" value="<?=$_GET['mainmenu']?>">
         <input type="hidden" value="<?=$_GET['actioncode']?>" name="actioncode">
-        <input type="hidden" value="" name="complete">
+        <input type="hidden" value="" name="complete" id="complete">
         <input id="action" name="action" type="hidden" value="">
 
         </br>
@@ -45,7 +47,7 @@
             <tr>
                 <td>
                     &nbsp;&nbsp;&nbsp;<?echo $langs->trans('WhatSaidHim')?></br>
-                    <textarea id="said" class="edit_text" name="said" maxlength="255"><?=empty($object->resultaction['said'])?$object->said:$object->resultaction['said']?></textarea>
+                    <textarea id="said" class="edit_text" name="said" maxlength="255"><?=$said?></textarea>
                 </td>
             </tr>
             <tr>
@@ -99,12 +101,6 @@
         $("#product").mask("a*-999-a999");
         $("#eyescript").mask("~9.99 ~9.99 999");
     });
-    $('select#selectcomplete').change(function(e){
-        setComplete();
-    })
-    $('input#valcomplete').change(function(e){
-        setComplete();
-    })
 </script>
 <script type="text/javascript">
     $(document).ready(function(){
@@ -118,9 +114,7 @@
         link = 'http://'+location.hostname+link.substr(1, link.length-2);
         location.href = link;
     }
-    function setComplete(){
-        console.log($('input#valcomplete').val());
-    }
+
     function save(){
         var search = location.search.substr(1);
         var param = {};
@@ -134,13 +128,15 @@
         $("#addaction").attr('action', '/dolibarr/htdocs/comm/action/result_action.php');
         if(param.action == 'addonlyresult')
             $("#action").val('addonlyresult');
-        else if(param.onlyresult.length > 0)
+        else if(param.onlyresult !== undefined)
             $("#action").val('updateonlyresult');
         else
             $("#action").val('update');
+        $('#complete').val($('#valcomplete').val());
+        console.log($("addaction").attr('action'));
         $("#addaction").submit();
 //        alert('test');
-        console.log($("addaction").attr('action'));
+
     }
     function saveandcreate(){
         var search = location.search.substr(1);
@@ -149,8 +145,9 @@
             item = item.split('=');
             param[item[0]]=item[1];
         })
-//        console.log(param.onlyresult !== undefined);
-//        return;
+
+        $('#complete').val($('#valcomplete').val());
+
         $("#addaction").attr('action', '/dolibarr/htdocs/comm/action/result_action.php');
         if(param.action == 'addonlyresult')
             $("#action").val('addonlyresult_and_create');
@@ -173,5 +170,13 @@
 //            }
 //        });
 //    }
+    $.ajax({
+
+    })
 
 </script>
+<style>
+    #ActionList{
+        padding-top: 60px;
+    }
+</style>

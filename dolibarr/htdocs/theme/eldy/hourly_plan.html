@@ -43,9 +43,9 @@
         $(window).load(function(){
             window.location.hash="#8h0m";
         })
-        function EditAction(rowid){
-            console.log(rowid);
-        }
+//        function EditAction(rowid){
+//            console.log(rowid);
+//        }
         $(document).ready(function(){
             $('.tasklist').mousedown(function(e){
                 var pos = $(this).offset();
@@ -53,7 +53,7 @@
                 var elem_top = pos.top;
                 // положение курсора внутри элемента
                 var Xinner = e.pageX - elem_left;
-                var Yinner = e.pageY - elem_top;
+                var Yinner = e.pageY - elem_top+8;
 //                console.log("X: " + Xinner + " Y: " + Yinner); // вывод результата в консоль
                 var tbody = $('.tasklist').find('tbody');
                 var task_id = 0;
@@ -77,6 +77,10 @@
                         }
                     }
                 }
+                if(task_id == 0)
+                    return;
+//                console.log($('#'+tr[t].id).offset(), Yinner, task_id);
+//                return;
                 if(bEdit == true) {
                     location.href = '/dolibarr/htdocs/comm/action/card.php?action=edit&id='+task_id+'&backtopage='+location.href;
 //                    console.log($("a#mainmenua_hourly_plan").attr('href'));
@@ -255,5 +259,6 @@
         }
 
     </script>
+
 </div>
 

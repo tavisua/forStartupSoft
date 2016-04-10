@@ -48,6 +48,9 @@ if($_GET['action']=='get_exectime'){
     exit();
 }elseif($_GET['action']=='delete_action'){
 	global $db;
+	if(substr($_GET['rowid'], 0, 1)=='_')
+	    $sql = 'update llx_societe_action set active = 0 where rowid='.str_replace('_','', $_GET['rowid']);
+	else
     $sql = 'update llx_actioncomm set active = 0 where id='.$_GET['rowid'];
     $res = $db->query($sql);
     if(!$res){
@@ -119,13 +122,18 @@ if($_GET['action']=='get_exectime'){
     }
     exit();
 }elseif($_GET['action']=='get_freetime'){
-
+//	echo '<pre>';
+//	var_dump($_GET);
+//	echo '</pre>';
+//	die('test');
 	global $db, $user;
 	$Action = new ActionComm($db);
-	$freetime = $Action->GetFreeTime($_GET['date'], $_GET['id_usr'], $_GET['minute'], $_GET['priority']);
-//	echo '<pre>';
-//	var_dump($freetime);
-//	echo '</pre>';
+	$date = new DateTime();
+	$date->setTimestamp(time());
+//	var_dump($date);
+//	die();
+	$freetime = $Action->GetFreeTime($_GET['date'], $_GET['id_usr'], $_GET['minute'], $_GET['priority'], $date->format('Y-m-d H:i:s'));
+
 	echo $freetime;
 	exit();
 }
@@ -855,6 +863,7 @@ if ($action == 'create')
     {
         print "\n".'<script type="text/javascript">';
         print '$(document).ready(function () {
+
         			function setdatefields()
 	            	{
 	            		if ($("#fullday:checked").val() == null) {
@@ -934,8 +943,13 @@ if ($action == 'create')
 		if(!$res)
 			dol_print_error($db);
 		$obj = $db->fetch_object($res);
+//		echo '<pre>';
+//		var_dump($obj);
+//		echo '</pre>';
+//		die();
         $datep = new DateTime($obj->datep);
         $datef = new DateTime($obj->datep2);
+		$newAction = new ActionComm($db);
         $period = $obj->period;
 		switch($obj->period){
 			case 'EveryWeek':{
@@ -954,11 +968,25 @@ if ($action == 'create')
                 $datep = new DateTime($datep->format('d').'.'.$datep->format('m').'.'.($datep->format('Y')+1). ' '.$datep->format('h').':'.$datep->format('i').':'.$datep->format('s'));
                 $datef = new DateTime($datef->format('d').'.'.$datef->format('m').'.'.($datef->format('Y')+1). ' '.$datef->format('h').':'.$datef->format('i').':'.$datef->format('s'));
 			}break;
+			default:{
+				$minutes = (mktime($datef->format('H'),$datef->format('i'),$datef->format('s'),$datef->format('m'),$datef->format('d'),$datef->format('Y'))-
+						mktime($datep->format('H'),$datep->format('i'),$datep->format('s'),$datep->format('m'),$datep->format('d'),$datep->format('Y')))/60;
+				$start = $newAction->GetFreeTime($datep->format('Y-m-d'),$user->id, $minutes, 0,
+							mktime($datep->format('H'),$datep->format('i'),$datep->format('s'),$datep->format('m'),$datep->format('d'),$datep->format('Y')));
+				$datep = new DateTime($start);
+				$sec = mktime($datep->format('H'),$datep->format('i'),$datep->format('s'),$datep->format('m'),$datep->format('d'),$datep->format('Y'));
+				$sec += $minutes*60;
+				$datef = new DateTime();
+				$datef->setTimestamp($sec);
+//				var_dump($datef);
+//				die();
+			}break;
 		}
 //        var_dump($datep);
 //        die();
-        $datep = mktime($datep->format('h'),$datep->format('i'),$datep->format('s'),$datep->format('m'),$datep->format('d'),$datep->format('Y'));
-        $datef = mktime($datef->format('h'),$datef->format('i'),$datef->format('s'),$datef->format('m'),$datef->format('d'),$datef->format('Y'));
+        $datep = mktime($datep->format('H'),$datep->format('i'),$datep->format('s'),$datep->format('m'),$datep->format('d'),$datep->format('Y'));
+        $datef = mktime($datef->format('H'),$datef->format('i'),$datef->format('s'),$datef->format('m'),$datef->format('d'),$datef->format('Y'));
+
 	}
 	if (GETPOST('datep','int',1)) $datep=dol_stringtotime(GETPOST('datep','int',1),0);
 	print '<tr><td width="30%" class="nowrap"><span class="fieldrequired">'.$langs->trans("DateActionStart").'</span></td><td>';
@@ -1875,8 +1903,7 @@ print "<script>
 print '
  <script type="text/javascript">
         $(document).ready(function(){
-//        	console.log();
-            $("#actioncode").removeClass("flat");
+        	$("#actioncode").removeClass("flat");
             $("#actioncode").addClass("combobox");
             $("#actioncode").unbind("change");
             $("#contactid").removeClass("flat");
@@ -1886,11 +1913,14 @@ print '
             if($("#mainmenu").length>0 && $("#mainmenu").val().length>0){
 				setActionCode();
             }
+
 //				$("#addassignpanel").offset({top:$("#updateassignedtouser").offset().top-27,left:663});
 //            console.log();
 //            return;
-			console.log($("#updateassignedtouser").length);
+//			console.log($("#updateassignedtouser").length);
+
             ActionCodeChanged();
+
             $("#assignedtouser").width(350);
             if($("#addassignedtouser").length>0)
             	$("#addassignpanel").offset({top:$("#addassignedtouser").offset().top-1,left:717});
@@ -1912,21 +1942,11 @@ print '
 			var assignedForm = $("#addAssignedUsersForm").find("form");
 			assignedForm = assignedForm[0];
 			assignedForm.id = "selectAssignedUser";
-//			var selectHTML = $("#assignedtouser").html().substr(strpos($("#assignedtouser").html(), "</option>")+"</option>".length);
-//			sale
-//			purchase
-//			dir_depatment
-//			gen_dir
 			assignedForm.innerHTML = "<select id=assegnedusers name=assignedusers[] size=20 class=combobox multiple>"+$("#assignedtouser").html()+"</select>";
-			console.log($("#selectgroupoftask").val(), $("#selectgroupoftask option:selected").val());
 			$("#assegnedusers").prepend($("<option value='.getUsersByRespon('purchase').'>Постачальники</option>"));
 			$("#assegnedusers").prepend($("<option value='.getUsersByRespon('sale').'>Торгівельні агенти</option>"));
 			$("#assegnedusers").prepend($("<option value='.getUsersByRespon('dir_depatment').'>Директори департаментів</option>"));
-//			<option value="sale">Торгівельні агенти</option>
-//		    <option value="dir_depatment">Директори департаментів</option>
-//		    <option value="purchase">Постачальники</option>
 			$("#addAssignedUsersForm").find("select").width(500);
-
             $(".tabBar").width(800);
             $("#event_desc").on("click", redirect);
             $("#priority").on("change",ActionCodeChanged);
@@ -1973,6 +1993,7 @@ print '
                 $("#p2month").val($("#apmonth").val());
                 $("#p2year").val($("#apyear").val());
                 if($("#showform").val()!=0){
+
 					setP2(0);
 //                	var Date2 = new Date($("#p2year").val(),
 //                						($("#p2month").val().substr(0,1)=="0"?$("#p2month").val().substr(1):$("#p2month").val()),
@@ -1983,12 +2004,13 @@ print '
 //					var minute = (Date2.getTime()-Date1.getTime())/ (1000*60);
 //					console.log($("#exec_time").val());
 //					return;
-//                	var link = "http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=get_freetime&date="+$("#apyear").val()+"-"+$("#apmonth").val()+"-"+$("#apday").val()+"&id_usr="+$("#id_usr").val()+"&minute="+minute+"&priority="+$("#priority").val()+"&actioncode="+$("select#actioncode").val();
+//                	var link = "http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=get_freetime&minute="+$("#exec_time").val()+"&date="+$("#apyear").val()+"-"+$("#apmonth").val()+"-"+$("#apday").val()+"&id_usr='.$user->id.'&actioncode="+$("select#actioncode").val();
 //            		setTime(link);
                 }else{
                 	$("#showform").val(1);
                 }
             }
+            CalcP($("#ap").val(), $("#exec_time").val(), '.$user->id.');//Розрахунок часу початку дії
         }
         $("#exec_time").keypress(function(e){
         	if(e.keyCode == 13){
@@ -2037,16 +2059,16 @@ print '
 
                 $("#ap").val((day<10 ? "0" : "") + day+"."+(month<10 ? "0" : "") + month+"."+year);
             }
-//            console.log($("#aphour").val() ,$("#apmin").val());
-            if($("#aphour").val() == -1 || $("#apmin").val() == -1){
-                document.getElementById("aphour").value=formatDate(new Date(), "HH");
-                document.getElementById("apmin").value=formatDate(new Date(), "mm");
-            }
+////            console.log($("#aphour").val() ,$("#apmin").val());
+//            if($("#aphour").val() == -1 || $("#apmin").val() == -1){
+//                document.getElementById("aphour").value=formatDate(new Date(), "HH");
+//                document.getElementById("apmin").value=formatDate(new Date(), "mm");
+//            }
             dpChangeDay("ap","dd.MM.yyyy");
 //            if($("#actioncode").val() != 0)
 //            	setP2();
             $("#redirect_actioncode").val($("input#actioncode").val());
-            console.log("showperiod", $("select#actioncode").val() == "AC_CURRENT");
+//            console.log("showperiod", $("select#actioncode").val() == "AC_CURRENT");
             if($("select#actioncode").val() == "AC_GLOBAL" || $("select#actioncode").val() == "AC_CURRENT"){
                 $("#period").show();
             }else{

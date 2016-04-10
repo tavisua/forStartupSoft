@@ -220,19 +220,32 @@ class ActionComm extends CommonObject
             $exec_time = 0;
         return $exec_time;
     }
-    function GetFreeTime($inputdate, $id_usr, $minutes, $prioritet = 0){
+    function GetFreeTime($inputdate, $id_usr, $minutes, $prioritet = 0, $starttime){
+//        var_dump($inputdate, $id_usr, $minutes, $prioritet, $starttime);
+//        die();
         $date = new DateTime($inputdate);
         $PlanTime = 0;
         while(!$PlanTime) {
-            $PlanTime = $this->GetFirstFreeTime($date->format('Y-m-d'), $id_usr, $minutes, $prioritet);
+            if($date->format('w')>0 && $date->format('w')<6)
+                $PlanTime = $this->GetFirstFreeTime($date->format('Y-m-d'), $id_usr, $minutes, $prioritet, $starttime);
             $date = new DateTime(date('Y-m-d', mktime(8,0,0,$date->format('m'),$date->format('d'),$date->format('Y'))+ 86400));
         }
         return $PlanTime;
     }
-    function GetFirstFreeTime($date, $id_usr, $minutes, $prioritet = 0){
+    function GetFirstFreeTime($date, $id_usr, $minutes, $prioritet = 0, $starttime){
+
         $freetime = $this->GetFreeTimePeriod($date, $id_usr, $prioritet);
+        if(empty($starttime)||$starttime<time())
+             $starttime = time();
         foreach($freetime as $period){
-            if($minutes<=$period[1]) {
+//            var_dump(intval(substr($period[2], 5,2)), intval(substr($period[2], 8,2)), intval(substr($period[2], 0,4)), $period[2]);
+//            die();
+            $itemDate = dol_mktime(intval(substr($period[0], 0,2)), intval(substr($period[0], 3,2)), intval(substr($period[0], 5,2)), intval(substr($period[2], 5,2)), intval(substr($period[2], 8,2)), intval(substr($period[2], 0,4)));
+            $dtDate = new DateTime();
+            $dtDate->setTimestamp($itemDate);
+            if($minutes<=$period[1] && $itemDate >= $starttime && $dtDate->format('H')>=8 && !( $dtDate->format('H')>=12&& $dtDate->format('H')<14) && $dtDate->format('Y-m-d') == $date) {
+//                var_dump($period[2].' '.$period[0]);
+//                die();
                 return  $period[2].' '.$period[0];
             }
         }
@@ -242,9 +255,12 @@ class ActionComm extends CommonObject
         global $db;
         $date = new DateTime($date);
         $sql = "select `llx_actioncomm`.`id`, `llx_actioncomm`.`datep`, `llx_actioncomm`.`datep2` from `llx_actioncomm`
-            inner join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.id
+            left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.id
             where `llx_actioncomm`.`datep` between '".$date->format('Y-m-d')."' and adddate('".$date->format('Y-m-d')."', interval 1 day)
-            and `llx_actioncomm_resources`.`fk_element` = ".$id_usr."
+            and fk_action in
+              (select id from `llx_c_actioncomm`
+              where `type` in ('system', 'user'))
+                and (`llx_actioncomm_resources`.`fk_element`= ".$id_usr." or (`llx_actioncomm`.`fk_user_author`= ".$id_usr." and `llx_actioncomm`.id not in (select `llx_actioncomm_resources`.`fk_actioncomm` from `llx_actioncomm_resources` where `llx_actioncomm_resources`.`fk_element`= ".$id_usr.")))
             and `llx_actioncomm`.`priority` = ".(empty($prioritet)?0:$prioritet)."
             order by `llx_actioncomm`.`datep`";
         $res = $db->query($sql);

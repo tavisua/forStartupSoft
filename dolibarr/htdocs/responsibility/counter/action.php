@@ -112,7 +112,7 @@ $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
-$sql = 'select `llx_societe_contact`.rowid, subdivision,  concat(trim(nametown), " ", trim(regions.name), " р-н. ", trim(states.name), " обл.") as nametown,
+$sql = 'select `llx_societe_contact`.rowid, `llx_societe_contact`.`socid`, `llx_societe_contact`.`post_id`, subdivision,  concat(trim(nametown), " ", trim(regions.name), " р-н. ", trim(states.name), " обл.") as nametown,
 `llx_post`.`postname`,`responsibility`.`name` as respon_name,lastname,firstname,work_phone,
 call_work_phone,fax,call_fax,mobile_phone1,call_mobile_phone1,mobile_phone2,
 call_mobile_phone2,email1,send_email1,email2,send_email2,skype,call_skype,

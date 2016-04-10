@@ -293,7 +293,8 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
     left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm`=`llx_actioncomm`.id
     where `llx_societe`.active = 1
     and `llx_actioncomm_resources`.`fk_element` = ".$user->id."
-    and `llx_actioncomm`.`active` = 1
+    and `llx_societe_action`.active = 1
+    and `llx_actioncomm`.active = 1
     group by `llx_societe`.rowid, `responsibility`.`alias` ";
     $sql .= ' limit '.($page-1)*$per_page.','.$per_page;
 //    echo '<pre>';

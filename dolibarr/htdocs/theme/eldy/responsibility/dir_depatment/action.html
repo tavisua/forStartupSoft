@@ -214,5 +214,26 @@
         $("#actionbuttons").attr('action', '/dolibarr/htdocs/comm/action/card.php');
         console.log($("#actionbuttons").attr('action'));
     }
+    $(function(){
+        $('td').mouseover(function(e){
+            var text = $('#'+e.target.id).text();
+             console.log(text.substr(text.length-3)=='...');
+            if(text.substr(text.length-3)=='...') {
+                var id = e.target.id.substr(0,1)!='_'?(e.target.id):('_'+e.target.id);
+//                console.log(document.getElementById(id), $('input#_'+id).val());
+//                return;
+                $('#popupmenu').css('width',350);
+                $('#popupmenu').css('height',250);
+                $('#popupmenu').html('<div><textarea style="width: 100%;height: 100%">'+$('input#_'+id).val()+'</textarea></div>');
 
+                $('#popupmenu').show();
+                $('#popupmenu').offset({top:$('#'+e.target.id).offset().top,left:$('#'+e.target.id).offset().left});
+//                console.log($('#'+e.target.id).offset());
+
+            }
+        })
+        $('#popupmenu').mouseout(function(e){
+            $('#popupmenu').hide();
+        })
+    })
 </script>

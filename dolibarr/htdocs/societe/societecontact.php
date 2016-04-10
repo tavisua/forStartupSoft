@@ -173,7 +173,7 @@ $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 $tablename = "llx_societe_contact";
-$sql = 'select `llx_societe_contact`.rowid, subdivision,  case when `llx_societe_contact`.town_id is not null or `llx_societe_contact`.town_id > 0 then
+$sql = 'select `llx_societe_contact`.rowid, subdivision, `llx_societe_contact`.`socid`, case when `llx_societe_contact`.town_id is not null or `llx_societe_contact`.town_id > 0 then
 concat(trim(nametown), " ", trim(regions.name), " р-н. ", trim(states.name), " обл.") else `llx_societe_contact`.location end  as nametown,
 `llx_post`.`postname`,`responsibility`.`name` as respon_name,lastname,firstname,work_phone,
 call_work_phone,fax,call_fax,mobile_phone1,call_mobile_phone1,mobile_phone2,

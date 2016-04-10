@@ -140,16 +140,16 @@ while($row = $db->fetch_object($res)) {
 //        $task.='<tr><td style="height: '.($EmptyPeriod*($conf->browser->name == 'firefox' ? ($EmptyPeriod<=30?23.9:24) : 22)/10).'px" class="emptyitem"></td></tr>';
     }
     $DiffTime = sprintf('%02d:%02d', $DiffSec / 3600, ($DiffSec % 3600) / 60, $DiffSec % 60);
-    $task_table = '<div onclick="RedirectToAction(' . $row->rowid . ');" class="task_cell" style="float: left; width: ' . ($conf->browser->name == 'firefox' ? '23px' : '24px') . '"><img src="theme/' . $conf->theme . '/img/' . $iconitem . '" title="' . $langs->trans($row->title) . '"></div>
-           <div onclick="RedirectToAction(' . $row->rowid . ');" class="task_cell" style="float: left; width: ' . ($conf->browser->name == 'firefox' ? '42px' : '43px') . '">' . $datep->format('H:i') . '</div>
-           <div onclick="RedirectToAction(' . $row->rowid . ');" class="task_cell" style="float: left; width: 36px;">' . $DiffTime . '</div>
-           <div onclick="RedirectToAction(' . $row->rowid . ');" class="task_cell" style="float: left; width: 35px">' . $datep2->format('H:i') . '</div>
-           <div onclick="RedirectToAction(' . $row->rowid . ');" class="task_cell" style="float: left; width: 152px">' . trim($row->region_name) . ' район</div>
-           <div onclick="RedirectToAction(' . $row->rowid . ');" class="task_cell" style="float: left; width: 152px">' . trim($row->lastname) . '</div>
-           <div onclick="RedirectToAction(' . $row->rowid . ');" class="task_cell" style="float: left; width: 202px;">' . trim($row->note) . '</div>
-           <div onclick="RedirectToAction(' . $row->rowid . ');" class="task_cell" style="float: left; width: 152px;">' . trim($row->confirmdoc) . '</div>
-           <div onclick="RedirectToAction(' . $row->rowid . ');" class="task_cell" style="float: left; width: 130px;">' . $status . '</div>
-           <div onclick="EditAction(' . $row->rowid . ');" class="task_cell" style="float: left; width: 20px; border-color: transparent"><img src="theme/eldy/img/edit.png"></div>';
+    $task_table = '<div class="task_cell" style="float: left; width: ' . ($conf->browser->name == 'firefox' ? '23px' : '24px') . '"><img src="theme/' . $conf->theme . '/img/' . $iconitem . '" title="' . $langs->trans($row->title) . '"></div>
+           <div class="task_cell" style="float: left; width: ' . ($conf->browser->name == 'firefox' ? '42px' : '43px') . '">' . $datep->format('H:i') . '</div>
+           <div class="task_cell" style="float: left; width: 36px; height 16px">' . $DiffTime . '</div>
+           <div class="task_cell" style="float: left; width: 35px">' . $datep2->format('H:i') . '</div>
+           <div class="task_cell" style="float: left; width: 152px">' . trim($row->region_name) . ' район</div>
+           <div class="task_cell" style="float: left; width: 152px">' . trim($row->lastname) . '</div>
+           <div class="task_cell" style="float: left; width: 202px;">' . trim($row->note) . '</div>
+           <div class="task_cell" style="float: left; width: 152px;">' . trim($row->confirmdoc) . '</div>
+           <div class="task_cell" style="float: left; width: 130px;">' . $status . '</div>
+           <div class="task_cell" style="float: left; width: 15px; border-color: transparent"><img src="theme/eldy/img/edit.png"></div>';
 //    $task .= '<div id="'.$row->rowid.'" class="'.$classitem.'" style="height: 216px" >' . $task_table . '</div>';
 
     $task .= '<tr id="' . $row->rowid . '"><td class="' . $classitem . '" >' . $task_table . '</td></tr>';
@@ -193,4 +193,4 @@ $backtopage = $_SERVER['REQUEST_URI'];
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/hourly_plan.html';
 //print '</br>';
 //print'<div style="float: left">test</div>';
-llxFooter();
+//llxFooter();

@@ -163,20 +163,22 @@ function ShowTask(){
             //Статус завдання
             $date = new DateTime();
             $style = 'style="';
-            if($deadline<$date){
-                $style = 'style="background:rgb(255, 0, 0)';
-            }elseif($deadline==$date){
-                $style = 'style="background:rgb(0, 255, 0)';
+            if($obj->percent < 98) {
+                if ($deadline < $date) {
+                    $style = 'style="background:rgb(255, 0, 0)';
+                } elseif ($deadline == $date) {
+                    $style = 'style="background:rgb(0, 255, 0)';
+                }
+                if ($obj->percent == "-1")
+                    $status = 'ActionNotRunning';
+                elseif ($obj->percent == 0)
+                    $status = 'ActionRunningNotStarted';
+                elseif ($obj->percent > 0 && $obj->percent < 98)
+                    $status = 'ActionRunningShort';
+                else
+                    $status = 'ActionDoneShort';
             }
-            if($obj->percent == "-1")
-                $status='ActionNotRunning';
-            elseif($obj->percent == 0)
-                $status='ActionRunningNotStarted';
-            elseif($obj->percent > 0 && $obj->percent < 100)
-                $status='ActionRunningShort';
-            else
-                $status='ActionDoneShort';
-            $table .= '<td '.$style.'; width:51px" class="small_size">'.$langs->trans($status).'</td>';
+            $table .= '<td '.$style.'; width:51px; text-align: center;" class="small_size">'.($obj->percent <= 98?($langs->trans($status)):'<img src="theme/eldy/img/BWarning.png" title="Задачу виконано" style=width: 50px;">').'</td>';
             if($taskAuthor[$obj->id] == $user->id)
                  $table .= '<td style="width:51px; text-align: center"><img src="/dolibarr/htdocs/theme/eldy/img/uncheck.png" onclick="ConfirmExec(' . $obj->id . ');" id="confirm' . $obj->id . '"></td>';
             else

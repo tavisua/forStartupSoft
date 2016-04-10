@@ -307,7 +307,9 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
     left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
     inner join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.`rowid`
     left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
-    where 1";
+    where 1
+    and `llx_societe_action`.active = 1
+    and `llx_actioncomm`.active = 1";
     if(count($rowidList)>0)
         $sql .=" and `llx_societe`.rowid in (".implode(',', $rowidList).")";
 //    $sql .= "and `llx_societe`.`fk_user_creat` = ".$user->id;

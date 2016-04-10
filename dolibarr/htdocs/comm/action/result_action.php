@@ -6,17 +6,19 @@
  * Time: 13:45
  */
 require '../../main.inc.php';
+//echo '<pre>';
+//var_dump($_REQUEST);
+//echo '</pre>';
+//die();
+
 if(isset($_POST['action']) && ($_POST['action'] == 'update' || $_POST['action'] == 'update_and_create'
         || $_POST['action'] == 'addonlyresult' || $_POST['action'] == 'updateonlyresult'
-    || $_POST['action'] == 'addonlyresulte_and_create' || $_POST['action'] == 'updateonlyresult_and_create')){
+    || $_POST['action'] == 'addonlyresult_and_create' || $_POST['action'] == 'updateonlyresult_and_create')){
 //    var_dump((substr($_POST['action'],strlen($_POST['action'])-strlen('_and_create') )== '_and_create'));
 //    die();
     saveaction($_POST['rowid'], (substr($_POST['action'],strlen($_POST['action'])-strlen('_and_create') )== '_and_create'));
 }
-//echo '<pre>';
-//var_dump(isset($_REQUEST['onlyresult']), empty($_REQUEST['onlyresult']));
-//echo '</pre>';
-//die();
+
 require_once DOL_DOCUMENT_ROOT.'/core/lib/agenda.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formactions.class.php';
@@ -106,7 +108,7 @@ if(!($_GET['action'] == 'addonlyresult' || (isset($_REQUEST["onlyresult"])&&$_RE
     $contactlist='';
 }else {
     $form = new Form($db);
-    $contactlist = '<tr><td>Контактне лице</br>'.$form->selectcontacts(empty($_GET['socid'])?$object->socid:$_GET['socid'], $object->contactid, 'contactid', 1).'</td></tr>';
+    $contactlist = '<tr><td>Контактне лице</br>'.$form->selectcontacts(empty($_GET['socid'])?$object->socid:$_GET['socid'], empty($object->contactid)?$_GET['contactid']:$object->contactid, 'contactid', 1).'</td></tr>';
 }
 //var_dump(htmlspecialchars($contactlist));
 //die();
@@ -114,16 +116,18 @@ if(!($_GET['action'] == 'addonlyresult' || (isset($_REQUEST["onlyresult"])&&$_RE
 $societe = new Societe($db);
 $societe->fetch(empty($object->socid)&&$_GET['action'] == 'addonlyresult'?$_GET['socid']:$object->socid);
 //echo '<pre>';
-//var_dump($object);
+//var_dump($object->resultaction['said']);
 //echo '</pre>';
 //die();
 $formactions = new FormActions($db);
-
-//print '<div class="tabBar">';
+$said=empty($object->resultaction['said'])?$object->said:$object->resultaction['said'];
+if(empty($said))
+    $said = $_REQUEST['said'];
+////print '<div class="tabBar">';
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/addaction.html';
-//print '</div>';
+print '</div>';
 
-llxFooter();
+//llxFooter();
 exit();
 
 
@@ -164,9 +168,8 @@ function get_soc_id($action_id){
 function saveaction($rowid, $createaction = false){
     global $user, $db;
 //    echo '<pre>';
-//    var_dump($_POST);
+//    var_dump($rowid, $createaction);
 //    echo '</pre>';
-//    var_dump(empty($rowid));
 //    die();
     if((substr($_REQUEST['action'], 0, strlen('addonlyresult')) == 'addonlyresult' || substr($_REQUEST['action'], 0, strlen('updateonlyresult')) == 'updateonlyresult'))
         $socid = $_REQUEST['socid'];
@@ -218,22 +221,33 @@ function saveaction($rowid, $createaction = false){
         dol_print_error($db);
     }
 //    echo '<pre>';
-//    var_dump($res);
+//    var_dump($_REQUEST);
 //    echo '</pre>';
-//    die();
-    if(!(substr($_REQUEST['action'], 0, strlen('addonlyresult')) == 'addonlyresult' || substr($_REQUEST['action'], 0, strlen('updateonlyresult')) == 'updateonlyresult')) {
+//    die('111');
+    if(!(substr($_REQUEST['action'], 0, strlen('addonlyresult')) == 'addonlyresult' || (substr($_REQUEST['action'], 0, strlen('updateonlyresult')) == 'updateonlyresult' && strlen($_REQUEST['action'])==strlen('updateonlyresult')))) {
         if (empty($rowid))
             $rowid = get_last_id();
         $TypeAction = array('AC_GLOBAL', 'AC_CURRENT');
-        $sql = 'SELECT `code` from `llx_actioncomm` where id = ' . $rowid;
+        $sql = 'SELECT `code` from `llx_actioncomm` inner join llx_societe_action on llx_societe_action.`action_id` = `llx_actioncomm`.`id` where llx_societe_action.`rowid` = ' . $rowid;
+//        die($sql);
         $res = $db->query($sql);
-        $obj = $db->fetch_object($res);
+        $objCode = $db->fetch_object($res);
+        $complete=$_REQUEST['complete'];
+        if($complete == '100'){
+            $sql = 'select fk_user_author from `llx_actioncomm` where id='.$_REQUEST['actionid'];
+            $res = $db->query($sql);
+            if(!$res)
+                dol_print_error($db);
+            $obj = $db->fetch_object($res);
+            if($obj->fk_user_author != $user->id)
+                $complete = '99';
+        }
 
-
-        $sql = 'update llx_actioncomm set datea=Now() ' . (in_array($obj->code, $TypeAction) ? '' : ', percent = 100') . '
+        $sql = 'update llx_actioncomm set datea=Now() ' . (in_array($objCode->code, $TypeAction) ? ', percent ='.$complete : ', percent = 100') . '
             where llx_actioncomm.id in (select llx_societe_action.action_id from `llx_societe_action` where 1
             and llx_societe_action.rowid = ' . $rowid . ')
             and datea is null';
+//    var_dump(in_array($objCode->code, $TypeAction));
 //    die($sql);
         $res = $db->query($sql);
 //    if($res)

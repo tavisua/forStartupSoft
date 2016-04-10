@@ -37,4 +37,4 @@ else
 //die();
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/static_content/layout/pagination.phtml';
 //print '</div>';
-llxFooter();
+//llxFooter();

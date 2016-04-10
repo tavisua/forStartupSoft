@@ -325,6 +325,8 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
     inner join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.`rowid`
     left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
     where `llx_societe`.active = 1
+    and `llx_societe_action`.active = 1
+    and `llx_actioncomm`.active = 1
     group by `llx_societe`.rowid, `responsibility`.`alias` ";
     $sql .= ' limit '.($page-1)*$per_page.','.$per_page;
 

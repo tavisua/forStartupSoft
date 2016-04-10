@@ -122,7 +122,9 @@
     <input type="hidden" name="mainmenu" value="<?=$_REQUEST['mainmenu']?>" id="mainmenu_action">
     <input type="hidden" name="backtopage" value="'<?=$_SERVER['REQUEST_URI']?>'">
     <input type="hidden" name="id" value="" id="action_id">
+    <input type="hidden" name="socid" value="" id="soc_id">
     <input type="hidden" name="onlyresult" value="" id="onlyresult">
+    <input type="hidden" name="complete" value="" id="complete">
     <input type="hidden" value="<?=$actioncode?>" id="redirect_actioncode" name="actioncode">
     <input type="hidden" name="action" value="edit" id="edit_action">
 </form>
@@ -227,27 +229,34 @@
         $("#actionbuttons").attr('action', '/dolibarr/htdocs/comm/action/card.php');
         console.log($("#actionbuttons").attr('action'));
     }
-    $(function(){
+    $(function(e){
         $('td').mouseover(function(e){
+//            return;
+            if($('#'+e.target.id).parent().parent().parent().attr('id')!='actions_table')
+                return;
+            actions_table = true;
             var text = $('#'+e.target.id).text();
-             console.log(text.substr(text.length-3)=='...');
+//             console.log(text.substr(text.length-3)=='...');
             if(text.substr(text.length-3)=='...') {
-                var id = e.target.id.substr(0,1)=='_'?e.target.id:'_'+e.target.id;
-//                console.log($('input#'+id).val());
+                var id = e.target.id.substr(0,1)!='_'?(e.target.id):('_'+e.target.id);
+                var id = e.target.id;
+//                console.log(id);
 //                return;
                 $('#popupmenu').css('width',350);
                 $('#popupmenu').css('height',250);
-                $('#popupmenu').html('<div><textarea style="width: 100%;height: 100%">'+$('input#'+id).val()+'</textarea></div>');
-
+                $('#popupmenu').html('<div><textarea style="width: 100%;height: 100%">'+$('input#_'+id).val()+'</textarea></div>');
+                $('#popupmenu').attr('TitleProposed',null);
                 $('#popupmenu').show();
                 $('#popupmenu').offset({top:$('#'+e.target.id).offset().top,left:$('#'+e.target.id).offset().left});
 //                console.log($('#'+e.target.id).offset());
 
             }
+            $('#popupmenu').mouseout(function(e){
+                if($('#popupmenu').attr('TitleProposed') === undefined)
+                    $('#popupmenu').hide();
+            })
         })
-        $('#popupmenu').mouseout(function(e){
-            $('#popupmenu').hide();
-        })
+
     })
 
 </script>

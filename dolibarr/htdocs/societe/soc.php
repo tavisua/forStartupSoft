@@ -1291,7 +1291,7 @@ else
             print '</td></tr>';
         }
 
-        if($user->respon_alias == 'sale') {
+        if($user->respon_alias == 'sale' || $user->respon_alias == 'dir_depatment') {
             //Класифікація
             print '<tr id="classifycation" style="display: none">';
             print '<td><label for="classifycation">' . $langs->trans("Classifycation") . '</label></td>';

@@ -114,7 +114,7 @@ $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
-$sql = 'select `llx_societe_contact`.rowid, subdivision,  concat(trim(nametown), " ", trim(regions.name), " р-н. ", trim(states.name), " обл.") as nametown,
+$sql = 'select `llx_societe_contact`.rowid, `llx_societe_contact`.`socid`, `llx_societe_contact`.`post_id`, subdivision,  concat(trim(nametown), " ", trim(regions.name), " р-н. ", trim(states.name), " обл.") as nametown,
 `llx_post`.`postname`,`responsibility`.`name` as respon_name,lastname,firstname,work_phone,
 call_work_phone,fax,call_fax,mobile_phone1,call_mobile_phone1,mobile_phone2,
 call_mobile_phone2,email1,send_email1,email2,send_email2,skype,call_skype,
@@ -216,7 +216,7 @@ function ShowActionTable(){
         where fk_soc = ".(empty($_REQUEST["socid"])?0:$_REQUEST["socid"])." and `llx_actioncomm`.`active` = 1
         union
         select concat('_',`llx_societe_action`.`rowid`) rowid, `llx_societe_action`.dtChange datep, `llx_societe_action`.dtChange as `datec`, `llx_user`.lastname,
-        concat(case when `llx_societe_contact`.lastname is null then '' else `llx_societe_contact`.lastname end,
+        concat(case when `llx_societe_contact`.lastname is null then '' else `llx_societe_contact`.lastname end, ' ',
         case when `llx_societe_contact`.firstname is null then '' else `llx_societe_contact`.firstname end) as contactname, null, `llx_societe_action`.`said`, `llx_societe_action`.`answer`,`llx_societe_action`.`argument`,
         `llx_societe_action`.`said_important`, `llx_societe_action`.`result_of_action`, `llx_societe_action`.`work_before_the_next_action`
         from `llx_societe_action`
