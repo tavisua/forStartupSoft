@@ -116,6 +116,13 @@ if($_GET['action']=='get_exectime'){
 		$newAction->add($user);
 	}
     $sql = 'update llx_actioncomm set dateSetExec = Now(), percent=100 where id='.$_GET['rowid'];
+//	die($sql);
+    $res = $db->query($sql);
+    if(!$res){
+        dol_print_error($db);
+    }
+	$sql = 'update `llx_orders` set status = 4
+			where rowid in (select fk_order_id from `llx_actioncomm` where `llx_actioncomm`.id='.$_GET['rowid'].')';
     $res = $db->query($sql);
     if(!$res){
         dol_print_error($db);
@@ -233,8 +240,10 @@ if($id) {
 }else{
 	$datepreperform = new DateTime(GETPOST('preperform'));
 }
-
-$dateprep = dol_mktime($datepreperform->format('H'), $datepreperform->format('i'), 0, $datepreperform->format('m'), $datepreperform->format('d'), $datepreperform->format('Y'));
+//var_dump($datepreperform);
+//die();
+if($datepreperform)
+	$dateprep = dol_mktime($datepreperform->format('H'), $datepreperform->format('i'), 0, $datepreperform->format('m'), $datepreperform->format('d'), $datepreperform->format('Y'));
 //echo '<pre>';
 //	var_dump($dateprep);
 //	echo '</pre>';

@@ -112,10 +112,10 @@
     function sendRaport(){
         if(confirm('Відіслати звіт замовнику?')) {
             $.ajax({
-                url: '/dolibarr/htdocs/orders.php?type_action=sendraport&task_id=' + getParameterByName('task_id'),
+                url: '/dolibarr/htdocs/orders.php?type_action=sendraport&task_id=' + getParameterByName('task_id')+'&order_id='+getParameterByName('order_id'),
                 cache: false,
                 success: function (result) {
-                    returnToCurrentTask();
+//                    returnToCurrentTask();
                 }
             })
         }

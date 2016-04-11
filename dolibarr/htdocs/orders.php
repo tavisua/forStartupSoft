@@ -16,7 +16,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 //var_dump($_REQUEST);
 //echo '</pre>';
 //die();
-$execption = array('get_choosed_product', 'showorders', 'get_typical_question', 'get_question', 'save_orders', 'del_query', 'showproducts', 'getsavedorder', 'savepreparedraport', 'sendraport');
+$execption = array('get_choosed_product', 'showorders', 'get_typical_question', 'get_question', 'save_orders', 'del_query', 'showproducts', 'getsavedorder', 'savepreparedraport','gettojob', 'sendraport');
 
 if(isset($_REQUEST['type_action']) && !in_array($_REQUEST['type_action'],$execption) || !isset($_REQUEST['type_action'])) {
     $Orders = $langs->trans('Orders');
@@ -32,8 +32,6 @@ if(isset($_REQUEST['socid'])&& !empty($_REQUEST['socid'])){
     $obj = $db->fetch_object($res);
     $customername = $obj->nom;
 }
-
-
 if(isset($_REQUEST['type_action'])){
     switch($_REQUEST['type_action']){
         case 'del_query':{
@@ -42,9 +40,17 @@ if(isset($_REQUEST['type_action'])){
 //            header("Location: ".$_SERVER["HTTP_REFERER"]);
             exit();
         }break;
+        case 'gettojob':{
+            $sql = "update `llx_orders` set status = 2 where rowid=".$_GET['order_id'].' and status < 2';
+            $res = $db->query($sql);
+            exit();
+        }break;
         case 'sendraport':{
             $sql = "update `llx_actioncomm` set datea=Now(), percent=99 where id=".$_GET['task_id'];
             $res = $db->query($sql);
+            $sql = "update `llx_orders` set status = 3 where rowid=".$_GET['order_id'];
+            $res = $db->query($sql);
+//            var_dump($sql);
             exit();
         }break;
         case 'savepreparedraport':{
@@ -567,7 +573,7 @@ function ShowOrders(){
         $sql.= ' where `llx_societe`.`rowid`='.$_REQUEST['socid'];
     }else{
         $sql.= ' where `llx_orders`.`id_usr` = '.$user->id.'
-            and `llx_orders`.`status` in (0,1,2)';
+            and `llx_orders`.`status` in (0,1,2,3)';
     }
     $sql.= ' group by `llx_orders`.`rowid`, `llx_orders`.`dtCreated`, `llx_societe`.`nom`
         order by dtCreated desc';
@@ -583,7 +589,7 @@ function ShowOrders(){
         left join `llx_actioncomm` on `llx_actioncomm`.`fk_order_id`=`llx_orders`.`rowid`
         left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm`=`llx_actioncomm`.`id`
         left join `llx_user` on `llx_user`.rowid = `llx_actioncomm_resources`.fk_element
-        where `llx_orders`.`id_usr` = '.$user->id.' and `llx_orders`.`status` in (0,1,2)
+        where `llx_orders`.`id_usr` = '.$user->id.' and `llx_orders`.`status` in (0,1,2,3)
         and `llx_user`.`lastname` is not null';
     $res_purchase = $db->query($sql);
     if(!$res_purchase)
@@ -598,7 +604,7 @@ function ShowOrders(){
         left join `llx_actioncomm` on `llx_actioncomm`.`fk_order_id`=`llx_orders`.`rowid`
         left join `llx_user` on `llx_user`.rowid = `llx_orders`.`id_usr`
         where `llx_orders`.`id_usr` = ' . $user->id . '
-        and `llx_orders`.`status` in (0,1,2)';
+        and `llx_orders`.`status` in (0,1,2,3)';
         $res_purchase = $db->query($sql);
         if(!$res_purchase)
             dol_print_error($db);
@@ -856,7 +862,7 @@ function SendTaskForPurchase($order_id)
         //http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=get_freetime&date="+$("#apyear").val()+"-"+$("#apmonth").val()+"-"+$("#apday").val()+"&id_usr="+$("#id_usr").val()+"&minute="+minute;
         $action = new ActionComm($db);
         $exec_minuted = $action->GetExecTime('AC_CURRENT');
-        $freetime = $action->GetFirstFreeTime(date('Y-m-d'), $id_usr, $exec_minuted);
+        $freetime = $action->GetFreeTime(date('Y-m-d'), $id_usr, $exec_minuted,0,date('Y-m-d H:i:s'));
         $date = new DateTime($freetime);
         $action->datep = mktime($date->format('h'),$date->format('i'),$date->format('s'),$date->format('m'),$date->format('d'),$date->format('Y'));
         $action->datef = $action->datep + $exec_minuted*60;

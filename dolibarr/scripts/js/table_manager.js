@@ -228,8 +228,15 @@ function setActionCode(){
     }
 }
 function PrepareOrder(order_id, task_id){
-    var link = "http://"+location.hostname+'/dolibarr/htdocs/orders.php?idmenu=10426&mainmenu=orders&leftmenu=&type_action=prepare_order&order_id='+order_id+'&task_id='+task_id;
-    location.href = link;
+    $.ajax({
+        url:'/dolibarr/htdocs/orders.php?type_action=gettojob&order_id='+order_id,
+        cache: false,
+        success:function(res){
+            var link = "http://"+location.hostname+'/dolibarr/htdocs/orders.php?idmenu=10426&mainmenu=orders&leftmenu=&type_action=prepare_order&order_id='+order_id+'&task_id='+task_id;
+            location.href = link;
+        }
+    })
+
 //        console.log(order_id, link);
 }
 function CalcP(date, minute, id_usr){

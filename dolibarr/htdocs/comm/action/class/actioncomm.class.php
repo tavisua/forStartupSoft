@@ -370,7 +370,7 @@ class ActionComm extends CommonObject
             if(count(array_keys($this->userassigned))>1){
                 $correctdate = true;
                 $minute = ($this->datef-$this->datep)/60;
-                $freedate = new DateTime($this->GetFreeTime(date('Y-m-d',$this->datep),array_keys($this->userassigned)[$i],$minute, $this->priority));
+                $freedate = new DateTime($this->GetFreeTime(date('Y-m-d',$this->datep),array_keys($this->userassigned)[$i],$minute, $this->priority,date('Y-m-d H:i:s')));
 
                 $cdatep = mktime($freedate->format('H'),$freedate->format('i'),$freedate->format('s'),$freedate->format('m'),$freedate->format('d'),$freedate->format('Y'));
                 $cdatef = $cdatep+$minute*60;
