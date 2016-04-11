@@ -193,7 +193,7 @@ function ShowTask(){
                 if(empty($obj->fk_order_id))
                     $table.='<td style="width:25px"></td>';
                 else
-                    $table .= '<td  style="width:25px"><img id="img_prep"'.$obj->id.' onclick="PrepareOrder('.$obj->fk_order_id.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('RedirectToOrder').'" src="/dolibarr/htdocs/theme/eldy/img/addfile.png"></td>';
+                    $table .= '<td  style="width:25px"><img id="img_prep'.$obj->id.'" onclick="PrepareOrder('.$obj->fk_order_id.', '.$obj->id.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('RedirectToOrder').'" src="/dolibarr/htdocs/theme/eldy/img/addfile.png"></td>';
             }
 //            $table .= '<td  style="width:25px">&nbsp;</td>';
             $table.='</tr>';

@@ -6,7 +6,7 @@
             <input type="hidden" name="prepared_order" value="1">
             <button style="width: 200px;height: 30px" >Додати товар зі списку</button>
         </form>
-        <button style="width: 200px;height: 30px" >Відіслати звіт замовнику</button>
+        <button style="width: 200px;height: 30px"  onclick="sendRaport();">Відіслати звіт замовнику</button>
     </div>
      <div class="tabs" data-type="horizontal" data-role="controlgroup">
          <div class="inline-block tabsElem tabsElemActive">
@@ -109,6 +109,19 @@
     }
 </style>
 <script>
+    function sendRaport(){
+        if(confirm('Відіслати звіт замовнику?')) {
+            $.ajax({
+                url: '/dolibarr/htdocs/orders.php?type_action=sendraport&task_id=' + getParameterByName('task_id'),
+                cache: false,
+                success: function (result) {
+                    returnToCurrentTask();
+                }
+            })
+        }
+
+        console.log(getParameterByName('task_id'));
+    }
     function returnToCurrentTask(){
         location.href = '/dolibarr/htdocs/current_plan.php?idmenu=10423&mainmenu=current_task&leftmenu=';
     }

@@ -227,6 +227,11 @@ function setActionCode(){
         }break;
     }
 }
+function PrepareOrder(order_id, task_id){
+    var link = "http://"+location.hostname+'/dolibarr/htdocs/orders.php?idmenu=10426&mainmenu=orders&leftmenu=&type_action=prepare_order&order_id='+order_id+'&task_id='+task_id;
+    location.href = link;
+//        console.log(order_id, link);
+}
 function CalcP(date, minute, id_usr){
     if(minute.length == 0)
         return;

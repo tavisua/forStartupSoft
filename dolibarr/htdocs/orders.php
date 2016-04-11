@@ -16,7 +16,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 //var_dump($_REQUEST);
 //echo '</pre>';
 //die();
-$execption = array('get_choosed_product', 'showorders', 'get_typical_question', 'get_question', 'save_orders', 'del_query', 'showproducts', 'getsavedorder', 'savepreparedraport');
+$execption = array('get_choosed_product', 'showorders', 'get_typical_question', 'get_question', 'save_orders', 'del_query', 'showproducts', 'getsavedorder', 'savepreparedraport', 'sendraport');
 
 if(isset($_REQUEST['type_action']) && !in_array($_REQUEST['type_action'],$execption) || !isset($_REQUEST['type_action'])) {
     $Orders = $langs->trans('Orders');
@@ -40,6 +40,11 @@ if(isset($_REQUEST['type_action'])){
             $sql = 'update llx_orders set status = -1, id_usr='.$user->id.' where rowid='.$_REQUEST['order_id'];
             $res = $db->query($sql);
 //            header("Location: ".$_SERVER["HTTP_REFERER"]);
+            exit();
+        }break;
+        case 'sendraport':{
+            $sql = "update `llx_actioncomm` set datea=Now(), percent=99 where id=".$_GET['task_id'];
+            $res = $db->query($sql);
             exit();
         }break;
         case 'savepreparedraport':{
