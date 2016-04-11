@@ -233,9 +233,10 @@ function PrepareOrder(order_id, task_id){
 //        console.log(order_id, link);
 }
 function CalcP(date, minute, id_usr){
-    if(minute.length == 0)
+    //console.log(date, minute, id_usr);
+    if(minute === undefined || minute.length == 0)
         return;
-    console.log(date, minute, id_usr);
+
     //if(date.substr(0,1)!="'")
     //    date = "'"+date+"'";
     $.ajax({
@@ -737,6 +738,7 @@ function AddResultAction(){
     //location.href=link;
 }
 function EditAction(rowid, actioncode){
+    console.log(rowid, actioncode);
     var search = location.search.substr(1);
     search.split('&').forEach(function(item){
         item = item.split('=');
@@ -746,7 +748,7 @@ function EditAction(rowid, actioncode){
             $('#soc_id').val(item[1]);
         }
     })
-    //console.log(search);
+    //console.log($('#redirect').length);
     //return;
     if(!$.isNumeric(rowid)) {
         $('#onlyresult').val(1);
@@ -754,8 +756,12 @@ function EditAction(rowid, actioncode){
     }else
         $('#action_id').val(rowid);
     $('#edit_action').val('edit');
-    $('#redirect_actioncode').val(actioncode);
-    $('#redirect').submit();
+    if($('#redirect').length>0) {
+        $('#redirect_actioncode').val(actioncode);
+        $('#redirect').submit();
+    }
+    else if($('#addaction').length>0)
+        $('#addaction').submit();
 }
 function ShowProducts(){//Відображення кількості замовлених товарів
     if($.cookie('products_id') != null) {

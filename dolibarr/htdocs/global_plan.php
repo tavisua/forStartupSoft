@@ -179,7 +179,7 @@ function ShowTask(){
 //            $table .= '<td  style="width:25px"><img id="img_"'.$obj->id.' onclick="EditAction('.$obj->id.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Edit').'" src="/dolibarr/htdocs/theme/eldy/img/edit.png"></td>';
 //            $table .= '<td  style="width:25px"><img id="imgManager_'.$obj->id.'" onclick="RedirectAction('.$obj->id.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Redirect').'" src="/dolibarr/htdocs/theme/eldy/img/redirect.png"></td>';
             if($taskAuthor[$obj->id] == $user->id)
-                $table .= '<td  style="width:25px"><img id="img_"'.$obj->id.' onclick="EditAction('.$obj->id.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Edit').'" src="/dolibarr/htdocs/theme/eldy/img/edit.png"></td>';
+                $table .= '<td  style="width:25px"><img id="img_'.$obj->id.'" onclick="EditAction('.$obj->id.', '."'AC_GLOBAL'".');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Edit').'" src="/dolibarr/htdocs/theme/eldy/img/edit.png"></td>';
             else
                 $table .= '<td  style="width:25px">&nbsp;</td>';
 
