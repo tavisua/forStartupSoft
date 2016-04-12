@@ -42,7 +42,7 @@ while($obj = $db->fetch_object($res)){
 //        echo '</pre>';
 //        die();
 //    }
-    if($id_usr == 57)
+    if($id_usr == 6)
         echo ''.$obj->id.'   '.$obj->datep.'</td><td>   '.$start->format('Y-m-d H:i:s').'</td><td>    '.$finish->format('Y-m-d H:i:s').'</td><td>    '.$obj->exec_time.'</td><td>    '.$obj->fk_user_author.'</td><td>    '.$obj->fk_element.'</td></tr></br>';
     $sql = "update `llx_actioncomm` set `llx_actioncomm`.datep = '".$start->format('Y-m-d H:i:s')."' , `llx_actioncomm`.datep2 = '".$finish->format('Y-m-d H:i:s')."' where id=".$obj->id;
     $update = $db->query($sql);

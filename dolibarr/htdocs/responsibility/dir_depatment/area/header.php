@@ -17,8 +17,14 @@ $AsOfTheDate = $langs->trans('AsOfTheOfDate');
 //var_dump($_SERVER["REQUEST_URI"]);
 //echo '</pre>';
 //die();
-$sql = 'select regions.rowid, regions.state_id, trim(states.name) as states_name, trim(regions.name) as regions_name from states, regions, '.MAIN_DB_PREFIX.'user_regions ur
-    where ur.fk_user='.$user->id.' and ur.active = 1 and ur.fk_id=regions.rowid and regions.state_id=states.rowid order by regions_name asc, states_name asc';
+$sql = 'select regions.rowid, regions.state_id, trim(states.name) as states_name, trim(regions.name) as regions_name
+from states
+inner join regions on `regions`.`state_id` = `states`.`rowid`
+inner join llx_user_regions on `llx_user_regions`.`fk_id` = `regions`.`rowid`
+inner join `llx_user` on `llx_user`.`rowid` = `llx_user_regions`.`fk_user`
+where `llx_user`.`subdiv_id` = '.$user->subdiv_id.'
+and `llx_user_regions`.active = 1
+and `llx_user`.`active` = 1 ';
 //die($sql);
 $res = $db->query($sql);
 

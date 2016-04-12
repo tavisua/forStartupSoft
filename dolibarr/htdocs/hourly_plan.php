@@ -65,7 +65,7 @@ $sql = "select `llx_actioncomm`.id as rowid, `llx_actioncomm`.datep, `llx_action
         where fk_action in
               (select id from `llx_c_actioncomm`
               where `type` in ('system', 'user'))
-        and (`llx_actioncomm_resources`.`fk_element`= ".$user->id." or (`llx_actioncomm`.`fk_user_author`= ".$user->id." and `llx_actioncomm`.id not in (select `llx_actioncomm_resources`.`fk_actioncomm` from `llx_actioncomm_resources` where `llx_actioncomm_resources`.`fk_element`= ".$user->id.")))
+        and (case when `llx_actioncomm_resources`.fk_element is null then `llx_actioncomm`.fk_user_author else `llx_actioncomm_resources`.fk_element end = ".$user->id.")
         and `datep` between '".$dateQuery->format('Y-m-d')."' and date_add('".$dateQuery->format('Y-m-d')."', interval 1 day)
         and `llx_actioncomm`.active = 1
         order by priority,datep";
@@ -128,6 +128,8 @@ while($row = $db->fetch_object($res)) {
         $status = 'Не розпочато';
     elseif ($row->percent > 0 && $row->percent < 100)
         $status = 'В роботі(' . $row->percent . '%)';
+    elseif ($row->percent == 0)
+        $status = 'Тільки-но розпочато';
     else
         $status = 'Виконано';
     $datep = new DateTime($row->datep);
