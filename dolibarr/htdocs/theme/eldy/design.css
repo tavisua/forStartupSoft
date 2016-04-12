@@ -569,11 +569,11 @@ div.header_page, th.header_page, tr.header_table_sel, form.header_page, form.hea
     position: relative;
 }
 .tasklist, .tasklist tbody{
-    width: 967px;
+    width: 980px;
     vertical-align: top;
     border-collapse: collapse;
     border: none;
-    /*overflow: hidden !important;*/
+    overflow: hidden !important;
 }
 .tasklist td{
     border: none !important;

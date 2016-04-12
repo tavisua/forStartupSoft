@@ -34,7 +34,7 @@ $table .= '<thead>
                     <th class="small_size" width="200px">Задача</th>
                     <th class="small_size" width="150px">Примітка: Що зробить, кінцева мета, підтвердження</th>
                     <th class="small_size" width="128px">Статус</th>
-                    <th class="small_size" width="20px"></th>
+                    <th class="small_size" width="35"></th>
                 </tr>
            </thead>';
 $row = 0;
@@ -151,7 +151,7 @@ while($row = $db->fetch_object($res)) {
            <div class="task_cell" style="float: left; width: 202px;">' . trim($row->note) . '</div>
            <div class="task_cell" style="float: left; width: 152px;">' . trim($row->confirmdoc) . '</div>
            <div class="task_cell" style="float: left; width: 130px;">' . $status . '</div>
-           <div class="task_cell" style="float: left; width: 15px; border-color: transparent"><img src="theme/eldy/img/edit.png"></div>';
+           <div class="task_cell" style="float: left; width: 20px; border-color: transparent"><img src="theme/eldy/img/edit.png"></div>';
 //    $task .= '<div id="'.$row->rowid.'" class="'.$classitem.'" style="height: 216px" >' . $task_table . '</div>';
 
     $task .= '<tr id="' . $row->rowid . '"><td class="' . $classitem . '" >' . $task_table . '</td></tr>';
