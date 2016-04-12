@@ -230,11 +230,14 @@ class ActionComm extends CommonObject
                 $PlanTime = $this->GetFirstFreeTime($date->format('Y-m-d'), $id_usr, $minutes, $prioritet, $starttime);
             $date = new DateTime(date('Y-m-d', mktime(8,0,0,$date->format('m'),$date->format('d'),$date->format('Y'))+ 86400));
         }
+//        var_dump($PlanTime);
+//        die();
         return $PlanTime;
     }
     function GetFirstFreeTime($date, $id_usr, $minutes, $prioritet = 0, $starttime){
-
         $freetime = $this->GetFreeTimePeriod($date, $id_usr, $prioritet);
+//        var_dump(count($freetime));
+//        die();
         if(empty($starttime)||$starttime<time())
              $starttime = time();
         foreach($freetime as $period){
@@ -244,9 +247,11 @@ class ActionComm extends CommonObject
             $dtDate = new DateTime();
             $dtDate->setTimestamp($itemDate);
             if($minutes<=$period[1] && $itemDate >= $starttime && $dtDate->format('H')>=8 && !( $dtDate->format('H')>=12&& $dtDate->format('H')<14) && $dtDate->format('Y-m-d') == $date) {
-//                var_dump($period[2].' '.$period[0]);
-//                die();
                 return  $period[2].' '.$period[0];
+            }elseif($minutes<=$period[1] && $itemDate >= $starttime && $dtDate->format('H')>=8 && ( $dtDate->format('H')>=12&& $dtDate->format('H')<14) && $dtDate->format('Y-m-d') == $date){
+//                var_dump($period[2].' 14:00:00');
+//                die();
+                return $period[2].' 14:00:00';
             }
         }
         return 0;
@@ -370,6 +375,7 @@ class ActionComm extends CommonObject
             if(count(array_keys($this->userassigned))>1){
                 $correctdate = true;
                 $minute = ($this->datef-$this->datep)/60;
+
                 $freedate = new DateTime($this->GetFreeTime(date('Y-m-d',$this->datep),array_keys($this->userassigned)[$i],$minute, $this->priority,date('Y-m-d H:i:s')));
 
                 $cdatep = mktime($freedate->format('H'),$freedate->format('i'),$freedate->format('s'),$freedate->format('m'),$freedate->format('d'),$freedate->format('Y'));

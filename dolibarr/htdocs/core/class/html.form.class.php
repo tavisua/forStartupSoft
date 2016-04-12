@@ -4029,7 +4029,7 @@ class Form
 //        var_dump($period);
 //        die();
         global $langs;
-        $sql='select rowid, name from `llx_c_period` where active=1 order by rowid';
+        $sql='select rowid, name from `llx_c_period` where active=1 order by position';
         $out = '<select id="'.$htmlname.'" class="combobox" name="'.$htmlname.'" size=1>';
         $out .= '<option value="0"></option>';
         $res = $this->db->query($sql);

@@ -84,28 +84,43 @@ if($_GET['action']=='get_exectime'){
 
 }elseif($_GET['action']=='confirm_exec'){
     global $db;
-	$sql = 'select period, datea from `llx_actioncomm` where id='.$_GET['rowid'];
+	$sql = 'select period, datep, datepreperform from `llx_actioncomm` where id='.$_GET['rowid'];
 	$res = $db->query($sql);
 	if(!$res){
         dol_print_error($db);
     }
 	$obj = $db->fetch_object($res);
 	if(!empty($obj->period)){//Створюю таке саме завдання через вказаний інтервал часу
-		$date = new DateTime($obj->datea);
+		$date = new DateTime($obj->datep);
+		$datepreperform = new DateTime($obj->datepreperform);
 		$mkDate = mktime('0','0','0',$date->format('m'),$date->format('d'),$date->format('Y'));
 //		var_dump(date('d.m.Y',$mkDate));
 		switch($obj->period){
+			case 'EveryHalfYear':{
+				$newDate=mktime('0','0','0',6+(int)$date->format('m'),$date->format('d'),$date->format('Y'));
+				$newPreperform = mktime('0','0','0',6+(int)$datepreperform->format('m'),$datepreperform->format('d'),$datepreperform->format('Y'));
+			}break;
+			case 'EveryDay':{
+				$newDate=mktime('0','0','0',$date->format('m'),1+(int)$date->format('d'),$date->format('Y'));
+				$newPreperform = mktime('0','0','0',$datepreperform->format('m'),1+(int)$datepreperform->format('d'),$datepreperform->format('Y'));
+//				var_dump(date('Y-m-d',$newDate));
+//				die();
+			}break;
 			case 'EveryWeek':{
 				$newDate=mktime('0','0','0',$date->format('m'),7+(int)$date->format('d'),$date->format('Y'));
+				$newPreperform = mktime('0','0','0',$datepreperform->format('m'),7+(int)$datepreperform->format('d'),$datepreperform->format('Y'));
 			}break;
 			case 'EveryMonth':{
 				$newDate=mktime('0','0','0',1+(int)$date->format('m'),$date->format('d'),$date->format('Y'));
+				$newPreperform = mktime('0','0','0',1+(int)$datepreperform->format('m'),$datepreperform->format('d'),$datepreperform->format('Y'));
 			}break;
 			case 'Quarterly':{
 				$newDate=mktime('0','0','0',3+(int)$date->format('m'),$date->format('d'),$date->format('Y'));
+				$newPreperform = mktime('0','0','0',3+(int)$datepreperform->format('m'),$datepreperform->format('d'),$datepreperform->format('Y'));
 			}break;
 			case 'Annually':{
 				$newDate=mktime('0','0','0',$date->format('m'),$date->format('d'),1+(int)$date->format('Y'));
+				$newPreperform = mktime('0','0','0',$datepreperform->format('m'),$datepreperform->format('d'),1+(int)$datepreperform->format('Y'));
 			}break;
 		}
 		$newAction = new ActionComm($db);
@@ -113,6 +128,13 @@ if($_GET['action']=='get_exectime'){
 		$lengthOfTime = $newAction->datef-$newAction->datep;
 		$newAction->datep = $newDate;
 		$newAction->datef = $newDate+$lengthOfTime;
+		$newAction->datepreperform = $newPreperform;
+//		$date1 = new DateTime();
+//		$date1->setTimestamp($newAction->datep);
+//		$date2 = new DateTime();
+//		$date2->setTimestamp($newAction->datef);
+//		var_dump($date1->format('Y-m-d'), $date2->format('Y-m-d'));
+//		die();
 		$newAction->add($user);
 	}
     $sql = 'update llx_actioncomm set dateSetExec = Now(), percent=100 where id='.$_GET['rowid'];
@@ -947,7 +969,7 @@ if ($action == 'create')
 		$datep = ($datep ? $datep : $object->datep);
 		$datef = ($datef ? $datef : $object->datef);
 	}else{
-		$sql = "select datep, datep2, period from llx_actioncomm where id = ".$_REQUEST["parent_id"];
+		$sql = "select datep, datep2, datepreperform, period from llx_actioncomm where id = ".$_REQUEST["parent_id"];
 		$res = $db->query($sql);
 		if(!$res)
 			dol_print_error($db);
@@ -958,24 +980,35 @@ if ($action == 'create')
 //		die();
         $datep = new DateTime($obj->datep);
         $datef = new DateTime($obj->datep2);
+		$datepreperform = new DateTime($obj->datepreperform);
 		$newAction = new ActionComm($db);
         $period = $obj->period;
 		switch($obj->period){
+			case 'EveryDay':{
+                $datep = new DateTime(($datep->format('d')+1).'.'.$datep->format('m').'.'.$datep->format('Y'). ' '.$datep->format('h').':'.$datep->format('i').':'.$datep->format('s'));
+                $datef = new DateTime(($datef->format('d')+1).'.'.$datef->format('m').'.'.$datef->format('Y'). ' '.$datef->format('h').':'.$datef->format('i').':'.$datef->format('s'));
+				$datepreperform = new DateTime(($datepreperform->format('d')+1).'.'.$datepreperform->format('m').'.'.$datepreperform->format('Y'). ' '.$datepreperform->format('h').':'.$datepreperform->format('i').':'.$datepreperform->format('s'));
+			}
 			case 'EveryWeek':{
                 $datep = new DateTime(($datep->format('d')+7).'.'.$datep->format('m').'.'.$datep->format('Y'). ' '.$datep->format('h').':'.$datep->format('i').':'.$datep->format('s'));
                 $datef = new DateTime(($datef->format('d')+7).'.'.$datef->format('m').'.'.$datef->format('Y'). ' '.$datef->format('h').':'.$datef->format('i').':'.$datef->format('s'));
+				$datepreperform = new DateTime(($datepreperform->format('d')+7).'.'.$datepreperform->format('m').'.'.$datepreperform->format('Y'). ' '.$datepreperform->format('h').':'.$datepreperform->format('i').':'.$datepreperform->format('s'));
 			}break;
 			case 'EveryMonth':{
                 $datep = new DateTime($datep->format('d').'.'.($datep->format('m')+1).'.'.$datep->format('Y'). ' '.$datep->format('h').':'.$datep->format('i').':'.$datep->format('s'));
                 $datef = new DateTime($datef->format('d').'.'.($datef->format('m')+1).'.'.$datef->format('Y'). ' '.$datef->format('h').':'.$datef->format('i').':'.$datef->format('s'));
+				$datepreperform = new DateTime($datepreperform->format('d').'.'.($datepreperform->format('m')+1).'.'.$datepreperform->format('Y'). ' '.$datepreperform->format('h').':'.$datepreperform->format('i').':'.$datepreperform->format('s'));
 			}break;
 			case 'Quarterly':{
                 $datep = new DateTime($datep->format('d').'.'.($datep->format('m')+3).'.'.$datep->format('Y'). ' '.$datep->format('h').':'.$datep->format('i').':'.$datep->format('s'));
                 $datef = new DateTime($datef->format('d').'.'.($datef->format('m')+3).'.'.$datef->format('Y'). ' '.$datef->format('h').':'.$datef->format('i').':'.$datef->format('s'));
+				$datepreperform = new DateTime($datepreperform->format('d').'.'.($datepreperform->format('m')+3).'.'.$datepreperform->format('Y'). ' '.$datepreperform->format('h').':'.$datepreperform->format('i').':'.$datepreperform->format('s'));
 			}break;
 			case 'Annually':{
                 $datep = new DateTime($datep->format('d').'.'.$datep->format('m').'.'.($datep->format('Y')+1). ' '.$datep->format('h').':'.$datep->format('i').':'.$datep->format('s'));
                 $datef = new DateTime($datef->format('d').'.'.$datef->format('m').'.'.($datef->format('Y')+1). ' '.$datef->format('h').':'.$datef->format('i').':'.$datef->format('s'));
+				$datepreperform = new DateTime($datepreperform->format('d').'.'.$datepreperform->format('m').'.'.($datepreperform->format('Y')+1). ' '.$datepreperform->format('h').':'.$datepreperform->format('i').':'.$datepreperform->format('s'));
+
 			}break;
 			default:{
 				$minutes = (mktime($datef->format('H'),$datef->format('i'),$datef->format('s'),$datef->format('m'),$datef->format('d'),$datef->format('Y'))-
@@ -995,6 +1028,7 @@ if ($action == 'create')
 //        die();
         $datep = mktime($datep->format('H'),$datep->format('i'),$datep->format('s'),$datep->format('m'),$datep->format('d'),$datep->format('Y'));
         $datef = mktime($datef->format('H'),$datef->format('i'),$datef->format('s'),$datef->format('m'),$datef->format('d'),$datef->format('Y'));
+        $datepreperform = mktime($datepreperform->format('H'),$datepreperform->format('i'),$datepreperform->format('s'),$datepreperform->format('m'),$datepreperform->format('d'),$datepreperform->format('Y'));
 
 	}
 	if (GETPOST('datep','int',1)) $datep=dol_stringtotime(GETPOST('datep','int',1),0);

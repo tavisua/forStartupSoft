@@ -97,7 +97,11 @@ function ShowTask(){
         }
         if(isset($_GET['performer']) && !empty($_GET['performer'])) {//If set performer filter
             $users = explode(',', $assignedUser[$obj->id]);
-            $add =  in_array($_GET['performer'], $users);
+            $add =  in_array($_GET['performer'], $users) || (empty($assignedUser[$obj->id])&&$user->id == $_GET['performer'] && $user->id == $taskAuthor[$obj->id]);
+//            if(20971 == $obj->id){
+//                var_dump(count($users), $assignedUser[$obj->id], $_GET['performer']);
+//                die();
+//            }
         }
         if($add){
             $class = fmod($numrow++,2)==0?'impair':'pair';

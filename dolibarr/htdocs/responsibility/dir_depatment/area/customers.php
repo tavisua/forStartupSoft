@@ -15,6 +15,9 @@ foreach($search as $elem) {
 $page = isset($_GET['page'])?$_GET['page']:1;
 $per_page = isset($_GET['per_page'])?$_GET['per_page']:30;
 
+//var_dump($user->subdiv_id);
+//die();
+
 $sql = "select `llx_societe`.rowid, concat(case when `formofgavernment`.`name` is null then '' else `formofgavernment`.`name` end,' ',`llx_societe`.`nom`) nom,
 `llx_societe`.`town`, round(`llx_societe_classificator`.`value`,0) as width, `llx_societe`.`remark`, ' ' deficit,
 ' ' task,' ' lastdate, ' ' lastdatecomerc, ' ' futuredatecomerc, ' ' exec_time, ' ' lastdateservice,
@@ -29,6 +32,13 @@ if($user->login != 'admin') {
     $tmp = '';
     if ($region_id != 0)
         $tmp .= ' and `region_id` = ' . $region_id . ' ';
+    else{
+        $tmp .= ' and `region_id` in (select `llx_user_regions`.`fk_id` from llx_user
+            inner join `llx_user_regions` on `llx_user_regions`.`fk_user`=`llx_user`.`rowid`
+            where subdiv_id='.$user->subdiv_id.'
+            and `llx_user_regions`.active = 1
+            and `llx_user`.`active` = 1) ';
+    }
     $tmp .= ' and `llx_societe`.`categoryofcustomer_id` in
     (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = ' . $user->respon_id . ')';
     $sql .= $tmp;
