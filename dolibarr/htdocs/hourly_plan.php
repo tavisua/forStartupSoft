@@ -146,7 +146,7 @@ while($row = $db->fetch_object($res)) {
            <div class="task_cell" style="float: left; width: ' . ($conf->browser->name == 'firefox' ? '42px' : '43px') . '">' . $datep->format('H:i') . '</div>
            <div class="task_cell" style="float: left; width: 36px; height 16px">' . $DiffTime . '</div>
            <div class="task_cell" style="float: left; width: 35px">' . $datep2->format('H:i') . '</div>
-           <div class="task_cell" style="float: left; width: 152px">' . trim($row->region_name) . ' район</div>
+           <div class="task_cell" style="float: left; width: 152px">' . trim($row->region_name) .(!empty($row->region_name)?'район':'').'</div>
            <div class="task_cell" style="float: left; width: 152px">' . trim($row->lastname) . '</div>
            <div class="task_cell" style="float: left; width: 202px;">' . trim($row->note) . '</div>
            <div class="task_cell" style="float: left; width: 152px;">' . trim($row->confirmdoc) . '</div>

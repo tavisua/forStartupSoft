@@ -1266,7 +1266,7 @@ class Form
             $sub_category[$group_id]=explode(',', $subcatstr);
         }
 //        $seleced_array = explode(',', $selected);
-        $out = '<select id="select_lineaction" name="select_lineaction" size="'.$size.'" '.($size>1?'multiple=""':'').' class="combobox">';
+        $out = '<select id="'.$htmlname.'" name="'.$htmlname.'" size="'.$size.'" '.($size>1?'multiple=""':'').' class="combobox">';
         $index = 0;
         while(count($basic_group)) {
             $catalog_id = $basic_group[0];

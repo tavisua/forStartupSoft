@@ -233,7 +233,8 @@
             }
         })
         $('#popupmenu').mouseout(function(e){
-            $('#popupmenu').hide();
+            if($('#popupmenu').attr('TitleProposed') === undefined)
+                $('#popupmenu').hide();
         })
     })
 </script>

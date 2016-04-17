@@ -170,7 +170,7 @@ $tablib[35]= "Tare";
 $tablib[36]= "FinanceService";
 $tablib[37]= "TypicalQuestion";
 $tablib[38]= "LineActiveCustomer";
-$tablib[39]= "Proposition";
+$tablib[39]= "PropositionDict";
 $tablib[40]= "GroupOfOrganizationalIssues";
 $tablib[41]= "ActionToAddress";
 
@@ -216,7 +216,7 @@ left join llx_c_kind_assets on `llx_c_model`.fx_kind_assets = `llx_c_kind_assets
 left join llx_c_line_active on `llx_c_kind_assets`.`fx_line_active` = `llx_c_line_active`.`rowid`";
 $tabsql[31]= "select rowid, name, active from ".MAIN_DB_PREFIX."c_measurement";
 $tabsql[32]= "select rowid, name, active from ".MAIN_DB_PREFIX."c_kinddoc";
-$tabsql[33]= "select rowid, name, active from ".MAIN_DB_PREFIX."c_period";
+$tabsql[33]= "select rowid, name,position, active from ".MAIN_DB_PREFIX."c_period";
 $tabsql[34]= "select llx_c_groupoftask.rowid, llx_c_groupoftask.name, responsibility.name as responsibility, llx_c_groupoftask.active from ".MAIN_DB_PREFIX."c_groupoftask
 left join responsibility on responsibility.rowid = ".MAIN_DB_PREFIX."c_groupoftask.fk_respon_id";
 $tabsql[35]= "select llx_c_tare.rowid, llx_c_tare.name, llx_c_measurement.name ed_name, llx_c_tare.active
@@ -226,7 +226,7 @@ $tabsql[36]= "select rowid, name, active from ".MAIN_DB_PREFIX."c_finance_servic
 $tabsql[37]= "select rowid, question, active  from ".MAIN_DB_PREFIX."c_category_product_question where category_id is null";
 $tabsql[38]= "select rowid, name, active  from ".MAIN_DB_PREFIX."c_lineactive_customer where 1";
 $tabsql[39]= "select llx_c_proposition.rowid, `llx_c_proposition`.`fk_lineactive`, `llx_c_proposition`.`fk_post`, `llx_c_lineactive_customer`.`name` as LineActiveCustomer, `llx_post`.`postname`,
-	`llx_c_proposition`.`begin`,`llx_c_proposition`.`end`,`llx_c_proposition`.`text` proposition, `llx_c_proposition`.`description`, `llx_c_proposition`.`active`
+	`llx_c_proposition`.`begin`,`llx_c_proposition`.`end`,`llx_c_proposition`.`text` proposition, `llx_c_proposition`.`description`, `llx_c_proposition`.`active`, 'test' as tests, 'products' as products
 	from `llx_c_proposition`
 	left join `llx_c_lineactive_customer` on `llx_c_lineactive_customer`.rowid = `llx_c_proposition`.`fk_lineactive`
 	left join `llx_post` on `llx_post`.`rowid` = `llx_c_proposition`.`fk_post`";
@@ -271,7 +271,7 @@ $tabsqlsort[29]="trademark ASC";
 $tabsqlsort[30]="Trademark ASC,Model ASC";
 $tabsqlsort[31]="name ASC";
 $tabsqlsort[32]="name ASC";
-$tabsqlsort[33]="rowid ASC";
+$tabsqlsort[33]="position ASC";
 $tabsqlsort[34]="name ASC";
 $tabsqlsort[35]=MAIN_DB_PREFIX."c_tare.rowid ASC";
 $tabsqlsort[36]="rowid ASC";
@@ -315,13 +315,13 @@ $tabfield[29]= "Trademark";
 $tabfield[30]= "LineActive,KindAssets,Trademark,Model,Description";
 $tabfield[31]= "name";
 $tabfield[32]= "name";
-$tabfield[33]= "name";
+$tabfield[33]= "name,position";
 $tabfield[34]= "name,responsibility";
 $tabfield[35]= "name,ed_name";
 $tabfield[36]= "name";
 $tabfield[37]= "question";
 $tabfield[38]= "name";
-$tabfield[39]= "LineActiveCustomer,postname,begin,end,proposition,description";
+$tabfield[39]= "LineActiveCustomer,postname,begin,end,proposition,description,tests,products";
 $tabfield[40]= "issues";
 $tabfield[41]= "fk_groupissues,fk_subdivision,action,responsible,directly_responsible";
 
@@ -359,7 +359,7 @@ $tabfieldvalue[29]= "Trademark";
 $tabfieldvalue[30]= "LineActive,KindAssets,Trademark,Model,Description";
 $tabfieldvalue[31]= "name";
 $tabfieldvalue[32]= "name";
-$tabfieldvalue[33]= "name";
+$tabfieldvalue[33]= "name,position";
 $tabfieldvalue[34]= "name,responsibility";
 $tabfieldvalue[35]= "name,ed_name";
 $tabfieldvalue[36]= "name";
@@ -405,7 +405,7 @@ $tabfieldinsert[29]= "trademark";
 $tabfieldinsert[30]= ",fx_kind_assets,fx_trademark,Model,Description";
 $tabfieldinsert[31]= "name";
 $tabfieldinsert[32]= "name";
-$tabfieldinsert[33]= "name";
+$tabfieldinsert[33]= "name,position";
 $tabfieldinsert[34]= "name,fk_respon_id";
 $tabfieldinsert[35]= "name,fx_measurement";
 $tabfieldinsert[36]= "name";
@@ -684,7 +684,7 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
         if ($id == 30 && ($value == 'Model' || $value == 'Description'||($value == 'Trademark'&&!isset($_POST['Trademark']))))continue;
 		if ($id == 34 && ($value == 'responsibility'))continue;
         if ($id == 35 && ($value == 'ed_name'))continue;
-        if ($id == 39 && ($value == 'LineActiveCustomer' || $value == 'postname'|| $value == 'end'|| $value == 'description')){
+        if ($id == 39 && ($value == 'LineActiveCustomer' || $value == 'postname'|| $value == 'end'|| $value == 'description' || $value == 'tests' || $value == 'products')){
 //            if($value == 'end')
 //                unset($_POST['end']);
             continue;
@@ -869,7 +869,8 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
             }
         }
     }
-
+//var_dump($ok);
+//    die();
     // Si verif ok et action modify, on modifie la ligne
     if ($ok && GETPOST('actionmodify'))
     {
@@ -1663,6 +1664,26 @@ if($id == 35){
             $("select#KindAssets").on("change", SetEnableTrademark);
         })
     </script>';
+}
+if($id == 39){
+    print "<script>
+        $(document).ready(function(){
+//            console.log(document.getElementsByTagName('td').innerHTML = 'test');
+            var td = $('td');
+            for(var i=0; i<td.length; i++){
+                if(td[i].innerHTML == 'test'){
+                    console.log(td[i].parentElement.id.substr(6));
+                    td[i].innerHTML = '<a href=".'"/"'."><img style =".'"cursor:pointer"'." src =/dolibarr/htdocs/theme/eldy/img/tests.png title=Тести></a>';
+                }else if(td[i].innerHTML == 'products'){
+                    var id = td[i].parentElement.id.substr(6);
+                    td[i].innerHTML = '<a href="."/dolibarr/htdocs/admin/proposedProducts.php?proposed_id='+id+'"."><img style = ".'"cursor:pointer"'."src =/dolibarr/htdocs/theme/eldy/img/offer.png title=Товари></a>';
+
+                }
+            }
+            document.body.innerHTML = document.body.innerHTML.replace('Tests','');
+            document.body.innerHTML = document.body.innerHTML.replace('Products','');
+        })
+    </script>";
 }
 //if($id == 41){
 //	$val = '<option value="-1">Всі підрозділи</option>';

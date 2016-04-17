@@ -1,0 +1,140 @@
+<form action="" method="post">
+    <button name="action" value="create">Додати товар</button>
+</form>
+<div class="tabs" id="tabs_area" data-role="controlgroup" data-type="horizontal">
+    <div class="inline-block tabsElem tabsElemActive" id="BasicInformation">
+        <a id="user" class="tabactive tab inline-block" data-role="button" onclick="ShowPage('BasicInfo');"> <?=$langs->trans('BasicInfo')?></a>
+    </div>
+    <div  class="inline-block tabsElem" id="PriceOffers">
+        <a class="tab inline-block" data-role="button" onclick="ShowPage('PriceOffers');"><?=$langs->trans('PriceOffers')?></a>
+    </div>
+    <div  class="inline-block tabsElem" id="OtherInformationOffers">
+        <a class="tab inline-block" data-role="button" onclick="ShowPage('OtherInformationOffers');"><?=$langs->trans('OtherInformationOffers')?></a>
+    </div>
+
+</div>
+<table id="proposedProductList">
+    <thead>
+        <tr class="multiple_header_table">
+            <th class="middle_size">Завод-виробник</th>
+            <th class="middle_size">Назва товару</th>
+            <th class="middle_size pageCol basicInformation">№ по катагогу (атикул)</th>
+            <th class="middle_size pageCol basicInformation">№ карточки в 1С</th>
+            <th class="middle_size pageCol basicInformation">Наявність</th>
+            <th class="middle_size pageCol basicInformation">Од.виміру</th>
+            <th class="middle_size pageCol basicInformation">Місце відвантаження</th>
+            <th class="middle_size pageCol basicInformation">ОСОБЛИВІСТЬ ПРОПОЗИЦІЇ</th>
+            <th class="middle_size pageCol basicInformation">ВИГОДИ КЛІЄНТУ</th>
+            <th class="middle_size pageCol priceOffers" style="display: none">прайсова ціна</th>
+            <th class="middle_size pageCol priceOffers" style="display: none">ціна пропозиції</th>
+            <th class="middle_size pageCol priceOffers" style="display: none">Необхідний % предоплати</th>
+            <th class="middle_size pageCol priceOffers" style="display: none">Кінцева дата предоплати</th>
+            <th class="middle_size pageCol priceOffers" style="display: none">Кінцева доплата клієнтом до, дата/події</th>
+            <th class="middle_size pageCol priceOffers" style="display: none">Дата поставки/виконання</th>
+            <th class="middle_size pageCol priceOffers" style="display: none">ДОСТАВКА</th>
+            <th class="middle_size pageCol otherOffersInformation" style="display: none">ІНШІ ПІЛЬГИ ТА ПОДАРУНКИ</th>
+            <th class="middle_size pageCol otherOffersInformation" style="display: none">Примітка</th>
+            <th style="width: 40px"></th>
+        </tr>
+    </thead>
+    <?=$tabody?>
+</table>
+<script>
+    function ShowPage(pagename){
+        $('.pageCol').hide();
+        $('.tab').removeClass('tabactive');
+        switch(pagename){
+            case 'BasicInfo':{
+                $('#BasicInformation').find('a').addClass('tabactive');
+                $('.basicInformation').show();
+            }break;
+            case 'PriceOffers':{
+                $('#PriceOffers').find('a').addClass('tabactive');
+                $('.priceOffers').show();
+            }break;
+            case 'OtherInformationOffers':{
+                $('#OtherInformationOffers').find('a').addClass('tabactive');
+                $('.otherOffersInformation').show();
+            }break;
+        }
+        console.log(pagename);
+    }
+    function edit_item(rowid){
+        location.href = '?action=edit&rowid='+rowid+'&proposed_id='+getParameterByName('proposed_id');
+    }
+    function select_item(img, rowid){
+        if(img.attr('src')=='/dolibarr/htdocs/theme/eldy/img/uncheck.png'){
+            img.attr('src','/dolibarr/htdocs/theme/eldy/img/check.png')
+        }else{
+            img.attr('src','/dolibarr/htdocs/theme/eldy/img/uncheck.png')
+        }
+        console.log();
+    }
+    function show_item(rowid){
+        var tr_item = $('#proposedProductList').find('tr#'+rowid);
+        var td = $('#'+tr_item.attr('id')).find('td');
+//        console.log(tr_head[1]);
+//        return;
+        var popup = createNewForm('Proposition', 'fullTextItem');
+        $('#'+popup.attr('id')).css('width','auto');
+        $('#'+popup.attr('id')).css('height',100);
+        $('#'+popup.attr('id')).css('top',$('#Proposition').offset().top-5);
+        $('#'+popup.attr('id')).css('left',$('#Proposition').offset().left+5);
+        $('#'+popup.attr('id')).find('button').remove();
+        var html = '<table id="proposedProduct'+rowid+'">';
+        html+='<thead><tr class="multiple_header_table"><th></th><th>'+$('#'+tr_item.attr('id')).find('td#ProductName'+rowid).text()+'</th></tr></thead>';
+        html+='<tbody>';
+
+        var tr_head = $('#proposedProductList').find('th');
+        for(var i = 0; i<tr_head.length-1;i++){
+            if(i==1)
+                i++;
+            else {
+                var input = $('#_'+td[i].id);
+                html += '<tr><td class="middle_size">' + tr_head[i].innerHTML + '</td><td class="middle_size">'+(input.length==0?td[i].innerHTML:input.val())+'</td></tr>';
+            }
+        }
+        html+='</tbody></table>';
+//        var tdProposition = $('#popupmenu').find('td#Proposition');
+        $('#'+popup.attr('id')).find('td#Proposition').html(html);
+        $('#'+popup.attr('id')).show();
+    }
+
+    $(function(e){
+        $('td').mouseover(function(e){
+//            return;
+//            console.log(e.target.parentElement.parentElement.parentElement.id=='proposedProductList');
+            if(e.target.parentElement.parentElement.parentElement.id!='proposedProductList')
+                return;
+            actions_table = true;
+            var id = e.target.id;
+            var text = $('#'+id).text();
+//            console.log(text);
+//            return;
+            var popup = createNewForm('popupmenu','fullText');
+            if(text.substr(text.length-3)=='...') {
+                var id = e.target.id.substr(0,1)!='_'?(e.target.id):('_'+e.target.id);
+//                console.log(popup.id);
+                $('#'+popup.attr('id')).css('width',350);
+                $('#'+popup.attr('id')).css('height',100);
+                $('#'+popup.attr('id')).html('<div><textarea style="width: 100%;height: 100%">'+$('input#_'+id).val()+'</textarea></div>');
+                $('#'+popup.attr('id')).attr('TitleProposed',null);
+                $('#'+popup.attr('id')).show();
+                var formTop = 0;
+                var formLeft = 0;
+                if($('#popupmenu').css('display') == 'block'){
+                    formTop  = $('#popupmenu').offset().top-130;
+                    formLeft = $('#popupmenu').offset().left-150;
+                }
+                $('#'+popup.attr('id')).offset({top:$('#'+id).offset().top+formTop-50,left:e.target.offsetLeft+formLeft});
+//                console.log($('#'+e.target.id).offset());
+            }
+            $('#'+popup.attr('id')).mouseout(function(e){
+                if($('#'+popup.attr('id')).attr('TitleProposed') === undefined)
+                    $('#'+popup.attr('id')).hide();
+            })
+        })
+
+    })
+</script>
+

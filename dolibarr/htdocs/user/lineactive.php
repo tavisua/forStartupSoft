@@ -135,7 +135,7 @@ print '<input id="idmenu" name="idmenu" value="'.$_REQUEST['idmenu'].'" type="hi
 print '<input id="page" name="page" value="'.$page.'" type="hidden">';
 print '<input id="values" name="values" value="" type="hidden">';
 print '<input id="action" name="action" value="update" type="hidden">';
-print $form->selectLineAction($lineactive, 'lineaction', 30);
+print $form->selectLineAction($lineactive, 'select_lineaction', 30);
 print '</br>';
 print '<input type="submit" value="Зберегти">';
 print '</form>';

@@ -139,8 +139,10 @@ unset($TableParam);
 $datep = new DateTime();
 
 $actiontabe = ShowActionTable();
-include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/dir_depatment/action.html';
+include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/action.html';
+//include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/dir_depatment/action.html';
 //llxFooter();
+llxPopupMenu();
 exit();
 
 
@@ -318,33 +320,33 @@ function ShowActionTable(){
         }
         $dateaction = new DateTime($row->datep);
         $out .= '<tr class="'.(fmod($num++, 2)==0?'impair':'pair').'">
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'dtAction" style="width: 50px" class="middle_size">'.(empty($row->datep)?'':($dateaction->format('d.m.y').'</br>'.$dateaction->format('H:i'))).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'dtChange" style="width: 65px" class="middle_size">'.(empty($row->datec)?'':$dtChange->format('d.m.y').'</br>'.$dtChange->format('H:i')).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'lastname" style="width: 105px" class="middle_size">'.$row->lastname.'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'contactname" style="width: 85px; word-wrap: break-word;" class="middle_size">'.$row->contactname.'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'kindaction" style="width: 35px; text-align: center;" class="middle_size" ><img src="/dolibarr/htdocs/theme/'.$conf->theme.'/img/'.$iconitem.'" title="'.$title.'"></td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'said" style="width: 85px; word-wrap: break-word;" class="middle_size">'.(mb_strlen($row->said, 'UTF-8')>10?mb_substr($row->said, 0, 10, 'UTF-8').'...'.
-                '<input id="'.$row->rowid.'said"  type="hidden" value="'.$row->said.'">'
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'dtAction" style="widtd: 80px" class="middle_size">'.(empty($row->datep)?'':($dateaction->format('d.m.y').'</br>'.$dateaction->format('H:i'))).'</td>
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'dtChange" style="widtd: 80px" class="middle_size">'.(empty($row->datec)?'':$dtChange->format('d.m.y H:i:s')).'</td>
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'lastname" style="widtd: 100px" class="middle_size">'.$row->lastname.'</td>
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'contactname" style="widtd: 80px" class="middle_size">'.$row->contactname.'</td>
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'kindaction" style="widtd: 50px; text-align: center;" class="middle_size" ><img src="/dolibarr/htdocs/theme/'.$conf->theme.'/img/'.$iconitem.'" title="'.$title.'"></td>
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'said" style="widtd: 80px" class="middle_size">'.(strlen($row->said)>20?mb_substr($row->said, 0, 20, 'UTF-8').'...'.
+                '<input id="_'.$row->rowid.'said"  type="hidden" value="'.$row->said.'">'
                 :$row->said).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'answer" style="width: 85px" class="middle_size">'.(strlen($row->answer)>20?mb_substr($row->answer, 0, 20, 'UTF-8').'...'.
-                '<input id="'.$row->rowid.'answer"  type="hidden" value="'.$row->answer.'">':$row->answer).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'argument" style="width: 85px" class="middle_size">'.(strlen($row->argument)>20?mb_substr($row->argument, 0, 20, 'UTF-8').'...'.
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'answer" style="widtd: 80px" class="middle_size">'.(strlen($row->answer)>20?mb_substr($row->answer, 0, 20, 'UTF-8').'...'.
+                '<input id="_'.$row->rowid.'answer"  type="hidden" value="'.$row->answer.'">':$row->answer).'</td>
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'argument" style="widtd: 80px" class="middle_size">'.(strlen($row->argument)>20?mb_substr($row->argument, 0, 20, 'UTF-8').'...'.
                 '<input id="_'.$row->rowid.'argument" type="hidden" value="'.$row->argument.'">':$row->argument).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'said_important" style="width: 85px" class="middle_size">'.(strlen($row->said_important)>20?mb_substr($row->said_important, 0, 20, 'UTF-8').'...'.
-                '<input id="'.$row->rowid.'said_important" type="hidden" value="'.$row->said_important.'">':$row->said_important).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'result_of_action" style="width: 97px" class="middle_size">'.(strlen($row->result_of_action)>20?mb_substr($row->result_of_action, 0, 20, 'UTF-8').'...'.
-                '<input id="'.$row->rowid.'" id = "'.$row->rowid.'result_of_action" type="hidden" value="'.$row->result_of_action.'">':$row->result_of_action).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'work_before_the_next_action" style="width: 85px" class="middle_size">'.(strlen($row->work_before_the_next_action)>20?mb_substr($row->work_before_the_next_action, 0, 20, 'UTF-8').'...'.
-                '<input id="'.$row->rowid.'" id = "'.$row->rowid.'work_before_the_next_action" type="hidden" value="'.$row->work_before_the_next_action.'">':$row->work_before_the_next_action).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'date_next_action" style="width: 55px" class="middle_size">'.(empty($row->date_next_action)?'':$dtNextAction->format('d.m.y H:i:s')).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'work_before_the_next_action_mentor" style="width: 85px" class="middle_size">'.(strlen($row->work_mentor)>20?mb_substr($row->work_mentor, 0, 20, 'UTF-8').'...'.
-                '<input id="'.$row->rowid.'" id = "'.$row->rowid.'work_before_the_next_action_mentor" type="hidden" value="'.$row->work_mentor.'">':$row->work_mentor).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'date_next_action_mentor" style="width: 97px" class="middle_size">'.(empty($row->date_mentor)?'':$dtDateMentor->format('d.m.y H:i:s')).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'action" style="width: 75px" class="middle_size"><script>
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'said_important" style="widtd: 80px" class="middle_size">'.(strlen($row->said_important)>20?mb_substr($row->said_important, 0, 20, 'UTF-8').'...'.
+                '<input id="_'.$row->rowid.'said_important" type="hidden" value="'.$row->said_important.'">':$row->said_important).'</td>
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'result_of_action" style="widtd: 80px" class="middle_size">'.(strlen($row->result_of_action)>20?mb_substr($row->result_of_action, 0, 20, 'UTF-8').'...'.
+                '<input id="_'.$row->rowid.'result_of_action" type="hidden" value="'.$row->result_of_action.'">':$row->result_of_action).'</td>
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'work_before_the_next_action" style="widtd: 80px" class="middle_size">'.(strlen($row->work_before_the_next_action)>20?mb_substr($row->work_before_the_next_action, 0, 20, 'UTF-8').'...'.
+                '<input id="_'.$row->rowid.'work_before_the_next_action" type="hidden" value="'.$row->work_before_the_next_action.'">':$row->work_before_the_next_action).'</td>
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'date_next_action" style="widtd: 80px" class="middle_size">'.(empty($row->date_next_action)?'':$dtNextAction->format('d.m.y H:i:s')).'</td>
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'work_before_the_next_action_mentor" style="widtd: 80px" class="middle_size">'.(strlen($row->work_mentor)>20?mb_substr($row->work_mentor, 0, 20, 'UTF-8').'...'.
+                '<input id="_'.$row->rowid.'work_before_the_next_action_mentor" type="hidden" value="'.$row->work_mentor.'">':$row->work_mentor).'</td>
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'date_next_action_mentor" style="widtd: 80px" class="middle_size">'.(empty($row->date_mentor)?'':$dtDateMentor->format('d.m.y H:i:s')).'</td>
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'action" style="width: 35px" class="middle_size"><script>
                  var click_event = "/dolibarr/htdocs/societe/addcontact.php?action=edit&mainmenu=companies&rowid=1";
                 </script>
                 <img onclick="" style="vertical-align: middle" title="'.$langs->trans('AddSubAction').'" src="/dolibarr/htdocs/theme/eldy/img/Add.png">
-                <img onclick="EditAction('.(substr($row->rowid, 0,1)=='_'?"'".$row->rowid."'":$row->rowid).');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Edit').'" src="/dolibarr/htdocs/theme/eldy/img/edit.png">
+                <img onclick="EditAction('.(substr($row->rowid, 0,1)=='_'?"'".$row->rowid."'":$row->rowid).', '."'".$row->kindaction."'".');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Edit').'" src="/dolibarr/htdocs/theme/eldy/img/edit.png">
                 <img onclick="DelAction('.(substr($row->rowid, 0,1)=='_'?"'".$row->rowid."'":$row->rowid).');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('delete').'" src="/dolibarr/htdocs/theme/eldy/img/delete.png">
             </td>
             </tr>';

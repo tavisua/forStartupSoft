@@ -1,0 +1,82 @@
+<div class="tabPage">
+    <form id="proposedProduct" action="" method="post">
+        <input name="proposed_id" type="hidden" value="<?=$_REQUEST['proposed_id']?>">
+        <input name="action" type="hidden" value="<?=$action?>">
+        <table>
+            <tr>
+                <td>Завод-виробник</td>
+                <td><input name="Prodaction" type="text" size="40" value="<?=$proposedPoducts->Prodaction?>"></td>
+                <td>Назва товару</td>
+                <td><input name="ProductName" type="text" size="40" value="<?=$proposedPoducts->ProductName?>"></td>
+            </tr>
+            <tr>
+                <td>№ по катагогу (атикул)</td>
+                <td><input name="articul" type="text" size="40" value="<?=$proposedPoducts->articul?>"></td>
+                <td>№ карточки в 1С</td>
+                <td><input name="Number1C" type="text" size="40" value="<?=$proposedPoducts->Number1C?>"></td>
+            </tr>
+            <tr>
+                <td>Група</td>
+                <td><?=$form->selectLineAction($grouparray, 'category', 1)?></td>
+                <td>Од.виміру</td>
+                <td><input name="ed_izm" type="text" size="40" value="<?=$proposedPoducts->ed_izm?>"></td>
+            </tr>
+            <tr>
+                <td>Наявність</td>
+                <td><input name="Nal" type="text" size="40" value="<?=$proposedPoducts->Nal?>"></td>
+                <td>Місце відвантаження</td>
+                <td><input name="shipTown" type="text" size="40" value="<?=$proposedPoducts->shipTown?>"></td>
+            </tr>
+            <tr>
+                <td>Особливість пропозиції</td>
+                <td><input name="featureOffers" type="text" size="40" value="<?=$proposedPoducts->featureOffers?>"></td>
+                <td>Вигоди клієнту</td>
+                <td><input name="profitCustomer" type="text" size="40" value="<?=$proposedPoducts->profitCustomer?>"></td>
+            </tr>
+            <tr>
+                <td>Прайсова ціна</td>
+                <td><input name="price" type="text" size="40" value="<?=$proposedPoducts->price?>"></td>
+                <td>Ціна пропозиції</td>
+                <td><input name="offerPrice" type="text" size="40" value="<?=$proposedPoducts->offerPrice?>"></td>
+            </tr>
+            <tr>
+                <td>Необхідний % предоплати</td>
+                <td><input name="advance" type="text" size="40" value="<?=$proposedPoducts->advance?>"></td>
+                <td>Кінцева дата предоплати</td>
+                <td><input name="deadlineAdvance" type="text" size="40" value="<?=$proposedPoducts->deadlineAdvance?>"></td>
+            </tr>
+            <tr>
+                <td>Кінцева доплата клієнтом до, дата/поді</td>
+                <td><input name="deadlineSale" type="text" size="40" value="<?=$proposedPoducts->deadlineSale?>"></td>
+                <td>Дата поставки/виконання</td>
+                <td><input name="dateExec" type="text" size="40" value="<?=$proposedPoducts->dateExec?>"></td>
+            </tr>
+            <tr>
+                <td>Доставка</td>
+                <td><input name="delivary" type="text" size="40" value="<?=$proposedPoducts->delivary?>"></td>
+                <td>Інщі пільги та подароунки</td>
+                <td><input name="otherDiscont" type="text" size="40" value="<?=$proposedPoducts->otherDiscont?>"></td>
+            </tr>
+             <tr>
+                <td>Примітка</td>
+                <td colspan="4"><textarea style="width: 100%" name="description"><?=$proposedPoducts->description?></textarea></td>
+
+            </tr>
+        </table>
+    </form>
+    <div style="text-align: center; width: 100%">
+        <button onclick="save();">Зберегти</button>
+        <button onclick="cancel();">Відмінити</button>
+    </div>
+</div>
+<script>
+    function save(){
+        if(confirm('Зберегти зміни?'))
+            $('#proposedProduct').submit();
+    }
+    function cancel(){
+        if(confirm('Залишити сторінку?'))
+            location.href='/dolibarr/htdocs/admin/proposedProducts.php?proposed_id='+getParameterByName('proposed_id')+'&idmenu=5223&mainmenu=tools&leftmenu=';
+    }
+</script>
+

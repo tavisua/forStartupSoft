@@ -169,6 +169,21 @@ function LoadProposition(){
         }
     })
 }
+function createNewForm(basicform, newname){
+    var popup;
+        //if($('#popupmenu').css('display') == 'block') {
+        if($('#'+name).length == 0) {
+            popup = $('#'+basicform).clone();
+            popup.attr('id', newname);
+            popup.css('display','none');
+            popup.appendTo('.fiche');
+        }else{
+            popup = $('#'+newname);
+        }
+        //}else
+        //    popup = $('#popupmenu');
+    return popup;
+}
 function showProposed(id,contactid){
     //console.log(id);
     var param = {
@@ -182,17 +197,18 @@ function showProposed(id,contactid){
         cache:false,
         success:function(html){
             //console.log('test');
-            $('#popupmenu').css('width','auto');
+            createNewForm('popupmenu','Proposition')
+            $('#Proposition').css('width','auto');
             //$('#popupmenu').css('height',250);
-            $('#popupmenu').empty().html(html);
+            $('#Proposition').empty().html(html);
 
-            $('#popupmenu').show();
-            $('#popupmenu').offset({top:$('#contactlist').offset().top-30,left:$('#contactlist').offset().left+$('#contactlist').width()/2});
-            $('#popupmenu').attr('TitleProposed', 1);
+            $('#Proposition').show();
+            $('#Proposition').offset({top:$('#contactlist').offset().top-30,left:$('#contactlist').offset().left+$('#contactlist').width()/2});
+            $('#Proposition').attr('TitleProposed', 1);
         }
     })
 }
-function showTitleProposed(post_id, lineactive, contactid){
+function showTitleProposed(post_id, lineactive, contactid, td){
     var param = {
         post_id: post_id,
         lineactive: lineactive,
@@ -211,7 +227,7 @@ function showTitleProposed(post_id, lineactive, contactid){
             $('#popupmenu').empty().html(html);
 
             $('#popupmenu').show();
-            $('#popupmenu').offset({top:$('#contactlist').offset().top,left:$('#contactlist').offset().left+$('#contactlist').width()/2});
+            $('#popupmenu').offset({top:$('#'+td.id).offset().top-30,left:$('#'+td.id).offset().left-50});
             $('#popupmenu').attr('TitleProposed', 1);
         }
     })
@@ -730,7 +746,7 @@ function save_item(tablename, paramfield, sendtable){
 }
 
 function AddResultAction(){
-    alert('test');
+    //alert('test');
     var link = '/dolibarr/htdocs/comm/action/result_action.php';
     var inputaction = $("#actionbuttons").find('input');
     for(var i = 0; i<inputaction.length; i++) {
@@ -841,8 +857,11 @@ function OpenFolder(id_cat, showeditfield){
 
 
     }
-function ClosePopupMenu(){
-    $("#popupmenu").hide()
+function ClosePopupMenu(elem){
+    if(elem === undefined)
+        $("#popupmenu").hide();
+    else
+        $('#'+elem.parent().attr('id')).hide();
 }
 function GetPerformers(){
     var html = '';

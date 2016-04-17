@@ -687,6 +687,13 @@ div.header_page, th.header_page, tr.header_table_sel, form.header_page, form.hea
     color: red;
     font-weight: bold;
 }
+td.titreProposed {
+    font-family: arial,tahoma,verdana,helvetica;
+	font-weight: bold;
+	color: rgb(50, 50, 130);
+    font-size: 16px;
+	text-decoration: none;
+}
 .areas_header, .address_header{
     width:auto;
     height:100px;

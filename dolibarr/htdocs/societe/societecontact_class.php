@@ -319,14 +319,14 @@ class societecontact {
             where `llx_societe_contact`.`socid`='.(empty($obj->socid)?$_REQUEST['socid']:$obj->socid).'
             and `llx_societe_contact`.`active` = 1
             and `llx_c_proposition`.active = 1
-            and `llx_c_proposition`.`begin`<=Now() and `llx_c_proposition`.`end`>= Now()';
+            and `llx_c_proposition`.`begin`<=Now() and (`llx_c_proposition`.`end`>= Now() or `llx_c_proposition`.`end` is null )';
 
 //        $sql.='and `llx_societe_lineactive`.`fk_lineactive` = `llx_c_proposition`.`fk_lineactive`;';
         $resPost = $db->query($sql);
 //        echo '<pre>';
 //        var_dump($resPost);
 //        echo '</pre>';
-//        die();
+//        die($sql);
         if(!$resPost)
             dol_print_error($db);
         $postArray = array();
@@ -430,7 +430,7 @@ class societecontact {
                                                     $number = str_replace(')', '', $number);
                                                     $number = str_replace('-', '', $number);
                                                     if($proposed)
-                                                        $table .= '<td style="width: 20px" onclick="showTitleProposed('.$row['post_id'].','.$postArray[$row['post_id']].','.$row['rowid'].');"><img id="proposedIcon' . $row['rowid'] . $fields[$num_col]->name . '" title = "'.$langs->trans('Proposition').'" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/strawberry.png"></td>';
+                                                        $table .= '<td id="proposed'.$row['post_id'].'" style="width: 20px" onclick="showTitleProposed('.$row['post_id'].','.$postArray[$row['post_id']].','.$row['rowid'].', proposed'.$row['post_id'].');"><img id="proposedIcon' . $row['rowid'] . $fields[$num_col]->name . '" title = "'.$langs->trans('Proposition').'" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/strawberry.png"></td>';
                                                     $table .= '<td style="width: 20px" onclick="showSMSform(' . $number . ');"><img id="sms' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/object_sms.png"></td>';
                                                 }
                                                 $ID = "'#img" . $row['rowid'] . $fields[$num_col]->name . "'";

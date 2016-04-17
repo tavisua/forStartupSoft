@@ -236,7 +236,7 @@ if(in_array($object->categoryofcustomer_id, $sales_category)){
     print '<input id="action" name="action" value="edit" type="hidden">';
     print '<input id="socid" name="socid" value="'.$_REQUEST['socid'].'" type="hidden">';
     print '<input id="actionlineactive" name="actionlineactive" value="updatelineactive" type="hidden">';
-    print $form->selectLineAction($lineactive, 'lineaction', 30);
+    print $form->selectLineAction($lineactive, 'select_lineaction', 30);
     print '</br>';
     print '<input type="submit" value="Зберегти">';
     print '</form>';

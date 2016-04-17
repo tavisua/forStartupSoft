@@ -163,18 +163,18 @@ include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/respo
 llxPopupMenu();
 exit();
 
-function showProposition($id,$contactid=0){
-    global $db;
+function showProposition($proposed_id,$contactid=0){
+    global $db, $langs;
     $sql = 'select `begin`, `end`, `description`,  `text`
         from  `llx_c_proposition`
-        where rowid = '.$id;
+        where rowid = '.$proposed_id;
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
     $obj = $db->fetch_object($res);
     $out='<table class="setdate" style="background: #ffffff; width: 450px">
-            <thead><tr class="multiple_header_table"><th class="middle_size" colspan="2" style="width: 100%">Суть пропозиції для посади '.$obj->postname.'</th>
-            <a class="close" style="margin-left: -160px" onclick="ClosePopupMenu();" title="Закрити"></a>
+            <thead><tr class="multiple_header_table"><th class="middle_size" colspan="9" style="width: 100%">Суть пропозиції для посади '.$obj->postname.'</th>
+            <a class="close" style="margin-left: -160px" onclick="ClosePopupMenu($(this));" title="Закрити"></a>
                 </tr>
                 </thead>
             <tbody>';
@@ -184,26 +184,52 @@ function showProposition($id,$contactid=0){
         $endProposition = $endProposition->format('d.m.Y');
     }else
         $endProposition = $obj->description;
-
+    require_once DOL_DOCUMENT_ROOT.'/product/class/proposedProducts.class.php';
+    $proposedPoducts = new proposedProducts($db);
+    $tabody = $proposedPoducts->ShowProducts($proposed_id, true);
     $out .='<tr>
-                <td class="middle_size"><b>Початок пропозиції</b></br>'.$beginProposition->format('d.m.').'</td >
+                <td class="middle_size" colspan="9" ><b>Початок пропозиції</b></br>'.$beginProposition->format('d.m.').'</td >
             </tr >
             <tr>
-                <td class="middle_size"><b>Кінець пропозиції</b></br>'.$endProposition.'</td >
+                <td class="middle_size" colspan="9" ><b>Кінець пропозиції</b></br>'.$endProposition.'</td >
             </tr >
             <tr>
-                <td class="middle_size"><textarea id="askProposed" style="width:100%">'.$obj->text.'</textarea></td >
-            </tr >
-            <tr>
-                <td><button onclick="SaveResultProporition('.$contactid.');">Зберегти результати перемовин</button><button>Повернутись до пропозицій</button></td>
+                <td id="titreProposed" colspan="9" class="titreProposed">'.$obj->text.'</td >
+            </tr >';
+
+    $out .= '<tr>
+                <td id="Proposition" ';
+
+    $html = file_get_contents(DOL_DOCUMENT_ROOT.'/theme/eldy/admin/proposedProducts.html');
+//    var_dump();
+//    die();
+    $html = substr($html, strpos($html, '</form>')+7);
+    while(strpos($html,'<?=')){
+        $php = '$res='.substr($html, strpos($html,'<?=')+3, strpos($html,'?>')-strpos($html,'<?=')-3).';';
+        $res='';
+        eval($php);
+        $html = substr($html, 0, strpos($html,"<?=")).$res.substr($html, strpos($html,"?>")+2);
+//        die($html);
+//        break;
+    }
+
+    $out .= $html;
+    $out .='</td></tr>';
+    $out .='<tr>
+                <td colspan="9"><button onclick="SaveResultProporition('.$contactid.');">Зберегти результати перемовин</button></td>
             </tr>';
     $out .='</tbody>
         </table>';
+    $out.='<style>
+            div#BasicInformation, div#PriceOffers, div#OtherInformationOffers{
+                font-size: 12px;
+            }
+        </style>';
     return $out;
 }
 function showTitleProposition($post_id, $lineactive, $contactid=0){
     global $db;
-    $sql = 'select `llx_c_proposition`.rowid, `llx_post`.`postname`, `begin`,`end`, description
+    $sql = 'select `llx_c_proposition`.rowid, text
         from  `llx_c_proposition`
         inner join `llx_post` on `llx_post`.`rowid` = `llx_c_proposition`.`fk_post`
         where 1
@@ -221,24 +247,22 @@ function showTitleProposition($post_id, $lineactive, $contactid=0){
                 </tr>
                 <tr class="multiple_header_table">
                     <th class="middle_size">№п/п</th>
-                    <th class="middle_size">Початок</th>
-                    <th class="middle_size">Кінець</th>
+                    <th class="middle_size">Заголовок</th>
                 </tr>
                 </thead>
             <tbody>';
     mysqli_data_seek($res, 0);
     $num = 1;
     while($obj = $db->fetch_object($res)) {
-        $begin = new DateTime($obj->begin);
-        if(!empty($obj->end)) {
-            $end = new DateTime($obj->end);
-            $end = $end->format('d.m.Y');
-        }else
-            $end = $obj->description;
+//        $begin = new DateTime($obj->begin);
+//        if(!empty($obj->end)) {
+//            $end = new DateTime($obj->end);
+//            $end = $end->format('d.m.Y');
+//        }else
+//            $end = $obj->description;
         $out .='<tr onclick = "showProposed('.$obj->rowid.', '.$contactid.');" style = "cursor: pointer">
                     <td class="middle_size">'.$num++.'</td >
-                    <td class="middle_size">'.$begin->format('d.m').'</td >
-                    <td class="middle_size">'.$end.'</td >
+                    <td class="middle_size">'.$obj->text.'</td >
                 </tr >';
     }
     $out .='</tbody>
@@ -255,8 +279,8 @@ function getProposition($socid = 0){
     while($db->num_rows($res) && $obj = $db->fetch_object($res)){
         $lineactive[] = $obj->fk_lineactive;
     }
-    var_dump($lineactive);
-    die();
+//    var_dump(count($lineactive));
+//    die($sql);
     $sql ='select distinct `llx_post`.rowid, `llx_post`.postname, `llx_c_proposition`.`fk_lineactive` from `llx_c_proposition`
         inner join `llx_post` on `llx_post`.`rowid` = `llx_c_proposition`.`fk_post`
         where 1
@@ -267,12 +291,15 @@ function getProposition($socid = 0){
     if(!$res_prop)
         dol_print_error($db);
     $out = '';
+//    die($sql);
     while($obj = $db->fetch_object($res_prop)){
-        if(empty($obj->fk_lineactive) || in_array($obj->fk_lineactive,$lineactive))
+        if(empty($obj->fk_lineactive) || in_array($obj->fk_lineactive,$lineactive) || count($lineactive) == 0)
             $out .= '<tr>
                         <td class="middle_size" style="padding-left: 10px;" colspan="4" id="'.$obj->rowid.'">'.$obj->postname.'</td>
                     </tr>';
     }
+//var_dump(htmlspecialchars($out));
+//    die();
     return $out;
 }
 function selectcontact($socid, $contactid=0){

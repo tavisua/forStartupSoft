@@ -107,11 +107,13 @@ KindOfLocality=Вид населеного пункту
 KindOfStreet=Вид вулиці
 KindOfOffice=Вид офісу
 LineActiveCustomer=Напрямки діяльності
-Proposition=Пропозиції
+Proposition=Заголовок
+PropositionDict=Пропозиції
 postname=Посада
 begin=Початок
 end=Кінець
 proposition=Пропозиція
+tests=
 GroupOfOrganizationalIssues=Група організаційних питань
 issues=Група питань
 
@@ -122,6 +124,7 @@ ConnectedSince=Connected since
 AuthenticationMode=Authentification mode
 aPost=Посада
 Control=Керування
+review=Переглянути
 NewItem=Додати запис
 ####До таблиці посади###
 
