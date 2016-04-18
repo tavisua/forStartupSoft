@@ -40,11 +40,11 @@ $sql_count.=' and `llx_societe`.active = 1 ';
 
 
 
-if($user->login != 'admin') {
-    $tmp = ' and `llx_societe`.`fk_user_creat`=' . $user->id;
-    $sql.=$tmp;
-    $sql_count.=$tmp;
-}
+//if($user->login != 'admin') {
+//    $tmp = ' and `llx_societe`.`fk_user_creat`=' . $user->id;
+//    $sql.=$tmp;
+//    $sql_count.=$tmp;
+//}
 
 if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])){
     if($_REQUEST['filter']!='today') {

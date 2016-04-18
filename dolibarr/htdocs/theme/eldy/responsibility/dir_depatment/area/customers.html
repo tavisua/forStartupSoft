@@ -1,4 +1,4 @@
-<div class="contant_tble" style="padding-top: 20px">
+<div class="contant_tble" style="padding-top: 32px">
 
         <div class="tabs" id="tabs_area" data-role="controlgroup" data-type="horizontal">
             <div class="inline-block tabsElem tabsElemActive">
@@ -7,7 +7,6 @@
             <div  class="inline-block tabsElem" id="Calculator">
                 <a href="/dolibarr/htdocs/responsibility/sale/calculator.php?idmenu=10425&mainmenu=area<?= isset($_GET['page'])?('&page='.$_GET['page'].'&per_page='.$_GET['per_page']):''?>"class="tab inline-block" data-role="button"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<? echo $langs->trans('Calculator')?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b></a>
             </div>
-
         </div>
 
     <table  cellspacing="1" class="WidthScroll">
@@ -72,11 +71,6 @@
             function closefindmenu(){
                 $('#popupmenu').hide();
             }
-            function showfilter(){
-                $('#popupmenu').offset({top:220});
-                $('#popupmenu').show();
-                $('#filter').focus();
-            }
             $(document).ready(function(){
                 $('#reference_body').attr('height', window.innerHeight - 420);
                 var th = document.getElementsByTagName('th');
@@ -111,24 +105,37 @@
                     }
 
                 }
-                $('.tabs').offset({top:215, left:left});
+
+                $('.tabs').offset({top:250, left:left});
 //                console.log($('#comerc_action').width());
-                $('#comerc').offset({top:150, left:$('#comerc_action').offset().left});
-                $('#service').offset({top:150, left:$('#service_action').offset().left});
-                $('#accounts').offset({top:150, left:$('#accounts_action').offset().left});
-                $('#mentor').offset({top:150, left:$('#mentor_action').offset().left});
+                $('#comerc').offset({top:172, left:$('#comerc_action').offset().left});
+                $('#service').offset({top:172, left:$('#service_action').offset().left});
+                $('#accounts').offset({top:172, left:$('#accounts_action').offset().left});
+                $('#mentor').offset({top:172, left:$('#mentor_action').offset().left});
                 $('#tabs_area').width(600);
-                $('#tabs_area').offset({top:$('#headercontrol').offset().top+$('#headercontrol').height()});
                 $('#reference_body').offset({left:22});
 ////console.log(TotalWidth, widths);
-                SetTheadColumnWidth();
-//                $('#reference_body').width(TotalWidth+30);
-
+                $('#reference_body').width(TotalWidth+30);
             })
+            function clearfilter(){
+//                $('#filter').clean();
+                $('#setfilter').submit();
+            }
+            function showfilter(){
+                $('#popupmenu').offset({top:220});
+                $('#popupmenu').show();
+                $('#filter').focus();
+            }
+            $(window).keydown(function(event){ //ловим событие нажатия клавиши
+                if(event.keyCode == 13) { //если это Enter
+                   console.log(event.target.id);
+                }
+            });
 
         </script>
 <script type="text/javascript">
     $(document).ready(function(){
+
         var tbody = document.getElementById('reference_body');
         if(tbody == null)return;
         var trList = tbody.getElementsByTagName('tr');
@@ -151,33 +158,6 @@
             }
         }
     })
-    function SetTheadColumnWidth(){
-        var tr = $('#reference_body').find('tr')[0];
-        var td = tr.getElementsByTagName('td');
-        var thead = $('.WidthScroll').find('thead').find('tr')[1];
-        var th = thead.getElementsByTagName('th');
-        console.log(tr.id.substr(2));
-        var id = tr.id.substr(2);
-        var num = 0;
-        var nom = 0;
-        for(var i = 0; i<td.length; i++){
-            if(td[i].id.substr(0, id.length) == id || td[i].id == id) {
-                var tr_thead, th_thead;
-                if (num >= 0 && num <= 6 || num == 16) {//Кількість прострочених
-                    tr_thead = $('.WidthScroll').find('thead').find('tr')[0];
-                    th_thead = tr_thead.getElementsByTagName('th');
-                    if(th_thead[num] != null)
-                        $('#'+td[i].id).width(th_thead[num].clientWidth-1);
-                }else{
-                    tr_thead = $('.WidthScroll').find('thead').find('tr')[1];
-                    th_thead = tr_thead.getElementsByTagName('th');
-//                    $('#'+td[i].id).width(th_thead[num-7].clientWidth-1);
-                    console.log(<?="'".$conf->browser->name."'"?>, td[i].id, num, th_thead[num-7]);
-                }
-                num++;
-            }
-        }
-    }
     function preview(object){
         console.log(object);
         $("#prev_form").text($("#full"+object).text());
@@ -211,7 +191,7 @@
             url: link+'&id_usr='+id_usr,
             cache: false,
             success: function (html) {
-//                console.log(html);
+                console.log(html);
             }
         });
 

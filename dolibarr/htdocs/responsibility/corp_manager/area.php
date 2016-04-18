@@ -25,9 +25,9 @@ elseif(isset($_SESSION["state_filter"]))
 //echo '</pre>';
 //die();
 //Шапка сторінки
-include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/sale/area/header.php';
+include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/corp_manager/area/header.php';
 //Перелік контрагентів
-include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/sale/area/customers.php';
+include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/corp_manager/area/customers.php';
 if(strpos($_SERVER['QUERY_STRING'],'&page='))
     $link_page = $_SERVER['PHP_SELF'].'?'.substr($_SERVER['QUERY_STRING'],0,strpos($_SERVER['QUERY_STRING'],'&page='));
 else

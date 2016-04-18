@@ -6,8 +6,7 @@
  * Time: 11:32
  */
 $region_id = $_SESSION['state_filter'];
-//var_dump($region_id);
-//die();
+
 $search = explode(',',$_GET['search']);
 $search_array = array();
 foreach($search as $elem) {
@@ -67,6 +66,7 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])){
         $sql_filter="select fk_soc as rowid from `llx_actioncomm`
           where datep between '".date('Y-m-d')."' and adddate('".date('Y-m-d')."', interval 1 day)";
     }
+//    die($sql_filter);
     $res = $db->query($sql_filter);
     if(!$res)
         dol_print_error($db);
