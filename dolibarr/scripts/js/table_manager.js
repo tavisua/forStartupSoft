@@ -107,15 +107,26 @@ function getParameterByName(name, url) {
     return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
 function SaveResultProporition(contactid){
+
     var date = new Date();
     var sDate = date.getDate()+'.'+date.getMonth()+'.'+date.getFullYear();
+    var products = $('.need');
+    var productsname = [];
+    var needList = [];
+    for(var i=0; i<products.length; i++){
+        productsname.push($('td#productname'+products[i].id.substr(4)).html());
+        needList.push($('input#'+products[i].id).val());
+    }
+    //console.log(productsname, needList);
     var param ={
         backtopage: location.href,
         action:'addonlyresult',
         socid:getParameterByName('socid'),
         mainmenu:'area',
         datep:date,
-        said:$('textarea#askProposed').text(),
+        said:$('td#titleProposition').html(),
+        productsname:productsname,
+        need:needList,
         contactid:contactid
     }
     $('#redirect').find('#action_id').remove();
@@ -205,6 +216,7 @@ function showProposed(id,contactid){
             $('#Proposition').show();
             $('#Proposition').offset({top:$('#contactlist').offset().top-30,left:$('#contactlist').offset().left+$('#contactlist').width()/2});
             $('#Proposition').attr('TitleProposed', 1);
+            $('#Proposition').attr('fx_proposition', id);
         }
     })
 }

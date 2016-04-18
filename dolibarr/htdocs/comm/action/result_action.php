@@ -48,6 +48,7 @@ if(!isset($_REQUEST["onlyresult"])||empty($_REQUEST["onlyresult"])) {
     $object = new ActionComm($db);
     $object->fetch($action_id);
     $socid = $object->socid;
+
 //    echo '<pre>';
 //    var_dump($object);
 //    echo '</pre>';
@@ -109,6 +110,12 @@ if(!($_GET['action'] == 'addonlyresult' || (isset($_REQUEST["onlyresult"])&&$_RE
 }else {
     $form = new Form($db);
     $contactlist = '<tr><td>Контактне лице</br>'.$form->selectcontacts(empty($_GET['socid'])?$object->socid:$_GET['socid'], empty($object->contactid)?$_GET['contactid']:$object->contactid, 'contactid', 1).'</td></tr>';
+    $productname = explode(',', $_REQUEST['productsname']);
+    $needlist = explode(',', $_REQUEST['need']);
+    $object->resultaction['answer']='';
+    for($i=0; $i<count($productname);$i++){
+        $object->resultaction['answer'].=$productname[$i].' '.(empty($needlist[$i])?'не потрібно':$needlist[$i]).'; ';
+    }
 }
 //var_dump(htmlspecialchars($contactlist));
 //die();

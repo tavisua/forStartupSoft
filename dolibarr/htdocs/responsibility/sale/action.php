@@ -187,34 +187,8 @@ function showProposition($proposed_id,$contactid=0){
     require_once DOL_DOCUMENT_ROOT.'/product/class/proposedProducts.class.php';
     $proposedPoducts = new proposedProducts($db);
     $tabody = $proposedPoducts->ShowProducts($proposed_id, true);
-    $out .='<tr>
-                <td class="middle_size" colspan="9" ><b>Початок пропозиції</b></br>'.$beginProposition->format('d.m.').'</td >
-            </tr >
-            <tr>
-                <td class="middle_size" colspan="9" ><b>Кінець пропозиції</b></br>'.$endProposition.'</td >
-            </tr >
-            <tr>
-                <td id="titreProposed" colspan="9" class="titreProposed">'.$obj->text.'</td >
-            </tr >';
 
-    $out .= '<tr>
-                <td id="Proposition" ';
-
-    $html = file_get_contents(DOL_DOCUMENT_ROOT.'/theme/eldy/admin/proposedProducts.html');
-//    var_dump();
-//    die();
-    $html = substr($html, strpos($html, '</form>')+7);
-    while(strpos($html,'<?=')){
-        $php = '$res='.substr($html, strpos($html,'<?=')+3, strpos($html,'?>')-strpos($html,'<?=')-3).';';
-        $res='';
-        eval($php);
-        $html = substr($html, 0, strpos($html,"<?=")).$res.substr($html, strpos($html,"?>")+2);
-//        die($html);
-//        break;
-    }
-
-    $out .= $html;
-    $out .='</td></tr>';
+    $out .=$tabody;
     $out .='<tr>
                 <td colspan="9"><button onclick="SaveResultProporition('.$contactid.');">Зберегти результати перемовин</button></td>
             </tr>';

@@ -117,65 +117,116 @@ class proposedProducts
         $res = $this->db->query($sql);
         if(!$res)
             dol_print_error($this->db);
-        $out = '<tbody>';
-        if($this->db->num_rows($res) == 0){
-            $out .= '<tr class="pair">';
-            for($i=0;$i<19;$i++) {
-                if($i<=1)
-                    $class='class="middle_size"';
-                elseif($i>1&&$i<=8)
-                    $class='class="middle_size pageCol basicInformation"';
-                elseif($i>8&&$i<16)
-                    $class='class="middle_size pageCol priceOffers" style="display:none"';
-                elseif($i>=16&&$i<18)
-                    $class='class="middle_size pageCol otherOffersInformation" style="display:none"';
-                else
-                    $class='';
-
-                $out .= '<td ' . $class . '>&nbsp;</td>';
-            }
+        if($preview)
+            $out = '';
+        else
+            $out = '<tbody>';
+        if($preview){
+            $sql = "select text from llx_c_proposition where rowid = ".$prodosed_id;
+            $restitle = $this->db->query($sql);
+            $obj = $this->db->fetch_object($restitle);
+            $out .= '<tr>';
+            $out .= '<td class="titreProposed" id="titleProposition">'.trim($obj->text).'</td>';
             $out .= '</tr>';
-        }else{
+            $title = array('Завод-виробник','№ по катагогу (атикул)','№ карточки в 1С',
+                'Наявність','Од.виміру','Місце відвантаження','ОСОБЛИВІСТЬ ПРОПОЗИЦІЇ','ВИГОДИ КЛІЄНТУ',
+                'прайсова ціна','ціна пропозиції','Необхідний % предоплати','Кінцева дата предоплати',
+                'Кінцева доплата клієнтом до, дата/події','Дата поставки/виконання','ДОСТАВКА',
+                'ІНШІ ПІЛЬГИ ТА ПОДАРУНКИ','Примітка','Потреба');
+            $param = array('Prodaction','ProductName','articul','Number1C','Nal','ed_izm',
+            'shipTown','featureOffers','profitCustomer','price','offerPrice','advance','deadlineAdvance',
+            'deadlineSale','dateExec','delivary','otherDiscont','description');
             $num = 0;
-            while($obj = $this->db->fetch_array($res)){
-                $keys = array_keys($obj);
-                fmod($num,2) == 0?$class="pair":$class="impair";
-                $out .= '<tr class = "'.$class.'" id="'.$obj[$keys[1]].'">';
-                $i=2;
-                $td_num = 0;
-                while($i<count($keys)){
-                    if(!is_numeric($keys[$i])) {
-                        if($td_num<=1)
-                            $cell_class='class="middle_size"';
-                        elseif($td_num>1&&$td_num<=8)
-                            $cell_class='class="middle_size pageCol basicInformation"';
-                        elseif($td_num>8&&$td_num<16)
-                            $cell_class='class="middle_size pageCol priceOffers" style="display:none"';
-                        elseif($td_num>=16&&$td_num<18)
-                            $cell_class='class="middle_size pageCol otherOffersInformation" style="display:none"';
-                        else
-                            $cell_class='';
-                        $out .= '<td id="'.$keys[$i].$obj[$keys[1]].'" '.$cell_class.'>'.(mb_strlen($obj[$keys[$i]], 'UTF-8')>20?
-                                mb_substr($obj[$keys[$i]], 0, 20, 'UTF-8').'...<input id="_'.$keys[$i].$obj[$keys[1]].'" type=hidden value="'.$obj[$keys[$i]].'">':$obj[$keys[$i]]).'</td>';
-                        $td_num++;
+            foreach($title as $item){
+                fmod($num,2)==0?$class="pair":$class="impair";
+                if($num == 0){
+                    $out .= '<tr>';
+                    $out .= '<td class="multiple_header_table"></td>';
+                    mysqli_data_seek($res, 0);
+                    while($obj = $this->db->fetch_array($res)){
+                        $out .= '<td class="multiple_header_table productname" id="productname'.$obj['rowid'].'">'.$obj[$param[1]].'</td>';
                     }
-                    $i++;
+                    $out .= '</tr>';
                 }
-                //control_button
-                $out.= '<td>';
-                if(!$preview) {
-                    $out .= '<img  id="img_edit' . $obj[$keys[1]] . '" src="' . DOL_URL_ROOT . '/theme/' . $this->conf->theme . '/img/edit.png" title="' . $this->langs->trans('Edit') . '" style="vertical-align: middle" onclick="edit_item(' . $obj[$keys[1]] . ');">&nbsp;&nbsp;';
-                    $out .= '<img  id="img_del' . $obj[$keys[1]] . '" src="' . DOL_URL_ROOT . '/theme/' . $this->conf->theme . '/img/delete.png" title="' . $this->langs->trans('Del') . '" style="vertical-align: middle" onclick="del_item(' . $obj[$keys[1]] . ');">';
+                $out .= '<tr class="'.$class.'">';
+                $out .= '<td class="middle_size"><b>' . trim($item) . '</b></td>';
+                if($num<count($param)) {
+                    mysqli_data_seek($res, 0);
+                    while ($obj = $this->db->fetch_array($res)) {
+                        $out .= '<td class="middle_size">' . $obj[$param[$num]] . '</td>';
+                    }
+                    $num++;
+                    if ($num == 1)
+                        $num++;
                 }else{
-                    $out .= '<img  id="img_rev' . $obj[$keys[1]] . '" src="' . DOL_URL_ROOT . '/theme/' . $this->conf->theme . '/img/preview.png" title="' . $this->langs->trans('review') . '" style="vertical-align: middle" onclick="show_item(' . $obj[$keys[1]] . ');">&nbsp;&nbsp;';
-                    $out .= '<img  id="img_sel' . $obj[$keys[1]] . '" src="' . DOL_URL_ROOT . '/theme/' . $this->conf->theme . '/img/uncheck.png" title="' . $this->langs->trans('Choose') . '" style="vertical-align: middle" onclick="select_item($(this),' . $obj[$keys[1]] . ');">';
+                    mysqli_data_seek($res, 0);
+                    while ($obj = $this->db->fetch_object($res)) {
+                        $out .= '<td class="middle_size"><input type="text" class="need" id="need'.$obj->rowid.'" name="need'.$obj->rowid.'" style="width:100%"></td>';
+                    }
                 }
-                $out.='</td>';
                 $out .= '</tr>';
-                $num++;
+            }
+        }else {
+            if ($this->db->num_rows($res) == 0) {
+                $out .= '<tr class="pair">';
+                for ($i = 0; $i < 19; $i++) {
+                    if ($i <= 1)
+                        $class = 'class="middle_size"';
+                    elseif ($i > 1 && $i <= 8)
+                        $class = 'class="middle_size pageCol basicInformation"';
+                    elseif ($i > 8 && $i < 16)
+                        $class = 'class="middle_size pageCol priceOffers" style="display:none"';
+                    elseif ($i >= 16 && $i < 18)
+                        $class = 'class="middle_size pageCol otherOffersInformation" style="display:none"';
+                    else
+                        $class = '';
+
+                    $out .= '<td ' . $class . '>&nbsp;</td>';
+                }
+                $out .= '</tr>';
+            } else {
+                $num = 0;
+                while ($obj = $this->db->fetch_array($res)) {
+                    $keys = array_keys($obj);
+                    fmod($num, 2) == 0 ? $class = "pair" : $class = "impair";
+                    $out .= '<tr class = "' . $class . '" id="' . $obj[$keys[1]] . '">';
+                    $i = 2;
+                    $td_num = 0;
+                    while ($i < count($keys)) {
+                        if (!is_numeric($keys[$i])) {
+                            if ($td_num <= 1)
+                                $cell_class = 'class="middle_size"';
+                            elseif ($td_num > 1 && $td_num <= 8)
+                                $cell_class = 'class="middle_size pageCol basicInformation"';
+                            elseif ($td_num > 8 && $td_num < 16)
+                                $cell_class = 'class="middle_size pageCol priceOffers" style="display:none"';
+                            elseif ($td_num >= 16 && $td_num < 18)
+                                $cell_class = 'class="middle_size pageCol otherOffersInformation" style="display:none"';
+                            else
+                                $cell_class = '';
+                            $out .= '<td id="' . $keys[$i] . $obj[$keys[1]] . '" ' . $cell_class . '>' . (mb_strlen($obj[$keys[$i]], 'UTF-8') > 20 ?
+                                    mb_substr($obj[$keys[$i]], 0, 20, 'UTF-8') . '...<input id="_' . $keys[$i] . $obj[$keys[1]] . '" type=hidden value="' . $obj[$keys[$i]] . '">' : $obj[$keys[$i]]) . '</td>';
+                            $td_num++;
+                        }
+                        $i++;
+                    }
+                    //control_button
+                    $out .= '<td>';
+//                    if (!$preview) {
+                        $out .= '<img  id="img_edit' . $obj[$keys[1]] . '" src="' . DOL_URL_ROOT . '/theme/' . $this->conf->theme . '/img/edit.png" title="' . $this->langs->trans('Edit') . '" style="vertical-align: middle" onclick="edit_item(' . $obj[$keys[1]] . ');">&nbsp;&nbsp;';
+                        $out .= '<img  id="img_del' . $obj[$keys[1]] . '" src="' . DOL_URL_ROOT . '/theme/' . $this->conf->theme . '/img/delete.png" title="' . $this->langs->trans('Del') . '" style="vertical-align: middle" onclick="del_item(' . $obj[$keys[1]] . ');">';
+//                    } else {
+//                        $out .= '<img  id="img_rev' . $obj[$keys[1]] . '" src="' . DOL_URL_ROOT . '/theme/' . $this->conf->theme . '/img/preview.png" title="' . $this->langs->trans('review') . '" style="vertical-align: middle" onclick="show_item(' . $obj[$keys[1]] . ');">&nbsp;&nbsp;';
+//                        $out .= '<img  id="img_sel' . $obj[$keys[1]] . '" src="' . DOL_URL_ROOT . '/theme/' . $this->conf->theme . '/img/uncheck.png" title="' . $this->langs->trans('Choose') . '" style="vertical-align: middle" onclick="select_item($(this),' . $obj[$keys[1]] . ');">';
+//                    }
+                    $out .= '</td>';
+                    $out .= '</tr>';
+                    $num++;
+                }
             }
         }
-        $out .='</tbody>';
+        if(!$preview)
+            $out .='</tbody>';
         return $out;
     }
     function fetchProductsItem($rowid){
