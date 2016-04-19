@@ -196,6 +196,8 @@ $action=GETPOST('action','alpha');
 $cancel=GETPOST('cancel','alpha');
 //$backtopage=GETPOST('backtopage','alpha');
 $backtopage=$_REQUEST['backtopage'];
+if(substr($backtopage, 0, 1) != '/')
+	$backtopage = '/'.$backtopage;
 $contactid=GETPOST('contactid','int');
 $origin=GETPOST('origin','alpha');
 $originid=GETPOST('originid','int');
@@ -2027,6 +2029,7 @@ print '
             return i >= 0 ? i : false;
         }
         function dpChangeDay(id, format){
+
             if(id == "ap"){
                 $("#p2").val($("#ap").val())
                 $("#apday").val($("#ap").val().substr(0,2));
@@ -2037,7 +2040,6 @@ print '
                 $("#p2year").val($("#apyear").val());
                 if($("#showform").val()!=0){
 
-					setP2(0);
 //                	var Date2 = new Date($("#p2year").val(),
 //                						($("#p2month").val().substr(0,1)=="0"?$("#p2month").val().substr(1):$("#p2month").val()),
 //                						($("#p2day").val().substr(0,1)=="0"?$("#p2day").val().substr(1):$("#p2day").val()),
@@ -2053,6 +2055,8 @@ print '
                 	$("#showform").val(1);
                 }
             }
+            console.log("dpChangeDay");
+            setP2(0);
             CalcP($("#ap").val(), $("#exec_time").val(), '.$user->id.');//Розрахунок часу початку дії
         }
         $("#exec_time").keypress(function(e){
@@ -2063,30 +2067,37 @@ print '
 //        	console.log(e.keyCode == 13);
         })
         function setP2(showalert){
-//            console.log($("select#apmin").val());
-            if($("select#apmin").val() == -1) return;
-            else if($("select#apmin").val() != "-1") {
-                if($("select#actioncode").val()!=0){
-//                    if($("#actioncode").val() != "AC_GLOBAL")
-//                        $("#period").hide();
-//                    else
-//                        $("#period").show();
-                    var link = "http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=get_exectime&code="+$("select#actioncode").val();
+            if($("select#actioncode").val() == 0) return;
+            else if($("select#actioncode").val()!=0){
+            	console.log($("select#aphour").val() == -1 && $("select#apmin").val() == -1);
+//				if($("select#aphour").val() == -1 && $("select#apmin").val() == -1){
+////					console.log($("select#aphour").val());
+////					$("select#aphour" [value='.'"08"'.']).attr("selected", "selected");
+//					document.getElementById("aphour").value = "08";
+//					document.getElementById("apmin").value = "00";
+////					console.log($("select#aphour").val());
+//				}
+				var link = "http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=get_exectime&code="+$("select#actioncode").val();
 //                    console.log(link);
-                    $.ajax({
-                        url:link,
-                        cache: false,
-                        success: function(html){
-                        	$("#exec_time").val(html);
-                            CalcP2();
-                        }
-                    })
-                }else{
-                	if(showalert == 1)
-                		alert("Будь ласка вкажіть тип дії");
-                }
+				$.ajax({
+					url:link,
+					cache: false,
+					success: function(html){
+						$("#exec_time").val(html);
+						if($("select#aphour").val() == -1 && $("select#apmin").val() == -1){
+//						link = "http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=get_freetime&minute="+$("#exec_time").val()+"&date="+$("#apyear").val()+"-"+$("#apmonth").val()+"-"+$("#apday").val()+"&id_usr=' . $user->id . '&actioncode="+$("select#actioncode").val();
+//						setTime(link);
+							CalcP($("#apyear").val()+"-"+$("#apmonth").val()+"-"+$("#apday").val(), $("#exec_time").val(), '.$user->id.');
+						}else
+							CalcP2();
+					}
+				})
+			}else{
+				if(showalert == 1)
+					alert("Будь ласка вкажіть тип дії");
+			}
 
-            }
+
         }
 
         function ActionCodeChanged(){

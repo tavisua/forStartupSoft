@@ -78,16 +78,18 @@
 <script type="text/javascript">
     $(document).ready(function(){
         var tbody = document.getElementById('reference_body');
-        var trList = tbody.getElementsByTagName('tr');
-        for(var index = 0; index<trList.length; index++){
-            var tdList = trList[index].getElementsByTagName('td');
-            for(var tdIndex = 0; tdIndex<tdList.length; tdIndex++){
-                if(tdList[tdIndex].id.substr(tdList[tdIndex].id.length-'whom'.length) == 'whom') {
+        if(tbody != null) {
+            var trList = tbody.getElementsByTagName('tr');
+            for (var index = 0; index < trList.length; index++) {
+                var tdList = trList[index].getElementsByTagName('td');
+                for (var tdIndex = 0; tdIndex < tdList.length; tdIndex++) {
+                    if (tdList[tdIndex].id.substr(tdList[tdIndex].id.length - 'whom'.length) == 'whom') {
 //                     http://uspex2015.com/dolibarr/htdocs/user/card.php?id=13
-                    var id = tdList[tdIndex].id.substr(0, (tdList[tdIndex].id.length - 'whom'.length));
-                    tdList[tdIndex].innerHTML = '<a id = "login_'+id+'" href="/dolibarr/htdocs/societe/addaddress.php?mainmenu=companies&idmenu=<?echo $_REQUEST["idmenu"]?>&action=edit&rowid='+id+'"> <img border="0"  alt="" src="/dolibarr/htdocs/theme/eldy/img/object_address.png">' +' '+ (tdList[tdIndex].innerHTML) + '</a>';
+                        var id = tdList[tdIndex].id.substr(0, (tdList[tdIndex].id.length - 'whom'.length));
+                        tdList[tdIndex].innerHTML = '<a id = "login_' + id + '" href="/dolibarr/htdocs/societe/addaddress.php?mainmenu=companies&idmenu=<?echo $_REQUEST["idmenu"]?>&action=edit&rowid=' + id + '"> <img border="0"  alt="" src="/dolibarr/htdocs/theme/eldy/img/object_address.png">' + ' ' + (tdList[tdIndex].innerHTML) + '</a>';
 //                     console.log(tdList[tdIndex].id.substr(0, (tdList[tdIndex].id.length - 'login'.length)));
 //                     console.log(id);
+                    }
                 }
             }
         }

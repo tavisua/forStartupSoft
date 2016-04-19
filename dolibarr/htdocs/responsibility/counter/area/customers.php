@@ -38,8 +38,9 @@ where 1  ';
     $sql_count.=' and `llx_societe`.active = 1 ';
 
 //echo '<pre>';
-//var_dump($user->id);
+//var_dump($sql);
 //echo '</pre>';
+//die();
 
 if($user->login != 'admin') {
     $tmp = ' and (`llx_societe`. fk_user_creat = '.$user->id.' or `llx_societe_lineactive`.`fk_lineactive` in ('.implode(',', $user->getLineActive()).'))';
@@ -112,10 +113,13 @@ $sql .= ' order by width desc, nom';
 $sql .= ' limit '.($page-1)*$per_page.','.$per_page;
 
 $res = $db->query($sql_count);
+if(!$res)
+    dol_print_error($db);
 $count = $db->fetch_object($res);
+//die('test');
 
 //echo '<pre>';
-//var_dump($sql);
+//var_dump($sql_count);
 //echo '</pre>';
 //die();
 $total = ceil($count->iCount/$per_page);

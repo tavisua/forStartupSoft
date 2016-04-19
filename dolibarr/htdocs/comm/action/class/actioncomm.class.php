@@ -221,8 +221,10 @@ class ActionComm extends CommonObject
         return $exec_time;
     }
     function GetFreeTime($inputdate, $id_usr, $minutes, $prioritet = 0, $starttime){
+        if(empty($prioritet))$prioritet = 0;
 //        var_dump($inputdate, $id_usr, $minutes, $prioritet, $starttime);
 //        die();
+
         $date = new DateTime($inputdate);
         $PlanTime = 0;
         while(!$PlanTime) {
@@ -236,7 +238,7 @@ class ActionComm extends CommonObject
     }
     function GetFirstFreeTime($date, $id_usr, $minutes, $prioritet = 0, $starttime){
         $freetime = $this->GetFreeTimePeriod($date, $id_usr, $prioritet);
-//        var_dump(count($freetime));
+//        var_dump($freetime);
 //        die();
         if(empty($starttime)||$starttime<time())
              $starttime = time();
@@ -267,6 +269,7 @@ class ActionComm extends CommonObject
               where `type` in ('system', 'user'))
                 and (`llx_actioncomm_resources`.`fk_element`= ".$id_usr." or (`llx_actioncomm`.`fk_user_author`= ".$id_usr." and `llx_actioncomm`.id not in (select `llx_actioncomm_resources`.`fk_actioncomm` from `llx_actioncomm_resources` where `llx_actioncomm_resources`.`fk_element`= ".$id_usr.")))
             and `llx_actioncomm`.`priority` = ".(empty($prioritet)?0:$prioritet)."
+            and `llx_actioncomm`.`active` = 1
             order by `llx_actioncomm`.`datep`";
         $res = $db->query($sql);
         if(!$res)
