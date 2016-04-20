@@ -9,10 +9,10 @@
 require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
 if(count($_POST)>0){
     $_SESSION['region_id'] = GETPOST('state_filter', 'int');
-//    echo '<pre>';
-//    var_dump($_SESSION['region_id']);
-//    echo '</pre>';
-//    die();
+    echo '<pre>';
+    var_dump($_SESSION['region_id']);
+    echo '</pre>';
+    die();
 }
 //echo '<pre>';
 //var_dump($_REQUEST);

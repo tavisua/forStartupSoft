@@ -1171,6 +1171,21 @@ class User extends CommonObject
 	 *		@param	int		$nosyncmemberpass	0=Synchronize linked member (password), 1=Do not synchronize linked member
 	 *    	@return int 		        		<0 si KO, >=0 si OK
 	 */
+	function getCategoriesContractor(){
+		$sql = 'select case when fk_categories <> 0 then fk_categories else other_categories end fk_categories from llx_user_categories_contractor where fk_user = '.$this->id.' and active = 1';
+//		die($sql);
+		$res = $this->db->query($sql);
+		if(!$res)
+			dol_print_error($this->db);
+		$categories = array();
+		while($obj = $this->db->fetch_object($res)){
+			$val = is_numeric($obj->fk_categories)?$obj->fk_categories:"'".$obj->fk_categories."'";
+			if(!in_array($obj->fk_categories, $categories))
+				$categories[]=$val;
+		}
+
+		return $categories;
+	}
 	function getLineActive(){
 		$sql = 'select fk_lineactive from llx_user_lineactive where fk_user = '.$this->id.' and active = 1';
 		$res = $this->db->query($sql);

@@ -5,6 +5,8 @@
  * Date: 07.11.2015
  * Time: 11:32
  */
+if(!empty($_REQUEST['category']) && $_REQUEST['category'] == 'users')
+    die('</br></br></br></br></br>Вибачте, співробітники поки не відображаються');
  $region_id = $_SESSION['region_id'];
 $search = explode(',',$_GET['search']);
 $search_array = array();
@@ -28,9 +30,10 @@ $sql_count = 'select count(*) iCount from
 (select distinct `llx_societe`.*  from `llx_societe`
 left join `llx_societe_lineactive` on `llx_societe_lineactive`.fk_soc = `llx_societe`.rowid
 where 1  ';
-
-    $tmp = 'and `llx_societe`.`categoryofcustomer_id` in
-(select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = '.$user->respon_id.')';
+    if(empty($_REQUEST['category']) || $_REQUEST['category'] == -1)
+        $tmp = 'and `llx_societe`.`categoryofcustomer_id` in ('.implode(',', $user->getCategoriesContractor()).')';
+    else
+        $tmp = 'and `llx_societe`.`categoryofcustomer_id` = '.$_REQUEST['category'];
     $sql.=$tmp;
     $sql_count.=$tmp;
 
@@ -42,12 +45,12 @@ where 1  ';
 //echo '</pre>';
 //die();
 
-if($user->login != 'admin') {
-    $tmp = ' and (`llx_societe`. fk_user_creat = '.$user->id.' or `llx_societe_lineactive`.`fk_lineactive` in ('.implode(',', $user->getLineActive()).'))';
-    $sql.=$tmp;
-    $sql_count.=$tmp;
-}
-if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['lineactive'])&& !empty($_REQUEST['lineactive'])){
+//if($user->login != 'admin') {
+//    $tmp = ' and (`llx_societe`. fk_user_creat = '.$user->id.' or `llx_societe_lineactive`.`categoryofcustomer_id` in ('.implode(',', $user->getCategoriesContractor()).'))';
+//    $sql.=$tmp;
+//    $sql_count.=$tmp;
+//}
+if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['category'])&& !empty($_REQUEST['category'])){
     if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])) {
         $phone_number = fPrepPhoneFilter($_REQUEST['filter']);
         $sql_filter = "select llx_societe.rowid from llx_societe
@@ -74,20 +77,14 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['lin
             }
 
     }
-    if(isset($_REQUEST['lineactive'])&& !empty($_REQUEST['lineactive']) && $_REQUEST['lineactive'] != -1){
 
-        $sql_filter='select `llx_societe`.`rowid` from `llx_societe_lineactive`
-            inner join `llx_societe` on `llx_societe_lineactive`.`fk_soc`=`llx_societe`.`rowid`
-            inner join (select '.$_REQUEST['lineactive'].' as category_id
-              union
-              select category_id from `oc_category`
-              where parent_id='.$_REQUEST['lineactive'].'
-              union
-              select parent_id from `oc_category`
-              where category_id='.$_REQUEST['lineactive'].') lineactive on lineactive.category_id=`llx_societe_lineactive`.`fk_lineactive`
+    if(isset($_REQUEST['category'])&& !empty($_REQUEST['category']) && $_REQUEST['category'] != -1){
+
+        $sql_filter='select `llx_societe`.`rowid` from `llx_societe`
             where 1
-            and `llx_societe`.`categoryofcustomer_id` in
-                (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = '.$user->respon_id.')';
+            and `llx_societe`.`categoryofcustomer_id` = '.$_REQUEST['category'];
+
+
         $res = $db->query($sql_filter);
         if (!$res)
             dol_print_error($db);
@@ -102,7 +99,7 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['lin
         $sql .= ' and `llx_societe`.`rowid` in (' . implode(',', $filterid) . ') ';
         $sql_count .= ' and `llx_societe`.`rowid` in (' . implode(',', $filterid) . ')';
     }else{
-        if(isset($_REQUEST['lineactive'])&& !empty($_REQUEST['lineactive']) && $_REQUEST['lineactive'] != -1) {
+        if(isset($_REQUEST['category'])&& !empty($_REQUEST['category']) && $_REQUEST['category'] != -1) {
             $sql .= ' and `llx_societe`.`rowid` in (0) ';
             $sql_count .= ' and `llx_societe`.`rowid` in (0)';
         }
@@ -111,17 +108,15 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['lin
 $sql_count.=') societe';
 $sql .= ' order by width desc, nom';
 $sql .= ' limit '.($page-1)*$per_page.','.$per_page;
-
+//echo '<pre>';
+//var_dump($sql);
+//echo '</pre>';
+//die();
 $res = $db->query($sql_count);
 if(!$res)
     dol_print_error($db);
 $count = $db->fetch_object($res);
-//die('test');
 
-//echo '<pre>';
-//var_dump($sql_count);
-//echo '</pre>';
-//die();
 $total = ceil($count->iCount/$per_page);
 
 $TableParam = array();

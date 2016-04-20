@@ -123,11 +123,11 @@ function CategoriesContractors(){
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
-    $out = '<select id="contractors" class="combobox" onchange="setContractorsFilter();">';
+    $out = '<select id="category" name = "category" class="combobox" onchange="setCategoryFilter();">';
     $out.='<option value="-1" selected="selected">Відобразити всі</option>';
-    $contractors_id = isset($_REQUEST['contractors'])&& !empty($_REQUEST['contractors'])?$_REQUEST['contractors']:0;
+    $category_id = isset($_REQUEST['category'])&& !empty($_REQUEST['category'])?$_REQUEST['category']:0;
     while($obj = $db->fetch_object($res)){
-        $selected = $contractors_id == $obj->fk_categories;
+        $selected = $category_id == $obj->fk_categories;
         switch($obj->fk_categories){
             case 'users':{
                 $name = 'Співробітники';
