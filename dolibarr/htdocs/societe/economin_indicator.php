@@ -72,6 +72,7 @@ if($_REQUEST['action'] == 'get_economic_indicators') {
     $EconomicIndicators->ContainerUnMeasurement = GETPOST('ContainerUnMeasurement', 'int');
     if(empty($EconomicIndicators->ContainerUnMeasurement))$EconomicIndicators->ContainerUnMeasurement=0;
     $EconomicIndicators->saveitem();//Сохраняю изменения
+
     if( $action == 'save_and_add') {
         $action = 'add';
         $Title = $langs->trans("AddParameters");
@@ -80,7 +81,8 @@ if($_REQUEST['action'] == 'get_economic_indicators') {
         $action_url = $_SERVER['PHP_SELF'];
         $EconomicIndicators->rowid          = 0;
         include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/eldy/addparam.html';
-    }
+    }else
+        header('Location: '.DOL_URL_ROOT.'/societe/economin_indicator.php?mainmenu=area&idmenu=10425&action=edit&socid='.$socid);
     exit();
 }elseif($action == 'add'){
 

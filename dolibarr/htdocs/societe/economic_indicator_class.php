@@ -96,7 +96,7 @@ class EconomicIndicator {
                         'year' => $row['year'],
                         'PositiveResponse' => $row['PositiveResponse'],
                         'NegativeResponse' => $row['NegativeResponse'],
-                        'contact' => $row['lastname'].(!empty($row['firstname'])?(' '.mb_substr($row['firstname'], 0, 1).'.'):''),
+                        'contact' => $row['lastname'].(!empty($row['firstname'])?(' '.mb_substr($row['firstname'], 0, 1, 'UTF-8').'.'):''),
                         'dtChange' => $row['dtChange'],
                     );
                     $table['id_model'.$row['id_model']]=$item;
@@ -163,20 +163,36 @@ class EconomicIndicator {
         if(empty($this->rowid)) {
             $sql='insert into llx_societe_economic_indicator (socid,line_active,kindassets,trademark,for_what,`count`,`year`,
               container,time_purchase,rate,time_purchase2,rate2,PositiveResponse,NegativeResponse,contact,active,id_usr,model,fx_count_un_meas,fx_conteiner_un_meas)
-              values('.$this->socid.', '.$this->line_active.', '.$this->kindassets.', '.$this->trademark.',
-              "'.trim($this->for_what).'", '.$this->count.', '.$this->year.', '.$this->container.',
-              '.$this->time_purchase.', '.$this->rate.', '.$this->time_purchase2.', '.$this->rate2.',
-              "'.trim($this->PositiveResponse).'", "'.trim($this->NegativeResponse).'", '.$this->contact.', 1, '.$user->id.', '.$this->model.', '.$this->UnMeasurement.', '.$this->ContainerUnMeasurement.')';
+              values('.$this->socid.', '.(empty($this->line_active)?"null":$this->line_active).', '.
+                (empty($this->kindassets)?"null":$this->kindassets).', '.
+                (empty($this->trademark)?"null":$this->trademark).',"'.trim($this->for_what).'", '.
+                (empty($this->count)?"null":$this->count).', '.(empty($this->year)?"null":$this->year).', '.
+                (empty($this->container)?"null":$this->container).','.(empty($this->time_purchase)?"null":$this->time_purchase).', '.
+                (empty($this->rate)?"null":$this->rate).', '.(empty($this->time_purchase2)?"null":$this->time_purchase2).', '.
+                (empty($this->rate2)?"null":$this->rate2).',
+              "'.trim($this->PositiveResponse).'", "'.trim($this->NegativeResponse).'", '.(empty($this->contact)?"null":$this->contact).', 1, '.$user->id.', '.
+                (empty($this->model)?"null":$this->model).', '.(empty($this->UnMeasurement)?"null":$this->UnMeasurement).', '.(empty($this->ContainerUnMeasurement)?"null":$this->ContainerUnMeasurement).')';
         }else{
             $sql='update llx_societe_economic_indicator set
-            line_active = '.$this->line_active.', kindassets = '.$this->kindassets.', trademark = '.$this->trademark.',
-            for_what = "'.trim($this->for_what).'", count = '.$this->count.', year = '.$this->year.', container = '.$this->container.',
-            time_purchase = '.$this->time_purchase.', rate = '.$this->rate.', time_purchase2 = '.$this->time_purchase2.',
-            rate2 = '.$this->rate2.', PositiveResponse = "'.trim($this->PositiveResponse).'", NegativeResponse = "'.trim($this->NegativeResponse).'",
-            contact = '.$this->contact.', id_usr = '.$user->id.', model ='.$this->model.',fx_count_un_meas='.$this->UnMeasurement.'
-            fx_conteiner_un_meas='.$this->ContainerUnMeasurement.'  where rowid = '.$this->rowid;
+            line_active = '.$this->line_active.',
+            kindassets = '.(empty($this->kindassets)?"null":$this->kindassets).',
+            trademark = '.(empty($this->trademark)?"null":$this->trademark).',
+            for_what = "'.trim($this->for_what).'",
+            count = '.(empty($this->count)?"null":$this->count).',
+            year = '.(empty($this->year)?"null":$this->year).',
+            container = '.(empty($this->container)?"null":$this->container).',
+            time_purchase = '.(empty($this->time_purchase)?"null":$this->time_purchase).',
+            rate = '.(empty($this->rate)?"null":$this->rate).',
+            time_purchase2 = '.(empty($this->time_purchase2)?"null":$this->time_purchase2).',
+            rate2 = '.(empty($this->rate2)?"null":$this->rate2).',
+            PositiveResponse = "'.trim($this->PositiveResponse).'",
+            NegativeResponse = "'.trim($this->NegativeResponse).'",
+            contact = '.(empty($this->contact)?"null":$this->contact).',
+            id_usr = '.$user->id.',
+            model ='.(empty($this->model)?"null":$this->model).',
+            fx_count_un_meas='.(empty($this->UnMeasurement)?"null":$this->UnMeasurement).'
+            fx_conteiner_un_meas='.(empty($this->ContainerUnMeasurement)?"null":$this->ContainerUnMeasurement).'  where rowid = '.$this->rowid;
         }
-
         $res = $db->query($sql);
         if(!$res){
             var_dump($sql);
@@ -370,7 +386,7 @@ class EconomicIndicator {
         $sql = 'select rowid, lastname,firstname from `llx_societe_contact` where `llx_societe_contact`.`socid`='.$this->socid.' and active = 1';
         $res = $db->query($sql);
         while($row = $db->fetch_object($res)){
-            $out .='<option value = '.$row->rowid.' '.($id == $row->rowid?('selected="selected"'):'').'>'.trim($row->lastname).' '.mb_substr($row->firstname, 0,1).'</option>';
+            $out .='<option value = '.$row->rowid.' '.($id == $row->rowid?('selected="selected"'):'').'>'.trim($row->lastname).' '.mb_substr($row->firstname, 0,1, 'UTF-8').'</option>';
         }
         $out .= '</select>';
         return $out;
