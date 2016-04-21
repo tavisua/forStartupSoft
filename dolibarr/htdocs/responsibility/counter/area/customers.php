@@ -30,9 +30,10 @@ $sql_count = 'select count(*) iCount from
 (select distinct `llx_societe`.*  from `llx_societe`
 left join `llx_societe_lineactive` on `llx_societe_lineactive`.fk_soc = `llx_societe`.rowid
 where 1  ';
-    if(empty($_REQUEST['category']) || $_REQUEST['category'] == -1)
-        $tmp = 'and `llx_societe`.`categoryofcustomer_id` in ('.implode(',', $user->getCategoriesContractor()).')';
-    else
+    if(empty($_REQUEST['category']) || $_REQUEST['category'] == -1) {
+        $category = implode(',', $user->getCategoriesContractor());
+        $tmp = 'and `llx_societe`.`categoryofcustomer_id` in (' .(empty($category)?'0':$category). ')';
+    }else
         $tmp = 'and `llx_societe`.`categoryofcustomer_id` = '.$_REQUEST['category'];
     $sql.=$tmp;
     $sql_count.=$tmp;
@@ -41,7 +42,7 @@ where 1  ';
     $sql_count.=' and `llx_societe`.active = 1 ';
 
 //echo '<pre>';
-//var_dump($sql);
+//var_dump( $_REQUEST['category']);
 //echo '</pre>';
 //die();
 

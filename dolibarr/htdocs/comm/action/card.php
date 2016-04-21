@@ -1467,6 +1467,7 @@ if ($id > 0 )
 		if (GETPOST("afaire") == 1) $form->select_date($datep?$datep:$object->datep,'ap',1,1,0,"action",1,1,0,0,'fulldaystart');
 		else if (GETPOST("afaire") == 2) $form->select_date($datep?$datep:$object->datep,'ap',1,1,1,"action",1,1,0,0,'fulldaystart');
 		else $form->select_date($datep?$datep:$object->datep,'ap',1,1,1,"action",1,1,0,0,'fulldaystart');
+		print '<span style="font-size: 12px">Необхідно часу  </span><input type="text" class="param" size="2" id = "exec_time" name="exec_time" value="'.((int)($object->datef-$object->datep)/60).'"><span style="font-size: 12px"> хвилин.</span></td></tr>';
 		print '</td></tr>';
 		// Date end
 		print '<tr><td>'.$langs->trans("DateActionEnd").'</td><td colspan="3">';
@@ -1948,6 +1949,7 @@ print "<script>
 print '
  <script type="text/javascript">
         $(document).ready(function(){
+        	$.cookie("ChangeDate", false);
         	$("#actioncode").removeClass("flat");
             $("#actioncode").addClass("combobox");
             $("#actioncode").unbind("change");
@@ -1970,7 +1972,7 @@ print '
             if($("#addassignedtouser").length>0)
             	$("#addassignpanel").offset({top:$("#addassignedtouser").offset().top-1,left:717});
 			else if($("#updateassignedtouser").length>0){
-				$("#addassignpanel").offset({top:$("#updateassignedtouser").offset().top-27,left:663});
+				$("#addassignpanel").offset({top:$("#updateassignedtouser").offset().top-42,left:663});
 
 			}
             $("a#sendSMS").attr("id", "addAssignedUsers");
@@ -2055,10 +2057,16 @@ print '
                 	$("#showform").val(1);
                 }
             }
-            console.log("dpChangeDay");
-            setP2(0);
-            CalcP($("#ap").val(), $("#exec_time").val(), '.$user->id.');//Розрахунок часу початку дії
+//            console.log($.cookie("ChangeDate"), $.cookie("ChangeDate") == "true");
+            if(getParameterByName("action") != "edit" || $.cookie("ChangeDate") == "true"){
+				setP2(0);
+				CalcP($("#ap").val(), $("#exec_time").val(), ' . $user->id . ');//Розрахунок часу початку дії
+            }
         }
+        $("button").click(function(e){
+        	$.cookie("ChangeDate", true);
+        	console.log("set ChangeDate");
+        })
         $("#exec_time").keypress(function(e){
         	if(e.keyCode == 13){
 				CalcP2();

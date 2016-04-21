@@ -4042,7 +4042,11 @@ class Form
     function select_date($set_time='', $prefix='re', $h=0, $m=0, $empty=0, $form_name="", $d=1, $addnowbutton=0, $nooutput=0, $disabled=0, $fullday='')
     {
         global $conf,$langs;
-
+//        if($prefix == 'p2'){
+//            $datetmp = date('Y-m-d H:i:s', $set_time);
+//            var_dump($datetmp);
+//            die();
+//        }
         $retstring='';
 
         if($prefix=='') $prefix='re';
@@ -4091,7 +4095,10 @@ class Form
             $shour = '';
             $smin = '';
         }
-
+//        if($prefix == 'p2') {
+//            var_dump($syear, $smonth, $sday, $shour, $smin);
+//            die();
+//        }
         $usecalendar='combo';
         if (! empty($conf->use_javascript_ajax) && (empty($conf->global->MAIN_POPUP_CALENDAR) || $conf->global->MAIN_POPUP_CALENDAR != "none")) $usecalendar=empty($conf->global->MAIN_POPUP_CALENDAR)?'eldy':$conf->global->MAIN_POPUP_CALENDAR;
 		if ($conf->browser->phone) $usecalendar='combo';

@@ -415,8 +415,10 @@ function actions_prepare_head($object)
 
 	$h = 0;
 	$head = array();
-
-	$head[$h][0] = DOL_URL_ROOT.'/comm/action/card.php?id='.$object->id.'&mainmenu='.$_REQUEST['mainmenu'].'&action=edit';
+	$backtopage = $_REQUEST['backtopage'];
+	if(substr($backtopage, 0, 1) == "'" && substr($backtopage, strlen($backtopage)-1, 1) == "'")
+		$backtopage = substr($backtopage, 1, strlen($backtopage)-2);
+	$head[$h][0] = DOL_URL_ROOT.'/comm/action/card.php?id='.$object->id.'&mainmenu='.$_REQUEST['mainmenu'].'&action=edit&backtopage='.$backtopage;
 	$head[$h][1] = $langs->trans("CardAction");
 	$head[$h][2] = 'card';
 	$h++;
