@@ -89,6 +89,8 @@ if($action == 'create') {
 //    echo '</pre>';
 //    die();
     $proposedPoducts->add();
+    header("Location: http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/admin/proposedProducts.php?proposed_id=".$_REQUEST['proposed_id']."&idmenu=5223&mainmenu=tools&leftmenu=");
+    exit();
     exit();
 }
 

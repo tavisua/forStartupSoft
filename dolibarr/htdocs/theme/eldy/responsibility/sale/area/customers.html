@@ -134,6 +134,7 @@
 
         </script>
 <script type="text/javascript">
+
     $(document).ready(function(){
 
         var tbody = document.getElementById('reference_body');
@@ -157,6 +158,11 @@
                 }
             }
         }
+        $('#state_id').val($('select#state_filter :selected').attr("state_id"));
+
+//                $('select#state_filter').change= $("#setStateFilter").submit()
+
+        console.log($('#state_id').val());
     })
     function preview(object){
         console.log(object);

@@ -17,36 +17,14 @@ $AsOfTheDate = $langs->trans('AsOfTheOfDate');
 //var_dump($_SERVER["REQUEST_URI"]);
 //echo '</pre>';
 //die();
-$sql = 'select regions.rowid, regions.state_id, trim(states.name) as states_name, trim(regions.name) as regions_name from states, regions, '.MAIN_DB_PREFIX.'user_regions ur
-    where ur.fk_user='.$user->id.' and ur.active = 1 and ur.fk_id=regions.rowid and regions.state_id=states.rowid order by regions_name asc, states_name asc';
-//die($sql);
-$res = $db->query($sql);
-
 $region_id = 0;
 
 if(isset($_REQUEST['state_filter'])) {//Если изменялся регион
     $region_id = $_REQUEST['state_filter'];
 //    var_dump(GETPOST('state_filter'), 'all');
 }
-if($db->num_rows($res)>0) {
-    $AreaList =  '<form action="'.$_SERVER["REQUEST_URI"].'" method="post"><select name = "state_filter" id="state_filter" class="combobox" onchange="this.form.submit()">';
-    $AreaList .='<option value="0" class="multiple_header_table">Відобразити все</option>\r\n';
-    for ($i = 0; $i < $db->num_rows($res); $i++) {
-        $obj = $db->fetch_object($res);
-//        if($region_id == 0) {
-//            $region_id = $obj->rowid;
-//        }
-        $selected = $region_id == $obj->rowid;
-        if(!$selected)
-            $AreaList .= '<option value="'.$obj->rowid.'" >'.trim($obj->regions_name).' ('.decrease_word($obj->states_name).')</option>';
-        else {
-            $AreaList .= '<option value="' . $obj->rowid . '" selected = "selected" >' . trim($obj->regions_name) . ' (' . decrease_word($obj->states_name) . ')</option>';
-            $state_id = $obj->state_id;
-        }
-    }
-    $AreaList .= '</select></form>';
-}
 
+$AreaList = '<form id="setStateFilter" action="'.$_SERVER["REQUEST_URI"].'" method="post">'.$user->getAreasList($region_id).'</form>';
 
 //$region_id = 210;
 $sql = "select `classifycation`.name, SUM(b.value) value from `classifycation` left join
@@ -100,14 +78,3 @@ if($db->num_rows($res) > 0) {
 $CreateCompany = $langs->trans('CreateCompany');
 include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/area/header.html');
 return;
-
-function decrease_word($text){
-
-    $symbol_array= array('б','в','г','д','ж','з','к','л','м','н','п','р','с','т','ф','х','ц','ч','ш','щ');
-    for($i=1; $i<strlen($text); $i++){
-        if(in_array(mb_substr($text, $i, 1, 'UTF-8'), $symbol_array)){
-            return mb_substr($text, 0, $i+1, 'UTF-8').'.';
-        }
-    }
-    return ':(';
-}

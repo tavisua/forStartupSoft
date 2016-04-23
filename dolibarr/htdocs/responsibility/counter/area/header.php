@@ -102,16 +102,6 @@ $CreateCompany = $langs->trans('CreateCompany');
 include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/counter/area/header.html');
 return;
 
-function decrease_word($text){
-
-    $symbol_array= array('б','в','г','д','ж','з','к','л','м','н','п','р','с','т','ф','х','ц','ч','ш','щ');
-    for($i=1; $i<strlen($text); $i++){
-        if(in_array(mb_substr($text, $i, 1, 'UTF-8'), $symbol_array)){
-            return mb_substr($text, 0, $i+1, 'UTF-8').'.';
-        }
-    }
-    return ':(';
-}
 function CategoriesContractors(){
     global $db, $user;
     $sql = 'select case when llx_user_categories_contractor.fk_categories <> 0 then llx_user_categories_contractor.fk_categories else llx_user_categories_contractor.other_categories end fk_categories,

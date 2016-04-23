@@ -496,13 +496,15 @@ function ReinitPassword(){
         }
     })
 }
-function sendSMS(number, text, confirm){
-    number = $("#phone_number").val();
-    text = $("#textsms").val();
+function sendSMS(number, text, confirmSend){
+    if(number.length == 0 && text.length == 0) {
+        number = $("#phone_number").val();
+        text = $("#textsms").val();
+    }
     //console.log(number, text);
     //return;
     var send = 0;
-    if(confirm == true){
+    if(confirmSend == true){
         if(confirm('Відправити СМС повідомлення?'))
             send = 1;
     }else

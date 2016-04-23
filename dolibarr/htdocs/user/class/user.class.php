@@ -1171,6 +1171,71 @@ class User extends CommonObject
 	 *		@param	int		$nosyncmemberpass	0=Synchronize linked member (password), 1=Do not synchronize linked member
 	 *    	@return int 		        		<0 si KO, >=0 si OK
 	 */
+	function getContactResponsibility($htmlname='responsibility', $size=10){
+		$sql='select distinct `responsibility`.`rowid`, `responsibility`.`name` from llx_societe
+			inner join `llx_societe_contact` on `llx_societe_contact`.`socid`=`llx_societe`.`rowid`
+			inner join `responsibility` on `responsibility`.`rowid` = `llx_societe_contact`.`respon_id`
+			where `fk_user_creat` = '.$this->id.'
+			and `responsibility`.`active` = 1
+			and `llx_societe_contact`.`active` = 1
+			and llx_societe.`active` = 1
+			order by `responsibility`.`name`';
+		$res = $this->db->query($sql);
+		$out =  '<select name = "'.$htmlname.'" id="'.$htmlname.'" size="'.$size.'" '.($size>1?"multiple":"").' class="combobox" >';
+		if($this->db->num_rows($res)>0) {
+			for ($i = 0; $i < $this->db->num_rows($res); $i++) {
+				$obj = $this->db->fetch_object($res);
+				$out .= '<option  value="'.$obj->rowid.'" >'.trim($obj->name).'</option>';
+			}
+		}
+		$out .= '</select>';
+		return $out;
+	}
+	function getContactPostsList($htmlname='postlist', $size=10){
+		$sql='select distinct `llx_post`.`rowid`, `llx_post`.`postname` from llx_societe
+			inner join `llx_societe_contact` on `llx_societe_contact`.`socid`=`llx_societe`.`rowid`
+			inner join `llx_post` on `llx_post`.`rowid` = `llx_societe_contact`.`post_id`
+			where `fk_user_creat` = '.$this->id.'
+			and `llx_post`.`active` = 1
+			and `llx_societe_contact`.`active` = 1
+			and llx_societe.`active` = 1
+			order by `llx_post`.`postname`';
+		$res = $this->db->query($sql);
+		$out =  '<select name = "'.$htmlname.'" id="'.$htmlname.'" size="'.$size.'" '.($size>1?"multiple":"").' class="combobox">';
+		if($this->db->num_rows($res)>0) {
+			for ($i = 0; $i < $this->db->num_rows($res); $i++) {
+				$obj = $this->db->fetch_object($res);
+				$out .= '<option  value="'.$obj->rowid.'" >'.trim($obj->postname).'</option>';
+			}
+		}
+		$out .= '</select>';
+		return $out;
+	}
+	function getAreasList($region_id, $htmlname='state_filter', $size=1, $event ='this.form.submit()'){
+		$sql = 'select regions.rowid, regions.state_id, trim(states.name) as states_name, trim(regions.name) as regions_name from states, regions, '.MAIN_DB_PREFIX.'user_regions ur
+			where ur.fk_user='.$this->id.' and ur.active = 1 and ur.fk_id=regions.rowid and regions.state_id=states.rowid order by regions_name asc, states_name asc';
+		//die($sql);
+		$res = $this->db->query($sql);
+		$out =  '<select name = "'.$htmlname.'" id="'.$htmlname.'" size="'.$size.'" '.($size>1?"multiple":"").' class="combobox" '.(!empty($event)?'onchange="'.$event.'"':'').'>';
+		if($this->db->num_rows($res)>0) {
+			$out .='<option value="0" class="multiple_header_table">Відобразити все</option>\r\n';
+			for ($i = 0; $i < $this->db->num_rows($res); $i++) {
+				$obj = $this->db->fetch_object($res);
+		//        if($region_id == 0) {
+		//            $region_id = $obj->rowid;
+		//        }
+				$selected = $region_id == $obj->rowid;
+				if(!$selected)
+					$out .= '<option state_id="'.$obj->state_id.'" value="'.$obj->rowid.'" >'.trim($obj->regions_name).' ('.decrease_word($obj->states_name).')</option>';
+				else {
+					$out .= '<option state_id="'.$obj->state_id.'" value="' . $obj->rowid . '" selected = "selected" >' . trim($obj->regions_name) . ' (' . decrease_word($obj->states_name) . ')</option>';
+//					$state_id = ;
+				}
+			}
+		}
+		$out .= '</select>';
+		return $out;
+	}
 	function getCategoriesContractor(){
 		$sql = 'select case when fk_categories <> 0 then fk_categories else other_categories end fk_categories from llx_user_categories_contractor where fk_user = '.$this->id.' and active = 1';
 //		die($sql);

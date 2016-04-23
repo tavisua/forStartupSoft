@@ -1045,6 +1045,19 @@ if (! function_exists("llxHeader"))
  *
  *  @return	void
  */
+function llxSendSmsEmail(){
+    print'
+        <div id=sendSmsEmail style="position: absolute;  z-index: 10; left: 400px; top: 200px; width: 90px">
+            <table>
+                <tr>
+                    <td><a href="/dolibarr/htdocs/comm/smsSending/card.php?action=add&type=sms"><img title="СМС розсилка" src="/dolibarr/htdocs/theme/eldy/img/sms.png"></a></td>
+                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                    <td><a href="/dolibarr/htdocs/comm/smsSending/card.php?action=add&type=email"><img title="Email розсилка" src="/dolibarr/htdocs/theme/eldy/img/emailing.png"></a></td>
+                </tr>
+            </table>
+        </div>
+    ';
+}
 function llxPopupMenu(){
                 print'
     <div id="popupmenu" style="display: none; position: absolute; left: 150px; top: 150px; z-index: 10; width: 90px">
@@ -1063,6 +1076,16 @@ function llxPopupMenu(){
             </tbody>
         </table>
     </div>';
+}
+function decrease_word($text){
+
+    $symbol_array= array('б','в','г','д','ж','з','к','л','м','н','п','р','с','т','ф','х','ц','ч','ш','щ');
+    for($i=1; $i<strlen($text); $i++){
+        if(in_array(mb_substr($text, $i, 1, 'UTF-8'), $symbol_array)){
+            return mb_substr($text, 0, $i+1, 'UTF-8').'.';
+        }
+    }
+    return ':(';
 }
 function top_httphead()
 {
