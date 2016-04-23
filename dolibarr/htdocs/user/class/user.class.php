@@ -280,7 +280,10 @@ class User extends CommonObject
 //                        die('$this->id_connect');
                     }
                 }
-
+//				echo '<pre>';
+//				var_dump($this);
+//				echo '</pre>';
+//				die();
 
 				// Retreive all extrafield for thirdparty
 				// fetch optionals attributes and labels

@@ -2315,7 +2315,9 @@ else
                 $form->select_users((! empty($object->commercial_id)?$object->commercial_id:$user->id),'commercial_id',1); // Add current user by default
                 print '</td></tr>';
             }
-            if($user->respon_alias == 'sale') {
+//            var_dump($user->respon_alias);
+//            die();
+            if($user->respon_alias == 'sale' || $user->respon_alias == 'dir_depatment'){
                 //Класифікація
                 print '<tr id="classifycation" style="display: none">';
                 print '<td><label for="classifycation">' . $langs->trans("Classifycation") . '</label></td>';

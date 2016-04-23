@@ -229,7 +229,7 @@ $tabsql[39]= "select llx_c_proposition.rowid, `llx_c_proposition`.`fk_lineactive
 	`llx_c_proposition`.`begin`,`llx_c_proposition`.`end`,`llx_c_proposition`.`text` proposition, `llx_c_proposition`.`description`, `llx_c_proposition`.`active`, 'test' as tests, 'products' as products
 	from `llx_c_proposition`
 	left join `llx_c_lineactive_customer` on `llx_c_lineactive_customer`.rowid = `llx_c_proposition`.`fk_lineactive`
-	left join `llx_post` on `llx_post`.`rowid` = `llx_c_proposition`.`fk_post`";
+	left join `llx_post` on `llx_post`.`rowid` = `llx_c_proposition`.`fk_post` where `llx_c_proposition`.`active` = 1";
 $tabsql[40]= "select rowid, issues, active  from ".MAIN_DB_PREFIX."c_groupoforgissues where 1 and active = 1";
 $tabsql[41]= "select `llx_c_actiontoaddress`.`rowid`,  `llx_c_groupoforgissues`.`issues` fk_groupissues, case when `llx_c_actiontoaddress`.`fk_subdivision` = -1 then 'Всі підрозділи' else `subdivision`.`name` end fk_subdivision, `llx_c_actiontoaddress`.`action`,
 	`llx_c_actiontoaddress`.`responsible`,`llx_c_actiontoaddress`.`directly_responsible`
@@ -684,7 +684,7 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
         if ($id == 30 && ($value == 'Model' || $value == 'Description'||($value == 'Trademark'&&!isset($_POST['Trademark']))))continue;
 		if ($id == 34 && ($value == 'responsibility'))continue;
         if ($id == 35 && ($value == 'ed_name'))continue;
-        if ($id == 39 && ($value == 'LineActiveCustomer' || $value == 'postname'|| $value == 'end'|| $value == 'description' || $value == 'tests' || $value == 'products')){
+        if ($id == 39 && ($value == 'LineActiveCustomer' || $value == 'postname'|| $value == 'end'|| $value == 'proposition' ||$value == 'description' || $value == 'tests' || $value == 'products')){
 //            if($value == 'end')
 //                unset($_POST['end']);
             continue;
@@ -756,6 +756,8 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
     if (isset($_POST["localtax2"]) && empty($_POST["localtax2"])) $_POST["localtax2"]='0';	// If empty, we force to 0
 
     // Si verif ok et action add, on ajoute la ligne
+//    var_dump($ok);
+//    die();
     if ($ok && GETPOST('actionadd'))
     {
         if ($tabrowid[$id])
@@ -806,10 +808,16 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
 //					die();
 				if ($added) $sql .= ",";
 				if(($listfieldvalue[$i] == 'begin' || $listfieldvalue[$i] == 'end')) {
-					$date = new DateTime($_POST[$listfieldvalue[$i]]);
-					$sql .= "'" . $date->format('Y-m-d') . "',";
+                    if(!empty($_POST[$listfieldvalue[$i]])) {
+                        $date = new DateTime($_POST[$listfieldvalue[$i]]);
+                        $sql .= "'" . $date->format('Y-m-d') . "',";
+                    }else
+                        $sql .= "null,";
 				}else{
 					switch($listfieldvalue[$i]){
+						case 'proposition':{
+							$sql .= empty($_POST['proposition'])?"null,":("'".$_POST['proposition']."',");
+						}break;
 						case 'LineActiveCustomer':{
 							$sql .= empty($_POST['fk_lineactive'])?"null,":$_POST['fk_lineactive'].",";
 						}break;
@@ -819,6 +827,8 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
 						}break;
 						default:{
 							$sql .=	"'".($_POST[$listfieldvalue[$i]])."'";
+                            if($listfieldvalue[$i] == 'end')
+                                unset($_POST['end']);
 						}
 					}
 				}

@@ -196,8 +196,10 @@ $action=GETPOST('action','alpha');
 $cancel=GETPOST('cancel','alpha');
 //$backtopage=GETPOST('backtopage','alpha');
 $backtopage=$_REQUEST['backtopage'];
-if(substr($backtopage, 0, 1) != '/')
-	$backtopage = '/'.$backtopage;
+//var_dump($backtopage);
+//die();
+if(substr($backtopage, 0, 1) == "'")
+	$backtopage = substr($backtopage, 1, strlen($backtopage)-2);
 $contactid=GETPOST('contactid','int');
 $origin=GETPOST('origin','alpha');
 $originid=GETPOST('originid','int');
@@ -1321,7 +1323,7 @@ if ($action == 'create')
 }
 
 // View or edit
-if ($id > 0 )
+if ($id > 0)
 {
 	$result1=$object->fetch($id);
 	$result2=$object->fetch_thirdparty();
@@ -1645,300 +1647,300 @@ if ($id > 0 )
 //		unset($_REQUEST["duplicate_action"]);
 
 	}
-	else
-	{
-		dol_fiche_head($head, 'card', $langs->trans("Action"),0,'action');
-
-		// Affichage fiche action en mode visu
-		print '<table class="border" width="100%">';
-
-		$linkback = '<a href="'.DOL_URL_ROOT.'/comm/action/listactions.php">'.$langs->trans("BackToList").'</a>';
-
-		// Ref
-		print '<tr><td width="30%">'.$langs->trans("Ref").'</td><td colspan="3">';
-		print $form->showrefnav($object, 'id', $linkback, ($user->societe_id?0:1), 'id', 'ref', '');
-		print '</td></tr>';
-
-		// Type
-		if (! empty($conf->global->AGENDA_USE_EVENT_TYPE))
-		{
-			print '<tr><td>'.$langs->trans("Type").'1</td><td colspan="3">'.$object->type.'</td></tr>';
-		}
-
-//		// Title
-//		print '<tr><td>'.$langs->trans("Title").'</td><td colspan="3">'.$object->label.'</td></tr>';
-
-        // Full day event
-        print '<tr><td>'.$langs->trans("EventOnFullDay").'</td><td colspan="3">'.yn($object->fulldayevent).'</td></tr>';
-
-		$rowspan=4;
-		if (empty($conf->global->AGENDA_DISABLE_LOCATION)) $rowspan++;
-
-		// Date start
-		print '<tr><td width="30%">'.$langs->trans("DateActionStart").'</td><td colspan="3">';
-		if (! $object->fulldayevent) print dol_print_date($object->datep,'dayhour');
-		else print dol_print_date($object->datep,'day');
-		if ($object->percentage == 0 && $object->datep && $object->datep < ($now - $delay_warning)) print img_warning($langs->trans("Late"));
-		print '</td>';
-		print '</tr>';
-
-		// Date end
-		print '<tr><td>'.$langs->trans("DateActionEnd").'</td><td colspan="3">';
-        if (! $object->fulldayevent) print dol_print_date($object->datef,'dayhour');
-		else print dol_print_date($object->datef,'day');
-		if ($object->percentage > 0 && $object->percentage < 100 && $object->datef && $object->datef < ($now- $delay_warning)) print img_warning($langs->trans("Late"));
-		print '</td></tr>';
-
-		// Status
-		print '<tr><td class="nowrap">'.$langs->trans("Status").' / '.$langs->trans("Percentage").'</td><td colspan="3">';
-		print $object->getLibStatut(4);
-		print '</td></tr>';
-
-        // Location
-	    if (empty($conf->global->AGENDA_DISABLE_LOCATION))
-    	{
-			print '<tr><td>'.$langs->trans("Location").'</td><td colspan="3">'.$object->location.'</td></tr>';
-    	}
-
-		// Assigned to
-    	print '<tr><td width="30%" class="nowrap">'.$langs->trans("ActionAssignedTo").'</td><td colspan="3">';
-		$listofuserid=array();
-		if (empty($donotclearsession))
-		{
-			if ($object->userownerid > 0) $listofuserid[$object->userownerid]=array('id'=>$object->userownerid,'transparency'=>$object->transparency);	// Owner first
-			if (! empty($object->userassigned))	// Now concat assigned users
-			{
-				// Restore array with key with same value than param 'id'
-				$tmplist1=$object->userassigned; $tmplist2=array();
-				foreach($tmplist1 as $key => $val)
-				{
-					if ($val['id'] && $val['id'] != $object->userownerid) $listofuserid[$val['id']]=$val;
-				}
-			}
-			$_SESSION['assignedtouser']=dol_json_encode($listofuserid);
-		}
-		else
-		{
-			if (!empty($_SESSION['assignedtouser']))
-			{
-				$listofuserid=dol_json_decode($_SESSION['assignedtouser'], true);
-			}
-		}
-		print $form->select_dolusers_forevent('view','assignedtouser',1);
-		if (in_array($user->id,array_keys($listofuserid))) print $langs->trans("MyAvailability").': '.(($object->userassigned[$user->id]['transparency'] > 0)?$langs->trans("Busy"):$langs->trans("Available"));	// We show nothing if event is assigned to nobody
-		print '	</td></tr>';
-
-		// Done by
-		if ($conf->global->AGENDA_ENABLE_DONEBY)
-		{
-			print '<tr><td class="nowrap">'.$langs->trans("ActionDoneBy").'</td><td colspan="3">';
-			if ($object->userdoneid > 0)
-			{
-				$tmpuser=new User($db);
-				$tmpuser->fetch($object->userdoneid);
-				print $tmpuser->getNomUrl(1);
-			}
-			print '</td></tr>';
-		}
-
-		print '</table>';
-
-		print '<br><br>';
-
-		print '<table class="border" width="100%">';
-
-		// Third party - Contact
-		if ($conf->societe->enabled)
-		{
-			print '<tr><td width="30%">'.$langs->trans("ActionOnCompany").'</td><td>'.($object->thirdparty->id?$object->thirdparty->getNomUrl(1):$langs->trans("None"));
-			if (is_object($object->thirdparty) && $object->thirdparty->id > 0 && $object->type_code == 'AC_TEL')
-			{
-				if ($object->thirdparty->fetch($object->thirdparty->id))
-				{
-					print "<br>".dol_print_phone($object->thirdparty->phone);
-				}
-			}
-			print '</td>';
-			print '<td>'.$langs->trans("Contact").'</td>';
-			print '<td>';
-			if ($object->contactid > 0)
-			{
-				print $object->contact->getNomUrl(1);
-				if ($object->contactid && $object->type_code == 'AC_TEL')
-				{
-					if ($object->contact->fetch($object->contactid))
-					{
-						print "<br>".dol_print_phone($object->contact->phone_pro);
-					}
-				}
-			}
-			else
-			{
-				print $langs->trans("None");
-			}
-			print '</td></tr>';
-		}
-
-		// Project
-		if (! empty($conf->projet->enabled))
-		{
-			print '<tr><td width="30%" valign="top">'.$langs->trans("Project").'</td><td colspan="3">';
-			if ($object->fk_project)
-			{
-				$project=new Project($db);
-				$project->fetch($object->fk_project);
-				print $project->getNomUrl(1,'',1);
-			}
-			print '</td></tr>';
-		}
-
-		// Priority
-		print '<tr><td nowrap width="30%">'.$langs->trans("Priority").'</td><td colspan="3">';
-		print ($object->priority?$object->priority:'');
-		print '</td></tr>';
-
-		// Object linked
-		if (! empty($object->fk_element) && ! empty($object->elementtype))
-		{
-			include_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
-			print '<tr><td>'.$langs->trans("LinkedObject").'</td>';
-			print '<td colspan="3">'.dolGetElementUrl($object->fk_element,$object->elementtype,1).'</td></tr>';
-		}
-
-		// Description
-		print '<tr><td valign="top">'.$langs->trans("Description").'</td><td colspan="3">';
-		print dol_htmlentitiesbr($object->note);
-		print '</td></tr>';
-
-        // Other attributes
-		$parameters=array('colspan'=>' colspan="3"', 'colspanvalue'=>'3', 'id'=>$object->id);
-        $reshook=$hookmanager->executeHooks('formObjectOptions',$parameters,$object,$action);    // Note that $action and $object may have been modified by hook
-
-		print '</table>';
-
-		//Extra field
-		if (empty($reshook) && ! empty($extrafields->attribute_label))
-		{
-			print '<br><br><table class="border" width="100%">';
-			foreach($extrafields->attribute_label as $key=>$label)
-			{
-				$value=(isset($_POST["options_".$key])?$_POST["options_".$key]:(isset($object->array_options['options_'.$key])?$object->array_options['options_'.$key]:''));
-				print '<tr><td width="30%">'.$label.'</td><td>';
-				print $extrafields->showOutputField($key,$value);
-				print "</td></tr>\n";
-			}
-			print '</table>';
-		}
-
-		dol_fiche_end();
-	}
+//	else
+//	{
+//		dol_fiche_head($head, 'card', $langs->trans("Action"),0,'action');
+//
+//		// Affichage fiche action en mode visu
+//		print '<table class="border" width="100%">';
+//
+//		$linkback = '<a href="'.DOL_URL_ROOT.'/comm/action/listactions.php">'.$langs->trans("BackToList").'</a>';
+//
+//		// Ref
+//		print '<tr><td width="30%">'.$langs->trans("Ref").'</td><td colspan="3">';
+//		print $form->showrefnav($object, 'id', $linkback, ($user->societe_id?0:1), 'id', 'ref', '');
+//		print '</td></tr>';
+//
+//		// Type
+//		if (! empty($conf->global->AGENDA_USE_EVENT_TYPE))
+//		{
+//			print '<tr><td>'.$langs->trans("Type").'1</td><td colspan="3">'.$object->type.'</td></tr>';
+//		}
+//
+////		// Title
+////		print '<tr><td>'.$langs->trans("Title").'</td><td colspan="3">'.$object->label.'</td></tr>';
+//
+//        // Full day event
+//        print '<tr><td>'.$langs->trans("EventOnFullDay").'</td><td colspan="3">'.yn($object->fulldayevent).'</td></tr>';
+//
+//		$rowspan=4;
+//		if (empty($conf->global->AGENDA_DISABLE_LOCATION)) $rowspan++;
+//
+//		// Date start
+//		print '<tr><td width="30%">'.$langs->trans("DateActionStart").'</td><td colspan="3">';
+//		if (! $object->fulldayevent) print dol_print_date($object->datep,'dayhour');
+//		else print dol_print_date($object->datep,'day');
+//		if ($object->percentage == 0 && $object->datep && $object->datep < ($now - $delay_warning)) print img_warning($langs->trans("Late"));
+//		print '</td>';
+//		print '</tr>';
+//
+//		// Date end
+//		print '<tr><td>'.$langs->trans("DateActionEnd").'</td><td colspan="3">';
+//        if (! $object->fulldayevent) print dol_print_date($object->datef,'dayhour');
+//		else print dol_print_date($object->datef,'day');
+//		if ($object->percentage > 0 && $object->percentage < 100 && $object->datef && $object->datef < ($now- $delay_warning)) print img_warning($langs->trans("Late"));
+//		print '</td></tr>';
+//
+//		// Status
+//		print '<tr><td class="nowrap">'.$langs->trans("Status").' / '.$langs->trans("Percentage").'</td><td colspan="3">';
+//		print $object->getLibStatut(4);
+//		print '</td></tr>';
+//
+//        // Location
+//	    if (empty($conf->global->AGENDA_DISABLE_LOCATION))
+//    	{
+//			print '<tr><td>'.$langs->trans("Location").'</td><td colspan="3">'.$object->location.'</td></tr>';
+//    	}
+//
+//		// Assigned to
+//    	print '<tr><td width="30%" class="nowrap">'.$langs->trans("ActionAssignedTo").'</td><td colspan="3">';
+//		$listofuserid=array();
+//		if (empty($donotclearsession))
+//		{
+//			if ($object->userownerid > 0) $listofuserid[$object->userownerid]=array('id'=>$object->userownerid,'transparency'=>$object->transparency);	// Owner first
+//			if (! empty($object->userassigned))	// Now concat assigned users
+//			{
+//				// Restore array with key with same value than param 'id'
+//				$tmplist1=$object->userassigned; $tmplist2=array();
+//				foreach($tmplist1 as $key => $val)
+//				{
+//					if ($val['id'] && $val['id'] != $object->userownerid) $listofuserid[$val['id']]=$val;
+//				}
+//			}
+//			$_SESSION['assignedtouser']=dol_json_encode($listofuserid);
+//		}
+//		else
+//		{
+//			if (!empty($_SESSION['assignedtouser']))
+//			{
+//				$listofuserid=dol_json_decode($_SESSION['assignedtouser'], true);
+//			}
+//		}
+//		print $form->select_dolusers_forevent('view','assignedtouser',1);
+//		if (in_array($user->id,array_keys($listofuserid))) print $langs->trans("MyAvailability").': '.(($object->userassigned[$user->id]['transparency'] > 0)?$langs->trans("Busy"):$langs->trans("Available"));	// We show nothing if event is assigned to nobody
+//		print '	</td></tr>';
+//
+//		// Done by
+//		if ($conf->global->AGENDA_ENABLE_DONEBY)
+//		{
+//			print '<tr><td class="nowrap">'.$langs->trans("ActionDoneBy").'</td><td colspan="3">';
+//			if ($object->userdoneid > 0)
+//			{
+//				$tmpuser=new User($db);
+//				$tmpuser->fetch($object->userdoneid);
+//				print $tmpuser->getNomUrl(1);
+//			}
+//			print '</td></tr>';
+//		}
+//
+//		print '</table>';
+//
+//		print '<br><br>';
+//
+//		print '<table class="border" width="100%">';
+//
+//		// Third party - Contact
+//		if ($conf->societe->enabled)
+//		{
+//			print '<tr><td width="30%">'.$langs->trans("ActionOnCompany").'</td><td>'.($object->thirdparty->id?$object->thirdparty->getNomUrl(1):$langs->trans("None"));
+//			if (is_object($object->thirdparty) && $object->thirdparty->id > 0 && $object->type_code == 'AC_TEL')
+//			{
+//				if ($object->thirdparty->fetch($object->thirdparty->id))
+//				{
+//					print "<br>".dol_print_phone($object->thirdparty->phone);
+//				}
+//			}
+//			print '</td>';
+//			print '<td>'.$langs->trans("Contact").'</td>';
+//			print '<td>';
+//			if ($object->contactid > 0)
+//			{
+//				print $object->contact->getNomUrl(1);
+//				if ($object->contactid && $object->type_code == 'AC_TEL')
+//				{
+//					if ($object->contact->fetch($object->contactid))
+//					{
+//						print "<br>".dol_print_phone($object->contact->phone_pro);
+//					}
+//				}
+//			}
+//			else
+//			{
+//				print $langs->trans("None");
+//			}
+//			print '</td></tr>';
+//		}
+//
+//		// Project
+//		if (! empty($conf->projet->enabled))
+//		{
+//			print '<tr><td width="30%" valign="top">'.$langs->trans("Project").'</td><td colspan="3">';
+//			if ($object->fk_project)
+//			{
+//				$project=new Project($db);
+//				$project->fetch($object->fk_project);
+//				print $project->getNomUrl(1,'',1);
+//			}
+//			print '</td></tr>';
+//		}
+//
+//		// Priority
+//		print '<tr><td nowrap width="30%">'.$langs->trans("Priority").'</td><td colspan="3">';
+//		print ($object->priority?$object->priority:'');
+//		print '</td></tr>';
+//
+//		// Object linked
+//		if (! empty($object->fk_element) && ! empty($object->elementtype))
+//		{
+//			include_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
+//			print '<tr><td>'.$langs->trans("LinkedObject").'</td>';
+//			print '<td colspan="3">'.dolGetElementUrl($object->fk_element,$object->elementtype,1).'</td></tr>';
+//		}
+//
+//		// Description
+//		print '<tr><td valign="top">'.$langs->trans("Description").'</td><td colspan="3">';
+//		print dol_htmlentitiesbr($object->note);
+//		print '</td></tr>';
+//
+//        // Other attributes
+//		$parameters=array('colspan'=>' colspan="3"', 'colspanvalue'=>'3', 'id'=>$object->id);
+//        $reshook=$hookmanager->executeHooks('formObjectOptions',$parameters,$object,$action);    // Note that $action and $object may have been modified by hook
+//
+//		print '</table>';
+//
+//		//Extra field
+//		if (empty($reshook) && ! empty($extrafields->attribute_label))
+//		{
+//			print '<br><br><table class="border" width="100%">';
+//			foreach($extrafields->attribute_label as $key=>$label)
+//			{
+//				$value=(isset($_POST["options_".$key])?$_POST["options_".$key]:(isset($object->array_options['options_'.$key])?$object->array_options['options_'.$key]:''));
+//				print '<tr><td width="30%">'.$label.'</td><td>';
+//				print $extrafields->showOutputField($key,$value);
+//				print "</td></tr>\n";
+//			}
+//			print '</table>';
+//		}
+//
+//		dol_fiche_end();
+//	}
 
 
 	/*
 	 * Barre d'actions
 	 */
 
-	print '<div class="tabsAction">';
+//	print '<div class="tabsAction">';
+//
+//	$parameters=array();
+//	$reshook=$hookmanager->executeHooks('addMoreActionsButtons',$parameters,$object,$action);    // Note that $action and $object may have been modified by hook
+//	if (empty($reshook))
+//	{
+//		if ($action != 'edit')
+//		{
+//			if ($user->rights->agenda->allactions->create ||
+//			   (($object->authorid == $user->id || $object->userownerid == $user->id) && $user->rights->agenda->myactions->create))
+//			{
+//				print '<div class="inline-block divButAction"><a class="butAction" href="card.php?action=edit&id='.$object->id.'">'.$langs->trans("Modify").'</a></div>';
+//			}
+//			else
+//			{
+//				print '<div class="inline-block divButAction"><a class="butActionRefused" href="#" title="'.$langs->trans("NotAllowed").'">'.$langs->trans("Modify").'</a></div>';
+//			}
+//
+//			if ($user->rights->agenda->allactions->delete ||
+//			   (($object->authorid == $user->id || $object->userownerid == $user->id) && $user->rights->agenda->myactions->delete))
+//			{
+//				print '<div class="inline-block divButAction"><a class="butActionDelete" href="card.php?action=delete&id='.$object->id.'">'.$langs->trans("Delete").'</a></div>';
+//			}
+//			else
+//			{
+//				print '<div class="inline-block divButAction"><a class="butActionRefused" href="#" title="'.$langs->trans("NotAllowed").'">'.$langs->trans("Delete").'</a></div>';
+//			}
+//		}
+//	}
+//
+//	print '</div>';
 
-	$parameters=array();
-	$reshook=$hookmanager->executeHooks('addMoreActionsButtons',$parameters,$object,$action);    // Note that $action and $object may have been modified by hook
-	if (empty($reshook))
-	{
-		if ($action != 'edit')
-		{
-			if ($user->rights->agenda->allactions->create ||
-			   (($object->authorid == $user->id || $object->userownerid == $user->id) && $user->rights->agenda->myactions->create))
-			{
-				print '<div class="inline-block divButAction"><a class="butAction" href="card.php?action=edit&id='.$object->id.'">'.$langs->trans("Modify").'</a></div>';
-			}
-			else
-			{
-				print '<div class="inline-block divButAction"><a class="butActionRefused" href="#" title="'.$langs->trans("NotAllowed").'">'.$langs->trans("Modify").'</a></div>';
-			}
-
-			if ($user->rights->agenda->allactions->delete ||
-			   (($object->authorid == $user->id || $object->userownerid == $user->id) && $user->rights->agenda->myactions->delete))
-			{
-				print '<div class="inline-block divButAction"><a class="butActionDelete" href="card.php?action=delete&id='.$object->id.'">'.$langs->trans("Delete").'</a></div>';
-			}
-			else
-			{
-				print '<div class="inline-block divButAction"><a class="butActionRefused" href="#" title="'.$langs->trans("NotAllowed").'">'.$langs->trans("Delete").'</a></div>';
-			}
-		}
-	}
-
-	print '</div>';
-
-	if ($action != 'edit')
-	{
-		// Link to agenda views
-		print '<div id="agendaviewbutton">';
-		print '<form name="listactionsfiltermonth" action="'.DOL_URL_ROOT.'/comm/action/index.php" method="POST" style="float: left; padding-right: 10px;">';
-		print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-		print '<input type="hidden" name="action" value="show_month">';
-		print '<input type="hidden" name="year" value="'.dol_print_date($object->datep,'%Y').'">';
-		print '<input type="hidden" name="month" value="'.dol_print_date($object->datep,'%m').'">';
-		print '<input type="hidden" name="day" value="'.dol_print_date($object->datep,'%d').'">';
-		//print '<input type="hidden" name="day" value="'.dol_print_date($object->datep,'%d').'">';
-		print img_picto($langs->trans("ViewCal"),'object_calendar','class="hideonsmartphone"').' <input type="submit" style="min-width: 120px" class="button" name="viewcal" value="'.$langs->trans("ViewCal").'">';
-		print '</form>'."\n";
-		print '<form name="listactionsfilterweek" action="'.DOL_URL_ROOT.'/comm/action/index.php" method="POST" style="float: left; padding-right: 10px;">';
-		print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-		print '<input type="hidden" name="action" value="show_week">';
-		print '<input type="hidden" name="year" value="'.dol_print_date($object->datep,'%Y').'">';
-		print '<input type="hidden" name="month" value="'.dol_print_date($object->datep,'%m').'">';
-		print '<input type="hidden" name="day" value="'.dol_print_date($object->datep,'%d').'">';
-		//print '<input type="hidden" name="day" value="'.dol_print_date($object->datep,'%d').'">';
-		print img_picto($langs->trans("ViewCal"),'object_calendarweek','class="hideonsmartphone"').' <input type="submit" style="min-width: 120px" class="button" name="viewweek" value="'.$langs->trans("ViewWeek").'">';
-		print '</form>'."\n";
-		print '<form name="listactionsfilterday" action="'.DOL_URL_ROOT.'/comm/action/index.php" method="POST" style="float: left; padding-right: 10px;">';
-		print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-		print '<input type="hidden" name="action" value="show_day">';
-		print '<input type="hidden" name="year" value="'.dol_print_date($object->datep,'%Y').'">';
-		print '<input type="hidden" name="month" value="'.dol_print_date($object->datep,'%m').'">';
-		print '<input type="hidden" name="day" value="'.dol_print_date($object->datep,'%d').'">';
-		//print '<input type="hidden" name="day" value="'.dol_print_date($object->datep,'%d').'">';
-		print img_picto($langs->trans("ViewCal"),'object_calendarday','class="hideonsmartphone"').' <input type="submit" style="min-width: 120px" class="button" name="viewday" value="'.$langs->trans("ViewDay").'">';
-		print '</form>'."\n";
-		print '<form name="listactionsfilterperuser" action="'.DOL_URL_ROOT.'/comm/action/peruser.php" method="POST" style="float: left; padding-right: 10px;">';
-		print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-		print '<input type="hidden" name="action" value="show_peruser">';
-		print '<input type="hidden" name="year" value="'.dol_print_date($object->datep,'%Y').'">';
-		print '<input type="hidden" name="month" value="'.dol_print_date($object->datep,'%m').'">';
-		print '<input type="hidden" name="day" value="'.dol_print_date($object->datep,'%d').'">';
-		//print '<input type="hidden" name="day" value="'.dol_print_date($object->datep,'%d').'">';
-		print img_picto($langs->trans("ViewCal"),'object_calendarperuser','class="hideonsmartphone"').' <input type="submit" style="min-width: 120px" class="button" name="viewperuser" value="'.$langs->trans("ViewPerUser").'">';
-		print '</form>'."\n";
-		print '</div>';
-
-		if (empty($conf->global->AGENDA_DISABLE_BUILDDOC))
-		{
-			print '<div style="clear:both;">&nbsp;<br><br></div><div class="fichecenter"><div class="fichehalfleft">';
-            print '<a name="builddoc"></a>'; // ancre
-
-            /*
-             * Documents generes
-             */
-
-            $filedir=$conf->agenda->multidir_output[$conf->entity].'/'.$object->id;
-            $urlsource=$_SERVER["PHP_SELF"]."?socid=".$object->id;
-
-            $genallowed=$user->rights->agenda->myactions->create;
-	        $delallowed=$user->rights->agenda->myactions->delete;
-
-            $var=true;
-
-            $somethingshown=$formfile->show_documents('agenda',$object->id,$filedir,$urlsource,$genallowed,$delallowed,'',0,0,0,0,0,'','','',$object->default_lang);
-
-			print '</div><div class="fichehalfright"><div class="ficheaddleft">';
-
-
-			print '</div></div></div>';
-
-            print '<div style="clear:both;">&nbsp;</div>';
-	    }
-	}
+//	if ($action != 'edit')
+//	{
+//		// Link to agenda views
+//		print '<div id="agendaviewbutton">';
+//		print '<form name="listactionsfiltermonth" action="'.DOL_URL_ROOT.'/comm/action/index.php" method="POST" style="float: left; padding-right: 10px;">';
+//		print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+//		print '<input type="hidden" name="action" value="show_month">';
+//		print '<input type="hidden" name="year" value="'.dol_print_date($object->datep,'%Y').'">';
+//		print '<input type="hidden" name="month" value="'.dol_print_date($object->datep,'%m').'">';
+//		print '<input type="hidden" name="day" value="'.dol_print_date($object->datep,'%d').'">';
+//		//print '<input type="hidden" name="day" value="'.dol_print_date($object->datep,'%d').'">';
+//		print img_picto($langs->trans("ViewCal"),'object_calendar','class="hideonsmartphone"').' <input type="submit" style="min-width: 120px" class="button" name="viewcal" value="'.$langs->trans("ViewCal").'">';
+//		print '</form>'."\n";
+//		print '<form name="listactionsfilterweek" action="'.DOL_URL_ROOT.'/comm/action/index.php" method="POST" style="float: left; padding-right: 10px;">';
+//		print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+//		print '<input type="hidden" name="action" value="show_week">';
+//		print '<input type="hidden" name="year" value="'.dol_print_date($object->datep,'%Y').'">';
+//		print '<input type="hidden" name="month" value="'.dol_print_date($object->datep,'%m').'">';
+//		print '<input type="hidden" name="day" value="'.dol_print_date($object->datep,'%d').'">';
+//		//print '<input type="hidden" name="day" value="'.dol_print_date($object->datep,'%d').'">';
+//		print img_picto($langs->trans("ViewCal"),'object_calendarweek','class="hideonsmartphone"').' <input type="submit" style="min-width: 120px" class="button" name="viewweek" value="'.$langs->trans("ViewWeek").'">';
+//		print '</form>'."\n";
+//		print '<form name="listactionsfilterday" action="'.DOL_URL_ROOT.'/comm/action/index.php" method="POST" style="float: left; padding-right: 10px;">';
+//		print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+//		print '<input type="hidden" name="action" value="show_day">';
+//		print '<input type="hidden" name="year" value="'.dol_print_date($object->datep,'%Y').'">';
+//		print '<input type="hidden" name="month" value="'.dol_print_date($object->datep,'%m').'">';
+//		print '<input type="hidden" name="day" value="'.dol_print_date($object->datep,'%d').'">';
+//		//print '<input type="hidden" name="day" value="'.dol_print_date($object->datep,'%d').'">';
+//		print img_picto($langs->trans("ViewCal"),'object_calendarday','class="hideonsmartphone"').' <input type="submit" style="min-width: 120px" class="button" name="viewday" value="'.$langs->trans("ViewDay").'">';
+//		print '</form>'."\n";
+//		print '<form name="listactionsfilterperuser" action="'.DOL_URL_ROOT.'/comm/action/peruser.php" method="POST" style="float: left; padding-right: 10px;">';
+//		print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+//		print '<input type="hidden" name="action" value="show_peruser">';
+//		print '<input type="hidden" name="year" value="'.dol_print_date($object->datep,'%Y').'">';
+//		print '<input type="hidden" name="month" value="'.dol_print_date($object->datep,'%m').'">';
+//		print '<input type="hidden" name="day" value="'.dol_print_date($object->datep,'%d').'">';
+//		//print '<input type="hidden" name="day" value="'.dol_print_date($object->datep,'%d').'">';
+//		print img_picto($langs->trans("ViewCal"),'object_calendarperuser','class="hideonsmartphone"').' <input type="submit" style="min-width: 120px" class="button" name="viewperuser" value="'.$langs->trans("ViewPerUser").'">';
+//		print '</form>'."\n";
+//		print '</div>';
+//
+//		if (empty($conf->global->AGENDA_DISABLE_BUILDDOC))
+//		{
+//			print '<div style="clear:both;">&nbsp;<br><br></div><div class="fichecenter"><div class="fichehalfleft">';
+//            print '<a name="builddoc"></a>'; // ancre
+//
+//            /*
+//             * Documents generes
+//             */
+//
+//            $filedir=$conf->agenda->multidir_output[$conf->entity].'/'.$object->id;
+//            $urlsource=$_SERVER["PHP_SELF"]."?socid=".$object->id;
+//
+//            $genallowed=$user->rights->agenda->myactions->create;
+//	        $delallowed=$user->rights->agenda->myactions->delete;
+//
+//            $var=true;
+//
+//            $somethingshown=$formfile->show_documents('agenda',$object->id,$filedir,$urlsource,$genallowed,$delallowed,'',0,0,0,0,0,'','','',$object->default_lang);
+//
+//			print '</div><div class="fichehalfright"><div class="ficheaddleft">';
+//
+//
+//			print '</div></div></div>';
+//
+//            print '<div style="clear:both;">&nbsp;</div>';
+//	    }
+//	}
 }
 print "<script>
     jQuery(function($) {
