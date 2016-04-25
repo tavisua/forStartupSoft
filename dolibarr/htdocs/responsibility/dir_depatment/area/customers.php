@@ -286,40 +286,55 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
             $num_col++;
         }
     }
+    $rowidList=array();
+    while($obj = $db->fetch_object($result)){
+        $rowidList[]=$obj->rowid;
+    }
+    mysqli_data_seek($result, 0);
     $actionfields = array('futuredatecomerc'=>'dir_depatment', 'lastdatecomerc'=>'dir_depatment',  'lastdateservice'=>'service', 'lastdateaccounts'=>'accounts',  'lastdatementor'=>'mentor');
     if(!$result)return;
     $page = isset($_GET['page'])?$_GET['page']:1;
     $per_page = isset($_GET['per_page'])?$_GET['per_page']:30;
 
     $lastaction = array();
-    $sql = "select `llx_societe`.rowid, max(`llx_societe_action`.`dtChange`) dtChange, `responsibility`.`alias`
-    from `llx_societe`
-    left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`
-    left join `llx_actioncomm` on `llx_actioncomm`.`fk_soc`= `llx_societe`.rowid
-    inner join (select code, libelle label from `llx_c_actioncomm` where active = 1 and (type = 'system' or type = 'user')) TypeCode on TypeCode.code = `llx_actioncomm`.code
-    left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
-    inner join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.`rowid`
-    left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
-    left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm`=`llx_actioncomm`.id
-    where `llx_societe`.active = 1
-    and `llx_actioncomm_resources`.`fk_element` = ".$user->id."
-    and `llx_societe_action`.active = 1
-    and `llx_actioncomm`.active = 1
-    group by `llx_societe`.rowid, `responsibility`.`alias` ";
-    $sql .= ' limit '.($page-1)*$per_page.','.$per_page;
+//    $sql = "select `llx_societe`.rowid, max(`llx_societe_action`.`dtChange`) dtChange, `responsibility`.`alias`
+//    from `llx_societe`
+//    left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`
+//    left join `llx_actioncomm` on `llx_actioncomm`.`fk_soc`= `llx_societe`.rowid
+//    inner join (select code, libelle label from `llx_c_actioncomm` where active = 1 and (type = 'system' or type = 'user')) TypeCode on TypeCode.code = `llx_actioncomm`.code
+//    left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
+//    inner join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.`rowid`
+//    left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
+//    left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm`=`llx_actioncomm`.id
+//    where `llx_societe`.active = 1
+//    and `llx_actioncomm_resources`.`fk_element` = ".$user->id."
+//    and `llx_societe_action`.active = 1
+//    and `llx_actioncomm`.active = 1
+//    group by `llx_societe`.rowid, `responsibility`.`alias` ";
+//    $sql .= ' limit '.($page-1)*$per_page.','.$per_page;
+    if(count($rowidList)>0) {
+        $sql = "select `llx_societe_action`.`socid` as rowid, max(`llx_societe_action`.`dtChange`) dtChange, `responsibility`.`alias`  from `llx_societe_action`
+        left join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.`rowid`
+        left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
+        where 1 ";
+        if (count($rowidList) > 0)
+            $sql .= " and `llx_societe_action`.`socid` in (" . implode(',', $rowidList) . ")";
+        $sql .= "    and `llx_societe_action`.active = 1
+        group by `llx_societe_action`.`socid`, `responsibility`.`alias`;";
 //    echo '<pre>';
 //    var_dump($sql);
 //    echo '</pre>';
 //    die();
-    $res = $db->query($sql);
-    if(!$res){
-        dol_print_error($db);
-    }
-    if($db->num_rows($res)>0) {
-        while ($row = $db->fetch_object($res)){
-            if(!isset($lastaction[$row->rowid.$row->alias])) {
-                $date = new DateTime($row->dtChange);
-                $lastaction[$row->rowid . $row->alias] = $date->format('d.m.y');
+        $res = $db->query($sql);
+        if (!$res) {
+            dol_print_error($db);
+        }
+        if ($db->num_rows($res) > 0) {
+            while ($row = $db->fetch_object($res)) {
+                if (!isset($lastaction[$row->rowid . $row->alias])) {
+                    $date = new DateTime($row->dtChange);
+                    $lastaction[$row->rowid . $row->alias] = $date->format('d.m.y');
+                }
             }
         }
     }
@@ -328,37 +343,45 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
 //    echo '</pre>';
 //    die();
     $futureaction = array();
-    $sql = "select `llx_societe`.rowid, llx_actioncomm.datep, `responsibility`.`alias`
-        from `llx_societe`
-        left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`
-        left join `llx_actioncomm` on `llx_actioncomm`.`fk_soc`= `llx_societe`.rowid
+//    $sql = "select `llx_societe`.rowid, llx_actioncomm.datep, `responsibility`.`alias`
+//        from `llx_societe`
+//        left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`
+//        left join `llx_actioncomm` on `llx_actioncomm`.`fk_soc`= `llx_societe`.rowid
+//        inner join (select code, libelle label from `llx_c_actioncomm` where active = 1
+//        and (type = 'system' or type = 'user')) TypeCode on TypeCode.code = `llx_actioncomm`.code
+//        inner join `llx_user` on `llx_actioncomm`.`fk_user_author` = `llx_user`.`rowid`
+//        left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
+//        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm`=`llx_actioncomm`.id
+//        where `llx_societe`.active = 1
+//        and `llx_actioncomm_resources`.`fk_element` = ".$user->id."
+//        and `llx_actioncomm`.`id` not in (select `llx_societe_action`.`action_id` from llx_societe_action where action_id is not null)
+//        and `llx_actioncomm`.`active` = 1
+//        limit 0,30";
+    if(count($rowidList)>0) {
+        $sql = "select `llx_actioncomm`.`fk_soc` rowid, llx_actioncomm.datep, `responsibility`.`alias` from `llx_actioncomm`
+        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm`=`llx_actioncomm`.id
         inner join (select code, libelle label from `llx_c_actioncomm` where active = 1
         and (type = 'system' or type = 'user')) TypeCode on TypeCode.code = `llx_actioncomm`.code
         inner join `llx_user` on `llx_actioncomm`.`fk_user_author` = `llx_user`.`rowid`
         left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
-        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm`=`llx_actioncomm`.id
-        where `llx_societe`.active = 1
-        and `llx_actioncomm_resources`.`fk_element` = ".$user->id."
-        and `llx_actioncomm`.`id` not in (select `llx_societe_action`.`action_id` from llx_societe_action where action_id is not null)
+        where 1
+        and `llx_actioncomm`.`fk_soc` in (" . implode(',', $rowidList) . ")
         and `llx_actioncomm`.`active` = 1
-        limit 0,30";
-//    echo '<pre>';
-//    var_dump($sql);
-//    echo '</pre>';
-//  die();
-    $res = $db->query($sql);
-    if(!$res){
-        dol_print_error($db);
-    }
-    if($db->num_rows($res)>0) {
-        while ($row = $db->fetch_object($res)){
-            if(!isset($futureaction[$row->rowid.$row->alias])) {
-                $date = new DateTime($row->datep);
-                $futureaction[$row->rowid . $row->alias] = $date->format('d.m.y');
+        and `llx_actioncomm`.`id` not in (select `llx_societe_action`.`action_id` from llx_societe_action where action_id is not null)";
+
+        $res = $db->query($sql);
+        if (!$res) {
+            dol_print_error($db);
+        }
+        if ($db->num_rows($res) > 0) {
+            while ($row = $db->fetch_object($res)) {
+                if (!isset($futureaction[$row->rowid . $row->alias])) {
+                    $date = new DateTime($row->datep);
+                    $futureaction[$row->rowid . $row->alias] = $date->format('d.m.y');
+                }
             }
         }
     }
-
     $fields = $result->fetch_fields();
 //        var_dump($showtitle);
 //        die();
