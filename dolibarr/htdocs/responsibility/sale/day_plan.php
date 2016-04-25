@@ -276,7 +276,7 @@ function CalcOutStandingActions($actioncode, $array, $id_usr){
     where 1";
         if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'" || $user->login !="admin")
             $sql .=" and fk_user_author = ".$id_usr;
-    $sql .= " and datep2 < '".date("Y-m-d")."'";
+    $sql .= " and datep2 between date(Now()) and Now()";
     $sql .=" and llx_actioncomm.`percent` <> 100";
 //    if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'"){}
 //        else

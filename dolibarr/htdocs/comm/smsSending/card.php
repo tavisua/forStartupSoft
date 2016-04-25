@@ -11,6 +11,7 @@
 //die();
 require $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/main.inc.php';
 $action = $_REQUEST['action'];
+
 if($action == 'add') {
     llxHeader('',$langs->trans('NewMailing'));
     print_fiche_titre($langs->trans("NewMailing"));
@@ -131,7 +132,10 @@ function getCustomers(){
     $res = $db->query($sql);
     $num = 1;
     while($obj = $db->fetch_object($res)){
-        if(!empty((empty($obj->mobile_phone1)?$obj->mobile_phone2:$obj->mobile_phone1))) {
+        if(empty($obj->mobile_phone1))
+            $mobilephone = $obj->mobile_phone2;
+        else $mobilephone = $obj->mobile_phone1;
+        if(!empty($mobilephone)) {
             $class = fmod($num, 2) == 0 ? 'impair' : 'pair';
             $out .= '<tr id = "'.$obj->rowid.'" socid="'.$obj->socid.'" class="secondpage ' . $class . '">
             <td class="middle_size">' . $num++ . '&nbsp;</td>
@@ -139,9 +143,8 @@ function getCustomers(){
             <td class="middle_size">' . trim($obj->form_gov) . ' "' . trim($obj->nom) . '"</td>
             <td class="middle_size">' . trim($obj->lastname) . '</td>
             <td class="middle_size">' . trim($obj->postname) . '</td>
-            <td class="middle_size" style="white-space: nowrap;">' . round($obj->value) . ' га. </td>
-            <td class="middle_size" style="word-wrap: normal">' . (empty($obj->mobile_phone1) ? $obj->mobile_phone2 : $obj->mobile_phone1) . '</td>
-            </tr>';
+            <td class="middle_size" style="white-space: nowrap;">' . round($obj->value) . ' га. </td>';
+            $out .= '<td class="middle_size" style="word-wrap: normal">' . $mobilephone . '</td></tr>';
         }
     }
 //    echo '<pre>';

@@ -155,12 +155,11 @@ function CalcOutStandingActions($actioncode, $array, $id_usr){
     inner join
     (select id from `llx_c_actioncomm` where code in(".$actioncode.") and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
     left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
-    inner join `llx_actioncomm_resources` on `llx_actioncomm`.`id` =  `llx_actioncomm_resources`.`fk_actioncomm`
+    inner join (select fk_id from `llx_user_regions`where fk_user = ".$id_usr." and llx_user_regions.active = 1) as active_regions on active_regions.fk_id = `llx_societe`.region_id
     where 1";
         if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'" || $user->login !="admin")
-            $sql .=" and `llx_actioncomm_resources`.fk_element = ".$id_usr;
-
-    $sql .= " and datep2 between '".date("Y-m-d")."' and Now()";
+            $sql .=" and fk_user_author = ".$id_usr;
+    $sql .= " and datep2 between date(Now()) and Now()";
     $sql .=" and llx_actioncomm.`percent` <> 100";
 //    if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'"){}
 //        else
@@ -186,13 +185,15 @@ function CalcFaktActions($actioncode, $array, $id_usr){
         $sql = "select count(*) as iCount  from `llx_actioncomm`
         inner join
         (select id from `llx_c_actioncomm` where code in(".$actioncode.") and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
-        left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
-        inner join `llx_actioncomm_resources` on `llx_actioncomm`.`id` =  `llx_actioncomm_resources`.`fk_actioncomm`
-        where 1
-        and `llx_actioncomm`.`active` = 1
-        ";
-        if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'" || $id_usr != 1)
+        left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`";
+        if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'")
+            $sql.= " inner join `llx_actioncomm_resources` on `llx_actioncomm`.`id` =  `llx_actioncomm_resources`.`fk_actioncomm`";
+        $sql.=" where 1
+        and `llx_actioncomm`.`active` = 1";
+        if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'" )
             $sql .=" and `llx_actioncomm_resources`.fk_element = ".$id_usr;
+        else
+            $sql .=" and `llx_actioncomm`.`fk_user_author` = ".$id_usr;
         if($i<8) {
             $query_date = date("Y-m-d", (time()+3600*24*(-$i)));
             if($i!=7)
@@ -224,10 +225,10 @@ function CalcFutureActions($actioncode, $array, $id_usr){
         inner join
         (select id from `llx_c_actioncomm` where code in(".$actioncode.") and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
         left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
-        inner join `llx_actioncomm_resources` on `llx_actioncomm`.`id` =  `llx_actioncomm_resources`.`fk_actioncomm`
+        left join `llx_actioncomm_resources` on `llx_actioncomm`.`id` =  `llx_actioncomm_resources`.`fk_actioncomm`
         where 1";
         if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'" || $user->login !="admin")
-            $sql .=" and `llx_actioncomm_resources`.fk_element = ".$id_usr;
+            $sql .="         and (case when `llx_actioncomm_resources`.fk_element is null then `llx_actioncomm`.fk_user_author else `llx_actioncomm_resources`.fk_element end = ".$id_usr.")";
         if($i<8) {
             $query_date = date("Y-m-d", (time()+3600*24*$i));
             if($i!=7)
@@ -242,7 +243,6 @@ function CalcFutureActions($actioncode, $array, $id_usr){
                 $month =($month+1);
                 $sql .= " and datep2 between '" . date("Y-m-d") . "' and date_add('" . date("Y-m-d") . "', interval 31 day)";
         }
-        $sql .=" and datea is null";
 //        echo '<pre>';
 //        var_dump($sql);
 //        echo '</pre>';

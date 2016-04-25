@@ -324,9 +324,9 @@ class societecontact {
 //        $sql.='and `llx_societe_lineactive`.`fk_lineactive` = `llx_c_proposition`.`fk_lineactive`;';
         $resPost = $db->query($sql);
 //        echo '<pre>';
-//        var_dump($resPost);
+//        var_dump($sql);
 //        echo '</pre>';
-//        die($sql);
+//        die();
         if(!$resPost)
             dol_print_error($db);
         $postArray = array();
