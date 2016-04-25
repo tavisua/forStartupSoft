@@ -885,6 +885,7 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 	print '<form id="addAssigned" action="'.$_SERVER['PHP_SELF'].'" method="POST">';
 	print '<input type="hidden" id = "assignedJSON" name="assignedJSON" value="">';
 	print '</form>';
+
 	print '<div id="addassignpanel" style="position: relative; z-index: 0; width: 30px">
 		<button style="width: 25px;height: 29px;" title="Додати користувачів зі списку" onclick="ShowaddAssignedUsersForm();"><img style="margin-left: -3px" src="../../../htdocs/theme/eldy/img/Add.png"></button>
 	</div>';
@@ -976,13 +977,13 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 		$datep = ($datep ? $datep : $object->datep);
 		$datef = ($datef ? $datef : $object->datef);
 	}else{
-		$sql = "select datep, datep2, datepreperform, period from llx_actioncomm where id = ".$_REQUEST["parent_id"];
+		$sql = "select datep, datep2, datepreperform, period, `code` from llx_actioncomm where id = ".$_REQUEST["parent_id"];
 		$res = $db->query($sql);
 		if(!$res)
 			dol_print_error($db);
 		$obj = $db->fetch_object($res);
 //		echo '<pre>';
-//		var_dump($obj);
+//		var_dump($sql);
 //		echo '</pre>';
 //		die();
         $datep = new DateTime($obj->datep);
@@ -990,6 +991,7 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 		$datepreperform = new DateTime($obj->datepreperform);
 		$newAction = new ActionComm($db);
         $period = $obj->period;
+
 		switch($obj->period){
 			case 'EveryDay':{
                 $datep = new DateTime(($datep->format('d')+1).'.'.$datep->format('m').'.'.$datep->format('Y'). ' '.$datep->format('h').':'.$datep->format('i').':'.$datep->format('s'));
@@ -1018,8 +1020,11 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 
 			}break;
 			default:{
-				$minutes = (mktime($datef->format('H'),$datef->format('i'),$datef->format('s'),$datef->format('m'),$datef->format('d'),$datef->format('Y'))-
-						mktime($datep->format('H'),$datep->format('i'),$datep->format('s'),$datep->format('m'),$datep->format('d'),$datep->format('Y')))/60;
+//				$minutes = (mktime($datef->format('H'),$datef->format('i'),$datef->format('s'),$datef->format('m'),$datef->format('d'),$datef->format('Y'))-
+//						mktime($datep->format('H'),$datep->format('i'),$datep->format('s'),$datep->format('m'),$datep->format('d'),$datep->format('Y')))/60;
+				$minutes = $newAction->GetExecTime($obj->code);
+//				var_dump($datef->format('Y-m-d H:i:s'),$datep->format('Y-m-d H:i:s'));
+//				die();
 				$start = $newAction->GetFreeTime($datep->format('Y-m-d'),$user->id, $minutes, 0,
 							mktime($datep->format('H'),$datep->format('i'),$datep->format('s'),$datep->format('m'),$datep->format('d'),$datep->format('Y')));
 				$datep = new DateTime($start);
@@ -1033,11 +1038,13 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 		}
 //        var_dump($datep);
 //        die();
+
         $datep = mktime($datep->format('H'),$datep->format('i'),$datep->format('s'),$datep->format('m'),$datep->format('d'),$datep->format('Y'));
         $datef = mktime($datef->format('H'),$datef->format('i'),$datef->format('s'),$datef->format('m'),$datef->format('d'),$datef->format('Y'));
         $datepreperform = mktime($datepreperform->format('H'),$datepreperform->format('i'),$datepreperform->format('s'),$datepreperform->format('m'),$datepreperform->format('d'),$datepreperform->format('Y'));
 
 	}
+
 	if (GETPOST('datep','int',1)) $datep=dol_stringtotime(GETPOST('datep','int',1),0);
 	print '<tr><td width="30%" class="nowrap"><span class="fieldrequired">'.$langs->trans("DateActionStart").'</span></td><td>';
 	if (GETPOST("afaire") == 1) $form->select_date($datep,'ap',1,1,0,"action",1,1,0,0,'fulldayend');
@@ -1046,7 +1053,6 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 	print '<span style="font-size: 12px">Необхідно часу  </span><input type="text" class="param" size="2" id = "exec_time" name="exec_time"><span style="font-size: 12px"> хвилин.</span></td></tr>';
 
 	// Date end
-
     if (GETPOST('datef','int',1)) $datef=dol_stringtotime(GETPOST('datef','int',1),0);
 	if (empty($datef) && ! empty($datep) && ! empty($conf->global->AGENDA_AUTOSET_END_DATE_WITH_DELTA_HOURS))
 	{

@@ -222,7 +222,7 @@ class ActionComm extends CommonObject
     }
     function GetFreeTime($inputdate, $id_usr, $minutes, $prioritet = 0, $starttime){
         if(empty($prioritet))$prioritet = 0;
-//        var_dump($inputdate, $id_usr, $minutes, $prioritet, $starttime);
+//        var_dump($minutes);
 //        die();
 
         $date = new DateTime($inputdate);
@@ -238,8 +238,7 @@ class ActionComm extends CommonObject
     }
     function GetFirstFreeTime($date, $id_usr, $minutes, $prioritet = 0, $starttime){
         $freetime = $this->GetFreeTimePeriod($date, $id_usr, $prioritet);
-//        var_dump($freetime);
-//        die();
+
         if(empty($starttime)||$starttime<time())
              $starttime = time();
         foreach($freetime as $period){

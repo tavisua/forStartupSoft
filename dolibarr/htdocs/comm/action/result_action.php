@@ -175,13 +175,17 @@ function get_soc_id($action_id){
 function saveaction($rowid, $createaction = false){
     global $user, $db;
 //    echo '<pre>';
-//    var_dump($rowid, $createaction);
+//    var_dump($_REQUEST['backtopage']);
 //    echo '</pre>';
 //    die();
     if((substr($_REQUEST['action'], 0, strlen('addonlyresult')) == 'addonlyresult' || substr($_REQUEST['action'], 0, strlen('updateonlyresult')) == 'updateonlyresult'))
         $socid = $_REQUEST['socid'];
     else
         $socid = get_soc_id($_REQUEST['actionid']);
+//    echo '<pre>';
+//    var_dump($socid);
+//    echo '</pre>';
+//    die();
     if(empty($rowid)){
         $sql='insert into llx_societe_action(`action_id`, `socid`, `contactid`, `said`,`answer`,
           `argument`,`said_important`,`result_of_action`,`work_before_the_next_action`,`id_usr`, `new`) values(';
@@ -254,8 +258,8 @@ function saveaction($rowid, $createaction = false){
             where llx_actioncomm.id in (select llx_societe_action.action_id from `llx_societe_action` where 1
             and llx_societe_action.rowid = ' . $rowid . ')
             and datea is null';
-//    var_dump(in_array($objCode->code, $TypeAction));
-//    die($sql);
+//    var_dump($createaction);
+//    die();
         $res = $db->query($sql);
 //    if($res)
 //        dol_print_error($db);
