@@ -110,10 +110,15 @@ function GetBestUserID(){
         from `llx_actioncomm`
         inner join (select id from `llx_c_actioncomm` where code in('AC_TEL','AC_FAX','AC_EMAIL','AC_RDV','AC_INT','AC_OTH','AC_DEP') and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
         inner join `llx_actioncomm_resources` on `llx_actioncomm`.`id` =  `llx_actioncomm_resources`.`fk_actioncomm`
-        where `llx_actioncomm_resources`.fk_element in (select rowid from llx_user where  `respon_id` = ".$user->respon_id.")
+        where 1
+        and `llx_actioncomm`.`active` = 1
+        and `llx_actioncomm`.`percent` = 100
+        and `llx_actioncomm`.`datep` between adddate(DATE(Now()), interval -7 day) and DATE(Now())
+        and `llx_actioncomm_resources`.fk_element in (select rowid from llx_user where  `respon_id` = ".$user->respon_id.")
         group by `llx_actioncomm_resources`.fk_element
         order by iCount desc
         limit 1";
+//    die($sql);
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
@@ -131,6 +136,7 @@ function CalcPercentExecActions($actioncode, $array, $id_usr){
         (select id from `llx_c_actioncomm` where code in(".$actioncode.") and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
         left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
         inner join `llx_actioncomm_resources` on `llx_actioncomm`.`id` =  `llx_actioncomm_resources`.`fk_actioncomm`
+        inner join (select fk_id from `llx_user_regions`where fk_user = ".$id_usr." and llx_user_regions.active = 1) as active_regions on active_regions.fk_id = `llx_societe`.region_id
         where 1 ";
         $sql .= " and `llx_actioncomm_resources`.fk_element = ".$id_usr;
         if($i<8) {
@@ -184,6 +190,7 @@ function CalcFaktActions($actioncode, $array, $id_usr){
         inner join
         (select id from `llx_c_actioncomm` where code in(".$actioncode.") and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
         left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
+        inner join (select fk_id from `llx_user_regions`where fk_user = ".$id_usr." and llx_user_regions.active = 1) as active_regions on active_regions.fk_id = `llx_societe`.region_id
         inner join `llx_actioncomm_resources` on `llx_actioncomm`.`id` =  `llx_actioncomm_resources`.`fk_actioncomm`
         where 1";
         if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'" || $id_usr != 1)
@@ -197,8 +204,9 @@ function CalcFaktActions($actioncode, $array, $id_usr){
         }else {
                 $sql .= " and datep2 between date_add('" . date("Y-m-d") . "', interval -31 day) and '" . date("Y-m-d") . "'";
         }
-        $sql .=" and datea is not null";
-//        if($i == 7 && ($id_usr != 1))
+        $sql .=" and llx_actioncomm.active = 1";
+        $sql .=" and `llx_actioncomm`.`percent` = 100";
+//        if($i == 6 && ($id_usr == 69))
 //            die($sql);
         $res = $db->query($sql);
         while($res && $obj = $db->fetch_object($res)){
@@ -222,6 +230,7 @@ function CalcFutureActions($actioncode, $array, $id_usr){
         inner join
         (select id from `llx_c_actioncomm` where code in(".$actioncode.") and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
         left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
+        inner join (select fk_id from `llx_user_regions`where fk_user = ".$id_usr." and llx_user_regions.active = 1) as active_regions on active_regions.fk_id = `llx_societe`.region_id
         where 1";
         if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'" || $user->login !="admin")
             $sql .=" and fk_user_author = ".$id_usr;
@@ -239,8 +248,11 @@ function CalcFutureActions($actioncode, $array, $id_usr){
                 $month =($month+1);
                 $sql .= " and datep2 between '" . date("Y-m-d") . "' and date_add('" . date("Y-m-d") . "', interval 31 day)";
         }
-        $sql .=" and datea is null";
-
+        $sql .=" and `llx_actioncomm`.active = 1";
+//        if(!($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'")) {
+//            var_dump($sql);
+//            die();
+//        }
         $res = $db->query($sql);
         while($res && $obj = $db->fetch_object($res)){
             if($i<8) {
@@ -260,6 +272,7 @@ function CalcOutStandingActions($actioncode, $array, $id_usr){
     inner join
     (select id from `llx_c_actioncomm` where code in(".$actioncode.") and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
     left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
+    inner join (select fk_id from `llx_user_regions`where fk_user = ".$id_usr." and llx_user_regions.active = 1) as active_regions on active_regions.fk_id = `llx_societe`.region_id
     where 1";
         if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'" || $user->login !="admin")
             $sql .=" and fk_user_author = ".$id_usr;
@@ -301,7 +314,7 @@ function ShowTable(){
                 $month =($month+1);
                 $sql .= " and datep2 between '" . date("Y-m-d") . "' and '" . date("Y") . "-" . $month . "-" . (date("d")) . "'";
         }
-        $sql .=" and datea is null
+        $sql .="
         group by `llx_societe`.`region_id`";
 
         $res = $db->query($sql);
@@ -319,6 +332,7 @@ function ShowTable(){
     inner join
     (select id from `llx_c_actioncomm` where type in ('system','user')  and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
     left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
+    inner join (select fk_id from `llx_user_regions`where fk_user = ".$user->id." and llx_user_regions.active = 1) as active_regions on active_regions.fk_id = `llx_societe`.region_id
     where 1";
     $sql .= " and datep2 < '".date("Y-m-d")."'";
     $sql .=" and llx_actioncomm.percent <> 100";
@@ -344,6 +358,7 @@ function ShowTable(){
         inner join
         (select id from `llx_c_actioncomm` where type in ('system','user')  and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
         left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
+        inner join (select fk_id from `llx_user_regions`where fk_user = ".$user->id." and llx_user_regions.active = 1) as active_regions on active_regions.fk_id = `llx_societe`.region_id
         inner join `llx_actioncomm_resources` on `llx_actioncomm`.`id` =  `llx_actioncomm_resources`.`fk_actioncomm`
         where 1 ";
 //        if($i < 2) {
@@ -367,7 +382,11 @@ function ShowTable(){
                 $month =($month-1);
                 $sql .= " and datep2 between '" . date("Y") . "-" . $month . "-" . (date("d")) . "' and '" . date("Y-m-d") . "'";
         }
-
+        $sql .= " and llx_actioncomm.active = 1";
+//        if($i == 6) {
+//            var_dump($sql." group by `llx_societe`.`region_id`");
+//            die();
+//        }
         $res = $db->query($sql." group by `llx_societe`.`region_id`");
 
         while($res && $obj = $db->fetch_object($res)){
@@ -377,8 +396,8 @@ function ShowTable(){
                 $totaltask[$obj->region_id.'_month']=$obj->iCount;
         }
 
-        $res = $db->query($sql." and datea is not null
-                 group by `llx_societe`.`region_id`");
+        $res = $db->query($sql."
+                    and `llx_actioncomm`.`percent` = 100 group by `llx_societe`.`region_id`");
 
         while($res && $obj = $db->fetch_object($res)){
             if($i<8) {

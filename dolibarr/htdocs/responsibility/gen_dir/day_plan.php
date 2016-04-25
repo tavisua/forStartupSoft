@@ -285,7 +285,9 @@ function CalcFaktActions($actioncode, $array, $id_usr=0, $responding='', $subdiv
         }else {
                 $sql .= " and datep2 between date_add('" . date("Y-m-d") . "', interval -31 day) and '" . date("Y-m-d") . "'";
         }
-        $sql .=" and datea is not null";
+        $sql .=" and llx_actioncomm.active = 1";
+        $sql .=" and `llx_actioncomm`.`percent` = 100";
+
 //        if($i == 7 && ($id_usr != 1))
 //            die($sql);
         $res = $db->query($sql);

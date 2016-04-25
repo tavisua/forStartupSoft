@@ -299,23 +299,28 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
     $page = isset($_GET['page'])?$_GET['page']:1;
     $per_page = isset($_GET['per_page'])?$_GET['per_page']:30;
     $lastaction = array();
-    $sql = "select `llx_societe`.rowid, max(`llx_societe_action`.`dtChange`) dtChange, `responsibility`.`alias`
-    from `llx_societe`
-    left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`
-    left join `llx_actioncomm` on `llx_actioncomm`.`fk_soc`= `llx_societe`.rowid
-    inner join (select code, libelle label from `llx_c_actioncomm` where active = 1 and (type = 'system' or type = 'user')) TypeCode on TypeCode.code = `llx_actioncomm`.code
-    left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
-    inner join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.`rowid`
-    left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
-    where 1
-    and `llx_societe_action`.active = 1
-    and `llx_actioncomm`.active = 1";
+//    $sql = "select `llx_societe`.rowid, max(`llx_societe_action`.`dtChange`) dtChange, `responsibility`.`alias`
+//    from `llx_societe`
+//    left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`
+//    left join `llx_actioncomm` on `llx_actioncomm`.`fk_soc`= `llx_societe`.rowid
+//    inner join (select code, libelle label from `llx_c_actioncomm` where active = 1 and (type = 'system' or type = 'user')) TypeCode on TypeCode.code = `llx_actioncomm`.code
+//    left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
+//    inner join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.`rowid`
+//    left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
+//    where 1
+//    and `llx_societe_action`.active = 1
+//    and `llx_actioncomm`.active = 1";
+//    if(count($rowidList)>0)
+//        $sql .=" and `llx_societe`.rowid in (".implode(',', $rowidList).")";
+//    $sql .= " group by `llx_societe`.rowid, `responsibility`.`alias` ";
+    $sql = "select `llx_societe_action`.`socid` as rowid, max(`llx_societe_action`.`dtChange`) dtChange, `responsibility`.`alias`  from `llx_societe_action`
+        left join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.`rowid`
+        left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
+        where 1 ";
     if(count($rowidList)>0)
-        $sql .=" and `llx_societe`.rowid in (".implode(',', $rowidList).")";
-//    $sql .= "and `llx_societe`.`fk_user_creat` = ".$user->id;
-    $sql .= " group by `llx_societe`.rowid, `responsibility`.`alias` ";
-//    $sql .= ' limit '.($page-1)*$per_page.','.$per_page;
-
+        $sql .=" and `llx_societe_action`.`socid` in (".implode(',', $rowidList).")";
+    $sql .= "    and `llx_societe_action`.active = 1
+        group by `llx_societe_action`.`socid`, `responsibility`.`alias`;";
 //  die($sql);
     $res = $db->query($sql);
     if(!$res){

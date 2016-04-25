@@ -1,0 +1,132 @@
+<div class="tabBar" style="width: 600px;">
+    <table style="border-collapse:collapse" class="WidthScroll">
+        <tbody id="mailing">
+            <tr class="firstpage">
+                <td></td>
+                <td></td>
+                <td colspan="3" style="text-align: center; border-bottom: solid; border-bottom-color: #6C7C8B; border-bottom-width: thin">Кому?</td>
+            </tr>
+            <tr class="firstpage">
+                <td style="text-align: center;">Куди?</td>
+                <td rowspan="2">&nbsp;</td>
+                <td id="post">Посада</td>
+                <td id="or" rowspan="2">чи</td>
+                <td id="sphereOfResponsibility">Сфера відповідальності</td>
+            </tr>
+            <tr class="firstpage">
+                <td><?=$user->getAreasList(0, 'areas', 10, '');?></td>
+                <td id="PostList"><?=$user->getContactPostsList();?></td>
+                <td id="ResponsibilityList"><?=$user->getContactResponsibility();?></td>
+            </tr>
+            <tr class="firstpage">
+                <td>Кількість землі </td>
+                <td></td>
+                <td colspan="3">від&nbsp;&nbsp;<input type="text" id="from" name="from" size="4">&nbsp;&nbsp;до&nbsp;&nbsp;<input type="text" id="to" name="to" size="4">&nbsp;&nbsp;га.</td>
+            </tr>
+            <tr class="firstpage">
+                <td colspan="5"><button onclick="nextstep();">Наступний крок</button></td>
+            </tr>
+        </tbody>
+    </table>
+    <table>
+        <tr class="secondpage" style="display: none">
+            <td>Повідомлення </td>
+            <td colspan="4"><textarea style="width: 100%" id="message" name="message"></textarea></td>
+        </tr>
+        <tr class="secondpage" style="display: none">
+            <td><button onclick="sendTestMessage();">Тестове повідомлення</button></td>
+            <td><button onclick="sendMessage();">Відіслати повідомлення</button></td>
+        </tr>
+    </table>
+</div>
+<script>
+    $(document).ready(function(){
+        $('select#areas [value=0]').html('Вибрати всі');
+        $('#postlist').prepend($('select#areas [value=0]').clone());
+        $('#responsibility').prepend($('select#areas [value=0]').clone());
+        $('select').css('width','100%');
+    })
+    function sendTestMessage(){
+//        console.log(<?=$userphone?>, $('#message').val());
+        sendSMS(<?=$userphone?>, $('#message').val(), true);
+    }
+    function nextstep(){
+        var param = {'areas':$('#areas').val(),
+                    'postlist':$('#postlist').val(),
+                    'responsibility':$('#responsibility').val(),
+                    'from':$('#from').val(),
+                    'to':$('#to').val(),
+                    'action':'getCustomers'
+                    }
+        $.ajax({
+            url:'/dolibarr/htdocs/comm/smsSending/card.php',
+            data:param,
+            cache:false,
+            type: 'post',
+            success:function(result){
+                $('tbody#mailing').prepend(result)
+                $('tbody#mailing').css('height','350px');
+//                $('#ContactList').html(result);
+                $('.firstpage').hide();
+                $('.secondpage').show();
+            }
+        })
+    }
+    function sendMessage(){
+        if(confirm('Відправити розсилку?')) {
+            var contactlist = [];
+            var trList = $('#mailing').find('tr');
+            for (var i = 0; i < trList.length; i++) {
+                if (trList[i].id !== undefined && trList[i].id.length > 0) {
+//                console.log(trList[i].id);
+                    var td = trList[i].getElementsByTagName('td');
+                    contactlist.push({
+                        contactID: trList[i].id,
+                        socid: $('#' + trList[i].id).attr('socid'),
+                        phone: td[td.length - 1].innerHTML
+                    });
+                }
+            }
+            var param = {
+                message: $('textarea#message').val(),
+                contacts: contactlist,
+                type: getParameterByName('type'),
+                action: 'mailing'
+            }
+//        console.log(param);
+//        return;
+            var link = '';
+            if (getParameterByName('type') == 'sms') {
+                link = '/dolibarr/htdocs/comm/smsSending/card.php';
+            }
+            $.ajax({
+                url: link,
+                data: param,
+                cache: false,
+                type: 'post',
+                success: function (result) {
+                    console.log()
+                    sendSMS(result, $('#message').val(), false);
+                }
+            })
+        }
+    }
+</script>
+<style>
+
+    #post{
+        text-align: center;border-left: solid; border-left-color: #6C7C8B; border-left-width: thin;
+    }
+    #or{
+        text-align: center; border-bottom: solid; border-bottom-color: #6C7C8B; border-bottom-width: thin;
+    }
+    #sphereOfResponsibility{
+        text-align: center;border-right: solid; border-right-color: #6C7C8B; border-right-width: thin;
+    }
+    #PostList{
+        border-left: solid; border-left-color: #6C7C8B; border-left-width: thin; border-bottom: solid; border-bottom-color: #6C7C8B; border-bottom-width: thin;
+    }
+    #ResponsibilityList{
+        text-align: center;border-right: solid; border-right-color: #6C7C8B; border-right-width: thin; border-bottom: solid; border-bottom-color: #6C7C8B; border-bottom-width: thin;
+    }
+</style>
