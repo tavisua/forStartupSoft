@@ -200,6 +200,8 @@ $backtopage=$_REQUEST['backtopage'];
 //die();
 if(substr($backtopage, 0, 1) == "'")
 	$backtopage = substr($backtopage, 1, strlen($backtopage)-2);
+if(substr($backtopage, 0, 1) != "/")
+	$backtopage = '/'.$backtopage;
 $contactid=GETPOST('contactid','int');
 $origin=GETPOST('origin','alpha');
 $originid=GETPOST('originid','int');
@@ -876,7 +878,7 @@ $form = new Form($db);
 $formfile = new FormFile($db);
 $formactions = new FormActions($db);
 
-if ($action == 'create')
+if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 {
 	$contact = new Contact($db);
     print '<div class="tabBar">';
@@ -968,6 +970,7 @@ if ($action == 'create')
     // Full day
     print '<tr><td>'.$langs->trans("EventOnFullDay").'</td><td><input type="checkbox" id="fullday" name="fullday" '.(GETPOST('fullday')?' checked="checked"':'').'></td></tr>';
     $period='';
+
 	// Date start
 	if(empty($_REQUEST["parent_id"])) {
 		$datep = ($datep ? $datep : $object->datep);
@@ -1321,7 +1324,8 @@ if ($action == 'create')
 //           </style>
 //';
 }
-
+//var_dump($id);
+//die();
 // View or edit
 if ($id > 0)
 {
@@ -1357,7 +1361,7 @@ if ($id > 0)
 	}
 //var_dump($action);
 //	die();
-	if ($action == 'edit')
+	if ($action == 'edit' || $action == 'create' && isset($_REQUEST["duplicate_action"]))
 	{
 		$listofuserid = array();
 		if(isset($_REQUEST["duplicate_action"])) {//if duplicate action, change author action
@@ -1461,6 +1465,11 @@ if ($id > 0)
         print '</td></tr>';
 //		}
 
+		if(isset($_REQUEST["duplicate_action"]) && empty($datep)){
+			$datep = time();
+			$datef = $datep;
+		}
+
         // Full day event
         print '<tr><td>'.$langs->trans("EventOnFullDay").'</td><td colspan="3"><input type="checkbox" id="fullday" name="fullday" '.($object->fulldayevent?' checked="checked"':'').'></td></tr>';
 
@@ -1562,6 +1571,9 @@ if ($id > 0)
 	print '</td></tr>';
 //		var_dump($datepreperform);
 //		die();
+		if(empty($datepreperform)){
+			$datepreperform = new DateTime();
+		}
 		print '<tr><td class="nowrap">Попередньо виконати до</td><td colspan="3">';
 		$form->select_date($datepreperform?$datepreperform->format('Y-m-d'):$object->datepreperform->format('Y-m-d'),'preperform',0,0,0,"action",1,0,0,0,'fulldaystart');
 		print '</td></tr>';
