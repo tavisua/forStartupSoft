@@ -107,49 +107,52 @@ function getParameterByName(name, url) {
     return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
 function SaveResultProporition(contactid){
+    if($('#cansaid').attr('checked') || $('#cansaid').attr('checked') === undefined && confirm('Вдалося озвучити пропозицію?')) {
+        var date = new Date();
+        var sDate = date.getDate() + '.' + date.getMonth() + '.' + date.getFullYear();
+        var products = $('.need');
+        var productsname = [];
+        var needList = [];
+        for (var i = 0; i < products.length; i++) {
+            productsname.push($('td#productname' + products[i].id.substr(4)).html());
+            needList.push($('input#' + products[i].id).val());
+        }
+        //console.log(productsname, needList);
+        var param = {
+            backtopage: location.href,
+            action: 'addonlyresult',
+            socid: getParameterByName('socid'),
+            mainmenu: 'area',
+            datep: date,
+            said: $('td#titleProposition').html(),
+            productsname: productsname,
+            proposed_id: $('#Proposition').attr('fx_proposition'),
+            need: needList,
+            contactid: contactid
+        }
+        $('#redirect').attr('target', '_blank');
+        $('#redirect').find('#action_id').remove();
+        $('#redirect').find('#onlyresult').remove();
+        $('#redirect').find('#redirect_actioncode').remove();
+        $('#redirect').find('#complete').remove();
+        for (var i = 0; i < Object.keys(param).length; i++) {
+            $('#redirect').append('<input type="hidden" name="' + Object.keys(param)[i] + '" value="' + param[Object.keys(param)[i]] + '">');
+        }
 
-    var date = new Date();
-    var sDate = date.getDate()+'.'+date.getMonth()+'.'+date.getFullYear();
-    var products = $('.need');
-    var productsname = [];
-    var needList = [];
-    for(var i=0; i<products.length; i++){
-        productsname.push($('td#productname'+products[i].id.substr(4)).html());
-        needList.push($('input#'+products[i].id).val());
+        //<input type="hidden" name="mainmenu" value="area" id="mainmenu_action">
+        //<input type="hidden" name="backtopage" value="'/dolibarr/htdocs/responsibility/sale/action.php?socid=4500&idmenu=10425&mainmenu=area'">
+        //<input type="hidden" name="id" value="" id="action_id">
+        //<input type="hidden" name="socid" value="" id="soc_id">
+        //<input type="hidden" name="onlyresult" value="" id="onlyresult">
+        //<input type="hidden" name="complete" value="" id="complete">
+        //<input type="hidden" value="" id="redirect_actioncode" name="actioncode">
+        //<input type="hidden" name="action" value="edit" id="edit_action">
+
+
+        $('#redirect').find('input#soc_id').val(getParameterByName('socid'));
+        $('#redirect').submit();
     }
-    //console.log(productsname, needList);
-    var param ={
-        backtopage: location.href,
-        action:'addonlyresult',
-        socid:getParameterByName('socid'),
-        mainmenu:'area',
-        datep:date,
-        said:$('td#titleProposition').html(),
-        productsname:productsname,
-        need:needList,
-        contactid:contactid
-    }
-    $('#redirect').find('#action_id').remove();
-    $('#redirect').find('#onlyresult').remove();
-    $('#redirect').find('#redirect_actioncode').remove();
-    $('#redirect').find('#complete').remove();
-    for(var i=0; i<Object.keys(param).length; i++) {
-        $('#redirect').append('<input type="hidden" name="'+Object.keys(param)[i]+'" value="' + param[Object.keys(param)[i]] + '">');
-    }
-    //<input type="hidden" name="mainmenu" value="area" id="mainmenu_action">
-    //<input type="hidden" name="backtopage" value="'/dolibarr/htdocs/responsibility/sale/action.php?socid=4500&idmenu=10425&mainmenu=area'">
-    //<input type="hidden" name="id" value="" id="action_id">
-    //<input type="hidden" name="socid" value="" id="soc_id">
-    //<input type="hidden" name="onlyresult" value="" id="onlyresult">
-    //<input type="hidden" name="complete" value="" id="complete">
-    //<input type="hidden" value="" id="redirect_actioncode" name="actioncode">
-    //<input type="hidden" name="action" value="edit" id="edit_action">
-
-
-
-    $('#redirect').find('input#soc_id').val(getParameterByName('socid'));
-    $('#redirect').submit();
-
+    $('#Proposition').remove();
     //console.log(link);
 }
 function LoadProposition(){
@@ -207,10 +210,11 @@ function showProposed(id,contactid){
         data: param,
         cache:false,
         success:function(html){
-            //console.log('test');
+            //console.log(html);
             createNewForm('popupmenu','Proposition')
+            $('#Proposition').addClass('setdate');
             $('#Proposition').css('width','auto');
-            //$('#popupmenu').css('height',250);
+            $('#Proposition').css('height','auto');
             $('#Proposition').empty().html(html);
 
             $('#Proposition').show();
@@ -497,6 +501,7 @@ function ReinitPassword(){
     })
 }
 function sendSMS(number, text, confirmSend){
+    console.log(number, number);
     if(number.length == 0 && text.length == 0) {
         number = $("#phone_number").val();
         text = $("#textsms").val();

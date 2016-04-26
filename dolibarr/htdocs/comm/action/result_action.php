@@ -23,7 +23,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/agenda.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formactions.class.php';
 global $user, $db;
-if($_GET['action'] == 'addonlyresult' && $_GET['action'] == 'addonlyresult_and_create') {
+if($_GET['action'] == 'addonlyresult' || $_GET['action'] == 'addonlyresult_and_create') {
     llxHeader('', $langs->trans("AddResultAction"), $help_url);
 }elseif(isset($_REQUEST["onlyresult"])&&$_REQUEST["onlyresult"]=='1'){
     llxHeader('', $langs->trans("EditResultAction"), $help_url);
@@ -183,14 +183,16 @@ function saveaction($rowid, $createaction = false){
     else
         $socid = get_soc_id($_REQUEST['actionid']);
 //    echo '<pre>';
-//    var_dump($socid);
+//    var_dump($_REQUEST);
 //    echo '</pre>';
 //    die();
     if(empty($rowid)){
-        $sql='insert into llx_societe_action(`action_id`, `socid`, `contactid`, `said`,`answer`,
+        $sql='insert into llx_societe_action(`action_id`,`proposed_id`, `socid`, `contactid`, `said`,`answer`,
           `argument`,`said_important`,`result_of_action`,`work_before_the_next_action`,`id_usr`, `new`) values(';
         if(empty($_REQUEST['actionid'])) $sql.='null,';
         else $sql.=$_REQUEST['actionid'].',';
+        if(empty($_REQUEST['proposed_id'])) $sql.='null,';
+        else $sql.=$_REQUEST['proposed_id'].',';
         if(empty($socid)) $sql.='null,';
         else $sql.=$socid.',';
         $sql.=(empty($_REQUEST['contactid'])?"null":$_REQUEST['contactid']).', ';
@@ -271,9 +273,17 @@ function saveaction($rowid, $createaction = false){
 //    die();
     if(!$createaction) {
         if(substr($_REQUEST['backtopage'], 0, 1) == "'" && substr($_REQUEST['backtopage'], strlen($_REQUEST['backtopage'])-1, 1) == "'")
-            header("Location: " . substr($_REQUEST['backtopage'], 1, strlen($_REQUEST['backtopage']) - 2));
+            $backtopage = substr($_REQUEST['backtopage'], 1, strlen($_REQUEST['backtopage']) - 2);
         else
-            header("Location: " . $_REQUEST['backtopage']);
+            $backtopage = $_REQUEST['backtopage'];
+//        var_dump(isset($_REQUEST['proposed_id']) && !empty($_REQUEST['proposed_id']));
+//        die();
+        if(isset($_REQUEST['proposed_id'])&&!empty($_REQUEST['proposed_id']))
+            $backtopage.='&beforeload=close';
+//        var_dump($backtopage);
+//        die();
+        header("Location: " . $backtopage);
+
     }else{
         $link = "http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/comm/action/card.php?mainmenu=".$_REQUEST['mainmenu']."&actioncode=".$_REQUEST['actioncode']."&socid=".$socid."&action=create&parent_id=".$_REQUEST["actionid"]."&backtopage=".urlencode(htmlspecialchars(substr($_REQUEST['backtopage'], 1, strlen($_REQUEST['backtopage'])-2)));
 //        die($link);

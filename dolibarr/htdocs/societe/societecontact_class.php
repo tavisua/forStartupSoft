@@ -312,7 +312,7 @@ class societecontact {
 //        var_dump($result);
 //        echo '</pre>';
 //        die();
-        $sql = 'select distinct `llx_societe_contact`.post_id, `llx_c_proposition`.`fk_lineactive` from `llx_societe_contact`
+        $sql = 'select distinct `llx_c_proposition`.rowid as prososed_id, `llx_societe_contact`.post_id, `llx_c_proposition`.`fk_lineactive` from `llx_societe_contact`
             inner join `llx_societe` on `llx_societe`.rowid = `llx_societe_contact`.`socid`
             inner join `llx_c_proposition` on `llx_c_proposition`.`fk_post` = `llx_societe_contact`.post_id
             left join `llx_societe_lineactive` on `llx_societe_lineactive`.`fk_soc`= `llx_societe`.rowid
@@ -331,8 +331,28 @@ class societecontact {
             dol_print_error($db);
         $postArray = array();
         while($obj = $db->fetch_object($resPost)){
-            $postArray[$obj->post_id] = $obj->fk_lineactive;
+            if(!isset($postArray[$obj->post_id]))
+                $postArray[$obj->post_id] = array();
+            $postArray[$obj->post_id][] = array($obj->fk_lineactive, $obj->prososed_id);
         }
+//        echo '<pre>';
+//        var_dump($postArray);
+//        echo '</pre>';
+//        die();
+
+        $sql = 'select distinct proposed_id, contactid from `llx_societe_action`
+            where contactid in (select `rowid` from `llx_societe_contact` where `socid` = '.(empty($obj->socid)?$_REQUEST['socid']:$obj->socid).' and active = 1)
+            and proposed_id is not null
+            and active = 1';
+        $resSaid = $db->query($sql);
+        $saidArray = array();
+        while($obj = $db->fetch_object($resSaid)){
+            if(!isset($saidArray[$obj->contactid]))
+                $saidArray[$obj->contactid]=array();
+            $saidArray[$obj->contactid][]=$obj->proposed_id;
+        }
+//        var_dump($saidArray);
+//        die();
         mysqli_data_seek($result, 0);
         while($row = $result->fetch_assoc()) {
 
@@ -344,15 +364,23 @@ class societecontact {
             $id = $row['rowid'];
 //            $table .= '<td >'.$class.'</td>';
 //            echo '<pre>';
-//            var_dump($fields);
+//            var_dump($saidArray);
 //            echo '</pre>';
 //            die();
 //            echo '</br>';
             $num_col = 0;
             foreach($row as $cell=>$value){
-//                var_dump($postArray[$row['post_id']], array_keys($postArray));
-//                die();
-                $proposed = isset($row['post_id'])&&in_array($row['post_id'], array_keys($postArray));
+
+                $proposed = false;
+                if(isset($row['post_id'])&&in_array($row['post_id'], array_keys($postArray))){
+                    foreach($postArray[$row['post_id']] as $item){
+                        if(count($saidArray) == 0 || !in_array($item[1], $saidArray[$row['rowid']])){
+                            $proposed = true;
+                            break;
+                        }
+
+                    }
+                }
                 if(!in_array($fields[$num_col]->name, $notShowedFields)) {
                     if ($fields[$num_col]->type == 10) {//Якщо тип поля - дата - перетворюю на правильний формат
                         if (!empty($value)) {
@@ -429,8 +457,12 @@ class societecontact {
                                                     $number = str_replace('(', '', $number);
                                                     $number = str_replace(')', '', $number);
                                                     $number = str_replace('-', '', $number);
+//                                                    echo '<pre>';
+//                                                    var_dump($postArray[$row['post_id']]);
+//                                                    echo '</pre>';
+//                                                    die();
                                                     if($proposed)
-                                                        $table .= '<td id="proposed'.$row['post_id'].'" style="width: 20px" onclick="showTitleProposed('.$row['post_id'].','.$postArray[$row['post_id']].','.$row['rowid'].', proposed'.$row['post_id'].');"><img id="proposedIcon' . $row['rowid'] . $fields[$num_col]->name . '" title = "'.$langs->trans('Proposition').'" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/strawberry.png"></td>';
+                                                        $table .= '<td id="proposed'.$row['post_id'].'" style="width: 20px" onclick="showTitleProposed('.$row['post_id'].','.$postArray[$row['post_id']][0][0].','.$row['rowid'].', proposed'.$row['post_id'].');"><img id="proposedIcon' . $row['rowid'] . $fields[$num_col]->name . '" title = "'.$langs->trans('Proposition').'" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/strawberry.png"></td>';
                                                     $table .= '<td style="width: 20px" onclick="showSMSform(' . $number . ');"><img id="sms' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/object_sms.png"></td>';
                                                 }
                                                 $ID = "'#img" . $row['rowid'] . $fields[$num_col]->name . "'";

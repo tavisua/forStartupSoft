@@ -140,8 +140,10 @@
                         parseInt($('#'+tr[i].id.substr(2)+'futuredatecomerc').text().substr(3,2))-1,
                         parseInt($('#'+tr[i].id.substr(2)+'futuredatecomerc').text().substr(0,2)));
                 console.log(tr[i].id, date, today);
-                if(date<today)
-                    $('#'+tr[i].id.substr(2)+'futuredatecomerc').find('a').css('color','red');
+                        if(date<today)
+                            $('#'+tr[i].id.substr(2)+'futuredatecomerc').find('a').css('color','red');
+                        else if(date.getFullYear() == today.getFullYear() && date.getMonth() == today.getMonth() && date.getDate() == today.getDate())
+                            $('#'+tr[i].id.substr(2)+'futuredatecomerc').find('a').parent().css('background-color', ':rgb(0, 255, 0)');
 //                        console.log($('#'+tr[i].id.substr(2)+'futuredatecomerc').text(), parseInt('20'+$('#'+tr[i].id.substr(2)+'futuredatecomerc').text().substr(6,2)),
 //                                parseInt($('#'+tr[i].id.substr(2)+'futuredatecomerc').text().substr(3,2)),
 //                                parseInt($('#'+tr[i].id.substr(2)+'futuredatecomerc').text().substr(0,2)));

@@ -126,7 +126,10 @@ class proposedProducts
             $restitle = $this->db->query($sql);
             $obj = $this->db->fetch_object($restitle);
             $out .= '<tr>';
-            $out .= '<td class="titreProposed" id="titleProposition">'.trim($obj->text).'</td>';
+            $out .= '<td class="titreProposed" id="titleProposition" colspan="4">'.trim($obj->text).'</td>';
+            $out .= '</tr>';
+            $out .= '<tr>';
+            $out .= '<td  id="titleProposition" colspan="4">Вдалося озвучити пропозицію клієнту <input id="cansaid" type="checkbox" name="cansaid"></td>';
             $out .= '</tr>';
             $title = array('Завод-виробник','№ по катагогу (атикул)','№ карточки в 1С',
                 'Наявність','Од.виміру','Місце відвантаження','ОСОБЛИВІСТЬ ПРОПОЗИЦІЇ','ВИГОДИ КЛІЄНТУ',

@@ -38,6 +38,7 @@
         <input id="socid" name="socid" type="hidden" value="<?=isset($_REQUEST['onlyresult'])&&!empty($_REQUEST['onlyresult'])?$object->socid:$_REQUEST['socid']?>">
         <input id="mainmenu" name="mainmenu" type="hidden" value="<?=$_GET['mainmenu']?>">
         <input type="hidden" value="<?=$_GET['actioncode']?>" name="actioncode">
+        <input type="hidden" value="<?=$_GET['proposed_id']?>" name="proposed_id">
         <input type="hidden" value="" name="complete" id="complete">
         <input id="action" name="action" type="hidden" value="">
 
@@ -116,27 +117,29 @@
     }
 
     function save(){
-        var search = location.search.substr(1);
-        var param = {};
-        search.split('&').forEach(function(item){
-            item = item.split('=');
-            param[item[0]]=item[1];
-        })
+        if(confirm('Зберегти інформацію?')) {
+            var search = location.search.substr(1);
+            var param = {};
+            search.split('&').forEach(function (item) {
+                item = item.split('=');
+                param[item[0]] = item[1];
+            })
 //        console.log(param);
 //        return;
-        $('#socid').val(param.socid);
-        $("#addaction").attr('action', '/dolibarr/htdocs/comm/action/result_action.php');
-        if(param.action == 'addonlyresult')
-            $("#action").val('addonlyresult');
-        else if(param.onlyresult !== undefined)
-            $("#action").val('updateonlyresult');
-        else
-            $("#action").val('update');
-        $('#complete').val($('#valcomplete').val());
-        console.log($("addaction").attr('action'));
-        $("#addaction").submit();
-//        alert('test');
+            $('#socid').val(param.socid);
+            $("#addaction").attr('action', '/dolibarr/htdocs/comm/action/result_action.php');
+            if (param.action == 'addonlyresult')
+                $("#action").val('addonlyresult');
+            else if (param.onlyresult !== undefined)
+                $("#action").val('updateonlyresult');
+            else
+                $("#action").val('update');
+            $('#complete').val($('#valcomplete').val());
+            console.log($("addaction").attr('action'));
+            $("#addaction").submit();
 
+//        alert('test');
+        }
     }
     function saveandcreate(){
         var search = location.search.substr(1);

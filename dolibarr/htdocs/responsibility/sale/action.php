@@ -26,6 +26,14 @@ if(isset($_REQUEST['action'])||isset($_POST['action'])){
         echo showProposition($_REQUEST['id'],$_REQUEST['contactid']);
         exit();
     }
+}elseif(isset($_REQUEST['beforeload'])){
+    llxHeader("",'Close',"");
+    print '<script>
+        $(document).ready(function(){
+            close();
+        })
+    </script>';
+    exit();
 }
 
 //echo '<pre>';
@@ -172,12 +180,12 @@ function showProposition($proposed_id,$contactid=0){
     if(!$res)
         dol_print_error($db);
     $obj = $db->fetch_object($res);
-    $out='<table class="setdate" style="background: #ffffff; width: 450px">
+    $out='<table class="scrolling-table" style="background: #ffffff; width: 420px">
             <thead><tr class="multiple_header_table"><th class="middle_size" colspan="9" style="width: 100%">Суть пропозиції для посади '.$obj->postname.'</th>
             <a class="close" style="margin-left: -160px" onclick="ClosePopupMenu($(this));" title="Закрити"></a>
                 </tr>
                 </thead>
-            <tbody>';
+            <tbody  id="bodyProposition">';
     $beginProposition = new DateTime($obj->begin);
     if(!empty($obj->end)) {
         $endProposition = new DateTime($obj->end);
@@ -189,16 +197,21 @@ function showProposition($proposed_id,$contactid=0){
     $tabody = $proposedPoducts->ShowProducts($proposed_id, true);
 
     $out .=$tabody;
-    $out .='<tr>
-                <td colspan="9"><button onclick="SaveResultProporition('.$contactid.');">Зберегти результати перемовин</button></td>
-            </tr>';
-    $out .='</tbody>
-        </table>';
+//    $out .='<tr>
+//                <td colspan="9"><button onclick="SaveResultProporition('.$contactid.');">Зберегти результати перемовин</button></td>
+//            </tr>';
+    $out .='</tbody></table>';
+    $out .='<div style="width: 100%; background-color: "><button onclick="SaveResultProporition('.$contactid.');">Зберегти результати перемовин</button></div>';
     $out.='<style>
             div#BasicInformation, div#PriceOffers, div#OtherInformationOffers{
                 font-size: 12px;
             }
-        </style>';
+        </style>
+        <script>
+            $(document).ready(function(){
+                $("tbody#bodyProposition").height($(window).height()-$("div#Proposition").offset().top-200);
+            })
+        </script>';
     return $out;
 }
 function showTitleProposition($post_id, $lineactive, $contactid=0){
@@ -211,6 +224,12 @@ function showTitleProposition($post_id, $lineactive, $contactid=0){
         and `llx_c_proposition`.fk_lineactive = '.$lineactive.'
         and ((`llx_c_proposition`.`end` is not null and Now() between `llx_c_proposition`.`begin` and `llx_c_proposition`.`end`) or `llx_c_proposition`.`end` is null)
         and `llx_c_proposition`.active = 1';
+    if($contactid != 0)
+        $sql.=' and `llx_c_proposition`.rowid not in (select distinct proposed_id from `llx_societe_action`
+                where contactid='.$contactid.'
+                and proposed_id is not null
+                and active = 1)';
+    $sql.=' order by prioritet';
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
