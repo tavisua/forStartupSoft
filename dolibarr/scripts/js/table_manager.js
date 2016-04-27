@@ -224,7 +224,7 @@ function showProposed(id,contactid){
         }
     })
 }
-function showTitleProposed(post_id, lineactive, contactid, td){
+function showTitleProposed(post_id, lineactive, contactid, td, socid){
     var param = {
         post_id: post_id,
         lineactive: lineactive,
@@ -237,14 +237,25 @@ function showTitleProposed(post_id, lineactive, contactid, td){
         data: param,
         cache:false,
         success:function(html){
-            //console.log('test');
-            $('#popupmenu').css('width',250);
-            //$('#popupmenu').css('height',250);
-            $('#popupmenu').empty().html(html);
+            if(td === undefined && socid !== undefined){
+                $('#PropositionTitle').empty().html(html);
+                $('#PropositionTitle').find('table').removeClass('setdate');
+                $('#PropositionTitle').find('table').width(245);
+                $('#PropositionTitle').find('a').remove();
+                var tr = $('#PropositionTitle').find('thead').find('tr');
+                tr[0].innerHTML = '<th class="middle_size" style="width: 100%" colspan="3">Актуальні пропозиції</th>';
+            }else {
+                $('#popupmenu').css('width', 250);
+                //$('#popupmenu').css('height',250);
+                $('#popupmenu').empty().html(html);
 
-            $('#popupmenu').show();
-            $('#popupmenu').offset({top:$('#'+td.id).offset().top-30,left:$('#'+td.id).offset().left-50});
-            $('#popupmenu').attr('TitleProposed', 1);
+                $('#popupmenu').show();
+                $('#popupmenu').offset({
+                    top: $('#' + td.id).offset().top - 30,
+                    left: $('#' + td.id).offset().left - 50
+                });
+                $('#popupmenu').attr('TitleProposed', 1);
+            }
         }
     })
 }

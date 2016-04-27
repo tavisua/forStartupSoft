@@ -20,7 +20,7 @@ if(isset($_REQUEST['action'])||isset($_POST['action'])){
 //        echo '<pre>';
 //        var_dump($_REQUEST);
 //        echo '</pre>';
-        echo showTitleProposition($_REQUEST['post_id'], $_REQUEST['lineactive'], $_REQUEST['contactid']);
+        echo showTitleProposition($_REQUEST['post_id'], $_REQUEST['lineactive'], $_REQUEST['contactid'], $_REQUEST['socid']);
         exit();
     }elseif($_REQUEST['action'] == 'showProposition'){
         echo showProposition($_REQUEST['id'],$_REQUEST['contactid']);
@@ -214,22 +214,44 @@ function showProposition($proposed_id,$contactid=0){
         </script>';
     return $out;
 }
-function showTitleProposition($post_id, $lineactive, $contactid=0){
+function showTitleProposition($post_id, $lineactive, $contactid=0, $socid){
     global $db;
-    $sql = 'select `llx_c_proposition`.rowid, text
+    if(empty($post_id) && empty($lineactive) && empty($contactid)){
+        $sql = 'select `llx_c_proposition`.rowid, `text`
+                from  `llx_c_proposition` where 1';
+        $sql .= ' and ((`llx_c_proposition`.`end` is not null and Now() between `llx_c_proposition`.`begin` and `llx_c_proposition`.`end`) or `llx_c_proposition`.`end` is null)
+            and `llx_c_proposition`.active = 1';
+        $res = $db->query($sql);
+//        llxHeader();
+        $titleArray = array();
+        while($obj = $db->fetch_object($res)){
+            if(!isset($titleArray[trim($obj->text)]))
+                $titleArray[trim($obj->text)]=$obj->rowid;
+        }
+        $rowid='';
+        foreach($titleArray as $item=>$value){
+            if(!empty($rowid))
+                $rowid.=',';
+            $rowid.=$value;
+        }
+        $sql = 'select `llx_c_proposition`.rowid, `text` from  `llx_c_proposition`';
+        $sql .= 'where rowid in('.$rowid.')';
+    }else {
+        $sql = 'select `llx_c_proposition`.rowid, text
         from  `llx_c_proposition`
         inner join `llx_post` on `llx_post`.`rowid` = `llx_c_proposition`.`fk_post`
         where 1
-        and `llx_c_proposition`.fk_post = '.$post_id.'
-        and `llx_c_proposition`.fk_lineactive = '.$lineactive.'
+        and `llx_c_proposition`.fk_post = ' . $post_id . '
+        and `llx_c_proposition`.fk_lineactive = ' . $lineactive . '
         and ((`llx_c_proposition`.`end` is not null and Now() between `llx_c_proposition`.`begin` and `llx_c_proposition`.`end`) or `llx_c_proposition`.`end` is null)
         and `llx_c_proposition`.active = 1';
-    if($contactid != 0)
-        $sql.=' and `llx_c_proposition`.rowid not in (select distinct proposed_id from `llx_societe_action`
-                where contactid='.$contactid.'
+        if ($contactid != 0)
+            $sql .= ' and `llx_c_proposition`.rowid not in (select distinct proposed_id from `llx_societe_action`
+                where contactid=' . $contactid . '
                 and proposed_id is not null
                 and active = 1)';
-    $sql.=' order by prioritet';
+        $sql.=' order by prioritet';
+    }
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);

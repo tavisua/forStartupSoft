@@ -226,7 +226,7 @@ $tabsql[36]= "select rowid, name, active from ".MAIN_DB_PREFIX."c_finance_servic
 $tabsql[37]= "select rowid, question, active  from ".MAIN_DB_PREFIX."c_category_product_question where category_id is null";
 $tabsql[38]= "select rowid, name, active  from ".MAIN_DB_PREFIX."c_lineactive_customer where 1";
 $tabsql[39]= "select llx_c_proposition.rowid, `llx_c_proposition`.`fk_lineactive`, `llx_c_proposition`.`fk_post`, `llx_c_lineactive_customer`.`name` as LineActiveCustomer, `llx_post`.`postname`,
-	`llx_c_proposition`.`prioritet`, `llx_c_proposition`.`begin`,`llx_c_proposition`.`end`,`llx_c_proposition`.`text` proposition, `llx_c_proposition`.`description`, `llx_c_proposition`.`active`, 'test' as tests, 'products' as products
+	`llx_c_proposition`.`prioritet`,`llx_c_proposition`.`square`, `llx_c_proposition`.`begin`,`llx_c_proposition`.`end`,`llx_c_proposition`.`text` proposition, `llx_c_proposition`.`description`, `llx_c_proposition`.`active`, 'test' as tests, 'products' as products
 	from `llx_c_proposition`
 	left join `llx_c_lineactive_customer` on `llx_c_lineactive_customer`.rowid = `llx_c_proposition`.`fk_lineactive`
 	left join `llx_post` on `llx_post`.`rowid` = `llx_c_proposition`.`fk_post` where `llx_c_proposition`.`active` = 1";
@@ -321,7 +321,7 @@ $tabfield[35]= "name,ed_name";
 $tabfield[36]= "name";
 $tabfield[37]= "question";
 $tabfield[38]= "name";
-$tabfield[39]= "LineActiveCustomer,postname,prioritet,begin,end,proposition,description,tests,products";
+$tabfield[39]= "LineActiveCustomer,postname,prioritet,square,begin,end,proposition,description,tests,products";
 $tabfield[40]= "issues";
 $tabfield[41]= "fk_groupissues,fk_subdivision,action,responsible,directly_responsible";
 
@@ -365,7 +365,7 @@ $tabfieldvalue[35]= "name,ed_name";
 $tabfieldvalue[36]= "name";
 $tabfieldvalue[37]= "question";
 $tabfieldvalue[38]= "name";
-$tabfieldvalue[39]= "LineActiveCustomer,postname,prioritet,begin,end,proposition,description,active";
+$tabfieldvalue[39]= "LineActiveCustomer,postname,prioritet,square,begin,end,proposition,description,active";
 $tabfieldvalue[40]= "issues";
 $tabfieldvalue[41]= "fk_groupissues,fk_subdivision,action,responsible,directly_responsible,active";
 
@@ -411,7 +411,7 @@ $tabfieldinsert[35]= "name,fx_measurement";
 $tabfieldinsert[36]= "name";
 $tabfieldinsert[37]= "question";
 $tabfieldinsert[38]= "name";
-$tabfieldinsert[39]= "fk_lineactive,fk_post,prioritet,begin,end,text,description";
+$tabfieldinsert[39]= "fk_lineactive,fk_post,prioritet,square,begin,end,text,description";
 $tabfieldinsert[40]= "issues";
 $tabfieldinsert[41]= "fk_groupissues,fk_subdivision,action,responsible,directly_responsible";
 
@@ -684,7 +684,7 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
         if ($id == 30 && ($value == 'Model' || $value == 'Description'||($value == 'Trademark'&&!isset($_POST['Trademark']))))continue;
 		if ($id == 34 && ($value == 'responsibility'))continue;
         if ($id == 35 && ($value == 'ed_name'))continue;
-        if ($id == 39 && ($value == 'LineActiveCustomer'|| $value == 'prioritet' || $value == 'postname'|| $value == 'end'|| $value == 'proposition' ||$value == 'description' || $value == 'tests' || $value == 'products')){
+        if ($id == 39 && ($value == 'LineActiveCustomer'|| $value == 'prioritet'|| $value == 'square' || $value == 'postname'|| $value == 'end'|| $value == 'proposition' ||$value == 'description' || $value == 'tests' || $value == 'products')){
 //            if($value == 'end')
 //                unset($_POST['end']);
             continue;
@@ -791,7 +791,7 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
 
         $i=0;
         $added=0;
-//        var_dump($listfieldinsert, $_POST);
+//        var_dump(count($listfieldinsert));
 //        die($sql);
         foreach ($listfieldinsert as $f => $value)
         {
@@ -810,20 +810,20 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
 				if(($listfieldvalue[$i] == 'begin' || $listfieldvalue[$i] == 'end')) {
                     if(!empty($_POST[$listfieldvalue[$i]])) {
                         $date = new DateTime($_POST[$listfieldvalue[$i]]);
-                        $sql .= "'" . $date->format('Y-m-d') . "',";
+                        $sql .= "'" . $date->format('Y-m-d') . "'";
                     }else
-                        $sql .= "null,";
+                        $sql .= "null";
 				}else{
 					switch($listfieldvalue[$i]){
 						case 'proposition':{
-							$sql .= empty($_POST['proposition'])?"null,":("'".$_POST['proposition']."',");
+							$sql .= empty($_POST['proposition'])?"null,":("'".$_POST['proposition']."'");
 						}break;
 						case 'LineActiveCustomer':{
-							$sql .= empty($_POST['fk_lineactive'])?"null,":$_POST['fk_lineactive'].",";
+							$sql .= empty($_POST['fk_lineactive'])?"null,":$_POST['fk_lineactive'];
 						}break;
 						case 'postname':{
 //							var_dump($_POST['post']);
-							$sql .= empty($_POST['fk_post'])?"null,":$_POST['fk_post'].",";
+							$sql .= empty($_POST['fk_post'])?"null,":$_POST['fk_post'];
 						}break;
 						default:{
 							$sql .=	"'".($_POST[$listfieldvalue[$i]])."'";
@@ -837,6 +837,7 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
 //				var_dump($date->format('Y-m-d'));
 //				echo '</pre>';
 //				die();
+                $added=1;
             }else {
                 if ($value == 'price' || preg_match('/^amount/i', $value)) {
                     $_POST[$listfieldvalue[$i]] = price2num($_POST[$listfieldvalue[$i]], 'MU');
@@ -860,8 +861,8 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
             $i++;
         }
         $sql.=",1".($id>=25?(",".$user->id):"").")";
-//var_dump($_POST);
-//die($sql);
+
+
         dol_syslog("actionadd", LOG_DEBUG);
         $result = $db->query($sql);
         if ($result)	// Add is ok
@@ -1939,7 +1940,7 @@ function fieldList($fieldlist,$obj='',$tabname='', $show=0)//Відображе�
                 print ' <button onclick="showDP(' . $param . ');" class="dpInvisibleButtons" type="button" id="apButton"><img border="0" class="datecallink" title="Select a date" alt="" src="/dolibarr/htdocs/theme/eldy/img/object_calendarday.png"></button>';
                 print '</td>';
             }
-            elseif($fieldlist[$field] == 'prioritet'){
+            elseif($fieldlist[$field] == 'prioritet'||$fieldlist[$field] == 'square'){
                 print '<td align="left">';
                 print '<input id="' . $fieldlist[$field] . '" size="4" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="' . (isset($obj->$fieldlist[$field]) ? $obj->$fieldlist[$field] : '') . '" name="' . $fieldlist[$field] . '" maxlength="60" size="60" autocomplete="off">';
                 print '</td>';

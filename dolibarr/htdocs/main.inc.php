@@ -987,11 +987,18 @@ if (! function_exists("llxHeader"))
                                     <td class="middle_size" colspan="4" style="padding-left: 10px;">Інше</td>
                                 </tr>
                                 <tr>
-                                    <td class="middle_size" colspan="4"><b>Пропозиції для посад</b></td>
+                                    <td class="middle_size" colspan="4" id="PropositionTitle"></td>
                                 </tr>
+
                             </tbody>
                         </table>
-                    </div>';
+                    </div>
+                    <script>
+                        $(document).ready(function(){
+                            showTitleProposed(0, 0, 0, undefined, getParameterByName("socid"));
+                        })
+                    </script>
+                    ';
         }
 
 

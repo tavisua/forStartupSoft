@@ -117,7 +117,7 @@
     }
 
     function save(){
-        if(confirm('Зберегти інформацію?')) {
+        if($('#proposed_id').val() === undefined || confirm('Зберегти інформацію?')) {
             var search = location.search.substr(1);
             var param = {};
             search.split('&').forEach(function (item) {
