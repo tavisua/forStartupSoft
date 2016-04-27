@@ -513,7 +513,7 @@ function ReinitPassword(){
 }
 function sendSMS(number, text, confirmSend){
     console.log(number, number);
-    if(number.length == 0 && text.length == 0) {
+    if((number === undefined  && text === undefined)||(number.length == 0  && text.length == 0)) {
         number = $("#phone_number").val();
         text = $("#textsms").val();
     }

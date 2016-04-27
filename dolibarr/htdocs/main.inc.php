@@ -956,6 +956,10 @@ if (! function_exists("llxHeader"))
 	    global $conf, $user, $langs;
 	    // html header
 		top_htmlhead($head, $title, $disablejs, $disablehead, $arrayofjs, $arrayofcss);
+//echo '<pre>';
+//        var_dump(substr($_SERVER['PHP_SELF'], strlen($_SERVER['PHP_SELF'])-strlen('area.php')));
+//echo '</pre>';
+//        die();
 
 
         if(substr($_SERVER["SCRIPT_NAME"], strlen($_SERVER["SCRIPT_NAME"])-strlen('action.php')) && $_REQUEST['mainmenu'] == 'area') {//Ш
@@ -992,8 +996,9 @@ if (! function_exists("llxHeader"))
 
                             </tbody>
                         </table>
-                    </div>
-                    <script>
+                    </div>';
+            if(substr($_SERVER['PHP_SELF'], strlen($_SERVER['PHP_SELF'])-strlen('area.php'))=='area.php')
+                print'<script>
                         $(document).ready(function(){
                             showTitleProposed(0, 0, 0, undefined, getParameterByName("socid"));
                         })

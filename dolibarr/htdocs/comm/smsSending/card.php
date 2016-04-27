@@ -82,7 +82,11 @@ function sending(){
 function getCustomers(){
 
     global $db, $user;
-    $sql = 'select `llx_societe_contact`.`rowid`, `llx_societe_contact`.`socid`, `states`.`name` state_name, `formofgavernment`.name as form_gov, `regions`.`name` region_name, `llx_societe`.`nom`, `llx_post`.`postname`, llx_societe_contact.lastname, llx_societe_contact.firstname, llx_societe_contact.mobile_phone1, llx_societe_contact.mobile_phone2, `llx_societe_classificator`.`value` from llx_societe
+    $sql = 'select `llx_societe_contact`.`rowid`, `llx_societe_contact`.`socid`, `states`.`name` state_name,
+        `formofgavernment`.name as form_gov, `regions`.`name` region_name, `llx_societe`.`nom`, `llx_post`.`postname`,
+        llx_societe_contact.lastname, llx_societe_contact.firstname, llx_societe_contact.mobile_phone1,
+        llx_societe_contact.mobile_phone2, `llx_societe_classificator`.`value`, case when `llx_societe_classificator`.`active` is null then 1 else `llx_societe_classificator`.`active` end `active`
+        from llx_societe
         inner join `llx_societe_contact` on `llx_societe_contact`.`socid` = `llx_societe`.`rowid`
         left join `llx_post` on `llx_societe_contact`.`post_id` = `llx_post`.`rowid`
         left join `regions` on `regions`.`rowid` = `llx_societe`.`region_id`
@@ -91,7 +95,7 @@ function getCustomers(){
 
     if(!empty($_REQUEST["from"]) || !empty($_REQUEST["to"])) {
         $sql.=' inner join llx_societe_classificator on llx_societe_classificator.soc_id = `llx_societe`.`rowid`';
-    }else
+    }
         $sql.=' left join llx_societe_classificator on llx_societe_classificator.soc_id = `llx_societe`.`rowid`';
 
 
@@ -121,7 +125,7 @@ function getCustomers(){
     }
 
     $sql .=' and (call_mobile_phone1 = 1 or call_mobile_phone2 = 1)';
-    $sql .=' and `llx_societe_classificator`.`active` = 1';
+//    $sql .=' and `llx_societe_classificator`.`active` = 1';
     $sql .=' order by state_name, region_name, nom, lastname';
 
 //    echo '<pre>';
@@ -132,19 +136,22 @@ function getCustomers(){
     $res = $db->query($sql);
     $num = 1;
     while($obj = $db->fetch_object($res)){
-        if(empty($obj->mobile_phone1))
-            $mobilephone = $obj->mobile_phone2;
-        else $mobilephone = $obj->mobile_phone1;
-        if(!empty($mobilephone)) {
-            $class = fmod($num, 2) == 0 ? 'impair' : 'pair';
-            $out .= '<tr id = "'.$obj->rowid.'" socid="'.$obj->socid.'" class="secondpage ' . $class . '">
+        if($obj->active) {
+            if (empty($obj->mobile_phone1))
+                $mobilephone = $obj->mobile_phone2;
+            else $mobilephone = $obj->mobile_phone1;
+            $mobilephone = str_replace(' ','',$mobilephone);
+            if (!empty($mobilephone)) {
+                $class = fmod($num, 2) == 0 ? 'impair' : 'pair';
+                $out .= '<tr id = "' . $obj->rowid . '" socid="' . $obj->socid . '" class="secondpage ' . $class . '">
             <td class="middle_size">' . $num++ . '&nbsp;</td>
             <td class="middle_size">' . trim($obj->region_name) . ' (' . decrease_word($obj->state_name) . ')</td>
             <td class="middle_size">' . trim($obj->form_gov) . ' "' . trim($obj->nom) . '"</td>
             <td class="middle_size">' . trim($obj->lastname) . '</td>
             <td class="middle_size">' . trim($obj->postname) . '</td>
             <td class="middle_size" style="white-space: nowrap;">' . round($obj->value) . ' га. </td>';
-            $out .= '<td class="middle_size" style="word-wrap: normal">' . $mobilephone . '</td></tr>';
+                $out .= '<td class="middle_size" style="word-wrap: normal">' . $mobilephone . '</td></tr>';
+            }
         }
     }
 //    echo '<pre>';
