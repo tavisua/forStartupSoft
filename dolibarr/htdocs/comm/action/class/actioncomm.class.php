@@ -238,10 +238,15 @@ class ActionComm extends CommonObject
     }
     function GetFirstFreeTime($date, $id_usr, $minutes, $prioritet = 0, $starttime){
         $freetime = $this->GetFreeTimePeriod($date, $id_usr, $prioritet);
-
+//        echo '<pre>';
+//        var_dump($freetime);
+//        echo '</pre>';
+//        die();
         if(empty($starttime)||$starttime<time())
              $starttime = time();
+        $num = 0;
         foreach($freetime as $period){
+            $num++;
 //            var_dump(intval(substr($period[2], 5,2)), intval(substr($period[2], 8,2)), intval(substr($period[2], 0,4)), $period[2]);
 //            die();
             $itemDate = dol_mktime(intval(substr($period[0], 0,2)), intval(substr($period[0], 3,2)), intval(substr($period[0], 5,2)), intval(substr($period[2], 5,2)), intval(substr($period[2], 8,2)), intval(substr($period[2], 0,4)));
@@ -249,7 +254,8 @@ class ActionComm extends CommonObject
             $dtDate->setTimestamp($itemDate);
             if($minutes<=$period[1] && $itemDate >= $starttime && $dtDate->format('H')>=8 && !( $dtDate->format('H')>=12&& $dtDate->format('H')<14) && $dtDate->format('Y-m-d') == $date) {
                 return  $period[2].' '.$period[0];
-            }elseif($minutes<=$period[1] && $itemDate >= $starttime && $dtDate->format('H')>=8 && ( $dtDate->format('H')>=12&& $dtDate->format('H')<14) && $dtDate->format('Y-m-d') == $date){
+            }elseif($minutes<=$period[1] && $itemDate >= $starttime && $dtDate->format('H')>=8 &&
+                ($dtDate->format('H')>=12&& $dtDate->format('H')<14 && $num == count($freetime)) && $dtDate->format('Y-m-d') == $date){
 //                var_dump($period[2].' 14:00:00');
 //                die();
                 return $period[2].' 14:00:00';

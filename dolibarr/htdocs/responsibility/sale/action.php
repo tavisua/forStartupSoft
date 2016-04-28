@@ -10,10 +10,14 @@ if(isset($_REQUEST['action'])||isset($_POST['action'])){
     }elseif($_POST['action'] == 'save'){
         saveaction();
         exit();
-    }elseif($_REQUEST['action'] == 'getProposition'){
+    }elseif($_REQUEST['action'] == 'getProposition') {
 //        var_dump($_REQUEST['socid']);
 //        die();
         echo getProposition($_REQUEST['socid']);
+        exit();
+
+    }elseif($_REQUEST['action'] == 'getLastNotExecAction'){
+        echo getLastNotExecAction($_REQUEST['contactid']);
         exit();
     }elseif($_REQUEST['action'] == 'showTitleProposition'){
 
@@ -151,7 +155,9 @@ left join `llx_post` on `llx_post`.`rowid`= `llx_societe_contact`.`post_id`
 left join `responsibility` on `responsibility`.`rowid` = `llx_societe_contact`.`respon_id`
 where `llx_societe_contact`.`socid`='.$socid.'
 and `llx_societe_contact`.`active` = 1';
-//var_dump(!empty($socid)?$socid:0, $socid);
+//echo '<pre>';
+//var_dump($_REQUEST);
+//echo '</pre>';
 //die($sql);
 $contacttable = new societecontact();
 //var_dump($_REQUEST['sortfield']);
@@ -181,6 +187,7 @@ function showProposition($proposed_id,$contactid=0){
         dol_print_error($db);
     $obj = $db->fetch_object($res);
     $out='<table class="scrolling-table" style="background: #ffffff; width: 420px">
+            <input type="hidden" id="actionid" name="actionid" value="'.getLastNotExecAction($contactid).'">
             <thead><tr class="multiple_header_table"><th class="middle_size" colspan="9" style="width: 100%">Суть пропозиції для посади '.$obj->postname.'</th>
             <a class="close" style="margin-left: -160px" onclick="ClosePopupMenu($(this));" title="Закрити"></a>
                 </tr>
@@ -337,7 +344,23 @@ function selectcontact($socid, $contactid=0){
     $out.='</select>';
     return $out;
 }
-
+function getLastNotExecAction($contactid){
+    global $db;
+    $sql = 'select id from `llx_actioncomm`
+        where fk_contact = '.$contactid.'
+        and percent <> 100
+        order by datep desc limit 1';
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    if($db->num_rows($res)>0) {
+        $obj = $db->fetch_object($res);
+        return $obj->id;
+    }else
+        return 0;
+//    var_dump($_REQUEST);
+//    die();
+}
 function loadcontactlist($contactid){
     global $db;
     $sql='select work_phone, fax, mobile_phone1, mobile_phone2, email1, email2, skype from llx_societe_contact

@@ -8,6 +8,10 @@
 
 require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
 if(count($_POST)>0){
+    if($_SESSION['region_id'] != GETPOST('state_filter', 'int')){
+        unset($_REQUEST['page']);
+        unset($_GET['page']);
+    }
     $_SESSION['region_id'] = GETPOST('state_filter', 'int');
 }
 

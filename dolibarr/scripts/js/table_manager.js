@@ -106,7 +106,7 @@ function getParameterByName(name, url) {
     if (!results[2]) return '';
     return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
-function SaveResultProporition(contactid){
+function SaveResultProporition(contactid, lastID){
     if($('#cansaid').attr('checked') || $('#cansaid').attr('checked') === undefined && confirm('Вдалося озвучити пропозицію?')) {
         var date = new Date();
         var sDate = date.getDate() + '.' + date.getMonth() + '.' + date.getFullYear();
@@ -117,13 +117,15 @@ function SaveResultProporition(contactid){
             productsname.push($('td#productname' + products[i].id.substr(4)).html());
             needList.push($('input#' + products[i].id).val());
         }
-        //console.log(productsname, needList);
+        //console.log(location);
+        //return;
         var param = {
-            backtopage: location.href,
+            backtopage: location.pathname,
             action: 'addonlyresult',
             socid: getParameterByName('socid'),
             mainmenu: 'area',
             datep: date,
+            actionid: lastID,
             said: $('td#titleProposition').html(),
             productsname: productsname,
             proposed_id: $('#Proposition').attr('fx_proposition'),
@@ -131,26 +133,16 @@ function SaveResultProporition(contactid){
             contactid: contactid
         }
         $('#redirect').attr('target', '_blank');
-        $('#redirect').find('#action_id').remove();
+        $('#redirect').find('#action_id').val($('#actionid').val());
         $('#redirect').find('#onlyresult').remove();
         $('#redirect').find('#redirect_actioncode').remove();
         $('#redirect').find('#complete').remove();
         for (var i = 0; i < Object.keys(param).length; i++) {
             $('#redirect').append('<input type="hidden" name="' + Object.keys(param)[i] + '" value="' + param[Object.keys(param)[i]] + '">');
         }
-
-        //<input type="hidden" name="mainmenu" value="area" id="mainmenu_action">
-        //<input type="hidden" name="backtopage" value="'/dolibarr/htdocs/responsibility/sale/action.php?socid=4500&idmenu=10425&mainmenu=area'">
-        //<input type="hidden" name="id" value="" id="action_id">
-        //<input type="hidden" name="socid" value="" id="soc_id">
-        //<input type="hidden" name="onlyresult" value="" id="onlyresult">
-        //<input type="hidden" name="complete" value="" id="complete">
-        //<input type="hidden" value="" id="redirect_actioncode" name="actioncode">
-        //<input type="hidden" name="action" value="edit" id="edit_action">
-
-
         $('#redirect').find('input#soc_id').val(getParameterByName('socid'));
         $('#redirect').submit();
+
     }
     $('#Proposition').remove();
     //console.log(link);

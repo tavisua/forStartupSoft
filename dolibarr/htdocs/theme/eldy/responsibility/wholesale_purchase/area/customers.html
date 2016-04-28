@@ -56,6 +56,7 @@
                     <input type="hidden" name="mainmenu" value="<?=$_REQUEST['mainmenu']?>">
                     <input type="hidden" name="idmenu" value="<?=$_REQUEST['idmenu']?>">
                     <input type="hidden" id = "lineactiveFilter" name="lineactive" value="<?=$_REQUEST['lineactive']?>">
+                    <input type="hidden" id = "kindfilter" name="kind" value="<?=$_REQUEST['kind']?>">
                     <input type="text" name="filter" value="" id="filter" size="45">
                 </td>
             </tr>
@@ -74,6 +75,7 @@
             }
             function setLineActiveFilter(){
                 $('#lineactiveFilter').val($('#lineactive').val());
+                $('#kindfilter').val($("#lineactive [value='"+$('#lineactive').val()+"']").attr("kind"));
                 $('#setfilter').submit();
             }
             $(document).ready(function(){

@@ -26,18 +26,35 @@ left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_clas
 where 1";
 $sql_count = 'select count(*) iCount from `llx_societe` where 1 ';
 
-if($user->login != 'admin') {
-    $tmp = '';
-    if ($region_id != 0)
-        $tmp .= ' and `region_id` = ' . $region_id . ' ';
-    $tmp .= ' and `llx_societe`.`categoryofcustomer_id` in
-    (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = ' . $user->respon_id . ')';
-    $sql .= $tmp;
-    $sql_count .= $tmp;
+if(!isset($_REQUEST['filter'])||empty($_REQUEST['filter'])) {
+    $tmp = 'select `llx_societe`.rowid from `llx_societe`
+        where 1  and `llx_societe`.active = 1';
+    if($region_id != 0)
+        $tmp.=' and  `llx_societe`.`region_id='.$region_id;
+    $tmp.=" and `llx_societe`. fk_user_creat = ".$user->id." and
+        `llx_societe`.`categoryofcustomer_id` in (select `fx_category_counterparty` from `responsibility_param` inner join `responsibility` on `responsibility`.`rowid` = `fx_responsibility` where `responsibility`.`alias` = 'corp_manager')";
+
+    $tmp.=' order by  nom limit '.($page-1)*$per_page.','.$per_page.';';
+
+    $res = $db->query($tmp);
+    $socID = array('0');
+    if($db->num_rows($res)>0)
+        while($obj = $db->fetch_object($res)){
+            $socID[]=$obj->rowid;
+        }
+
+//    $tmp = ' and (`llx_societe`. fk_user_creat = '.$user->id.' or `llx_societe_lineactive`.`fk_lineactive` in ('.implode(',', $user->getLineActive()).'))';
+    $tmp = ' and `llx_societe`.rowid in ('.implode(',',$socID).')';
+    $sql.=$tmp;
+    $tmp='';
+    if($region_id != 0)
+        $tmp.=' and  `llx_societe`.`region_id='.$region_id;
+    $tmp.=" and `llx_societe`. fk_user_creat = ".$user->id." and
+        `llx_societe`.`categoryofcustomer_id` in (select `fx_category_counterparty` from `responsibility_param` inner join `responsibility` on `responsibility`.`rowid` = `fx_responsibility` where `responsibility`.`alias` = 'corp_manager')";
+    $sql_count.=$tmp;
 }
 $sql .= ' and `llx_societe`.active = 1 ';
 $sql_count.=' and `llx_societe`.active = 1 ';
-
 
 
 //if($user->login != 'admin') {
@@ -86,7 +103,7 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])){
     }
 }
 $sql .= ' order by width desc, nom';
-$sql .= ' limit '.($page-1)*$per_page.','.$per_page;
+//$sql .= ' limit '.($page-1)*$per_page.','.$per_page;
 $res = $db->query($sql_count);
 if(!$res)
     dol_print_error($db);

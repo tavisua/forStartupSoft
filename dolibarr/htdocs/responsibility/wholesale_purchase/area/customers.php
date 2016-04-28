@@ -29,10 +29,10 @@ $sql_count = 'select count(*) iCount from
 left join `llx_societe_lineactive` on `llx_societe_lineactive`.fk_soc = `llx_societe`.rowid
 where 1  ';
 
-    $tmp = 'and `llx_societe`.`categoryofcustomer_id` in
-(select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = '.$user->respon_id.')';
-    $sql.=$tmp;
-    $sql_count.=$tmp;
+//    $tmp = 'and `llx_societe`.`categoryofcustomer_id` in
+//(select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = '.$user->respon_id.')';
+//    $sql.=$tmp;
+//    $sql_count.=$tmp;
 
     $sql .= ' and `llx_societe`.active = 1 ';
     $sql_count.=' and `llx_societe`.active = 1 ';
@@ -41,10 +41,23 @@ where 1  ';
 //var_dump($user->id);
 //echo '</pre>';
 
-if($user->login != 'admin') {
-    $tmp = ' and (`llx_societe`. fk_user_creat = '.$user->id.' or `llx_societe_lineactive`.`fk_lineactive` in ('.implode(',', $user->getLineActive()).'))';
+if(isset($_REQUEST['lineactive'])&& !empty($_REQUEST['lineactive']) && $_REQUEST['lineactive'] == -1) {
+    $tmp = 'select `llx_societe`.rowid from `llx_societe`
+        left join `llx_societe_lineactive` on `llx_societe_lineactive`.fk_soc = `llx_societe`.rowid
+        left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`
+        where 1  and `llx_societe`.active = 1
+        and (`llx_societe`. fk_user_creat = 42 or `llx_societe_lineactive`.`fk_lineactive` in (260,189))
+        order by round(`llx_societe_classificator`.`value`,0) desc, nom limit '.($page-1)*$per_page.','.$per_page.';';
+    $res = $db->query($tmp);
+    $socID = array('0');
+    if($db->num_rows($res)>0)
+        while($obj = $db->fetch_object($res)){
+            $socID[]=$obj->rowid;
+        }
+
+//    $tmp = ' and (`llx_societe`. fk_user_creat = '.$user->id.' or `llx_societe_lineactive`.`fk_lineactive` in ('.implode(',', $user->getLineActive()).'))';
+    $tmp = ' and `llx_societe`.rowid in ('.implode(',',$socID).')';
     $sql.=$tmp;
-    $sql_count.=$tmp;
 }
 if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['lineactive'])&& !empty($_REQUEST['lineactive'])){
     if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])) {
@@ -74,19 +87,28 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['lin
 
     }
     if(isset($_REQUEST['lineactive'])&& !empty($_REQUEST['lineactive']) && $_REQUEST['lineactive'] != -1){
-
-        $sql_filter='select `llx_societe`.`rowid` from `llx_societe_lineactive`
-            inner join `llx_societe` on `llx_societe_lineactive`.`fk_soc`=`llx_societe`.`rowid`
-            inner join (select '.$_REQUEST['lineactive'].' as category_id
-              union
-              select category_id from `oc_category`
-              where parent_id='.$_REQUEST['lineactive'].'
-              union
-              select parent_id from `oc_category`
-              where category_id='.$_REQUEST['lineactive'].') lineactive on lineactive.category_id=`llx_societe_lineactive`.`fk_lineactive`
-            where 1
-            and `llx_societe`.`categoryofcustomer_id` in
-                (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = '.$user->respon_id.')';
+        $kind = (isset($_REQUEST['kind'])&& !empty($_REQUEST['kind']))?$_REQUEST['kind']:'lineactive';
+        switch($kind) {
+            case 'lineactive': {
+                $sql_filter = 'select `llx_societe`.`rowid` from `llx_societe_lineactive`
+                    inner join `llx_societe` on `llx_societe_lineactive`.`fk_soc`=`llx_societe`.`rowid`
+                    inner join (select ' . $_REQUEST['lineactive'] . ' as category_id
+                      union
+                      select category_id from `oc_category`
+                      where parent_id=' . $_REQUEST['lineactive'] . '
+                      union
+                      select parent_id from `oc_category`
+                      where category_id=' . $_REQUEST['lineactive'] . ') lineactive on lineactive.category_id=`llx_societe_lineactive`.`fk_lineactive`
+                    where 1';
+            }break;
+            case 'category':{
+                if(is_numeric($_REQUEST['lineactive'])){
+                    $sql_filter = 'select `llx_societe`.`rowid` from `llx_societe` where fk_user_creat = '.$user->id.' and categoryofcustomer_id = '.$_REQUEST['lineactive'].' and active = 1';
+                }
+            }break;
+        }
+//        var_dump($sql_filter);
+//        die();
         $res = $db->query($sql_filter);
         if (!$res)
             dol_print_error($db);
@@ -238,7 +260,7 @@ $table = fShowTable($TableParam, $sql, "'" . $tablename . "'", $conf->theme, $_R
 
 //$row = $db_mysql->fShowTable($TableParam, $sql, "'" . $tablename . "'", $conf->theme, $_REQUEST['sortfield'], $_REQUEST['sortorder'], $readonly = array(-1), false);
 
-include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/purchase/area/customers.html');
+include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/wholesale_purchase/area/customers.html');
 $prev_form = "<a href='#x' class='overlay' id='peview_form'></a>
                      <div class='popup' style='width: 300px;height: 150px'>
                      <textarea readonly id='prev_form' style='width: 100%;height: 100%;resize: none'></textarea>
@@ -372,28 +394,40 @@ if(count($rowidList)>0) {
     }
 
     $futureaction = array();
-    $sql = "select `llx_societe`.rowid, llx_actioncomm.datep, `responsibility`.`alias`
-        from `llx_societe`
-        left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`
-        left join `llx_actioncomm` on `llx_actioncomm`.`fk_soc`= `llx_societe`.rowid
+//    $sql = "select `llx_societe`.rowid, llx_actioncomm.datep, `responsibility`.`alias`
+//        from `llx_societe`
+//        left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`
+//        left join `llx_actioncomm` on `llx_actioncomm`.`fk_soc`= `llx_societe`.rowid
+//        inner join (select code, libelle label from `llx_c_actioncomm` where active = 1
+//        and (type = 'system' or type = 'user')) TypeCode on TypeCode.code = `llx_actioncomm`.code
+//        inner join `llx_user` on `llx_actioncomm`.`fk_user_author` = `llx_user`.`rowid`
+//        left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
+//        where `llx_societe`.active = 1
+//        and `llx_actioncomm`.`id` not in (select `llx_societe_action`.`action_id` from llx_societe_action)
+//        and `llx_actioncomm`.active = 1
+//        limit 0,30";
+    if(count($rowidList)>0) {
+        $sql = "select `llx_actioncomm`.`fk_soc` rowid, llx_actioncomm.datep, `responsibility`.`alias` from `llx_actioncomm`
+        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm`=`llx_actioncomm`.id
         inner join (select code, libelle label from `llx_c_actioncomm` where active = 1
         and (type = 'system' or type = 'user')) TypeCode on TypeCode.code = `llx_actioncomm`.code
         inner join `llx_user` on `llx_actioncomm`.`fk_user_author` = `llx_user`.`rowid`
         left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
-        where `llx_societe`.active = 1
-        and `llx_actioncomm`.`id` not in (select `llx_societe_action`.`action_id` from llx_societe_action)
-        and `llx_actioncomm`.active = 1
-        limit 0,30";
-//    die($sql);
-    $res = $db->query($sql);
-    if(!$res){
-        dol_print_error($db);
-    }
-    if($db->num_rows($res)>0) {
-        while ($row = $db->fetch_object($res)){
-            if(!isset($futureaction[$row->rowid.$row->alias])) {
-                $date = new DateTime($row->datep);
-                $futureaction[$row->rowid . $row->alias] = $date->format('d.m.y');
+        where 1
+        and `llx_actioncomm`.`fk_soc` in (" . implode(',', $rowidList) . ")
+        and `llx_actioncomm`.`active` = 1
+        and `llx_actioncomm`.`id` not in (select `llx_societe_action`.`action_id` from llx_societe_action where action_id is not null)";
+
+        $res = $db->query($sql);
+        if (!$res) {
+            dol_print_error($db);
+        }
+        if ($db->num_rows($res) > 0) {
+            while ($row = $db->fetch_object($res)) {
+                if (!isset($futureaction[$row->rowid . $row->alias])) {
+                    $date = new DateTime($row->datep);
+                    $futureaction[$row->rowid . $row->alias] = $date->format('d.m.y');
+                }
             }
         }
     }

@@ -95,7 +95,7 @@ for($i = 0; $i<9; $i++){
         }
     }
 }
-include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/purchase/day_plan.html';
+include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/wholesale_purchase/day_plan.html';
 
 //print '</br>';
 //print'<div style="float: left">test</div>';

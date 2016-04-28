@@ -943,6 +943,7 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 		print '<form id="formaction" name="formaction" action="'.$_SERVER['PHP_SELF'].'" method="POST">';
 	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
 	print '<input type="hidden" name="action" value="add">';
+	print '<input type="hidden" name="socid" value="'.$_REQUEST['socid'].'">';
 	print '<input type="hidden" id="showform1" value="0">';
 	print '<input type="hidden" id="mainmenu" name="mainmenu" value="'.$_REQUEST["mainmenu"].'">';
 	print '<input type="hidden" name="parent_id" value="'.$_REQUEST["parent_id"].'">';
@@ -1439,6 +1440,7 @@ if ($id > 0)
         print '</form>';
 		print '<form id = "formaction" name="formaction" action="'.$_SERVER['PHP_SELF'].'" method="POST">';
 		print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+		print '<input type="hidden" name="socid" value="'.$_REQUEST["socid"].'">';
 		if(!isset($_REQUEST["duplicate_action"])) {
 			print '<input type="hidden" name="action" value="update">';
 			print '<input type="hidden" name="id" value="' . $id . '">';
@@ -2077,7 +2079,7 @@ print '
                 	$("#showform").val(1);
                 }
             }
-//            console.log($.cookie("ChangeDate"), $.cookie("ChangeDate") == "true");
+//            console.log(getParameterByName("action") != "edit", $.cookie("ChangeDate") == "true");
             if(getParameterByName("action") != "edit" || $.cookie("ChangeDate") == "true"){
 				setP2(0);
 				CalcP($("#ap").val(), $("#exec_time").val(), ' . $user->id . ');//Розрахунок часу початку дії

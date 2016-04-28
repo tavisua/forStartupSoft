@@ -55,18 +55,25 @@ function user_prepare_head($object)
         $head[$h][1] = $langs->trans("Areas");
         $head[$h][2] = 'areas';
         $h++;
-    }elseif($object->respon_alias == 'purchase'){
+    }
+	if($object->respon_alias == 'purchase' || $object->respon_alias == 'wholesale_purchase'){
         $head[$h][0] = DOL_URL_ROOT.'/user/lineactive.php?id='.$object->id.'&mainmenu=tools&idmenu=5223';
         $head[$h][1] = $langs->trans("PropLineActive");
         $head[$h][2] = 'lineactive';
         $h++;
-    }elseif($object->respon_alias == 'counter'){
+    }
+	if($object->respon_alias == 'counter'){
 		$head[$h][0] = DOL_URL_ROOT.'/user/categories.php?id='.$object->id.'&mainmenu=tools&idmenu=5223';
         $head[$h][1] = $langs->trans("CategoriesContractors");
         $head[$h][2] = 'categories';
         $h++;
     }
-
+//	if($object->respon_alias == 'wholesale_purchase'){
+//        $head[$h][0] = DOL_URL_ROOT.'/user/lineactive.php?id='.$object->id.'&mainmenu=tools&idmenu=5223';
+//        $head[$h][1] = $langs->trans("PropLineActive");
+//        $head[$h][2] = 'lineactive';
+//        $h++;
+//    }
 	if (! empty($conf->ldap->enabled) && ! empty($conf->global->LDAP_SYNCHRO_ACTIVE))
 	{
 		$langs->load("ldap");

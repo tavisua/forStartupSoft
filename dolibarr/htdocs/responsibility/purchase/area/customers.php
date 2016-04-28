@@ -372,28 +372,28 @@ if(count($rowidList)>0) {
     }
 
     $futureaction = array();
-    $sql = "select `llx_societe`.rowid, llx_actioncomm.datep, `responsibility`.`alias`
-        from `llx_societe`
-        left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`
-        left join `llx_actioncomm` on `llx_actioncomm`.`fk_soc`= `llx_societe`.rowid
+    if(count($rowidList)>0) {
+        $sql = "select `llx_actioncomm`.`fk_soc` rowid, llx_actioncomm.datep, `responsibility`.`alias` from `llx_actioncomm`
+        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm`=`llx_actioncomm`.id
         inner join (select code, libelle label from `llx_c_actioncomm` where active = 1
         and (type = 'system' or type = 'user')) TypeCode on TypeCode.code = `llx_actioncomm`.code
         inner join `llx_user` on `llx_actioncomm`.`fk_user_author` = `llx_user`.`rowid`
         left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
-        where `llx_societe`.active = 1
-        and `llx_actioncomm`.`id` not in (select `llx_societe_action`.`action_id` from llx_societe_action)
-        and `llx_actioncomm`.active = 1
-        limit 0,30";
-//    die($sql);
-    $res = $db->query($sql);
-    if(!$res){
-        dol_print_error($db);
-    }
-    if($db->num_rows($res)>0) {
-        while ($row = $db->fetch_object($res)){
-            if(!isset($futureaction[$row->rowid.$row->alias])) {
-                $date = new DateTime($row->datep);
-                $futureaction[$row->rowid . $row->alias] = $date->format('d.m.y');
+        where 1
+        and `llx_actioncomm`.`fk_soc` in (" . implode(',', $rowidList) . ")
+        and `llx_actioncomm`.`active` = 1
+        and `llx_actioncomm`.`id` not in (select `llx_societe_action`.`action_id` from llx_societe_action where action_id is not null)";
+
+        $res = $db->query($sql);
+        if (!$res) {
+            dol_print_error($db);
+        }
+        if ($db->num_rows($res) > 0) {
+            while ($row = $db->fetch_object($res)) {
+                if (!isset($futureaction[$row->rowid . $row->alias])) {
+                    $date = new DateTime($row->datep);
+                    $futureaction[$row->rowid . $row->alias] = $date->format('d.m.y');
+                }
             }
         }
     }
