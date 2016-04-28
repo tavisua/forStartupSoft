@@ -1,0 +1,154 @@
+<div style=" width:100%; height:1px; clear:both;">.</div>
+<div class="areas_header" id = "lefttable">
+        <table id="headercontrol" >
+            <tr id="today">
+                <td>
+                    <?echo $TitleToday?>
+                </td>
+                <td class="autoinsert">
+                    <?echo $Today?>
+                </td>
+            </tr>
+            <tr id="worker">
+                <td>
+                    <?echo $Worker?>
+                </td>
+                <td class="autoinsert">
+                    <?echo $user->lastname?>
+                </td>
+            </tr>
+            <tr id="area" >
+                <td>
+                   <?=$langs->trans('LineActive')?>
+                </td>
+                <td style="width: 200px">
+                    <?=LineActive()?>
+                </td>
+            </tr>
+            <tr id="action" style="text-align: center">
+                <td colspan="2">
+                    <form action="/dolibarr/htdocs/societe/soc.php?mainmenu=area&idmenu=10425" method="post">
+                        <input id="state_id" name="state_id" type="hidden" value="<?echo $state_id?>">
+                        <input id="region_id" name="region_id" type="hidden" value="<?echo $region_id?>">
+                        <button type="submit">&nbsp;&nbsp;&nbsp;&nbsp;<?echo $CreateCompany?>&nbsp;&nbsp;&nbsp;&nbsp;</button>
+                    </form>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" style="text-align: center">
+                    <button style="width: 222px;height: 25px" onclick="showfilter();">Знайти клієнта/контрагента</button>
+                    <button style="height: 25px" onclick="clearfilter();">Зняти фільтр</button>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+<div class="areas_header">
+    <?echo $Classifycation?>
+</div>
+        <style>
+            #areas_header_action{
+                padding-top: -1px;
+            }
+        </style>
+<div class="areas_header" id="comerc">
+    <table class="classifycation" >
+        <tr>
+            <td>Менедж.</td>
+            <td colspan="2" class="autoinsert"><?echo $user->lastname?></td>
+        </tr>
+        <tr>
+            <td colspan="3" style="cursor: pointer; font-weight: bold" align="center" onclick="TodayActionCustomerFilter();">Дії на сьогодні</td>
+        </tr>
+
+    <tr>
+        <td >факт</td>
+        <td>простроч.</td>
+        <td>план</td>
+    </tr>
+    <tr>
+        <td class="autoinsert" id="my_fact"></td>
+        <td class="autoinsert" id="my_outstanding"></td>
+        <td class="autoinsert" id="my_plan"></td>
+    </tr>
+    </table>
+
+</div>
+<div class="areas_header" id="service">
+    <table class="classifycation">
+        <tr>
+            <td>Сервісн.</td>
+            <td colspan="2" class="autoinsert">&nbsp;</td>
+        </tr>
+        <tr>
+            <td colspan="3" align="center">Дії на сьогодні</td>
+        </tr>
+
+        <tr>
+            <td >факт</td>
+            <td>план</td>
+            <td>простроч.</td>
+        </tr>
+        <tr>
+            <td class="autoinsert">&nbsp;</td>
+            <td class="autoinsert">&nbsp;</td>
+            <td class="autoinsert">&nbsp;</td>
+        </tr>
+    </table>
+</div>
+<div class="areas_header" id="accounts">
+    <table class="classifycation" >
+        <tr>
+            <td>Бухгалт.</td>
+            <td colspan="2" class="autoinsert">&nbsp;</td>
+        </tr>
+        <tr>
+            <td colspan="3" align="center">Дії на сьогодні</td>
+        </tr>
+
+        <tr>
+            <td >факт</td>
+            <td>план</td>
+            <td>простроч.</td>
+        </tr>
+        <tr>
+            <td class="autoinsert">&nbsp;</td>
+            <td class="autoinsert">&nbsp;</td>
+            <td class="autoinsert">&nbsp;</td>
+        </tr>
+    </table>
+</div>
+<div class="areas_header" id="mentor">
+    <table class="classifycation">
+        <tr>
+            <td>Наставн.</td>
+            <td colspan="2" class="autoinsert">&nbsp;</td>
+        </tr>
+        <tr>
+            <td colspan="3" align="center">Дії на сьогодні</td>
+        </tr>
+
+        <tr>
+            <td >факт</td>
+            <td>план</td>
+            <td>простроч.</td>
+        </tr>
+        <tr>
+            <td class="autoinsert">&nbsp;</td>
+            <td class="autoinsert">&nbsp;</td>
+            <td class="autoinsert">&nbsp;</td>
+        </tr>
+    </table>
+</div>
+<div style=" width:100%; height:1px; clear:both;">.</div>
+<script>
+    $(document).ready(function(){
+        var mainmenu = '<?=$_REQUEST["mainmenu"]?>';
+        if(mainmenu.length==0){
+            mainmenu = GetMainMenu();
+        }
+        var link = '/dolibarr/htdocs/day_plan.php?action=getuserplan&mainmenu='+mainmenu+'&id_usr=<?=$user->id?>';
+        GetUserPlan(link);
+    })
+
+</script>
