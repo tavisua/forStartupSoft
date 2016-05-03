@@ -286,8 +286,7 @@ function saveaction($rowid, $createaction = false){
             $backtopage = substr($_REQUEST['backtopage'], 1, strlen($_REQUEST['backtopage']) - 2);
         else
             $backtopage = $_REQUEST['backtopage'];
-//        var_dump(isset($_REQUEST['proposed_id']) && !empty($_REQUEST['proposed_id']));
-//        die();
+
         if(isset($_REQUEST['proposed_id'])&&!empty($_REQUEST['proposed_id'])) {
             if(strpos('php?',$backtopage))
                 $backtopage .= '&beforeload=close';
@@ -299,13 +298,16 @@ function saveaction($rowid, $createaction = false){
         header("Location: " . $backtopage);
 
     }else{
-//      $backtopage = urlencode(htmlspecialchars(substr($_REQUEST['backtopage'], 1, strlen($_REQUEST['backtopage'])-2)));
-        $backtopage = $_REQUEST['backtopage'];
-        if(!strpos('socid=', $backtopage)) {
+      $backtopage = urlencode(htmlspecialchars(substr($_REQUEST['backtopage'], 1, strlen($_REQUEST['backtopage'])-2)));
+      $backtopage = urlencode(substr($_REQUEST['backtopage'], 1, strlen($_REQUEST['backtopage'])-2));
+//        $backtopage = $_REQUEST['backtopage'];
+//        var_dump($backtopage);
+//        die();
+        if(!strpos($_REQUEST['backtopage'], 'socid=')) {
             if(!strpos('php?', $backtopage))
-                $backtopage .= "?socid=" . $socid . "&mainmenu=" . $_REQUEST['mainmenu'];
+                $backtopage .= "?socid%3D" . $socid . "%26mainmenu%3D" . $_REQUEST['mainmenu'];
             else
-                $backtopage .= "&socid=" . $socid . "&mainmenu=" . $_REQUEST['mainmenu'];
+                $backtopage .= "&socid%3D" . $socid . "%26mainmenu%3D" . $_REQUEST['mainmenu'];
         }
 //        var_dump($backtopage);
 //        die();

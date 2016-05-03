@@ -168,13 +168,30 @@
         var Top = $(".WidthScroll").height();
         $("#sent_task").offset({top:Top+180, left:-Width+5});
         SetTheadColumnWidth();
+//        var tr = $('.total_value');
+//        for(var i = 0; i<tr.length; i++) {
+//            var td = tr[i].getElementsByTagName('td');
+//            for(var t = 0; t<td.length; t++){
+//                if(td[t].id.length>0){
+//                    var valTD = document.getElementsByClassName(td[t].id);
+//                    var Total = 0;
+//                    console.log(valTD);
+//                    for(var v=0; v<valTD.length; v++){
+//                        Total+=parseInt(valTD[v].innerText);
+//                        console.log(valTD[v].id, valTD[v].innerText);
+//                    }
+//                    $('#'+td[t].id).text(Total);
+//                }
+//            }
+//        }
+//        console.log('test');
     })
     function SetTheadColumnWidth(){
         var tr = $('#reference_body').find('tr')[0];
         var td = tr.getElementsByTagName('td');
         var thead = $('.WidthScroll').find('thead').find('tr')[1];
         var th = thead.getElementsByTagName('th');
-        console.log(th.length, td.length);
+//        console.log(th.length, td.length);
         var num = 0;
         for(var i = 0; i<td.length; i++){
             if(i>2&&i<20){
@@ -187,7 +204,7 @@
                 var tr_thead = $('.WidthScroll').find('thead').find('tr')[0];
                 var th_thead = tr_thead.getElementsByTagName('th')[4];
                 var width = parseInt(td[i].style.width.substr(0,td[i].style.width.length-2))+2;
-                console.log(td[i].style.width.substr(0,td[i].style.width.length-2), width);
+//                console.log(td[i].style.width.substr(0,td[i].style.width.length-2), width);
                 th_thead.style.width =  width+'px';
             }
 

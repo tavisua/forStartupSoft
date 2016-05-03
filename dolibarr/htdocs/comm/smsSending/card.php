@@ -95,7 +95,7 @@ function getCustomers(){
 
     if(!empty($_REQUEST["from"]) || !empty($_REQUEST["to"])) {
         $sql.=' inner join llx_societe_classificator on llx_societe_classificator.soc_id = `llx_societe`.`rowid`';
-    }
+    }else
         $sql.=' left join llx_societe_classificator on llx_societe_classificator.soc_id = `llx_societe`.`rowid`';
 
 

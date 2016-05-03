@@ -42,6 +42,7 @@ $sql_count.=' and `llx_societe`.active = 1 ';
 
 if($user->login != 'admin') {
     $tmp = ' and `llx_societe`.`fk_user_creat`=' . $user->id;
+//    $tmp = ' and `llx_societe`.`region_id` in (select fk_id from llx_user_regions where fk_user='.$user->id.' and active = 1)';
     $sql.=$tmp;
     $sql_count.=$tmp;
 }

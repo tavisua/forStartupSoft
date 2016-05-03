@@ -578,8 +578,8 @@ if ($action == 'add')
 					else
 						$backtopage = '/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/action.php?socid='.$object->socid.'&idmenu=10425&mainmenu=area';
 //					$backtopage = '/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/action.php?socid='.$object->socid.'&idmenu=10425&mainmenu=area';
-//					var_dump($idaction, $object->type_code, $backtopage);
-//					die('stop');
+					var_dump($backtopage);
+					die();
 					$Location = "Location: ".str_replace("'",'', $backtopage);
                     header($Location);
 				}
