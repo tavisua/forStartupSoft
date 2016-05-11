@@ -62,7 +62,7 @@ function user_prepare_head($object)
         $head[$h][2] = 'lineactive';
         $h++;
     }
-	if($object->respon_alias == 'counter'){
+	if($object->respon_alias == 'counter'|| $object->respon_alias == 'wholesale_purchase'){
 		$head[$h][0] = DOL_URL_ROOT.'/user/categories.php?id='.$object->id.'&mainmenu=tools&idmenu=5223';
         $head[$h][1] = $langs->trans("CategoriesContractors");
         $head[$h][2] = 'categories';

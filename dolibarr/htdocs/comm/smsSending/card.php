@@ -11,7 +11,7 @@
 //die();
 require $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/main.inc.php';
 $action = $_REQUEST['action'];
-
+//die($action);
 if($action == 'add') {
     llxHeader('',$langs->trans('NewMailing'));
     print_fiche_titre($langs->trans("NewMailing"));
@@ -47,19 +47,28 @@ exit();
 
 function sending(){
     global $db, $user;
-    //Save message
-    $sql = "insert into llx_smssending(message,status,id_usr)
-        values('".trim($_REQUEST['message'])."', 0, ".$user->id.")";
-    $res = $db->query($sql);
-    if(!$res)
-        dol_print_error($db);
     //GetLastMessageID
-    $sql = "select rowid from llx_smssending where id_usr = ".$user->id." and status = 0 order by rowid desc limit 1";
-    $res = $db->query($sql);
-    if(!$res)
+    $sqlMessID = "select rowid from llx_smssending where id_usr = ".$user->id." and status = 0 order by rowid desc limit 1";
+    $resMessID = $db->query($sqlMessID);
+    if(!$resMessID)
         dol_print_error($db);
-    $obj = $db->fetch_object($res);
+    if($db->num_rows($resMessID) == 0) {
+        //Save message
+        $sql = "insert into llx_smssending(message,status,id_usr)
+        values('" . trim($_REQUEST['message']) . "', 0, " . $user->id . ")";
+        $res = $db->query($sql);
+        if (!$res)
+            dol_print_error($db);
+        $resMessID = $db->query($sqlMessID);
+    }
+    $obj = $db->fetch_object($resMessID);
     $MessID = $obj->rowid;
+    if(isset($_REQUEST['lastpack'])&&$_REQUEST['lastpack']=='true'){
+        $sql = 'update llx_smssending set status=1 where rowid='.$MessID;
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+    }
     //SaveContactList
     $out = '';
     foreach($_REQUEST['contacts'] as $contact){

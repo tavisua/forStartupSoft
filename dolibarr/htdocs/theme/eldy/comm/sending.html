@@ -39,6 +39,7 @@
         </tr>
     </table>
 </div>
+<input type="hidden" id="phones" value="">;
 <script>
     $(document).ready(function(){
         $('select#areas [value=0]').html('Вибрати всі');
@@ -72,10 +73,49 @@
             }
         })
     }
+    function postMessage(lastpack, contactlist){
+        var param = {
+            lastpack: lastpack,
+            message: $('textarea#message').val(),
+            contacts: contactlist,
+            type: getParameterByName('type'),
+            action: 'mailing'
+        }
+//        console.log(param);
+//        return;
+        var link = '';
+        if (getParameterByName('type') == 'sms') {
+            link = '/dolibarr/htdocs/comm/smsSending/card.php';
+        }
+        $.ajax({
+            url: link,
+            data: param,
+            cache: false,
+            type: 'post',
+            success: function (result) {
+//                console.log(result, $('#message').val());
+//                return;
+                if(lastpack == true) {
+                    sendSMS($('#phones').val(), $('#message').val(), false);
+                    location.href = '/dolibarr/htdocs/responsibility/<?=$user->respon_alias?>/area.php?idmenu=10425&mainmenu=area&leftmenu='
+                }else{
+                    if($('#phones').val().length>0)
+                        $('#phones').val($('#phones').val()+';'+result);
+                    else
+                        $('#phones').val(result);
+                }
+
+//                sendSMS(result, $('#message').val(), false);
+            }
+        })
+    }
     function sendMessage(){
         if(confirm('Відправити розсилку?')) {
             var contactlist = [];
-            var trList = $('#mailing').find('tr');
+            var trList = $('#mailing').find('tr.secondpage');
+//            console.log(trList.length);
+//            return;
+            $('#phones').val('');
             for (var i = 0; i < trList.length; i++) {
                 if (trList[i].id !== undefined && trList[i].id.length > 0) {
 //                console.log(trList[i].id);
@@ -85,30 +125,13 @@
                         socid: $('#' + trList[i].id).attr('socid'),
                         phone: td[td.length - 1].innerHTML
                     });
+                    if(i>0&&i%50==0||i==trList.length-1){
+//                        console.log(i);
+                        postMessage(i==trList.length-1, contactlist);
+                        contactlist = [];
+                    }
                 }
             }
-            var param = {
-                message: $('textarea#message').val(),
-                contacts: contactlist,
-                type: getParameterByName('type'),
-                action: 'mailing'
-            }
-//        console.log(param);
-//        return;
-            var link = '';
-            if (getParameterByName('type') == 'sms') {
-                link = '/dolibarr/htdocs/comm/smsSending/card.php';
-            }
-            $.ajax({
-                url: link,
-                data: param,
-                cache: false,
-                type: 'post',
-                success: function (result) {
-//                    console.log(result, $('#message').val());
-                    sendSMS(result, $('#message').val(), false);
-                }
-            })
         }
     }
 </script>

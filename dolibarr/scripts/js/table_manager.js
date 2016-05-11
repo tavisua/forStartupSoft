@@ -175,6 +175,17 @@ function LoadProposition(){
         }
     })
 }
+function ConfirmDelTask(id){
+    if(confirm('Видалити завдання?')){
+        $.ajax({
+            url:'/dolibarr/htdocs/comm/action/card.php?action=del_task&id='+id,
+            cache:false,
+            success:function(){
+                location.href = location.href;
+            }
+        })
+    }
+}
 function createNewForm(basicform, newname){
     var popup;
         //if($('#popupmenu').css('display') == 'block') {
@@ -274,6 +285,33 @@ function PrepareOrder(order_id, task_id){
 
 //        console.log(order_id, link);
 }
+function ShowUserTasks(id, respon_alias){
+    var src = $('#img'+id).attr('src');
+    if(src.substr(src.length-'1downarrow.png'.length)=='1downarrow.png') {
+        $('#img' + id).attr('src', '/dolibarr/htdocs/theme/eldy/img/1uparrow.png');
+        $('tr.'+id).show();
+    }else {
+        $('#img' + id).attr('src', '/dolibarr/htdocs/theme/eldy/img/1downarrow.png');
+        $('tr.'+id).hide();
+    }
+    if($('tr.'+id).length == 0){
+        var action = '';
+        switch (respon_alias){
+            case 'sale':{
+                action = 'get_regionlist';
+            }break;
+        }
+        $.ajax({
+            url:'/dolibarr/htdocs/responsibility/dir_depatment/day_plan.php?action='+action+'&id_usr='+id,
+            cache:false,
+            success: function(result){
+                var tr_item = document.getElementById('bnt'+id).parentNode.parentNode;
+                //console.log(tr_item);
+                tr_item.insertAdjacentHTML('afterend', result);
+            }
+        })
+    }
+}
 function CalcP(date, minute, id_usr){
     //console.log(date, minute, id_usr);
     if(minute === undefined || minute.length == 0)
@@ -286,6 +324,20 @@ function CalcP(date, minute, id_usr){
         cache:false,
         success:function(result){
             var time = result.substr(10,6);
+            console.log($('#ap').val()!=result.substr(8,2)+'.'+result.substr(5,2)+'.'+result.substr(0,4), $('#ap').val(), result.substr(8,2)+'.'+result.substr(5,2)+'.'+result.substr(0,4));
+            if($('#ap').val()!=result.substr(8,2)+'.'+result.substr(5,2)+'.'+result.substr(0,4)) {
+                $('#ap').val(result.substr(8,2)+'.'+result.substr(5,2)+'.'+result.substr(0,4));
+                $('#p2').val(result.substr(8,2)+'.'+result.substr(5,2)+'.'+result.substr(0,4));
+                $('#apday').val(result.substr(8, 2));
+                $('#apmonth').val(result.substr(5, 2));
+                $('#apyear').val(result.substr(0, 4));
+                $('#p2day').val($('#apday').val());
+                $('#p2month').val($('#apmonth').val());
+                $('#p2year').val($('#apyear').val());
+            }
+
+
+
             $('#aphour [value='+time.substr(1,2)+']').attr("selected","selected");
             $('#apmin  [value='+time.substr(4,2)+']').attr("selected","selected");
             console.log(time.substr(4,2).trim());

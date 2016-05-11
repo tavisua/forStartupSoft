@@ -40,6 +40,15 @@ if($_GET['action']=='get_exectime'){
     echo $exec_time;
     exit();
 
+}elseif($_GET['action']=='del_task'){
+	global $db;
+	$sql = 'update llx_actioncomm set active = 0, fk_user_mod='.$user->id.' where id='.$_REQUEST['id'];
+	$res = $db->query($sql);
+    if(!$res){
+        dol_print_error($db);
+    }
+    echo 1;
+	exit();
 }elseif($_GET['action']=='get_contactlist'){
     require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
     $form = new Form($db);
