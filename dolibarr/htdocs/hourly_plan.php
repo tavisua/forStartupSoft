@@ -52,7 +52,7 @@ $dateQuery = new DateTime($date);
 //die();
 $actionURL = '/comm/action/card.php';
 $sql = "select `llx_actioncomm`.id as rowid, `llx_actioncomm`.datep, `llx_actioncomm`.datep2,
-        `llx_actioncomm`.`code`, `llx_actioncomm`.label, `regions`.`name` as region_name, case when `llx_actioncomm`.fk_soc is null then `llx_user`.`lastname` else `llx_societe`.`nom` end lastname,
+        `llx_actioncomm`.`code`, `llx_actioncomm`.fk_user_author, `llx_actioncomm`.label, `regions`.`name` as region_name, case when `llx_actioncomm`.fk_soc is null then `llx_user`.`lastname` else `llx_societe`.`nom` end lastname,
         `llx_actioncomm`.`note`, `llx_actioncomm`.`percent`, `llx_c_actioncomm`.`libelle` title, `llx_actioncomm`.confirmdoc,
         `llx_actioncomm`.priority
         from `llx_actioncomm`
@@ -150,8 +150,12 @@ while($row = $db->fetch_object($res)) {
            <div class="task_cell" style="float: left; width: 152px">' . trim($row->lastname) . '</div>
            <div class="task_cell" style="float: left; width: 202px;">' . trim($row->note) . '</div>
            <div class="task_cell" style="float: left; width: 152px;">' . trim($row->confirmdoc) . '</div>
-           <div class="task_cell" style="float: left; width: 130px;">' . $status . '</div>
-           <div class="task_cell" style="float: left; width: 20px; border-color: transparent"><img src="theme/eldy/img/edit.png"></div>';
+           <div class="task_cell" style="float: left; width: 130px;">' . $status . '</div>';
+    if($user->id == $row->fk_user_author)
+        $task_table .='<div class="task_cell" style="float: left; width: 20px; border-color: transparent"><img src="theme/eldy/img/edit.png"></div>';
+    else
+        $task_table .='<div class="task_cell" style="float: left; width: 20px; border-color: transparent"></div>';
+
 //    $task .= '<div id="'.$row->rowid.'" class="'.$classitem.'" style="height: 216px" >' . $task_table . '</div>';
 
     $task .= '<tr id="' . $row->rowid . '"><td class="' . $classitem . '" >' . $task_table . '</td></tr>';

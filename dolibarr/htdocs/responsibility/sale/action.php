@@ -15,9 +15,14 @@ if(isset($_REQUEST['action'])||isset($_POST['action'])){
 //        die();
         echo getProposition($_REQUEST['socid']);
         exit();
-
+    }elseif($_REQUEST['action'] == 'setStatus'){
+        echo setStatus();
+        exit();
     }elseif($_REQUEST['action'] == 'getLastNotExecAction'){
         echo getLastNotExecAction($_REQUEST['contactid']);
+        exit();
+    }elseif($_REQUEST['action'] == 'showCallStatus'){
+        echo showCallStatus();
         exit();
     }elseif($_REQUEST['action'] == 'showTitleProposition'){
 
@@ -176,6 +181,16 @@ include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/respo
 //llxFooter();
 llxPopupMenu();
 exit();
+
+function setStatus(){
+    global $db,$user;
+    $sql = "insert into llx_societe_action(action_id,result_of_action,active,id_usr)
+    values(".$_REQUEST['rowid'].", '".$_REQUEST['result_of_action']."', 1, ".$user->id.")";
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    return 1;
+}
 
 function showProposition($proposed_id,$contactid=0){
     global $db, $langs;
@@ -391,6 +406,24 @@ function loadcontactlist($contactid){
 //    $out.='</select>';
     return $out;
 }
+function showCallStatus(){
+    global $db;
+    $sql = "select rowid, status from llx_c_callstatus where active = 1";
+    $out='<table class="setdate" style="background: #ffffff; width: 250px">
+            <thead><tr class="multiple_header_table"><th class="middle_size" colspan="3" style="width: 100%">Результат перемовин </th>
+            <a class="close" style="margin-left: -160px" onclick="CloseCallStatus();" title="Закрити"></a>
+                </tr>
+                </thead>
+            <tbody>';
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    while($obj = $db->fetch_object($res)){
+        $out.='<tr><td id="status_id_'.$obj->rowid.'" class="middle_size" style="cursor:pointer" onclick="selStatus('.$obj->rowid.');">'.$obj->status.'</td></tr>';
+    }
+    $out.='</tbody></table>';
+    return $out;
+}
 function ShowActionTable(){
     global $db, $langs, $conf;
     $sql = 'select fk_parent, datep from `llx_actioncomm` where fk_soc = '.(empty($_REQUEST['socid'])?0:$_REQUEST['socid']).' and fk_parent <> 0';
@@ -514,28 +547,28 @@ function ShowActionTable(){
         }
         $dateaction = new DateTime($row->datep);
         $out .= '<tr class="'.(fmod($num++, 2)==0?'impair':'pair').'">
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'dtAction" style="widtd: 80px" class="middle_size">'.(empty($row->datep)?'':($dateaction->format('d.m.y').'</br>'.$dateaction->format('H:i'))).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'dtChange" style="widtd: 80px" class="middle_size">'.(empty($row->datec)?'':$dtChange->format('d.m.y H:i:s')).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'lastname" style="widtd: 100px" class="middle_size">'.$row->lastname.'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'contactname" style="widtd: 80px" class="middle_size">'.$row->contactname.'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'kindaction" style="widtd: 50px; text-align: center;" class="middle_size" ><img src="/dolibarr/htdocs/theme/'.$conf->theme.'/img/'.$iconitem.'" title="'.$title.'"></td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'said" style="widtd: 80px" class="middle_size">'.(strlen($row->said)>20?mb_substr($row->said, 0, 20, 'UTF-8').'...'.
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'dtAction" style="width: 80px" class="middle_size">'.(empty($row->datep)?'':($dateaction->format('d.m.y').'</br>'.$dateaction->format('H:i'))).'</td>
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'dtChange" style="width: 80px" class="middle_size">'.(empty($row->datec)?'':$dtChange->format('d.m.y H:i:s')).'</td>
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'lastname" style="width: 100px" class="middle_size">'.$row->lastname.'</td>
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'contactname" style="width: 80px" class="middle_size">'.$row->contactname.'</td>
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'kindaction" style="width: 50px; text-align: center;" class="middle_size" ><img src="/dolibarr/htdocs/theme/'.$conf->theme.'/img/'.$iconitem.'" title="'.$title.'"></td>
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'said" style="width: 80px" class="middle_size">'.(strlen($row->said)>20?mb_substr($row->said, 0, 20, 'UTF-8').'...'.
                 '<input id="_'.$row->rowid.'said"  type="hidden" value="'.$row->said.'">'
                 :$row->said).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'answer" style="widtd: 80px" class="middle_size">'.(strlen($row->answer)>20?mb_substr($row->answer, 0, 20, 'UTF-8').'...'.
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'answer" style="width: 80px" class="middle_size">'.(strlen($row->answer)>20?mb_substr($row->answer, 0, 20, 'UTF-8').'...'.
                 '<input id="_'.$row->rowid.'answer"  type="hidden" value="'.$row->answer.'">':$row->answer).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'argument" style="widtd: 80px" class="middle_size">'.(strlen($row->argument)>20?mb_substr($row->argument, 0, 20, 'UTF-8').'...'.
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'argument" style="width: 80px" class="middle_size">'.(strlen($row->argument)>20?mb_substr($row->argument, 0, 20, 'UTF-8').'...'.
                 '<input id="_'.$row->rowid.'argument" type="hidden" value="'.$row->argument.'">':$row->argument).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'said_important" style="widtd: 80px" class="middle_size">'.(strlen($row->said_important)>20?mb_substr($row->said_important, 0, 20, 'UTF-8').'...'.
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'said_important" style="width: 80px" class="middle_size">'.(strlen($row->said_important)>20?mb_substr($row->said_important, 0, 20, 'UTF-8').'...'.
                 '<input id="_'.$row->rowid.'said_important" type="hidden" value="'.$row->said_important.'">':$row->said_important).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'result_of_action" style="widtd: 80px" class="middle_size">'.(strlen($row->result_of_action)>20?mb_substr($row->result_of_action, 0, 20, 'UTF-8').'...'.
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'result_of_action" style="width: 80px" class="middle_size result_of_action">'.(strlen($row->result_of_action)>20?mb_substr($row->result_of_action, 0, 20, 'UTF-8').'...'.
                 '<input id="_'.$row->rowid.'result_of_action" type="hidden" value="'.$row->result_of_action.'">':$row->result_of_action).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'work_before_the_next_action" style="widtd: 80px" class="middle_size">'.(strlen($row->work_before_the_next_action)>20?mb_substr($row->work_before_the_next_action, 0, 20, 'UTF-8').'...'.
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'work_before_the_next_action" style="width: 80px" class="middle_size">'.(strlen($row->work_before_the_next_action)>20?mb_substr($row->work_before_the_next_action, 0, 20, 'UTF-8').'...'.
                 '<input id="_'.$row->rowid.'work_before_the_next_action" type="hidden" value="'.$row->work_before_the_next_action.'">':$row->work_before_the_next_action).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'date_next_action" style="widtd: 80px" class="middle_size">'.(empty($row->date_next_action)?'':$dtNextAction->format('d.m.y H:i:s')).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'work_before_the_next_action_mentor" style="widtd: 80px" class="middle_size">'.(strlen($row->work_mentor)>20?mb_substr($row->work_mentor, 0, 20, 'UTF-8').'...'.
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'date_next_action" style="width: 80px" class="middle_size">'.(empty($row->date_next_action)?'':$dtNextAction->format('d.m.y H:i:s')).'</td>
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'work_before_the_next_action_mentor" style="width: 80px" class="middle_size">'.(strlen($row->work_mentor)>20?mb_substr($row->work_mentor, 0, 20, 'UTF-8').'...'.
                 '<input id="_'.$row->rowid.'work_before_the_next_action_mentor" type="hidden" value="'.$row->work_mentor.'">':$row->work_mentor).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'date_next_action_mentor" style="widtd: 80px" class="middle_size">'.(empty($row->date_mentor)?'':$dtDateMentor->format('d.m.y H:i:s')).'</td>
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'date_next_action_mentor" style="width: 80px" class="middle_size">'.(empty($row->date_mentor)?'':$dtDateMentor->format('d.m.y H:i:s')).'</td>
             <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'action" style="width: 35px" class="middle_size"><script>
                  var click_event = "/dolibarr/htdocs/societe/addcontact.php?action=edit&mainmenu=companies&rowid=1";
                 </script>

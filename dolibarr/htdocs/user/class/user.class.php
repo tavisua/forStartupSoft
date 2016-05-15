@@ -1215,8 +1215,19 @@ class User extends CommonObject
 		return $out;
 	}
 	function getAreasList($region_id, $htmlname='state_filter', $size=1, $event ='this.form.submit()'){
-		$sql = 'select regions.rowid, regions.state_id, trim(states.name) as states_name, trim(regions.name) as regions_name from states, regions, '.MAIN_DB_PREFIX.'user_regions ur
-			where ur.fk_user='.$this->id.' and ur.active = 1 and ur.fk_id=regions.rowid and regions.state_id=states.rowid order by regions_name asc, states_name asc';
+		if($this->respon_alias == 'sale') {
+			$sql = 'select regions.rowid, regions.state_id, trim(states.name) as states_name, trim(regions.name) as regions_name from states, regions, ' . MAIN_DB_PREFIX . 'user_regions ur
+			where ur.fk_user=' . $this->id . ' and ur.active = 1 and ur.fk_id=regions.rowid and regions.state_id=states.rowid order by regions_name asc, states_name asc';
+		}elseif($this->respon_alias == 'dir_depatment') {
+			$sql = 'select regions.rowid, regions.state_id, trim(states.name) as states_name, trim(regions.name) as regions_name
+				from states
+				inner join regions on `regions`.`state_id` = `states`.`rowid`
+				inner join llx_user_regions on `llx_user_regions`.`fk_id` = `regions`.`rowid`
+				inner join `llx_user` on `llx_user`.`rowid` = `llx_user_regions`.`fk_user`
+				where `llx_user`.`subdiv_id` = '.$this->subdiv_id.'
+				and `llx_user_regions`.active = 1
+				and `llx_user`.`active` = 1';
+		}
 		//die($sql);
 		$res = $this->db->query($sql);
 		$out =  '<select name = "'.$htmlname.'" id="'.$htmlname.'" size="'.$size.'" '.($size>1?"multiple":"").' class="combobox" '.(!empty($event)?'onchange="'.$event.'"':'').'>';
@@ -1330,6 +1341,7 @@ class User extends CommonObject
 		$sql.= ", login = '".$this->db->escape($this->login)."'";
 		$sql.= ", admin = ".$this->admin;
 		$sql.= ", respon_id = ".$this->respon_id;
+		$sql.= ", subdiv_id = ".$this->subdiv_id;
 		$sql.= ", post_id = ".$this->post_id;
 		$sql.= ", address = '".$this->db->escape($this->address)."'";
 		$sql.= ", zip = '".$this->db->escape($this->zip)."'";

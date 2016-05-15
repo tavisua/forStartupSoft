@@ -5,7 +5,10 @@
  * Date: 07.11.2015
  * Time: 11:32
  */
- $region_id = $_SESSION['region_id'];
+if(isset($_REQUEST["region_id"]))
+    $_SESSION["region_id"] = $_REQUEST["region_id"];
+
+$region_id = $_SESSION['region_id'];
 $search = explode(',',$_GET['search']);
 $search_array = array();
 foreach($search as $elem) {
@@ -53,11 +56,11 @@ $sql_count.=' and `llx_societe`.active = 1 ';
 //die();
 
 
-if($user->login != 'admin') {
-    $tmp = ' and `llx_societe`.`fk_user_creat`=' . $user->id;
-    $sql.=$tmp;
-    $sql_count.=$tmp;
-}
+//if($user->login != 'admin') {
+//    $tmp = ' and `llx_societe`.`fk_user_creat`=' . $user->id;
+//    $sql.=$tmp;
+//    $sql_count.=$tmp;
+//}
 if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])){
     $phone_number = fPrepPhoneFilter($_REQUEST['filter']);
     $sql_filter = "select llx_societe.rowid from llx_societe

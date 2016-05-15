@@ -15,6 +15,13 @@ foreach($search as $elem) {
 $page = isset($_GET['page'])?$_GET['page']:1;
 $per_page = isset($_GET['per_page'])?$_GET['per_page']:30;
 
+$sql = "select fx_category_counterparty from `responsibility_param` where `fx_responsibility` = ".$user->respon_id;
+$res = $db->query($sql);
+$category = array();
+if($db->num_rows($res)>0)
+    while($obj = $db->fetch_object($res))
+        $category[]=$obj->fx_category_counterparty;
+
 $sql = "select distinct `llx_societe`.rowid, concat(case when `formofgavernment`.`name` is null then '' else `formofgavernment`.`name` end,' ',`llx_societe`.`nom`) nom,
 `llx_societe`.`town`, round(`llx_societe_classificator`.`value`,0) as width, `llx_societe`.`remark`, ' ' deficit,
 ' ' task,' ' lastdate, ' ' lastdatecomerc, ' ' futuredatecomerc, ' ' exec_time, ' ' lastdateservice,
@@ -23,18 +30,19 @@ from `llx_societe` left join `category_counterparty` on `llx_societe`.`categoryo
 left join `formofgavernment` on `llx_societe`.`formofgoverment_id` = `formofgavernment`.rowid
 left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`
 left join `llx_societe_lineactive` on `llx_societe_lineactive`.fk_soc = `llx_societe`.rowid
-where 1 ";
+where 1 and `llx_societe`.active = 1 and `llx_societe`.`categoryofcustomer_id` in (".(count($category)>0?implode(',',$category):'0').") and (`llx_societe`. fk_user_creat = ".$user->id." or `llx_societe_lineactive`.`fk_lineactive` in (".implode(',', $user->getLineActive())."))";
+
+
 $sql_count = 'select count(*) iCount from
 (select distinct `llx_societe`.*  from `llx_societe`
 left join `llx_societe_lineactive` on `llx_societe_lineactive`.fk_soc = `llx_societe`.rowid
-where 1  ';
+where 1 and `llx_societe`.active = 1 and `llx_societe`.`categoryofcustomer_id` in ('.(count($category)>0?implode(',',$category):'0').') and (`llx_societe`. fk_user_creat = '.$user->id.' or `llx_societe_lineactive`.`fk_lineactive` in ('.implode(',', $user->getLineActive()).')) ';
 
 //    $tmp = 'and `llx_societe`.`categoryofcustomer_id` in
 //(select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = '.$user->respon_id.')';
 //    $sql.=$tmp;
 //    $sql_count.=$tmp;
 
-    $sql .= ' and `llx_societe`.active = 1 ';
     $sql_count.=' and `llx_societe`.active = 1 ';
 
 //echo '<pre>';
@@ -46,8 +54,12 @@ if(isset($_REQUEST['lineactive'])&& !empty($_REQUEST['lineactive']) && $_REQUEST
         left join `llx_societe_lineactive` on `llx_societe_lineactive`.fk_soc = `llx_societe`.rowid
         left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`
         where 1  and `llx_societe`.active = 1
-        and (`llx_societe`. fk_user_creat = 42 or `llx_societe_lineactive`.`fk_lineactive` in (260,189))
-        order by round(`llx_societe_classificator`.`value`,0) desc, nom limit '.($page-1)*$per_page.','.$per_page.';';
+        and (`llx_societe`. fk_user_creat = '.$user->id.' and (`llx_societe`.`categoryofcustomer_id` in ('.(count($category)>0?implode(',',$category):'0').') or `llx_societe_lineactive`.`fk_lineactive` in ('.implode(',', $user->getLineActive()).')))
+        order by round(`llx_societe_classificator`.`value`,0) desc, nom';
+//echo '<pre>';
+//var_dump($tmp);
+//echo '</pre>';
+//die();
     $res = $db->query($tmp);
     $socID = array('0');
     if($db->num_rows($res)>0)
@@ -64,7 +76,7 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['lin
         $phone_number = fPrepPhoneFilter($_REQUEST['filter']);
         $sql_filter = "select llx_societe.rowid from llx_societe
             left join `llx_societe_contact` on `llx_societe_contact`.`socid`=`llx_societe`.`rowid`
-            where 1 and `llx_societe`.`categoryofcustomer_id` = 9 and `llx_societe`.`nom`  like '%" . $_REQUEST['filter'] . "%'
+            where 1 and `llx_societe`.`categoryofcustomer_id` in (9,10) and `llx_societe`.`nom`  like '%" . $_REQUEST['filter'] . "%'
             or `llx_societe_contact`.`lastname`  like '%" . $_REQUEST['filter'] . "%'
             or `llx_societe_contact`.`firstname`  like '%" . $_REQUEST['filter'] . "%'
             or `llx_societe_contact`.`subdivision`  like '%" . $_REQUEST['filter'] . "%'
@@ -86,6 +98,10 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['lin
             }
 
     }
+//    echo '<pre>';
+//    var_dump($filterid);
+//    echo '</pre>';
+//    die();
     if(isset($_REQUEST['lineactive'])&& !empty($_REQUEST['lineactive']) && $_REQUEST['lineactive'] != -1){
         $kind = (isset($_REQUEST['kind'])&& !empty($_REQUEST['kind']))?$_REQUEST['kind']:'lineactive';
         switch($kind) {
@@ -133,13 +149,15 @@ $sql_count.=') societe';
 $sql .= ' order by width desc, nom';
 $sql .= ' limit '.($page-1)*$per_page.','.$per_page;
 
-$res = $db->query($sql_count);
-$count = $db->fetch_object($res);
-
 //echo '<pre>';
 //var_dump($sql);
 //echo '</pre>';
 //die();
+
+$res = $db->query($sql_count);
+$count = $db->fetch_object($res);
+
+
 $total = ceil($count->iCount/$per_page);
 
 $TableParam = array();

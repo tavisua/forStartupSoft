@@ -35,6 +35,7 @@ DeleteAMailing=Delete an emailing
 PreviewMailing=Preview emailing
 PrepareMailing=Prepare emailing
 CreateMailing=Create emailing
+CallStatus=Статус дзвінків
 MailingDesc=This page allows you to send emailings to a group of people.
 MailingResult=Sending emails result
 TestMailing=Test email

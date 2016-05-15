@@ -375,6 +375,7 @@ if ($action == 'update' && ! $_POST["cancel"])
             $object->fk_user    = GETPOST("fk_user")>0?GETPOST("fk_user"):0;
             $object->post_id    = GETPOST("post_id");
             $object->respon_id  = GETPOST("respon_id");
+            $object->subdiv_id  = GETPOST("subdiv_id");
 
 	        $object->thm            = GETPOST("thm")!=''?GETPOST("thm"):'';
 	        $object->tjm            = GETPOST("tjm")!=''?GETPOST("tjm"):'';

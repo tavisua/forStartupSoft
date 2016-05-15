@@ -623,9 +623,9 @@ class Societe extends CommonObject
 
             if($this->db->num_rows($res) == 0){
                 $set = 'insert into `llx_societe_classificator`(soc_id, classifycation_id, value, active, id_usr, dtChange)';
-                $set .=' values('.$this->id.', '.substr($key, 6).', '.$this->param[$key].', 1, '.$user->id.', Now())';
+                $set .=' values('.$this->id.', '.substr($key, 6).', '.str_replace(',','.',$this->param[$key]).', 1, '.$user->id.', Now())';
             }else{
-                $set = 'update `llx_societe_classificator` set value = '.$this->param[$key].', active=1 where soc_id='.$this->id.
+                $set = 'update `llx_societe_classificator` set value = '.str_replace(',','.',$this->param[$key]).', active=1 where soc_id='.$this->id.
                     ' and classifycation_id = '.substr($key, 6).' limit 1';
             }
         }

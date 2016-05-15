@@ -247,12 +247,15 @@ class ActionComm extends CommonObject
         $num = 0;
         foreach($freetime as $period){
             $num++;
-//            var_dump(intval(substr($period[2], 5,2)), intval(substr($period[2], 8,2)), intval(substr($period[2], 0,4)), $period[2]);
-//            die();
-            $itemDate = dol_mktime(intval(substr($period[0], 0,2)), intval(substr($period[0], 3,2)), intval(substr($period[0], 5,2)), intval(substr($period[2], 5,2)), intval(substr($period[2], 8,2)), intval(substr($period[2], 0,4)));
+            $itemDate = dol_mktime(intval(substr($period[0], 0,2)), intval(substr($period[0], 3,2)), intval(substr($period[0], 6,2)), intval(substr($period[2], 6,2)), intval(substr($period[2], 8,2)), intval(substr($period[2], 0,4)));
             $dtDate = new DateTime();
+//            var_dump($minutes<=$period[1] && $itemDate >= $starttime && $dtDate->format('H')>=8 && !( $dtDate->format('H')>=12&& $dtDate->format('H')<14) && $dtDate->format('Y-m-d') == $date);
+//            var_dump($minutes<=$period[1], $itemDate >= $starttime, $dtDate->format('H')>=8, !( $dtDate->format('H')>=12&& $dtDate->format('H')<14) , $dtDate->format('Y-m-d') == $date);
+//            die();
             $dtDate->setTimestamp($itemDate);
             if($minutes<=$period[1] && $itemDate >= $starttime && $dtDate->format('H')>=8 && !( $dtDate->format('H')>=12&& $dtDate->format('H')<14) && $dtDate->format('Y-m-d') == $date) {
+//                var_dump($freetime, $period);
+//                die();
                 return  $period[2].' '.$period[0];
             }elseif($minutes<=$period[1] && $itemDate >= $starttime && $dtDate->format('H')>=8 &&
                 ($dtDate->format('H')>=12&& $dtDate->format('H')<14 && $num == count($freetime)) && $dtDate->format('Y-m-d') == $date){
@@ -260,6 +263,11 @@ class ActionComm extends CommonObject
 //                die();
                 return $period[2].' 14:00:00';
             }
+        }
+        if($minutes<=$period[1] && $itemDate < $starttime && $dtDate->format('H')>=8 && !( $dtDate->format('H')>=12&& $dtDate->format('H')<14) && $dtDate->format('Y-m-d') == $date) {
+//            var_dump(date('Y-m-d H:i:s', $starttime));
+//            die();
+            return date('Y-m-d H:i:s', $starttime);
         }
         return 0;
     }
@@ -275,7 +283,7 @@ class ActionComm extends CommonObject
                 and (`llx_actioncomm_resources`.`fk_element`= ".$id_usr." or (`llx_actioncomm`.`fk_user_author`= ".$id_usr." and `llx_actioncomm`.id not in (select `llx_actioncomm_resources`.`fk_actioncomm` from `llx_actioncomm_resources` where `llx_actioncomm_resources`.`fk_element`= ".$id_usr.")))
             and `llx_actioncomm`.`priority` = ".(empty($prioritet)?0:$prioritet)."
             and `llx_actioncomm`.`active` = 1
-            order by `llx_actioncomm`.`datep`";
+            order by `llx_actioncomm`.`datep`, `llx_actioncomm`.`datep2`";
         $res = $db->query($sql);
         if(!$res)
             dol_print_error($db);
@@ -304,6 +312,122 @@ class ActionComm extends CommonObject
             $freetime[] = array(date('H.i.s', $time), ($tmp_mk - $time)/60, $date->format('Y-m-d'));
         }
         return $freetime;
+    }
+    function getFilterDate(){
+        global $user, $db, $langs;
+        $typeaction='AC_GLOBAL';
+        if($_REQUEST["typeaction"]=='current_task')
+            $typeaction='AC_CURRENT';
+        $datetype = 'datep2';
+        if($_REQUEST['datetype']=='prepareddate')
+            $datetype = 'datepreperform';
+        $sql = "select distinct date(".$datetype.") date from `llx_actioncomm`
+            left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.id
+            where (`llx_actioncomm_resources`.`fk_element` = ".$user->id." or `llx_actioncomm`.`fk_user_author` = ".$user->id.")
+            and `llx_actioncomm`.`code` = '".$typeaction."'
+            and `llx_actioncomm`.`percent` <> 100
+            and `llx_actioncomm`.`active` = 1
+            order by date(".$datetype.")";
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+        $dates = array();
+        if($db->num_rows($res)>0)
+            while($obj = $db->fetch_object($res)){
+                $dates[]=$obj->date;
+            }
+        $month = array();
+        foreach($dates as $date){
+            $date = new DateTime($date);
+            $month['Month'.$date->format('m')][]=$date->format('d.m.Y');
+        }
+        $out='<form id="setDateFilter" action="" method="post">
+                    <input id="dates" name="filterdates" type="hidden">
+                    <input name="datetype" type="hidden" value="'.$_REQUEST['datetype'].'">
+               </form>
+        <table class="setdate" style="background: #ffffff; width: 80px">
+        <a class="close"  onclick="CloseDatesMenu();" title="Закрити"></a>
+            <thead><tr class="multiple_header_table"><th class="middle_size" colspan="3" style="width: 100%">Виберіть дату </th>
+                </tr>
+                </thead>
+            <tbody><tr><td><div id="selDates" class="middle_size">';
+        foreach(array_keys($month) as $key){
+            $out.='<ul id="'.$key.'" class="month"><img id="img'.$key.'" src="/dolibarr/htdocs/theme/eldy/img/check.png"> '.$langs->trans($key).'</ul>';
+            foreach($month[$key] as $date){
+                $date = new DateTime($date);
+                $out.='<li id="'.$date->format('d_m').'" class="dates '.$key.'" > <img id="date'.$date->format('d_m').'" src="/dolibarr/htdocs/theme/eldy/img/check.png" dateVal="'."'".$date->format('Y-m-d')."'".'"> '.$date->format('d.m.').'</li>';
+            }
+        }
+        $out.='</div></td></tr>';
+        $out.='<tr><td><button onclick="setDateFilter();">Застосувати</button></tr></tbody></table>';
+        $out.="<script>
+            function setDateFilter(){
+                var imgs = $('div#selDates').find('img');
+                $('#dates').val('');
+                for(var img = 0; img<imgs.length; img++){
+                    if(imgs[img].id.substr(0,4) == 'date' && imgs[img].src.substr(imgs[img].src.length -'uncheck.png'.length) != 'uncheck.png'){
+                        $('#dates').val($('#dates').val()+$('#'+imgs[img].id).attr('dateVal') +',');
+//                        console.log(imgs[img].src);
+                    }
+                }
+                $('#dates').val($('#dates').val().substr(0, $('#dates').val().length-1));
+                $('#setDateFilter').submit();
+            }
+            $('li').click(function(e){
+                var id;
+                if(e.target.id.substr(0,4) == 'date'){
+                    id = e.target.id.substr(4);
+                    var img = $('img#'+e.target.id);
+                }else{
+                    id = e.target.id;
+                    var img = $('li#'+id).find('img');
+                }
+                console.log(id);
+
+
+                var src = img.attr('src');
+                var check = false;
+                if(src.substr(src.length-'uncheck.png'.length) == 'uncheck.png'){
+                    img.attr('src', '/dolibarr/htdocs/theme/eldy/img/check.png');
+                    check = true;
+                }else{
+                    img.attr('src', '/dolibarr/htdocs/theme/eldy/img/uncheck.png');
+                }
+                var className = $('li#'+id).attr('class').replace('dates ', '');
+                img = $('ul#'+className).find('img');
+                if(!check){
+                    img.attr('src', '/dolibarr/htdocs/theme/eldy/img/uncheck.png');
+                }
+            })
+            $('ul').click(function(e){
+                var id;
+                if(e.target.id.substr(0,3) != 'img'){
+                    var img = $('ul#'+e.target.id).find('img');
+                    id = e.target.id;
+                }else{
+                    var img = $('#'+e.target.id);
+                    id = e.target.id.substr(3);
+                }
+//                console.log(id);
+                var check = false;
+                var src = img.attr('src');
+//                console.log(e.target.id);
+                if(src.substr(src.length-'uncheck.png'.length) == 'uncheck.png'){
+                    img.attr('src', '/dolibarr/htdocs/theme/eldy/img/check.png');
+                    check = true;
+                }else{
+                    img.attr('src', '/dolibarr/htdocs/theme/eldy/img/uncheck.png');
+                }
+                var subImg = $('li.'+id).find('img');
+                subImg.attr('src', img.attr('src'));
+            })
+        </script>";
+//        var_dump($out);
+//        die();
+        if(count($dates)==0)
+            $out='дату не встановлено';
+
+        return $out;
     }
     function add($user,$notrigger=0)
     {

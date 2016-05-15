@@ -227,6 +227,35 @@ function showProposed(id,contactid){
         }
     })
 }
+
+function GetExecDate(datetype){
+var param = {
+        typeaction: getParameterByName('mainmenu'),
+        action:'get_execdate',
+        datetype: datetype
+    }
+    $.ajax({
+        url:'/dolibarr/htdocs/comm/action/index.php',
+        data: param,
+        cache:false,
+        success:function(html){
+            //console.log(html);
+            if($('#getDate').length == 0) {
+                createNewForm('popupmenu', 'getDate')
+            }
+            $('#getDate').empty().html(html);
+            $('#getDate').width('auto');
+            $('#getDate').offset({
+                top: $('#ExecDateFilter').offset().top - 180,
+                left: $('#ExecDateFilter').offset().left - 180
+            });
+            $('#getDate').show();
+        }
+    })
+}
+function CloseDatesMenu(){
+    $('#getDate').remove();
+}
 function showTitleProposed(post_id, lineactive, contactid, td, socid){
     var param = {
         post_id: post_id,
@@ -313,7 +342,7 @@ function ShowUserTasks(id, respon_alias){
     }
 }
 function CalcP(date, minute, id_usr){
-    //console.log(date, minute, id_usr);
+    //alert('test');
     if(minute === undefined || minute.length == 0)
         return;
 
@@ -324,7 +353,8 @@ function CalcP(date, minute, id_usr){
         cache:false,
         success:function(result){
             var time = result.substr(10,6);
-            console.log($('#ap').val()!=result.substr(8,2)+'.'+result.substr(5,2)+'.'+result.substr(0,4), $('#ap').val(), result.substr(8,2)+'.'+result.substr(5,2)+'.'+result.substr(0,4));
+            //console.log(result);
+            //return;
             if($('#ap').val()!=result.substr(8,2)+'.'+result.substr(5,2)+'.'+result.substr(0,4)) {
                 $('#ap').val(result.substr(8,2)+'.'+result.substr(5,2)+'.'+result.substr(0,4));
                 $('#p2').val(result.substr(8,2)+'.'+result.substr(5,2)+'.'+result.substr(0,4));
@@ -348,23 +378,18 @@ function CalcP(date, minute, id_usr){
 }
 function CalcP2(){
     var hour = parseInt(document.getElementById("aphour").value)+Math.floor($("#exec_time").val()/60);
-    document.getElementById("p2hour").value = hour<10?("0"+hour):hour;
+
+    //document.getElementById("p2hour").value = hour<10?("0"+hour):hour;
     var p2min = 0;
     if(parseInt($("#exec_time").val())%60){
-
         p2min = parseInt(document.getElementById("apmin").value)+parseInt($("#exec_time").val());
-
-        $('#p2hour [value="'+(parseInt(document.getElementById("aphour").value)+Math.floor(p2min/60)).toString()+'"]').attr("selected", "selected");
-        //console.log((parseInt(document.getElementById("aphour").value)+Math.floor(p2min/60)).toString());
-        //console.log((parseInt(document.getElementById("aphour").value)+Math.floor(p2min/60)).toString());
-//				document.getElementById("p2hour").value =
-//				console.log(parseInt(document.getElementById("aphour").value)+Math.floor(p2min/60));
-//					parseInt(document.getElementById("aphour").value)+Math.floor(p2min/60);
+        hour = parseInt(document.getElementById("aphour").value)+Math.floor(p2min/60);
     }else{
        p2min = parseInt(document.getElementById("apmin").value);
-       var hour = parseInt($("#exec_time").val())+parseInt(document.getElementById("aphour").value);
-       document.getElementById("p2hour").value = hour<10?("0"+hour):hour;
+       hour = parseInt($("#exec_time").val())+parseInt(document.getElementById("aphour").value);
     }
+
+    document.getElementById("p2hour").value = hour<10?("0"+hour):hour;
     var min="";
     if(p2min%60<10)
         min = "0"+(p2min%60).toString();

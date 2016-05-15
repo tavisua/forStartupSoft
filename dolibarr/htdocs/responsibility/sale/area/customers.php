@@ -30,8 +30,7 @@ if($user->login != 'admin') {
     $tmp = '';
     if ($region_id != 0)
         $tmp .= ' and `region_id` = ' . $region_id . ' ';
-    $tmp .= ' and `llx_societe`.`categoryofcustomer_id` in
-    (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = ' . $user->respon_id . ')';
+        $tmp .= ' and `llx_societe`.`categoryofcustomer_id` in (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = ' . $user->respon_id . ')';
     $sql .= $tmp;
     $sql_count .= $tmp;
 }
@@ -40,7 +39,7 @@ $sql_count.=' and `llx_societe`.active = 1 ';
 
 
 
-if($user->login != 'admin') {
+if($user->login != 'admin' && $user->respon_alias == 'sale') {
     $tmp = ' and `llx_societe`.`fk_user_creat`=' . $user->id;
 //    $tmp = ' and `llx_societe`.`region_id` in (select fk_id from llx_user_regions where fk_user='.$user->id.' and active = 1)';
     $sql.=$tmp;

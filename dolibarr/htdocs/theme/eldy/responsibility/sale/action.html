@@ -163,7 +163,74 @@
 //        setActionPanelPosition();
         LoadProposition();
     })
+    $('.result_of_action').click(function(e){
+        var param = {
+            action:'showCallStatus'
+        }
 
+        $.ajax({
+            url:'/dolibarr/htdocs/responsibility/sale/action.php',
+            data: param,
+            cache:false,
+            success:function(html){
+                createNewForm('popupmenu','callStatus')
+//                    console.log($('#' + e.target.id).attr('rowid'));
+
+                    $('#callStatus').css('width', 250);
+                    //$('#popupmenu').css('height',250);
+                    $('#callStatus').empty().html(html);
+                    $('#callStatus').attr('rowid', $('#' + e.target.id).attr('rowid'))
+
+                    $('#callStatus').show();
+                    $('#callStatus').offset({
+                        top: $('#' + e.target.id).offset().top - 30,
+                        left: $('#' + e.target.id).offset().left - 50
+                    });
+                    $('#callStatus').attr('TitleProposed', 1);
+//                }
+            }
+        })
+    })
+   $(window).keydown(function(event){
+       console.log(event.keyCode );
+       if(event.target.id == 'newdate' && event.keyCode == 13) {
+           var td = $('#'+event.target.id).parent();
+           setStatus($('#callStatus').attr('rowid'), $('#'+event.target.id).parent().text().trim()+' '+$('#'+event.target.id).val());
+//            console.log($('#'+event.target.id).parent().text(), $('#'+event.target.id).val());
+           CloseCallStatus();
+       }
+    })
+    function setStatus(rowid, status){
+        console.log(rowid, status);
+        $('#'+rowid+'result_of_action').text(status);
+        var param = {
+            rowid: rowid,
+            result_of_action: status,
+            action:'setStatus'
+        }
+        $.ajax({
+            url:'/dolibarr/htdocs/responsibility/sale/action.php',
+            data: param,
+            cache:false,
+            success:function(html){
+//                console.log(html);
+                if (html == 1)
+                    location.href = location.href;
+                else
+                    console.log('помилка ', html);
+            }
+        })
+    }
+    function selStatus(id){
+        if($('#status_id_'+id).find('input').length == 0) {
+            setStatus($('#callStatus').attr('rowid'), $('#status_id_' + id).text());
+//            console.log();
+            CloseCallStatus();
+        }
+    }
+    function CloseCallStatus(){
+        $('#callStatus').hide();
+    }
     function showSMSform(phonenumber){
         $('input#phone_number').val(phonenumber);
         $('b#phone_numbertitle').text(phonenumber);

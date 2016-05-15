@@ -40,42 +40,43 @@
                 <tr class="multiple_header_table">
                     <th rowspan="4" style="width: 105px;">Область</th>
                     <th rowspan="4" style="width: 145px;">Район</th>
+                    <th rowspan="4" style="width: 33px;">&nbsp;</th>
                     <th colspan="9">% виконання запланованого по факту</th>
                     <th colspan="9">минуле (факт)</th>
-                    <th rowspan="4" class="small_size" style="width: 50px;writing-mode:tb-lr;">кільк. простроч.</th>
+                    <th rowspan="4" class="small_size" style="width: 55px;writing-mode:tb-lr;">кільк. простроч.</th>
                     <th colspan="9">майбутнє (план)</th>
                 </tr>
                 <tr class="multiple_header_table">
                     <!--% виконання запланованого по факту-->
-                    <th class="small_size" style="width: 30px">за місяць</th>
-                    <th class="small_size" style="width: 30px">за 7 днів</th>
-                    <th class="small_size" style="width: 30px">за 6 днів</th>
-                    <th class="small_size" style="width: 30px">за 5 днів</th>
-                    <th class="small_size" style="width: 30px">за 4 днів</th>
-                    <th class="small_size" style="width: 30px">за 3 дня</th>
-                    <th class="small_size" style="width: 30px">за 2 дня</th>
-                    <th class="small_size" style="width: 30px">за 1 день</th>
-                    <th class="small_size" style="width: 30px">сього- дні</th>
+                    <th class="small_size" style="width: 35px">за місяць</th>
+                    <th class="small_size" style="width: 35px">за 7 днів</th>
+                    <th class="small_size" style="width: 35px">за 6 днів</th>
+                    <th class="small_size" style="width: 35px">за 5 днів</th>
+                    <th class="small_size" style="width: 35px">за 4 днів</th>
+                    <th class="small_size" style="width: 35px">за 3 дня</th>
+                    <th class="small_size" style="width: 35px">за 2 дня</th>
+                    <th class="small_size" style="width: 35px">за 1 день</th>
+                    <th class="small_size" style="width: 35px">сього- дні</th>
                     <!--минуле (факт)-->
-                    <th class="small_size" style="width: 30px">за місяць</th>
-                    <th class="small_size" style="width: 30px">за 7 днів</th>
-                    <th class="small_size" style="width: 30px">за 6 днів</th>
-                    <th class="small_size" style="width: 30px">за 5 днів</th>
-                    <th class="small_size" style="width: 30px">за 4 днів</th>
-                    <th class="small_size" style="width: 30px">за 3 дня</th>
-                    <th class="small_size" style="width: 30px">за 2 дня</th>
-                    <th class="small_size" style="width: 30px">за 1 день</th>
-                    <th class="small_size" style="width: 30px">сього- дні</th>
+                    <th class="small_size" style="width: 35px">за місяць</th>
+                    <th class="small_size" style="width: 35px">за 7 днів</th>
+                    <th class="small_size" style="width: 35px">за 6 днів</th>
+                    <th class="small_size" style="width: 35px">за 5 днів</th>
+                    <th class="small_size" style="width: 35px">за 4 днів</th>
+                    <th class="small_size" style="width: 35px">за 3 дня</th>
+                    <th class="small_size" style="width: 35px">за 2 дня</th>
+                    <th class="small_size" style="width: 35px">за 1 день</th>
+                    <th class="small_size" style="width: 35px">сього- дні</th>
                     <!--майбутнє (план)-->
-                    <th class="small_size" style="width: 30px">сього- дні</th>
-                    <th class="small_size" style="width: 30px">за 1 день</th>
-                    <th class="small_size" style="width: 30px">за 2 дня</th>
-                    <th class="small_size" style="width: 30px">за 3 дня</th>
-                    <th class="small_size" style="width: 30px">за 4 днів</th>
-                    <th class="small_size" style="width: 30px">за 5 днів</th>
-                    <th class="small_size" style="width: 30px">за 6 днів</th>
-                    <th class="small_size" style="width: 30px">за 7 днів</th>
-                    <th class="small_size" style="width: 30px">за місяць</th>
+                    <th class="small_size" style="width: 35px">сього- дні</th>
+                    <th class="small_size" style="width: 35px">за 1 день</th>
+                    <th class="small_size" style="width: 35px">за 2 дня</th>
+                    <th class="small_size" style="width: 35px">за 3 дня</th>
+                    <th class="small_size" style="width: 35px">за 4 днів</th>
+                    <th class="small_size" style="width: 35px">за 5 днів</th>
+                    <th class="small_size" style="width: 35px">за 6 днів</th>
+                    <th class="small_size" style="width: 35px">за 7 днів</th>
+                    <th class="small_size" style="width: 35px">за місяць</th>
                 </tr>
                 <tr class="multiple_header_table">
                     <!--% виконання запланованого по факту-->
@@ -167,79 +168,55 @@
         var Width = $(".WidthScroll").width();
         var Top = $(".WidthScroll").height();
         $("#sent_task").offset({top:Top+180, left:-Width+5});
-        SetTheadColumnWidth();
-//        var tr = $('.total_value');
-//        for(var i = 0; i<tr.length; i++) {
-//            var td = tr[i].getElementsByTagName('td');
-//            for(var t = 0; t<td.length; t++){
-//                if(td[t].id.length>0){
-//                    var valTD = document.getElementsByClassName(td[t].id);
-//                    var Total = 0;
-//                    console.log(valTD);
-//                    for(var v=0; v<valTD.length; v++){
-//                        Total+=parseInt(valTD[v].innerText);
-//                        console.log(valTD[v].id, valTD[v].innerText);
-//                    }
-//                    $('#'+td[t].id).text(Total);
-//                }
-//            }
-//        }
-//        console.log('test');
-    })
-    function SetTheadColumnWidth(){
-        var tr = $('#reference_body').find('tr')[0];
-        var td = tr.getElementsByTagName('td');
-        var thead = $('.WidthScroll').find('thead').find('tr')[1];
-        var th = thead.getElementsByTagName('th');
-//        console.log(th.length, td.length);
-        var num = 0;
-        for(var i = 0; i<td.length; i++){
-            if(i>2&&i<20){
-                th[i-2].style.width =  td[i].style.width;
-                if(th[i-2].innerWidth !=  td[i].style.width){
-                }
-            }else if(i>20){//майбутнє план
-                th[i-3].style.width =  td[i].style.width;
-            }else{//Кількість прострочених
-                var tr_thead = $('.WidthScroll').find('thead').find('tr')[0];
-                var th_thead = tr_thead.getElementsByTagName('th')[4];
-                var width = parseInt(td[i].style.width.substr(0,td[i].style.width.length-2))+2;
-//                console.log(td[i].style.width.substr(0,td[i].style.width.length-2), width);
-                th_thead.style.width =  width+'px';
-            }
 
+    })
+    function ShowHideAllTask(classname){
+        var src = $('#img'+classname).attr('src');
+        console.log(classname);
+        if(src.substr(src.length-'1downarrow.png'.length)=='1downarrow.png') {
+            $('#img' + classname).attr('src', '/dolibarr/htdocs/theme/eldy/img/1uparrow.png');
+            $('tr.'+classname).show();
+        }else {
+            $('#img' + classname).attr('src', '/dolibarr/htdocs/theme/eldy/img/1downarrow.png');
+            $('tr.'+classname).hide();
+        }
+        if(classname == 'AC_CUST' && $('tr.AC_CUST').length == 0){
+            $.ajax({
+                url:'/dolibarr/htdocs/responsibility/dir_depatment/day_plan.php?action=ac_cust',
+                cache:false,
+                success:function(html){
+                    $('#reference_body').append(html);
+//                    console.log(html);
+                }
+            })
 
         }
     }
-//    function ShowTask(object){
-//        var td = $('#'+object.target.id);
-//        if(object.target.id.substr(0, 'current'.length)=='current'||
-//                object.target.id.substr(0, 'global'.length)=='global'||
-//                        object.target.id.substr(0, 'total'.length)=='total'
-//        ){}else
-//            return;
-//        $.ajax({
-//            url:'/dolibarr/htdocs/day_plan.php?action=getdateaction&type_action='+object.target.id,
-//            cache:false,
-//            success:function(html){
-//                if(td.text() == '1'){
-//                    location.href = 'http://'+location.hostname+'/dolibarr/htdocs/hourly_plan.php?idmenu=10420&mainmenu=hourly_plan&leftmenu=&date='+html;
+    function ShowHideTaskByUsers(respon_alias){
+        var src = $('#img'+respon_alias.substr('respon_'.length)).attr('src');
+        if(src.substr(src.length-'1downarrow.png'.length)=='1downarrow.png') {
+            $('#img' + respon_alias.substr('respon_'.length)).attr('src', '/dolibarr/htdocs/theme/eldy/img/1uparrow.png');
+            $('tr.'+respon_alias).show();
+        }else {
+            $('#img' + respon_alias.substr('respon_'.length)).attr('src', '/dolibarr/htdocs/theme/eldy/img/1downarrow.png');
+            $('tr.regions').hide();
+            $('tr.'+respon_alias).hide();
+        }
+        if($('tr.'+respon_alias).length == 0){
+            $.ajax({
+                url:'/dolibarr/htdocs/responsibility/dir_depatment/day_plan.php?action=get_userlist&respon_alias='+respon_alias.substr('respon_'.length),
+                cache:false,
+                success:function(html){
+//                    $('#reference_body').append(html);
+                    var btn = document.getElementById('bnt'+respon_alias.substr('respon_'.length));
+                    var tr_item = btn.parentNode.parentNode;
+
+                    tr_item.insertAdjacentHTML('afterend', html);
 //                    console.log(html);
-//                }else {
-//                    var tbody = $('table.setdate').find('tbody');
-//                    tbody[0].innerHTML = html;
-//                    $("#popupmenu").attr('type_action', object.target.id);
-//                    $("#popupmenu").show();
-//                    $("#popupmenu").offset({
-//                        top: td.offset().top - 50,
-//                        left: td.offset().left - $('#reference_body').width()
-//                    });
-//                }
-//            }
-//        })
-//
-//
-//    }
+                }
+            })
+        }
+    }
     function setdate(id){
 //        console.log($('#'+id).text());
 //        console.log($("#popupmenu").attr('type_action').substr(0, 'current'.length));
@@ -247,3 +224,9 @@
 //        $("#popupmenu").hide();
     }
 </script>
+<style>
+    tr.subtype:hover {
+        background: #f3bd48!important; /* Цвет фона при наведении */
+        color: #fff!important; /* Цвет текста при наведении */
+   }
+</style>
