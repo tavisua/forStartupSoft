@@ -42,7 +42,7 @@ where 1  ';
     $sql_count.=' and `llx_societe`.active = 1 ';
 
 //echo '<pre>';
-//var_dump( $_REQUEST['category']);
+//var_dump( $_REQUEST);
 //echo '</pre>';
 //die();
 

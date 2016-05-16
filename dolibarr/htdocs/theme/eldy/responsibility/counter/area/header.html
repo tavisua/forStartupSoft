@@ -18,6 +18,15 @@
                     <?echo $user->lastname?>
                 </td>
             </tr>
+            <tr id="action" style="text-align: center">
+                <td colspan="2">
+                    <form id="CreateCompanyForm" action="/dolibarr/htdocs/societe/soc.php?mainmenu=area&idmenu=10425" method="post">
+                        <!--<input id="state_id" name="state_id" type="hidden" value="<?echo $state_id?>">-->
+                        <!--<input id="region_id" name="region_id" type="hidden" value="<?echo $region_id?>">-->
+                        <button>&nbsp;&nbsp;&nbsp;&nbsp;<?echo $CreateCompany?>&nbsp;&nbsp;&nbsp;&nbsp;</button>
+                    </form>
+                </td>
+            </tr>
             <tr id="area" >
                 <td>
                    <?=$langs->trans('CategoriesContractors')?>
@@ -28,15 +37,7 @@
                     </form>
                 </td>
             </tr>
-            <tr id="action" style="text-align: center">
-                <td colspan="2">
-                    <form action="/dolibarr/htdocs/societe/soc.php?mainmenu=area&idmenu=10425" method="post">
-                        <input id="state_id" name="state_id" type="hidden" value="<?echo $state_id?>">
-                        <input id="region_id" name="region_id" type="hidden" value="<?echo $region_id?>">
-                        <button type="submit">&nbsp;&nbsp;&nbsp;&nbsp;<?echo $CreateCompany?>&nbsp;&nbsp;&nbsp;&nbsp;</button>
-                    </form>
-                </td>
-            </tr>
+
             <tr>
                 <td colspan="2" style="text-align: center">
                     <button style="width: 222px;height: 25px" onclick="showfilter();">Знайти клієнта/контрагента</button>
@@ -155,6 +156,12 @@
     })
     function setCategoryFilter(){
         $('#filterCategory').submit();
+    }
+    function CreateCompany(){
+        var mainmenu = '<?=$_REQUEST["mainmenu"]?>';
+        var link = location.hostname+'/dolibarr/htdocs/societe/soc.php?mainmenu=area&idmenu=10425';
+        console.log(link);
+//        location.href = link;//'/dolibarr/htdocs/societe/soc.php?mainmenu=area&idmenu=10425';
     }
 
 </script>

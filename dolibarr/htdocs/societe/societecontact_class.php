@@ -445,7 +445,7 @@ class societecontact {
                                             if (substr($fields[$num_col]->name, 0, strlen('mobile_phone')) == 'mobile_phone') {
                                                 $style_item = 'style="width: 130px;white-space: nowrap"';
                                             } elseif (substr($fields[$num_col]->name, 0, strlen('email')) == 'email' && !empty($value)) {
-                                                $value = '<a target="_blank" href="mailto:' . $value . '">' . $value . '</a>';
+                                                $value = '<a href="mailto:' . $value . '">' . $value . '</a>';
                                             } elseif (substr($fields[$num_col]->name, 0, strlen('skype')) == 'skype' && !empty($value)) {
                                                 $value = '<a href="skype:' . $value . '?call">' . $value . '</a>';
                                             }
