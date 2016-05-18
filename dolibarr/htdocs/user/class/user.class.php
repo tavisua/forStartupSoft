@@ -1247,6 +1247,7 @@ class User extends CommonObject
 				}
 			}
 		}
+		$out .= '<option value="users" id="users">Співробітники</option>';
 		$out .= '</select>';
 		return $out;
 	}

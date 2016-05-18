@@ -228,15 +228,15 @@ function saveaction($rowid, $createaction = false){
         $sql.='`id_usr`='.$user->id.' ';
         $sql.='where rowid='.$rowid;
     }
+//    echo '<pre>';
+//    var_dump($_REQUEST);
+//    echo '</pre>';
+//    die();
 
     $res = $db->query($sql);
     if(!$res){
         dol_print_error($db);
     }
-//    echo '<pre>';
-//    var_dump((substr($_REQUEST['action'], 0, strlen('updateonlyresult')) == 'updateonlyresult' && strlen($_REQUEST['action'])==strlen('updateonlyresult')), !(substr($_REQUEST['action'], 0, strlen('addonlyresult')) == 'addonlyresult' || (substr($_REQUEST['action'], 0, strlen('updateonlyresult')) == 'updateonlyresult' && strlen($_REQUEST['action'])==strlen('updateonlyresult'))));
-//    echo '</pre>';
-//    die();
     if(!(substr($_REQUEST['action'], 0, strlen('addonlyresult')) == 'addonlyresult' || (substr($_REQUEST['action'], 0, strlen('updateonlyresult')) == 'updateonlyresult' && strlen($_REQUEST['action'])==strlen('updateonlyresult')))) {
         if (empty($rowid))
             $rowid = get_last_id();
@@ -256,10 +256,9 @@ function saveaction($rowid, $createaction = false){
                 $complete = '99';
         }
 
-        $sql = 'update llx_actioncomm set datea=Now() ' . (in_array($objCode->code, $TypeAction) ? ', percent ='.$complete : ', percent = 100') . '
+        $sql = 'update llx_actioncomm set dateconfirm = case when dateconfirm is null then Now() else dateconfirm end, datea= case when datea is null then Now() else datea end ' . (in_array($objCode->code, $TypeAction) ? ', percent ='.$complete : ', percent = 100') . '
             where llx_actioncomm.id in (select llx_societe_action.action_id from `llx_societe_action` where 1
-            and llx_societe_action.rowid = ' . $rowid . ')
-            and datea is null';
+            and llx_societe_action.rowid = ' . $rowid . ')';
 //    var_dump($sql);
 //    die();
         $res = $db->query($sql);

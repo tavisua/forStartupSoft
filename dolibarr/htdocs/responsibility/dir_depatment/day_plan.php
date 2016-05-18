@@ -6,6 +6,8 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 $actions = array();
 $future = array();
 $outstanding = array();
+//echo date('Y-m-d', time()-604800);
+//die();
 $sql = 'select name from subdivision where rowid = '.(empty($user->subdiv_id)?0:$user->subdiv_id);
 $res = $db->query($sql);
 if(!$res)
@@ -45,14 +47,14 @@ if(!isset($_SESSION['future'])) {
 }else{
     $future = $_SESSION['future'];
 }
-if(!isset($_SESSION['outstanding'])) {
+//if(!isset($_SESSION['outstanding'])) {
     $outstanding = CalcOutStandingActions($actions);
     $_SESSION['outstanding'] = $outstanding;
-}else{
-    $outstanding = $_SESSION['outstanding'];
-}
+//}else{
+//    $outstanding = $_SESSION['outstanding'];
+//}
 //echo '<pre>';
-//var_dump($future);
+//var_dump($outstandin[43]);
 //echo '</pre>';
 //die();
 if(isset($_REQUEST['action']))
@@ -63,7 +65,7 @@ if(isset($_REQUEST['action']))
         echo getUserList();
         exit();
     }elseif($_REQUEST['action'] == 'get_regionlist'){
-        echo getRegionsList();
+        echo getRegionsList($_REQUEST["id_usr"]);
         exit();
     }
 
@@ -80,7 +82,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/respo
 //llxFooter();
 
 exit();
-function getRegionsList(){
+function getRegionsList($id_usr){
     global $db, $actions;
     $outstanding = array();
     $future=array();
@@ -92,7 +94,7 @@ function getRegionsList(){
     $count = 0;
     foreach($actions as $item){
         $obj = (object)$item;
-        if($item["id_usr"]==$_REQUEST["id_usr"]&&$item["respon_alias"]=='sale'){
+        if($item["id_usr"]==$id_usr&&$item["respon_alias"]=='sale'){
             if(!in_array(empty($item["region_id"])?'null':$item["region_id"], $regions))
                 $regions[]=empty($item["region_id"])?'null':$item["region_id"];
             $date = new DateTime($item["datep"]);
@@ -110,17 +112,18 @@ function getRegionsList(){
                     $future[$item["region_id"]]['week']++;
                 if ($mkDate - $mkToday <= 2678400)//2678400 sec by month
                     $future[$item["region_id"]]['month']++;
-            }else{
-                if($obj->percent != 100){
-                    $outstanding[$item["region_id"]]++;
-                }elseif($obj->percent == 100){
-                    $fact[$item["region_id"]][$item["datep"]]++;
-                    if($mkToday-$mkDate<=604800)//604800 sec by week
-                        $fact[$item["region_id"]]['week']++;
-                    if($mkToday-$mkDate<=2678400)//2678400 sec by month
-                        $fact[$item["region_id"]]['month']++;
-                }
             }
+
+            if($obj->percent != 100){
+                $outstanding[$item["region_id"]]++;
+            }elseif($obj->percent == 100){
+                $fact[$item["region_id"]][$item["datep"]]++;
+                if($mkToday-$mkDate<=604800)//604800 sec by week
+                    $fact[$item["region_id"]]['week']++;
+                if($mkToday-$mkDate<=2678400)//2678400 sec by month
+                    $fact[$item["region_id"]]['month']++;
+            }
+
             $total[$item["region_id"]][$item["datep"]]++;
             if($mkToday-$mkDate<=604800)//604800 sec by week
                 $total[$item["region_id"]]['week']++;
@@ -128,6 +131,10 @@ function getRegionsList(){
                 $total[$item["region_id"]]['month']++;
         }
     }
+//    echo '<pre>';
+//    var_dump($fact);
+//    echo '</pre>';
+//    die();
 
     $sql = "select `regions`.`rowid`,`states`.`name` statename, `regions`.`name` from `regions`
         inner join `states` on `states`.`rowid` = `regions`.`state_id`
@@ -147,7 +154,7 @@ function getRegionsList(){
     if(!$res)
         dol_print_error($db);
     while($obj = $db->fetch_object($res)){
-        $out.='<tr id="reg'.$obj->rowid.'" class="'.$_REQUEST["id_usr"].' regions subtype">';
+        $out.='<tr id="reg'.$obj->rowid.'" class="'.$id_usr.' regions subtype">';
         if(!empty($obj->rowid)) {
             $out .= '<td><a href="/dolibarr/htdocs/responsibility/sale/area.php?idmenu=10425&mainmenu=area&leftmenu=&state_filter=' . $obj->rowid . '" target="_blank">' . $obj->statename . '</a></td>';
             $out .= '<td><a href="/dolibarr/htdocs/responsibility/sale/area.php?idmenu=10425&mainmenu=area&leftmenu=&state_filter=' . $obj->rowid . '" target="_blank">' . $obj->name . '</a></td>';
@@ -161,7 +168,7 @@ function getRegionsList(){
             $value = round($fact[$obj->rowid]['month']/$total[$obj->rowid]['month']*100,0);
             $out.='<td style="text-align: center">'.$value.'</td>';
         }else
-            $out.='<td></td>';        
+            $out.='<td></td>';
         if(isset($total[$obj->rowid]['week'])){
             $value = round($fact[$obj->rowid]['week']/$total[$obj->rowid]['week']*100,0);
             $out.='<td style="text-align: center">'.$value.'</td>';
@@ -342,10 +349,6 @@ function CreateItem($calc_action, $user_tmp, $classname, $showbtn = true){
     return $out;
 }
 function GetBestUserID($actions, $actioncode =''){
-//    echo '<pre>';
-//    var_dump($actions[57]['week']);
-//    echo '</pre>';
-//    die();
     $maxCount = 0;
     $id_usr = 0;
     $keys = array_keys($actions);
@@ -607,6 +610,10 @@ function ShowGlobalCurrentTasks($Code, $Title, $outstanding, $future, $subdivisi
             }
         }
     }
+//    echo '<pre>';
+//    var_dump($pastactions);
+//    echo '</pre>';
+//    die();
     $firefoxwidth = array('8'=>33,'7'=>30);
     $table.='<tr id="tr'.$Code.'" style="font-weight: bold"><td class="middle_size" style="width:106px">Департамент '.$subdivision.'</td><td class="middle_size" style="width:144px">'.$Title.'</td>';
     $table.='<td><button id="'.$Code.'" onclick="ShowHideAllTask('."'".$Code."'".');"><img id="img'.$Code.'" src="/dolibarr/htdocs/theme/eldy/img/1downarrow.png"></button></td>';
@@ -676,7 +683,7 @@ function ShowGlobalCurrentTasks($Code, $Title, $outstanding, $future, $subdivisi
         mysqli_data_seek($userlist, 0);
         while ($obj = $db->fetch_object($userlist)) {
             $class = (fmod($nom++, 2) == 0 ? "impair" : "pair");
-            $table .= '<tr id = "' . $obj->rowid . '" class="' . $class . ' ' . $Code . '" style="display:none">
+            $table .= '<tr id = "' . $obj->rowid . '" class="subtype ' . $class . ' ' . $Code . '" style="display:none">
             <td class="middle_size" style="width:106px">' . $obj->lastname . ' ' . mb_substr($obj->firstname, 0, 1, 'UTF-8') . '.' . mb_substr($obj->firstname, mb_strrpos($obj->firstname, ' ', 'UTF-8') + 1, 1, 'UTF-8') . '.</td>
             <td class="middle_size" style="width:146px">' . $Title . '</td><td></td>';
             //% виконання запланованого по факту
@@ -690,10 +697,16 @@ function ShowGlobalCurrentTasks($Code, $Title, $outstanding, $future, $subdivisi
                     } else {
                         $count = $outstanding[$obj->rowid]['week'][$Code];
                         $total = $outstanding[$obj->rowid]['totalweek'][$Code];
+//                        if($obj->rowid == 43 && $Code == 'AC_CURRENT'){
+//                            echo '<pre>';
+//                            var_dump($outstanding[$obj->rowid]['totalweek'], $count, $total);
+//                            echo '</pre>';
+//                            die();
+//                        }
                     }
                 } else {
-                    $count = isset($outstanding[$obj->rowid]['month']) ? array_sum(($outstanding[$obj->rowid]['month'])) : ('0');
-                    $total = isset($outstanding[$obj->rowid]['totalmonth']) ? array_sum(($outstanding[$obj->rowid]['totalmonth'])) : ('0');
+                    $count = isset($outstanding[$obj->rowid]['month'][$Code]) ? $outstanding[$obj->rowid]['month'][$Code] : ('0');
+                    $total = isset($outstanding[$obj->rowid]['totalmonth'][$Code]) ? $outstanding[$obj->rowid]['totalmonth'][$Code] : ('0');
                 }
                 if (strlen($total) > 0)
                     $percent = round(100 * $count / ($total == 0 ? 1 : $total));
@@ -748,6 +761,7 @@ function CalcOutStandingActions($actions, $code=''){
     $mkToday = dol_mktime(0,0,0,$today->format('m'),$today->format('d'),$today->format('Y'));
 //    $exec = array();
     reset($actions);
+    $count = array();
     foreach($actions as $action){
         $obj = (object)$action;
 //        echo '<pre>';
@@ -756,9 +770,12 @@ function CalcOutStandingActions($actions, $code=''){
 //        die();
         $date = new DateTime($obj->datep);
         $mkDate = dol_mktime(0,0,0,$date->format('m'),$date->format('d'),$date->format('Y'));
-        if($mkDate < $mkToday && $obj->percent != 100) {
+        if($mkDate <= $mkToday && $obj->percent != 100) {
             $array[$obj->id_usr][$obj->code]++;
-        }elseif($mkDate < $mkToday && $obj->percent == 100) {
+            if($obj->id_usr == 43){
+                $count[]=$obj->datep;
+            }
+        }elseif($mkDate <= $mkToday && $obj->percent == 100) {
             $array[$obj->id_usr]['fact'.$obj->datep][$obj->code]++;
             if($mkToday-$mkDate<=604800)//604800 sec by week
                 $array[$obj->id_usr]['week'][$obj->code]++;
@@ -766,11 +783,18 @@ function CalcOutStandingActions($actions, $code=''){
                 $array[$obj->id_usr]['month'][$obj->code]++;
         }
         $array[$obj->id_usr]['total'.$obj->datep][$obj->code]++;
-        if($mkToday-$mkDate<=604800)//604800 sec by week
+        if($mkToday-$mkDate<=604800 && $mkToday-$mkDate>=0) {//604800 sec by week
             $array[$obj->id_usr]['totalweek'][$obj->code]++;
-        if($mkToday-$mkDate<=2678400)//2678400 sec by month
+//            if('2016-05-30' == $obj->datep){
+//                var_dump($mkToday-$mkDate, $mkToday,$mkDate);
+//                die();
+//            }
+        }
+        if($mkToday-$mkDate<=2678400&& $mkToday-$mkDate>=0)//2678400 sec by month
             $array[$obj->id_usr]['totalmonth'][$obj->code]++;
     }
+//    var_dump($count);
+//    die();
     return $array;
 }
 
@@ -864,8 +888,10 @@ function ShowTable(){
     $table.='<td><button onclick="ShowHideAllTask('."'AllTask'".');"><img id="imgAllTask" src="/dolibarr/htdocs/theme/eldy/img/1downarrow.png"></button></td>';
     $pastactions = array();
     $keys = array_keys($outstanding);
+
     for($i = 0; $i<count($keys);$i++){
         $keysitem = array_keys($outstanding[$keys[$i]]);
+
         foreach($keysitem as $key){
             if(substr($key, 0, strlen('fact')) == 'fact' || in_array($key, array('month', 'week')) ){
                 $pastactions[$key] += array_sum($outstanding[$keys[$i]][$key]);
@@ -875,6 +901,7 @@ function ShowTable(){
             }
         }
     }
+
 
     //% виконання запланованого по факту
     for($i=8; $i>=0; $i--){
@@ -943,9 +970,10 @@ function ShowTable(){
     if(!$userlist)
         dol_print_error($db);
     $nom = 0;
+
     while($obj = $db->fetch_object($userlist)){
         $class=(fmod($nom++,2)==0?"impair":"pair");
-        $table.='<tr id = "'.$obj->rowid.'" class="'.$class.' alltask" style="display:none">
+        $table.='<tr id = "'.$obj->rowid.'" class="subtype '.$class.' alltask" style="display:none">
             <td class="middle_size" style="width:106px">'.$obj->lastname.' '.mb_substr($obj->firstname, 0, 1, 'UTF-8').'.'.mb_substr($obj->firstname, mb_strrpos($obj->firstname, ' ','UTF-8')+1, 1, 'UTF-8').'.</td>
             <td class="middle_size" style="width:146px">Всього задач</td><td></td>';
             //% виконання запланованого по факту
@@ -958,6 +986,10 @@ function ShowTable(){
                     }else{
                         $count = isset($outstanding[$obj->rowid]['week'])?array_sum($outstanding[$obj->rowid]['week']):0;
                         $total = isset($outstanding[$obj->rowid]['totalweek'])?array_sum($outstanding[$obj->rowid]['totalweek']):1;
+//                        if($obj->rowid == 43){
+//                            var_dump($count, $total);
+//                            die();
+//                        }
                     }
                 }else{
                     $count = isset($outstanding[$obj->rowid]['month'])?array_sum(($outstanding[$obj->rowid]['month'])):('0');

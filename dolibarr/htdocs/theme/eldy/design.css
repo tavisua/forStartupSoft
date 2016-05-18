@@ -123,6 +123,10 @@ overflow-y: auto; /* прокрутка по вертикали */
 .subtype{
     background: #f2f2f2;
 }
+tr.subtype:hover {
+    background: #f3bd48!important; /* Цвет фона при наведении */
+    color: #fff!important; /* Цвет текста при наведении */
+}
 .userlist{
     background: #88bbdd!important;
 }
@@ -277,6 +281,10 @@ a.vsmenu:link, a.vsmenu:visited, a.vsmenu:hover, a.vsmenu:active {
 #select_respon{
     width: 100%;
 }
+#users{
+    color: #000;
+    font-weight: bold;
+}
 
 .tabPage{
     background-image: -moz-linear-gradient(center bottom , rgba(110, 110, 110, 0.5) 25%, rgba(210, 210, 210, 0.5) 100%);
@@ -362,10 +370,15 @@ body {
 .small_size{
     font-size: 10px;
 }
+.multiple_header_table th{
+    border: solid  #ffffff;
+    border-color: #d2d1d1;
+    border-width: inherit;
+    /*border-left: solid 1px #fdffff!important;*/
+}
 .multiple_header_table{
     background: #da9694;
-    border-bottom: 1px solid #fdffff;
-    border-color: #d2d1d1;
+    cellspacing: 1px;
     color: #fff;
     font-family: arial,tahoma,verdana,helvetica;
     font-size: 14px;

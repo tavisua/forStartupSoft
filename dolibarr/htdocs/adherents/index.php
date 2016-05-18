@@ -33,7 +33,7 @@ $langs->load("companies");
 $langs->load("members");
 
 // Security check
-$result=restrictedArea($user,'adherent');
+//$result=restrictedArea($user,'adherent');
 
 
 /*

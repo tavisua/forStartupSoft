@@ -65,12 +65,12 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
 
 
-// Security check
-if (empty($conf->clicktodial->enabled))
-{
-    accessforbidden();
-    exit;
-}
+//// Security check
+//if (empty($conf->clicktodial->enabled))
+//{
+//    accessforbidden();
+//    exit;
+//}
 
 
 // Define Asterisk setup

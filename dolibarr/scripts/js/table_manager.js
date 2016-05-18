@@ -877,7 +877,7 @@ function EditAction(rowid, actioncode){
         $('#action_id').val(rowid.substr(1));
     }else
         $('#action_id').val(rowid);
-    $('#edit_action').val('edit');
+    $('#edit_action').val('updateonlyresult');
     if($('#redirect').length>0) {
         $('#redirect_actioncode').val(actioncode);
         $('#redirect').submit();

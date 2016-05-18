@@ -315,7 +315,7 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
         $rowidList[]=$obj->rowid;
     }
     mysqli_data_seek($result, 0);
-    $actionfields = array('futuredatecomerc'=>'sale', 'lastdatecomerc'=>'sale',  'lastdateservice'=>'service', 'lastdateaccounts'=>'accounts',  'lastdatementor'=>'mentor');
+    $actionfields = array('futuredatecomerc'=>'purchase', 'lastdatecomerc'=>'purchase',  'lastdateservice'=>'service', 'lastdateaccounts'=>'accounts',  'lastdatementor'=>'mentor');
     if(!$result)return;
     $page = isset($_GET['page'])?$_GET['page']:1;
     $per_page = isset($_GET['per_page'])?$_GET['per_page']:30;

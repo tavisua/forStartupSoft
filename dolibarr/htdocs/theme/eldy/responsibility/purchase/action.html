@@ -132,8 +132,10 @@
         height: 90px;
     }
 </style>
+<input type="hidden" id="starttimer" value="">
 <script>
     $(document).ready(function(){
+        $("#bookmarkActionPanel").show();
         var top =
         $('#showhide_contactlist').offset({top:$('#addcontact').offset().top, left:$('#addcontact').offset().left+$('#addcontact').width()+15});
         $('#contactlist').offset({top:$('#contactlist').offset().top-20});
@@ -153,8 +155,83 @@
             }
         }
         setcallphonelink();
-//        LoadProposition();
+//        setActionPanelPosition();
+        LoadProposition();
     })
+    $('.result_of_action').click(function(e){
+        var param = {
+            action:'showCallStatus'
+        }
+
+        $.ajax({
+            url:'/dolibarr/htdocs/responsibility/sale/action.php',
+            data: param,
+            cache:false,
+            success:function(html){
+                createNewForm('popupmenu','callStatus')
+//                    console.log($('#' + e.target.id).attr('rowid'));
+
+                    $('#callStatus').css('width', 250);
+                    //$('#popupmenu').css('height',250);
+                    $('#callStatus').empty().html(html);
+                    $('#callStatus').attr('rowid', $('#' + e.target.id).attr('rowid'))
+
+                    $('#callStatus').show();
+                    $('#callStatus').offset({
+                        top: $('#' + e.target.id).offset().top - 30,
+                        left: $('#' + e.target.id).offset().left - 50
+                    });
+                    $('#callStatus').attr('TitleProposed', 1);
+//                }
+            }
+        })
+    })
+   $(window).keydown(function(event){
+       console.log(event.keyCode );
+       if(event.target.id == 'newdate' && event.keyCode == 13) {
+           var td = $('#'+event.target.id).parent();
+           setStatus($('#callStatus').attr('rowid'), $('#'+event.target.id).parent().text().trim()+' '+$('#'+event.target.id).val());
+//            console.log($('#'+event.target.id).parent().text(), $('#'+event.target.id).val());
+           CloseCallStatus();
+       }
+    })
+    function setStatus(rowid, status){
+        console.log(rowid, status);
+        $('#'+rowid+'result_of_action').text(status);
+        var param = {
+            rowid: rowid,
+            result_of_action: status,
+            action:'setStatus'
+        }
+        $.ajax({
+            url:'/dolibarr/htdocs/responsibility/sale/action.php',
+            data: param,
+            cache:false,
+            success:function(html){
+//                console.log(html);
+                if (html == 1)
+                    location.href = location.href;
+                else
+                    console.log('помилка ', html);
+            }
+        })
+    }
+    function selStatus(id){
+        if($('#status_id_'+id).find('input').length == 0) {
+            setStatus($('#callStatus').attr('rowid'), $('#status_id_' + id).text());
+//            console.log();
+            CloseCallStatus();
+        }
+    }
+    function CloseCallStatus(){
+        $('#callStatus').hide();
+    }
+    function showSMSform(phonenumber){
+        $('input#phone_number').val(phonenumber);
+        $('b#phone_numbertitle').text(phonenumber);
+        location.href = '#sendSMS';
+        $('#sendSMSform').show();
+    }
     function setcallphonelink(){
         var tbody = document.getElementById('contactlist_body');
         if(tbody != null){
@@ -214,5 +291,48 @@
         $("#actionbuttons").attr('action', '/dolibarr/htdocs/comm/action/card.php');
         console.log($("#actionbuttons").attr('action'));
     }
+    $(function(e){
+        $('td').mouseover(function(e){
+//            console.log($('#'+e.target.id).parent().parent().parent().attr('id'));
+//            return;
+            if($('#'+e.target.id).parent().parent().parent().attr('id')!='actions_table')
+                return;
+
+            actions_table = true;
+            var text = e.target.innerText;
+             console.log(text);
+            if(text.substr(text.length-3)=='...') {
+//                var id = e.target.id.substr(0,1)!='_'?(e.target.id):('_'+e.target.id);
+                var id = e.target.id;
+                var td = e.target;
+//                console.log(e.target.offsetTop,e.target.offsetLeft);
+//                return;
+                $('#popupmenu').css('width',350);
+                $('#popupmenu').css('height',100);
+                var fullText='';
+                console.log(td.getElementsByTagName('input').length);
+                if(td.getElementsByTagName('input').length > 0) {
+                    var input=td.getElementsByTagName('input');
+//                    console.log(input[0].value);
+
+                    fullText = input[0].value;
+                }
+//                else
+//                    fullText=$('input#'+id).val();
+                $('#popupmenu').html('<div><textarea style="width: 100%;height: 100%">'+fullText+'</textarea></div>');
+                $('#popupmenu').attr('TitleProposed',null);
+                $('#popupmenu').show();
+                $('#popupmenu').offset({top:e.target.offsetTop+$('#actions_table').offset().top,left:e.target.offsetLeft});
+
+//                console.log($('#'+e.target.id).offset());
+
+            }
+            $('#popupmenu').mouseout(function(e){
+                if($('#popupmenu').attr('TitleProposed') === undefined)
+                    $('#popupmenu').hide();
+            })
+        })
+
+    })
 
 </script>

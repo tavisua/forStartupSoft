@@ -33,7 +33,7 @@ $langs->load("members");
 $langs->load("companies");
 
 // Security check
-$result=restrictedArea($user,'adherent');
+//$result=restrictedArea($user,'adherent');
 
 $action=GETPOST("action");
 $filter=GETPOST("filter");

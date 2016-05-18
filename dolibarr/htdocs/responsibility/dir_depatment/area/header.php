@@ -50,6 +50,7 @@ if($db->num_rows($res)>0) {
             $state_id = $obj->state_id;
         }
     }
+    $AreaList .= '<option id="users" value="users" >Співробітники</option>';
     $AreaList .= '</select></form>';
 }
 

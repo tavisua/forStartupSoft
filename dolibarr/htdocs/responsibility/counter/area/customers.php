@@ -275,15 +275,13 @@ function fPrepPhoneFilter($phonenumber){
 function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $sortorder='', $readonly = array(), $showtitle=true){
     global $user, $conf, $langs, $db;
 
-
-    if(empty($sortorder))
-        $result = $db->query($sql);
-    else{
 //            echo '<pre>';
 //            var_dump($sql);
 //            echo '</pre>';
 //            die();
-
+    if(empty($sortorder))
+        $result = $db->query($sql);
+    else{
         $result = $db->query($sql.' limit 1');
 
         $fields = $result->fetch_fields();
@@ -310,6 +308,11 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
             $num_col++;
         }
     }
+    $socID = array(0);
+    while($obj = $db->fetch_object($result)){
+        $socID[]=$obj->rowid;
+    }
+    mysqli_data_seek($result,0);
     $actionfields = array('futuredatecomerc'=>'sale', 'lastdatecomerc'=>'sale',  'lastdateservice'=>'service', 'lastdateaccounts'=>'accounts',  'lastdatementor'=>'mentor');
     if(!$result)return;
     $page = isset($_GET['page'])?$_GET['page']:1;
@@ -324,7 +327,7 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
     left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
     inner join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.`rowid`
     left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
-    where `llx_societe`.active = 1
+    where `llx_societe`.rowid in(".implode(',',$socID).")
     and `llx_societe_action`.active = 1
     and `llx_actioncomm`.active = 1
     group by `llx_societe`.rowid, `responsibility`.`alias` ";
@@ -353,7 +356,7 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
         and (type = 'system' or type = 'user')) TypeCode on TypeCode.code = `llx_actioncomm`.code
         inner join `llx_user` on `llx_actioncomm`.`fk_user_author` = `llx_user`.`rowid`
         left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
-        where `llx_societe`.active = 1
+        where `llx_societe`.rowid in(".implode(',',$socID).")
         and `llx_actioncomm`.`id` not in (select `llx_societe_action`.`action_id` from llx_societe_action)
         and `llx_actioncomm`.active = 1
         limit 0,30";

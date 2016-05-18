@@ -109,15 +109,16 @@ function CategoriesContractors(){
         from llx_user_categories_contractor
         left join `category_counterparty` on `category_counterparty`.`rowid` = `llx_user_categories_contractor`.`fk_categories`
         where llx_user_categories_contractor.`fk_user` = '.$user->id.'
-        and llx_user_categories_contractor.active = 1';
+        and llx_user_categories_contractor.active = 1 order by `category_counterparty`.`name`';
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
     $out = '<select id="category" name = "category" class="combobox" onchange="setCategoryFilter();">';
     $out.='<option value="-1" selected="selected">Відобразити всі</option>';
     $category_id = isset($_REQUEST['category'])&& !empty($_REQUEST['category'])?$_REQUEST['category']:0;
+
     while($obj = $db->fetch_object($res)){
-        $selected = $category_id == $obj->fk_categories;
+        $selected = is_numeric($obj->fk_categories)==is_numeric($category_id) && $category_id == $obj->fk_categories;
         switch($obj->fk_categories){
             case 'users':{
                 $name = 'Співробітники';
@@ -126,8 +127,9 @@ function CategoriesContractors(){
                 $name = $obj->name;
             }
         }
-        $out .= '<option value="'.$obj->fk_categories.'" '.($selected?'selected="selected"':'').'>'.$name.'</option>\n';
+        $out .= '<option '.($obj->fk_categories == 'users'?'id="users"':'').' value="'.$obj->fk_categories.'" '.($selected?'selected="selected"':'').'>'.$name.'</option>\n';
     }
     $out.='</selected>';
+
     return $out;
 }

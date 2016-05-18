@@ -105,23 +105,18 @@ return;
 
 function LineActive(){
     global $db, $user;
-//    $sql = 'select `oc_category_description`.category_id, `oc_category_description`.name from `oc_category_description`
-//            inner join
-//                (select category_id from `oc_category`
-//                where parent_id  in (select fk_lineactive from `llx_user_lineactive`
-//                where fk_user = '.$user->id.'
-//                and active = 1)
-//                union
-//                select fk_lineactive from `llx_user_lineactive`
-//                where fk_user = '.$user->id.'
-//                and active = 1) lineactive on lineactive.category_id = `oc_category_description`.category_id
-//            where `oc_category_description`.language_id = 4';
     $sql = 'select `oc_category_description`.category_id, `oc_category_description`.name from `oc_category_description`
             inner join
                 (select fk_lineactive as category_id from `llx_user_lineactive`
                 where fk_user = '.$user->id.'
                 and active = 1) lineactive on lineactive.category_id = `oc_category_description`.category_id
             where `oc_category_description`.language_id = 4';
+    $sql.=" union
+    select 'users', 'Співробитники'  ";
+//    echo '<pre>';
+//    var_dump($sql);
+//    echo '</pre>';
+//    die();
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
@@ -129,7 +124,7 @@ function LineActive(){
     $out.='<option value="-1" selected="selected">Відобразити всі</option>';
     $category_id = isset($_REQUEST['lineactive'])&& !empty($_REQUEST['lineactive'])?$_REQUEST['lineactive']:0;
     while($obj = $db->fetch_object($res)){
-        $out.='<option value="'.$obj->category_id.'" '.($category_id == $obj->category_id?'selected="selected"':'').'>'.$obj->name.'</option>';
+        $out.='<option '.($obj->category_id == 'users'?'id="users"':'').' value="'.$obj->category_id.'" '.(is_numeric($category_id) == is_numeric($obj->category_id) && $category_id == $obj->category_id?'selected="selected"':'').'>'.$obj->name.'</option>';
     }
     $out.='</selected>';
     return $out;
