@@ -121,7 +121,7 @@ function ShowTable(){
     $table = '<tbody id="reference_body">';
 //Всього задач
     $table.='<tr><td class="middle_size" style="width: 105px"><b>Всього задач</b></td>
-    <td style="width: 145px">&nbsp;</td>';
+    <td style="width: 175px">&nbsp;</td>';
     //% виконання запланованого по факту
     for($i=8; $i>=0; $i--){
         if($i < 8) {

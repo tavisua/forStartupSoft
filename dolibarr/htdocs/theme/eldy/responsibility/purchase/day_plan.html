@@ -21,7 +21,7 @@
         </table>
         </br>
     </div>
-
+    <button onclick="RefreshData();">Оновити дані</button>
     <div>
         <table cellspacing="1" class="WidthScroll">
             <thead>
@@ -152,6 +152,11 @@
         var Top = $(".WidthScroll").height();
         $("#sent_task").offset({top:Top+180, left:-Width+5});
     })
+
+    function RefreshData(){
+        <?unset($_SESSION['actions']);?>
+        location.href=location.href;
+    }
 //    function ShowTask(object){
 //        var td = $('#'+object.target.id);
 //        if(object.target.id.substr(0, 'current'.length)=='current'||

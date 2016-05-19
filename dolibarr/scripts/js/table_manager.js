@@ -894,6 +894,7 @@ function ShowProducts(){//Відображення кількості замов
         }
     }
 }
+
 function OpenFolder(id_cat, showeditfield){
     console.log(showeditfield);
     var img = $('#cat'+id_cat).find('img');

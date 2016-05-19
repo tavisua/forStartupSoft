@@ -43,9 +43,34 @@
         $(window).load(function(){
             window.location.hash="#8h0m";
         })
-//        function EditAction(rowid){
-//            console.log(rowid);
-//        }
+        $('div').mouseout(function(e){
+            if(e.target.id != 'FullTask')
+                return;
+            $('#popupmenu').hide();
+        })
+        $('div').mouseover(function(e){
+            var cls = e.target.className;
+//            console.log(strpos(cls, 'note'), cls);
+            if(strpos(cls, 'note')&& e.target.getElementsByTagName('input').length>0){
+                var tbody = e.target.parentNode.parentNode.parentNode;
+                var level = tbody.id.substr('tbody'.length);
+
+                var div = e.target;
+                var tr = e.target.parentNode.parentNode;
+                $('#popupmenu').css('width',350);
+                $('#popupmenu').css('height',100);
+                $('#popupmenu').css('top',0);
+                $('#popupmenu').css('z-index',10);
+                var fullText='';
+                var input=div.getElementsByTagName('input');
+                fullText = input[0].value;
+
+                $('#popupmenu').html('<textarea id="FullTask" style="width: 100%;height: 100%">'+fullText+'</textarea>');
+                $('#popupmenu').show();
+                $('#popupmenu').offset({top:tr.offsetTop+$('#taskfield').offset().top,left:tr.offsetLeft+$('#taskfield').offset().left+400});
+            }
+        })
+
         $(document).ready(function(){
             $('.tasklist').mousedown(function(e){
                 var pos = $(this).offset();
@@ -109,8 +134,16 @@
                         if(code == 'AC_GLOBAL' || code == 'AC_CURRENT')
                             link = '/dolibarr/htdocs/comm/action/chain_actions.php?action_id='+task_id+'&mainmenu='+mainmenu;
                         else{
-
-                            link = '/dolibarr/htdocs/responsibility/sale/action.php?socid='+socid+'&idmenu=10425&mainmenu='+mainmenu;
+                            var backtopage = location.pathname+location.search;
+                            backtopage = backtopage.replace(/\=/g,'%3D')
+                            backtopage = backtopage.replace(/\?/g,'%3F')
+                            backtopage = backtopage.replace(/\//g,'%2F')
+                            backtopage = backtopage.replace(/\&/g,'%26')
+                            link = '/dolibarr/htdocs/comm/action/result_action.php?mainmenu=area&id='+task_id+'&socid='+socid+'&onlyresult=&complete=&actioncode=AC_TEL&action=updateonlyresult&backtopage='+backtopage;
+//                            console.log(backtopage);
+//                            return;
+//                            '/dolibarr/htdocs/comm/action/result_action.php?mainmenu=area&backtopage='%2Fdolibarr%2Fhtdocs%2Fresponsibility%2Fsale%2Faction.php%3Fsocid%3D9648%26idmenu%3D10425%26mainmenu%3Darea%26idmenu%3D10425'&id=40383&socid=9648&onlyresult=&complete=&actioncode=AC_TEL&action=updateonlyresult'
+//                            link = '/dolibarr/htdocs/responsibility/sale/action.php?socid='+socid+'&idmenu=10425&mainmenu='+mainmenu;
                         }
 
 

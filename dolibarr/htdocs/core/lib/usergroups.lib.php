@@ -32,7 +32,10 @@
 function user_prepare_head($object)
 {
 	global $langs, $conf, $user;
-
+//        echo '<pre>';
+//        var_dump($object);
+//        echo '</pre>';
+//        die();
 	$langs->load("users");
 
 	$canreadperms=true;
@@ -49,8 +52,8 @@ function user_prepare_head($object)
     $head[$h][2] = 'user';
     $h++;
 
-    //Добавляю ссылку на страницу закрепленных районов ответственности
-    if($object->respon_alias == 'sale'){
+	//Добавляю ссылку на страницу закрепленных районов ответственности
+    if($object->respon_alias == 'sale' || $object->respon_alias2 == 'sale'){
         $head[$h][0] = DOL_URL_ROOT.'/user/areas.php?id='.$object->id.'&mainmenu=tools&idmenu=5223';
         $head[$h][1] = $langs->trans("Areas");
         $head[$h][2] = 'areas';

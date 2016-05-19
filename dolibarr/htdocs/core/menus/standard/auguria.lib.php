@@ -104,8 +104,13 @@ function print_auguria_menu($db,$atarget,$type_user,&$tabMenu,&$menu,$noout=0)
 		}
 		else if ($showmode == 2) $classname='class="tmenu"';
         if(!empty($user->respon_alias)) {
-            $shorturl = str_replace('%s', trim($user->respon_alias), $shorturl);
-            $url = str_replace('%s', trim($user->respon_alias), $url);
+			if($user->respon_alias == 'dir_depatment'&&(!empty($user->respon_alias2))){
+				$shorturl = str_replace('%s', trim($user->respon_alias2), $shorturl);
+				$url = str_replace('%s', trim($user->respon_alias2), $url);
+			}else {
+				$shorturl = str_replace('%s', trim($user->respon_alias), $shorturl);
+				$url = str_replace('%s', trim($user->respon_alias), $url);
+			}
 //            var_dump($i.' '.$shorturl.'</br>');
         }
 		if (empty($noout)) print_start_menu_entry_auguria($idsel,$classname,$showmode);

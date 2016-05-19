@@ -94,7 +94,7 @@ $langs->load("ldap");
 
 $object = new User($db);
 //echo '<pre>';
-//var_dump($object);
+//var_dump($action);
 //echo '</pre>';
 //die();
 $extrafields = new ExtraFields($db);
@@ -224,6 +224,7 @@ if ($action == 'add' && $canadduser)
         $object->usergroup_id   = GETPOST("usergroup_id")>0?GETPOST("usergroup_id"):0;
         $object->subdiv_id      = GETPOST("subdiv_id")>0?GETPOST("subdiv_id"):0;
         $object->respon_id      = GETPOST("respon_id")>0?GETPOST("respon_id"):0;
+        $object->respon_id2      = GETPOST("respon_id2")>0?GETPOST("respon_id2"):0;
 
         $object->thm            = GETPOST("thm")!=''?GETPOST("thm"):'';
         $object->tjm            = GETPOST("tjm")!=''?GETPOST("tjm"):'';
@@ -375,6 +376,7 @@ if ($action == 'update' && ! $_POST["cancel"])
             $object->fk_user    = GETPOST("fk_user")>0?GETPOST("fk_user"):0;
             $object->post_id    = GETPOST("post_id");
             $object->respon_id  = GETPOST("respon_id");
+            $object->respon_id2  = GETPOST("respon_id2");
             $object->subdiv_id  = GETPOST("subdiv_id");
 
 	        $object->thm            = GETPOST("thm")!=''?GETPOST("thm"):'';
@@ -783,6 +785,14 @@ if (($action == 'create') || ($action == 'adduserldap'))
     // Type
     print '<tr><td valign="top">'.$langs->trans('SphereOfResponsibility').'</td><td colspan="2">';
     print $form->select_control('', 'respon_id', 0, 'responsibility', 'name', $object, false);
+//            $type=$langs->trans("Internal");
+//            if ($object->societe_id) $type=$langs->trans("External");
+//            print $form->textwithpicto($type,$langs->trans("InternalExternalDesc"));
+//            if ($object->ldap_sid) print ' ('.$langs->trans("DomainUser").')';
+    print '</td></tr>'."\n";
+    // Type
+    print '<tr><td valign="top">'.$langs->trans('SphereOfResponsibility').'2</td><td colspan="2">';
+    print $form->select_control('', 'respon_id2', 0, 'responsibility', 'name', $object, false);
 //            $type=$langs->trans("Internal");
 //            if ($object->societe_id) $type=$langs->trans("External");
 //            print $form->textwithpicto($type,$langs->trans("InternalExternalDesc"));
@@ -1306,6 +1316,14 @@ else
             // Type
             print '<tr><td valign="top">'.$langs->trans('SphereOfResponsibility').'</td><td colspan="2">';
             print $form->select_control('', 'respon_id', 0, 'responsibility', 'name', $object, true);
+//            $type=$langs->trans("Internal");
+//            if ($object->societe_id) $type=$langs->trans("External");
+//            print $form->textwithpicto($type,$langs->trans("InternalExternalDesc"));
+//            if ($object->ldap_sid) print ' ('.$langs->trans("DomainUser").')';
+            print '</td></tr>'."\n";
+            // Type
+            print '<tr><td valign="top">'.$langs->trans('SphereOfResponsibility').'2</td><td colspan="2">';
+            print $form->select_control('', 'respon_id2', 0, 'responsibility', 'name', $object, true);
 //            $type=$langs->trans("Internal");
 //            if ($object->societe_id) $type=$langs->trans("External");
 //            print $form->textwithpicto($type,$langs->trans("InternalExternalDesc"));
@@ -1955,6 +1973,13 @@ else
 //           	print '</td></tr>';
             print '<tr><td valign="top">'.$langs->trans('SphereOfResponsibility').'</td><td>';
             print $form->select_control('', 'respon_id', 0, 'responsibility', 'name', $object, false);
+//            $type=$langs->trans("Internal");
+//            if ($object->societe_id) $type=$langs->trans("External");
+//            print $form->textwithpicto($type,$langs->trans("InternalExternalDesc"));
+//            if ($object->ldap_sid) print ' ('.$langs->trans("DomainUser").')';
+            print '</td></tr>'."\n";
+            print '<tr><td valign="top">'.$langs->trans('SphereOfResponsibility').'2</td><td>';
+            print $form->select_control('', 'respon_id2', 0, 'responsibility', 'name', $object, false);
 //            $type=$langs->trans("Internal");
 //            if ($object->societe_id) $type=$langs->trans("External");
 //            print $form->textwithpicto($type,$langs->trans("InternalExternalDesc"));

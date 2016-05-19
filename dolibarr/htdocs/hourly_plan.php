@@ -142,13 +142,18 @@ while($row = $db->fetch_object($res)) {
 //        $task.='<tr><td style="height: '.($EmptyPeriod*($conf->browser->name == 'firefox' ? ($EmptyPeriod<=30?23.9:24) : 22)/10).'px" class="emptyitem"></td></tr>';
     }
     $DiffTime = sprintf('%02d:%02d', $DiffSec / 3600, ($DiffSec % 3600) / 60, $DiffSec % 60);
+    $taks = trim($row->note);
+    $length = 30;
+    if(mb_strlen($taks, 'UTF-8')>$length){
+        $taks=mb_substr($taks, 0, $length, 'UTF-8').'...<input type="hidden" value="'.trim($row->note).'">';
+    }
     $task_table = '<div class="task_cell" style="float: left; width: ' . ($conf->browser->name == 'firefox' ? '23px' : '24px') . '"><img src="theme/' . $conf->theme . '/img/' . $iconitem . '" title="' . $langs->trans($row->title) . '"></div>
            <div class="task_cell" style="float: left; width: ' . ($conf->browser->name == 'firefox' ? '42px' : '43px') . '">' . $datep->format('H:i') . '</div>
            <div class="task_cell" style="float: left; width: 36px; height 16px">' . $DiffTime . '</div>
            <div class="task_cell" style="float: left; width: 35px">' . $datep2->format('H:i') . '</div>
            <div class="task_cell" style="float: left; width: 152px">' . trim($row->region_name) .(!empty($row->region_name)?'район':'').'</div>
            <div class="task_cell" style="float: left; width: 152px">' . trim($row->lastname) . '</div>
-           <div class="task_cell" style="float: left; width: 202px;">' . trim($row->note) . '</div>
+           <div class="task_cell note" style="float: left; width: 202px;">' . $taks . '</div>
            <div class="task_cell" style="float: left; width: 152px;">' . trim($row->confirmdoc) . '</div>
            <div class="task_cell" style="float: left; width: 130px;">' . $status . '</div>';
     if($user->id == $row->fk_user_author)
@@ -200,3 +205,4 @@ include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/hourl
 //print '</br>';
 //print'<div style="float: left">test</div>';
 //llxFooter();
+llxPopupMenu();

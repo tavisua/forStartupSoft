@@ -82,6 +82,9 @@ class User extends CommonObject
     var $post_id;
     var $subdiv_id;
     var $respon_id;
+    var $respon_id2;
+    var $respon_alias;
+    var $respon_alias2;
     var $usergroup_id;
     var $accessToken;
     var $id_connect;
@@ -172,14 +175,14 @@ class User extends CommonObject
 		$sql.= " u.openid as openid,";
 		$sql.= " u.accountancy_code,";
 		$sql.= " u.thm,";
-        $sql.=" u.subdiv_id, u.respon_id, u.usergroup_id, u.post_id, ";
+        $sql.=" u.subdiv_id, u.respon_id, u.respon_id2, u.usergroup_id, u.post_id, ";
 		$sql.= " u.tjm,";
 //		$sql.= " u.salary,";
 		$sql.= " u.salaryextra,";
 		$sql.= " u.weeklyhours,";
 		$sql.= " u.color,";
-		$sql.= " u.ref_int, u.ref_ext, responsibility.alias as respon_alias";
-		$sql.= " FROM ".MAIN_DB_PREFIX."user as u left join responsibility on u.respon_id=responsibility.rowid";
+		$sql.= " u.ref_int, u.ref_ext, responsibility.alias as respon_alias, respon2.alias as respon_alias2";
+		$sql.= " FROM ".MAIN_DB_PREFIX."user as u left join responsibility on u.respon_id=responsibility.rowid left join responsibility respon2 on u.respon_id2=respon2.rowid";
 
 		if ((empty($conf->multicompany->enabled) || empty($conf->multicompany->transverse_mode)) && (! empty($user->entity)))
 		{
@@ -251,7 +254,9 @@ class User extends CommonObject
 
                 $this->usergroup_id = $obj->usergroup_id;
                 $this->respon_id    = $obj->respon_id;
+                $this->respon_id2    = $obj->respon_id2;
                 $this->respon_alias = $obj->respon_alias;
+                $this->respon_alias2 = $obj->respon_alias2;
                 $this->subdiv_id    = $obj->subdiv_id;
                 $this->post_id      = $obj->post_id;
 
@@ -898,9 +903,9 @@ class User extends CommonObject
 			}
 			else
 			{
-				$sql = "INSERT INTO ".MAIN_DB_PREFIX."user (datec,login,ldap_sid,entity,subdiv_id,skype,usergroup_id,post_id,active,id_usr,dtChange,respon_id)";
+				$sql = "INSERT INTO ".MAIN_DB_PREFIX."user (datec,login,ldap_sid,entity,subdiv_id,skype,usergroup_id,post_id,active,id_usr,dtChange,respon_id,respon_id2)";
 				$sql.= " VALUES('".$this->db->idate($this->datec)."','".$this->db->escape($this->login)."','".$this->ldap_sid."',".$this->db->escape($this->entity).",".
-                    $this->subdiv_id.",'".$this->skype."',".$this->usergroup_id.", ".$this->post_id.",1,".$user->id.",Now(),".$this->respon_id.")";
+                    $this->subdiv_id.",'".$this->skype."',".$this->usergroup_id.", ".$this->post_id.",1,".$user->id.",Now(),".$this->respon_id.",".$this->respon_id2.")";
 //                var_dump($sql);
 //                die();
 				$result=$this->db->query($sql);
@@ -1215,7 +1220,7 @@ class User extends CommonObject
 		return $out;
 	}
 	function getAreasList($region_id, $htmlname='state_filter', $size=1, $event ='this.form.submit()'){
-		if($this->respon_alias == 'sale') {
+		if($this->respon_alias == 'sale'|| $this->respon_alias2 == 'sale') {
 			$sql = 'select regions.rowid, regions.state_id, trim(states.name) as states_name, trim(regions.name) as regions_name from states, regions, ' . MAIN_DB_PREFIX . 'user_regions ur
 			where ur.fk_user=' . $this->id . ' and ur.active = 1 and ur.fk_id=regions.rowid and regions.state_id=states.rowid order by regions_name asc, states_name asc';
 		}elseif($this->respon_alias == 'dir_depatment') {
@@ -1319,6 +1324,7 @@ class User extends CommonObject
 		$this->openid       = trim(empty($this->openid)?'':$this->openid);    // Avoid warning
 		$this->admin        = $this->admin?$this->admin:0;
 		$this->respon_id    = $this->respon_id?$this->respon_id:0;
+		$this->respon_id2    = $this->respon_id2?$this->respon_id2:0;
 		$this->address		= empty($this->address)?'':$this->address;
 		$this->zip			= empty($this->zip)?'':$this->zip;
 		$this->town			= empty($this->town)?'':$this->town;
@@ -1342,6 +1348,7 @@ class User extends CommonObject
 		$sql.= ", login = '".$this->db->escape($this->login)."'";
 		$sql.= ", admin = ".$this->admin;
 		$sql.= ", respon_id = ".$this->respon_id;
+		$sql.= ", respon_id2 = ".$this->respon_id2;
 		$sql.= ", subdiv_id = ".$this->subdiv_id;
 		$sql.= ", post_id = ".$this->post_id;
 		$sql.= ", address = '".$this->db->escape($this->address)."'";

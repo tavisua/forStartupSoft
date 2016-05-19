@@ -33,13 +33,13 @@
         </table>
         </br>
     </div>
-
+    <button onclick="RefreshData();">Оновити дані</button>
     <div>
         <table cellspacing="1" class="WidthScroll">
             <thead>
                 <tr class="multiple_header_table">
                     <th rowspan="4" style="width: 105px;">Область</th>
-                    <th rowspan="4" style="width: 145px;">Район</th>
+                    <th rowspan="4" style="width: 175px;">Район</th>
                     <th rowspan="4" style="width: 33px;">&nbsp;</th>
                     <th colspan="9">% виконання запланованого по факту</th>
                     <th colspan="9">минуле (факт)</th>
@@ -161,6 +161,10 @@
     </table>
 </div>
 <script>
+    function RefreshData(){
+        <?unset($_SESSION['actions']);?>
+        location.href=location.href;
+    }
     $(document).ready(function(){
         $('#reference_body').attr('height', window.innerHeight - 370);
         $('#reference_body').width($('#reference_body').width()+15);

@@ -1317,8 +1317,8 @@ class Form
             else
                 $sql .=' where active = 1 order by `' . $fieldname . '`';
         }
-//        if('subdivision'==$tablename) {
-//            var_dump($htmlname);
+//        if('respon_id2'==$htmlname) {
+////            var_dump($htmlname);
 //            die($sql);
 //        }
         $resql = $this->db->query($sql);
@@ -1329,8 +1329,10 @@ class Form
 
             if ($num>0) {
                 if($readonly){
-                    $obj = $this->db->fetch_object($resql);
-                    $out .= $obj->name;
+                    if(!empty(get_object_vars($userinfo)[$htmlname])) {
+                        $obj = $this->db->fetch_object($resql);
+                        $out .= $obj->name;
+                    }
                 }else {
                     $out .= '<select class="combobox" id="' . $htmlname . '" name="' . $htmlname . '"' . ($disabled ? ' disabled="disabled"' : '') . '>';
                     $out .= '<option value="0">&nbsp;</option>';

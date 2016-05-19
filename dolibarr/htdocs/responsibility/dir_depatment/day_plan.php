@@ -824,7 +824,7 @@ function ShowTable(){
 
     $firefoxColWidths=array('8'=>'35','7'=>'35','6'=>'35','5'=>'35','4'=>'35','3'=>'35','2'=>'35','1'=>'35','0'=>'35','outstanding'=>'55');
     $chromeColWidths=array('8'=>'35','7'=>'35','6'=>'35','5'=>'35','4'=>'35','3'=>'35','2'=>'35','1'=>'35','0'=>'35','outstanding'=>'55');
-    $table.='<tr class="bestvalue"><td class="middle_size" style="width:106px">Департамент '.$subdivision.'</td><td class="middle_size" style="width:144px">Всього по найкращому</td><td style="width:33px">&nbsp;</td>';
+    $table.='<tr class="bestvalue"><td class="middle_size" style="width:106px">Департамент '.$subdivision.'</td><td class="middle_size" style="width:174px">Всього по найкращому</td><td style="width:33px">&nbsp;</td>';
     //% виконання запланованого по факту
     for($i=8; $i>=0; $i--){
         if($i < 8) {
