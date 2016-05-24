@@ -1,6 +1,15 @@
-
 <script type="text/javascript" src="/dolibarr/htdocs/societe/js/jquery.maskedinput-1.2.2.js"></script>
 <div class="address_header">
+    <?if($_GET['action']=='useraction' || $_GET['action'] == 'edituseration'){?>
+    </br>
+    </br>
+    <table id="headercontrol" style="background-color: #ffffff">
+        <tr>
+            <td><b>Контакт</b></td>
+            <td><?=getUserName($_REQUEST['id_usr'])?></td>
+        </tr>
+    </table>
+    <?}else{?>
     <table id="headercontrol" style="background-color: #ffffff">
         <tr>
             <td><b>Категорія контрагента</b></td>
@@ -27,6 +36,7 @@
             <td></td>
         </tr>
     </table>
+    <?}?>
 </div>
 
 </br>
@@ -34,7 +44,7 @@
     <form id="addaction" action="" method="post">
         <input id="backtopage" type="hidden" value="<?=$_GET['backtopage']?>" name="backtopage">
         <input id="rowid" name="rowid" type="hidden" value="<?=empty($object->resultaction['rowid'])?$object->rowid:$object->resultaction['rowid']?>">
-        <input id="actionid" name="actionid" type="hidden" value="<?=!isset($_REQUEST['onlyresult'])||empty($_REQUEST['onlyresult'])?$_GET['id']:''?>">
+        <input id="actionid" name="actionid" type="hidden" value="<?=$action_id?>">
         <input id="socid" name="socid" type="hidden" value="<?=isset($_REQUEST['onlyresult'])&&!empty($_REQUEST['onlyresult'])?$object->socid:$_REQUEST['socid']?>">
         <input id="mainmenu" name="mainmenu" type="hidden" value="<?=$_GET['mainmenu']?>">
         <input type="hidden" value="<?=$_GET['actioncode']?>" name="actioncode">
@@ -109,10 +119,17 @@
         $("#addaction").width(800);
         $(".tabBar").width(800);
         $("#event_desc").addClass('tabactive');
+        if(getParameterByName('action')=='addonlyresult'){
+            $('#answer').text('');
+        }else if(getParameterByName('action') == 'useraction'){
+            var contactid = '<input type="hidden" name="contactid" value="'+getParameterByName('id_usr')+'">'
+            $('#addaction').append(contactid);
+        }
     })
     function back(){
         var link = $('#backtopage').val();
-        link = 'http://'+location.hostname+link.substr(1, link.length-2);
+//                console.log(link);
+//        link = 'http://'+location.hostname+link.substr(1, link.length-2);
         location.href = link;
     }
 
@@ -130,6 +147,8 @@
             $("#addaction").attr('action', '/dolibarr/htdocs/comm/action/result_action.php');
             if (param.action == 'addonlyresult')
                 $("#action").val('addonlyresult');
+            else if(param.action == 'useraction' || param.action == 'edituseration')
+                $("#action").val('saveuseraction');
             else if (param.onlyresult !== undefined)
                 $("#action").val('updateonlyresult');
             else
@@ -154,6 +173,8 @@
         $("#addaction").attr('action', '/dolibarr/htdocs/comm/action/result_action.php');
         if(param.action == 'addonlyresult')
             $("#action").val('addonlyresult_and_create');
+        else if(param.action == 'useraction')
+            $("#action").val('saveuseraction');
         else if(param.onlyresult !== undefined)
             $("#action").val('updateonlyresult_and_create');
         else

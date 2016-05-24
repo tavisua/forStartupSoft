@@ -8,24 +8,20 @@
 
 require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
 if(count($_POST)>0){
-    if($_SESSION['region_id'] != GETPOST('state_filter', 'int')){
+    if($_SESSION['state_filter'] != GETPOST('state_filter', 'int')){
         unset($_REQUEST['page']);
         unset($_GET['page']);
     }
-    $_SESSION['region_id'] = GETPOST('state_filter', 'int');
+//    die('test');
+    $_SESSION['state_filter'] = GETPOST('state_filter', 'int');
 }
-
+//$region_id = $_REQUEST['state_filter'];
 $Area = $langs->trans('Area');
 llxHeader("",$Area,"");
 print_fiche_titre($Area);
-//print '<div>';
-if(isset($_REQUEST["state_filter"]))
-    $_SESSION["state_filter"] = $_REQUEST["state_filter"];
-elseif(isset($_SESSION["state_filter"]))
-    $_REQUEST["state_filter"]=$_SESSION["state_filter"];
 
 //echo '<pre>';
-//var_dump($_REQUEST["state_filter"], $_SESSION["state_filter"]);
+//var_dump($_SESSION['state_filter']);
 //echo '</pre>';
 //die();
 //Шапка сторінки

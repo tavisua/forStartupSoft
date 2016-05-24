@@ -329,7 +329,7 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
                                         :trim($langs->trans($value))). '</td>';
                             else
                                 $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '"  style="width:'.($col_width[$num_col-1]+2).'px; text-align: center;">'.(isset($actionfields[$fields[$num_col]->name])?
-                                        '<a href="../'.$actionfields[$fields[$num_col]->name].'/action.php?socid='.$row['rowid'].'&idmenu=10425&mainmenu=area"><img src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/object_action.png"></a>':'').' </td>';
+                                        '<a  href="../'.$actionfields[$fields[$num_col]->name].'/action.php?socid='.$row['rowid'].'&idmenu=10425&mainmenu=area"><img src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/object_action.png"></a>':'').' </td>';
                         }
                         else {
 

@@ -15,18 +15,31 @@ switch($_REQUEST['mainmenu']){
         $Task   = 'CurrentTask';
         $actioncode = 'AC_CURRENT';
     }break;
+    default:{
+        $Action = 'Conversation';
+        $Task   = '';
+        $actioncode = 'AC_CONVERSATION';
+    }
 }
 
 $Action = $langs->trans($Action);
 llxHeader("",$Action,"");
 print_fiche_titre($Action);
-$description = GetDescription($_GET['action_id']);
-$actiontabe = ShowActionTable();
-include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/'.$user->respon_alias.'/action/chain_action.html';
+if($actioncode == 'AC_CONVERSATION') {
+    $actiontabe = ShowConversation();
+}else{
+    $description = GetDescription($_GET['action_id']);
+    $actiontabe = ShowActionTable();
+}
+include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/action/chain_action.html';
 //include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/eldy/responsibility/sale/action/chain_action.html';
 llxFooter();
 exit();
 
+function ShowConversation(){
+    global $db, $langs, $conf;
+    
+}
 function ShowActionTable(){
     global $db, $langs, $conf;
     $chain_actions = array();
@@ -143,6 +156,9 @@ function ShowActionTable(){
                 case 'current_task':{
                     $actioncode = "'AC_CURRENT'";
                 }break;
+                case 'global_task':{
+                    $actioncode = "'AC_GLOBAL'";
+                }
             }
             $out .= '<img id="img_1" "="" onclick="EditAction('.$row->rowid.', '.$actioncode.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Edit').'" src="/dolibarr/htdocs/theme/eldy/img/edit.png">';
             $out .= '</td>

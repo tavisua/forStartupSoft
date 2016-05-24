@@ -134,16 +134,16 @@
                         if(code == 'AC_GLOBAL' || code == 'AC_CURRENT')
                             link = '/dolibarr/htdocs/comm/action/chain_actions.php?action_id='+task_id+'&mainmenu='+mainmenu;
                         else{
-                            var backtopage = location.pathname+location.search;
-                            backtopage = backtopage.replace(/\=/g,'%3D')
-                            backtopage = backtopage.replace(/\?/g,'%3F')
-                            backtopage = backtopage.replace(/\//g,'%2F')
-                            backtopage = backtopage.replace(/\&/g,'%26')
-                            link = '/dolibarr/htdocs/comm/action/result_action.php?mainmenu=area&id='+task_id+'&socid='+socid+'&onlyresult=&complete=&actioncode=AC_TEL&action=updateonlyresult&backtopage='+backtopage;
+//                            var backtopage = location.pathname+location.search;
+//                            backtopage = backtopage.replace(/\=/g,'%3D')
+//                            backtopage = backtopage.replace(/\?/g,'%3F')
+//                            backtopage = backtopage.replace(/\//g,'%2F')
+//                            backtopage = backtopage.replace(/\&/g,'%26')
+//                            link = '/dolibarr/htdocs/comm/action/result_action.php?mainmenu=area&id='+task_id+'&socid='+socid+'&onlyresult=&complete=&actioncode=AC_TEL&action=updateonlyresult&backtopage='+backtopage;
 //                            console.log(backtopage);
 //                            return;
 //                            '/dolibarr/htdocs/comm/action/result_action.php?mainmenu=area&backtopage='%2Fdolibarr%2Fhtdocs%2Fresponsibility%2Fsale%2Faction.php%3Fsocid%3D9648%26idmenu%3D10425%26mainmenu%3Darea%26idmenu%3D10425'&id=40383&socid=9648&onlyresult=&complete=&actioncode=AC_TEL&action=updateonlyresult'
-//                            link = '/dolibarr/htdocs/responsibility/sale/action.php?socid='+socid+'&idmenu=10425&mainmenu='+mainmenu;
+                            link = '/dolibarr/htdocs/responsibility/sale/action.php?socid='+socid+'&idmenu=10425&mainmenu='+mainmenu;
                         }
 
 

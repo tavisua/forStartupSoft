@@ -3,6 +3,11 @@ require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/core/modules/societe/modules_societe.class.php';
 require_once DOL_DOCUMENT_ROOT.'/societe/societecontact_class.php';
 
+
+//echo '<pre>';
+//var_dump($_REQUEST['state_filter']);
+//echo '</pre>';
+//die();
 if(isset($_REQUEST['action'])||isset($_POST['action'])){
     if($_REQUEST['action'] == 'loadcontactlist'){
         echo loadcontactlist($_REQUEST['contactid']);
@@ -11,8 +16,8 @@ if(isset($_REQUEST['action'])||isset($_POST['action'])){
         saveaction();
         exit();
     }elseif($_REQUEST['action'] == 'getProposition') {
-//        var_dump($_REQUEST['socid']);
-//        die();
+//    llxHeader("",'Close',"");
+
         echo getProposition($_REQUEST['socid']);
         exit();
     }elseif($_REQUEST['action'] == 'setStatus'){
@@ -45,10 +50,7 @@ if(isset($_REQUEST['action'])||isset($_POST['action'])){
     exit();
 }
 
-//echo '<pre>';
-//var_dump($_SERVER['HTTP_REFERER']);
-//echo '</pre>';
-//die();
+
 $refer_link = $_SERVER['HTTP_REFERER'];
 $ActionArea = $langs->trans('ActionArea');
 llxHeader("",$ActionArea,"");
@@ -274,6 +276,7 @@ function showTitleProposition($post_id, $lineactive, $contactid=0, $socid){
                 and active = 1)';
         $sql.=' order by prioritet';
     }
+//    die($sql);
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
@@ -456,18 +459,7 @@ function ShowActionTable(){
         and `llx_societe_action`.`active` = 1
         order by `datep` desc";
 
-//    $sql='select `llx_actioncomm`.id as rowid, `llx_actioncomm`.`datep`, `llx_societe_action`.dtChange as `datec`, `llx_user`.lastname,
-//        concat(case when `llx_societe_contact`.lastname is null then "" else `llx_societe_contact`.lastname end,
-//        case when `llx_societe_contact`.firstname is null then "" else `llx_societe_contact`.firstname end) as contactname,
-//        TypeCode.code kindaction, `llx_societe_action`.`said`, `llx_societe_action`.`answer`,`llx_societe_action`.`argument`,
-//        `llx_societe_action`.`said_important`, `llx_societe_action`.`result_of_action`, `llx_societe_action`.`work_before_the_next_action`
-//        from `llx_actioncomm`
-//        inner join (select code, libelle label from `llx_c_actioncomm` where active = 1 and (type = "system" or type = "user")) TypeCode on TypeCode.code = `llx_actioncomm`.code
-//        left join `llx_societe_contact` on `llx_societe_contact`.rowid=`llx_actioncomm`.fk_contact
-//        left join `llx_societe_action` on `llx_actioncomm`.id = `llx_societe_action`.`action_id`
-//        left join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.rowid
-//        where fk_soc = '.(empty($_REQUEST['socid'])?0:$_REQUEST['socid']).' and `llx_actioncomm`.`active` = 1';
-//    $sql.=' order by `llx_actioncomm`.`datep` desc';
+
 
 //    echo '<pre>';
 //    var_dump($sql);

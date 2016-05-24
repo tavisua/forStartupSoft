@@ -239,7 +239,7 @@ class ActionComm extends CommonObject
     function GetFirstFreeTime($date, $id_usr, $minutes, $prioritet = 0, $starttime){
         $freetime = $this->GetFreeTimePeriod($date, $id_usr, $prioritet);
 //        echo '<pre>';
-//        var_dump($freetime);
+//        var_dump($date, $id_usr, $prioritet);
 //        echo '</pre>';
 //        die();
         if(empty($starttime)||$starttime<time())
@@ -299,6 +299,7 @@ class ActionComm extends CommonObject
         while($obj = $db->fetch_object($res)){
             $tmp_date = new DateTime($obj->datep);
             $tmp_mk = mktime($tmp_date->format('H'), $tmp_date->format('i'),$tmp_date->format('s'),$tmp_date->format('m'), $tmp_date->format('d'),$tmp_date->format('Y'));
+
             if(($tmp_mk - $time)/60>0) {
                 $freetime[] = array(date('H.i.s', $time), ($tmp_mk - $time)/60, $date->format('Y-m-d'));
             }

@@ -75,14 +75,14 @@
         <button title="Скрити чи відобразити таблицю 'Дії'">    Скрити дії    </button>
 
         <button title="Запланувати дію" onclick="AddAction();">    Додати дію    </button>
-        <button title="Додати результат перемовин в таблицю 'Дії'" onclick="AddResultAction()">    Додати результат перемовин    </button>
+        <button title="Додати результат перемовин в таблицю 'Дії'" onclick="AddResultAction(false, null)">    Додати результат перемовин    </button>
 
         <!--<button title="Додати запис в таблицю 'Дії'" onclick="location.href=location.href+'&action=add'">    Додати дію    </button>-->
-        <button title="Додати інформацію про потреби">    Потреби    </button>
-        <button>    В роботу    </button>
-        <button>    Структура    </button>
-        <button>    Повідомити    </button>
-        <button>    Звітувати    </button>
+        <!--<button title="Додати інформацію про потреби">    Потреби    </button>-->
+        <!--<button>    В роботу    </button>-->
+        <!--<button>    Структура    </button>-->
+        <!--<button>    Повідомити    </button>-->
+        <!--<button>    Звітувати    </button>-->
     </form>
     <table id="actions_table">
         <thead>
@@ -121,7 +121,7 @@
 <form id="redirect" action="/dolibarr/htdocs/comm/action/result_action.php" method="get">
     <input type="hidden" name="mainmenu" value="<?=$_REQUEST['mainmenu']?>" id="mainmenu_action">
     <input type="hidden" name="backtopage" value="'<?=$_SERVER['REQUEST_URI']?>'">
-    <input type="hidden" name="id" value="" id="action_id">
+    <input type="hidden" name="action_id" value="" id="action_id">
     <input type="hidden" name="socid" value="" id="soc_id">
     <input type="hidden" name="onlyresult" value="" id="onlyresult">
     <input type="hidden" name="complete" value="" id="complete">
@@ -244,6 +244,7 @@
             var tr = tbody.getElementsByTagName('tr');
             for(var i = 0; i<tr.length; i++){
                 var id = tr[i].id.substr(2);
+//                console.log(id);
                 var td = tr[i].getElementsByTagName('td');
                 for(var t = 0; t<td.length; t++){
                     if(td[t].id.substr(id.length) == 'mobile_phone1' || td[t].id.substr(id.length) == 'mobile_phone2' || td[t].id.substr(id.length) == 'work_phone' || td[t].id.substr(id.length) == 'fax'){
@@ -256,7 +257,7 @@
                             for(var r = 0; r<symbols.length; r++){
                                 number = number.replace(symbols[r],'');
                             }
-                            number_cell[0].innerHTML = '<a onclick="Call('+number+');">'+number_cell[0].innerHTML+'</a>';
+                            number_cell[0].innerHTML = '<a onclick="Call('+number+', '+"'thirdcontact'"+', '+id+');">'+number_cell[0].innerHTML+'</a>';
 //                            Call(number);
 //                            console.log(number);
                         }

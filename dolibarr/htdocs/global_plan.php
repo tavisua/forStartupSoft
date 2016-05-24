@@ -117,7 +117,7 @@ function ShowTask(){
             $table.='<tr id="tr'.$obj->id.'" class="'.$class.'">';
 //            $table.='<td style="width:51px"></td>
 //            <td style="width:51px"></td>';
-            $table.='<td style="width:51px" class="small_size">'.$datec->format('d.m.y').'</td>';
+            $table.='<td style="width:50px" class="small_size">'.$datec->format('d.m.y').'</td>';
             $tmp_user->fetch($taskAuthor[$obj->id]);
             $table.='
             <td style="width:101px">'.mb_strtolower($langs->trans(ucfirst($tmp_user->respon_alias)), 'UTF-8').'</td>
@@ -142,7 +142,7 @@ function ShowTask(){
                 $table .= '<td style="width:61px"></td>';
             }
             $deadline = new DateTime($obj->datep2);
-            $table.='<td style="width:51px" class="small_size">'.$deadline->format('d.m.y').'</br>'.$deadline->format('H:i').'</td>';
+            $table.='<td style="width:53px" class="small_size">'.$deadline->format('d.m.y').'</br>'.$deadline->format('H:i').'</td>';
             if(!empty($obj->dateconfirm)) {
                 $dateconfirm = new DateTime($obj->dateconfirm);
                 $table .= '<td style="width:51px" class="small_size">' . $dateconfirm->format('d.m.y') . '</br>' . $dateconfirm->format('H:i') . '</td>';
@@ -160,30 +160,32 @@ function ShowTask(){
                 $date = new DateTime($lastaction);
                 $lastaction = $date->format('d.m.Y');
             }
-            $table .= '<td style="width:76px"><a href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu=global_task">'.$lastaction.'</a></td>';
-            $table .= '<td style="width:76px"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td>';
-            $table .= '<td style="width:41px">'.$obj->iMinute.'</td>';
+            $table .= '<td style="width:76px;text-align: center;"><a href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu=global_task">'.$lastaction.'</a></td>';
+            $table .= '<td style="width:76px;text-align: center;"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td>';
+            $table .= '<td style="width:43px;text-align: center;">'.$obj->iMinute.'</td>';
             //Дії наставника
             $table .= '<td style="width:76px"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td><td style="width:76px"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td>';
             //Період виконання
-            $table .= '<td style="width:51px" class="small_size">'.mb_strtolower($langs->trans($obj->period), 'UTF-8').'</td>';
+            $table .= '<td style="width:54px" class="small_size">'.mb_strtolower($langs->trans($obj->period), 'UTF-8').'</td>';
             //Статус завдання
             $date = new DateTime();
             $style = 'style="';
-            if($deadline<$date){
-                $style = 'style="background:rgb(255, 0, 0)';
-            }elseif($deadline==$date){
-                $style = 'style="background:rgb(0, 255, 0)';
+            if($obj->percent < 98) {
+                if ($deadline < $date) {
+                    $style = 'style="background:rgb(255, 0, 0)';
+                } elseif ($deadline == $date) {
+                    $style = 'style="background:rgb(0, 255, 0)';
+                }
+                if ($obj->percent == "-1")
+                    $status = 'ActionNotRunning';
+                elseif ($obj->percent == 0)
+                    $status = 'ActionRunningNotStarted';
+                elseif ($obj->percent > 0 && $obj->percent < 98)
+                    $status = 'ActionRunningShort';
+                else
+                    $status = 'ActionDoneShort';
             }
-            if($obj->percent == "-1")
-                $status='ActionNotRunning';
-            elseif($obj->percent == 0)
-                $status='ActionRunningNotStarted';
-            elseif($obj->percent > 0 && $obj->percent < 100)
-                $status='ActionRunningShort';
-            else
-                $status='ActionDoneShort';
-            $table .= '<td '.$style.'; width:51px" class="small_size">'.$langs->trans($status).'</td>';
+            $table .= '<td '.$style.';text-align: center; width:51px" class="small_size">'.($obj->percent <= 98?($langs->trans($status)):'<img src="theme/eldy/img/BWarning.png" title="Задачу виконано" style=width: 50px;">').'</td>';
             if($taskAuthor[$obj->id] == $user->id)
                  $table .= '<td style="width:51px; text-align: center"><img src="/dolibarr/htdocs/theme/eldy/img/uncheck.png" onclick="ConfirmExec(' . $obj->id . ');" id="confirm' . $obj->id . '"></td>';
             else

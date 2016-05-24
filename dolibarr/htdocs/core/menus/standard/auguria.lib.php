@@ -40,7 +40,7 @@ function print_auguria_menu($db,$atarget,$type_user,&$tabMenu,&$menu,$noout=0)
 {
 	global $user,$conf,$langs,$dolibarr_main_db_name;
 //    echo '<pre>';
-//    var_dump($tabMenu);
+//    var_dump($_REQUEST["state_filter"]);
 //    echo '</pre>';
 //    die();
 	$mainmenu=$_SESSION["mainmenu"];
@@ -53,24 +53,35 @@ function print_auguria_menu($db,$atarget,$type_user,&$tabMenu,&$menu,$noout=0)
 	// Show personalized menus
 	$menuArbo = new Menubase($db,'auguria');
 	$newTabMenu = $menuArbo->menuTopCharger('', '', $type_user, 'auguria',$tabMenu);
-
+//	echo '<pre>';
+//	var_dump($newTabMenu);
+//	echo '</pre>';
     if(!$user->admin){
         $hidemenu=array("5217");
         for($i=0; $i<count($newTabMenu); $i++){
+			if(in_array($newTabMenu[$i]['rowid'], array(10425))&&isset($_REQUEST["state_filter"])&&!empty($_REQUEST["state_filter"])){//Correct url if set filter by region
+				$newTabMenu[$i]['url'].='&state_filter='.$_REQUEST["state_filter"];
+//				var_dump( $newTabMenu[$i]['url']);
+//				die();
+			}
             if(in_array($newTabMenu[$i]['rowid'], $hidemenu)){
                 unset($newTabMenu[$i]);
             }
         }
     }
-
+//	echo '<pre>';
+//	var_dump($newTabMenu);
+//	echo '</pre>';
+//	die();
 	if (empty($noout)) print_start_menu_array_auguria();
 
 
 	$num = count($newTabMenu);
-	for($i = 0; $i < $num; $i++)
+
+	for($i = 0; $i <= $num; $i++)
 	{
 		$idsel=(empty($newTabMenu[$i]['mainmenu'])?'none':$newTabMenu[$i]['mainmenu']);
-//    if($i == 8) {
+//    if($i == 10) {
 //        echo '<pre>';
 //        var_dump($newTabMenu[$i]);
 //        echo '</pre>';

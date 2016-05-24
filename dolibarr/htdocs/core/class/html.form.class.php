@@ -1304,7 +1304,7 @@ class Form
 //        }
         return $count;
     }
-    function select_control($selectedval='', $htmlname, $disabled=0, $tablename, $fieldname, $userinfo, $readonly = true)
+    function select_control($selectedval='', $htmlname, $disabled=0, $tablename, $fieldname, $userinfo, $readonly = true, $width='auto')
     {
         global $conf, $user, $langs;
 
@@ -1317,11 +1317,13 @@ class Form
             else
                 $sql .=' where active = 1 order by `' . $fieldname . '`';
         }
-//        if('respon_id2'==$htmlname) {
+//        if('subdiv_id'==$htmlname) {
 ////            var_dump($htmlname);
 //            die($sql);
 //        }
         $resql = $this->db->query($sql);
+        if(!$resql)
+            dol_print_error($this->db);
         $out = '';
         if ($resql) {
             $num = $this->db->num_rows($resql);
@@ -1334,7 +1336,7 @@ class Form
                         $out .= $obj->name;
                     }
                 }else {
-                    $out .= '<select class="combobox" id="' . $htmlname . '" name="' . $htmlname . '"' . ($disabled ? ' disabled="disabled"' : '') . '>';
+                    $out .= '<select style="width:'.$width.'" class="combobox" id="' . $htmlname . '" name="' . $htmlname . '"' . ($disabled ? ' disabled="disabled"' : '') . '>';
                     $out .= '<option value="0">&nbsp;</option>';
                     if($htmlname == 'fk_subdivision'){
                         if(!empty($selectedval))
@@ -1362,7 +1364,7 @@ class Form
                 $out = $langs->trans('NotData');
         }
 //        if('responsibility'==$tablename){
-//            var_dump($out);
+//            var_dump(htmlspecialchars($out));
 //            die();
 //        }
         return $out;
@@ -4122,20 +4124,21 @@ class Form
                 if ($usecalendar == "eldy")
                 {
                     // Zone de saisie manuelle de la date
-                    $retstring.='<input id="'.$prefix.'" name="'.$prefix.'" type="text" size="9" maxlength="11" value="'.$formated_date.'"';
+                    $retstring.='<input id="'.$prefix.'" name="'.$prefix.'" type="'.($prefix=='p2'?'hidden':'text').'" size="9" maxlength="11" value="'.$formated_date.'"';
                     $retstring.=($disabled?' disabled="disabled"':'');
                     $retstring.=' onChange="dpChangeDay(\''.$prefix.'\',\''.$langs->trans("FormatDateShortJavaInput").'\'); "';  // FormatDateShortInput for dol_print_date / FormatDateShortJavaInput that is same for javascript
                     $retstring.='>';
 
                     // Icone calendrier
-                    if (! $disabled)
-                    {
-                        $retstring.='<button id="'.$prefix.'Button" type="button" class="dpInvisibleButtons"';
-                        $base=DOL_URL_ROOT.'/core/';
-                        $retstring.=' onClick="showDP(\''.$base.'\',\''.$prefix.'\',\''.$langs->trans("FormatDateShortJavaInput").'\',\''.$langs->defaultlang.'\');">'.img_object($langs->trans("SelectDate"),'calendarday','class="datecallink"').'</button>';
+                    if($prefix!='p2') {
+                        if (!$disabled) {
+                            $retstring .= '<button id="' . $prefix . 'Button" type="button" class="dpInvisibleButtons"';
+                            $base = DOL_URL_ROOT . '/core/';
+                            $retstring .= ' onClick="showDP(\'' . $base . '\',\'' . $prefix . '\',\'' . $langs->trans("FormatDateShortJavaInput") . '\',\'' . $langs->defaultlang . '\');">' . img_object($langs->trans("SelectDate"), 'calendarday', 'class="datecallink"') . '</button>';
+                        } else $retstring .= '<button id="' . $prefix . 'Button" type="button" class="dpInvisibleButtons">' . img_object($langs->trans("Disabled"), 'calendarday', 'class="datecallink"') . '</button>';
+                    }else{
+                        $retstring.='<div style="min-width: 112px;float: left">&nbsp;</div>';
                     }
-                    else $retstring.='<button id="'.$prefix.'Button" type="button" class="dpInvisibleButtons">'.img_object($langs->trans("Disabled"),'calendarday','class="datecallink"').'</button>';
-
                     $retstring.='<input type="hidden" id="'.$prefix.'day"   name="'.$prefix.'day"   value="'.$sday.'">'."\n";
                     $retstring.='<input type="hidden" id="'.$prefix.'month" name="'.$prefix.'month" value="'.$smonth.'">'."\n";
                     $retstring.='<input type="hidden" id="'.$prefix.'year"  name="'.$prefix.'year"  value="'.$syear.'">'."\n";

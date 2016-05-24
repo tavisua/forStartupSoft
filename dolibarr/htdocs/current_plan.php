@@ -196,7 +196,7 @@ function ShowTask(){
             else
                 $table .= '<td  style="width:51px">&nbsp;</td>';
             if($taskAuthor[$obj->id] == $user->id)
-                $table .= '<td  style="width:25px"><img id="img_"'.$obj->id.' onclick="EditAction('.$obj->id.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Edit').'" src="/dolibarr/htdocs/theme/eldy/img/edit.png"></td>';
+                $table .= '<td  style="width:25px"><img id="img_"'.$obj->id.' onclick="EditAction('.$obj->id.', '."'AC_CURRENT'".');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Edit').'" src="/dolibarr/htdocs/theme/eldy/img/edit.png"></td>';
             else
                 $table .= '<td  style="width:25px">&nbsp;</td>';
 

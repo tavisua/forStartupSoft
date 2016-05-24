@@ -395,9 +395,7 @@ div.header_table, tr.header_table, th.header_table, tr.header_table_sel, form.he
     font-weight: bold;
     text-align: left;
 }
-div.mainmenu.orders {
-    background-image: url("/dolibarr/htdocs/theme/eldy/img/menus/agenda.png");
-}
+
 tr.header_table th, th.header_table, tr.header_table td, td.header_table, form.header_table div, div.header_table {
     border-bottom: 1px solid #bbb;
     font-family: arial,tahoma,verdana,helvetica;
@@ -553,8 +551,8 @@ div.header_page, th.header_page, tr.header_table_sel, form.header_page, form.hea
     border-top-right-radius: 5px;
     position: fixed;
     cursor: pointer;
-    right: -70px;
-    top: 125px;
+    right: -30px;
+    top: 75px;
     transform: matrix(0, -1, 1, 0, 0, 0);
     z-index: 3;
 }
@@ -572,14 +570,15 @@ div.header_page, th.header_page, tr.header_table_sel, form.header_page, form.hea
     color: #fff;
     display: block;
     font-family: proxima_novabold,arial;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: bold;
     padding: 10px 10px 15px;
     text-decoration: none;
     text-shadow: 1px 0 1px #000;
+    text-align: center;
 }
 .departure_taskitem{
-    font-size: 6;
+    font-size: 6px;
     height: 100%;
     /*position: relative;*/
     padding: 0 0 0!important;

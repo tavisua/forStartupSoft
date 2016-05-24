@@ -32,7 +32,8 @@
 //die();
 require '../../main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
-
+//var_dump($_REQUEST);
+//die();
 if($_GET['action']=='get_exectime'){
 
 	$Action = new ActionComm($db);
@@ -40,6 +41,25 @@ if($_GET['action']=='get_exectime'){
     echo $exec_time;
     exit();
 
+}elseif($_GET['action']=='getlastactivecontact'){
+	global $db;
+	$sql = "select `fk_contact` from llx_actioncomm
+	where fk_soc = ".$_REQUEST['socid']."
+	and `llx_actioncomm`.`code` in (select `code` from 	llx_c_actioncomm where type in ('user','system'))
+	and percent <> 100
+	and `llx_actioncomm`.`code` not in ('AC_CURRENT','AC_GLOBAL')
+	and date(`llx_actioncomm`.`datep`)<=date(Now())";
+
+	$res = $db->query($sql);
+    if(!$res){
+        dol_print_error($db);
+    }
+	if($db->num_rows($res)==0)
+		return 0;
+	else{
+		$obj = $db->fetch_object($res);
+		return $obj->fk_contact;
+	}
 }elseif($_GET['action']=='del_task'){
 	global $db;
 	$sql = 'update llx_actioncomm set active = 0, fk_user_mod='.$user->id.' where id='.$_REQUEST['id'];
@@ -277,7 +297,7 @@ if($id) {
 }else{
 	$datepreperform = new DateTime(GETPOST('preperform'));
 }
-//var_dump($datepreperform);
+//var_dump($action);
 //die();
 if($datepreperform)
 	$dateprep = dol_mktime($datepreperform->format('H'), $datepreperform->format('i'), 0, $datepreperform->format('m'), $datepreperform->format('d'), $datepreperform->format('Y'));
@@ -1972,7 +1992,7 @@ if ($id > 0)
 //	}
 }
 print "<script>
-    jQuery(function($) {
+    $(function($) {
         $.mask.definitions['~']='[+-]';
         $('#preperform').mask('99.99.9999');
     });
@@ -1980,6 +2000,7 @@ print "<script>
 print '
  <script type="text/javascript">
         $(document).ready(function(){
+        	console.log("test");
         	$.cookie("ChangeDate", false);
         	$("#actioncode").removeClass("flat");
             $("#actioncode").addClass("combobox");

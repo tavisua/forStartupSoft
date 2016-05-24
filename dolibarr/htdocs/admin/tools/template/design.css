@@ -30,3 +30,9 @@ div.mainmenu.current_action {
 div.mainmenu.area {
     background-image: url("/dolibarr/htdocs/theme/eldy/img/menus/pointofsale.png");
 }
+div.mainmenu.orders {
+    background-image: url("/dolibarr/htdocs/theme/eldy/img/menus/agenda.png");
+}
+div.mainmenu.coworkers {
+    background-image: url("/dolibarr/htdocs/theme/eldy/img/menus/coworkers.png");
+}

@@ -324,7 +324,7 @@ class societecontact {
 //        $sql.='and `llx_societe_lineactive`.`fk_lineactive` = `llx_c_proposition`.`fk_lineactive`;';
         $resPost = $db->query($sql);
 //        echo '<pre>';
-//        var_dump($_REQUEST);
+//        var_dump($sql);
 //        echo '</pre>';
 //        die();
         if(!$resPost)
@@ -336,21 +336,30 @@ class societecontact {
             $postArray[$obj->post_id][] = array($obj->fk_lineactive, $obj->prososed_id);
         }
 //        echo '<pre>';
-//        var_dump($postArray);
+//        var_dump($obj);
 //        echo '</pre>';
 //        die();
 
-        $sql = 'select distinct proposed_id, contactid from `llx_societe_action`
-            where contactid in (select `rowid` from `llx_societe_contact` where `socid` = '.(empty($obj->socid)?$_REQUEST['socid']:$obj->socid).' and active = 1)
-            and proposed_id is not null
-            and active = 1';
+//        $sql = 'select distinct proposed_id, contactid from `llx_societe_action`
+//            where contactid in (select `rowid` from `llx_societe_contact` where `socid` = '.(empty($obj->socid)?$_REQUEST['socid']:$obj->socid).' and active = 1)
+//            and proposed_id is not null
+//            and active = 1';
+
+            $sql = 'select distinct proposed_id, contactid from `llx_societe_action`
+                left join `llx_actioncomm` on `llx_actioncomm`.`id` = `llx_societe_action`.`action_id`
+                where contactid in (select `rowid` from `llx_societe_contact` where `socid` = '.(empty($obj->socid)?$_REQUEST['socid']:$obj->socid).' and active = 1)
+                and `llx_societe_action`.`proposed_id` is not null
+                and `llx_societe_action`.`active` = 1
+                and `llx_actioncomm`.`active` = 1';
+//        die($sql);
         $resSaid = $db->query($sql);
         $saidArray = array();
-        while($obj = $db->fetch_object($resSaid)){
-            if(!isset($saidArray[$obj->contactid]))
-                $saidArray[$obj->contactid]=array();
-            $saidArray[$obj->contactid][]=$obj->proposed_id;
-        }
+        if($db->num_rows($resSaid)>0)
+            while($obj = $db->fetch_object($resSaid)){
+                if(!isset($saidArray[$obj->contactid]))
+                    $saidArray[$obj->contactid]=array();
+                $saidArray[$obj->contactid][]=$obj->proposed_id;
+            }
 //        var_dump($saidArray);
 //        die();
         mysqli_data_seek($result, 0);
@@ -363,10 +372,7 @@ class societecontact {
 //            $table .= "<tr id = $count class=".fmod($count,2)==1?('impair'):('pair').">\r\n";
             $id = $row['rowid'];
 //            $table .= '<td >'.$class.'</td>';
-//            echo '<pre>';
-//            var_dump($saidArray);
-//            echo '</pre>';
-//            die();
+
 //            echo '</br>';
             $num_col = 0;
             foreach($row as $cell=>$value){
@@ -374,13 +380,17 @@ class societecontact {
                 $proposed = false;
                 if(isset($row['post_id'])&&in_array($row['post_id'], array_keys($postArray))){
                     foreach($postArray[$row['post_id']] as $item){
-                        if(count($saidArray) == 0 || !in_array($item[1], $saidArray[$row['rowid']])){
+
+                        if(count($saidArray) == 0 || (isset($saidArray[$row['rowid']])&&!in_array($item[1], $saidArray[$row['rowid']])) || !isset($saidArray[$row['rowid']])){
                             $proposed = true;
                             break;
                         }
-
                     }
                 }
+//                        echo '<pre>';
+//                        var_dump($proposed);
+//                        echo '</pre>';
+//                        die();
                 if(!in_array($fields[$num_col]->name, $notShowedFields)) {
                     if ($fields[$num_col]->type == 10) {//Якщо тип поля - дата - перетворюю на правильний формат
                         if (!empty($value)) {

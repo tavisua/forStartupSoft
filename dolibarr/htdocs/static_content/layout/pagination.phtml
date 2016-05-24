@@ -20,7 +20,8 @@
             $link_page = $_SERVER['PHP_SELF'].'?'.substr($_SERVER['QUERY_STRING'],0,strpos($_SERVER['QUERY_STRING'],'&page='));
         else
             $link_page = $_SERVER['PHP_SELF'] . '?' . $_SERVER['QUERY_STRING'];
-
+        if(isset($_REQUEST['state_filter'])&&!empty($_REQUEST['state_filter']))
+            $link_page.='&state_filter='.$_REQUEST['state_filter'];
         if($total == 1 || empty($total))
             exit();
 		?>

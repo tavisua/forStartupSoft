@@ -163,11 +163,12 @@ function LoadProposition(){
         socid:getParameterByName('socid')
     }
     $.ajax({
-        dataType: 'json',
+        //dataType: 'json',
         url:'/dolibarr/htdocs/responsibility/sale/action.php',
         data: param,
         cache:false,
         success:function(html){
+            //console.log(html);
             var table = $('#ActionPanel').find('table');
             var tbody = table.find('tbody')
             //console.log(html);
@@ -425,13 +426,13 @@ function saveorders(typicalqueries){
         }
 }
 function showHideActionPanel(){
-    console.log($('#bookmarkActionPanel').css('right') == '-70px');
-    var show = $('#bookmarkActionPanel').css('right') == '-70px';
+    console.log($('#bookmarkActionPanel').css('right') == '-30px');
+    var show = $('#bookmarkActionPanel').css('right') == '-30px';
     if(show) {
-        $('#bookmarkActionPanel').css('right', 185);
+        $('#bookmarkActionPanel').css('right', 230);
         $('#ActionPanel').css('right', 0);
     }else{
-        $('#bookmarkActionPanel').css('right', -70);
+        $('#bookmarkActionPanel').css('right', -30);
         $('#ActionPanel').css('right', -255);
     }
 
@@ -601,21 +602,10 @@ function sendSMS(number, text, confirmSend){
         close_registerform();
     }
 }
-function Call(number){
+function Call(number, contacttype, contactid){
     var blob = new Blob(['{"call":"'+number+'"}'], {type: "text/plain;charset=utf-8"});
     saveAs(blob, "call.json");
-    //var link = 'http://'+location.hostname+'/dolibarr/htdocs/autocall/index.php?action=CallPhone&phonenumber='+number;
-    ////console.log(link);
-    ////    return;
-    //$.ajax({
-    //    url:link,
-    //    cache: false,
-    //    success: function(html){
-    //        console.log(html);
-    //        console.log('success Call')
-    //    }
-    //})
-    console.log('savefile');
+    AddResultAction(contacttype,contactid);
 }
 function GotoRequiredPage(pagename){
     //if(pagename.length == 0)
@@ -844,23 +834,35 @@ function save_item(tablename, paramfield, sendtable){
     }
 }
 
-function AddResultAction(){
-    //alert('test');
+function AddResultAction(contacttype, contactid){
+
     var link = '/dolibarr/htdocs/comm/action/result_action.php';
-    var inputaction = $("#actionbuttons").find('input');
-    for(var i = 0; i<inputaction.length; i++) {
-        if(inputaction[i].name == 'action'){
-            inputaction[i].value = 'addonlyresult';
-        }
-    }
-    $("#actionbuttons").attr('method', 'get');
-    $("#actionbuttons").attr('action', link);
+    var backtopage = location.pathname+location.search;
+    backtopage = backtopage.replace(/\=/g,'%3D')
+    backtopage = backtopage.replace(/\?/g,'%3F')
+    backtopage = backtopage.replace(/\//g,'%2F')
+    backtopage = backtopage.replace(/\&/g,'%26')
+    //console.log(contacttype);
+    //return;
+    window.open(link+'?action='+(contacttype=='users'?'useraction&id_usr=':'addonlyresult&socid='+getParameterByName('socid')+'&contactid=')+contactid+'&backtopage='+backtopage);
+
+    //var inputaction = $("#actionbuttons").find('input');
+    //for(var i = 0; i<inputaction.length; i++) {
+    //    if(inputaction[i].name == 'action'){
+    //        inputaction[i].value = 'addonlyresult';
+    //    }
+    //}
+    //$("#actionbuttons").attr('method', 'get');
+    //$("#actionbuttons").attr('action', link);
+
+
     //console.log(link);
-    //
-    //location.href=link;
+
 }
 function EditAction(rowid, actioncode){
     console.log(rowid, actioncode);
+    //alert(actioncode == 'AC_GLOBAL' || actioncode == 'AC_CURRENT');
+    //return;
     var search = location.search.substr(1);
     search.split('&').forEach(function(item){
         item = item.split('=');
@@ -877,7 +879,11 @@ function EditAction(rowid, actioncode){
         $('#action_id').val(rowid.substr(1));
     }else
         $('#action_id').val(rowid);
-    $('#edit_action').val('updateonlyresult');
+
+    if(actioncode == 'AC_GLOBAL' || actioncode == 'AC_CURRENT')
+        $('#edit_action').val('edit');
+    else
+        $('#edit_action').val('updateonlyresult');
     if($('#redirect').length>0) {
         $('#redirect_actioncode').val(actioncode);
         $('#redirect').submit();

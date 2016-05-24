@@ -119,6 +119,7 @@
             })
             function clearfilter(){
 //                $('#filter').clean();
+                <?unset($_SESSION['state_filter']);?>
                 $('#setfilter').submit();
             }
             function showfilter(){

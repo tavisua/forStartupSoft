@@ -67,6 +67,7 @@ NonAffectedUsers=Non assigned users
 UserModified=User modified successfully
 PhotoFile=Photo file
 Coworkers=Співробітники
+coworkers=Співробітники
 UserWithDolibarrAccess=User with Dolibarr access
 ListOfUsersInGroup=List of users in this group
 ListOfGroupsForUser=List of groups for this user

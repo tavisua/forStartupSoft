@@ -1,0 +1,117 @@
+<table id="contact" cellspacing="1" class="WidthScroll" >
+    <thead style="width: 100%">
+        <tr  class="multiple_header_table">
+            <td id="phonetitle">Телефон</td>
+            <td id="email_title">e-mail</td>
+            <td id="skype_title">skype</td>
+
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td id="phone"><?=$phonenumber?></td>
+            <td id="email"><a href="mailto:<?=$object->login?>"><?=$object->login?></a></td>
+            <td id="skype"><a href="skype:<?=$object->skype?>?call"><?=$object->skype?></a></td>
+        </tr>
+    </tbody>
+</table>
+</br>
+<form id="actionbuttons" action="" method="post">
+    <input type="hidden" name="backtopage" value="/dolibarr/htdocs/responsibility/sale/action.php?socid=4676&idmenu=10425&mainmenu=area">
+    <input type="hidden" name="action" value="create">
+    <input type="hidden" name="mainmenu" value="coworker">
+</form>
+<button title="Запланувати дію" onclick="AddAction();">    Додати дію    </button>
+<button title="Додати результат перемовин в таблицю 'Дії'" onclick="AddResultAction('users', <?=$_GET['id_usr']?>);">    Додати результат перемовин    </button>
+    <table id="actions_table" class="WidthScroll" cellspacing="1">
+        <thead>
+        <tr class="header_table">
+            <th style="width: 80px" class="middle_size">Дата запису</th>
+            <th style="width: 80px" class="middle_size">ПІБ ХТО</th>
+            <th style="width: 50px" class="middle_size">Вид дій</th>
+            <th style="width: 50px" class="middle_size">Виконати кінцево до</th>
+            <th style="width: 50px" class="middle_size">Статус</th>
+            <th style="width: 50px" class="middle_size">Підтр. про виконан.</th>
+            <th style="width: 50px" class="middle_size"></th>
+            <th style="width: 50px" class="middle_size"></th>
+            <th style="width: 50px" class="middle_size"></th>
+        </tr>
+        </thead>
+        <!--<tbody id="reference_body">-->
+        <?echo $actiontabe?>
+        <!--</tbody>-->
+    </table>
+<script>
+    $(document).ready(function(){
+        $('#phonetitle').width($('#phone').width());
+        $('#email_title').width($('#email').width());
+        $('#skype_title').width($('#skype').width());
+        $('#actions').height($(window).height() - 250);
+    })
+    function showSMSform(phonenumber){
+        $('input#phone_number').val(phonenumber);
+        $('b#phone_numbertitle').text(phonenumber);
+        location.href = '#sendSMS';
+        $('#sendSMSform').show();
+    }
+    function EditConversation(rowid){
+        var backtopage = location.pathname+location.search;
+        backtopage = backtopage.replace(/\=/g,'%3D')
+        backtopage = backtopage.replace(/\?/g,'%3F')
+        backtopage = backtopage.replace(/\//g,'%2F')
+        backtopage = backtopage.replace(/\&/g,'%26')
+        location.href='/dolibarr/htdocs/comm/action/result_action.php?action=edituseration&backtopage='+backtopage+'&rowid='+rowid+'&mainmenu=coworkers&id_usr='+getParameterByName('id_usr');
+    }
+    function DelConversation(rowid){
+        if(confirm('Видалити перемовини?')) {
+            var param = {
+                action: 'delConversation',
+                rowid: rowid
+            }
+            $.ajax({
+                url: '',
+                cache: false,
+                data: param,
+                type: 'post',
+                success: function (result) {
+                    console.log(result);
+                    location.href = location.href;
+                }
+            })
+        }
+    }
+    function PreviewConversation(rowid){
+        var param = {
+            action:'getConversation',
+            rowid:rowid
+        }
+        $.ajax({
+            url:'',
+            cache:false,
+            data: param,
+            type: 'post',
+            success:function(result){
+//                console.log(result);
+
+                createNewForm('popupmenu','Conversation')
+                $('#Conversation').css('width', 250);
+                //$('#popupmenu').css('height',250);
+                $('#Conversation').empty().html(result);
+                $('#Conversation').attr('rowid', '_'+rowid)
+
+                $('#Conversation').show();
+                $('#Conversation').offset({
+                    top: $('td#_'+rowid).offset().top,
+                    left: $('td#_'+rowid).offset().left
+                });
+                $('#Conversation').attr('TitleProposed', 1);
+//                }
+            }
+        })
+        console.log(rowid);
+    }
+    function CloseConversation(){
+        $('#Conversation').remove();
+    }
+
+</script>

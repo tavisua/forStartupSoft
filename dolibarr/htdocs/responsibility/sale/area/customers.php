@@ -5,7 +5,8 @@
  * Date: 07.11.2015
  * Time: 11:32
  */
-$region_id = $_SESSION['state_filter'];
+//var_dump($region_id);
+//die();
 
 $search = explode(',',$_GET['search']);
 $search_array = array();
@@ -16,6 +17,16 @@ foreach($search as $elem) {
 $page = isset($_GET['page'])?$_GET['page']:1;
 $per_page = isset($_GET['per_page'])?$_GET['per_page']:30;
 
+$regions = array();
+
+$sql = "select fk_id from llx_user_regions where fk_user=".$user->id." and active = 1";
+$res = $db->query($sql);
+if(!$res)
+    dol_print_error($db);
+while($obj = $db->fetch_object($res))
+    $regions[] = $obj->fk_id;
+//var_dump($region_id , $_SESSION['state_filter']);
+//die();
 $sql = "select `llx_societe`.rowid, concat(case when `formofgavernment`.`name` is null then '' else `formofgavernment`.`name` end, ' ',`llx_societe`.`nom`) nom,
 `llx_societe`.`town`, round(`llx_societe_classificator`.`value`,0) as width, `llx_societe`.`remark`, ' ' deficit,
 ' ' task,' ' lastdate, ' ' lastdatecomerc, ' ' futuredatecomerc, ' ' exec_time, ' ' lastdateservice,
@@ -26,32 +37,41 @@ left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_clas
 where 1";
 $sql_count = 'select count(*) iCount from `llx_societe` where 1 ';
 
-if($user->login != 'admin') {
+//if($user->login != 'admin') {
     $tmp = '';
     if ($region_id != 0)
         $tmp .= ' and `region_id` = ' . $region_id . ' ';
-        $tmp .= ' and `llx_societe`.`categoryofcustomer_id` in (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = ' . $user->respon_id . ')';
+    elseif(count($regions)>0)
+        $tmp .= ' and `region_id` in ('.implode(',',$regions).')';
+    $tmp .= ' and `llx_societe`.`categoryofcustomer_id` in (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = ' . $user->respon_id . ')';
     $sql .= $tmp;
     $sql_count .= $tmp;
-}
+//}
 $sql .= ' and `llx_societe`.active = 1 ';
 $sql_count.=' and `llx_societe`.active = 1 ';
 
 
 
-if($user->login != 'admin' && $user->respon_alias == 'sale') {
-    $tmp = ' and `llx_societe`.`fk_user_creat`=' . $user->id;
-//    $tmp = ' and `llx_societe`.`region_id` in (select fk_id from llx_user_regions where fk_user='.$user->id.' and active = 1)';
+if($user->login != 'admin' && ($user->respon_alias == 'sale'|| $user->respon_alias=='dir_depatment'&&$user->respon_alias2 == 'sale')) {
+//    $tmp = ' and `llx_societe`.`fk_user_creat`=' . $user->id;
+    $tmp = ' and `llx_societe`.`region_id` in (select fk_id from llx_user_regions where fk_user='.$user->id.' and active = 1)';
     $sql.=$tmp;
     $sql_count.=$tmp;
 }
+//echo '<pre>';
+//var_dump($sql);
+//echo '</pre>';
+//die();
 
 if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])){
     if($_REQUEST['filter']!='today') {
         $phone_number = fPrepPhoneFilter($db->escape($_REQUEST['filter']));
         $sql_filter = "select llx_societe.rowid from llx_societe
             left join `llx_societe_contact` on `llx_societe_contact`.`socid`=`llx_societe`.`rowid`
-            where `llx_societe`.`nom`  like '%" . $db->escape($_REQUEST['filter']) . "%'
+            where 1";
+        if(count($regions)>0)
+            $sql_filter.=' and `region_id` in ('.implode(',',$regions).')';
+        $sql_filter.=" and `llx_societe`.`nom`  like '%" . $db->escape($_REQUEST['filter']) . "%'
             or `llx_societe_contact`.`lastname`  like '%" . $db->escape($_REQUEST['filter']) . "%'
             or `llx_societe_contact`.`firstname`  like '%" . $db->escape($_REQUEST['filter']) . "%'
             or `llx_societe_contact`.`subdivision`  like '%" . $db->escape($_REQUEST['filter']) . "%'
@@ -73,11 +93,14 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])){
     $filterid = array();
     if($db->num_rows($res))
         while($obj = $db->fetch_object($res)){
-            if(!empty($obj->rowid))
+            if(!empty($obj->rowid)&&!in_array($obj->rowid,$filterid))
                 $filterid[]=$obj->rowid;
         }
+        if(count($filterid) == 0) {
+            ClearFilterMessage();
+        }
 //    echo'<pre>';
-//    var_dump($filterid);
+//    var_dump(implode(',',$filterid));
 //    echo'</pre>';
 //    die();
     if(count($filterid)) {
@@ -226,7 +249,21 @@ $prev_form = "<a href='#x' class='overlay' id='peview_form'></a>
 print $prev_form;
 
 return;
-
+function ClearFilterMessage(){
+        echo '<div style="height: 150px"></div>';
+        print '<form id="setfilter" action="" method="get">
+                <input type="hidden" name="mainmenu" value="'.$_REQUEST["mainmenu"].'">
+                <input type="hidden" name="idmenu" value="'.$_REQUEST["idmenu"].'">
+                <input type="hidden" name="filter" value="" id="filter" size="45">
+        </form>';
+        print "
+        <script>
+        function clearfilter(){
+            $('#setfilter').submit();
+        }
+        </script>";
+        die('<span style="font-size: 20px">Не знайдено жодного господарства. Натисніть кнопку <button style="height: 25px" onclick="clearfilter();">Зняти фільтр</button></span>');
+}
 function fPrepPhoneFilter($phonenumber){
     //Clear notnumeric symbol
     for($i = 0; $i<strlen($phonenumber); $i++){
@@ -259,8 +296,6 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
     if(empty($sortorder))
         $result = $db->query($sql);
     else{
-
-
         $result = $db->query($sql.' limit 1');
 
         $fields = $result->fetch_fields();
@@ -287,6 +322,8 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
             $num_col++;
         }
     }
+    if($db->num_rows($result)==0)
+        ClearFilterMessage();
     $rowidList=array();
     while($obj = $db->fetch_object($result)){
         $rowidList[]=$obj->rowid;
@@ -329,17 +366,18 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
         }
         if ($db->num_rows($res) > 0) {
             while ($row = $db->fetch_object($res)) {
-                if (!isset($lastaction[$row->rowid . $row->alias])) {
+                $alias = $row->alias;
+                if($alias == $user->respon_alias && !empty($user->respon_alias2)) {
+                    $alias = $user->respon_alias2;
+                }
+                if (!isset($lastaction[$row->rowid . $alias])) {
                     $date = new DateTime($row->dtChange);
-                    $lastaction[$row->rowid . $row->alias] = $date->format('d.m.y');
+                    $lastaction[$row->rowid . $alias] = $date->format('d.m.y');
                 }
             }
         }
     }
-//    echo '<pre>';
-//    var_dump($lastaction);
-//    echo '</pre>';
-//    die();
+
     $futureaction = array();
 //    $sql = "select `llx_societe`.rowid, llx_actioncomm.datep, `responsibility`.`alias`
 //        from `llx_societe`
@@ -372,9 +410,13 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
         }
         if ($db->num_rows($res) > 0) {
             while ($row = $db->fetch_object($res)) {
-                if (!isset($futureaction[$row->rowid . $row->alias])) {
+                $alias = $row->alias;
+                if($alias == $user->respon_alias && !empty($user->respon_alias2)) {
+                    $alias = $user->respon_alias2;
+                }
+                if (!isset($futureaction[$row->rowid . $alias])) {
                     $date = new DateTime($row->datep);
-                    $futureaction[$row->rowid . $row->alias] = $date->format('d.m.y');
+                    $futureaction[$row->rowid . $alias] = $date->format('d.m.y');
                 }
             }
         }
@@ -564,7 +606,13 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
                                                 '<img src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/object_action.png">' : $futureaction[$row['rowid'].$alias];
                                         }
                                     }
-                                    $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '"   style="width:' . ($col_width[$num_col - 1] + 2) . 'px;  text-align: center;"><a href="../' . $actionfields[$fields[$num_col]->name] . '/action.php?socid=' . $row['rowid'] . '&idmenu=10425&mainmenu=area">' . ($full_text) . '</a> </td>';
+                                    $state_filter = '';
+
+                                    if(isset($_REQUEST['state_filter'])&&!empty($_REQUEST['state_filter']))
+                                        $state_filter='&state_filter='.$_REQUEST['state_filter'];
+                                    if(isset($_SESSION['state_filter'])&&!empty($_SESSION['state_filter']))
+                                        $state_filter='&state_filter='.$_SESSION['state_filter'];
+                                    $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '"   style="width:' . ($col_width[$num_col - 1] + 2) . 'px;  text-align: center;"><a href="../' . $actionfields[$fields[$num_col]->name] . '/action.php?socid=' . $row['rowid'] . '&idmenu=10425&mainmenu=area'.$state_filter.'">' . ($full_text) . '</a> </td>';
                                 }else{
                                     $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '"  style="width:' . ($col_width[$num_col - 1] + 2) . 'px; text-align: center;"> </td>';
                                 }

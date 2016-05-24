@@ -1913,7 +1913,7 @@ function fieldList($fieldlist,$obj='',$tabname='', $show=0)//Відображе�
 			}elseif($fieldlist[$field] == 'fk_subdivision') {
 				$object = new User($db);
 				print '<td align="left">';
-				print $form->select_control($obj->$fieldlist[$field], 'fk_subdivision', 0, 'subdivision', 'name', $object, false);
+				print $form->select_control('', 'fk_subdivision', 0, 'subdivision', 'name', $object, false);
 				print '</td>';
 			}
 		}

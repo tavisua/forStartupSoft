@@ -964,7 +964,7 @@ if (! function_exists("llxHeader"))
 
         if(substr($_SERVER["SCRIPT_NAME"], strlen($_SERVER["SCRIPT_NAME"])-strlen('action.php')) && $_REQUEST['mainmenu'] == 'area') {//Ш
             print '<div id="bookmarkActionPanel" onclick="showHideActionPanel();">
-                    <span>Панель інструментів</span>
+                    <span>Панель</br>інструментів</span>
                     </div>
                     <div id="ActionPanel" class="popupmenu">
                         <table>
@@ -1064,11 +1064,11 @@ function llxSendSmsEmail(){
                 <tr>
                     <td><a href="/dolibarr/htdocs/comm/smsSending/card.php?action=add&type=sms"><img title="СМС розсилка" src="/dolibarr/htdocs/theme/eldy/img/sms.png"></a></td>
                     <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-                    <td><a href="/dolibarr/htdocs/comm/smsSending/card.php?action=add&type=email"><img title="Email розсилка" src="/dolibarr/htdocs/theme/eldy/img/emailing.png"></a></td>
                 </tr>
             </table>
         </div>
     ';
+    //<td><a href="/dolibarr/htdocs/comm/smsSending/card.php?action=add&type=email"><img title="Email розсилка" src="/dolibarr/htdocs/theme/eldy/img/emailing.png"></a></td>
 }
 function llxPopupMenu(){
                 print'

@@ -69,8 +69,8 @@ DateActionPlannedStart= Planned start date
 DateActionPlannedEnd= Planned end date
 DateActionDoneStart= Real start date
 DateActionDoneEnd= Real end date
-DateActionStart= Початок дії
-DateActionEnd= Завершення дії
+DateActionStart= Дата і час початку дії
+DateActionEnd= Час завершення дії
 AgendaUrlOptions1=You can also add following parameters to filter output:
 AgendaUrlOptions2=<b>login=%s</b> to restrict output to actions created by or assigned to user <b>%s</b>.
 AgendaUrlOptions3=<b>logina=%s</b> to restrict output to actions owned by a user <b>%s</b>.
