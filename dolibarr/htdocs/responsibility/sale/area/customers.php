@@ -42,7 +42,7 @@ $sql_count = 'select count(*) iCount from `llx_societe` where 1 ';
     if ($region_id != 0)
         $tmp .= ' and `region_id` = ' . $region_id . ' ';
     elseif(count($regions)>0)
-        $tmp .= ' and `region_id` in ('.implode(',',$regions).')';
+        $tmp .= ' and (`region_id` in ('.implode(',',$regions).') or `region_id` is null and `fk_user_creat` = '.$user->id.')';
     $tmp .= ' and `llx_societe`.`categoryofcustomer_id` in (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = ' . $user->respon_id . ')';
     $sql .= $tmp;
     $sql_count .= $tmp;
@@ -52,12 +52,12 @@ $sql_count.=' and `llx_societe`.active = 1 ';
 
 
 
-if($user->login != 'admin' && ($user->respon_alias == 'sale'|| $user->respon_alias=='dir_depatment'&&$user->respon_alias2 == 'sale')) {
-//    $tmp = ' and `llx_societe`.`fk_user_creat`=' . $user->id;
-    $tmp = ' and `llx_societe`.`region_id` in (select fk_id from llx_user_regions where fk_user='.$user->id.' and active = 1)';
-    $sql.=$tmp;
-    $sql_count.=$tmp;
-}
+//if($user->login != 'admin' && ($user->respon_alias == 'sale'|| $user->respon_alias=='dir_depatment'&&$user->respon_alias2 == 'sale')) {
+////    $tmp = ' and `llx_societe`.`fk_user_creat`=' . $user->id;
+//    $tmp = ' and `llx_societe`.`region_id` in (select fk_id from llx_user_regions where fk_user='.$user->id.' and active = 1)';
+//    $sql.=$tmp;
+//    $sql_count.=$tmp;
+//}
 //echo '<pre>';
 //var_dump($sql);
 //echo '</pre>';
@@ -66,11 +66,11 @@ if($user->login != 'admin' && ($user->respon_alias == 'sale'|| $user->respon_ali
 if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])){
     if($_REQUEST['filter']!='today') {
         $phone_number = fPrepPhoneFilter($db->escape($_REQUEST['filter']));
-        $sql_filter = "select llx_societe.rowid from llx_societe
+        $sql_filter = "select distinct llx_societe.rowid from llx_societe
             left join `llx_societe_contact` on `llx_societe_contact`.`socid`=`llx_societe`.`rowid`
             where 1";
         if(count($regions)>0)
-            $sql_filter.=' and `region_id` in ('.implode(',',$regions).')';
+            $sql_filter.=' and (`region_id` in ('.implode(',',$regions).') or `region_id` is null)';
         $sql_filter.=" and `llx_societe`.`nom`  like '%" . $db->escape($_REQUEST['filter']) . "%'
             or `llx_societe_contact`.`lastname`  like '%" . $db->escape($_REQUEST['filter']) . "%'
             or `llx_societe_contact`.`firstname`  like '%" . $db->escape($_REQUEST['filter']) . "%'

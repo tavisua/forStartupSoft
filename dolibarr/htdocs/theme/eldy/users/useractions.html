@@ -16,38 +16,64 @@
     </tbody>
 </table>
 </br>
-<form id="actionbuttons" action="" method="post">
-    <input type="hidden" name="backtopage" value="/dolibarr/htdocs/responsibility/sale/action.php?socid=4676&idmenu=10425&mainmenu=area">
-    <input type="hidden" name="action" value="create">
-    <input type="hidden" name="mainmenu" value="coworker">
-</form>
+
 <button title="Запланувати дію" onclick="AddAction();">    Додати дію    </button>
 <button title="Додати результат перемовин в таблицю 'Дії'" onclick="AddResultAction('users', <?=$_GET['id_usr']?>);">    Додати результат перемовин    </button>
     <table id="actions_table" class="WidthScroll" cellspacing="1">
         <thead>
         <tr class="header_table">
-            <th style="width: 80px" class="middle_size">Дата запису</th>
-            <th style="width: 80px" class="middle_size">ПІБ ХТО</th>
-            <th style="width: 50px" class="middle_size">Вид дій</th>
-            <th style="width: 50px" class="middle_size">Виконати кінцево до</th>
-            <th style="width: 50px" class="middle_size">Статус</th>
-            <th style="width: 50px" class="middle_size">Підтр. про виконан.</th>
-            <th style="width: 50px" class="middle_size"></th>
-            <th style="width: 50px" class="middle_size"></th>
-            <th style="width: 50px" class="middle_size"></th>
+            <th style="width: 25px" class="middle_size" rowspan="2">Вид дій</th>
+            <th style="width: 45px" class="middle_size" rowspan="2">Дата запису</th>
+            <th style="width: 80px" class="middle_size" rowspan="2">Стуктурний підрозділ "ХТО"</th>
+            <th style="width: 80px" class="middle_size" rowspan="2">ПІБ ХТО</th>
+            <th style="width: 80px" class="middle_size" rowspan="2">Стуктурний підрозділ "КОМУ"</th>
+            <th style="width: 80px" class="middle_size" rowspan="2">ПІБ КОМУ</th>
+            <th style="width: 65px" class="middle_size" rowspan="2">Група завдань</th>
+            <th style="width: 65px" class="middle_size" rowspan="2">Задача</th>
+            <th style="width: 100px" class="middle_size" rowspan="2">Примітка: Що зробить, кінцева мета, підтвердження</th>
+            <th style="width: 65px" class="small_size" rowspan="2">Виконати попередньо до</th>
+            <th style="width: 50px" class="middle_size" rowspan="2">Виконати кінцево до</th>
+            <th style="width: 50px" class="middle_size" rowspan="2">Задачу отримано</th>
+            <th style="text-align: center" colspan="3" class="middle_size" id="comerc_action">Дії відповідального</th>
+            <th style="text-align: center" colspan="2" class="middle_size" id="mentor_action">Перевірки наставником</th>
+            <th width="50px" class="small_size" rowspan="2">Відмітка : особливе, важливе</th>
+            <th style="width: 50px" rowspan="2" class="middle_size">Статус</th>
+            <th style="width: 50px" rowspan="2" class="middle_size">Підтр. про виконан.</th>
+            <th style="width: 50px" rowspan="2" class="middle_size"></th>
+            <th style="width: 50px" rowspan="2" class="middle_size"></th>
+        </tr>
+        <tr class="multiple_header_table">
+            <th width="60px" class="middle_size">Останні</th>
+            <th width="60px" class="middle_size">Майбутні</th>
+            <th width="45px" class="middle_size">Необх. часу, хв</th>
+            <th width="60px" class="middle_size">Останні</th>
+            <th width="60px" class="middle_size">Майбутні</th>
         </tr>
         </thead>
         <!--<tbody id="reference_body">-->
         <?echo $actiontabe?>
         <!--</tbody>-->
     </table>
+<form id="actionbuttons" action="/dolibarr/htdocs/comm/action/card.php" method="post">
+    <input type="hidden" name="backtopage" value="<?=$_SERVER['REQUEST_URI']?>">
+    <input type="hidden" name="action" value="create">
+    <input type="hidden" name="actioncode" value="AC_CURRENT">
+    <input type="hidden" name="mainmenu" value="coworker">
+    <input type="hidden" name="addassignedtouser" value="Зберегти">
+    <input type="hidden" name="assignedtouser" value="<?=$_GET['id_usr']?>">
+    <input type="hidden" name="id_usr" value="<?=$_GET['id_usr']?>">
+    <input type="hidden" name="datep" value="<?=date('dd.mm.yyyy')?>">
+</form>
 <script>
     $(document).ready(function(){
         $('#phonetitle').width($('#phone').width());
         $('#email_title').width($('#email').width());
         $('#skype_title').width($('#skype').width());
-        $('#actions').height($(window).height() - 250);
+        $('#actions').height($(window).height() - 300);
     })
+    function AddAction(){
+        $('#actionbuttons').submit();
+    }
     function showSMSform(phonenumber){
         $('input#phone_number').val(phonenumber);
         $('b#phone_numbertitle').text(phonenumber);
@@ -61,6 +87,28 @@
         backtopage = backtopage.replace(/\//g,'%2F')
         backtopage = backtopage.replace(/\&/g,'%26')
         location.href='/dolibarr/htdocs/comm/action/result_action.php?action=edituseration&backtopage='+backtopage+'&rowid='+rowid+'&mainmenu=coworkers&id_usr='+getParameterByName('id_usr');
+    }
+    $('td').mousedown(function(e){
+        var td = e.target;
+        if(td.getElementsByTagName('input').length>0) {
+            var input = td.getElementsByTagName('input')[0];
+            createNewForm('popupmenu', 'previewtask');
+            var rect = td.getBoundingClientRect();
+//            console.log(rect.top, rect.right, rect.bottom, rect.left);
+            var html = '<textarea style="width: 250px;height: 100px" onmouseout="ClosePreviewTask();" id="fulltask">'+input.value+'</textarea>';
+            $('#previewtask').empty().html(html);
+            var a = $('#previewtask').find('a');
+//            a.click(ClosePreviewTask);
+            $('#previewtask').css('top', rect.top);
+            $('#previewtask').css('left', rect.left);
+            $('#previewtask').show();
+        }
+    })
+//    $('textarea').mousedown(function(e){
+//        console.log('test');
+//    })
+    function ClosePreviewTask(){
+        $('#previewtask').remove();
     }
     function DelConversation(rowid){
         if(confirm('Видалити перемовини?')) {

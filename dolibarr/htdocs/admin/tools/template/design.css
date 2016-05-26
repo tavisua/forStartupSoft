@@ -16,13 +16,13 @@ div.mainmenu.hourly_plan {
     background-image: url("/dolibarr/htdocs/theme/eldy/img/menus/pointofsale.png");
 }
 div.mainmenu.global_task {
-    background-image: url("/dolibarr/htdocs/theme/eldy/img/menus/pointofsale.png");
+    background-image: url("/dolibarr/htdocs/theme/eldy/img/menus/global_task.png");
 }
 div.mainmenu.global_action {
     background-image: url("/dolibarr/htdocs/theme/eldy/img/menus/pointofsale.png");
 }
 div.mainmenu.current_task {
-    background-image: url("/dolibarr/htdocs/theme/eldy/img/menus/pointofsale.png");
+    background-image: url("/dolibarr/htdocs/theme/eldy/img/menus/current_task.png");
 }
 div.mainmenu.current_action {
     background-image: url("/dolibarr/htdocs/theme/eldy/img/menus/pointofsale.png");

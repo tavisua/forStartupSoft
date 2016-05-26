@@ -79,7 +79,6 @@
     }
     function save_item(){
 
-        include 'db.php';
         $fields = str_replace(',',"`,`", $_REQUEST['columns']);
         $fields = str_replace("'","`", $fields);
         $fields .= ",`id_usr`";
@@ -95,7 +94,10 @@
 
         $values .= ','.$_REQUEST['id_usr'];
 
+        include 'db.php';
         $db = new dbMysqli();
+        $values = $db->mysqli->real_escape_string($values);
+        return $values;
         $sql = "select * from `". $_REQUEST['tablename'] ."` limit 1";
         $res = $db->mysqli->query($sql);
         $fieldslist = $res->fetch_fields();

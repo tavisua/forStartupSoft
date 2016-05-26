@@ -63,24 +63,24 @@ function showUserList(){
     while($obj = $db->fetch_object($res)){
         $class = fmod($count, 2) != 1 ? ("impair") : ("pair");
         $out.='<tr id="rowid_'.$obj->rowid.'" class="'.$class.'">';
-        $out.='<td style="width:152px"id="s_subdivision_name_'.$obj->rowid.'">'.$obj->s_subdivision_name.'</td>';
-        $out.='<td style="width:186px"id="alias_'.$obj->rowid.'">'.$langs->trans($obj->alias).'</td>';
-        $out.='<td style="width:152px"id="postname_'.$obj->rowid.'">'.$obj->postname.'</td>';
-        $out.='<td style="width:148px"id="lastname_'.$obj->rowid.'"><a href="/dolibarr/htdocs/user/useractions.php?id_usr='.$obj->rowid.'">'.$obj->lastname.'</a></td>';
-        $out.='<td style="width:147px"id="firstname_'.$obj->rowid.'">'.$obj->firstname.'</td>';
+        $out.='<td class="middle_size" style="width:152px"id="s_subdivision_name_'.$obj->rowid.'">'.$obj->s_subdivision_name.'</td>';
+        $out.='<td class="middle_size" style="width:186px"id="alias_'.$obj->rowid.'">'.$langs->trans($obj->alias).'</td>';
+        $out.='<td class="middle_size" style="width:152px"id="postname_'.$obj->rowid.'">'.$obj->postname.'</td>';
+        $out.='<td class="middle_size" style="width:148px"id="lastname_'.$obj->rowid.'"><a href="/dolibarr/htdocs/user/useractions.php?id_usr='.$obj->rowid.'">'.$obj->lastname.'</a></td>';
+        $out.='<td class="middle_size" style="width:147px"id="firstname_'.$obj->rowid.'">'.$obj->firstname.'</td>';
         $phone = str_replace($symbols,'', $obj->office_phone);
         if(!empty($obj->office_phone)) {
             $phonelink = '<a onclick="Call('.$phone.', '."'users'".', '.$obj->rowid.');">';
-            $out .= '<td style="width:148px"><table class="phone"><tbody><tr>';
-            $out .= '<td style="width:130px"= id="office_phone_' . $obj->rowid . '">' . $phonelink . $obj->office_phone . '</a></td>';
-            $out .= '<td id="sms_' . $obj->rowid . '" onclick="showSMSform(' . $phone . ');" style="width: 20px"><img src="/dolibarr/htdocs/theme/eldy/img/object_sms.png"></td>';
+            $out .= '<td class="middle_size" style="width:148px"><table class="phone"><tbody><tr>';
+            $out .= '<td class="middle_size" style="width:130px"= id="office_phone_' . $obj->rowid . '">' . $phonelink . $obj->office_phone . '</a></td>';
+            $out .= '<td class="middle_size" id="sms_' . $obj->rowid . '" onclick="showSMSform(' . $phone . ');" style="width: 20px"><img src="/dolibarr/htdocs/theme/eldy/img/object_sms.png"></td>';
             $out .= '</tr></tbody></table></td>';
         }else{
             $out.='<td></td>';
         }
         $out.='<td class="middle_size" style="width:205px"id="email_'.$obj->rowid.'"><a href="mailto:'.$obj->email.'">'.$obj->email.'</a></td>';
         $out.='<td class="middle_size" style="width:148px"id="skype_'.$obj->rowid.'"><a href="skype:'.$obj->skype.'?call">'.$obj->skype.'</a></td>';
-        $out.='<td style="width:127px">&nbsp;</td>';
+        $out.='<td style="width:127px" class="emptycol">&nbsp;</td>';
         $out.='</tr>';
         $count++;
     }

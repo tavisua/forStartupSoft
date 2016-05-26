@@ -7,7 +7,7 @@
     </div>
 </div>
 <table cellspacing="1" class="WidthScroll" >
-    <thead style="width: 100%">
+    <thead >
         <tr  class="multiple_header_table">
             <td>Підрозділ</td>
             <td>Сфера відповідальності</td>
@@ -35,6 +35,7 @@
     </thead>
     <?=$tbody;?>
 </table>
+
 <script>
     $('#userlist').height($(window).height() - 250);
     $("#subdiv_id [value='<?=$_POST['subdiv_id']?>']").attr('selected', 'selected');
@@ -66,6 +67,24 @@
         $("#skype").val('');
         $('form#filter').submit();
     }
+    $(document).ready(function(){
+        var width = $('#userlist').width();
+        var tr = $('thead').find('tr');
+        var th = tr[0].getElementsByTagName('td');
+        var iWidth = 0;
+        for(var i = 0; i<th.length; i++){
+            iWidth+=th[i].clientWidth;
+        }
+        iWidth+=10;
+        tr = $('#userlist').find('tr');
+        var td = tr[0].getElementsByTagName('td');
+//        console.log(td[td.length-1].clientWidth);
+//        td[td.length-1].outerWidth = td[td.length-1].clientWidth+(iWidth-width)+'px';
+        $('.emptycol').width(td[td.length-1].clientWidth-(width-iWidth));
+        console.log(iWidth, width);
+
+
+    })
 </script>
 <style>
     .phone td{

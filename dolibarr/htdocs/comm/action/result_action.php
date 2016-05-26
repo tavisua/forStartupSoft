@@ -16,7 +16,7 @@ if(isset($_POST['action']) && ($_POST['action'] == 'update' || $_POST['action'] 
 
     saveaction($_POST['rowid'], (substr($_POST['action'],strlen($_POST['action'])-strlen('_and_create') )== '_and_create'));
 }
-if($_POST['action'] == 'saveuseraction'){//Зберігаю результати перемовин зі співробітником
+if($_POST['action'] == 'saveuseraction' || $_POST['action'] == 'saveuseraction_and_create'){//Зберігаю результати перемовин зі співробітником
     saveuseraction($_POST['rowid'] );
 }
 require_once DOL_DOCUMENT_ROOT.'/core/lib/agenda.lib.php';
@@ -273,7 +273,7 @@ function saveuseraction($rowid){
         $sql.='where rowid='.$rowid;
     }
 //echo '<pre>';
-//var_dump($sql);
+//var_dump((substr($_POST['action'],strlen($_POST['action'])-strlen('_and_create') )== '_and_create'));
 //echo '</pre>';
 //die();
     $res = $db->query($sql);
@@ -283,11 +283,15 @@ function saveuseraction($rowid){
     $backtopage = $_REQUEST['backtopage'];
 //    var_dump(strpos($backtopage, 'php?'));
 //    die($backtopage);
-    if(empty($rowid)) {
-        if (strpos($backtopage, 'php?'))
-            $backtopage .= '&beforeload=close';
-        else
-            $backtopage .= '?beforeload=close';
+    if(!(substr($_POST['action'],strlen($_POST['action'])-strlen('_and_create') )== '_and_create')) {
+        if (empty($rowid)) {
+            if (strpos($backtopage, 'php?'))
+                $backtopage .= '&beforeload=close';
+            else
+                $backtopage .= '?beforeload=close';
+        }
+    }else{
+        $backtopage = "http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/comm/action/card.php?mainmenu=".$_REQUEST['mainmenu']."&actioncode=".$_REQUEST['actioncode']."&action=create&parent_id=".$_REQUEST["actionid"]."&backtopage=".$backtopage;
     }
     header("Location: " . $backtopage);
 }

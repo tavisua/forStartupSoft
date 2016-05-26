@@ -220,12 +220,13 @@ class ActionComm extends CommonObject
             $exec_time = 0;
         return $exec_time;
     }
-    function GetFreeTime($inputdate, $id_usr, $minutes, $prioritet = 0, $starttime){
+    function GetFreeTime($inputdate, $id_usr, $minutes, $prioritet = 0){
         if(empty($prioritet))$prioritet = 0;
-//        var_dump($minutes);
-//        die();
 
+        $starttime = $inputdate.":00";
         $date = new DateTime($inputdate);
+
+
         $PlanTime = 0;
         while(!$PlanTime) {
             if($date->format('w')>0 && $date->format('w')<6)
@@ -238,36 +239,75 @@ class ActionComm extends CommonObject
     }
     function GetFirstFreeTime($date, $id_usr, $minutes, $prioritet = 0, $starttime){
         $freetime = $this->GetFreeTimePeriod($date, $id_usr, $prioritet);
+        $date = new DateTime($date);
 //        echo '<pre>';
-//        var_dump($date, $id_usr, $prioritet);
+//        var_dump($freetime);
 //        echo '</pre>';
 //        die();
-        if(empty($starttime)||$starttime<time())
+        if(empty($starttime))
              $starttime = time();
+        else{
+            $dtStartTime = new DateTime($starttime);
+            $starttime = dol_mktime($dtStartTime->format('H'),$dtStartTime->format('i'),$dtStartTime->format('s'),$dtStartTime->format('m'),$dtStartTime->format('d'),$dtStartTime->format('Y'));
+//            var_dump($starttime);
+//            die();
+        }
+        if($starttime<time()) {
+            $starttime = time();
+        }
         $num = 0;
         foreach($freetime as $period){
             $num++;
+            $nexttime = 0;
+            if(isset($freetime[$num])){
+                $nextjob = $freetime[$num];
+                $nexttime = dol_mktime(intval(substr($nextjob[0], 0,2)), intval(substr($nextjob[0], 3,2)), intval(substr($nextjob[0], 6,2)), intval(substr($nextjob [2], 6,2)), intval(substr($nextjob[2], 8,2)), intval(substr($nextjob[2], 0,4)));
+            }
             $itemDate = dol_mktime(intval(substr($period[0], 0,2)), intval(substr($period[0], 3,2)), intval(substr($period[0], 6,2)), intval(substr($period[2], 6,2)), intval(substr($period[2], 8,2)), intval(substr($period[2], 0,4)));
             $dtDate = new DateTime();
-//            var_dump($minutes<=$period[1] && $itemDate >= $starttime && $dtDate->format('H')>=8 && !( $dtDate->format('H')>=12&& $dtDate->format('H')<14) && $dtDate->format('Y-m-d') == $date);
-//            var_dump($minutes<=$period[1], $itemDate >= $starttime, $dtDate->format('H')>=8, !( $dtDate->format('H')>=12&& $dtDate->format('H')<14) , $dtDate->format('Y-m-d') == $date);
-//            die();
             $dtDate->setTimestamp($itemDate);
-            if($minutes<=$period[1] && $itemDate >= $starttime && $dtDate->format('H')>=8 && !( $dtDate->format('H')>=12&& $dtDate->format('H')<14) && $dtDate->format('Y-m-d') == $date) {
-//                var_dump($freetime, $period);
-//                die();
-                return  $period[2].' '.$period[0];
-            }elseif($minutes<=$period[1] && $itemDate >= $starttime && $dtDate->format('H')>=8 &&
-                ($dtDate->format('H')>=12&& $dtDate->format('H')<14 && $num == count($freetime)) && $dtDate->format('Y-m-d') == $date){
-//                var_dump($period[2].' 14:00:00');
-//                die();
-                return $period[2].' 14:00:00';
-            }
-        }
-        if($minutes<=$period[1] && $itemDate < $starttime && $dtDate->format('H')>=8 && !( $dtDate->format('H')>=12&& $dtDate->format('H')<14) && $dtDate->format('Y-m-d') == $date) {
-//            var_dump(date('Y-m-d H:i:s', $starttime));
+//            var_dump($minutes<=$period[1] && ($itemDate >= $starttime || $num == count($freetime)) && $dtDate->format('H')>=8 && $dtDate->format('H')<=18 &&
+//                ($dtDate->format('H')>=12&& $dtDate->format('H')<14  && $dtDate->format('Y-m-d') == $date->format('Y-m-d')));
 //            die();
+            if($minutes<=$period[1] && ($itemDate >= $starttime || count($freetime) == $num) && $dtDate->format('H')>=8 && !( $dtDate->format('H')>=12&& $dtDate->format('H')<14) && $dtDate->format('Y-m-d') == $date->format('Y-m-d')) {
+//                var_dump($itemDate >= $starttime);
+                $tmp_date = new DateTime($period[2].' '.$period[0]);
+                $mk_tmp_date = dol_mktime($tmp_date->format('h'),$tmp_date->format('i'),$tmp_date->format('s'),$tmp_date->format('m'),$tmp_date->format('d'),$tmp_date->format('Y'));
+//                var_dump($period[2].' '.$period[0]);
+//                die();
+                if($mk_tmp_date>=$starttime)
+                    return  $period[2].' '.$period[0];
+            }elseif($minutes<=$period[1] && ($itemDate >= $starttime || $num == count($freetime)) && $dtDate->format('H')>=8 && $dtDate->format('H')<=18 &&
+                ($dtDate->format('H')>=12&& $dtDate->format('H')<14  && $dtDate->format('Y-m-d') == $date->format('Y-m-d'))){
+                $tmp_date = new DateTime($period[2].' 14:00:00');
+                $mk_tmp_date = dol_mktime($tmp_date->format('h'),$tmp_date->format('i'),$tmp_date->format('s'),$tmp_date->format('m'),$tmp_date->format('d'),$tmp_date->format('Y'));
+//                var_dump($mk_tmp_date>=$starttime);
+//                die('test');
+                if($mk_tmp_date>=$starttime)
+                    return $period[2].' 14:00:00';
+            }elseif($minutes<=$period[1] && $minutes<=($nexttime - $starttime)/60 && $starttime < $nexttime){ //Виконується, коли до наступної дії є час
+                $tmp_date = new DateTime($period[2].' '.$period[0]);
+                $mk_endperiod = dol_mktime($tmp_date->format('h'),$tmp_date->format('i'),$tmp_date->format('s'),$tmp_date->format('m'),$tmp_date->format('d'),$tmp_date->format('Y'))+$period[1]*60;
+//                var_dump(($mk_endperiod-$starttime)/60);
+//                die();
+                if($minutes<=($mk_endperiod-$starttime)/60) {
+                    return date('Y-m-d H:i:s', $starttime);
+                }
+
+            }
+//            var_dump()
+//            if($minutes<=$period[1] && $nexttime == 0){ //Коли після останньої дії є вільний час до кінця робочого дня
+//                return  $period[2].' '.$period[0];
+//            }
+        }
+//        var_dump($minutes<=$period[1] && ($itemDate >= $starttime || count($freetime) == $num) && $dtDate->format('H')>=8 && !( $dtDate->format('H')>=12&& $dtDate->format('H')<14) && $dtDate->format('Y-m-d') == $date->format('Y-m-d'));
+//        die();
+        if($minutes<=$period[1] && $itemDate < $starttime && $dtDate->format('H')>=8 && $dtDate->format('H')<=18 && $dtDate->format('Y-m-d') == $date->format('Y-m-d')) {
+//            var_dump(date('Y-m-d H:i:s', $starttime));
+//            die('test');
             return date('Y-m-d H:i:s', $starttime);
+        }elseif($minutes<=$period[1] && $itemDate >= $starttime && $dtDate->format('H')>=8 && $dtDate->format('H')<=18 && $dtDate->format('Y-m-d') == $date->format('Y-m-d')){
+            return  $period[2].' '.$period[0];
         }
         return 0;
     }
@@ -280,13 +320,13 @@ class ActionComm extends CommonObject
             and fk_action in
               (select id from `llx_c_actioncomm`
               where `type` in ('system', 'user'))
-                and (`llx_actioncomm_resources`.`fk_element`= ".$id_usr." or (`llx_actioncomm`.`fk_user_author`= ".$id_usr." and `llx_actioncomm`.id not in (select `llx_actioncomm_resources`.`fk_actioncomm` from `llx_actioncomm_resources` where `llx_actioncomm_resources`.`fk_element`= ".$id_usr.")))
+                and (case when `llx_actioncomm_resources`.fk_element is null then `llx_actioncomm`.fk_user_author else `llx_actioncomm_resources`.fk_element end = ".$id_usr.")
             and `llx_actioncomm`.`priority` = ".(empty($prioritet)?0:$prioritet)."
             and `llx_actioncomm`.`active` = 1
             order by `llx_actioncomm`.`datep`, `llx_actioncomm`.`datep2`";
         $res = $db->query($sql);
         if(!$res)
-            dol_print_error($db);
+            dol_print_error($db); //and (`llx_actioncomm_resources`.`fk_element`= ".$id_usr." or (`llx_actioncomm`.`fk_user_author`= ".$id_usr." and `llx_actioncomm`.id not in (select `llx_actioncomm_resources`.`fk_actioncomm` from `llx_actioncomm_resources` where `llx_actioncomm_resources`.`fk_element`= ".$id_usr.")))
         $Now = new DateTime();
 //        var_dump($sql);
 //        die();
@@ -508,8 +548,9 @@ class ActionComm extends CommonObject
             if(count(array_keys($this->userassigned))>1){
                 $correctdate = true;
                 $minute = ($this->datef-$this->datep)/60;
-
-                $freedate = new DateTime($this->GetFreeTime(date('Y-m-d',$this->datep),array_keys($this->userassigned)[$i],$minute, $this->priority,date('Y-m-d H:i:s')));
+//                var_dump($this->datep);
+//                die();
+                $freedate = new DateTime($this->GetFreeTime(date('Y-m-d H:i',$this->datep),array_keys($this->userassigned)[$i],$minute, $this->priority));
 
                 $cdatep = mktime($freedate->format('H'),$freedate->format('i'),$freedate->format('s'),$freedate->format('m'),$freedate->format('d'),$freedate->format('Y'));
                 $cdatef = $cdatep+$minute*60;

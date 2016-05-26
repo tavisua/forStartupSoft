@@ -96,7 +96,9 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['lin
                 if (!in_array($obj->rowid, $filterid))
                     $filterid[] = $obj->rowid;
             }
-
+        if(count($filterid) == 0) {
+            ClearFilterMessage();
+        }
     }
 //    echo '<pre>';
 //    var_dump($filterid);
@@ -288,6 +290,22 @@ print $prev_form;
 
 return;
 
+function ClearFilterMessage(){
+        echo '<div style="height: 150px"></div>';
+        print '<form id="setfilter" action="" method="get">
+                <input type="hidden" name="mainmenu" value="'.$_REQUEST["mainmenu"].'">
+                <input type="hidden" name="idmenu" value="'.$_REQUEST["idmenu"].'">
+                <input type="hidden" name="filter" value="" id="filter" size="45">
+        </form>';
+        print "
+        <script>
+        function clearfilter(){
+            $('#setfilter').submit();
+        }
+        </script>";
+        die('<span style="font-size: 20px">Не знайдено жодного господарства. Натисніть кнопку <button style="height: 25px" onclick="clearfilter();">Зняти фільтр</button></span>');
+}
+
 function fPrepPhoneFilter($phonenumber){
     //Clear notnumeric symbol
     for($i = 0; $i<strlen($phonenumber); $i++){
@@ -350,6 +368,8 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
             $num_col++;
         }
     }
+    if($db->num_rows($result)==0)
+        ClearFilterMessage();
     $rowidList=array();
     while($obj = $db->fetch_object($result)){
         $rowidList[]=$obj->rowid;

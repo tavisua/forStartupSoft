@@ -16,6 +16,8 @@ $sql = 'select `llx_societe`.rowid, `llx_societe`.nom,
 from `llx_societe` left join `category_counterparty` on `llx_societe`.`categoryofcustomer_id` = `category_counterparty`.rowid
 left join `formofgavernment` on `llx_societe`.`formofgoverment_id` = `formofgavernment`.rowid
 left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`';
+
+
 if($region_id != 0) {
     $sql .= 'where `region_id` = ' . $region_id . ' ';
     $sql .= 'and `llx_societe`.`categoryofcustomer_id` in
@@ -300,7 +302,7 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
             if($cell != 'rowid') {
                 if(!$create_edit_form && count($readonly)==0)//Формирую форму для редактирования
 //                    $edit_form.=$this->fBuildEditForm($title[$num_col-1], $fields[$num_col], $theme, $tablename);
-                    var_dump($title[$num_col-1]['title'].' '.$cell.' '.!isset($title[$num_col-1]['hidden']).'</br>');
+//                    var_dump($title[$num_col-1]['title'].' '.$cell.' '.!isset($title[$num_col-1]['hidden']).'</br>');
                 if(!isset($title[$num_col-1]['hidden'])) {
 //                        echo'<pre>';
 //                        var_dump($cell);

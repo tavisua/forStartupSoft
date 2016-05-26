@@ -4204,7 +4204,8 @@ class Form
         if ($h)
         {
             // Show hour
-            $retstring.='<select'.($disabled?' disabled="disabled"':'').' id="'.$prefix.'hour" " class="flat '.($fullday?$fullday.'hour':'').'" name="'.$prefix.'hour" '.(!in_array($prefix, array('p2'))?'onchange="setP2();"':'').'>';
+//            $retstring.='<select'.($disabled?' disabled="disabled"':'').' id="'.$prefix.'hour" class="flat '.($fullday?$fullday.'hour':'').'" name="'.$prefix.'hour" '.(!in_array($prefix, array('p2'))?'onchange="setP2();"':'').'>';
+            $retstring.='<select'.($disabled?' disabled="disabled"':'').' id="'.$prefix.'hour" class="flat '.($fullday?$fullday.'hour':'').'" name="'.$prefix.'hour">';
             if ($emptyhours) $retstring.='<option value="-1">&nbsp;</option>';
             for ($hour = 0; $hour < 24; $hour++)
             {
@@ -4218,7 +4219,8 @@ class Form
         if ($m)
         {
             // Show minutes
-            $retstring.='<select'.($disabled?' disabled="disabled"':'').' id="'.$prefix.'min" class="flat '.($fullday?$fullday.'min':'').'" name="'.$prefix.'min" '.(!in_array($prefix, array('p2'))?'onchange="setP2();"':'').'>';
+//            $retstring.='<select'.($disabled?' disabled="disabled"':'').' id="'.$prefix.'min" class="flat '.($fullday?$fullday.'min':'').'" name="'.$prefix.'min" '.(!in_array($prefix, array('p2'))?'onchange="setP2();"':'').'>';
+            $retstring.='<select'.($disabled?' disabled="disabled"':'').' id="'.$prefix.'min" class="flat '.($fullday?$fullday.'min':'').'" name="'.$prefix.'min">';
             if ($emptyhours) $retstring.='<option value="-1">&nbsp;</option>';
             for ($min = 0; $min < 60 ; $min++)
             {

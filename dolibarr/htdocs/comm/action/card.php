@@ -26,11 +26,21 @@
  *       \ingroup    agenda
  *       \brief      Page for event card
  */
+require '../../main.inc.php';
+
+//llxHeader('', $langs->trans("AddAction"), $help_url);
+
 //echo '<pre>';
 //var_dump($_REQUEST);
 //echo '</pre>';
 //die();
-require '../../main.inc.php';
+if(isset($_REQUEST['id_usr'])&&!empty($_REQUEST['id_usr'])&&$_REQUEST['id_usr']!=$user->id){
+//$test = '{"6":{"id":"6","mandatory":0,"transparency":null},"7":{"id":"7","transparency":"on","mandatory":1}}';
+//var_dump(json_decode($test));
+//die();
+	$json = '{"'.$user->id.'":{"id":"'.$user->id.'","mandatory":0,"transparency":null},"'.$_REQUEST['id_usr'].'":{"id":"'.$_REQUEST['id_usr'].'","transparency":"on","mandatory":1}}';
+	$_SESSION['assignedtouser']=$json;
+}
 require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
 //var_dump($_REQUEST);
 //die();
@@ -190,7 +200,7 @@ if($_GET['action']=='get_exectime'){
 	$date->setTimestamp(time());
 //	var_dump($date);
 //	die();
-	$freetime = $Action->GetFreeTime($_GET['date'], $_GET['id_usr'], $_GET['minute'], $_GET['priority'], $date->format('Y-m-d H:i:s'));
+	$freetime = $Action->GetFreeTime($_GET['date'], $_GET['id_usr'], $_GET['minute'], $_GET['priority']);
 
 	echo $freetime;
 	exit();
@@ -263,7 +273,8 @@ if ($cancel)
 }
 $fulldayevent=GETPOST('fullday');
 $datep=dol_mktime($fulldayevent?'00':GETPOST("aphour"), $fulldayevent?'00':GETPOST("apmin"), 0, GETPOST("apmonth"), GETPOST("apday"), GETPOST("apyear"));
-$datef=dol_mktime($fulldayevent?'23':GETPOST("p2hour"), $fulldayevent?'59':GETPOST("p2min"), $fulldayevent?'59':'0', GETPOST("p2month"), GETPOST("p2day"), GETPOST("p2year"));
+//$datef=dol_mktime($fulldayevent?'23':GETPOST("p2hour"), $fulldayevent?'59':GETPOST("p2min"), $fulldayevent?'59':'0', GETPOST("p2month"), GETPOST("p2day"), GETPOST("p2year"));
+$datef=dol_mktime($fulldayevent?'23':GETPOST("p2hour"), $fulldayevent?'59':GETPOST("p2min"), $fulldayevent?'59':'0', GETPOST("apmonth"), GETPOST("apday"), GETPOST("apyear"));
 
 // Security check
 $socid = GETPOST('socid','int');
@@ -341,6 +352,7 @@ if (GETPOST('removedassigned') || GETPOST('removedassigned') == '0')
 // Add user to assigned list
 if(GETPOST('assignedJSON')){
 //	var_dump('{"6":{"id":"6","mandatory":0,"transparency":null},"43":{"id":"43","transparency":"on","mandatory":1}}</br>');
+
 	$userlist=dol_json_decode($_SESSION['assignedtouser'], true);
 
 	if(!isset($userlist[array_keys($userlist)[0]]["mandatory"])) {
@@ -365,6 +377,9 @@ if(GETPOST('assignedJSON')){
 
 if (GETPOST('addassignedtouser') || GETPOST('updateassignedtouser') || GETPOST('duplicate_action'))
 {
+//	llxHeader();
+//	var_dump(GETPOST('addassignedtouser'), GETPOST('assignedtouser'));
+//	die();
 	// Add a new user
 	if (GETPOST('assignedtouser') > 0)
 	{
@@ -414,7 +429,8 @@ if ($action == 'add')
 
     // Clean parameters
 	$datep=dol_mktime($fulldayevent?'00':GETPOST("aphour"), $fulldayevent?'00':GETPOST("apmin"), 0, GETPOST("apmonth"), GETPOST("apday"), GETPOST("apyear"));
-	$datef=dol_mktime($fulldayevent?'23':GETPOST("p2hour"), $fulldayevent?'59':GETPOST("p2min"), $fulldayevent?'59':'0', GETPOST("p2month"), GETPOST("p2day"), GETPOST("p2year"));
+//	$datef=dol_mktime($fulldayevent?'23':GETPOST("p2hour"), $fulldayevent?'59':GETPOST("p2min"), $fulldayevent?'59':'0', GETPOST("p2month"), GETPOST("p2day"), GETPOST("p2year"));
+	$datef=dol_mktime($fulldayevent?'23':GETPOST("p2hour"), $fulldayevent?'59':GETPOST("p2min"), $fulldayevent?'59':'0', GETPOST("apmonth"), GETPOST("apday"), GETPOST("apyear"));
 
 	// Check parameters
 	if (! $datef && $percentage == 100)
@@ -671,7 +687,8 @@ if ($action == 'update')
 		$object->fetch_userassigned();
 
 		$datep=dol_mktime($fulldayevent?'00':$aphour, $fulldayevent?'00':$apmin, 0, $_POST["apmonth"], $_POST["apday"], $_POST["apyear"]);
-		$datef=dol_mktime($fulldayevent?'23':$p2hour, $fulldayevent?'59':$p2min, $fulldayevent?'59':'0', $_POST["p2month"], $_POST["p2day"], $_POST["p2year"]);
+		$datef=dol_mktime($fulldayevent?'23':$p2hour, $fulldayevent?'59':$p2min, $fulldayevent?'59':'0', $_POST["apmonth"], $_POST["apday"], $_POST["apyear"]);
+//		$datef=dol_mktime($fulldayevent?'23':$p2hour, $fulldayevent?'59':$p2min, $fulldayevent?'59':'0', $_POST["p2month"], $_POST["p2day"], $_POST["p2year"]);
 
 		$object->fk_action   = dol_getIdFromCode($db, GETPOST("actioncode"), 'c_actioncomm');
 		$object->label       = GETPOST("label");
@@ -2000,7 +2017,6 @@ print "<script>
 print '
  <script type="text/javascript">
         $(document).ready(function(){
-        	console.log("test");
         	$.cookie("ChangeDate", false);
         	$("#actioncode").removeClass("flat");
             $("#actioncode").addClass("combobox");
@@ -2082,8 +2098,13 @@ print '
             var i = haystack.indexOf( needle, offset ); // returns -1
             return i >= 0 ? i : false;
         }
+//        $(window).mousedown(function(){
+//        	var date = new Date($("#ap").val().substr(6,4), $("#ap").val().substr(3,2), $("#ap").val().substr(0,2));
+//        	console.log(date);
+//        })
         function dpChangeDay(id, format){
-
+//        	return;
+        	console.log("test");
             if(id == "ap"){
                 $("#p2").val($("#ap").val())
                 $("#apday").val($("#ap").val().substr(0,2));
@@ -2093,6 +2114,12 @@ print '
                 $("#p2month").val($("#apmonth").val());
                 $("#p2year").val($("#apyear").val());
                 if($("#showform").val()!=0){
+				var date = new Date($("#ap").val().substr(6,4), $("#ap").val().substr(3,2), $("#ap").val().substr(0,2));
+				var today = new Date();
+				if(date>today){
+					$("select#aphour").val("00");
+					$("select#apmin").val("00");
+				}
 
 //                	var Date2 = new Date($("#p2year").val(),
 //                						($("#p2month").val().substr(0,1)=="0"?$("#p2month").val().substr(1):$("#p2month").val()),
@@ -2111,8 +2138,8 @@ print '
             }
 //            console.log(getParameterByName("action") != "edit", $.cookie("ChangeDate") == "true");
             if(getParameterByName("action") != "edit" || $.cookie("ChangeDate") == "true"){
-				setP2(0);
-				CalcP($("#ap").val(), $("#exec_time").val(), ' . $user->id . ');//Розрахунок часу початку дії
+//				setP2(0);
+				CalcP($("#ap").val()+" "+$("select#aphour").val()+":"+$("select#apmin").val(), $("#exec_time").val(), ' . $user->id . ');//Розрахунок часу початку дії
             }
         }
         $("button").click(function(e){
@@ -2127,6 +2154,7 @@ print '
 //        	console.log(e.keyCode == 13);
         })
         function setP2(showalert){
+        	console.log("setP2");
             if($("select#actioncode").val() == 0) return;
             else if($("select#actioncode").val()!=0){
             	console.log($("select#aphour").val() == -1 && $("select#apmin").val() == -1);
@@ -2144,12 +2172,32 @@ print '
 					cache: false,
 					success: function(html){
 						$("#exec_time").val(html);
-						if($("select#aphour").val() == -1 && $("select#apmin").val() == -1){
-//						link = "http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=get_freetime&minute="+$("#exec_time").val()+"&date="+$("#apyear").val()+"-"+$("#apmonth").val()+"-"+$("#apday").val()+"&id_usr=' . $user->id . '&actioncode="+$("select#actioncode").val();
-//						setTime(link);
-							CalcP($("#apyear").val()+"-"+$("#apmonth").val()+"-"+$("#apday").val(), $("#exec_time").val(), '.$user->id.');
-						}else
-							CalcP2();
+						console.log($("#p2day").val(),$("#p2month").val(),$("#p2year").val());
+						var hour = '.date('H').';
+						var min = '.date('i').';
+						if(hour<10)
+							hour = "0"+hour;
+						if(min<10)
+							min = "0"+min;
+						$("select#aphour").val(hour);
+						$("select#apmin").val(min);
+						CalcP($("#apyear").val()+"-"+$("#apmonth").val()+"-"+$("#apday").val()+" "+$("#aphour").val()+":"+$("#apmin").val(), $("#exec_time").val(), '.$user->id.');
+						$("select#aphour").bind("change", ApHourChanged);
+						$("select#apmin").bind("change", ApHourChanged);
+						$("#p2").val($("#ap").val())
+						$("#apday").val($("#ap").val().substr(0,2));
+						$("#apmonth").val($("#ap").val().substr(3,2));
+						$("#apyear").val($("#ap").val().substr(6,4));
+						$("#p2day").val($("#apday").val());
+						$("#p2month").val($("#apmonth").val());
+						$("#p2year").val($("#apyear").val());
+//						return;
+//						if($("select#aphour").val() == -1 && $("select#apmin").val() == -1){
+////						link = "http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=get_freetime&minute="+$("#exec_time").val()+"&date="+$("#apyear").val()+"-"+$("#apmonth").val()+"-"+$("#apday").val()+"&id_usr=' . $user->id . '&actioncode="+$("select#actioncode").val();
+////						setTime(link);
+//							CalcP($("#apyear").val()+"-"+$("#apmonth").val()+"-"+$("#apday").val(), $("#exec_time").val(), '.$user->id.');
+//						}else
+//							CalcP2();
 					}
 				})
 			}else{
@@ -2159,7 +2207,9 @@ print '
 
 
         }
-
+		function ApHourChanged(){
+			CalcP($("#apyear").val()+"-"+$("#apmonth").val()+"-"+$("#apday").val()+" "+$("#aphour").val()+":"+$("#apmin").val(), $("#exec_time").val(), '.$user->id.');
+		}
         function ActionCodeChanged(){
             if(!$("#ap").val()){
                 var date = new Date();
@@ -2178,7 +2228,8 @@ print '
 //                document.getElementById("aphour").value=formatDate(new Date(), "HH");
 //                document.getElementById("apmin").value=formatDate(new Date(), "mm");
 //            }
-            dpChangeDay("ap","dd.MM.yyyy");
+//            dpChangeDay("actioncode","dd.MM.yyyy");
+			setP2(0);
 //            if($("#actioncode").val() != 0)
 //            	setP2();
             $("#redirect_actioncode").val($("input#actioncode").val());

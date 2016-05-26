@@ -101,6 +101,12 @@
 </div>
 
 <script>
+    $('textarea').keydown(function(e){
+        if(e.keyCode == 9 &&e.target.value.length == 0){
+            e.target.value='-';
+        }
+//        console.log(e.target, e.keyCode);
+    })
     jQuery(function($) {
         $.mask.definitions['~']='[+-]';
         $('#date_next_action').mask('99.99.9999');
@@ -115,6 +121,7 @@
 </script>
 <script type="text/javascript">
     $(document).ready(function(){
+        $('#said').focus();
         $("#ActionList").width(800);
         $("#addaction").width(800);
         $(".tabBar").width(800);
@@ -135,6 +142,12 @@
 
     function save(){
         if($('#proposed_id').val() === undefined || confirm('Зберегти інформацію?')) {
+            var valid = true;
+            if('sale' == '<?=$user->respon_alias?>' || 'sale' == '<?=$user->respon_alias2?>')
+                valid=validData();
+            console.log(valid);
+            if(!valid)
+                return;
             var search = location.search.substr(1);
             var param = {};
             search.split('&').forEach(function (item) {
@@ -160,7 +173,29 @@
 //        alert('test');
         }
     }
+    function validData(){
+        var text = $('#addaction').find('textarea');
+        var valid = true;
+        for(var i=0; i<text.length; i++){
+            if(text[i].value.length == 0){
+                text[i].style.borderColor =  'red';
+                if(valid == true) {
+                    text[i].focus();
+                    valid = false;
+                    console.log(text[i], text[i].value);
+                }
+            }else{
+                text[i].style.borderColor =  'rgba(0, 0, 0, 0.3) rgba(0, 0, 0, 0.3) rgba(0, 0, 0, 0.2)';
+            }
+        }
+        return valid;
+    }
     function saveandcreate(){
+        var valid = true;
+        if('sale' == '<?=$user->respon_alias?>' || 'sale' == '<?=$user->respon_alias2?>')
+            valid=validData();
+        if(!valid)
+            return;
         var search = location.search.substr(1);
         var param = {};
         search.split('&').forEach(function(item){
@@ -174,7 +209,7 @@
         if(param.action == 'addonlyresult')
             $("#action").val('addonlyresult_and_create');
         else if(param.action == 'useraction')
-            $("#action").val('saveuseraction');
+            $("#action").val('saveuseraction_and_create');
         else if(param.onlyresult !== undefined)
             $("#action").val('updateonlyresult_and_create');
         else
