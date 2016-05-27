@@ -107,6 +107,8 @@ function getParameterByName(name, url) {
     return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
 function SaveResultProporition(contactid, lastID){
+    //console.log($('#actionid').val());
+    //return;
     if($('#cansaid').attr('checked') || $('#cansaid').attr('checked') === undefined && confirm('Вдалося озвучити пропозицію?')) {
         var date = new Date();
         var sDate = date.getDate() + '.' + date.getMonth() + '.' + date.getFullYear();

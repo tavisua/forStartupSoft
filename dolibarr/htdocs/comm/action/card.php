@@ -29,7 +29,7 @@
 require '../../main.inc.php';
 
 //llxHeader('', $langs->trans("AddAction"), $help_url);
-
+//
 //echo '<pre>';
 //var_dump($_REQUEST);
 //echo '</pre>';
@@ -324,7 +324,6 @@ $extralabels=$extrafields->fetch_name_optionals_label($object->table_element);
 //die();
 // Initialize technical object to manage hooks of thirdparties. Note that conf->hooks_modules contains array array
 $hookmanager->initHooks(array('actioncard','globalcard'));
-
 
 /*
  * Actions
@@ -1014,7 +1013,6 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
     $formactions->select_type_actions(GETPOST("actioncode")?GETPOST("actioncode"):$object->type_code, "actioncode","systemauto");
     print '</td></tr>';
 //	}
-
     // Full day
     print '<tr><td>'.$langs->trans("EventOnFullDay").'</td><td><input type="checkbox" id="fullday" name="fullday" '.(GETPOST('fullday')?' checked="checked"':'').'></td></tr>';
     $period='';
@@ -1071,9 +1069,8 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 //						mktime($datep->format('H'),$datep->format('i'),$datep->format('s'),$datep->format('m'),$datep->format('d'),$datep->format('Y')))/60;
 				$minutes = $newAction->GetExecTime($obj->code);
 //				var_dump($datef->format('Y-m-d H:i:s'),$datep->format('Y-m-d H:i:s'));
-//				die();
-				$start = $newAction->GetFreeTime($datep->format('Y-m-d'),$user->id, $minutes, 0,
-							mktime($datep->format('H'),$datep->format('i'),$datep->format('s'),$datep->format('m'),$datep->format('d'),$datep->format('Y')));
+				$start = $newAction->GetFreeTime($datep->format('Y-m-d H:i:s'),$user->id, $minutes, 0);
+
 				$datep = new DateTime($start);
 				$sec = mktime($datep->format('H'),$datep->format('i'),$datep->format('s'),$datep->format('m'),$datep->format('d'),$datep->format('Y'));
 				$sec += $minutes*60;

@@ -222,8 +222,10 @@ class ActionComm extends CommonObject
     }
     function GetFreeTime($inputdate, $id_usr, $minutes, $prioritet = 0){
         if(empty($prioritet))$prioritet = 0;
-
-        $starttime = $inputdate.":00";
+//        var_dump(substr_count($inputdate, ':'));
+//        die();
+        if(substr_count($inputdate, ':') == 1)
+            $starttime = $inputdate.":00";
         $date = new DateTime($inputdate);
 
 

@@ -6,7 +6,10 @@
  * Time: 13:45
  */
 require '../../main.inc.php';
-
+//echo '<pre>';
+//var_dump($_REQUEST);
+//echo '</pre>';
+//die();
 
 if(isset($_POST['action']) && ($_POST['action'] == 'update' || $_POST['action'] == 'update_and_create'
         || $_POST['action'] == 'addonlyresult' || $_POST['action'] == 'updateonlyresult'
@@ -31,10 +34,7 @@ if($_GET['action'] == 'addonlyresult' || $_GET['action'] == 'addonlyresult_and_c
     llxHeader('',$langs->trans("EditAction"),$help_url);
 $action_id = 0;
 $socid = 0;
-//echo '<pre>';
-//var_dump($_REQUEST);
-//echo '</pre>';
-//die();
+
 if (isset($_REQUEST["action_id"])) {
     $action_id = $_REQUEST["action_id"];
     $sql = "select * from llx_societe_action where 1 ";
@@ -177,7 +177,8 @@ function getLastContact(){
 	and `llx_actioncomm`.`code` in (select `code` from 	llx_c_actioncomm where type in ('user','system'))
 	and percent <> 100
 	and `llx_actioncomm`.`code` not in ('AC_CURRENT','AC_GLOBAL')
-	and date(`llx_actioncomm`.`datep`)<=date(Now())";
+	and date(`llx_actioncomm`.`datep`)<=date(Now())
+    and `llx_actioncomm`.`active` = 1";
 	$res = $db->query($sql);
     if(!$res){
         dol_print_error($db);
@@ -353,7 +354,7 @@ function saveaction($rowid, $createaction = false){
     }
 //    llxHeader('','test',null);
 //    echo '<pre>';
-//    var_dump($sql);
+//    var_dump($_REQUEST['actionid']);
 //    echo '</pre>';
 //    die();
 
@@ -404,7 +405,6 @@ function saveaction($rowid, $createaction = false){
 //            die();
         }
     }
-
     if(!$createaction) {
         if(substr($_REQUEST['backtopage'], 0, 1) == "'" && substr($_REQUEST['backtopage'], strlen($_REQUEST['backtopage'])-1, 1) == "'")
             $backtopage = substr($_REQUEST['backtopage'], 1, strlen($_REQUEST['backtopage']) - 2);
