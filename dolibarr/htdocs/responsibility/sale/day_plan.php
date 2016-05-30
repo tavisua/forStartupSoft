@@ -78,10 +78,15 @@ function ShowTable(){
 
 
     foreach($actions as $action){
+//        echo '<pre>';
+//        var_dump($action);
+//        echo '</pre>';
+//        die();
+        $obj = (object)$action;
+        $date = new DateTime($obj->datep);
+        $mkDate = dol_mktime(0,0,0,$date->format('m'),$date->format('d'),$date->format('Y'));
         if($action['id_usr']==$user->id){
-            $obj = (object)$action;
-            $date = new DateTime($obj->datep);
-            $mkDate = dol_mktime(0,0,0,$date->format('m'),$date->format('d'),$date->format('Y'));
+
             $userActions[$obj->datep][$obj->code]++;
 
             if($mkDate >= $mkToday) { //Future actions
@@ -115,7 +120,7 @@ function ShowTable(){
         }
     }
 //    echo '<pre>';
-//    var_dump($maxActtions);
+//    var_dump($CustActtions);
 //    echo '</pre>';
 //    die();
     $table = '<tbody id="reference_body">';
