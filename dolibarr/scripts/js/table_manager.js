@@ -28,16 +28,19 @@ function setTime(link){
 //}
 function ConfirmExec(id){
     var src = $('img#confirm' + id).attr('src');
-    var img_src = (src.substr(src.length-'uncheck.png'.length, 'uncheck.png'.length));
-    if(img_src =='uncheck.png' &&  confirm('Установити відмітку про виконання роботи?')) {
-        $('img#confirm' + id).off();
-        for (var i = src.length; i > 0; i--) {
-            if (src.substr(i, 1) == "/") {
-                src = src.substr(0, i + 1) + 'Check.png';
-                break;
+    if(src !== undefined)
+        var img_src = (src.substr(src.length-'uncheck.png'.length, 'uncheck.png'.length));
+    if((src === undefined || img_src =='uncheck.png') &&  confirm('Установити відмітку про виконання роботи?')) {
+        if(src !== undefined) {
+            $('img#confirm' + id).off();
+            for (var i = src.length; i > 0; i--) {
+                if (src.substr(i, 1) == "/") {
+                    src = src.substr(0, i + 1) + 'Check.png';
+                    break;
+                }
             }
+            $('img#confirm' + id).attr('src', src);
         }
-        $('img#confirm' + id).attr('src', src);
         var link = "http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=confirm_exec&rowid="+id;
         $.ajax({
             url: link,
@@ -74,24 +77,33 @@ function DuplicateAction(id){
         $('#addaction').submit();
     }
 }
-function ConfirmReceived(id){
+function ConfirmReceived(id) {
     var src = $('img#confirm' + id).attr('src');
-    var img_src = (src.substr(src.length-'uncheck.png'.length, 'uncheck.png'.length));
-    if(img_src =='uncheck.png' &&  confirm('Прийняти в роботу?')) {
-        $('img#confirm' + id).off();
-        for (var i = src.length; i > 0; i--) {
-            if (src.substr(i, 1) == "/") {
-                src = src.substr(0, i + 1) + 'Check.png';
-                break;
+    //console.log(src);
+    //return;
+    var img_src = '';
+    if (src !== undefined) {
+        img_src = (src.substr(src.length - 'uncheck.png'.length, 'uncheck.png'.length));
+    }
+    if(img_src.length==0 || img_src =='uncheck.png' &&  confirm('Прийняти в роботу?')) {
+        if (src !== undefined) {
+            $('img#confirm' + id).off();
+            for (var i = src.length; i > 0; i--) {
+                if (src.substr(i, 1) == "/") {
+                    src = src.substr(0, i + 1) + 'Check.png';
+                    break;
+                }
             }
+            $('img#confirm' + id).attr('src', src);
         }
-        $('img#confirm' + id).attr('src', src);
         var link = "http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=received_action&rowid="+id;
+        //console.log(link);
+        //return;
         $.ajax({
             url: link,
             cache: false,
             success: function(html){
-                console.log('received action');
+                console.log(html, 'received action');
             }
         })
     }
@@ -453,46 +465,101 @@ function delete_answer(answer_id){
         console.log($.cookie('answerId'), answerId.toString());
     }
 }
-    $(window).click(function(){
-        $('#timer').text('0сек');
-        $('#backgroundtimer').css('background', 'url(http://'+location.host+'/dolibarr/htdocs/theme/eldy/img/green_timer.png)');
-        $('#timer').css('color', '#ffffff');
-    })
-    $(window).keydown(function(){
-        $('#timer').text('0сек');
-        $('#backgroundtimer').css('background', 'url(http://'+location.host+'/dolibarr/htdocs/theme/eldy/img/green_timer.png)');
-        $('#timer').css('color', '#ffffff');
-    })
-    function Timer(){
-        var sec = $('#timer').text().substr(0, $('#timer').text().length-1);
+$(window).click(function(){
+    $('#timer').text('0сек');
+    $('#backgroundtimer').css('background', 'url(http://'+location.host+'/dolibarr/htdocs/theme/eldy/img/green_timer.png)');
+    $('#timer').css('color', '#ffffff');
+})
+$(window).keydown(function(){
+    $('#timer').text('0сек');
+    $('#backgroundtimer').css('background', 'url(http://'+location.host+'/dolibarr/htdocs/theme/eldy/img/green_timer.png)');
+    $('#timer').css('color', '#ffffff');
+})
+function Timer(){
+    var sec = $('#timer').text().substr(0, $('#timer').text().length-1);
 
-        sec = parseInt(sec)+1;
-        $('#timer').text(sec + 'с');
-        if(sec<10){
-            $('#backgroundtimer').css('background', 'url(http://'+location.host+'/dolibarr/htdocs/theme/eldy/img/green_timer.png)');
-            $('#timer').css('color', '#ffffff');
-        }else if(sec>=10&&sec<15){
-            $('#backgroundtimer').css('background', 'url(http://'+location.host+'/dolibarr/htdocs/theme/eldy/img/yelow_timer.png)');
-            $('#timer').css('color', '#000000');
-        }else {
-            $('#backgroundtimer').css('background', 'url(http://' + location.host + '/dolibarr/htdocs/theme/eldy/img/red_timer.png)');
-            $('#timer').css('color', '#ffffff');
-        }
-//        if(sec<=15) {
-//
-////            $('#timer').css('width', sec*100/15+'%');
-////            if(sec<10){
-////                $('#timer').css('background-color', '#008000');
-////            }else if(sec>=10&&sec<=15){
-////                $('#timer').css('background-color', '#fbef7e');
-////            }
-//        }else {
-////            $('#timer').css('background-color', 'red');
-////            $('#timer').text(sec+'сек бездіяльності');
-////            return false;
-//        }
-        setTimeout(Timer, 1000);
+    sec = parseInt(sec)+1;
+    $('#timer').text(sec + 'с');
+    if(sec<10){
+        $('#backgroundtimer').css('background', 'url(http://'+location.host+'/dolibarr/htdocs/theme/eldy/img/green_timer.png)');
+        $('#timer').css('color', '#ffffff');
+    }else if(sec>=10&&sec<15){
+        $('#backgroundtimer').css('background', 'url(http://'+location.host+'/dolibarr/htdocs/theme/eldy/img/yelow_timer.png)');
+        $('#timer').css('color', '#000000');
+    }else {
+        $('#backgroundtimer').css('background', 'url(http://' + location.host + '/dolibarr/htdocs/theme/eldy/img/red_timer.png)');
+        $('#timer').css('color', '#ffffff');
     }
+    setTimeout(Timer, 1000);
+}
+function getMessage(){
+    setTimeout(function(){
+        $.ajax({
+            url:'/dolibarr/htdocs/day_plan.php?action=getnewactions',
+            cache:false,
+            success:function(result){
+                if(result == '0')
+                    return;
+                var actions = JSON.parse(result);
+                //console.log(Object.keys(actions).length);
+                for(var i = 0; i<Object.keys(actions).length; i++){
+                    var key = Object.keys(actions)[i];
+                    console.log(actions[key]['id'], actions[key]['code']=='AC_CURRENT', actions[key]['code']=='AC_CURRENT'?'Поточне':'Глобальне');
+                    var code = "'"+actions[key]['code']+"'";
+                    var html = '<div onclick="RedirectToTask('+actions[key]['id']+', '+code+')" id="mes'+i+'" title="'+(actions[key]['code']=='AC_CURRENT'?'Поточне':'Глобальне')+'" class="message '+(actions[key]['code']=='AC_CURRENT'?'current':'global')+'_taskitem" style="position: absolute; height: auto;">' +
+                        ' <div style="width: 150px;height: 40px;">    ' +
+                        '<table style="width: 150px;height: 40px">' +
+                        '    <tr>';
+                        if(actions[key]['percent'] != '99')
+                            html +='        <td><img class="task_icon" src="/dolibarr/htdocs/theme/eldy/img/menus/'+(actions[key]['code']=='AC_CURRENT'?'current':'global')+'_task.png"></td>';
+                        else
+                            html +='        <td><img class="task_icon" src="/dolibarr/htdocs/theme/eldy/img/BWarning.png"></td>';
+                    html +=
+                        '        <td class="small_size">'+actions[key]['lastname']+'</br>'+actions[key]['datec']+'</td>' +
+                        '    </tr>' +
+                        '    </table>' +
+                        '</div>'+
+                        '</div>';
+                    $('#mainbody').append(html);
+                    $('#mes'+i).offset({left:$(window).width()-160});
+                    document.getElementById('mes'+i).style.bottom = $('.message').length*50+'px';
+                }
+                //soundPlay();
+            }
+        })
+    }, 5000);
+
+    //for(var c = 0; c<task.length; c++){
+    //    console.log(task[c]);
+    //}
+}
+function RedirectToTask(id, code){
+        //console.log(code, code=='AC_GLOBAL');
+        //    return;
+    var link = "http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=received_action&rowid="+id;
+    $.ajax({
+        url: link,
+        cache: false,
+        success: function(html){
+
+            var mainmenu = '';
+            var idmenu = '';
+            if(code=='AC_GLOBAL') {
+                mainmenu = 'global_task';
+                idmenu = 10421;
+            }else if(code=='AC_CURRENT') {
+                mainmenu = 'current_task';
+                idmenu = 10423;
+            }
+            location.href = '/dolibarr/htdocs/comm/action/chain_actions.php?action_id='+id+'&mainmenu='+mainmenu+'&idmenu='+idmenu;
+        }
+    })
+}
+function soundPlay() {
+  var audio = new Audio(); // Создаём новый элемент Audio
+  audio.src = '/dolibarr/htdocs/audio/ICQ.mp3'; // Указываем путь к звуку "клика"
+  audio.autoplay = true; // Автоматически запускаем
+}
 function preparedorders(){
     //alert($('#questions_form').find('input#order_id').val());
     if($('#prepared_order').val() == 1){

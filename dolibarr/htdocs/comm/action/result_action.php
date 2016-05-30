@@ -18,6 +18,9 @@ if(isset($_POST['action']) && ($_POST['action'] == 'update' || $_POST['action'] 
 //    die();
 
     saveaction($_POST['rowid'], (substr($_POST['action'],strlen($_POST['action'])-strlen('_and_create') )== '_and_create'));
+}elseif($_REQUEST["action"]=='getTypeNotification') {
+    echo getTypeNotification();
+    exit;
 }
 if($_POST['action'] == 'saveuseraction' || $_POST['action'] == 'saveuseraction_and_create'){//Зберігаю результати перемовин зі співробітником
     saveuseraction($_POST['rowid'] );
@@ -53,9 +56,11 @@ if(!isset($_REQUEST["onlyresult"])||empty($_REQUEST["onlyresult"])) {
     $socid = $object->socid;
 
 //    echo '<pre>';
-//    var_dump($object);
+//    var_dump('test');
 //    echo '</pre>';
 //    die();
+
+
 }elseif($_REQUEST["action"]=='edituseration'){
 
 
@@ -63,7 +68,6 @@ if(!isset($_REQUEST["onlyresult"])||empty($_REQUEST["onlyresult"])) {
     $object = $db->fetch_object($res);
     $socid = $object->socid;
 }
-
 $head=actions_prepare_head($object);
 if($_GET['action'] == 'addonlyresult' || $_GET['action'] == 'useraction')
     print_fiche_titre($langs->trans("AddResultAction"));
@@ -118,20 +122,23 @@ if(!($_GET['action'] == 'addonlyresult' || (isset($_REQUEST["onlyresult"])&&$_RE
         dol_fiche_head($head, 'event_desc', $langs->trans("Action"), 0, 'action');
     $contactlist='';
 }else {
-    $contactid = empty($object->contactid)?$_GET['contactid']:$object->contactid;
-    $lastactiveaction = getLastContact();
-    if(empty($contactid))
-        $contactid = count($lastactiveaction)>0?$lastactiveaction['contactid']:1;
-    $form = new Form($db);
-    $contactlist = '<tr><td>Контактне лице</br>'.$form->selectcontacts(empty($_GET['socid'])?$object->socid:$_GET['socid'], $contactid, 'contactid', 1).'</td></tr>';
-    $productname = explode(',', $_REQUEST['productsname']);
-    $needlist = explode(',', $_REQUEST['need']);
-    $object->resultaction['answer']='';
-    $action_id = count($lastactiveaction)>0?$lastactiveaction['actionid']:0;
-    for($i=0; $i<count($productname);$i++){
-        $object->resultaction['answer'].=$productname[$i].' '.(empty($needlist[$i])?'не потрібно':$needlist[$i]).'; ';
+    if(!in_array($_REQUEST['actioncode'], array('AC_GLOBAL', 'AC_CURRENT'))) {
+        $contactid = empty($object->contactid) ? $_GET['contactid'] : $object->contactid;
+        $lastactiveaction = getLastContact();
+        if (empty($contactid))
+            $contactid = count($lastactiveaction) > 0 ? $lastactiveaction['contactid'] : 1;
+        $form = new Form($db);
+        $contactlist = '<tr><td>Контактне лице</br>' . $form->selectcontacts(empty($_GET['socid']) ? $object->socid : $_GET['socid'], $contactid, 'contactid', 1) . '</td></tr>';
+        $productname = explode(',', $_REQUEST['productsname']);
+        $needlist = explode(',', $_REQUEST['need']);
+        $object->resultaction['answer'] = '';
+        $action_id = count($lastactiveaction) > 0 ? $lastactiveaction['actionid'] : 0;
+        for ($i = 0; $i < count($productname); $i++) {
+            $object->resultaction['answer'] .= $productname[$i] . ' ' . (empty($needlist[$i]) ? 'не потрібно' : $needlist[$i]) . '; ';
+        }
     }
 }
+
 //echo '<pre>';
 //var_dump($action_id);
 //echo '</pre>';
@@ -169,6 +176,18 @@ function getUserName($id_usr){
         dol_print_error($db);
     $obj = $db->fetch_object($res);
     return $obj->lastname;
+}
+function getTypeNotification(){
+    global $db;
+    $sql = "select typenotification, `office_phone`, `llx_actioncomm`.`fk_user_author` from llx_actioncomm
+        left join llx_user on llx_user.rowid = `llx_actioncomm`.`fk_user_author`
+        where id=".$_REQUEST['action_id'];
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $obj = $db->fetch_object($res);
+    $result = array('typenotification'=>$obj->typenotification, 'phonenumber'=>$obj->office_phone, 'author_id'=>$obj->fk_user_author);
+    return json_encode($result);
 }
 function getLastContact(){
     global $db;
@@ -312,7 +331,7 @@ function saveaction($rowid, $createaction = false){
 //    die();
     if(empty($rowid)){
         $sql='insert into llx_societe_action(`action_id`,`proposed_id`, `socid`, `contactid`, `said`,`answer`,
-          `argument`,`said_important`,`result_of_action`,`work_before_the_next_action`,`id_usr`, `new`) values(';
+          `argument`,`said_important`,`result_of_action`,`work_before_the_next_action`,`id_usr`) values(';
         if(empty($_REQUEST['actionid'])) $sql.='null,';
         else $sql.=$_REQUEST['actionid'].',';
         if(empty($_REQUEST['proposed_id'])) $sql.='null,';
@@ -338,7 +357,7 @@ function saveaction($rowid, $createaction = false){
 //            $value = $date->format('Y-m-d');
 //            $sql .= '"' .$value . '",';
 //        }
-        $sql .= $user->id.", 1)";
+        $sql .= $user->id.")";
     }else {
         $sql = 'update llx_societe_action set ';
         $sql.='`contactid`='.(empty($_REQUEST['contactid'])?'null':$_REQUEST['contactid']).', ';
@@ -348,7 +367,6 @@ function saveaction($rowid, $createaction = false){
         $sql.='`said_important`='.(empty($_REQUEST['said_important'])?'null':"'".$db->escape($_REQUEST['said_important'])."'").', ';
         $sql.='`result_of_action`='.(empty($_REQUEST['result_of_action'])?'null':"'".$db->escape($_REQUEST['result_of_action'])."'").', ';
         $sql.='`work_before_the_next_action`='.(empty($_REQUEST['work_before_the_next_action'])?'null':"'".$db->escape($_REQUEST['work_before_the_next_action'])."'").', ';
-        $sql.='`new`=1, ';
         $sql.='`id_usr`='.$user->id.' ';
         $sql.='where rowid='.$rowid;
     }
@@ -383,7 +401,7 @@ function saveaction($rowid, $createaction = false){
                 $complete = '99';
         }
 
-        $sql = 'update llx_actioncomm set dateconfirm = case when dateconfirm is null then Now() else dateconfirm end, datea= case when datea is null then Now() else datea end ' . (in_array($objCode->code, $TypeAction) ? ', percent ='.$complete : ', percent = 100') . '
+        $sql = 'update llx_actioncomm set `new` = 1, dateconfirm = case when dateconfirm is null then Now() else dateconfirm end, datea= case when datea is null then Now() else datea end ' . (in_array($objCode->code, $TypeAction) ? ', percent ='.$complete : ', percent = 100') . '
             where llx_actioncomm.id in (select llx_societe_action.action_id from `llx_societe_action` where 1
             and llx_societe_action.rowid = ' . $rowid . ')';
 //    var_dump($sql);

@@ -83,7 +83,7 @@ $hookmanager->initHooks(array('admin'));
 // Put here declaration of dictionaries properties
 
 // Sort order to show dictionary (0 is space). All other dictionaries (added by modules) will be at end of this.
-$taborder=array(26,27,28,29,30,31,32,33,34,35,6,9,36,37,38,39,0,40,41,42,
+$taborder=array(26,27,28,29,30,31,32,33,34,35,6,9,36,37,38,39,0,40,41,42,43,
 		0,3,2,0,1,8,19,16,0,5,11,0,0,10,23,12,13,0,14,0,7,17,0,22,20,18,21,0,15,0,24,0,25);
 
 // Name of SQL tables of dictionaries
@@ -130,6 +130,7 @@ $tabname[39]= MAIN_DB_PREFIX."c_proposition";
 $tabname[40]= MAIN_DB_PREFIX."c_groupoforgissues";
 $tabname[41]= MAIN_DB_PREFIX."c_actiontoaddress";
 $tabname[42]= MAIN_DB_PREFIX."c_callstatus";
+$tabname[43]= MAIN_DB_PREFIX."c_typenotification";
 
 // Dictionary labels
 $tablib=array();
@@ -175,6 +176,7 @@ $tablib[39]= "PropositionDict";
 $tablib[40]= "GroupOfOrganizationalIssues";
 $tablib[41]= "ActionToAddress";
 $tablib[42]= "CallStatus";
+$tablib[43]= "TypeNotification";
 
 // Requests to extract data
 $tabsql=array();
@@ -239,6 +241,7 @@ $tabsql[41]= "select `llx_c_actiontoaddress`.`rowid`,  `llx_c_groupoforgissues`.
 	left join `llx_c_groupoforgissues` on `llx_c_groupoforgissues`.`rowid` = `llx_c_actiontoaddress`.`fk_groupissues`
 	left join `subdivision` on `subdivision`.`rowid` = `llx_c_actiontoaddress`.`fk_subdivision`";
 $tabsql[42]= "select rowid, status, active from ".MAIN_DB_PREFIX."c_callstatus";
+$tabsql[43]= "select rowid, type, code, active from ".MAIN_DB_PREFIX."c_typenotification";
 // Criteria to sort dictionaries
 $tabsqlsort=array();
 $tabsqlsort[1] ="country ASC, code ASC";
@@ -283,6 +286,7 @@ $tabsqlsort[39]="rowid ASC";
 $tabsqlsort[40]="rowid ASC";
 $tabsqlsort[41]="rowid ASC";
 $tabsqlsort[42]="rowid ASC";
+$tabsqlsort[43]="rowid ASC";
 
 // Nom des champs en resultat de select pour affichage du dictionnaire
 $tabfield=array();
@@ -328,6 +332,7 @@ $tabfield[39]= "LineActiveCustomer,postname,prioritet,square,begin,end,propositi
 $tabfield[40]= "issues";
 $tabfield[41]= "fk_groupissues,fk_subdivision,action,responsible,directly_responsible";
 $tabfield[42]= "status";
+$tabfield[43]= "type,code";
 
 // Nom des champs d'edition pour modification d'un enregistrement
 $tabfieldvalue=array();
@@ -373,6 +378,7 @@ $tabfieldvalue[39]= "LineActiveCustomer,postname,prioritet,square,begin,end,prop
 $tabfieldvalue[40]= "issues";
 $tabfieldvalue[41]= "fk_groupissues,fk_subdivision,action,responsible,directly_responsible,active";
 $tabfieldvalue[42]= "status";
+$tabfieldvalue[43]= "type,code";
 
 
 
@@ -420,6 +426,7 @@ $tabfieldinsert[39]= "fk_lineactive,fk_post,prioritet,square,begin,end,text,desc
 $tabfieldinsert[40]= "issues";
 $tabfieldinsert[41]= "fk_groupissues,fk_subdivision,action,responsible,directly_responsible";
 $tabfieldinsert[42]= "status";
+$tabfieldinsert[43]= "type,code";
 
 // Nom du rowid si le champ n'est pas de type autoincrement
 // Example: "" if id field is "rowid" and has autoincrement on
@@ -467,6 +474,7 @@ $tabrowid[39]= "rowid";
 $tabrowid[40]= "rowid";
 $tabrowid[41]= "rowid";
 $tabrowid[42]= "rowid";
+$tabrowid[43]= "rowid";
 
 // Condition to show dictionary in setup page
 $tabcond=array();
@@ -512,6 +520,7 @@ $tabcond[39]= true;
 $tabcond[40]= true;
 $tabcond[41]= true;
 $tabcond[42]= true;
+$tabcond[43]= true;
 
 // List of help for fields
 $tabhelp=array();
@@ -557,6 +566,7 @@ $tabhelp[39] = array();
 $tabhelp[40] = array();
 $tabhelp[41] = array();
 $tabhelp[42] = array();
+$tabhelp[43] = array();
 
 // List of check for fields (NOT USED YET)
 $tabfieldcheck=array();
@@ -602,6 +612,7 @@ $tabfieldcheck[39] = array();
 $tabfieldcheck[40] = array();
 $tabfieldcheck[41] = array();
 $tabfieldcheck[42] = array();
+$tabfieldcheck[43] = array();
 
 // Complete all arrays with entries found into modules
 complete_dictionary_with_modules($taborder,$tabname,$tablib,$tabsql,$tabsqlsort,$tabfield,$tabfieldvalue,$tabfieldinsert,$tabrowid,$tabcond,$tabhelp,$tabfieldcheck);

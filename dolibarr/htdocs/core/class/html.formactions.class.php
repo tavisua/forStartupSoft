@@ -56,6 +56,19 @@ class FormActions
      *  @param	string	$onlyselect		0=Standard, 1=Hide percent of completion and force usage of a select list, 2=Same than 1 and add "Incomplete (Todo+Running)
      * 	@return	void
      */
+	function getTypeNotification($selected = 'system'){
+        global $db,$user,$langs;
+        $sql = "select `rowid`,`type`,`code` from llx_c_typenotification where active = 1";
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+        $out = '<select name="typenotification" id="select_typenotification" class="combobox">';
+        while($obj = $db->fetch_object($res)){
+			$out .= '<option value="'.$obj->code.'" '.($selected == $obj->code?'selected="selected"':'').'>'.$obj->type.'</option>';
+        }
+		$out .= '</select>';
+		print $out;
+    }
 	function select_groupoftask($formname, $respon_id, $selected=0){
 		$sql = '(select rowid, name
 			from `llx_c_groupoftask`

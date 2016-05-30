@@ -100,7 +100,8 @@ if($_GET['action']=='get_exectime'){
     exit();
 }elseif($_GET['action']=='received_action'){
     global $db;
-    $sql = 'update llx_actioncomm set dateconfirm = Now(), percent=0 where id='.$_GET['rowid'];
+    $sql = 'update llx_actioncomm set `dateconfirm` = Now(), `new`=0, `percent`=0 where id='.$_GET['rowid'];
+//	die($sql);
     $res = $db->query($sql);
     if(!$res){
         var_dump($sql);
@@ -479,6 +480,7 @@ if ($action == 'add')
 		$object->period = GETPOST("selperiod");
 		$object->parent_id= GETPOST("parent_id");
 		$object->groupoftask= GETPOST("groupoftask");
+		$object->typenotification= GETPOST("typenotification");
 //        die($object->parent_id);
 		if (! GETPOST('label'))
 		{
@@ -700,6 +702,7 @@ if ($action == 'update')
 		$object->location    = GETPOST('location');
 		$object->socid       = GETPOST("socid");
         $object->groupoftask = GETPOST('groupoftask');
+		$object->typenotification= GETPOST("typenotification");
 		$object->period 	 = GETPOST("selperiod");
 
         $object->contactid   = GETPOST("contactid",'int');
@@ -1193,6 +1196,11 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 	}
 
 	print '</td></tr>';
+	//type notification
+	print '<tr id="typenotification" style="display: none"><td width="10%">'.$langs->trans("TypeNotification").'</td>';
+	print '<td>';
+	print $formactions->getTypeNotification();
+	print '</td></tr>';
 	    // Period
 
 //		print '<tr id="period"><td>'.$langs->trans("Period").'</td><td colspan="3"></td></tr>';
@@ -1619,7 +1627,12 @@ if ($id > 0)
 			}
 			$formactions->select_groupoftask('groupoftask', $respon, $object->groupoftask);
 		}
-	print '</td></tr>';
+		//type notification
+		print '<tr id="typenotification" style="display: none"><td width="10%">'.$langs->trans("TypeNotification").'</td>';
+		print '<td>';
+		print $formactions->getTypeNotification($object->typenotification);
+		print '</td></tr>';
+		print '</td></tr>';
 //		var_dump($datepreperform);
 //		die();
 		if(empty($datepreperform)){
@@ -2233,8 +2246,10 @@ print '
 //            console.log("showperiod", $("select#actioncode").val() == "AC_CURRENT");
             if($("select#actioncode").val() == "AC_GLOBAL" || $("select#actioncode").val() == "AC_CURRENT"){
                 $("#period").show();
+                $("#typenotification").show();
             }else{
                 $("#period").hide();
+                $("#typenotification").hide();
 			}
 
         }

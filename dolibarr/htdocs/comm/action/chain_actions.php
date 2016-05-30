@@ -21,7 +21,7 @@ switch($_REQUEST['mainmenu']){
         $actioncode = 'AC_CONVERSATION';
     }
 }
-
+$author_id = getAuthorID($_GET['action_id']);
 $Action = $langs->trans($Action);
 llxHeader("",$Action,"");
 print_fiche_titre($Action);
@@ -35,7 +35,15 @@ include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/respo
 //include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/eldy/responsibility/sale/action/chain_action.html';
 llxFooter();
 exit();
-
+function getAuthorID($action_id){
+    global $db;
+    $sql = "select `llx_actioncomm`.`fk_user_author` from `llx_actioncomm` where id = ".$action_id;
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $obj = $db->fetch_object($res);
+    return $obj->fk_user_author;
+}
 function ShowConversation(){
     global $db, $langs, $conf;
     
@@ -61,7 +69,7 @@ function ShowActionTable(){
         left join `llx_societe_contact` on `llx_societe_contact`.rowid=`llx_actioncomm`.fk_contact
         left join `llx_societe_action` on `llx_actioncomm`.id = `llx_societe_action`.`action_id`
         left join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.rowid
-        where id in ('.implode(",", $chain_actions).') order by datep desc';
+        where id in ('.implode(",", $chain_actions).') order by datep desc, datec desc';
 
 //    die($sql);
     $res = $db->query($sql);

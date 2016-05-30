@@ -17,7 +17,7 @@ foreach($search as $elem) {
 $page = isset($_GET['page'])?$_GET['page']:1;
 $per_page = isset($_GET['per_page'])?$_GET['per_page']:30;
 
-$regions = array();
+$regions = array(0);
 
 $sql = "select fk_id from llx_user_regions where fk_user=".$user->id." and active = 1";
 $res = $db->query($sql);

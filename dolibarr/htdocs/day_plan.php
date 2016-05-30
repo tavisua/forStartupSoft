@@ -11,8 +11,12 @@
 //die();
 require $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/main.inc.php';
 if(isset($_REQUEST['action'])){
-    global $db;
+    global $db,$user;
     switch($_REQUEST['action']) {
+        case 'getnewactions':{
+            echo getNewAcctions($user->id);
+            exit();
+        }
         case 'getdateaction':{
             $typeaction = '';
             if(substr($_REQUEST['type_action'], 0, strlen('current_'))=='current_')
@@ -111,7 +115,41 @@ if(isset($_REQUEST['action'])){
 header("Location: http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/responsibility/".$user->respon_alias."/day_plan.php?idmenu=10419&mainmenu=plan_of_days&leftmenu=");
 
 exit();
-
+function getNewAcctions($id_usr){
+    global $db, $user;
+    $sql = "select `llx_actioncomm`.`id`, `llx_actioncomm`.`percent`, `llx_actioncomm`.`code`, `llx_actioncomm`.`datec`, `llx_user`.`lastname` from llx_actioncomm
+        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
+        left join `llx_user` on `llx_user`.`rowid` = `llx_actioncomm`.`fk_user_author`
+        where new = 1
+        and `llx_actioncomm_resources`.`fk_element` = ".$id_usr."
+        and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`
+        and `llx_actioncomm`.`percent` < 99
+        union
+        select `llx_actioncomm`.`id`, `llx_actioncomm`.`percent`, `llx_actioncomm`.`code`, `llx_actioncomm`.`datea`, `llx_user`.`lastname`  from llx_actioncomm
+        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
+        left join `llx_user` on `llx_user`.`rowid` = `llx_actioncomm_resources`.`fk_element`
+        where `new` = 1
+        and `llx_actioncomm`.`fk_user_author` = ".$id_usr."
+        and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`
+        and `llx_actioncomm`.`percent` = 99";
+    $res = $db->query($sql);
+//    echo '<pre>';
+//    var_dump($sql);
+//    echo '</pre>';
+//    die();
+    if(!$res)
+        dol_print_error($db);
+    if($db->num_rows($res) == 0)
+        return 0;
+    else{
+        $actions = array();
+        while($obj = $db->fetch_object($res)){
+            $date = new DateTime($obj->datec);
+            $actions[$obj->id] = array('id'=>$obj->id, 'code'=>$obj->code, 'datec'=>$date->format('d.m H:i'), 'lastname'=>$obj->lastname, 'percent'=>$obj->percent);
+        }
+        return json_encode($actions);
+    }
+}
 function GetDateOutStandingActions($actioncode, $id_usr){
     global $db, $user;
 

@@ -114,6 +114,7 @@ class ActionComm extends CommonObject
     var $userownerid;		// Id of user owner
     var $userdoneid;	// Id of user done
     var $resultaction = array();
+    var $typenotification;//Type notification
 
     /**
      * Object user of owner
@@ -356,6 +357,7 @@ class ActionComm extends CommonObject
         }
         return $freetime;
     }
+
     function getFilterDate(){
         global $user, $db, $langs;
         $typeaction='AC_GLOBAL';
@@ -587,7 +589,9 @@ class ActionComm extends CommonObject
             $sql .= "confirmdoc,";
             $sql .= "period,";
             $sql .= "fk_groupoftask,";
-            $sql .= "fk_order_id";
+            $sql .= "fk_order_id,";
+            $sql .= "new,";
+            $sql .= "typenotification";
             $sql .= ") VALUES (";
             $sql .= "'" . $this->db->idate($now) . "',";
             if(!$correctdate) {
@@ -617,7 +621,8 @@ class ActionComm extends CommonObject
             $sql .= "'" . $this->confirmdoc . "',";
             $sql .=  (!empty($this->period)?("'".$this->period."'"):"null") . ",";
             $sql .= "'" . $this->groupoftask . "',";
-            $sql .= " " . (!empty($this->order_id) ? "'" . $this->order_id . "'" : "null");
+            $sql .= " " . (!empty($this->order_id) ? "'" . $this->order_id . "'" : "null"). ",";
+            $sql .= "1, '" . $this->typenotification . "'";
             $sql .= ")";
 //                    var_dump($sql);
             dol_syslog(get_class($this) . "::add", LOG_DEBUG);
@@ -886,7 +891,7 @@ class ActionComm extends CommonObject
         $sql.= " a.priority, a.fulldayevent, a.location, a.punctual, a.transparency,";
         $sql.= " c.id as type_id, c.code as type_code, c.libelle,";
         $sql.= " s.nom as socname,";
-        $sql.= " u.firstname, u.lastname as lastname, a.period";
+        $sql.= " u.firstname, u.lastname as lastname, a.period, a.typenotification";
         $sql.= " FROM ".MAIN_DB_PREFIX."actioncomm as a ";
         $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."c_actioncomm as c ON a.fk_action=c.id ";
         $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user as u on u.rowid = a.fk_user_author";
@@ -958,6 +963,7 @@ class ActionComm extends CommonObject
 
                 $this->fk_element			= $obj->fk_element;
                 $this->elementtype			= $obj->elementtype;
+                $this->typenotification		= $obj->typenotification;//Type notification
                 $this->fetch_userassigned();
             }
             $this->db->free($resql);
@@ -1129,7 +1135,7 @@ class ActionComm extends CommonObject
         $this->db->begin();
 
         $sql = "UPDATE ".MAIN_DB_PREFIX."actioncomm ";
-        $sql.= " SET label = ".($this->label ? "'".$this->db->escape($this->label)."'":"null");
+        $sql.= " SET `new`= 1, label = ".($this->label ? "'".$this->db->escape($this->label)."'":"null");
         if ($this->fk_action > 0) $sql.= ", fk_action = '".$this->fk_action."'";
 //        var_dump($this->authorid, $user->id);
 //        die();
@@ -1147,6 +1153,7 @@ class ActionComm extends CommonObject
         $sql.= ", fulldayevent = '".$this->fulldayevent."'";
         $sql.= ", location = ".($this->location ? "'".$this->db->escape($this->location)."'":"null");
         $sql.= ", transparency = '".$this->transparency."'";
+        $sql.= ", typenotification = '".$this->typenotification."'";
         $sql.= ", fk_user_mod = '".$user->id."'";
         $sql.= ", fk_user_action=".($userownerid > 0 ? "'".$userownerid."'":"null");
         $sql.= ", fk_user_done=".($userdoneid > 0 ? "'".$userdoneid."'":"null");

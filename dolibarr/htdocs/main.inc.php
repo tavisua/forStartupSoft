@@ -75,7 +75,6 @@
 //        exit();
 //    }
 
-
 $micro_start_time=0;
 if (! empty($_SERVER['DOL_TUNING']))
 {
@@ -1057,6 +1056,8 @@ if (! function_exists("llxHeader"))
  *
  *  @return	void
  */
+//llxPopupMenu();
+
 function llxSendSmsEmail(){
     print'
         <div id=sendSmsEmail style="position: absolute;  z-index: 10; left: 400px; top: 200px; width: 90px">
@@ -1614,6 +1615,7 @@ function top_menu($head, $title='', $target='', $disablejs=0, $disablehead=0, $a
         print "\n".'<script type="text/javascript">
                     jQuery(document).ready(function () {
                         Timer();
+                        getMessage();
                         $("#bookmarkActionPanel").hide();
                     	jQuery(function() {
                         	jQuery(".classfortooltip").tipTip({maxWidth: "'.dol_size(600,'width').'px", edgeOffset: 10, delay: 50, fadeIn: 50, fadeOut: 50});
