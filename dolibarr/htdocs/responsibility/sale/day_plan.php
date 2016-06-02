@@ -6,8 +6,10 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 $actions = array();
 $future = array();
 $outstanding = array();
-$CustActtions = array();
+$CustActions = array();
 $userActions = array();
+$actioncode = array('AC_GLOBAL', 'AC_CURRENT');
+
 $sql = 'select name from subdivision where rowid = '.(empty($user->subdiv_id)?0:$user->subdiv_id);
 $res = $db->query($sql);
 if(!$res)
@@ -15,11 +17,13 @@ if(!$res)
 $obj = $db->fetch_object($res);
 $subdivision = $obj->name;
 if(!isset($_SESSION['actions'])) {
-    $sql = "select sub_user.rowid  id_usr, sub_user.alias, `llx_societe`.`region_id`, llx_actioncomm.percent, date(llx_actioncomm.datep) datep, llx_actioncomm.percent, case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT') then llx_actioncomm.`code` else 'AC_CUST' end `code`
+    $sql = "select distinct sub_user.rowid  id_usr, sub_user.alias, `llx_societe`.`region_id`, llx_actioncomm.id, llx_actioncomm.percent, date(llx_actioncomm.datep) datep, llx_actioncomm.percent,
+    case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT') then llx_actioncomm.`code` else 'AC_CUST' end `code`, `llx_societe_action`.`callstatus`
     from llx_actioncomm
     inner join (select id from `llx_c_actioncomm` where type in('user','system') and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
     left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = llx_actioncomm.id
     left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
+    left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
     inner join (select `llx_user`.rowid, `responsibility`.`alias` from `llx_user` inner join `responsibility` on `responsibility`.`rowid` = `llx_user`.`respon_id` where `llx_user`.`subdiv_id` = ".$user->subdiv_id." and `llx_user`.`active` = 1) sub_user on sub_user.rowid = case when llx_actioncomm_resources.fk_element is null then llx_actioncomm.`fk_user_author` else llx_actioncomm_resources.fk_element end
     where 1
     and llx_actioncomm.active = 1
@@ -34,7 +38,7 @@ if(!isset($_SESSION['actions'])) {
     $actions = array();
     $time = time();
     while ($obj = $db->fetch_object($res)) {
-        $actions[] = array('id_usr' => $obj->id_usr, 'region_id' => $obj->region_id, 'respon_alias' => $obj->alias, 'percent' => $obj->percent, 'datep' => $obj->datep, 'code' => $obj->code);
+        $actions[] = array('id_usr' => $obj->id_usr, 'rowid'=>$obj->id, 'region_id' => $obj->region_id, 'respon_alias' => $obj->alias, 'percent' => $obj->percent, 'datep' => $obj->datep, 'code' => $obj->code, 'callstatus'=>$obj->callstatus);
     }
     $_SESSION['actions'] = $actions;
 
@@ -56,14 +60,14 @@ include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/respo
 
 exit();
 function GetBestUserID(){
-    global $CustActtions,$user;
+    global $CustActions,$user;
 
     $maxCount = 0;
     $id_usr = 0;
 
-    foreach(array_keys($CustActtions) as $userID){
-        if($maxCount<$CustActtions[$userID]){
-            $maxCount = $CustActtions[$userID];
+    foreach(array_keys($CustActions) as $userID){
+        if($maxCount<$CustActions[$userID]){
+            $maxCount = $CustActions[$userID];
             $id_usr = $userID;
         }
     }
@@ -72,16 +76,16 @@ function GetBestUserID(){
 }
 
 function ShowTable(){
-    global $actions,$user,$CustActtions,$userActions;
+    global $actions,$user,$CustActions,$userActions,$actioncode;
     $today = new DateTime();
     $mkToday = dol_mktime(0,0,0,$today->format('m'),$today->format('d'),$today->format('Y'));
-
 
     foreach($actions as $action){
 //        echo '<pre>';
 //        var_dump($action);
 //        echo '</pre>';
 //        die();
+
         $obj = (object)$action;
         $date = new DateTime($obj->datep);
         $mkDate = dol_mktime(0,0,0,$date->format('m'),$date->format('d'),$date->format('Y'));
@@ -98,7 +102,12 @@ function ShowTable(){
             if($mkDate <= $mkToday && $obj->percent != 100) {
                 $userActions['outstanding'][$obj->code]++;
             }
-            if($mkDate <= $mkToday && $obj->percent == 100){
+            if($mkDate <= $mkToday && $obj->percent == 100 && (in_array($action['code'], $actioncode) || $action['callstatus'] == '5')){
+//                if($obj->datep == '2016-05-30'){
+//                        echo '<pre>';
+//                        var_dump($action['rowid'], $action['code'], $action['callstatus']);
+//                        echo '</pre>';
+//                }
                 $userActions['fact_'.$obj->datep][$obj->code]++;
                 if($mkToday-$mkDate<=604800)//604800 sec by week
                     $userActions['fact_week'][$obj->code]++;
@@ -113,14 +122,14 @@ function ShowTable(){
                     $userActions['total_month'][$obj->code]++;                
             }
         }
-        if($mkDate <= $mkToday && $action['percent'] == 100 && $action['code'] == 'AC_CUST'){
+        if($mkDate <= $mkToday && $action['percent'] == 100 && $action['code'] == 'AC_CUST' && $action['callstatus'] == '5'){
                 if($mkToday-$mkDate<=604800&&$mkToday-$mkDate>=0)//604800 sec by week
-                    $CustActtions[$action['id_usr']]++;
+                    $CustActions[$action['id_usr']]++;
 
         }
     }
 //    echo '<pre>';
-//    var_dump($CustActtions);
+//    var_dump($userActions);
 //    echo '</pre>';
 //    die();
     $table = '<tbody id="reference_body">';
@@ -200,7 +209,7 @@ function ShowTable(){
             if($mkDate <= $mkToday && $obj->percent != 100) {
                 $userActions['outstanding'][$obj->code]++;
             }
-            if($mkDate <= $mkToday && $obj->percent == 100){
+            if($mkDate <= $mkToday && $obj->percent == 100 && (in_array($obj->code, $actioncode) || $obj->callstatus == '5') ){
                 $userActions['fact_'.$obj->datep][$obj->code]++;
                 if($mkToday-$mkDate<=604800)//604800 sec by week
                     $userActions['fact_week'][$obj->code]++;
@@ -229,7 +238,7 @@ function ShowTable(){
     return $table;
 }
 function getRegionsList($id_usr){
-    global $db, $actions;
+    global $db, $actions,$actioncode;
     $outstanding = array();
     $future=array();
     $fact = array();
@@ -240,8 +249,13 @@ function getRegionsList($id_usr){
     $mkToday = dol_mktime(0,0,0,$today->format('m'),$today->format('d'),$today->format('Y'));
     $count = 0;
     foreach($actions as $item){
-
-        if($item["id_usr"]==$id_usr&&$item["respon_alias"]=='sale'){
+//        var_dump($item);
+//        die();
+        if($item["id_usr"]==$id_usr&&$item["code"]=='AC_CUST'&&$item["respon_alias"]=='sale'){
+//            if(empty($item["region_id"])&&$item["datep"]=='2016-05-27'){
+//                var_dump($item).'</br>';
+////                die();
+//            }
             if(!in_array(empty($item["region_id"])?'null':$item["region_id"], $regions))
                 $regions[]=empty($item["region_id"])?'null':$item["region_id"];
             $date = new DateTime($item["datep"]);
@@ -261,9 +275,9 @@ function getRegionsList($id_usr){
                     $future[$item["region_id"]]['month']++;
             }
 
-            if($item['percent'] != 100){
+            if($mkDate < $mkToday && $item['percent'] != 100){//Додав $mkDate < $mkToday. Вважається логічним, щоб кількість прострочених рахувати, коли завдання повинно вже було бути виконано
                 $outstanding[$item["region_id"]]++;
-            }elseif($item['percent'] == 100){
+            }elseif($item['percent'] == 100 && (in_array($item['code'], $actioncode)||$item['callstatus']=='5')){
                 $fact[$item["region_id"]][$item["datep"]]++;
                 if($mkToday-$mkDate<=604800)//604800 sec by week
                     $fact[$item["region_id"]]['week']++;
@@ -369,6 +383,12 @@ function getRegionsList($id_usr){
 }
 function ShowTasks($Code, $Title, $bestvalue = false){
     global $userActions;
+//    if($Title == 'Найкращі показники по підрозділу') {
+//        echo '<pre>';
+//        var_dump($userActions);
+//        echo '</pre>';
+//        die();
+//    }
     $table='<tr '.($bestvalue?'class="bestvalue"':'').'><td colspan="2" class="middle_size" style="width: 105px;"><b>'.$Title.'</b></td>';
     //% виконання запланованого по факту
     for($i=8; $i>=0; $i--){

@@ -132,6 +132,7 @@ class ActionComm extends CommonObject
 
     var $socid;
     var $contactid;
+    var $callstatus;
 
     /**
      * Company linked to action (optional)
@@ -973,8 +974,10 @@ class ActionComm extends CommonObject
             $this->error=$this->db->lasterror();
             return -1;
         }
-        $sql = 'select `rowid`,`said`,`answer`, `argument`,`said_important`,`result_of_action`,`work_before_the_next_action`
-        from llx_societe_action where action_id='.$id.' limit 1';
+        $sql = 'select `rowid`,`callstatus`, `said`,`answer`, `argument`,`said_important`,`result_of_action`,`work_before_the_next_action`
+        from llx_societe_action where 1 and '.(empty($_REQUEST['answer_id'])?('action_id='.$id):('rowid='.$_REQUEST['answer_id'])). ' limit 1';
+//        var_dump($sql);
+//        die();
         $resql=$this->db->query($sql);
         if ($resql) {
             $num = $this->db->num_rows($resql);
@@ -987,6 +990,9 @@ class ActionComm extends CommonObject
                 $this->resultaction['said_important']                = $obj->said_important;
                 $this->resultaction['result_of_action']              = $obj->result_of_action;
                 $this->resultaction['work_before_the_next_action']   = $obj->work_before_the_next_action;
+                if($this->code	== 'AC_TEL'){
+                    $this->callstatus = $obj->callstatus;
+                }
             }
         }
 

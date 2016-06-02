@@ -41,8 +41,8 @@ $socid = 0;
 if (isset($_REQUEST["action_id"])) {
     $action_id = $_REQUEST["action_id"];
     $sql = "select * from llx_societe_action where 1 ";
-    if(!isset($_REQUEST["onlyresult"]) || empty($_REQUEST['onlyresult']))
-        $sql.="and action_id=" . $_REQUEST["action_id"];
+    if((!isset($_REQUEST["onlyresult"]) || empty($_REQUEST['onlyresult'])) && isset($_REQUEST["answer_id"]))
+        $sql.="and rowid=" . $_REQUEST["answer_id"];
     else
         $sql.="and rowid=" . $_REQUEST["action_id"];
     $res = $db->query($sql);
@@ -139,10 +139,7 @@ if(!($_GET['action'] == 'addonlyresult' || (isset($_REQUEST["onlyresult"])&&$_RE
     }
 }
 
-//echo '<pre>';
-//var_dump($action_id);
-//echo '</pre>';
-//die();
+
 
 $societe = new Societe($db);
 $societe->fetch(empty($object->socid)&&$_GET['action'] == 'addonlyresult'?$_GET['socid']:$object->socid);
@@ -158,6 +155,10 @@ if($_GET['action'] == 'edituseration'){//Якщо редагуються рез�
     $object = $db->fetch_object($res);
     $said = empty($object->resultaction['said']) ? $object->said : $object->resultaction['said'];
 }else {
+//        echo '<pre>';
+//        var_dump($object);
+//        echo '</pre>';
+//        die();
     $said = empty($object->resultaction['said']) ? $object->said : $object->resultaction['said'];
     if (empty($said))
         $said = $_REQUEST['said'];
@@ -251,7 +252,7 @@ function saveuseraction($rowid){
 //    echo '</pre>';
 //    die();
     if(empty($rowid)){
-        $sql='insert into llx_users_action(`action_id`,`proposed_id`, `socid`, `contactid`, `said`,`answer`,
+        $sql='insert into llx_users_action(`action_id`,`proposed_id`, `socid`, `contactid`,`said`,`answer`,
           `argument`,`said_important`,`result_of_action`,`work_before_the_next_action`,`id_usr`, `new`) values(';
         if(empty($_REQUEST['actionid'])) $sql.='null,';
         else $sql.=$_REQUEST['actionid'].',';
@@ -293,7 +294,7 @@ function saveuseraction($rowid){
         $sql.='where rowid='.$rowid;
     }
 //echo '<pre>';
-//var_dump((substr($_POST['action'],strlen($_POST['action'])-strlen('_and_create') )== '_and_create'));
+//var_dump($sql);
 //echo '</pre>';
 //die();
     $res = $db->query($sql);
@@ -330,7 +331,7 @@ function saveaction($rowid, $createaction = false){
 //    echo '</pre>';
 //    die();
     if(empty($rowid)){
-        $sql='insert into llx_societe_action(`action_id`,`proposed_id`, `socid`, `contactid`, `said`,`answer`,
+        $sql='insert into llx_societe_action(`action_id`,`proposed_id`, `socid`, `contactid`,`callstatus`, `said`,`answer`,
           `argument`,`said_important`,`result_of_action`,`work_before_the_next_action`,`id_usr`) values(';
         if(empty($_REQUEST['actionid'])) $sql.='null,';
         else $sql.=$_REQUEST['actionid'].',';
@@ -339,6 +340,7 @@ function saveaction($rowid, $createaction = false){
         if(empty($socid)) $sql.='null,';
         else $sql.=$socid.',';
         $sql.=(empty($_REQUEST['contactid'])?"null":$_REQUEST['contactid']).', ';
+        $sql.=(empty($_REQUEST['callstatus'])?"null":$_REQUEST['callstatus']).', ';
         if(empty($_REQUEST['said'])) $sql.='null,';
         else $sql.='"'.$db->escape($_REQUEST['said']).'",';
         if(empty($_REQUEST['answer'])) $sql.='null,';
@@ -361,6 +363,7 @@ function saveaction($rowid, $createaction = false){
     }else {
         $sql = 'update llx_societe_action set ';
         $sql.='`contactid`='.(empty($_REQUEST['contactid'])?'null':$_REQUEST['contactid']).', ';
+        $sql.='`callstatus`='.(empty($_REQUEST['callstatus'])?'null':$_REQUEST['callstatus']).', ';
         $sql.='`said`='.(empty($_REQUEST['said'])?'null':"'".$db->escape($_REQUEST['said'])."'").', ';
         $sql.='`answer`='.(empty($_REQUEST['answer'])?'null':"'".$db->escape($_REQUEST['answer'])."'").', ';
         $sql.='`argument`='.(empty($_REQUEST['argument'])?'null':"'".$db->escape($_REQUEST['argument'])."'").', ';
@@ -371,10 +374,10 @@ function saveaction($rowid, $createaction = false){
         $sql.='where rowid='.$rowid;
     }
 //    llxHeader('','test',null);
-//    echo '<pre>';
-//    var_dump($_REQUEST['actionid']);
-//    echo '</pre>';
-//    die();
+//echo '<pre>';
+//var_dump($sql);
+//echo '</pre>';
+//die();
 
     $res = $db->query($sql);
     if(!$res){

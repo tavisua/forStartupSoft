@@ -17,7 +17,7 @@
             <td><b>Заголовок</b></td>
             <td><?=$object->label?></td>
             <td><b>Статус</b></td>
-            <td><?=$formactions->form_select_status_action('formaction',$percent,1,'complete');?></td>
+            <td><?=$_REQUEST['actioncode']=='AC_TEL'?$formactions->form_select_callstatus('callstatus', empty($object->callstatus)?2:$object->callstatus):$formactions->form_select_status_action('formaction',$percent,1,'complete');?></td>
         </tr>
         <tr>
             <td><b>Назва контрагента</b></td>
@@ -51,6 +51,7 @@
         <input type="hidden" value="<?=$_GET['proposed_id']?>" name="proposed_id">
         <input type="hidden" value="" name="complete" id="complete">
         <input id="action" name="action" type="hidden" value="">
+        <input id="callstatus" name="callstatus" type="hidden" value="<?=empty($object->callstatus)?2:$object->callstatus?>">
 
         </br>
         <table class="border" width="100%">
@@ -174,7 +175,10 @@
     }
     function submitResultAction(){
             var actioncode = getParameterByName('actioncode');
-            if(actioncode!=null && actioncode.length>0) {
+            var validcode = ['AC_CURRENT', 'AC_GLOBAL'];
+//            console.log($.inArray(actioncode, validcode) != '-1');
+//        return;
+            if(actioncode!=null && actioncode.length>0 && $.inArray(actioncode, validcode) != '-1') {
                 $.ajax({
                     url: '/dolibarr/htdocs/comm/action/result_action.php?action=getTypeNotification&action_id=<?=$_REQUEST["action_id"]?>',
                     cache: false,

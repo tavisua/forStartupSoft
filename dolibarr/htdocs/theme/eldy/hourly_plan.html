@@ -108,7 +108,14 @@
 //                console.log($('#'+tr[t].id).offset(), Yinner, task_id);
 //                return;
                 if(bEdit == true) {
-                    location.href = '/dolibarr/htdocs/comm/action/card.php?action=edit&id='+task_id+'&backtopage='+location.href;
+                    var backtopage = location.pathname+location.search;
+                    backtopage = backtopage.replace(/\=/g,'%3D')
+                    backtopage = backtopage.replace(/\?/g,'%3F')
+                    backtopage = backtopage.replace(/\//g,'%2F')
+                    backtopage = backtopage.replace(/\&/g,'%26')
+//                    console.log(location.pathname+location.search);
+//                    return;
+                    location.href = '/dolibarr/htdocs/comm/action/card.php?action=edit&id='+task_id+'&backtopage='+backtopage;
 //                    console.log($("a#mainmenua_hourly_plan").attr('href'));
                     return;
                 }

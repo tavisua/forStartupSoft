@@ -65,7 +65,6 @@ print '<div style="width: 150px;float: left;">';
 
 print_fiche_titre($ActionArea);
 
-
 $object = new Societe($db);
 $socid = empty($_REQUEST['socid'])?0:$_REQUEST['socid'];
 $result=$object->fetch($socid);
@@ -166,6 +165,7 @@ and `llx_societe_contact`.`active` = 1';
 //var_dump($_REQUEST);
 //echo '</pre>';
 //die($sql);
+
 $contacttable = new societecontact();
 //var_dump($_REQUEST['sortfield']);
 
@@ -435,7 +435,7 @@ function ShowActionTable(){
     while($row = $db->fetch_object($res)){
         $nextaction[$row->fk_parent] = $row->datep;
     }
-    $sql = "select `llx_actioncomm`.id as rowid, `llx_actioncomm`.`datep`, `llx_societe_action`.dtChange as `datec`, `llx_user`.lastname,
+    $sql = "select `llx_actioncomm`.id as rowid, `llx_societe_action`.`rowid` as answer_id, `llx_actioncomm`.`datep`, `llx_societe_action`.dtChange as `datec`, `llx_user`.lastname,
         concat(case when `llx_societe_contact`.lastname is null then '' else `llx_societe_contact`.lastname end,  ' ',
         case when `llx_societe_contact`.firstname is null then '' else `llx_societe_contact`.firstname end) as contactname,
         TypeCode.code kindaction, `llx_societe_action`.`said`, `llx_societe_action`.`answer`,`llx_societe_action`.`argument`,
@@ -447,7 +447,7 @@ function ShowActionTable(){
         left join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.rowid
         where fk_soc = ".(empty($_REQUEST["socid"])?0:$_REQUEST["socid"])." and `llx_actioncomm`.`active` = 1
         union
-        select concat('_',`llx_societe_action`.`rowid`) rowid, `llx_societe_action`.dtChange datep, `llx_societe_action`.dtChange as `datec`, `llx_user`.lastname,
+        select concat('_',`llx_societe_action`.`rowid`) rowid, `llx_societe_action`.`rowid`, `llx_societe_action`.dtChange datep, `llx_societe_action`.dtChange as `datec`, `llx_user`.lastname,
         concat(case when `llx_societe_contact`.lastname is null then '' else `llx_societe_contact`.lastname end, ' ',
         case when `llx_societe_contact`.firstname is null then '' else `llx_societe_contact`.firstname end) as contactname, null, `llx_societe_action`.`said`, `llx_societe_action`.`answer`,`llx_societe_action`.`argument`,
         `llx_societe_action`.`said_important`, `llx_societe_action`.`result_of_action`, `llx_societe_action`.`work_before_the_next_action`
@@ -534,7 +534,7 @@ function ShowActionTable(){
             }break;
             default:{
                 $iconitem = 'object_call2.png';
-                $title=$langs->trans('ActionAC_RDV');
+                $title=$langs->trans('ActionAC_TEL');
             }break;
         }
         $dateaction = new DateTime($row->datep);
@@ -565,7 +565,7 @@ function ShowActionTable(){
                  var click_event = "/dolibarr/htdocs/societe/addcontact.php?action=edit&mainmenu=companies&rowid=1";
                 </script>';
 //        $out.='<img onclick="" style="vertical-align: middle" title="'.$langs->trans('AddSubAction').'" src="/dolibarr/htdocs/theme/eldy/img/Add.png">';
-        $out.='<img onclick="EditAction('.(substr($row->rowid, 0,1)=='_'?"'".$row->rowid."'":$row->rowid).', '."'".$row->kindaction."'".');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Edit').'" src="/dolibarr/htdocs/theme/eldy/img/edit.png">
+        $out.='<img onclick="EditAction('.(substr($row->rowid, 0,1)=='_'?"'".$row->rowid."'":$row->rowid).', '.(empty($row->answer_id)?'0':$row->answer_id).', '."'".(empty($row->kindaction)?'AC_TEL':$row->kindaction)."'".');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Edit').'" src="/dolibarr/htdocs/theme/eldy/img/edit.png">
                 <img onclick="DelAction('.(substr($row->rowid, 0,1)=='_'?"'".$row->rowid."'":$row->rowid).');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('delete').'" src="/dolibarr/htdocs/theme/eldy/img/delete.png">
             </td>
             </tr>';
