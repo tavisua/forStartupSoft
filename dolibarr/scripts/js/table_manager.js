@@ -674,7 +674,7 @@ function sendSMS(number, text, confirmSend){
 function Call(number, contacttype, contactid){
     var blob = new Blob(['{"call":"'+number+'"}'], {type: "text/plain;charset=utf-8"});
     saveAs(blob, "call.json");
-    AddResultAction(contacttype,contactid);
+    //AddResultAction(contacttype,contactid);
 }
 function GotoRequiredPage(pagename){
     //if(pagename.length == 0)
@@ -928,7 +928,7 @@ function AddResultAction(contacttype, contactid){
     //console.log(link);
 
 }
-function EditAction(rowid, actioncode){
+function EditAction(rowid, answer_id, actioncode){
     console.log(rowid, actioncode);
     //alert(actioncode == 'AC_GLOBAL' || actioncode == 'AC_CURRENT');
     //return;
@@ -954,12 +954,42 @@ function EditAction(rowid, actioncode){
     else
         $('#edit_action').val('updateonlyresult');
     if($('#redirect').length>0) {
+        $('#answer_id').val(answer_id);
         $('#redirect_actioncode').val(actioncode);
         $('#redirect').submit();
     }
     else if($('#addaction').length>0)
         $('#addaction').submit();
 }
+    function SetTheadColumnWidth(){
+        var tr = $('#reference_body').find('tr')[$('#reference_body').find('tr').length-1];
+        var td = tr.getElementsByTagName('td');
+//        td[0].outerWidth =
+        var thead = $('thead').find('tr')[0];
+        var th = thead.getElementsByTagName('th');
+        td[0].style.minWidth = th[0].clientWidth+th[1].clientWidth-1+'px';
+        td[1].style.minWidth = th[2].clientWidth-1+'px';
+        td[1].style.maxWidth = th[2].clientWidth-1+'px';
+
+        thead = $('thead').find('tr')[1];
+        th = thead.getElementsByTagName('th');
+        for(var c = 2; c<=20; c++){
+            td[c].style.minWidth = th[c-2].clientWidth-2+'px';
+            td[c].style.maxWidth = th[c-2].clientWidth-2+'px';
+//            console.log(th[c-2]);
+        }
+        thead = $('thead').find('tr')[0];
+        th = thead.getElementsByTagName('th');
+        td[20].style.minWidth = th[5].clientWidth-2+'px';
+        td[20].style.maxWidth = th[5].clientWidth-2+'px';
+        thead = $('thead').find('tr')[1];
+        th = thead.getElementsByTagName('th');
+        for(var c = 21; c<=29; c++){
+            td[c].style.minWidth = th[c-3].clientWidth-2+'px';
+            td[c].style.maxWidth = th[c-3].clientWidth-2+'px';
+            //console.log(td[c], th[c-3]);
+        }
+    }
 function ShowProducts(){//Відображення кількості замовлених товарів
     if($.cookie('products_id') != null) {
         var product = $.cookie('products_id').split(',');
