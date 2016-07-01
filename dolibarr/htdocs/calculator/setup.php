@@ -6,7 +6,7 @@
  * Time: 9:54
  */
 require '../main.inc.php';
-global $langs, $db;
+global $langs;
 $CalculatorSetup = $langs->trans("CalculatorSetup");
 
 llxHeader("",$CalculatorSetup,"");
@@ -38,11 +38,10 @@ $TableParam[]=$ColParam;
 $sql = "select `calculator_theme`.`rowid`, `calculator_theme`.`theme`, `responsibility`.`name` as s_responsibility_name, `calculator_theme`.`active` from `calculator_theme`
 left join `responsibility` on `calculator_theme`.`respon_id` = `responsibility`.`rowid`";
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
-$db = new dbBuilder();
 if(!isset($_REQUEST['sortfield']))
-    $table = $db->fShowTable($TableParam, $sql, "'calculator_theme'", $conf->theme);
+    $table = $dbBuilder->fShowTable($TableParam, $sql, "'calculator_theme'", $conf->theme);
 else
-    $table = $db->fShowTable($TableParam, $sql, "'calculator_theme'", $conf->theme, $_REQUEST['sortfield'], $_REQUEST['sortorder']);
+    $table = $dbBuilder->fShowTable($TableParam, $sql, "'calculator_theme'", $conf->theme, $_REQUEST['sortfield'], $_REQUEST['sortorder']);
 $new_link = "http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/DBManager/dbManager.php?new=1&tablename='calculator_theme'";
 ob_start();
 include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/calculator/setup.html');

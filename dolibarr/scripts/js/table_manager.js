@@ -27,20 +27,11 @@ function setTime(link){
 //    $('#addaction').submit();
 //}
 function ConfirmExec(id){
+
     var src = $('img#confirm' + id).attr('src');
     if(src !== undefined)
         var img_src = (src.substr(src.length-'uncheck.png'.length, 'uncheck.png'.length));
     if((src === undefined || img_src =='uncheck.png') &&  confirm('Установити відмітку про виконання роботи?')) {
-        if(src !== undefined) {
-            $('img#confirm' + id).off();
-            for (var i = src.length; i > 0; i--) {
-                if (src.substr(i, 1) == "/") {
-                    src = src.substr(0, i + 1) + 'Check.png';
-                    break;
-                }
-            }
-            $('img#confirm' + id).attr('src', src);
-        }
         var link = "http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=confirm_exec&rowid="+id;
         $.ajax({
             url: link,
@@ -49,6 +40,21 @@ function ConfirmExec(id){
                 console.log(html, 'confirm_exec');
             }
         })
+        if(src !== undefined) {
+
+            $('img#confirm' + id).off();
+            src = src.replace('/uncheck.png', '/check.png');
+    //console.log(src);
+    //return;
+            //for (var i = src.length; i > 0; i--) {
+            //    if (src.substr(i, 1) == "/") {
+            //        src = src.substr(0, i + 1) + 'Check.png';
+            //        break;
+            //    }
+            //}
+            $('img#confirm' + id).attr('src', src);
+        }
+
     }
 }
 function previewNote(id){
@@ -148,6 +154,7 @@ function SaveResultProporition(contactid, lastID){
         }
         $('#redirect').attr('target', '_blank');
         $('#redirect').find('#action_id').val($('#actionid').val());
+        $('#redirect').find('#actioncode').val('AC_TEL');
         $('#redirect').find('#onlyresult').remove();
         $('#redirect').find('#redirect_actioncode').remove();
         $('#redirect').find('#complete').remove();
@@ -270,6 +277,46 @@ var param = {
 }
 function CloseDatesMenu(){
     $('#getDate').remove();
+}
+function getRegionsList(id_usr){
+    var btn = document.getElementById('btnUsr'+id_usr);
+    var tr_item = btn.parentNode.parentNode;
+
+//        return;
+    var img = document.getElementById('imgUsr'+id_usr);
+//        console.log(img);
+//        var img = btn.getElementsByTagName('img')[0];
+    var show = img.src.substr(img.src.length-('1downarrow.png').length) == '1downarrow.png';
+    if(show)
+        img.src = img.src.substr(0, img.src.length-('1downarrow.png').length)+'1uparrow.png';
+    else
+        img.src = img.src.substr(0, img.src.length-('1uparrow.png').length)+'1downarrow.png';
+    if(show) {
+//            console.log(id);
+        if($('.regions'+id_usr).length == 0) {
+//                var tr_item = btn.parentNode.parentNode;
+            var className = tr_item.className;
+            className = className.replace('impair ', '');
+            className = className.replace('pair ', '');
+            className = $.trim(className);
+            var link = '/dolibarr/htdocs/responsibility/gen_dir/day_plan.php?action=getRegions&id_usr='+id_usr;
+//                console.log(link);
+//                return;
+            $.ajax({
+                url: link,
+                cache: false,
+                success: function (html) {
+//                        console.log(html);
+                    tr_item.insertAdjacentHTML('afterend', html);
+                }
+            })
+        }else{
+            $('.regions'+id_usr).show();
+        }
+    }else{
+        $('.regions'+id_usr).hide();
+        img.src = '/dolibarr/htdocs/theme/eldy/img/1downarrow.png';
+    }
 }
 function showTitleProposed(post_id, lineactive, contactid, td, socid){
     var param = {
@@ -492,6 +539,9 @@ function Timer(){
     }
     setTimeout(Timer, 1000);
 }
+function UnLockTools(){
+    $('#locktools').remove();
+}
 function getMessage(){
     setTimeout(function(){
         $.ajax({
@@ -502,11 +552,14 @@ function getMessage(){
                     return;
                 var actions = JSON.parse(result);
                 //console.log(Object.keys(actions).length);
+                var html = '<div id="locktools" style="text-align: center; vertical-align: middle; font-size: 16px;color: red;font-weight: bold"><a style="margin-top: 25px;margin-right: 20px" class="close" onclick="UnLockTools();" title="Закрити"></a>Зверніть будь ласка увагу на нові сповіщення</div>';
+                $('#mainbody').append(html);
+                //return;
                 for(var i = 0; i<Object.keys(actions).length; i++){
                     var key = Object.keys(actions)[i];
                     console.log(actions[key]['id'], actions[key]['code']=='AC_CURRENT', actions[key]['code']=='AC_CURRENT'?'Поточне':'Глобальне');
                     var code = "'"+actions[key]['code']+"'";
-                    var html = '<div onclick="RedirectToTask('+actions[key]['id']+', '+code+')" id="mes'+i+'" title="'+(actions[key]['code']=='AC_CURRENT'?'Поточне':'Глобальне')+'" class="message '+(actions[key]['code']=='AC_CURRENT'?'current':'global')+'_taskitem" style="position: absolute; height: auto;">' +
+                    html = '<div onclick="RedirectToTask('+actions[key]['id']+', '+code+')" id="mes'+i+'" title="'+(actions[key]['code']=='AC_CURRENT'?'Поточне':'Глобальне')+'" class="message '+(actions[key]['code']=='AC_CURRENT'?'current':'global')+'_taskitem" style="position: absolute; height: auto;">' +
                         ' <div style="width: 150px;height: 40px;">    ' +
                         '<table style="width: 150px;height: 40px">' +
                         '    <tr>';
@@ -527,7 +580,7 @@ function getMessage(){
                 //soundPlay();
             }
         })
-    }, 5000);
+    }, 1000);
 
     //for(var c = 0; c<task.length; c++){
     //    console.log(task[c]);
@@ -650,8 +703,36 @@ function ReinitPassword(){
         }
     })
 }
+function sendMail(emails,text, confirmSend){
+    var send = 0;
+    if(confirmSend == true){
+        if(confirm('Відправити повідомлення?'))
+            send = 1;
+    }else
+        send = 1;
+    if(send == 1) {
+        var param = {
+            action:'sendmails',
+            emails:emails,
+            text:text
+        }
+        $.ajax({
+            url:'/dolibarr/htdocs/comm/mailing/card.php',
+            data: param,
+            cashe:false,
+            type: 'post',
+            success:function(result){
+                console.log(result);
+                return;
+                close_registerform();
+            }
+        })
+    }
+}
 function sendSMS(number, text, confirmSend){
-    console.log(number, number);
+    number = ' [{"value": "'+number.replace(/\;/gi,'"}, {"value": "')+'"}]';
+    //console.log(number);
+    //return;
     if((number === undefined  && text === undefined)||(number.length == 0  && text.length == 0)) {
         number = $("#phone_number").val();
         text = $("#textsms").val();
@@ -665,10 +746,11 @@ function sendSMS(number, text, confirmSend){
     }else
         send = 1;
     if(send == 1) {
-        var blob = new Blob(['{"phone":"' + number + '","text":"' + text + '"}'], {type: "text/plain;charset=utf-8"});
+        var blob = new Blob(['{"phone": ' + number + ',"text":"' + text + '"}'], {type: "text/plain;charset=utf-8"});
         saveAs(blob, "sms.json");
         console.log('savefile');
-        close_registerform();
+        if(confirmSend == true)
+            close_registerform();
     }
 }
 function Call(number, contacttype, contactid){
@@ -676,6 +758,7 @@ function Call(number, contacttype, contactid){
     saveAs(blob, "call.json");
     //AddResultAction(contacttype,contactid);
 }
+
 function GotoRequiredPage(pagename){
     //if(pagename.length == 0)
         return;
@@ -913,7 +996,7 @@ function AddResultAction(contacttype, contactid){
     backtopage = backtopage.replace(/\&/g,'%26')
     //console.log(contacttype);
     //return;
-    window.open(link+'?action='+(contacttype=='users'?'useraction&id_usr=':'addonlyresult&socid='+getParameterByName('socid')+'&contactid=')+contactid+'&backtopage='+backtopage);
+    window.open(link+'?action='+(contacttype=='users'?'useraction&id_usr=':'addonlyresult&actioncode=AC_TEL&socid='+getParameterByName('socid')+'&contactid=')+contactid+'&backtopage='+backtopage);
 
     //var inputaction = $("#actionbuttons").find('input');
     //for(var i = 0; i<inputaction.length; i++) {
@@ -927,6 +1010,22 @@ function AddResultAction(contacttype, contactid){
 
     //console.log(link);
 
+}
+function DelAction(rowid){
+    if(confirm('Видалити дію?')) {
+        var link = '/dolibarr/htdocs/comm/action/card.php?action=delete_action&rowid=' + rowid;
+
+        $.ajax({
+            url: link,
+            cache: false,
+            success: function (html) {
+                if (html == 1)
+                    location.href = location.href;
+                else
+                    console.log('помилка ', html, link);
+            }
+        })
+    }
 }
 function EditAction(rowid, answer_id, actioncode){
     console.log(rowid, actioncode);
@@ -966,29 +1065,36 @@ function EditAction(rowid, answer_id, actioncode){
         var td = tr.getElementsByTagName('td');
 //        td[0].outerWidth =
         var thead = $('thead').find('tr')[0];
+        var tableWidth = 0;
         var th = thead.getElementsByTagName('th');
         td[0].style.minWidth = th[0].clientWidth+th[1].clientWidth-1+'px';
         td[1].style.minWidth = th[2].clientWidth-1+'px';
         td[1].style.maxWidth = th[2].clientWidth-1+'px';
+        tableWidth += th[0].clientWidth+th[1].clientWidth-3+th[2].clientWidth+th[2].clientWidth;
 
         thead = $('thead').find('tr')[1];
         th = thead.getElementsByTagName('th');
         for(var c = 2; c<=20; c++){
             td[c].style.minWidth = th[c-2].clientWidth-2+'px';
             td[c].style.maxWidth = th[c-2].clientWidth-2+'px';
+            tableWidth += th[c-2].clientWidth-2;
 //            console.log(th[c-2]);
         }
         thead = $('thead').find('tr')[0];
         th = thead.getElementsByTagName('th');
         td[20].style.minWidth = th[5].clientWidth-2+'px';
         td[20].style.maxWidth = th[5].clientWidth-2+'px';
+        tableWidth += th[5].clientWidth-2;
+
         thead = $('thead').find('tr')[1];
         th = thead.getElementsByTagName('th');
         for(var c = 21; c<=29; c++){
             td[c].style.minWidth = th[c-3].clientWidth-2+'px';
             td[c].style.maxWidth = th[c-3].clientWidth-2+'px';
+            tableWidth += th[c-3].clientWidth-2;
             //console.log(td[c], th[c-3]);
         }
+        console.log('width '+tableWidth);
     }
 function ShowProducts(){//Відображення кількості замовлених товарів
     if($.cookie('products_id') != null) {

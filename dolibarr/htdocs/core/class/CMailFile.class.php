@@ -360,10 +360,10 @@ class CMailFile
 	 */
 	function sendfile()
 	{
-        echo '<pre>';
-        var_dump($this);
-        echo '</pre>';
-        die();
+//        echo '<pre>';
+//        var_dump($this);
+//        echo '</pre>';
+//        die();
 		global $conf;
 
 		$errorlevel=error_reporting();

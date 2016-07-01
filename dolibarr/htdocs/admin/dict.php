@@ -37,6 +37,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/societe/societecontact_class.php';
 
 
+
 $langs->load("errors");
 $langs->load("admin");
 $langs->load("companies");
@@ -56,7 +57,6 @@ if($action == 'get_kindassets'){
 $confirm=GETPOST('confirm','alpha');
 $id=GETPOST('id','int');
 $rowid=GETPOST('rowid','alpha');
-
 if (!$user->admin) accessforbidden();
 
 $acts[0] = "activate";
@@ -83,7 +83,7 @@ $hookmanager->initHooks(array('admin'));
 // Put here declaration of dictionaries properties
 
 // Sort order to show dictionary (0 is space). All other dictionaries (added by modules) will be at end of this.
-$taborder=array(26,27,28,29,30,31,32,33,34,35,6,9,36,37,38,39,0,40,41,42,43,
+$taborder=array(26,27,28,29,30,31,32,33,34,35,6,9,36,37,38,39,0,40,41,42,43,44,
 		0,3,2,0,1,8,19,16,0,5,11,0,0,10,23,12,13,0,14,0,7,17,0,22,20,18,21,0,15,0,24,0,25);
 
 // Name of SQL tables of dictionaries
@@ -131,6 +131,7 @@ $tabname[40]= MAIN_DB_PREFIX."c_groupoforgissues";
 $tabname[41]= MAIN_DB_PREFIX."c_actiontoaddress";
 $tabname[42]= MAIN_DB_PREFIX."c_callstatus";
 $tabname[43]= MAIN_DB_PREFIX."c_typenotification";
+$tabname[44]= MAIN_DB_PREFIX."c_raports";
 
 // Dictionary labels
 $tablib=array();
@@ -177,6 +178,7 @@ $tablib[40]= "GroupOfOrganizationalIssues";
 $tablib[41]= "ActionToAddress";
 $tablib[42]= "CallStatus";
 $tablib[43]= "TypeNotification";
+$tablib[44]= "Raports";
 
 // Requests to extract data
 $tabsql=array();
@@ -229,8 +231,7 @@ left join llx_c_measurement on llx_c_measurement.rowid=llx_c_tare.fx_measurement
 $tabsql[36]= "select rowid, name, active from ".MAIN_DB_PREFIX."c_finance_service";
 $tabsql[37]= "select rowid, question, active  from ".MAIN_DB_PREFIX."c_category_product_question where category_id is null";
 $tabsql[38]= "select rowid, name, active  from ".MAIN_DB_PREFIX."c_lineactive_customer where 1";
-$tabsql[39]= "select llx_c_proposition.rowid, `llx_c_proposition`.`fk_lineactive`, `llx_c_proposition`.`fk_post`, `llx_c_lineactive_customer`.`name` as LineActiveCustomer, `llx_post`.`postname`,
-	`llx_c_proposition`.`prioritet`,`llx_c_proposition`.`square`, `llx_c_proposition`.`begin`,`llx_c_proposition`.`end`,`llx_c_proposition`.`text` proposition, `llx_c_proposition`.`description`, `llx_c_proposition`.`active`, 'test' as tests, 'products' as products
+$tabsql[39]= "select llx_c_proposition.rowid, `llx_c_proposition`.`prioritet`,`llx_c_proposition`.`square`, `llx_c_proposition`.`begin`,`llx_c_proposition`.`end`,`llx_c_proposition`.`text` proposition, `llx_c_proposition`.`description`, `llx_c_proposition`.`active`, 'test' as tests, 'products' as products, 'properties' as properties
 	from `llx_c_proposition`
 	left join `llx_c_lineactive_customer` on `llx_c_lineactive_customer`.rowid = `llx_c_proposition`.`fk_lineactive`
 	left join `llx_post` on `llx_post`.`rowid` = `llx_c_proposition`.`fk_post` where `llx_c_proposition`.`active` = 1";
@@ -242,6 +243,7 @@ $tabsql[41]= "select `llx_c_actiontoaddress`.`rowid`,  `llx_c_groupoforgissues`.
 	left join `subdivision` on `subdivision`.`rowid` = `llx_c_actiontoaddress`.`fk_subdivision`";
 $tabsql[42]= "select rowid, status, active from ".MAIN_DB_PREFIX."c_callstatus";
 $tabsql[43]= "select rowid, type, code, active from ".MAIN_DB_PREFIX."c_typenotification";
+$tabsql[44]= "select rowid, `name`, active from ".MAIN_DB_PREFIX."c_raports";
 // Criteria to sort dictionaries
 $tabsqlsort=array();
 $tabsqlsort[1] ="country ASC, code ASC";
@@ -287,6 +289,7 @@ $tabsqlsort[40]="rowid ASC";
 $tabsqlsort[41]="rowid ASC";
 $tabsqlsort[42]="rowid ASC";
 $tabsqlsort[43]="rowid ASC";
+$tabsqlsort[44]="rowid ASC";
 
 // Nom des champs en resultat de select pour affichage du dictionnaire
 $tabfield=array();
@@ -328,11 +331,12 @@ $tabfield[35]= "name,ed_name";
 $tabfield[36]= "name";
 $tabfield[37]= "question";
 $tabfield[38]= "name";
-$tabfield[39]= "LineActiveCustomer,postname,prioritet,square,begin,end,proposition,description,tests,products";
+$tabfield[39]= "prioritet,square,begin,end,proposition,description,tests,products,properties";
 $tabfield[40]= "issues";
 $tabfield[41]= "fk_groupissues,fk_subdivision,action,responsible,directly_responsible";
 $tabfield[42]= "status";
 $tabfield[43]= "type,code";
+$tabfield[44]= "name";
 
 // Nom des champs d'edition pour modification d'un enregistrement
 $tabfieldvalue=array();
@@ -374,11 +378,12 @@ $tabfieldvalue[35]= "name,ed_name";
 $tabfieldvalue[36]= "name";
 $tabfieldvalue[37]= "question";
 $tabfieldvalue[38]= "name";
-$tabfieldvalue[39]= "LineActiveCustomer,postname,prioritet,square,begin,end,proposition,description,active";
+$tabfieldvalue[39]= "prioritet,square,begin,end,proposition,description,active";
 $tabfieldvalue[40]= "issues";
 $tabfieldvalue[41]= "fk_groupissues,fk_subdivision,action,responsible,directly_responsible,active";
 $tabfieldvalue[42]= "status";
 $tabfieldvalue[43]= "type,code";
+$tabfieldvalue[44]= "name";
 
 
 
@@ -422,11 +427,13 @@ $tabfieldinsert[35]= "name,fx_measurement";
 $tabfieldinsert[36]= "name";
 $tabfieldinsert[37]= "question";
 $tabfieldinsert[38]= "name";
-$tabfieldinsert[39]= "fk_lineactive,fk_post,prioritet,square,begin,end,text,description";
+$tabfieldinsert[39]= "prioritet,square,begin,end,text,description";
+//$tabfieldinsert[39]= "fk_lineactive,fk_post,prioritet,square,begin,end,text,description";
 $tabfieldinsert[40]= "issues";
 $tabfieldinsert[41]= "fk_groupissues,fk_subdivision,action,responsible,directly_responsible";
 $tabfieldinsert[42]= "status";
 $tabfieldinsert[43]= "type,code";
+$tabfieldinsert[44]= "name";
 
 // Nom du rowid si le champ n'est pas de type autoincrement
 // Example: "" if id field is "rowid" and has autoincrement on
@@ -475,6 +482,7 @@ $tabrowid[40]= "rowid";
 $tabrowid[41]= "rowid";
 $tabrowid[42]= "rowid";
 $tabrowid[43]= "rowid";
+$tabrowid[44]= "rowid";
 
 // Condition to show dictionary in setup page
 $tabcond=array();
@@ -521,6 +529,7 @@ $tabcond[40]= true;
 $tabcond[41]= true;
 $tabcond[42]= true;
 $tabcond[43]= true;
+$tabcond[44]= true;
 
 // List of help for fields
 $tabhelp=array();
@@ -567,6 +576,7 @@ $tabhelp[40] = array();
 $tabhelp[41] = array();
 $tabhelp[42] = array();
 $tabhelp[43] = array();
+$tabhelp[44] = array();
 
 // List of check for fields (NOT USED YET)
 $tabfieldcheck=array();
@@ -613,6 +623,7 @@ $tabfieldcheck[40] = array();
 $tabfieldcheck[41] = array();
 $tabfieldcheck[42] = array();
 $tabfieldcheck[43] = array();
+$tabfieldcheck[44] = array();
 
 // Complete all arrays with entries found into modules
 complete_dictionary_with_modules($taborder,$tabname,$tablib,$tabsql,$tabsqlsort,$tabfield,$tabfieldvalue,$tabfieldinsert,$tabrowid,$tabcond,$tabhelp,$tabfieldcheck);
@@ -688,7 +699,10 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
 
     // Check that all fields are filled
     $ok=1;
-
+//    echo '<pre>';
+//    var_dump($listfield);
+//    echo '</pre>';
+//    die();
     foreach ($listfield as $f => $value)
     {
 //        echo $value.'</br>';
@@ -705,20 +719,21 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
         if ($id == 30 && ($value == 'Model' || $value == 'Description'||($value == 'Trademark'&&!isset($_POST['Trademark']))))continue;
 		if ($id == 34 && ($value == 'responsibility'))continue;
         if ($id == 35 && ($value == 'ed_name'))continue;
-        if ($id == 39 && ($value == 'LineActiveCustomer'|| $value == 'prioritet'|| $value == 'square' || $value == 'postname'|| $value == 'end'|| $value == 'proposition' ||$value == 'description' || $value == 'tests' || $value == 'products')){
+        if ($id == 39 && ($value == 'LineActiveCustomer'|| $value == 'prioritet'|| $value == 'square' || $value == 'postname'|| $value == 'end'|| $value == 'proposition' ||$value == 'description' || $value == 'tests' || $value == 'products'|| $value == 'properties')){
 //            if($value == 'end')
 //                unset($_POST['end']);
             continue;
         }
         if ($id == 41 && ($value == 'fk_groupissues' || $value == 'fk_subdivision'))continue;
-//		var_dump($_POST, $listfield);
-//		die();
+
         if ((! isset($_POST[$value]) || $_POST[$value]=='')
         	&& (! in_array($listfield[$f], array('decalage','module','accountancy_code','accountancy_code_sell','accountancy_code_buy')))  // Fields that are not mandatory
 		)
         {
-//				    var_dump($_POST[$value], $value);
-//   					die();
+//                    echo '<pre>';
+//                    var_dump($_POST[$value],$value);
+//                    echo '</pre>';
+//                    die();
             $ok=0;
             $fieldnamekey=$listfield[$f];
             // We take translate key of field
@@ -797,110 +812,109 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
             }
         }
 
-        // Add new entry
-        $sql = "INSERT INTO ".$tabname[$id]." (";
-        // List of fields
-        if ($tabrowid[$id] && ! in_array($tabrowid[$id],$listfieldinsert))
-        	$sql.= $tabrowid[$id].",";
-            $sql.= $tabfieldinsert[$id];
-        $sql.=",active".($id>=25?(",id_usr"):"").")";
-        $sql.= " VALUES(";
 
-        // List of values
-        if ($tabrowid[$id] && ! in_array($tabrowid[$id],$listfieldinsert))
-        	$sql.= $newid.",";
+            // Add new entry
+            $sql = "INSERT INTO " . $tabname[$id] . " (";
+            // List of fields
+            if ($tabrowid[$id] && !in_array($tabrowid[$id], $listfieldinsert))
+                $sql .= $tabrowid[$id] . ",";
+            $sql .= $tabfieldinsert[$id];
+            $sql .= ",active" . ($id >= 25 ? (",id_usr") : "") . ")";
+            $sql .= " VALUES(";
 
-        $i=0;
-        $added=0;
+            // List of values
+            if ($tabrowid[$id] && !in_array($tabrowid[$id], $listfieldinsert))
+                $sql .= $newid . ",";
+
+            $i = 0;
+            $added = 0;
 //        var_dump(count($listfieldinsert));
 //        die($sql);
-        foreach ($listfieldinsert as $f => $value)
-        {
+            foreach ($listfieldinsert as $f => $value) {
 
-            if($id == 30 && ($listfieldvalue[$i] == 'LineActive')) {
-			}elseif($id == 34 && ($listfieldvalue[$i] == 'responsibility')) {
-				if ($added) $sql .= ",";
-				$sql .= $_POST[$listfieldvalue[$i]];
-			}elseif($id == 39){
+                if ($id == 30 && ($listfieldvalue[$i] == 'LineActive')) {
+                } elseif ($id == 34 && ($listfieldvalue[$i] == 'responsibility')) {
+                    if ($added) $sql .= ",";
+                    $sql .= $_POST[$listfieldvalue[$i]];
+                } elseif ($id == 39) {
 
 //					echo '<pre>';
 //					var_dump($listfieldvalue);
 //					echo '</pre>';
 //					die();
-				if ($added) $sql .= ",";
-				if(($listfieldvalue[$i] == 'begin' || $listfieldvalue[$i] == 'end')) {
-                    if(!empty($_POST[$listfieldvalue[$i]])) {
-                        $date = new DateTime($_POST[$listfieldvalue[$i]]);
-                        $sql .= "'" . $date->format('Y-m-d') . "'";
-                    }else
-                        $sql .= "null";
-				}else{
-					switch($listfieldvalue[$i]){
-						case 'proposition':{
-							$sql .= empty($_POST['proposition'])?"null,":("'".$_POST['proposition']."'");
-						}break;
-						case 'LineActiveCustomer':{
-							$sql .= empty($_POST['fk_lineactive'])?"null,":$_POST['fk_lineactive'];
-						}break;
-						case 'postname':{
+                    if ($added) $sql .= ",";
+                    if (($listfieldvalue[$i] == 'begin' || $listfieldvalue[$i] == 'end')) {
+                        if (!empty($_POST[$listfieldvalue[$i]])) {
+                            $date = new DateTime($_POST[$listfieldvalue[$i]]);
+                            $sql .= "'" . $date->format('Y-m-d') . "'";
+                        } else
+                            $sql .= "null";
+                    } else {
+                        switch ($listfieldvalue[$i]) {
+                            case 'proposition': {
+                                $sql .= empty($_POST['proposition']) ? "null," : ("'" . $_POST['proposition'] . "'");
+                            }
+                                break;
+                            case 'LineActiveCustomer': {
+                                $sql .= empty($_POST['fk_lineactive']) ? "null," : $_POST['fk_lineactive'];
+                            }
+                                break;
+                            case 'postname': {
 //							var_dump($_POST['post']);
-							$sql .= empty($_POST['fk_post'])?"null,":$_POST['fk_post'];
-						}break;
-						default:{
-							$sql .=	"'".($_POST[$listfieldvalue[$i]])."'";
-                            if($listfieldvalue[$i] == 'end')
-                                unset($_POST['end']);
-						}
-					}
-				}
+                                $sql .= empty($_POST['fk_post']) ? "null," : $_POST['fk_post'];
+                            }
+                                break;
+                            default: {
+                                $sql .= "'" . ($_POST[$listfieldvalue[$i]]) . "'";
+                                if ($listfieldvalue[$i] == 'end')
+                                    unset($_POST['end']);
+                            }
+                        }
+                    }
 //				echo '<pre>';
 //				var_dump($_POST[$listfieldvalue[$i]]);
 //				var_dump($date->format('Y-m-d'));
 //				echo '</pre>';
 //				die();
-                $added=1;
-            }else {
-                if ($value == 'price' || preg_match('/^amount/i', $value)) {
-                    $_POST[$listfieldvalue[$i]] = price2num($_POST[$listfieldvalue[$i]], 'MU');
-                } else if ($value == 'entity') {
-                    $_POST[$listfieldvalue[$i]] = $conf->entity;
-                }
+                    $added = 1;
+                } else {
+                    if ($value == 'price' || preg_match('/^amount/i', $value)) {
+                        $_POST[$listfieldvalue[$i]] = price2num($_POST[$listfieldvalue[$i]], 'MU');
+                    } else if ($value == 'entity') {
+                        $_POST[$listfieldvalue[$i]] = $conf->entity;
+                    }
 
-                if ($added) $sql .= ",";
+                    if ($added) $sql .= ",";
 //                var_dump($listfieldvalue, $_POST[$listfieldvalue[$i]]).'</br>';
 //				die();
-                if ($_POST[$listfieldvalue[$i]] == '' || empty($_POST[$listfieldvalue[$i]])) {
+                    if ($_POST[$listfieldvalue[$i]] == '' || empty($_POST[$listfieldvalue[$i]])) {
 //                    echo $listfieldvalue[$i].'</br>';
-                    $sql .= "null";
-                }
-                else {
+                        $sql .= "null";
+                    } else {
 //                    $sql .= "'" . $value . "'";
-                    $sql .= "'" . $db->escape($_POST[$listfieldvalue[$i]]) . "'";
+                        $sql .= "'" . $db->escape($_POST[$listfieldvalue[$i]]) . "'";
+                    }
+                    $added = 1;
                 }
-                $added=1;
+                $i++;
             }
-            $i++;
-        }
-        $sql.=",1".($id>=25?(",".$user->id):"").")";
+            $sql .= ",1" . ($id >= 25 ? ("," . $user->id) : "") . ")";
 
 
-        dol_syslog("actionadd", LOG_DEBUG);
-        $result = $db->query($sql);
-        if ($result)	// Add is ok
-        {
-            setEventMessage($langs->transnoentities("RecordSaved"));
-        	$_POST=array('id'=>$id);	// Clean $_POST array, we keep only
-        }
-        else
-        {
-            if ($db->errno() == 'DB_ERROR_RECORD_ALREADY_EXISTS') {
-                setEventMessage($langs->transnoentities("ErrorRecordAlreadyExists"),'errors');
-            }
-            else {
-                dol_print_error($db);
+            dol_syslog("actionadd", LOG_DEBUG);
+            $result = $db->query($sql);
+            if ($result)    // Add is ok
+            {
+                setEventMessage($langs->transnoentities("RecordSaved"));
+                $_POST = array('id' => $id);    // Clean $_POST array, we keep only
+            } else {
+                if ($db->errno() == 'DB_ERROR_RECORD_ALREADY_EXISTS') {
+                    setEventMessage($langs->transnoentities("ErrorRecordAlreadyExists"), 'errors');
+                } else {
+                    dol_print_error($db);
+                }
             }
         }
-    }
 //var_dump($ok);
 //    die();
     // Si verif ok et action modify, on modifie la ligne
@@ -1710,10 +1724,15 @@ if($id == 39){
                     var id = td[i].parentElement.id.substr(6);
                     td[i].innerHTML = '<a href="."/dolibarr/htdocs/admin/proposedProducts.php?proposed_id='+id+'"."><img style = ".'"cursor:pointer"'."src =/dolibarr/htdocs/theme/eldy/img/offer.png title=Товари></a>';
 
+                }else if(td[i].innerHTML == 'properties'){
+                    var id = td[i].parentElement.id.substr(6);
+                    td[i].innerHTML = '<a href="."/dolibarr/htdocs/admin/proposedProperties.php?proposed_id='+id+'"."><img style = ".'"cursor:pointer"'."src =/dolibarr/htdocs/theme/eldy/img/properties.png title=Налаштування></a>';
+
                 }
             }
             document.body.innerHTML = document.body.innerHTML.replace('Tests','');
             document.body.innerHTML = document.body.innerHTML.replace('Products','');
+            document.body.innerHTML = document.body.innerHTML.replace('Properties','');
         })
     </script>";
 }
@@ -1942,7 +1961,7 @@ function fieldList($fieldlist,$obj='',$tabname='', $show=0)//Відображе�
 				if(isset($obj->$fieldlist[$field]))
 					$tmp_array[]=$obj->fk_lineactive;
 				print '<td align="left">';
-				print $formcompany->lineactiveCusomter(0, $tmp_array, 1, 'fk_lineactive');
+				print $formcompany->lineactiveCusomter(0, $tmp_array, 10, 'fk_lineactive');
 				print '</td>';
 			}elseif($fieldlist[$field] == 'postname'){
 //				echo '<pre>';
@@ -1950,7 +1969,7 @@ function fieldList($fieldlist,$obj='',$tabname='', $show=0)//Відображе�
 //				echo '</pre>';
 //				die();
 				print '<td align="left">';
-				print $societecontact->selectPost('fk_post', (isset($obj->fk_post)?$obj->fk_post:''));
+				print $societecontact->selectPost('fk_post', (isset($obj->fk_post)?$obj->fk_post:''),10);
 				print '</td>';
 
 			}elseif($fieldlist[$field] == 'begin' || $fieldlist[$field] == 'end') {

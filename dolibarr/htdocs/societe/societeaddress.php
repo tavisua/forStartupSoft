@@ -220,10 +220,10 @@ where fk_soc = '.$socid.' and `llx_societe_address`.active=1';
 //die();
 
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
-$db = new dbBuilder();
+$dbBuilder = new dbBuilder();
 
 
-$table = $db->fShowTable($TableParam, $sql, "'" . $tablename . "'", $conf->theme, '', '', $readonly = array(), false);
+$table = $dbBuilder->fShowTable($TableParam, $sql, "'" . $tablename . "'", $conf->theme, '', '', $readonly = array(), false);
 
 include DOL_DOCUMENT_ROOT.'/theme/'.$conf->theme.'/societeaddress.html';
 

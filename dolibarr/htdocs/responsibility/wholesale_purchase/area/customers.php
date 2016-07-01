@@ -157,6 +157,8 @@ $sql .= ' limit '.($page-1)*$per_page.','.$per_page;
 //die();
 
 $res = $db->query($sql_count);
+if(!$res)
+    dol_print_error($db);
 $count = $db->fetch_object($res);
 
 

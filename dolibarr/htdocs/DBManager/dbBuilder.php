@@ -13,8 +13,8 @@ class dbBuilder{
     public function __construct()
     {
         include $_SERVER['DOCUMENT_ROOT'] .'/dolibarr/htdocs/DBManager/db.php';
-        $db = new dbMysqli();
-        $this->mysqli = $db->mysqli;
+        $dbMysqli = new dbMysqli();
+        $this->mysqli = $dbMysqli->mysqli;
     }
     function fBuildEditForm($title, $field, $theme, $tablename){
         $edit_form ="<tr>
@@ -87,7 +87,7 @@ class dbBuilder{
         return $edit_form;
     }
     public function fShowPermission($id_group, $title = array(), $sql=array(), $tables=array(), $theme){
-        global $user, $conf, $langs, $db;
+        global $user, $conf, $langs;
         $table ='<table width="100%" id="reference" class="noborder">'."\r\n";
         $table .= '<tbody>'."\r\n";
         $table .= '<tr id="reference_title" class="liste_titre">'."\r\n";
@@ -147,7 +147,7 @@ class dbBuilder{
         return $table;
     }
     public function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $sortorder='', $readonly = array(), $showtitle=true){
-        global $user, $conf, $langs, $db;
+        global $user, $conf, $langs;
 
 
         if(empty($sortorder))

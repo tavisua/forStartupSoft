@@ -87,6 +87,257 @@ function getStaticMember($class, $member)
  * @param	int		$port		Port of database server
  * @return	DoliDB				A DoliDB instance
  */
+function getUsersTask($actions, $subdiv_id = 0, $showbtn = false, $actioncode = '', $Title = 'Всього задач'){
+	global $db,$conf;
+	$actcode = array('AC_GLOBAL', 'AC_CURRENT');
+	$sql = "select rowid, lastname, firstname from llx_user where subdiv_id=".$subdiv_id." and active = 1";
+	$userres = $db->query($sql);
+	$userlist = array();
+	while($obj = $userres->fetch_object()){
+		$userlist[$obj->rowid] = $obj->lastname.' '.mb_substr($obj->firstname,0,1,'UTF-8');
+	}
+    $today = new DateTime();
+    $mkToday = dol_mktime(0,0,0,$today->format('m'),$today->format('d'),$today->format('Y'));
+	$future = array();
+	$outstanding = array();
+	$fact = array();
+	$total = array();
+	foreach($actions as $action) {
+		if (empty($actioncode) || $actioncode == $action['code']) {//Перевірка на відповідність типу дії
+				if(in_array($action["id_usr"], array_keys($userlist))) {
+					$date = new DateTime($action["datep"]);
+					$mkDate = dol_mktime(0, 0, 0, $date->format('m'), $date->format('d'), $date->format('Y'));
+					if ($mkDate >= $mkToday) {
+						$future[$action["id_usr"]][$action["datep"]]++;
+						if ($mkDate - $mkToday <= 604800)//604800 sec by week
+							$future[$action["id_usr"]]['week']++;
+						if ($mkDate - $mkToday <= 2678400)//2678400 sec by month
+							$future[$action["id_usr"]]['month']++;
+					}
+					if ($mkDate < $mkToday && $action['percent'] != 100) {//Додав $mkDate < $mkToday. Вважається логічним, щоб кількість прострочених рахувати, коли завдання повинно вже було бути виконано
+						$outstanding[$action["id_usr"]]++;
+					} elseif ($action['percent'] == 100 && (in_array($action['code'], $actcode) || $action['callstatus'] == '5')) {
+						if ($mkToday - $mkDate <= 604800)
+							$fact[$action["id_usr"]][$action["datep"]]++;
+						if ($mkToday - $mkDate <= 604800)//604800 sec by week
+							$fact[$action["id_usr"]]['week']++;
+						if ($mkToday - $mkDate <= 2678400)//2678400 sec by month
+							$fact[$action["id_usr"]]['month']++;
+					}
+					$total[$action["id_usr"]][$action["datep"]]++;
+					if ($mkToday - $mkDate <= 604800)//604800 sec by week
+						$total[$action["id_usr"]]['week']++;
+					if ($mkToday - $mkDate <= 2678400)//2678400 sec by month
+						$total[$action["id_usr"]]['month']++;
+				}
+		}
+	}
+	$nom=0;
+	$out='';
+	mysqli_data_seek($userres,0);
+    while($obj = $db->fetch_object($userres)){
+        $class=(fmod($nom++,2)==0?"impair":"pair");
+        $out.='<tr id = "'.$obj->rowid.'" class="subtype '.$class.' '.(empty($actioncode)?'alltask':$actioncode).'" style="display:none">
+            <td class="middle_size" style="width:106px">'.$obj->lastname.' '.mb_substr($obj->firstname, 0, 1, 'UTF-8').'.'.mb_substr($obj->firstname, mb_strrpos($obj->firstname, ' ','UTF-8')+1, 1, 'UTF-8').'.</td>
+            <td class="middle_size" style="width:146px">'.$Title.'</td><td></td>';
+            //% виконання запланованого по факту
+            for($i=8; $i>=0; $i--){
+                if($i < 8) {
+                    $percent = 0;
+                    if($i<7) {
+                        $count = (isset($fact[$obj->rowid][date("Y-m-d", (time() - 3600 * 24 * $i))]) ? ($fact[$obj->rowid][ date("Y-m-d", (time() - 3600 * 24 * $i))]) : ('0'));
+                        $tCount = (isset($total[$obj->rowid][date("Y-m-d", (time() - 3600 * 24 * $i))]) ? ($total[$obj->rowid][date("Y-m-d", (time() - 3600 * 24 * $i))]) : '');
+                    }else{
+                        $count = isset($fact[$obj->rowid]['week'])?$fact[$obj->rowid]['week']:0;
+                        $tCount = isset($total[$obj->rowid]['week'])?$total[$obj->rowid]['week']:1;
+//                        if($obj->rowid == 43){
+//                            var_dump($count, $total);
+//                            die();
+//                        }
+                    }
+                }else{
+                    $count = isset($fact[$obj->rowid]['month'])?$fact[$obj->rowid]['month']:('0');
+                    $tCount = isset($total[$obj->rowid]['month'])?$total[$obj->rowid]['month']:('');
+                }
+                if(strlen($tCount)>0)
+                    $percent = round(100*$count/($tCount==0?1:$tCount));
+                else
+                    $percent = '';
+                $out .= '<td style="text-align:center;">' .$percent. '</td>';
+            }
+            //минуле (факт)
+            for($i=8; $i>=0; $i--){
+                if($i < 8) {
+                    $count = 0;
+                    if($i<7&&isset($fact[$obj->rowid][date("Y-m-d", (time() - 3600 * 24 * $i))]))
+                        $count = ($fact[$obj->rowid][date("Y-m-d", (time() - 3600 * 24 * $i))]);
+                    elseif($i == 7 && isset($fact[$obj->rowid]['week']))
+                        $count = $fact[$obj->rowid]['week'];
+                    $out .= '<td style="text-align:center;">' .$count . '</td>';
+                }else
+                    $out.='<td style="text-align:center;">'.(isset($fact[$obj->rowid]['month'])?($fact[$obj->rowid]['month']):('')).'</td>';
+            }
+//            //Прострочено сьогодні
+            $out.='<td style="text-align: center;"> '.(isset($outstanding[$obj->rowid])?$outstanding[$obj->rowid]:0).'</td>';
+            //майбутнє (план)
+            for($i=0; $i<9; $i++){
+                if($i < 7)
+                    $out.='<td  class = "all_future_today" style="text-align: center;">'.(isset($future[$obj->rowid][date("Y-m-d", (time()+3600*24*$i))])?($future[$obj->rowid][date("Y-m-d", (time()+3600*24*$i))]):('')).'</td>';
+                elseif($i == 7)
+                    $out.='<td  class = "all_future_today" style="text-align: center;">'.(isset($future[$obj->rowid]['week'])?($future[$obj->rowid]['week']):('')).'</td>';
+                else
+                    $out.='<td class = "all_future_month" style="text-align: center;">'.(isset($future[$obj->rowid]['month'])?$future[$obj->rowid]['month']:'').'</td>';
+            }
+        $out.='</tr>';
+    }	
+//	echo '<pre>';
+//	var_dump($fact);
+//	echo '</pre>';
+//	die();
+	return $out;
+}
+function getAllSubdivTask($actions, $subdiv_id = 0, $Title='Найкр.пок.департ. "Всього задач"', $showbtn = false, $actioncode = ''){
+//	global $sb_id;
+//	$sb_id = $subdiv_id;
+//	if(!empty($subdiv_id)){
+//		$actions = array_filter($actions,function($action){
+//			global $sb_id;
+////			var_dump($sb_id);
+////			die();
+//			return $action['subdiv_id'] == $sb_id;
+//		});
+//	}
+//	echo '<pre>';
+//	var_dump($subdiv_id,$actions);
+//	echo '</pre>';
+//	die();
+	global $db;
+	$actcode = array('AC_GLOBAL', 'AC_CURRENT');
+	$sql = "select `name` from `subdivision` where rowid = ".$subdiv_id;
+    $today = new DateTime();
+    $mkToday = dol_mktime(0,0,0,$today->format('m'),$today->format('d'),$today->format('Y'));
+	$future = array();
+	$outstanding = 0;
+	$fact = array();
+	$total = array();
+	$calc = array();
+	$actionsID = array();
+	$mindate = 0;
+
+	foreach($actions as $action){
+
+		if(empty($actioncode) || $actioncode == $action['code']){//Перевірка на відповідність типу дії
+			if (($subdiv_id == 0 || $action['subdiv_id'] == $subdiv_id) && !in_array($action['id'], $actionsID)) {//Перевірка на відповідність департаменту
+				$actionsID[]=$action['id'];
+				$date = new DateTime($action["datep"]);
+				$mkDate = dol_mktime(0, 0, 0, $date->format('m'), $date->format('d'), $date->format('Y'));
+//				echo $action["datep"].'</br>';
+//				var_dump($action["datep"]);
+//				die();
+//				if($mindate != 0) {
+//					var_dump(date('Y-m-d H:i:s',$mkDate),date('Y-m-d H:i:s',$mkToday), $action);
+//					die();
+//				}
+//				if($mindate==0 || $mkDate<$mindate){
+//					$mindate = $mkDate;
+//				}
+
+				if ($mkDate >= $mkToday) {
+//					die('test');
+					$future[$action["datep"]]++;
+					if($mkDate - $mkToday <= 604800)
+						$calc[$action['respon_alias']]++;
+					if ($mkDate - $mkToday <= 604800)//604800 sec by week
+						$future['week']++;
+					if ($mkDate - $mkToday <= 2678400)//2678400 sec by month
+						$future['month']++;
+				}
+				if ($mkDate < $mkToday && $action['percent'] != 100) {//Додав $mkDate < $mkToday. Вважається логічним, щоб кількість прострочених рахувати, коли завдання повинно вже було бути виконано
+					$outstanding++;
+				} elseif ($action['percent'] == 100 && (in_array($action['code'], $actcode) || $action['callstatus'] == '5')) {
+					if ($mkToday - $mkDate <= 604800)
+						$fact[$action["datep"]]++;
+					if ($mkToday - $mkDate <= 604800)//604800 sec by week
+						$fact['week']++;
+					if ($mkToday - $mkDate <= 2678400)//2678400 sec by month
+						$fact['month']++;
+				}
+				$total[$action["datep"]]++;
+				if ($mkToday - $mkDate <= 604800)//604800 sec by week
+					$total['week']++;
+				if ($mkToday - $mkDate <= 2678400)//2678400 sec by month
+					$total['month']++;
+			}
+		}
+	}
+//	echo '<pre>';
+//	var_dump($actionsID);
+//	echo '</pre>';
+//	die();
+	$res = $db->query($sql);
+	if(!$res)
+		dol_print_error($db);
+	$obj = $res->fetch_object();
+    $out='<tr '.(!$showbtn?'class="bestvalue"':'').'>';
+    $out.= '<td colspan="2" class="middle_size" style="width: 288px">'.$Title.' '.$obj->name.'</td><td style="width:33px">'.($showbtn?'<button onclick="ShowHideAllTask('.(empty($actioncode)?"'AllTask'":("'".$actioncode."'")).');"><img id="img'.(empty($actioncode)?"AllTask":($actioncode)).'" src="/dolibarr/htdocs/theme/eldy/img/1downarrow.png"></button>':'&nbsp;').'</td>';
+        //відсоток виконання
+        if(isset($total['month'])){
+            $value = round($fact['month']/$total['month']*100,0);
+            $out.='<td style="text-align: center">'.$value.'</td>';
+        }else
+            $out.='<td></td>';
+        if(isset($total['week'])){
+            $value = round($fact['week']/$total['week']*100,0);
+            $out.='<td style="text-align: center">'.$value.'</td>';
+        }else
+            $out.='<td></td>';
+        for($i=6;$i>=0;$i--) {
+            if(isset($total[date("Y-m-d", (time()-3600*24*$i))])){
+                $value = round($fact[date("Y-m-d", (time()-3600*24*$i))]/$total[date("Y-m-d", (time()-3600*24*$i))]*100,0);
+                $out.='<td style="text-align: center">'.$value.'</td>';
+            }else
+                $out .= '<td></td>';
+        }
+	//Фактично виконані завдання
+	if(isset($fact['month']))
+			$out.='<td style="text-align: center">'.$fact['month'].'</td>';
+		else
+			$out.='<td></td>';
+	if(isset($fact['week']))
+			$out.='<td style="text-align: center">'.$fact['week'].'</td>';
+		else
+			$out.='<td></td>';
+	for($i=6;$i>=0;$i--){
+		if(isset($fact[date("Y-m-d", (time()-3600*24*$i))]))
+			$out.='<td style="text-align: center">'.$fact[date("Y-m-d", (time()-3600*24*$i))].'</td>';
+		else
+			$out.='<td style="text-align: center"></td>';
+	}
+	//Прострочено завдань
+	if($outstanding>0)
+		$out.='<td style="text-align: center">'.$outstanding.'</td>';
+	else
+		$out.='<td></td>';
+	//заплановано на майбутнє
+	for($i=0;$i<=6;$i++){
+		if($future[date("Y-m-d", (time()+3600*24*$i))])
+			$out.='<td style="text-align: center">'.$future[date("Y-m-d", (time()+3600*24*$i))].'</td>';
+		else
+			$out.='<td></td>';
+	}
+	if(isset($future['week']))
+			$out.='<td style="text-align: center">'.$future['week'].'</td>';
+		else
+			$out.='<td></td>';
+	if(isset($future['month']))
+			$out.='<td style="text-align: center">'.$future['month'].'</td>';
+		else
+			$out.='<td></td>';
+    $out.='</tr>';
+//	var_dump(htmlspecialchars($out));
+//	die();
+    return $out;
+}
 function getDoliDBInstance($type, $host, $user, $pass, $name, $port)
 {
 	require_once DOL_DOCUMENT_ROOT ."/core/db/".$type.'.class.php';

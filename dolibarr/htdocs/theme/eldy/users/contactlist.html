@@ -5,6 +5,11 @@
     <div  class="inline-block tabsElem tabsElemActive">
         <a href="?idmenu=10427&mainmenu=coworkers&leftmenu=&list=contactlist"class="tabactive tab inline-block" data-role="button"><b>Налагодження комунікацій</b></a>
     </div>
+    <?if(in_array($user->id,array(1,5,6))){?>
+        <div  class="inline-block tabsElem" id="Raport">
+            <a href="?idmenu=10427&mainmenu=coworkers&leftmenu=&list=callstatistic"class="tab inline-block" data-role="button"><b>Звіт по дзвінкам</b></a>
+        </div>
+    <?}?>
 </div>
 <table cellspacing="1" class="WidthScroll" >
     <thead style="width: 100%">

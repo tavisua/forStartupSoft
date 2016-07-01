@@ -94,6 +94,24 @@ class FormActions
 		$out .= '</select>';
 		print $out;
 	}
+	function form_select_callstatus($formname,$selected = 2){
+		global $db;
+		$sql = "select rowid, status from llx_c_callstatus where active = 1";
+		$res = $db->query($sql);
+		if(!$res)
+			dol_print_error($db);
+		$out = '<select name="'.$formname.'" id="select'.$formname.'" class="flat">';
+		while($obj = $db->fetch_object($res)){
+			$out.= '<option value="'.$obj->rowid.'"'.(($selected == $obj->rowid) ? ' selected="selected"' : '').'>'.$obj->status.'</option>';
+		}
+		$out.= '</select>';
+		$out.="<script>
+			$('select#select".$formname."').change(function(){
+				$('#callstatus').val($('select#select".$formname."').val());
+			})
+		</script>";
+		return $out;
+	}
     function form_select_status_action($formname,$selected,$canedit=1,$htmlname='complete',$showempty=0,$onlyselect=0)
     {
         global $langs,$conf;

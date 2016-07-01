@@ -50,11 +50,19 @@ if(!isset($_REQUEST['date'])){
 $dateQuery = new DateTime($date);
 //var_dump($dateQuery->format('Y-m-d'));
 //die();
+$callstatus = array();
+$sql = "select rowid, status from `llx_c_callstatus` where active = 1";
+$callres = $db->query($sql);
+if(!$callres)
+    dol_print_error($db);
+while($obj = $db->fetch_object($callres))
+    $callstatus[$obj->rowid] = $obj->status;
+
 $actionURL = '/comm/action/card.php';
-$sql = "select `llx_actioncomm`.id as rowid, `llx_actioncomm`.datep, `llx_actioncomm`.datep2,
+$sql = "select  `llx_actioncomm`.id as rowid, `llx_actioncomm`.datep, `llx_actioncomm`.datep2,
         `llx_actioncomm`.`code`, `llx_actioncomm`.fk_user_author, `llx_actioncomm`.label, `regions`.`name` as region_name, case when `llx_actioncomm`.fk_soc is null then `llx_user`.`lastname` else `llx_societe`.`nom` end lastname,
         `llx_actioncomm`.`note`, `llx_actioncomm`.`percent`, `llx_c_actioncomm`.`libelle` title, `llx_actioncomm`.confirmdoc,
-        `llx_actioncomm`.priority
+        `llx_actioncomm`.priority, max(`llx_societe_action`.`callstatus`) as callstatus
         from `llx_actioncomm`
         left join `llx_societe` on `llx_societe`.rowid = `llx_actioncomm`.fk_soc
         left join `states` on `states`.rowid = `llx_societe`.state_id
@@ -62,12 +70,17 @@ $sql = "select `llx_actioncomm`.id as rowid, `llx_actioncomm`.datep, `llx_action
         left join `llx_user` on `llx_user`.rowid= `llx_actioncomm`.fk_user_author
         left join `llx_c_actioncomm` on `llx_c_actioncomm`.`code` = `llx_actioncomm`.`code`
         left join `llx_actioncomm_resources` on `llx_actioncomm`.`id` =  `llx_actioncomm_resources`.`fk_actioncomm`
+        left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
         where fk_action in
               (select id from `llx_c_actioncomm`
               where `type` in ('system', 'user'))
         and (case when `llx_actioncomm_resources`.fk_element is null then `llx_actioncomm`.fk_user_author else `llx_actioncomm_resources`.fk_element end = ".$user->id.")
-        and `datep` between '".$dateQuery->format('Y-m-d')."' and date_add('".$dateQuery->format('Y-m-d')."', interval 1 day)
+        and date(datep) = '".$dateQuery->format('Y-m-d')."'
         and `llx_actioncomm`.active = 1
+        group by `llx_actioncomm`.id,  `llx_actioncomm`.datep, `llx_actioncomm`.datep2,
+        `llx_actioncomm`.`code`, `llx_actioncomm`.fk_user_author, `llx_actioncomm`.label, `regions`.`name`, case when `llx_actioncomm`.fk_soc is null then `llx_user`.`lastname` else `llx_societe`.`nom` end,
+        `llx_actioncomm`.`note`, `llx_actioncomm`.`percent`, `llx_c_actioncomm`.`libelle`, `llx_actioncomm`.confirmdoc,
+        `llx_actioncomm`.priority
         order by priority,datep";
 $res = $db->query($sql);
 //echo '<pre>';
@@ -82,6 +95,7 @@ $priority = "-100";
 $task = '<div id="currenttime" style="z-index: 10;"></div>';
 //$prev_time = mktime(8,0,0, $dateQuery->format('m'),$dateQuery->format('d'),$dateQuery->format('Y'));
 //$emptyid=0;
+$count = 0;
 while($row = $db->fetch_object($res)) {
     if($row->priority != $priority) {
         $priority = $row->priority;
@@ -124,14 +138,26 @@ while($row = $db->fetch_object($res)) {
         }
             break;
     }
-    if ($row->percent == -1)
-        $status = 'Не розпочато';
-    elseif ($row->percent > 0 && $row->percent < 100)
-        $status = 'В роботі(' . $row->percent . '%)';
-    elseif ($row->percent == 0)
-        $status = 'Тільки-но розпочато';
-    else
-        $status = 'Виконано';
+    if(trim($row->code) == 'AC_TEL'){
+        if ($row->percent == -1)
+            $status = 'Не розпочато';
+        else {
+            $status = $callstatus[(empty($row->callstatus) ? 2 : $row->callstatus)];
+//            if($row->rowid == 36782)
+//                die($status);
+            if($status == 'виконано')
+                $count++;
+        }
+    }else {
+        if ($row->percent == -1)
+            $status = 'Не розпочато';
+        elseif ($row->percent > 0 && $row->percent < 100)
+            $status = 'В роботі(' . $row->percent . '%)';
+        elseif ($row->percent == 0)
+            $status = 'Тільки-но розпочато';
+        else
+            $status = 'Виконано';
+    }
     $datep = new DateTime($row->datep);
     $datep2 = new DateTime($row->datep2);
     $DiffSec = (mktime($datep2->format('H'), $datep2->format('i'), $datep2->format('s'), $datep2->format('m'), $datep2->format('d'), $datep2->format('Y')) -
@@ -152,9 +178,9 @@ while($row = $db->fetch_object($res)) {
            <div class="task_cell" style="float: left; width: 36px; height 16px">' . $DiffTime . '</div>
            <div class="task_cell" style="float: left; width: 35px">' . $datep2->format('H:i') . '</div>
            <div class="task_cell" style="float: left; width: 152px">' . trim($row->region_name) .(!empty($row->region_name)?' район':'').'</div>
-           <div class="task_cell" style="float: left; width: 152px">' . trim($row->lastname) . '</div>
+           <div class="task_cell" style="float: left; width: 152px">'. (mb_strlen(trim($row->lastname), 'UTF-8')>25?mb_substr(trim($row->lastname), 0,25,'UTF-8').'...':trim($row->lastname)) . '</div>
            <div class="task_cell note" style="float: left; width: 202px;">' . $taks . '</div>
-           <div class="task_cell" style="float: left; width: 152px;">' . trim($row->confirmdoc) . '</div>
+           <div class="task_cell" style="float: left; width: 152px;">' .(mb_strlen(trim($row->confirmdoc), 'UTF-8')>25?mb_substr(trim($row->confirmdoc), 0,25,'UTF-8').'...':trim($row->confirmdoc)). '</div>
            <div class="task_cell" style="float: left; width: 130px;">' . $status . '</div>';
     if($user->id == $row->fk_user_author)
         $task_table .='<div class="task_cell" style="float: left; width: 20px; border-color: transparent"><img src="theme/eldy/img/edit.png"></div>';
@@ -167,6 +193,8 @@ while($row = $db->fetch_object($res)) {
 //    $task.='<tr id="'.$row->rowid.'"><td class="'.$classitem.'" style="height: '.($DiffSec/600*($conf->browser->name == 'firefox' ? ($DiffSec/60<=30?($DiffSec/60<15?22:23.8):23.7) : 22)).'px">'.$task_table.'</td></tr>';
     $prev_time = mktime($datep2->format('H'), $datep2->format('i'), $datep2->format('s'), $datep2->format('m'), $datep2->format('d'), $datep2->format('Y'));
 }
+//var_dump($count);
+//die();
 if($db->num_rows($res))
     $task.='    </tbody>
                 </table></div>';
@@ -177,15 +205,15 @@ $totalcount = 144;
 for($period=0; $period<$totalcount;$period++){
     if($db->num_rows($res)) {
         if ($row == 0) {
-            $table .= '<tr><td rowspan="6" style="vertical-align: text-top" width="32px" ' . (($hour == 12 || $hour == 13) ? 'class="lanch"' : '') . '>' . $hour++ . 'год <td id="' . ($hour - 1) . 'h0m" width="54px" ' . (($hour - 1 == 12 || $hour - 1 == 13) ? 'class="lanch"' : '') . '>'.'00 хв.</td>' . ($period == 0 && $row == 0 ? '<td rowspan="'.$totalcount.'" height="100%" id="taskfield" valign="top" >' . $task . '</td>' : '');
+            $table .= '<tr><td rowspan="6" style="vertical-align: text-top" width="32px" ' . (($hour == 12 || $hour == 13) ? 'class="lanch"' : '') . '>' . $hour++ . 'год <td style="height: 51px" id="' . ($hour - 1) . 'h0m" width="54px" ' . (($hour - 1 == 12 || $hour - 1 == 13) ? 'class="lanch"' : '') . '>'.'00 хв.</td>' . ($period == 0 && $row == 0 ? '<td rowspan="'.$totalcount.'" height="100%" id="taskfield" valign="top" >' . $task . '</td>' : '');
         } else {
-            $table .= '<tr><td id="' . ($hour - 1) . 'h' . ($row * 10) . 'm" ' . (($hour - 1 == 12 || $hour - 1 == 13) ? 'class="lanch"' : '') . '>' . ($row * 10) . 'хв.</td>';
+            $table .= '<tr><td style="height: 51px" id="' . ($hour - 1) . 'h' . ($row * 10) . 'm" ' . (($hour - 1 == 12 || $hour - 1 == 13) ? 'class="lanch"' : '') . '>' . ($row * 10) . 'хв.</td>';
         }
     }else{
         if ($row == 0) {
-            $table .= '<tr><td rowspan="6" style="vertical-align: text-top" width="32px" ' . (($hour == 12 || $hour == 13) ? 'class="lanch"' : '') . '>' . $hour++ . 'год <td id="' . ($hour - 1) . 'h0m" width="54px" ' . (($hour - 1 == 12 || $hour - 1 == 13) ? 'class="lanch"' : '') . '>00 хв.</td>' . ($period == 0 && $row == 0 ? '<td rowspan="'.$totalcount.'" height="100%" width="100%" id="taskfield" valign="top" ></td>' : '');
+            $table .= '<tr><td rowspan="6" style="vertical-align: text-top" width="32px" ' . (($hour == 12 || $hour == 13) ? 'class="lanch"' : '') . '>' . $hour++ . 'год <td style="height: 51px" id="' . ($hour - 1) . 'h0m" width="54px" ' . (($hour - 1 == 12 || $hour - 1 == 13) ? 'class="lanch"' : '') . '>00 хв.</td>' . ($period == 0 && $row == 0 ? '<td rowspan="'.$totalcount.'" height="100%" width="100%" id="taskfield" valign="top" ></td>' : '');
         } else {
-            $table .= '<tr><td id="' . ($hour - 1) . 'h' . ($row * 10) . 'm" ' . (($hour - 1 == 12 || $hour - 1 == 13) ? 'class="lanch"' : '') . '>' . ($row * 10) . 'хв.</td>';
+            $table .= '<tr><td style="height: 51px" id="' . ($hour - 1) . 'h' . ($row * 10) . 'm" ' . (($hour - 1 == 12 || $hour - 1 == 13) ? 'class="lanch"' : '') . '>' . ($row * 10) . 'хв.</td>';
         }
     }
     $row++;

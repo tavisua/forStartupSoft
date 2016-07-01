@@ -3,24 +3,51 @@
 require $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 
+
 $actions = array();
 $future = array();
+$fact = array();
 $outstanding = array();
-//echo date('Y-m-d', time()-604800);
-//die();
-$sql = 'select name from subdivision where rowid = '.(empty($user->subdiv_id)?0:$user->subdiv_id);
+$userActions = array();
+$subdivTaskID = array();
+$actcode = array('AC_GLOBAL', 'AC_CURRENT');
+$user_respon = array();
+$DepActions = array();
+$sql = "select rowid, lastname, firstname, subdiv_id from llx_user where active = 1 and subdiv_id is not null and lastname <> 'test'";
 $res = $db->query($sql);
 if(!$res)
     dol_print_error($db);
-$obj = $db->fetch_object($res);
-$subdivision = $obj->name;
+$users = array();
+while($obj = $db->fetch_object($res))
+    $users[$obj->rowid] = array('lastname'=>$obj->lastname.' '.mb_substr($obj->firstname, 0,1,'UTF-8').'.', 'subdiv_id'=>$obj->subdiv_id);
+$sql = "select llx_user.rowid, r1.alias a1, r2.alias a2 from llx_user
+left join `responsibility` r1 on r1.rowid = llx_user.respon_id
+left join `responsibility` r2 on r2.rowid = llx_user.respon_id2
+where llx_user.active = 1";
+$res = $db->query($sql);
+if(!$res)
+    dol_print_error($db);
+while($obj = $db->fetch_object($res)){
+    $user_respon[$obj->rowid] = array($obj->a1,$obj->a2);
+}
+
+//echo '<pre>';
+//var_dump($user_respon);
+//echo '<pre>';
+//die();
+//echo date('Y-m-d', time()-604800);
+//die();
+//var_dump(isset($_SESSION['actions']));
+//unset($_SESSION['actions']);
 if(!isset($_SESSION['actions'])) {
-    $sql = "select sub_user.rowid  id_usr, sub_user.alias, `llx_societe`.`region_id`, llx_actioncomm.percent, date(llx_actioncomm.datep) datep, llx_actioncomm.percent, case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT') then llx_actioncomm.`code` else 'AC_CUST' end `code`
+    $sql = "select llx_actioncomm.id, sub_user.rowid  id_usr, sub_user.alias, `llx_societe`.`region_id`, sub_user.subdiv_id, llx_actioncomm.percent, date(llx_actioncomm.datep) datep,
+    llx_actioncomm.percent, case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT') then llx_actioncomm.`code` else 'AC_CUST' end `code`, `llx_societe_action`.`callstatus`
     from llx_actioncomm
     inner join (select id from `llx_c_actioncomm` where type in('user','system') and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
     left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = llx_actioncomm.id
     left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
-    inner join (select `llx_user`.rowid, `responsibility`.`alias` from `llx_user` inner join `responsibility` on `responsibility`.`rowid` = `llx_user`.`respon_id` where `llx_user`.`subdiv_id` = ".$user->subdiv_id." and `llx_user`.`active` = 1) sub_user on sub_user.rowid = case when llx_actioncomm_resources.fk_element is null then llx_actioncomm.`fk_user_author` else llx_actioncomm_resources.fk_element end
+    left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
+    inner join (select `llx_user`.rowid, `responsibility`.`alias`, `llx_user`.subdiv_id from `llx_user` inner join `responsibility` on `responsibility`.`rowid` = `llx_user`.`respon_id` where 1 and `llx_user`.`active` = 1) sub_user on sub_user.rowid = case when llx_actioncomm_resources.fk_element is null then llx_actioncomm.`fk_user_author` else llx_actioncomm_resources.fk_element end
     where 1
     and llx_actioncomm.active = 1
     and datep2 between adddate(date(now()), interval -1 month) and adddate(date(now()), interval 1 month)";
@@ -34,29 +61,16 @@ if(!isset($_SESSION['actions'])) {
     $actions = array();
     $time = time();
     while ($obj = $db->fetch_object($res)) {
-        $actions[] = array('id_usr' => $obj->id_usr, 'region_id' => $obj->region_id, 'respon_alias' => $obj->alias, 'percent' => $obj->percent, 'datep' => $obj->datep, 'code' => $obj->code);
+        $actions[] = array('id'=>$obj->id, 'id_usr' => $obj->id_usr, 'region_id' => $obj->region_id, 'subdiv_id'=>$obj->subdiv_id,
+            'respon_alias' => $obj->alias, 'percent' => $obj->percent, 'datep' => $obj->datep, 'code' => $obj->code,
+            'callstatus'=> $obj->callstatus);
     }
     $_SESSION['actions'] = $actions;
 
 }else {
     $actions = $_SESSION['actions'];
 }
-if(!isset($_SESSION['future'])) {
-    $future = CalcFutureActions($actions);
-    $_SESSION['future'] = $future;
-}else{
-    $future = $_SESSION['future'];
-}
-//if(!isset($_SESSION['outstanding'])) {
-    $outstanding = CalcOutStandingActions($actions);
-    $_SESSION['outstanding'] = $outstanding;
-//}else{
-//    $outstanding = $_SESSION['outstanding'];
-//}
-//echo '<pre>';
-//var_dump($outstandin[43]);
-//echo '</pre>';
-//die();
+
 if(isset($_REQUEST['action']))
     if($_REQUEST['action'] == 'ac_cust'){
         echo getResponAliasActions();
@@ -69,11 +83,18 @@ if(isset($_REQUEST['action']))
         exit();
     }
 
+$outstanding = CalcOutStandingActions($actions);
+//$_SESSION['outstanding'] = $outstanding;
+//if(!isset($_SESSION['future'])) {
+    $future = CalcFutureActions($actions);
+    $_SESSION['future'] = $future;
+
 llxHeader("",$langs->trans('PlanOfDays'),"");
+//echo '<pre>';
+//var_dump($_SESSION['actions']);
+//echo '</pre>';
+//die();
 print_fiche_titre($langs->trans('PlanOfDays'));
-
-
-
 $table = ShowTable();
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/dir_depatment/day_plan.html';
 
@@ -94,7 +115,7 @@ function getRegionsList($id_usr){
     $count = 0;
     foreach($actions as $item){
         $obj = (object)$item;
-        if($item["id_usr"]==$id_usr&&$item["respon_alias"]=='sale'){
+        if($item["id_usr"]==$id_usr&&$item["respon_alias"]=='sale'&&$item["code"]=='AC_CUST'){
             if(!in_array(empty($item["region_id"])?'null':$item["region_id"], $regions))
                 $regions[]=empty($item["region_id"])?'null':$item["region_id"];
             $date = new DateTime($item["datep"]);
@@ -229,10 +250,12 @@ function getUserList(){
     $userID = array();
     $sql = "select llx_user.rowid, llx_user.lastname, llx_user.firstname from llx_user
         inner join `responsibility` on `responsibility`.`rowid` = `llx_user`.`respon_id`
+        left join `responsibility` resp on `resp`.`rowid` = `llx_user`.`respon_id2`
         where subdiv_id = ".$user->subdiv_id."
-        and `responsibility`.`alias` = '".$_REQUEST['respon_alias']."'
+        and (`responsibility`.`alias` = '".$_REQUEST['respon_alias']."' or `resp`.`alias` = '".$_REQUEST['respon_alias']."')
         and llx_user.active = 1
         order by llx_user.lastname, llx_user.firstname";
+//    die($sql);
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
@@ -348,23 +371,28 @@ function CreateItem($calc_action, $user_tmp, $classname, $showbtn = true){
     $out.='</tr>';
     return $out;
 }
-function GetBestUserID($actions, $actioncode =''){
+function GetBestUserID()
+{
+    global $CustActions, $user;
+
     $maxCount = 0;
     $id_usr = 0;
-    $keys = array_keys($actions);
-    for($i = 0; $i<count($keys);$i++){
-        if(isset($actions[$keys[$i]]['week']) && $maxCount<array_sum($actions[$keys[$i]]['week'])) {
-            $maxCount = array_sum($actions[$keys[$i]]['week']);
-            $id_usr = $keys[$i];
+
+    foreach (array_keys($CustActions) as $userID) {
+        if ($maxCount < $CustActions[$userID]) {
+            $maxCount = $CustActions[$userID];
+            $id_usr = $userID;
         }
     }
     return $id_usr;
+
 }
 function getResponAliasActions(){
-    global $db,$langs,$subdivision,$outstanding, $future, $user;
+    global $db,$langs,$user,$actions;
+
     $sql = "select llx_user.rowid, `responsibility`.`alias` from llx_user
-        inner join `responsibility` on `responsibility`.`rowid` = `llx_user`.`respon_id`
-        where llx_user.rowid in(".implode(',',array_keys($outstanding)).")";
+        left join `responsibility` on `responsibility`.`rowid` = case when `llx_user`.`respon_id2` is null then `llx_user`.`respon_id` else `llx_user`.`respon_id2` end
+        where llx_user.subdiv_id=".$user->subdiv_id.' and llx_user.active = 1';
     $res_respon = $db->query($sql);
     if(!$res_respon)
         dol_print_error($res_respon);
@@ -373,50 +401,121 @@ function getResponAliasActions(){
         if(!empty($obj->alias))
             $user_respon[$obj->rowid] = $obj->alias;
     }
+	$actcode = array('AC_GLOBAL', 'AC_CURRENT');
+    $outstanding = array();
+    $future = array();
+    $fact=array();
+    $total=array();
+    $today = new DateTime();
+    $mkToday = dol_mktime(0,0,0,$today->format('m'),$today->format('d'),$today->format('Y'));
     $calc_action = array();
-
-    foreach(array_keys($future) as $id_usr){
-        if(isset($future[$id_usr]['month']['AC_CUST']))
-             $calc_action[$user_respon[$id_usr]]['future_month'] += $future[$id_usr]['month']['AC_CUST'];
-        if(isset($future[$id_usr]['week']['AC_CUST']))
-             $calc_action[$user_respon[$id_usr]]['future_week'] += $future[$id_usr]['week']['AC_CUST'];
-        for($i=6;$i>=0;$i--){
-            if(isset($future[$id_usr][date("Y-m-d", (time()+3600*24*$i))]['AC_CUST']))
-                $calc_action[$user_respon[$id_usr]]['future'.date("Y-m-d", (time()+3600*24*$i))] += $future[$id_usr][date("Y-m-d", (time()+3600*24*$i))]['AC_CUST'];
-        }
-    }
+    $calc = array();
+    $actionsID = array();
+    foreach($actions as $action) {
 //    echo '<pre>';
-//    var_dump($outstanding);
+//    var_dump($action);
 //    echo '</pre>';
 //    die();
-    foreach(array_keys($outstanding) as $id_usr){
-        if(isset($outstanding[$id_usr]['AC_CUST'])){
-            $calc_action[$user_respon[$id_usr]]['outstanding'] += $outstanding[$id_usr]['AC_CUST'];
+        if($action["datep"] == '2016-06-01'&&$action['subdiv_id'] == $user->subdiv_id )
+            $calc++;
+
+        if($action['subdiv_id'] == $user->subdiv_id &&$action['code']=='AC_CUST'&& !in_array($action['id'], $actionsID)) {
+            $actionsID[]=$action['id'];
+            $date = new DateTime($action["datep"]);
+            $mkDate = dol_mktime(0, 0, 0, $date->format('m'), $date->format('d'), $date->format('Y'));
+            $calc_action[$action["respon_alias"]][$action["datep"]]++;
+            if ($mkDate >= $mkToday) {
+					if($mkDate - $mkToday <= 604800)
+						$calc[$action['respon_alias']]['future_week']++;
+                if($mkDate - $mkToday <= 604800)//604800 sec by week
+                    $calc_action[$action['respon_alias']]['future_week']++;
+                if ($mkToday - $mkDate <= 2678400)//2678400 sec by month
+                    $calc_action[$action['respon_alias']]['future_month']++;
+            }
+            if ($mkDate < $mkToday && $action['percent'] != 100) {//Додав $mkDate < $mkToday. Вважається логічним, щоб кількість прострочених рахувати, коли завдання повинно вже було бути виконано
+                $calc_action[$action["respon_alias"]]['outstanding']++;
+            } elseif ($action['percent'] == 100 && (in_array($action['code'], $actcode) || $action['callstatus'] == '5')) {
+                if ($mkToday - $mkDate <= 604800)
+                    $calc_action[$action["respon_alias"]]['fact'.$action["datep"]]++;
+//                    $fact[$action["id_usr"]][$action["datep"]]++;
+                if ($mkToday - $mkDate <= 604800)//604800 sec by week
+                    $calc_action[$action["respon_alias"]]['fact_week']++;
+                if ($mkToday - $mkDate <= 2678400)//2678400 sec by month
+                    $calc_action[$action["respon_alias"]]['fact_month']++;
+            }
+            $calc_action[$action["respon_alias"]]['total'.$action["datep"]]++;
+            if ($mkToday - $mkDate <= 604800)//604800 sec by week
+                $calc_action[$action["respon_alias"]]['total_week']++;
+            if ($mkToday - $mkDate <= 2678400)//2678400 sec by month
+                $calc_action[$action["respon_alias"]]['total_month']++;
+//
+//            if ($mkDate >= $mkToday) {
+//                $future[$action["id_usr"]][$action["datep"]][$action['code']]++;
+//                if ($mkDate - $mkToday <= 604800)//604800 sec by week
+//                    $future[$action["id_usr"]]['week'][$action['code']]++;
+//                if ($mkDate - $mkToday <= 2678400)//2678400 sec by month
+//                    $future[$action["id_usr"]]['month'][$action['code']]++;
+//            }
+//            if ($mkDate < $mkToday && $action['percent'] != 100) {//Додав $mkDate < $mkToday. Вважається логічним, щоб кількість прострочених рахувати, коли завдання повинно вже було бути виконано
+//                $outstanding[$action["id_usr"]]++;
+//            } elseif ($action['percent'] == 100 && (in_array($action['code'], $actcode) || $action['callstatus'] == '5')) {
+//                if ($mkToday - $mkDate <= 604800)
+//                    $fact[$action["id_usr"]][$action["datep"]]++;
+//                if ($mkToday - $mkDate <= 604800)//604800 sec by week
+//                    $fact[$action["id_usr"]]['week']++;
+//                if ($mkToday - $mkDate <= 2678400)//2678400 sec by month
+//                    $fact[$action["id_usr"]]['month']++;
+//            }
+//            $total[$action["id_usr"]][$action["datep"]]++;
+//            if ($mkToday - $mkDate <= 604800)//604800 sec by week
+//                $total[$action["id_usr"]]['week']++;
+//            if ($mkToday - $mkDate <= 2678400)//2678400 sec by month
+//                $total[$action["id_usr"]]['month']++;
+
         }
-        if(isset($outstanding[$id_usr]['month']['AC_CUST'])){
-            $calc_action[$user_respon[$id_usr]]['fact_month'] += $outstanding[$id_usr]['month']['AC_CUST'];
-            $calc_action[$user_respon[$id_usr]]['total_month'] += $outstanding[$id_usr]['totalmonth']['AC_CUST'];
-        }
-        if(isset($outstanding[$id_usr]['week']['AC_CUST'])){
-            $calc_action[$user_respon[$id_usr]]['fact_week'] += $outstanding[$id_usr]['week']['AC_CUST'];
-            $calc_action[$user_respon[$id_usr]]['total_week'] += $outstanding[$id_usr]['totalweek']['AC_CUST'];
-        }
-        for($i=6;$i>=0;$i--){
-            if(isset($outstanding[$id_usr]['fact'.date("Y-m-d", (time()-3600*24*$i))]['AC_CUST']))
-                $calc_action[$user_respon[$id_usr]]['fact'.date("Y-m-d", (time()-3600*24*$i))] += $outstanding[$id_usr]['fact'.date("Y-m-d", (time()-3600*24*$i))]['AC_CUST'];
-            if(isset($outstanding[$id_usr]['total'.date("Y-m-d", (time()-3600*24*$i))]['AC_CUST']))
-                $calc_action[$user_respon[$id_usr]]['total'.date("Y-m-d", (time()-3600*24*$i))] += $outstanding[$id_usr]['total'.date("Y-m-d", (time()-3600*24*$i))]['AC_CUST'];
-        }
-    }
+	}
+//	echo '<pre>';
+////	var_dump($calc);
+//	var_dump($calc_action);
+//	echo '</pre>';
+//	die();
+
+
+//    foreach(array_keys($future) as $id_usr){
+//        if(isset($future[$id_usr]['month']['AC_CUST']))
+//             $calc_action[$user_respon[$id_usr]]['future_month'] += $future[$id_usr]['month']['AC_CUST'];
+//        if(isset($future[$id_usr]['week']['AC_CUST']))
+//             $calc_action[$user_respon[$id_usr]]['future_week'] += $future[$id_usr]['week']['AC_CUST'];
+//        for($i=6;$i>=0;$i--){
+//            if(isset($future[$id_usr][date("Y-m-d", (time()+3600*24*$i))]['AC_CUST']))
+//                $calc_action[$user_respon[$id_usr]]['future'.date("Y-m-d", (time()+3600*24*$i))] += $future[$id_usr][date("Y-m-d", (time()+3600*24*$i))]['AC_CUST'];
+//        }
+//    }
+//    foreach(array_keys($outstanding) as $id_usr){
+//        if(isset($outstanding[$id_usr]['AC_CUST'])){
+//            $calc_action[$user_respon[$id_usr]]['outstanding'] += $outstanding[$id_usr]['AC_CUST'];
+//        }
+//        if(isset($outstanding[$id_usr]['month']['AC_CUST'])){
+//            $calc_action[$user_respon[$id_usr]]['fact_month'] += $outstanding[$id_usr]['month']['AC_CUST'];
+//            $calc_action[$user_respon[$id_usr]]['total_month'] += $outstanding[$id_usr]['totalmonth']['AC_CUST'];
+//        }
+//        if(isset($outstanding[$id_usr]['week']['AC_CUST'])){
+//            $calc_action[$user_respon[$id_usr]]['fact_week'] += $outstanding[$id_usr]['week']['AC_CUST'];
+//            $calc_action[$user_respon[$id_usr]]['total_week'] += $outstanding[$id_usr]['totalweek']['AC_CUST'];
+//        }
+//        for($i=6;$i>=0;$i--){
+//            if(isset($outstanding[$id_usr]['fact'.date("Y-m-d", (time()-3600*24*$i))]['AC_CUST']))
+//                $calc_action[$user_respon[$id_usr]]['fact'.date("Y-m-d", (time()-3600*24*$i))] += $outstanding[$id_usr]['fact'.date("Y-m-d", (time()-3600*24*$i))]['AC_CUST'];
+//            if(isset($outstanding[$id_usr]['total'.date("Y-m-d", (time()-3600*24*$i))]['AC_CUST']))
+//                $calc_action[$user_respon[$id_usr]]['total'.date("Y-m-d", (time()-3600*24*$i))] += $outstanding[$id_usr]['total'.date("Y-m-d", (time()-3600*24*$i))]['AC_CUST'];
+//        }
+//    }
     $sql = "select distinct `responsibility`.`alias` from llx_user
         inner join `responsibility` on `responsibility`.`rowid` = `llx_user`.`respon_id`
         where llx_user.subdiv_id = ".$user->subdiv_id."
         and llx_user.active = 1
         and alias not in ('gen_dir','');";
-//    echo '<pre>';
-//    var_dump($calc_action);
-//    echo '</pre>';
-//    die();
+
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
@@ -424,7 +523,7 @@ function getResponAliasActions(){
     if($db->num_rows($res)>0)
         while($obj = $db->fetch_object($res)){
             $out.='<tr id="'.$obj->alias.'" class="ac_cust  respon_alias" style="font-weight: bold">
-            <td class="middle_size" style="width:106px">Департамент '.$subdivision.'</td>
+            <td class="middle_size" style="width:106px">Департамент </td>
             <td>'.$langs->trans(strtoupper(substr($obj->alias, 0,1)).substr($obj->alias,1)).'</td>
             <td><button id="bnt'.$obj->alias.'" onclick="ShowHideTaskByUsers('."'respon_".$obj->alias."'".');"><img id="img'.$obj->alias.'" src="/dolibarr/htdocs/theme/eldy/img/1downarrow.png"></button></td>';
             $percent = $calc_action[$obj->alias]['fact_month'];
@@ -454,7 +553,7 @@ function getResponAliasActions(){
             }
             $out.='<td style="text-align: center;">'.$calc_action[$obj->alias]['outstanding'].'</td>';
             for($i=0;$i<=6;$i++){
-                $out.='<td style="text-align: center;">'.$calc_action[$obj->alias]['future'.date("Y-m-d", (time()+3600*24*$i))].'</td>';
+                $out.='<td style="text-align: center;">'.$calc_action[$obj->alias][date("Y-m-d", (time()+3600*24*$i))].'</td>';
             }
             $out.='<td style="text-align: center;">'.$calc_action[$obj->alias]['future_week'].'</td>';
             $out.='<td style="text-align: center;">'.$calc_action[$obj->alias]['future_month'].'</td>';
@@ -585,177 +684,9 @@ function CalcFutureActions($actions, $code=''){
     }
     return $array;
 }
-function ShowGlobalCurrentTasks($Code, $Title, $outstanding, $future, $subdivision, $userlist, $showbyusers = true){
-//    echo '<pre>';
-//    var_dump($Code, $future);
-//    echo '</pre>';
-//    die();
-    global $db, $conf;
-    $table='';
-    $nom = 0;
-    $pastactions = array();
-    $keys = array_keys($outstanding);
-    for($i = 0; $i<count($keys);$i++){
 
-        $keysitem = array_keys($outstanding[$keys[$i]]);
-        foreach($keysitem as $key){
-    //            var_dump($key);
-    //            die();
-            if(substr($key, 0, strlen('fact')) == 'fact' || in_array($key,array('week','month'))){
-                $pastactions[$key] += isset($outstanding[$keys[$i]][$key][$Code])?$outstanding[$keys[$i]][$key][$Code]:0;
-            }
-            if(substr($key, 0, strlen('total')) == 'total'){
-
-                $pastactions[$key] += $outstanding[$keys[$i]][$key][$Code];
-            }
-        }
-    }
-//    echo '<pre>';
-//    var_dump($pastactions);
-//    echo '</pre>';
-//    die();
-    $firefoxwidth = array('8'=>33,'7'=>30);
-    $table.='<tr id="tr'.$Code.'" style="font-weight: bold"><td class="middle_size" style="width:106px">Департамент '.$subdivision.'</td><td class="middle_size" style="width:144px">'.$Title.'</td>';
-    $table.='<td><button id="'.$Code.'" onclick="ShowHideAllTask('."'".$Code."'".');"><img id="img'.$Code.'" src="/dolibarr/htdocs/theme/eldy/img/1downarrow.png"></button></td>';
-    //% виконання запланованого по факту
-    for($i=8; $i>=0; $i--){
-        if($i < 8) {
-            $percent = 0;
-            if($i<7) {
-                $count = (isset($pastactions['fact' . date("Y-m-d", (time() - 3600 * 24 * $i))]) ? $pastactions['fact' . date("Y-m-d", (time() - 3600 * 24 * $i))] : ('0'));
-                $total = (isset($pastactions['total' . date("Y-m-d", (time() - 3600 * 24 * $i))]) ? $pastactions['total' . date("Y-m-d", (time() - 3600 * 24 * $i))] : (1));
-            }else{
-                $count = isset($pastactions['week'])?$pastactions['week']:0;
-                $total = isset($pastactions['totalweek'])?$pastactions['totalweek']:1;
-            }
-        }else{
-            $count = isset($pastactions['month'])?$pastactions['month']:('0');
-            $total = isset($pastactions['totalmonth'])?$pastactions['totalmonth']:('0');
-        }
-        $percent = round(100*$count/($total==0?1:$total));
-        $table .= '<td style="text-align:center;">'. $percent. '</td>';
-    }
-    //минуле (факт)
-    for($i=8; $i>=0; $i--){
-        if($i<7)
-            $table.='<td style="text-align:center;">'.(isset($pastactions['fact'.date("Y-m-d", (time() - 3600 * 24 * $i))])?$pastactions['fact'.date("Y-m-d", (time() - 3600 * 24 * $i))]:0).'</td>';
-        elseif($i==7)
-            $table.='<td style="text-align:center;">'.$pastactions['week'].'</td>';
-        else
-            $table.='<td style="text-align:center;">'.$pastactions['month'].'</td>';
-    }
-    $Count = 0;
-    foreach(array_keys($future) as $key){
-        if(isset($outstanding[$key][$Code]))
-            $Count+=$outstanding[$key][$Code];
-    }
-    $table.='<td style="text-align: center;">'.$Count.'</td>';
-
-    //майбутнє (план)
-    for($i=0; $i<9; $i++){
-        $Count = 0;
-        foreach(array_keys($future) as $key){
-            if($i < 7) {
-
-                if (isset($future[$key][date("Y-m-d", (time() + 3600 * 24 * $i))][$Code])) {
-                    $Count += $future[$key][date("Y-m-d", (time() + 3600 * 24 * $i))][$Code];
-    //                echo $Count.' '.date("Y-m-d", (time()+3600*24*$i)).' '.$future[$key][date("Y-m-d", (time()+3600*24*$i))].'</br>';
-                }
-            }elseif($i==7){
-                if(isset($future[$key]['week'][$Code]))
-                    $Count += $future[$key]['week'][$Code];
-            }else{
-                if (isset($future[$key]['month'][$Code])) {
-                    $Count += $future[$key]['month'][$Code];
-    //                echo $Count.' '.date("Y-m-d", (time()+3600*24*$i)).' '.$future[$key][date("Y-m-d", (time()+3600*24*$i))].'</br>';
-                }
-            }
-        }
-//        if(date("Y-m-d", (time() + 3600 * 24 * $i)) == '2016-05-07'){
-//            echo '<pre>';
-//            var_dump($Count);
-//            echo '</pre>';
-//        }
-        $table.='<td  style="text-align: center;">'.$Count.'</td>';
-    }
-    $table.='</tr>';
-    if($showbyusers) {
-        mysqli_data_seek($userlist, 0);
-        while ($obj = $db->fetch_object($userlist)) {
-            $class = (fmod($nom++, 2) == 0 ? "impair" : "pair");
-            $table .= '<tr id = "' . $obj->rowid . '" class="subtype ' . $class . ' ' . $Code . '" style="display:none">
-            <td class="middle_size" style="width:106px">' . $obj->lastname . ' ' . mb_substr($obj->firstname, 0, 1, 'UTF-8') . '.' . mb_substr($obj->firstname, mb_strrpos($obj->firstname, ' ', 'UTF-8') + 1, 1, 'UTF-8') . '.</td>
-            <td class="middle_size" style="width:146px">' . $Title . '</td><td></td>';
-            //% виконання запланованого по факту
-
-            for ($i = 8; $i >= 0; $i--) {
-                if ($i < 8) {
-                    $percent = 0;
-                    if ($i < 7) {
-                        $count = (isset($outstanding[$obj->rowid]['fact' . date("Y-m-d", (time() - 3600 * 24 * $i))][$Code]) ? $outstanding[$obj->rowid]['fact' . date("Y-m-d", (time() - 3600 * 24 * $i))][$Code] : ('0'));
-                        $total = (isset($outstanding[$obj->rowid]['total' . date("Y-m-d", (time() - 3600 * 24 * $i))][$Code]) ? $outstanding[$obj->rowid]['total' . date("Y-m-d", (time() - 3600 * 24 * $i))][$Code] : '');
-                    } else {
-                        $count = $outstanding[$obj->rowid]['week'][$Code];
-                        $total = $outstanding[$obj->rowid]['totalweek'][$Code];
-//                        if($obj->rowid == 43 && $Code == 'AC_CURRENT'){
-//                            echo '<pre>';
-//                            var_dump($outstanding[$obj->rowid]['totalweek'], $count, $total);
-//                            echo '</pre>';
-//                            die();
-//                        }
-                    }
-                } else {
-                    $count = isset($outstanding[$obj->rowid]['month'][$Code]) ? $outstanding[$obj->rowid]['month'][$Code] : ('0');
-                    $total = isset($outstanding[$obj->rowid]['totalmonth'][$Code]) ? $outstanding[$obj->rowid]['totalmonth'][$Code] : ('0');
-                }
-                if (strlen($total) > 0)
-                    $percent = round(100 * $count / ($total == 0 ? 1 : $total));
-                else
-                    $percent = '';
-
-                $table .= '<td style="text-align:center;">' . $percent . '</td>';
-            }
-            //минуле (факт)
-            for ($i = 8; $i >= 0; $i--) {
-                $value = 0;
-                if ($i < 7) {
-                    if (isset($outstanding[$obj->rowid]['fact' . date("Y-m-d", (time() + 3600 * 24 * $i))][$Code]))
-                        $value = $outstanding[$obj->rowid]['fact' . date("Y-m-d", (time() + 3600 * 24 * $i))][$Code];
-                } elseif ($i == 7) {
-                    if (isset($outstanding[$obj->rowid]['week'][$Code]))
-                        $value = $outstanding[$obj->rowid]['week'][$Code];
-                } else
-                    if (isset($outstanding[$obj->rowid]['month'][$Code]))
-                        $value = $outstanding[$obj->rowid]['month'][$Code];
-                $table .= '<td  style="text-align: center;">' . $value . '</td>';
-
-
-            }
-            //            //Прострочено сьогодні
-
-            $table .= '<td style="text-align: center;"> ' . (isset($outstanding[$obj->rowid][$Code]) ? $outstanding[$obj->rowid][$Code] : 0) . '</td>';
-
-            //майбутнє (план)
-            for ($i = 0; $i < 9; $i++) {
-                $value = 0;
-                if ($i < 7) {
-                    if (isset($future[$obj->rowid][date("Y-m-d", (time() + 3600 * 24 * $i))][$Code]))
-                        $value = $future[$obj->rowid][date("Y-m-d", (time() + 3600 * 24 * $i))][$Code];
-                } elseif ($i == 7) {
-                    if (isset($future[$obj->rowid]['week'][$Code]))
-                        $value = $future[$obj->rowid]['week'][$Code];
-                } else
-                    if (isset($future[$obj->rowid]['month'][$Code]))
-                        $value = $future[$obj->rowid]['month'][$Code];
-                $table .= '<td  style="text-align: center;">' . $value . '</td>';
-            }
-            unset($totaltask);
-            $table .= '</tr>';
-        }
-    }
-    return $table;
-}
 function CalcOutStandingActions($actions, $code=''){
+    global $actcode,$user_respon;
     $array = array();
     $today = new DateTime();
     $mkToday = dol_mktime(0,0,0,$today->format('m'),$today->format('d'),$today->format('Y'));
@@ -772,15 +703,22 @@ function CalcOutStandingActions($actions, $code=''){
         $mkDate = dol_mktime(0,0,0,$date->format('m'),$date->format('d'),$date->format('Y'));
         if($mkDate <= $mkToday && $obj->percent != 100) {
             $array[$obj->id_usr][$obj->code]++;
-            if($obj->id_usr == 43){
-                $count[]=$obj->datep;
-            }
+//            if($obj->id_usr == 43){
+//                $count[]=$obj->datep;
+//            }
         }elseif($mkDate <= $mkToday && $obj->percent == 100) {
-            $array[$obj->id_usr]['fact'.$obj->datep][$obj->code]++;
-            if($mkToday-$mkDate<=604800)//604800 sec by week
-                $array[$obj->id_usr]['week'][$obj->code]++;
-            if($mkToday-$mkDate<=2678400)//2678400 sec by month
-                $array[$obj->id_usr]['month'][$obj->code]++;
+            $added = false;
+            if(in_array('sale',$user_respon[$obj->id_usr])  && (in_array($obj->code, $actcode) || $obj->callstatus == '5'))//Якщо дія виконується торгівельним агентом
+                $added = true;
+            elseif(!in_array('sale',$user_respon[$obj->id_usr]))
+                $added = true;
+            if($added) {
+                $array[$obj->id_usr]['fact' . $obj->datep][$obj->code]++;
+                if ($mkToday - $mkDate <= 604800)//604800 sec by week
+                    $array[$obj->id_usr]['week'][$obj->code]++;
+                if ($mkToday - $mkDate <= 2678400)//2678400 sec by month
+                    $array[$obj->id_usr]['month'][$obj->code]++;
+            }
         }
         $array[$obj->id_usr]['total'.$obj->datep][$obj->code]++;
         if($mkToday-$mkDate<=604800 && $mkToday-$mkDate>=0) {//604800 sec by week
@@ -793,508 +731,1231 @@ function CalcOutStandingActions($actions, $code=''){
         if($mkToday-$mkDate<=2678400&& $mkToday-$mkDate>=0)//2678400 sec by month
             $array[$obj->id_usr]['totalmonth'][$obj->code]++;
     }
-//    var_dump($count);
-//    die();
+//        echo '<pre>';
+//        var_dump($array);
+//        echo '</pre>';
+//        die();
     return $array;
 }
 
 function ShowTable(){
-    global $db, $user, $conf, $actions, $outstanding, $future;
-//    echo '<pre>';
-//    var_dump($actions);
-//    echo '</pre>';
-//    die();
-    $sql = 'select name from subdivision where rowid = '.(empty($user->subdiv_id)?0:$user->subdiv_id);
+    global $db,$user;
+    $out = '<tbody id="reference_body">';
+    $start = time();
+
+    //Найкращий користувач системи
+    $sql="select count(id) iCount, case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end user_id  from llx_actioncomm
+        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+        where date(datep) between adddate(date(now()), interval -1 week) and date(now())
+        and (llx_actioncomm.`code`in ('AC_GLOBAL','AC_CURRENT') or llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))
+        and active = 1
+        group by user_id
+        order by iCount desc limit 1;";
+    $res = $db->query($sql);
+//    die($sql);
+    if(!$res)
+        dol_print_error($db);
+//    echo (time()-$start).'</br>';
+    $obj = $db->fetch_object($res);
+    $bestuserID = $obj->user_id;
+    $out.=getTotalUserAction($bestuserID, 'bestvalue', 'Найкр.співр.сист.');
+//    echo (time()-$start).'Найкр.співр.сист.'.'</br>';
+
+    //Найкращий директор дипартам. системи
+    $sql="select count(id) iCount, case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end user_id
+        from llx_actioncomm
+        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+        where date(datep) between adddate(date(now()), interval -1 week) and date(now())
+        and (llx_actioncomm.`code`in ('AC_GLOBAL','AC_CURRENT') or llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))
+        and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end in (select rowid from llx_user where respon_id = 8)
+        and active = 1 group by user_id order by iCount desc limit 1;";
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
     $obj = $db->fetch_object($res);
-    $subdivision = $obj->name;
+    $bestDDID = $obj->user_id;
+    $out.=getTotalUserAction($bestDDID, 'bestvalue', 'Найкр.ДД.сист.');
+//    echo (time()-$start).'Найкр.ДД.сист.'.'</br>';
 
+    //Найкращий департамент системи
+    $sql="select llx_user.subdiv_id, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
+            left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+            left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end
+            where 1
+            and  date(datep) between  adddate(date(now()), interval -1 week) and date(now())
+            and (llx_actioncomm.`code`in ('AC_GLOBAL','AC_CURRENT') or llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))
+            and llx_actioncomm.percent = 100
+            and llx_actioncomm.active = 1
+            and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)
+            group by llx_user.subdiv_id
+            order by iCount desc limit 1";
+//    echo '<pre>';
+//    var_dump($sql);
+//    echo '</pre>';
+//    die();
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $obj = $db->fetch_object($res);
+    $bestDepID = $obj->subdiv_id;
+    $out.= getTotalSubdivAction('bestvalue','Найкр.деп.сист.',$bestDepID, '',false);
+//    echo (time()-$start).'Найкр.деп.сист.'.'</br>';
+    //Всього по департаменту
+    $out.= getTotalSubdivAction('','Всього',$user->subdiv_id);
+//    echo (time()-$start).'Всього'.'</br>';
+    $out.= getTotalSubdivAction('','Всього "Глобальні"',$user->subdiv_id,'AC_GLOBAL');
+//    echo (time()-$start).'</br>';
+    $out.= getTotalSubdivAction('','Всього "Поточні"',$user->subdiv_id,'AC_CURRENT');
+//    echo (time()-$start).'</br>';
+    $out.= getTotalSubdivAction('','Всього "По напрямках"',$user->subdiv_id,'AC_CUST');
+    //Глобальні і поточні директора
+//    echo (time()-$start).'</br>';
+    $out.=getTotalUserAction($user->id, 'even', 'Всього задач');
+//    echo (time()-$start).'</br>';
+    $out.=getTotalUserAction($user->id, 'odd', 'Глобальні', 'AC_GLOBAL');
+//    echo (time()-$start).'</br>';
+    $out.=getTotalUserAction($user->id, 'even', 'Поточні', 'AC_CURRENT');
+//    echo (time()-$start).'</br>';
+//    die();
+    return $out;
+}
+function getTotalSubdivAction($class,$title,$subdiv_id=0,$code='',$showbtn=true){
+    global $db;
+    $code=trim($code);
+    $out = '<tr '.(empty($class)?('id="'.(empty($code)?'AllTask':$code)):'').'" class="'.$class.'">';
+    $start = time();
+    $sql="select name from subdivision where rowid = ".$subdiv_id;
+    $res = $db->query($sql);
+    if (!$res)
+        dol_print_error($db);
+    $obj=$db->fetch_object($res);
+    $out.='<td colspan="2">'.$title.(!empty($subdiv_id)?(' '.trim($obj->name).'.'):'').'</td>';
+//    var_dump($subdiv_id, $showbtn);
+//    die();
+    $sql = "select `code` from llx_c_actioncomm
+                        where active = 1
+                        and `type` in ('system','user')";
+    $res = $db->query($sql);
+    if (!$res)
+        dol_print_error($db);
+    $actioncode = array();
+    while($obj=$db->fetch_object($res)){
+        $actioncode[]="'".$obj->code."'";
+    }
+//    echo '<pre>';
+//    var_dump($actioncode);
+//    echo '</pre>';
+//    die();
+    if(!$showbtn)
+        $out.='<td></td>';
+    else
+        $out.='<td><button id="btn'.(empty($code)?'AllTask':$code).'" onclick="'.($code=='AC_CUST'?'ShowLinectiveTask':'ShowActionsByUsers').'('."'".(empty($code)?'AllTask':$code)."'".');"><img id="img'.(empty($code)?'AllTask':$code).'" src="/dolibarr/htdocs/theme/eldy/img/1downarrow.png"></button></td>';
+    //Всього завдань та виконані
+    $total = array();
+    $fact = array();
+    for($i=0; $i<=1; $i++) {
+        if($i<1)
+            $period = 'month';
+        else
+            $period = 'week';
+        //Всього завдань
+        $sql = "select count(distinct llx_actioncomm.id) iCount from llx_actioncomm
+            left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+            left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+        if(!empty($subdiv_id))
+            $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
+        else
+            $sql.=" where 1";
 
-    $table = '<tbody id="reference_body">';
-    $nom=0;
-    //Підрахунок Всього
-//    $bestvalue = array();
+        $sql.=" and date(datep) between  adddate(date(now()), interval -1 ".$period.") and date(now())";
+        if(empty($code))
+            $sql.=" and llx_actioncomm.`code` in (".implode(',',$actioncode).")";
+        else{
+            if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
+                $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+            else
+                $sql .= " and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+                    where active = 1
+                    and `type` in ('system','user')
+                    and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
+        }
+         $sql.=" and llx_actioncomm.active = 1";
+         $sql.=" and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)";
+//        if(empty($subdiv_id)){
+//            echo '<pre>';
+//            var_dump($sql);
+//            echo '</pre>';
+//            die();
+//        }
+        $res = $db->query($sql);
+        if (!$res)
+            dol_print_error($db);
+        $obj = $db->fetch_object($res);
+        $total[$period] = $obj->iCount;
+        //Фактично виконаних
+        $sql = "select  count(distinct llx_actioncomm.id) iCount from llx_actioncomm
+            left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+            left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+        if(!empty($subdiv_id))
+            $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
+        else
+            $sql.=" where 1";
+        $sql.=" and  date(datep) between  adddate(date(now()), interval -1 ".$period.") and date(now())";
+        if(empty($code))
+            $sql.=" and (llx_actioncomm.`code`in ('AC_GLOBAL','AC_CURRENT') or llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))";
+        else{
+            if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
+                $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+            else
+                $sql .= " and llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1)";
+        }
+        $sql.=" and llx_actioncomm.percent = 100
+            and llx_actioncomm.active = 1";
+         $sql.=" and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)";
 
+        $res = $db->query($sql);
+        if (!$res)
+            dol_print_error($db);
+        $obj = $db->fetch_object($res);
+        $fact[$period] = $obj->iCount;
 
+    }
+    $sql = "select date(datep) datep, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
+    left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+    left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+    if(!empty($subdiv_id))
+        $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
+    else
+        $sql.=" where 1";
+    $sql.=" and date(datep) between  adddate(date(now()), interval -6 day) and date(now())";
+    if(empty($code))
+        $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+    else{
+        if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
+            $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+        else
+            $sql .= " and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+                where active = 1
+                and `type` in ('system','user')
+                and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
+    }
+    $sql.=" and llx_actioncomm.active = 1
+            and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)
+    group by date(datep);";
 
-    $bestuser_id = GetBestUserID($outstanding);
+    $res = $db->query($sql);
+    if (!$res)
+        dol_print_error($db);
+    while($obj = $db->fetch_object($res)){
+        $total[$obj->datep] = $obj->iCount;
+    }
 
-
-    $firefoxColWidths=array('8'=>'35','7'=>'35','6'=>'35','5'=>'35','4'=>'35','3'=>'35','2'=>'35','1'=>'35','0'=>'35','outstanding'=>'55');
-    $chromeColWidths=array('8'=>'35','7'=>'35','6'=>'35','5'=>'35','4'=>'35','3'=>'35','2'=>'35','1'=>'35','0'=>'35','outstanding'=>'55');
-    $table.='<tr class="bestvalue"><td class="middle_size" style="width:106px">Департамент '.$subdivision.'</td><td class="middle_size" style="width:174px">Всього по найкращому</td><td style="width:33px">&nbsp;</td>';
+    $sql = "select date(datep) datep, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
+        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+        left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+    if(!empty($subdiv_id))
+        $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
+    else
+        $sql.=" where 1";
+    $sql.=" and date(datep) between  adddate(date(now()), interval -6 day) and date(now())";
+    if(empty($code))
+        $sql.=" and (llx_actioncomm.`code`in ('AC_GLOBAL','AC_CURRENT') or llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))";
+    else{
+            if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
+                $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+            else
+                $sql .= " and llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1)";
+    }
+    $sql.=" and llx_actioncomm.percent = 100
+        and llx_actioncomm.active = 1
+        and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)
+        group by date(datep);";
+//    if($code == 'AC_CUST'){
+//        echo '<pre>';
+//        var_dump($sql);
+//        echo '</pre>';
+//        die();
+//    }
+    $res = $db->query($sql);
+    if (!$res)
+        dol_print_error($db);
+    while($obj = $db->fetch_object($res)){
+        $fact[$obj->datep] = $obj->iCount;
+    }
+$percent_block = '';
     //% виконання запланованого по факту
     for($i=8; $i>=0; $i--){
         if($i < 8) {
             $percent = 0;
             if($i<7) {
-                $count = (isset($outstanding[$bestuser_id]['fact' . date("Y-m-d", (time() - 3600 * 24 * $i))]) ? array_sum(($outstanding[$bestuser_id]['fact' . date("Y-m-d", (time() - 3600 * 24 * $i))])) : ('0'));
-                $total = (isset($outstanding[$bestuser_id]['total' . date("Y-m-d", (time() - 3600 * 24 * $i))]) ? array_sum(($outstanding[$bestuser_id]['total' . date("Y-m-d", (time() - 3600 * 24 * $i))])) : (1));
+                $count = (isset($fact[date("Y-m-d", (time() - 3600 * 24 * $i))]) ? $fact[date("Y-m-d", (time() - 3600 * 24 * $i))] : ('0'));
+                $total_count = (isset($total[ date("Y-m-d", (time() - 3600 * 24 * $i))]) ?$total[date("Y-m-d", (time() - 3600 * 24 * $i))] : (0));
             }else{
-                $count = array_sum($outstanding[$bestuser_id]['week']);
-                $total = array_sum($outstanding[$bestuser_id]['totalweek']);
+                $count = $fact['week'];
+                $total_count = $total['week'];
             }
         }else{
-            $count = isset($outstanding[$bestuser_id]['month'])?array_sum(($outstanding[$bestuser_id]['month'])):('0');
-            $total = isset($outstanding[$bestuser_id]['totalmonth'])?array_sum(($outstanding[$bestuser_id]['totalmonth'])):('0');
+            $count = isset($fact['month'])?$fact['month']:('0');
+            $total_count = isset($total['month'])?$total['month']:('0');
+        }
+        $percent = round(100*$count/($total_count==0?1:$total_count));
+//        if(date("Y-m-d", (time() - 3600 * 24 * $i)) == '2016-06-04'){
+////            var_dump($total_count, $count, (empty($total_count)?'':$percent));
+////            die();
+//            $percent_block .= '<td class = "middle_size" style="text-align:center">'.$total_count.'/'.$count.' '.(empty($total_count)?'':$percent). '</td>';
+//
+//        }else
+//        if(!empty($code)) {
+//            echo '<pre>';
+//            var_dump($total, $fact);
+//            echo '</pre>';
+//            die();
+//        }
+        $percent_block .= '<td class = "middle_size" style="text-align:center">'.(empty($total_count)?'':$percent). '</td>';
+    }
+
+    //фактично виконано
+    $fact_block = '';
+    if(isset($fact['month']))
+            $fact_block.='<td class="middle_size" style="text-align: center">'.$fact['month'].'</td>';
+        else
+            $fact_block.='<td style="width: 35px"></td>';
+    if(isset($fact['week']))
+            $fact_block.='<td class="middle_size" style="text-align: center">'.$fact['week'].'</td>';
+        else
+            $fact_block.='<td style="width: 35px"></td>';
+    for($i=6;$i>=0;$i--){
+//        var_dump(array_sum($outstanding[$bestuser]['fact'.date("Y-m-d", (time()-3600*24*$i))]));
+//        die('fact'.date("Y-m-d", (time()-3600*24*$i)));
+        if(isset($fact[date("Y-m-d", (time()-3600*24*$i))]))
+            $fact_block.='<td class="middle_size" style="text-align: center">'.$fact[date("Y-m-d", (time()-3600*24*$i))].'</td>';
+        else
+            $fact_block.='<td class="middle_size" style="text-align: center"></td>';
+    }
+
+    //Прострочені
+    $sql = "select count(distinct llx_actioncomm.id) iCount from llx_actioncomm
+        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+        left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+    if(!empty($subdiv_id))
+        $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
+    else
+        $sql.=" where 1";
+    $sql.=" and date(datep) between adddate(date(now()), interval -1 month) and date(now())
+        and llx_actioncomm.percent <> 100 ";
+    if(empty($code))
+        $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+    else{
+        if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
+            $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+        else
+            $sql .= " and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+                    where active = 1
+                    and `type` in ('system','user')
+                    and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
+    }
+    $sql.=" and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)";
+    $sql.=" and llx_actioncomm.active = 1;";
+//    if(empty($code))
+//        die($sql);
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $obj = $db->fetch_object($res);
+    if (empty($obj->iCount))
+        $outstanding = '<td></td>';
+    else
+        $outstanding = '<td  style="text-align: center">' . $obj->iCount . '</td>';
+    //майбутнє
+    $sql = "select date(datep) datep, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
+        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+        left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+    if(!empty($subdiv_id))
+        $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
+    else
+        $sql.=" where 1";
+    $sql.=" and date(datep) between  date(now()) and adddate(date(now()), interval +1 week)";
+    if(empty($code))
+        $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+    else{
+        if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
+            $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+        else
+            $sql .= " and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+                    where active = 1
+                    and `type` in ('system','user')
+                    and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
+    }
+
+    $sql.=" and llx_actioncomm.active = 1
+            and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)
+        group by date(datep);";
+
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    while($obj = $db->fetch_object($res)){
+        $future[$obj->datep] = $obj->iCount;
+    }
+//    var_dump($array_result);
+//    die();
+    $future_block = '';
+    for($i=0;$i<=8;$i++){
+        $date = date("Y-m-d", (time() + 3600 * 24 * $i));
+        if($i<=6) {
+            if(isset($future[$date]))
+                $future_block .= '<td  style="text-align: center">'.$future[$date].'</td>';
+            else
+                $future_block .= '<td></td>';
+        }else {
+            $sql = "select count(id) iCount  from llx_actioncomm
+            left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+            left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+            if(!empty($subdiv_id))
+                $sql .= " where llx_user.subdiv_id = " . $subdiv_id;
+            else
+                $sql .= " where 1";
+            if ($i == 7)
+                $sql .= " and date(datep) between date(now()) and adddate(date(now()), interval 1 week)";
+            else
+                $sql .= " and date(datep) between date(now()) and adddate(date(now()), interval 1 month)";
+
+            if(empty($code))
+                $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+            else{
+                if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
+                    $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+                else
+                    $sql .= " and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+                            where active = 1
+                            and `type` in ('system','user')
+                            and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
+            }
+            $sql.=" and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)";
+            $sql .= " and llx_actioncomm.active = 1;";
+
+//    if(!empty($code)){
+//        echo '<pre>';
+//        var_dump($sql);
+//        echo '</pre>';
+//        die();
+//    }
+            $res = $db->query($sql);
+            if (!$res)
+                dol_print_error($db);
+            $obj = $db->fetch_object($res);
+            if (empty($obj->iCount))
+                $future_block .= '<td></td>';
+            else
+                $future_block .= '<td  style="text-align: center">' . $obj->iCount . '</td>';
+        }
+    }
+    $out.=$percent_block.$fact_block.$outstanding.$future_block;
+//    echo '<pre>';
+//    var_dump($future);
+//    echo '</pre>';
+//    echo time()-$start;
+//    die();
+    return $out;
+}
+function getTotalUserAction($user_id, $class, $title, $code = '')
+{
+    global $db;
+    $out = '<tr class="'.$class.'">';
+    $start = time();
+    $sql="select lastname, firstname, subdivision.name from llx_user, subdivision where llx_user.rowid = ".$user_id.' and llx_user.subdiv_id=subdivision.rowid';
+    $res = $db->query($sql);
+    if (!$res)
+        dol_print_error($db);
+    $obj=$db->fetch_object($res);
+    $out.='<td colspan="2">'.$title.' '.trim($obj->lastname).' '.mb_substr($obj->firstname, 0,1,'UTF-8').'. ('.trim($obj->name).')</td><td></td>';
+    //Всього завдань та виконані
+    $total = array();
+    $fact = array();
+    $sql = "select `code` from llx_c_actioncomm
+                        where active = 1
+                        and `type` in ('system','user')
+                        and `code` not in ('AC_GLOBAL','AC_CURRENT')";
+    $res = $db->query($sql);
+    if (!$res)
+        dol_print_error($db);
+    $actioncode = array('');
+    while($obj=$db->fetch_object($res)){
+        $actioncode[]=$obj->code;
+    }
+    $execdID = array(0);
+//    $sql = "select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1";
+    $sql = "select `llx_societe_action`.`action_id`
+        from `llx_societe_action`
+        inner join llx_actioncomm on `llx_actioncomm`.`id` = `llx_societe_action`.`action_id`
+        where  date(datep) between  adddate(date(now()), interval -1 month) and date(now())
+        and `llx_societe_action`.`callstatus` = 5 and `llx_societe_action`.active = 1";
+    $res = $db->query($sql);
+    if (!$res)
+        dol_print_error($db);
+    while($obj=$db->fetch_object($res)){
+        $execdID[]=$obj->action_id;
+    }
+    for($i=0; $i<=1; $i++) {
+        if($i<1)
+            $period = 'month';
+        else
+            $period = 'week';
+        //Всього завдань
+        $sql = "select count(*) iCount from llx_actioncomm
+            left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+            where date(datep) between  adddate(date(now()), interval -1 ".$period.") and date(now())
+            and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end = " . $user_id;
+        if(empty($code))
+            $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+        else{
+            if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
+                $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+            else
+                $sql .= " and llx_actioncomm.`code` in (".implode(',',$actioncode).")";
+        }
+        $sql.=" and active = 1";
+//    echo '<pre>';
+//    var_dump($sql);
+//    echo '</pre>';
+//    echo time()-$start;
+//    die();
+//        die();
+        $res = $db->query($sql);
+        if (!$res)
+            dol_print_error($db);
+        $obj = $db->fetch_object($res);
+        $total[$period] = $obj->iCount;
+        //Фактично виконаних
+        $sql = "select  count(*) iCount from llx_actioncomm
+            left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+            where date(datep) between  adddate(date(now()), interval -1 ".$period.") and date(now())
+            and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end = " . $user_id;
+        if(empty($code))
+            $sql.= " and (llx_actioncomm.`code`in ('AC_GLOBAL','AC_CURRENT') or llx_actioncomm.id in (".implode(',',$execdID)."))";
+        else
+            if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
+                $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+            else{
+                $sql.=" and llx_actioncomm.id in (".implode(',',$execdID).")";
+            }
+        $sql.=" and llx_actioncomm.percent = 100
+            and llx_actioncomm.active = 1";
+        $res = $db->query($sql);
+        if (!$res)
+            dol_print_error($db);
+
+        $obj = $db->fetch_object($res);
+        $fact[$period] = $obj->iCount;
+    }
+//    echo time()-$start;
+//    die();
+    $sql = "select date(datep) datep, count(*) iCount from llx_actioncomm
+    left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+    where date(datep) between  adddate(date(now()), interval -6 day) and date(now())
+    and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end = " . $user_id;
+    if(empty($code))
+            $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+        else{
+            if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
+                $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+            else
+                $sql .= " and llx_actioncomm.`code` in (".implode(',',$actioncode).")";
+        }
+    $sql .= " and active = 1
+    group by date(datep);";
+    $res = $db->query($sql);
+    if (!$res)
+        dol_print_error($db);
+    while($obj = $db->fetch_object($res)){
+        $total[$obj->datep] = $obj->iCount;
+    }
+
+    $sql = "select date(datep) datep, count(*) iCount from llx_actioncomm
+    left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+            where date(datep) between  adddate(date(now()), interval -6 day) and date(now())
+            and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end = " . $user_id;
+    if(empty($code))
+        $sql.=" and (llx_actioncomm.`code`in ('AC_GLOBAL','AC_CURRENT') or llx_actioncomm.id in (".implode(',',$execdID)."))";
+    else{
+        if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
+            $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+        else{
+            $sql.=" and llx_actioncomm.id in (".implode(',',$execdID).")";
+        }
+    }
+    $sql.=" and llx_actioncomm.percent = 100
+            and llx_actioncomm.active = 1
+            group by date(datep);";
+
+    $res = $db->query($sql);
+    if (!$res)
+        dol_print_error($db);
+    while($obj = $db->fetch_object($res)){
+        $fact[$obj->datep] = $obj->iCount;
+    }
+//echo time()-$start;
+//    var_dump($sql);
+//    die('middle');
+    $percent_block = '';
+    for($i=8; $i>=0; $i--){
+        if($i < 8) {
+            $percent = 0;
+            if($i<7) {
+                $count = (isset($fact[date("Y-m-d", (time() - 3600 * 24 * $i))]) ? $fact[date("Y-m-d", (time() - 3600 * 24 * $i))] : ('0'));
+                $total_count = (isset($total[ date("Y-m-d", (time() - 3600 * 24 * $i))]) ?$total[ date("Y-m-d", (time() - 3600 * 24 * $i))] : (0));
+            }else{
+                $count = $fact['week'];
+                $total_count = $total['week'];
+            }
+        }else{
+            $count = isset($fact['month'])?$fact['month']:('0');
+            $total_count = isset($total['month'])?$total['month']:('0');
+        }
+        $percent = round(100*$count/($total_count==0?1:$total_count));
+        $percent_block .= '<td class = "middle_size" style="text-align:center">'.(empty($total_count)?'':$percent). '</td>';
+    }
+    //фактично виконано
+    $fact_block = '';
+    if(isset($fact['month']))
+        $fact_block.='<td class="middle_size" style="text-align: center">'.$fact['month'].'</td>';
+    else
+        $fact_block.='<td style="width: 35px"></td>';
+    if(isset($fact['week']))
+        $fact_block.='<td class="middle_size" style="text-align: center">'.$fact['week'].'</td>';
+    else
+        $fact_block.='<td style="width: 35px"></td>';
+    for($i=6;$i>=0;$i--){
+//        var_dump(array_sum($outstanding[$bestuser]['fact'.date("Y-m-d", (time()-3600*24*$i))]));
+//        die('fact'.date("Y-m-d", (time()-3600*24*$i)));
+        if(isset($fact[date("Y-m-d", (time()-3600*24*$i))]))
+            $fact_block.='<td class="middle_size" style="text-align: center">'.$fact[date("Y-m-d", (time()-3600*24*$i))].'</td>';
+        else
+            $fact_block.='<td class="middle_size" style="text-align: center"></td>';
+    }
+
+    //Прострочені
+    $sql = "select count(*)iCount from llx_actioncomm
+        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+        where date(datep) between adddate(date(now()), interval -1 month) and date(now())
+        and llx_actioncomm.percent <> 100
+        and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end = ".$user_id;
+    if(empty($code))
+        $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+    else{
+        if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
+            $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+        else
+            $sql .= " and llx_actioncomm.`code` in (".implode(',',$actioncode).")";
+    }
+    $sql.=" and active = 1;";
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $obj = $db->fetch_object($res);
+    if (empty($obj->iCount))
+        $outstanding = '<td></td>';
+    else
+        $outstanding = '<td  style="text-align: center">' . $obj->iCount . '</td>';
+
+    //майбутнє
+    $future = '';
+    $sql = "select date(datep) datep, count(*) iCount from llx_actioncomm
+        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+        where date(datep) between  date(now()) and adddate(date(now()), interval +1 week)
+        and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end = ".$user_id;
+    if(empty($code))
+        $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+    else{
+        if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
+            $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+        else
+            $sql .= " and llx_actioncomm.`code` in (".implode(',',$actioncode).")";
+    }
+    $sql.=" and active = 1
+        group by date(datep);";
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    while($obj = $db->fetch_object($res)){
+        $array_result[$obj->datep] = $obj->iCount;
+    }
+//    var_dump($array_result);
+
+    for($i=0;$i<=8;$i++){
+        $date = date("Y-m-d", (time() + 3600 * 24 * $i));
+        if($i<=6) {
+            if(isset($array_result[$date]))
+                $future .= '<td  style="text-align: center">'.$array_result[$date].'</td>';
+            else
+                $future .= '<td></td>';
+        }else {
+            $sql = "select count(id) iCount  from llx_actioncomm
+            left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id";
+            if ($i == 7)
+                $sql .= " where date(datep) between date(now()) and adddate(date(now()), interval 1 week)";
+            else
+                $sql .= " where date(datep) between date(now()) and adddate(date(now()), interval 1 month)";
+
+            $sql .= " and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end = " . $user_id . "
+            and llx_actioncomm.`code` " . (empty($code) ? "<> 'AC_OTH_AUTO'" : "= '" . $code . "'") . "
+            and active = 1;";
+//        if($i == 7){
+
+//            var_dump($sql);
+//            die();
+//        }
+//        die($sql);
+            $res = $db->query($sql);
+            if (!$res)
+                dol_print_error($db);
+            $obj = $db->fetch_object($res);
+            if (empty($obj->iCount))
+                $future .= '<td></td>';
+            else
+                $future .= '<td  style="text-align: center">' . $obj->iCount . '</td>';
+        }
+    }
+    $out.=$percent_block.$fact_block.$outstanding.$future;
+//    echo '<pre>';
+//    var_dump($fact, htmlspecialchars($fact_block));
+//    echo '</pre>';
+//    echo time()-$start;
+//    die('finish');
+    $out.='</tr>';
+    return $out;
+    //% виконання запланованого по факту
+}
+
+function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $title=''){
+//    var_dump($subdiv_id, $class, $code);
+//    die();
+    if($code=='all')
+        $code='';
+    elseif(substr($code,0,1) == "'" && substr($code,strlen($code)-1,1)=="'")
+        $code = substr($code, 1, strlen($code)-2);
+//    die($code);
+
+    global $db;
+    $start = time();
+//Всього завдань та виконані
+    $respon = array();
+    if(!empty($respon_alias)){
+        $sql = "select rowid from responsibility where alias = '".$respon_alias."'";
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+        if($db->num_rows($res)>0)
+            while($obj = $db->fetch_object($res)){
+                $respon[] = $obj->rowid;
+            }
+    }
+    $total = array();
+    $fact = array();
+    $outstanding = array();
+    $future = array();
+    for($i=0; $i<=1; $i++) {
+        if($i<1)
+            $period = 'month';
+        else
+            $period = 'week';
+        //Всього завдань
+        $sql = "select llx_user.rowid, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
+            left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+            left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+        if(!empty($subdiv_id))
+            $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
+        else
+            $sql.=" where 1";
+
+        $sql.=" and date(datep) between  adddate(date(now()), interval -1 ".$period.") and date(now())";
+        if(empty($code))
+            $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+        else{
+            if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
+                $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+            else
+                $sql .= " and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+                    where active = 1
+                    and `type` in ('system','user')
+                    and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
+        }
+         $sql.=" and llx_actioncomm.active = 1";
+         $sql.=" group by llx_user.rowid";
+
+        $res = $db->query($sql);
+        if (!$res)
+            dol_print_error($db);
+        while($obj = $db->fetch_object($res)) {
+            $total[$obj->rowid][$period] = $obj->iCount;
+        }
+        //Фактично виконаних
+        $sql = "select llx_user.rowid, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
+            left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+            left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+        if(!empty($subdiv_id))
+            $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
+        else
+            $sql.=" where 1";
+        $sql.=" and  date(datep) between  adddate(date(now()), interval -1 ".$period.") and date(now())";
+        if(empty($code))
+            $sql.=" and (llx_actioncomm.`code`in ('AC_GLOBAL','AC_CURRENT') or llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))";
+        else{
+            if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
+                $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+            else
+                $sql .= " and llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1)";
+        }
+        $sql.=" and llx_actioncomm.percent = 100
+            and llx_actioncomm.active = 1
+            and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)
+            group by llx_user.rowid";
+//        if(empty($subdiv_id)&&$i==1){
+//            echo '<pre>';
+//            var_dump($sql);
+//            echo '</pre>';
+//            die();
+//        }
+        $res = $db->query($sql);
+        if (!$res)
+            dol_print_error($db);
+        while($obj = $db->fetch_object($res)) {
+            $fact[$obj->rowid][$period] = $obj->iCount;
+        }
+
+    }
+    $sql = "select llx_user.rowid, date(datep) datep, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
+    left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+    left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+    if(!empty($subdiv_id))
+        $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
+    else
+        $sql.=" where 1";
+    $sql.=" and date(datep) between  adddate(date(now()), interval -6 day) and date(now())";
+    if(empty($code))
+        $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+    else{
+        if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
+            $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+        else
+            $sql .= " and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+                where active = 1
+                and `type` in ('system','user')
+                and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
+    }
+    $sql.=" and llx_actioncomm.active = 1
+    and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)
+    group by llx_user.rowid, date(datep);";
+
+    $res = $db->query($sql);
+    if (!$res)
+        dol_print_error($db);
+    while($obj = $db->fetch_object($res)){
+        $total[$obj->rowid][$obj->datep] = $obj->iCount;
+    }
+
+    $sql = "select llx_user.rowid, date(datep) datep, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
+        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+        left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+    if(!empty($subdiv_id))
+        $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
+    else
+        $sql.=" where 1";
+    $sql.=" and date(datep) between  adddate(date(now()), interval -6 day) and date(now())";
+    if(empty($code))
+        $sql.=" and (llx_actioncomm.`code`in ('AC_GLOBAL','AC_CURRENT') or llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))";
+    else{
+            if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
+                $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+            else
+                $sql .= " and llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1)";
+    }
+    $sql.=" and llx_actioncomm.percent = 100
+        and llx_actioncomm.active = 1
+        and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)
+        group by llx_user.rowid, date(datep);";
+//    if($code == 'AC_CUST'){
+//        echo '<pre>';
+//        var_dump($sql);
+//        echo '</pre>';
+//        die();
+//    }
+    $res = $db->query($sql);
+    if (!$res)
+        dol_print_error($db);
+    while($obj = $db->fetch_object($res)){
+        $fact[$obj->rowid][$obj->datep] = $obj->iCount;
+    }
+    //Прострочені
+    $sql = "select llx_user.rowid, count(distinct llx_actioncomm.id)iCount from llx_actioncomm
+        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+        left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+    $sql.=" where 1";
+    $sql.=" and date(datep) between adddate(date(now()), interval -1 month) and date(now())
+        and llx_actioncomm.percent <> 100 ";
+    if(empty($code))
+        $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+    else{
+        if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
+            $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+        else
+            $sql .= " and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+                    where active = 1
+                    and `type` in ('system','user')
+                    and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
+    }
+    $sql.=" and llx_actioncomm.active = 1
+            and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)
+            group by llx_user.rowid";
+//if(empty($code)) {
+//    echo '<pre>';
+//    var_dump($sql);
+//    echo '</pre>';
+//    die();
+//}
+
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    while($obj = $db->fetch_object($res)){
+        $outstanding[$obj->rowid] = $obj->iCount;
+    }
+ //майбутнє
+    $sql = "select llx_user.rowid, date(datep) datep, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
+        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+        left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+    if(!empty($subdiv_id))
+        $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
+    else
+        $sql.=" where 1";
+    $sql.=" and date(datep) between  date(now()) and adddate(date(now()), interval +1 week)";
+    if(empty($code))
+        $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+    else{
+        if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
+            $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+        else
+            $sql .= " and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+                    where active = 1
+                    and `type` in ('system','user')
+                    and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
+    }
+
+    $sql.=" and llx_actioncomm.active = 1
+        and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)
+        group by llx_user.rowid, date(datep);";
+
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    while($obj = $db->fetch_object($res)){
+        $future[$obj->rowid][$obj->datep] = $obj->iCount;
+    }
+    for($i=0; $i<=1; $i++){
+        if($i<1)
+            $period = 'week';
+        else
+            $period = 'month';
+        $sql = "select llx_user.rowid, count(id) iCount  from llx_actioncomm
+        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+        left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+        $sql .= " where 1";
+        $sql .= " and date(datep) between date(now()) and adddate(date(now()), interval 1 ".$period.")";
+        if(empty($code))
+            $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+        else{
+            if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
+                $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+            else
+                $sql .= " and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+                        where active = 1
+                        and `type` in ('system','user')
+                        and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
+        }
+        $sql .= " and llx_actioncomm.active = 1
+        and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)
+        group by llx_user.rowid;";
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+        while($obj = $db->fetch_object($res)){
+            $future[$obj->rowid][$period] = $obj->iCount;
+        }
+    }
+//    echo '<pre>';
+//    var_dump($outstanding, time()-$start);
+//    echo '</pre>';
+//    die();
+    $sql = "select rowid, `lastname`, `firstname` from llx_user
+        where active = 1
+        and subdiv_id = ".$subdiv_id;
+    if(count($respon)>0)
+        $sql.=" and (llx_user.respon_id in (".implode(',',$respon).") or llx_user.respon_id2 in (".implode(',',$respon)."))";
+    $sql.=" order by `lastname`";
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $bestuserID = 0;
+    $maxCount = 0;
+    while($obj = $db->fetch_object($res)){
+        if($maxCount < $fact[$obj->rowid]['week']){
+            $maxCount = $fact[$obj->rowid]['week'];
+            $bestuserID = $obj->rowid;
+        }
+    }
+//    var_dump($bestuserID);
+//    die();
+    mysqli_data_seek($res,0);
+    $out = '';
+    $num = 0;
+    while($obj = $db->fetch_object($res)){
+//        $class_row = fmod($num,2)==0?'impare':'pare';
+        $out.='<tr id="'.$class.$obj->rowid.'" class="'.$class.($bestuserID == $obj->rowid?' bestvalue ':'').' userlist '.$subdiv_id.$respon_alias.'">';
+        $out.='<td colspan="2">'.$obj->lastname.' '.mb_substr($obj->firstname, 0,1,'UTF-8').'.</td>';
+        if(in_array($code, array('AC_GLOBAL','AC_CURRENT'))||$respon_alias!='sale')
+            $out.='<td></td>';
+        else
+            $out.='<td><button id="btnUsr'.$obj->rowid.'" onclick="getRegionsList('.$obj->rowid.');"><img id="imgUsr'.$obj->rowid.'" src="/dolibarr/htdocs/theme/eldy/img/1downarrow.png"></button></td>';
+         //% виконання запланованого по факту
+            for($i=8; $i>=0; $i--){
+                if($i < 8) {
+                    $percent = '';
+                    if($i<7) {
+                        $count = (isset($fact[$obj->rowid][date("Y-m-d", (time() - 3600 * 24 * $i))]) ? $fact[$obj->rowid][date("Y-m-d", (time() - 3600 * 24 * $i))] : ('0'));
+                        $totalcount = (isset($total[$obj->rowid][date("Y-m-d", (time() - 3600 * 24 * $i))]) ? $total[$obj->rowid][date("Y-m-d", (time() - 3600 * 24 * $i))] : (''));
+                    }else{
+                        $count = isset($fact[$obj->rowid]['week'])?$fact[$obj->rowid]['week']:'';
+                        $totalcount = isset($total[$obj->rowid]['week'])?$total[$obj->rowid]['week']:'';
+                    }
+                }else{
+                    $count = isset($fact[$obj->rowid]['month'])?$fact[$obj->rowid]['month']:('0');
+                    $totalcount = isset($total[$obj->rowid]['month'])?$total[$obj->rowid]['month']:('0');
+                }
+                if(!empty($totalcount))
+                    $percent = round(100*$count/($totalcount==0?1:$totalcount));
+                $out .= '<td class="middle_size" style="text-align: center;">' .$percent. '</td>';
+            }
+        //Фактично виконано
+        if(isset($fact[$obj->rowid]['month']))
+                $out.='<td class="middle_size" style="text-align: center">'.$fact[$obj->rowid]['month'].'</td>';
+            else
+                $out.='<td style="width: 35px"></td>';
+        if(isset($fact[$obj->rowid]['week']))
+                $out.='<td class="middle_size" style="text-align: center">'.$fact[$obj->rowid]['week'].'</td>';
+            else
+                $out.='<td style="width: 35px"></td>';
+        for($i=6;$i>=0;$i--){
+    //        var_dump(array_sum($outstanding[$bestuser]['fact'.date("Y-m-d", (time()-3600*24*$i))]));
+    //        die('fact'.date("Y-m-d", (time()-3600*24*$i)));
+            if(isset($fact[$obj->rowid][date("Y-m-d", (time()-3600*24*$i))]))
+                $out.='<td class="middle_size" style="text-align: center">'.$fact[$obj->rowid][date("Y-m-d", (time()-3600*24*$i))].'</td>';
+            else
+                $out.='<td class="middle_size" style="text-align: center"></td>';
+        }
+        //Прострочено
+        $out.='<td class="middle_size" style="text-align: center; ">'.(isset($outstanding[$obj->rowid])?$outstanding[$obj->rowid]:0).'</td>';
+
+        //майбутнє (план)
+        for($i=0; $i<9; $i++){
+            $value = '';
+            if($i < 8) {
+                if($i < 7)
+                    $value =  (isset($future[$obj->rowid][date("Y-m-d", (time() + 3600 * 24 * $i))]) ? $future[$obj->rowid][date("Y-m-d", (time() + 3600 * 24 * $i))] : (''));
+                else {
+                    if(!empty($future[$obj->rowid]['week']))
+                        $value = $future[$obj->rowid]['week'];
+                }
+
+                $out .= '<td  class="middle_size" style="text-align: center">' . $value . '</td>';
+            }else {
+                if(!empty($future[$obj->rowid]['month']))
+                    $value = $future[$obj->rowid]['month'];
+                $out .= '<td class="middle_size" style="text-align: center">' . $value . '</td>';
+            }
+        }
+        $out .='</tr>';
+    }
+    $search = array('lineactive','impare','subdivision');
+    $out = str_replace($search,'',$out);
+//    llxHeader();
+//    print'<table><tbody>'.$out.'</tbody></table>';
+//    die();
+    return $out;
+}
+function ShowTable1(){
+    global $db,$actions,$future,$user,$user_respon,$users,$conf,$subdivTaskID,$actcode,$DepActions,$CustActions,$outstanding;
+    $array = array();
+
+    $out = '<tbody id="reference_body">';
+    $today = new DateTime();
+    $mkToday = dol_mktime(0,0,0,$today->format('m'),$today->format('d'),$today->format('Y'));
+    foreach($actions as $action){
+        $id_usr = $action['id_usr'];
+        unset($action['id_usr']);
+        $userActions[$id_usr][] = $action;
+        $obj = (object)$action;
+        $date = new DateTime($obj->datep);
+        $mkDate = dol_mktime(0,0,0,$date->format('m'),$date->format('d'),$date->format('Y'));
+
+        if($mkDate <= $mkToday && $obj->percent != 100) {
+            $array[$id_usr][$obj->code]++;
+        }elseif($mkDate <= $mkToday && $obj->percent == 100) {
+            $added = false;
+            if(in_array('sale',$user_respon[$id_usr])  && (in_array($action["code"], $actcode) || $action["callstatus"] == '5'))//Якщо дія виконується торгівельним агентом
+                $added = true;
+            elseif(!in_array('sale',$user_respon[$id_usr]))
+                $added = true;
+            if($added) {
+                $array[$obj->id_usr]['fact' . $obj->datep][$obj->code]++;
+                if ($mkToday - $mkDate <= 604800)//604800 sec by week
+                    $array[$obj->id_usr]['week'][$obj->code]++;
+                if ($mkToday - $mkDate <= 2678400)//2678400 sec by month
+                    $array[$obj->id_usr]['month'][$obj->code]++;
+            }
+        }
+        $array[$id_usr]['total'.$obj->datep][$obj->code]++;
+
+        if($mkDate <= $mkToday && $action['percent'] == 100){
+                if($mkToday-$mkDate<=604800&&$mkToday-$mkDate>=0) {//604800 sec by week
+                    if($action["respon_alias"]=='sale'){//Якщо дія виконана торгівельним агентом
+                        if(in_array($action['code'],$actcode)|| $action["callstatus"]=='5')//Зараховується дія якщо глобальна, поточна задача чи фактично виконаних дзвінок
+                            $CustActions[$id_usr]++;
+                    }
+                    elseif($action["respon_alias"]=='dir_depatment'&&($action['code']=='AC_CUST'&&$action["callstatus"]=='5')){//Для всіх інших сфер відповідальності
+//                        if($id_usr == 34){
+//                            die($action["respon_alias"]);
+//                        }
+                        $CustActions[$id_usr]++;
+                        $DepActions[$action['subdiv_id']]++;
+
+                    }
+
+
+                }
+
+        }
+    }
+    $bestuser = GetBestUserID();
+    $bestDepID = GetBestDepID();
+//    echo '<pre>';
+//    var_dump($bestDepID);
+//    echo '</pre>';
+//    die();
+//    $firefoxColWidths=array('8'=>'35','7'=>'35','6'=>'35','5'=>'35','4'=>'35','3'=>'35','2'=>'35','1'=>'35','0'=>'35','outstanding'=>'55');
+//    $chromeColWidths=array('8'=>'35','7'=>'35','6'=>'35','5'=>'35','4'=>'35','3'=>'35','2'=>'35','1'=>'35','0'=>'35','outstanding'=>'55');
+    //Найкращий співробітник
+    $out.='<tr class="bestvalue">';
+    $out.= '<td colspan="2" class="middle_size" style="width: 288px">Найкр.пок. "Всього задач" '.$users[$bestuser]['lastname'].'</td><td style="width:33px">&nbsp;</td>';
+    //% виконання запланованого по факту
+    for($i=8; $i>=0; $i--){
+        if($i < 8) {
+            $percent = 0;
+            if($i<7) {
+                $count = (isset($outstanding[$bestuser]['fact' . date("Y-m-d", (time() - 3600 * 24 * $i))]) ? array_sum(($outstanding[$bestuser]['fact' . date("Y-m-d", (time() - 3600 * 24 * $i))])) : ('0'));
+                $total = (isset($outstanding[$bestuser]['total' . date("Y-m-d", (time() - 3600 * 24 * $i))]) ? array_sum(($outstanding[$bestuser]['total' . date("Y-m-d", (time() - 3600 * 24 * $i))])) : (0));
+            }else{
+                $count = array_sum($outstanding[$bestuser]['week']);
+                $total = array_sum($outstanding[$bestuser]['totalweek']);
+            }
+        }else{
+            $count = isset($outstanding[$bestuser]['month'])?array_sum(($outstanding[$bestuser]['month'])):('0');
+            $total = isset($outstanding[$bestuser]['totalmonth'])?array_sum(($outstanding[$bestuser]['totalmonth'])):('0');
         }
         $percent = round(100*$count/($total==0?1:$total));
-        $table .= '<td style="width: ' . ($conf->browser->name == 'firefox' ? $firefoxColWidths[$i] : $chromeColWidths[$i]) . 'px; text-align:center;">' . $percent. '</td>';
+        $out .= '<td class = "middle_size" style="text-align:center;">'.($total==0?'':$percent). '</td>';
     }
-    //минуле (факт)
-    for($i=8; $i>=0; $i--){
-        if($i < 8)
-            $table.='<td style="width: '.($conf->browser->name=='firefox'?$firefoxColWidths[$i]:$chromeColWidths[$i]).'px; text-align:center;">'.($i<7?(isset($outstanding[$bestuser_id]['fact'.date("Y-m-d", (time()-3600*24*$i))])?array_sum(($outstanding[$bestuser_id]['fact'.date("Y-m-d", (time()-3600*24*$i))])):('0')):(array_sum($outstanding[$bestuser_id]['week']))).'</td>';
+    //фактично виконано
+    if(isset($outstanding[$bestuser]['month']))
+            $out.='<td class="middle_size" style="text-align: center;width: 35px">'.array_sum($outstanding[$bestuser]['month']).'</td>';
         else
-            $table.='<td style="width: '.($conf->browser->name=='firefox'?$firefoxColWidths[$i]:$chromeColWidths[$i]).'px; text-align:center;">'.(isset($outstanding[$bestuser_id]['month'])?array_sum(($outstanding[$bestuser_id]['month'])):('0')).'</td>';
+            $out.='<td style="width: 35px"></td>';
+    if(isset($outstanding[$bestuser]['week']))
+            $out.='<td class="middle_size" style="text-align: center;width: 35px">'.array_sum($outstanding[$bestuser]['week']).'</td>';
+        else
+            $out.='<td style="width: 35px"></td>';
+    for($i=6;$i>=0;$i--){
+        if(isset($outstanding[$bestuser]['fact'.date("Y-m-d", (time()-3600*24*$i))]))
+            $out.='<td class="middle_size" style="text-align: center;">'.array_sum($outstanding[$bestuser]['fact'.date("Y-m-d", (time()-3600*24*$i))]).'</td>';
+        else
+            $out.='<td class="middle_size" style="text-align: center;"></td>';
     }
-    $table.='<td style="text-align: center; width: '.($conf->browser->name=='firefox'?$firefoxColWidths['outstanding']:$chromeColWidths['outstanding']).'px">'.(isset($outstanding[$bestuser_id])?array_sum($outstanding[$bestuser_id]):0).'</td>';
+    $out.='<td class="middle_size" style="text-align: center;">'.(isset($outstanding[$bestuser])?array_sum($outstanding[$bestuser]):0).'</td>';
+
     //майбутнє (план)
     for($i=0; $i<9; $i++){
         $value = '';
         if($i < 8) {
             if($i < 7)
-                $value =  (isset($future[$bestuser_id][date("Y-m-d", (time() + 3600 * 24 * $i))]) ? array_sum(($future[$bestuser_id][date("Y-m-d", (time() + 3600 * 24 * $i))])) : ('0'));
+                $value =  (isset($future[$bestuser][date("Y-m-d", (time() + 3600 * 24 * $i))]) ? array_sum(($future[$bestuser][date("Y-m-d", (time() + 3600 * 24 * $i))])) : (''));
             else {
-                if(!empty($future[$bestuser_id]['week']))
-                    $value = (array_sum($future[$bestuser_id]['week']));
+                if(!empty($future[$bestuser]['week']))
+                    $value = (array_sum($future[$bestuser]['week']));
             }
-            $table .= '<td  style="text-align: center; width: ' . ($conf->browser->name == 'firefox' ? $firefoxColWidths[$i] : $chromeColWidths[$i]) . 'px"><a href="/dolibarr/htdocs/hourly_plan.php?idmenu=10420&mainmenu=hourly_plan&leftmenu=&date=' . date("Y-m-d") . '">' . $value . '</a></td>';
+            $out .= '<td  class="middle_size" style="text-align: center;">' . $value . '</td>';
+//            $out .= '<td  class="middle_size" style="text-align: center; width: ' . ($conf->browser->name == 'firefox' ? $firefoxColWidths[$i] : $chromeColWidths[$i]) . 'px"><a href="/dolibarr/htdocs/hourly_plan.php?idmenu=10420&mainmenu=hourly_plan&leftmenu=&date=' . date("Y-m-d") . '">' . $value . '</a></td>';
         }else {
-            if(!empty($future[$bestuser_id]['month']))
-                $value = (array_sum($future[$bestuser_id]['month']));
-            $table .= '<td style="text-align: center; width: ' . ($conf->browser->name == 'firefox' ? $firefoxColWidths[$i] : $chromeColWidths[$i]) . 'px">' . $value . '</td>';
+            if(!empty($future[$bestuser]['month']))
+                $value = (array_sum($future[$bestuser]['month']));
+            $out .= '<td class="middle_size" style="text-align: center;">' . $value . '</td>';
         }
     }
-    $table.='</tr>';
+    //Виділяю задачі пов'язані з департаментом
+    $subdivTaskID = SelectSubdivTask();
+//echo count($actions);
+//    die();
+    //Всього по найкращому департамент
+    $out .= getAllSubdivTask($actions, $bestDepID);
+    //Всього по поточному департаменту
+    $out .= getAllSubdivTask($actions, $user->subdiv_id, 'Всього задач', true);
+    $out .= getUsersTask($actions, $user->subdiv_id);
+    //Всього глобальних по поточному департаменту
+    $out .= getAllSubdivTask($actions, $user->subdiv_id, 'Всього глобальні задачі (ТОПЗ)', true, 'AC_GLOBAL');
+    $out .= getUsersTask($actions, $user->subdiv_id, false, 'AC_GLOBAL', 'ТОПЗ');
+    //Всього поточних по поточному департаменту
+    $out .= getAllSubdivTask($actions, $user->subdiv_id, 'Всього поточних', true, 'AC_CURRENT');
+    $out .= getUsersTask($actions, $user->subdiv_id, false, 'AC_CURRENT', 'Поточні завдання');
+    //Всього по напрямках по поточному департаменту
+    $out .= getAllSubdivTask($actions, $user->subdiv_id, 'Всього по напрямках', true, 'AC_CUST');
 
-//    isset($outstanding[$bestuser_id][date("Y-m-d", (time()+3600*24*$i))])?$outstanding[$bestuser_id][date("Y-m-d", (time()+3600*24*$i))]:('')
-    //Всього задач
-    $sql = "select `code` from llx_c_actioncomm
-    where type in ('system','user')";
-    $res = $db->query($sql);
-    if(!$res)
-        dol_print_error($db);
-    $Code='';
-    while($obj = $db->fetch_object($res)){
-        if(empty($Code))
-            $Code = "'".$obj->code."'";
-        else
-            $Code .= ",'".$obj->code."'";
-    }
-    $table.='<tr class="total_value" style="font-weight: bold"><td class="middle_size" style="width:106px">Департамент '.$subdivision.'</td><td class="middle_size" style="width:144px">Всього задач </td>';
-    $table.='<td><button onclick="ShowHideAllTask('."'AllTask'".');"><img id="imgAllTask" src="/dolibarr/htdocs/theme/eldy/img/1downarrow.png"></button></td>';
-    $pastactions = array();
-    $keys = array_keys($outstanding);
 
-    for($i = 0; $i<count($keys);$i++){
-        $keysitem = array_keys($outstanding[$keys[$i]]);
 
-        foreach($keysitem as $key){
-            if(substr($key, 0, strlen('fact')) == 'fact' || in_array($key, array('month', 'week')) ){
-                $pastactions[$key] += array_sum($outstanding[$keys[$i]][$key]);
-            }
-            if(substr($key, 0, strlen('total')) == 'total' || in_array($key, array('totalmonth', 'totalweek')) ){
-                $pastactions[$key] += array_sum($outstanding[$keys[$i]][$key]);
-            }
+//    echo '<pre>';
+//    var_dump($subdivTaskID);
+//    echo '</pre>';
+//die();
+    $out.='</tr></tbody>';
+
+//    echo '<pre>';
+//    var_dump($actions);
+//    echo '</pre>';
+//    die();
+    return $out;
+
+}
+function GetBestDepID(){
+    global $DepActions,$user;
+
+    $maxCount = 0;
+    $subdiv_id = 0;
+    foreach(array_keys($DepActions) as $key){
+        if($maxCount<$DepActions[$key]){
+//            echo $DepActions[$key].'</br>';
+            $maxCount = $DepActions[$key];
+            $subdiv_id = $key;
         }
     }
+    return $subdiv_id;
 
-
-    //% виконання запланованого по факту
-    for($i=8; $i>=0; $i--){
-        if($i<7) {
-            $count = $pastactions['fact' . date("Y-m-d", (time() - 3600 * 24 * $i))];
-            $total = $pastactions['total' . date("Y-m-d", (time() - 3600 * 24 * $i))];
-        }elseif($i==7) {
-            $count = $pastactions['week'];
-            $total = $pastactions['totalweek'];
-        }else {
-            $count = $pastactions['month'];
-            $total = $pastactions['totalmonth'];
+}
+function SelectSubdivTask(){
+    global $actions,$user;
+    $num = 0;
+    $taskID = array();
+    foreach($actions as $action){
+        if($action["subdiv_id"]==$user->subdiv_id){
+            $taskID[]=$num;
         }
-        $percent = round(100*$count/($total==0?1:$total));
-        $table .= '<td style="width: ' . ($conf->browser->name == 'firefox' ? (31) : (32)) . 'px; text-align:center;">' .$percent. '</td>';
-
+        $num++;
     }
-
-
-    //минуле (факт)
-    for($i=8; $i>=0; $i--){
-        if($i<7)
-            $table.='<td style="width: '.($conf->browser->name=='firefox'?(31):(32)).'px; text-align:center;">'.$pastactions['fact'.date("Y-m-d", (time() - 3600 * 24 * $i))].'</td>';
-        elseif($i==7)
-            $table.='<td style="width: '.($conf->browser->name=='firefox'?(31):(32)).'px; text-align:center;">'.$pastactions['week'].'</td>';
-        else
-            $table.='<td style="width: '.($conf->browser->name=='firefox'?(31):(32)).'px; text-align:center;">'.$pastactions['month'].'</td>';
-    }
-    $Count = 0;
-    for($i=0; $i<count(array_keys($outstanding)); $i++){
-        $Count+=array_sum($outstanding[array_keys($outstanding)[$i]]);
-    }
-    $table.='<td style="text-align: center; width: '.($conf->browser->name=='firefox'?(51):(51)).'px">'.$Count.'</td>';
-    //майбутнє (план)
-    for($i=0; $i<9; $i++){
-        $Count = 0;
-        foreach(array_keys($future) as $key){
-            if($i < 7) {
-                if (isset($future[$key][date("Y-m-d", (time() + 3600 * 24 * $i))])) {
-                    $Count += array_sum($future[$key][date("Y-m-d", (time() + 3600 * 24 * $i))]);
-//                echo $Count.' '.date("Y-m-d", (time()+3600*24*$i)).' '.$future[$key][date("Y-m-d", (time()+3600*24*$i))].'</br>';
-                }
-            }elseif($i==7){
-                if(isset($future[$key]['week']))
-                    $Count += array_sum($future[$key]['week']);
-            }else{
-                if (isset($future[$key]['month'])) {
-                    $Count += array_sum($future[$key]['month']);
-//                echo $Count.' '.date("Y-m-d", (time()+3600*24*$i)).' '.$future[$key][date("Y-m-d", (time()+3600*24*$i))].'</br>';
-                }
-            }
-        }
-//        var_dump($i, $Count);
-//        die();
-        if($i < 8)
-            $table.='<td '.($i<7?('class="allfuturetask"'):('id="allfuturetask"')).' style="text-align: center; width: '.($conf->browser->name=='firefox'?(31):(32)).'px">'.$Count.'</td>';
-        else
-            $table.='<td id="all_future_month" style="text-align: center; width: '.($conf->browser->name=='firefox'?(33):(34)).'px">'.$Count.'</td>';
-
-    }
-    $table.='</tr>';
-
-    $sql = "select rowid, lastname, firstname from llx_user where 1 ".(empty($user->subdiv_id)?"":"and`subdiv_id` = ".$user->subdiv_id);
-//    die($sql);
-    $userlist = $db->query($sql);
-    if(!$userlist)
-        dol_print_error($db);
-    $nom = 0;
-
-    while($obj = $db->fetch_object($userlist)){
-        $class=(fmod($nom++,2)==0?"impair":"pair");
-        $table.='<tr id = "'.$obj->rowid.'" class="subtype '.$class.' alltask" style="display:none">
-            <td class="middle_size" style="width:106px">'.$obj->lastname.' '.mb_substr($obj->firstname, 0, 1, 'UTF-8').'.'.mb_substr($obj->firstname, mb_strrpos($obj->firstname, ' ','UTF-8')+1, 1, 'UTF-8').'.</td>
-            <td class="middle_size" style="width:146px">Всього задач</td><td></td>';
-            //% виконання запланованого по факту
-            for($i=8; $i>=0; $i--){
-                if($i < 8) {
-                    $percent = 0;
-                    if($i<7) {
-                        $count = (isset($outstanding[$obj->rowid]['fact' . date("Y-m-d", (time() - 3600 * 24 * $i))]) ? array_sum(($outstanding[$obj->rowid]['fact' . date("Y-m-d", (time() - 3600 * 24 * $i))])) : ('0'));
-                        $total = (isset($outstanding[$obj->rowid]['total' . date("Y-m-d", (time() - 3600 * 24 * $i))]) ? array_sum(($outstanding[$obj->rowid]['total' . date("Y-m-d", (time() - 3600 * 24 * $i))])) : '');
-                    }else{
-                        $count = isset($outstanding[$obj->rowid]['week'])?array_sum($outstanding[$obj->rowid]['week']):0;
-                        $total = isset($outstanding[$obj->rowid]['totalweek'])?array_sum($outstanding[$obj->rowid]['totalweek']):1;
-//                        if($obj->rowid == 43){
-//                            var_dump($count, $total);
-//                            die();
-//                        }
-                    }
-                }else{
-                    $count = isset($outstanding[$obj->rowid]['month'])?array_sum(($outstanding[$obj->rowid]['month'])):('0');
-                    $total = isset($outstanding[$obj->rowid]['totalmonth'])?array_sum(($outstanding[$obj->rowid]['totalmonth'])):('');
-                }
-                if(strlen($total)>0)
-                    $percent = round(100*$count/($total==0?1:$total));
-                else
-                    $percent = '';
-                $table .= '<td style="width: ' . ($conf->browser->name == 'firefox' ? (31) : (32)) . 'px; text-align:center;">' . $percent. '</td>';
-            }
-            //минуле (факт)
-            for($i=8; $i>=0; $i--){
-                if($i < 8) {
-                    $count = 0;
-                    if($i<7&&isset($outstanding[$obj->rowid]['fact' . date("Y-m-d", (time() - 3600 * 24 * $i))]))
-                        $count = array_sum(($outstanding[$obj->rowid]['fact' . date("Y-m-d", (time() - 3600 * 24 * $i))]));
-                    elseif($i == 7 && isset($outstanding[$obj->rowid]['week']))
-                        $count = array_sum($outstanding[$obj->rowid]['week']);
-                    $table .= '<td style="width: ' . ($conf->browser->name == 'firefox' ? (31) : (32)) . 'px; text-align:center;">' .$count . '</td>';
-                }else
-                    $table.='<td style="width: '.($conf->browser->name=='firefox'?(33):(34)).'px; text-align:center;">'.(isset($outstanding[$obj->rowid]['month'])?array_sum(($outstanding[$obj->rowid]['month'])):('')).'</td>';
-            }
-//            //Прострочено сьогодні
-            $table.='<td style="text-align: center; width: '.($conf->browser->name=='firefox'?(51):(51)).'px"> '.(isset($outstanding[$obj->rowid])?array_sum($outstanding[$obj->rowid]):0).'</td>';
-            //майбутнє (план)
-            for($i=0; $i<9; $i++){
-                if($i < 7)
-                    $table.='<td  class = "all_future_today" style="text-align: center; width: '.($conf->browser->name=='firefox'?(32):(33)).'px">'.(isset($future[$obj->rowid][date("Y-m-d", (time()+3600*24*$i))])?(array_sum($future[$obj->rowid][date("Y-m-d", (time()+3600*24*$i))])):('')).'</td>';
-                elseif($i == 7)
-                    $table.='<td  class = "all_future_today" style="text-align: center; width: '.($conf->browser->name=='firefox'?(32):(33)).'px">'.(isset($future[$obj->rowid]['week'])?(array_sum($future[$obj->rowid]['week'])):('')).'</td>';
-                else
-                    $table.='<td class = "all_future_month" style="text-align: center; width: '.($conf->browser->name=='firefox'?(32):(34)).'px">'.(isset($future[$obj->rowid]['month'])?array_sum($future[$obj->rowid]['month']):'').'</td>';
-            }
-            unset($totaltask);
-        $table.='</tr>';
-    }
-
-    $Code = "AC_GLOBAL";
-    $table.= ShowGlobalCurrentTasks($Code, 'Всього глобальні задачі (ТОПЗ)', $outstanding, $future, $subdivision, $userlist);
-
-    //Поточні задачі
-    $Code = "AC_CURRENT";
-    $table.= ShowGlobalCurrentTasks($Code, 'Всього поточних', $outstanding, $future, $subdivision, $userlist);
-
-    $Code = "AC_CUST";
-    $table.= ShowGlobalCurrentTasks($Code, 'Всього по напрямках', $outstanding, $future, $subdivision, $userlist, false);
-//    $sql = "select rowid from responsibility where alias in ('sale')";
-//    $res = $db->query($sql);
-//    if(!$res)
-//        dol_print_error($db);
-//    $respon = array();
-//    while($obj = $db->fetch_object($res)){
-//        $respon[]=$obj->rowid;
-//    }
-//    $Code = "'AC_TEL','AC_FAX','AC_EMAIL','AC_RDV','AC_INT','AC_OTH','AC_DEP'";
-//    $bestvalue = array();
-//    $bestuser_id = GetBestUserID($Code, implode(',', $respon));
-//
-//    $table.='<tr class="bestvalue"><td class="middle_size" style="width:106px">Продажі '.$subdivision.'</td><td class="middle_size" style="width:144px">Всього по найкращому</td>';
-//    //% виконання запланованого по факту
-//    for($i=8; $i>=0; $i--){
-//        if($i == 8)
-//            $table.='<td style="width: '.($conf->browser->name=='firefox'?(33):(34)).'px; text-align:center;">'.$bestvalue['percent_month'].'</td>';
-//        elseif($i == 0)
-//            $table.='<td style="width: '.($conf->browser->name=='firefox'?(31):(32)).'px; text-align:center;">'.$bestvalue['percent_'.$i].'</td>';
-//        else
-//             $table.='<td style="width: '.($conf->browser->name=='firefox'?(30):(31)).'px; text-align:center;">'.$bestvalue['percent_'.$i].'</td>';
-//    }
-//    //минуле (факт)
-//    for($i=8; $i>=0; $i--){
-//        if($i == 0)
-//            $table.='<td style="width: '.($conf->browser->name=='firefox'?(31):(32)).'px; text-align:center;">'.$bestvalue['fakt_today'].'</td>';
-//        elseif($i == 8)
-//            $table.='<td style="width: '.($conf->browser->name=='firefox'?(33):(34)).'px; text-align:center;">'.$bestvalue['fakt_month'].'</td>';
-//        else
-//            $table.='<td style="width: '.($conf->browser->name=='firefox'?(30):(30)).'px; text-align:center;">' . $bestvalue['fakt_day_m' . $i] . '</td>';
-//    }
-//    $table.='<td style="text-align: center; width: '.($conf->browser->name=='firefox'?(51):(51)).'px">'.$bestvalue["outstanding"].'</td>';
-//    //майбутнє (план)
-//    for($i=0; $i<9; $i++){
-//        if($i < 7)
-//            $table.='<td  class = "all_future_today" style="text-align: center; width: '.($conf->browser->name=='firefox'?(32):(33)).'px">'.(isset($future[$obj->rowid][date("Y-m-d", (time()+3600*24*$i))])?(array_sum($future[$obj->rowid][date("Y-m-d", (time()+3600*24*$i))])):('0')).'</td>';
-//        elseif($i == 7)
-//            $table.='<td  class = "all_future_today" style="text-align: center; width: '.($conf->browser->name=='firefox'?(32):(33)).'px">'.(isset($future[$obj->rowid]['week'])?(array_sum($future[$obj->rowid]['week'])):('0')).'</td>';
-//        else
-//            $table.='<td class = "all_future_month" style="text-align: center; width: '.($conf->browser->name=='firefox'?(32):(34)).'px">'.(isset($future[$obj->rowid]['month'])?array_sum($future[$obj->rowid]['month']):0).'</td>';
-//    }
-//    $table.='</tr>';
-//   //Всього задач по направленнях та співробітниках
-//    $sql = "select `code` from llx_c_actioncomm
-//    where type in ('system','user')
-//    and code not in ('AC_GLOBAL', 'AC_CURRENT')";
-//    $res = $db->query($sql);
-//    if(!$res)
-//        dol_print_error($db);
-//    $Code='';
-//    while($obj = $db->fetch_object($res)){
-//        if(empty($Code))
-//            $Code = "'".$obj->code."'";
-//        else
-//            $Code .= ",'".$obj->code."'";
-//    }
-//    $totaltask = array();
-//    $totaltask = CalcOutStandingActions($Code, $totaltask, 0);
-//    $totaltask = CalcoutstandingActions($Code, $totaltask, 0);
-//    $totaltask = CalcFaktActions($Code, $totaltask, 0);
-//    $totaltask = CalcPercentExecActions($Code, $totaltask, 0);
-//    $table.='<tr style="font-weight: bold"><td class="middle_size" style="width:106px">Всього завдань</td><td class="middle_size" style="width:144px">по співробітниках і направленнях</td>';
-//    //% виконання запланованого по факту
-//    for($i=8; $i>=0; $i--){
-//        if($i == 8)
-//            $table.='<td style="width: '.($conf->browser->name=='firefox'?(33):(34)).'px; text-align:center;">'.$totaltask['percent_month'].'</td>';
-//        elseif($i == 0)
-//            $table.='<td style="width: '.($conf->browser->name=='firefox'?(31):(32)).'px; text-align:center;">'.$totaltask['percent_'.$i].'</td>';
-//        else
-//             $table.='<td style="width: '.($conf->browser->name=='firefox'?(30):(31)).'px; text-align:center;">'.$totaltask['percent_'.$i].'</td>';
-//    }
-//    //минуле (факт)
-//    for($i=8; $i>=0; $i--){
-//        if($i == 0)
-//            $table.='<td style="width: '.($conf->browser->name=='firefox'?(31):(32)).'px; text-align:center;">'.$totaltask['fakt_today'].'</td>';
-//        elseif($i == 8)
-//            $table.='<td style="width: '.($conf->browser->name=='firefox'?(33):(34)).'px; text-align:center;">'.$totaltask['fakt_month'].'</td>';
-//        else
-//            $table.='<td style="width: '.($conf->browser->name=='firefox'?(30):(30)).'px; text-align:center;">' . $totaltask['fakt_day_m' . $i] . '</td>';
-//    }
-//    $table.='<td style="text-align: center; width: '.($conf->browser->name=='firefox'?(51):(51)).'px">'.$totaltask["outstanding"].'</td>';
-//    //майбутнє (план)
-//    for($i=0; $i<9; $i++){
-//        if($i == 0)
-//            $table.='<td  style="text-align: center; width: '.($conf->browser->name=='firefox'?(31):(32)).'px">'.$totaltask['outstanding_today'].'</td>';
-//        elseif($i == 8)
-//            $table.='<td style="text-align: center; width: '.($conf->browser->name=='firefox'?(33):(34)).'px">'.$totaltask['outstanding_month'].'</td>';
-//        else {
-//            $table .= '<td style="text-align: center; width: ' . ($conf->browser->name == 'firefox' ? (30) : (31)) . 'px">' . $totaltask['outstanding_day_pl' . $i] . '</td>';
-//        }
-//    }
-//    $table.='</tr>';
-//    $outstanding_actions = array();
-//    //Майбутні дії
-//    for($i=0; $i<9; $i++) {
-//        $sql = "select `llx_societe`.`region_id`, count(*) as iCount  from `llx_actioncomm`
-//        inner join
-//        (select id from `llx_c_actioncomm` where type in ('system','user') and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
-//        left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
-//        inner join `llx_actioncomm_resources` on `llx_actioncomm`.`id` =  `llx_actioncomm_resources`.`fk_actioncomm`
-//        where 1 ";
-//        $sql .= "and `llx_actioncomm_resources`.fk_element in (select rowid from llx_user where 1 and subdiv_id=".$user->subdiv_id." and `respon_id` in (".implode(',', $respon)."))";
-//        if($i<8) {
-//            $query_date = date("Y-m-d", (time()+3600*24*$i));
-//            if($i!=7)
-//                $sql .= " and datep2 between '".$query_date . "' and date_add('" . $query_date . "', interval 1 day)";
-//            else
-//                $sql .= " and datep2 between '".date("Y-m-d") . "' and date_add('" . date("Y-m-d") . "', interval 7 day)";
-//        }else {
-//            $month = date("m");
-//            if($month+1<10)
-//                $month = '0'.($month+1);
-//            else
-//                $month =($month+1);
-//                $sql .= " and datep2 between '" . date("Y-m-d") . "' and '" . date("Y") . "-" . $month . "-" . (date("d")) . "'";
-//        }
-//        $sql .=" and datea is null
-//        group by `llx_societe`.`region_id`";
-//
-//        $res = $db->query($sql);
-//        while($res && $obj = $db->fetch_object($res)){
-//            if($i<8)
-//                $outstanding_actions[$obj->region_id.'_'.($i)]=$obj->iCount;
-//            else
-//                $outstanding_actions[$obj->region_id.'_month']=$obj->iCount;
-//        }
-//    }
-////    echo '<pre>';
-////    var_dump($sql);
-////    echo '</pre>';
-////    die();
-//    //Прострочені дії
-//    $outstanding_actions = array();
-//    $sql = "select `llx_societe`.`region_id`, count(*) as iCount  from `llx_actioncomm`
-//    inner join
-//    (select id from `llx_c_actioncomm` where type in ('system','user') and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
-//    left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
-//    inner join `llx_actioncomm_resources` on `llx_actioncomm`.`id` =  `llx_actioncomm_resources`.`fk_actioncomm`
-//    where 1 ";
-//    $sql .= "and `llx_actioncomm_resources`.fk_element in (select rowid from llx_user where 1 and subdiv_id=".$user->subdiv_id." and `respon_id` in (".implode(',', $respon)."))";
-//    $sql .= " and datep2 < '".date("Y-m-d")."'";
-//    $sql .=" and datea is null
-//    group by `llx_societe`.`region_id`";
-//    $res = $db->query($sql);
-//    while($obj = $db->fetch_object($res)){
-//        $outstanding_actions[$obj->region_id]=$obj->iCount;
-//    }
-//    //Виконані дії
-//    $exec_actions = array();
-//    $percent_action = array();
-//    for($i=0; $i<9; $i++) {
-//        $sql = "select `llx_societe`.`region_id`, count(*) as iCount  from `llx_actioncomm`
-//        inner join
-//        (select id from `llx_c_actioncomm` where type in ('system','user') and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
-//        left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
-//        inner join `llx_actioncomm_resources` on `llx_actioncomm`.`id` =  `llx_actioncomm_resources`.`fk_actioncomm`
-//        where 1 ";
-//        $sql .= "and `llx_actioncomm_resources`.fk_element in (select rowid from llx_user where 1 and subdiv_id=".$user->subdiv_id." and `respon_id` in (".implode(',', $respon)."))";
-////        if($i < 2) {
-////            var_dump($sql);
-////            die();
-////        }
-//
-//        if($i<8) {
-//            $query_date = date("Y-m-d", (time()-3600*24*$i+3600*24));
-//            if($i!=7)
-//                $sql .= " and datep2 between date_add('" . $query_date . "', interval -1 day) and '".$query_date . "'";
-//            else
-//                $sql .= " and datep2 between date_add('" . date("Y-m-d") . "', interval -7 day) and '".date("Y-m-d") . "'";
-//        }else {
-//            $month = date("m");
-//            if($month-1<10)
-//                $month = '0'.($month-1);
-//            else
-//                $month =($month-1);
-//                $sql .= " and datep2 between '" . date("Y") . "-" . $month . "-" . (date("d")) . "' and '" . date("Y-m-d") . "'";
-//        }
-//
-//        $res = $db->query($sql." group by `llx_societe`.`region_id`");
-//
-//        while($res && $obj = $db->fetch_object($res)){
-//            if($i<8) {
-//                $totaltask[$obj->region_id.'_'.$i] = $obj->iCount;
-//            }else
-//                $totaltask[$obj->region_id.'_month']=$obj->iCount;
-//        }
-//
-//        $res = $db->query($sql." and datea is not null
-//                 group by `llx_societe`.`region_id`");
-//
-//        while($res && $obj = $db->fetch_object($res)){
-//            if($i<8) {
-//                $exec_actions[$obj->region_id . '_' . ($i)] = $obj->iCount;
-//                if($totaltask[$obj->region_id.'_'.$i]!=0){
-//                   $percent_action[$obj->region_id.'_'.$i] = round($exec_actions[$obj->region_id.'_'.$i]*100/$totaltask[$obj->region_id.'_'.$i],0);
-//                }else{
-//                   $percent_action[$obj->region_id.'_'.$i] = '';
-//                }
-//            }else {
-//                $exec_actions[$obj->region_id . '_month'] = $obj->iCount;
-//                if($totaltask[$obj->region_id.'_month'] != 0){
-//                    $percent_action[$obj->region_id.'_month'] =  round($exec_actions[$obj->region_id.'_month']*100/$totaltask[$obj->region_id.'_month'],0);
-//                }else{
-//                   $percent_action[$obj->region_id.'_month'] = '';
-//                }
-//            }
-//        }
-//    }
-//    $sql = "select `regions`.rowid, llx_user.lastname, llx_user.firstname,`regions`.`name` from llx_user
-//        left join `llx_user_regions` on `llx_user_regions`.`fk_user` = llx_user.rowid
-//        left join `regions` on `regions`.`rowid` = `llx_user_regions`.`fk_id`
-//        where 1 ".(empty($user->subdiv_id)?"":" and subdiv_id=".$user->subdiv_id)."
-//        and llx_user.respon_id in (".implode(",", $respon).")";
-//    $res = $db->query($sql);
-//    if(!$res)
-//        dol_print_error($db);
-//
-////    echo '<pre>';
-////    var_dump($outstanding_actions);
-////    echo '</pre>';
-////    die();
-//    $nom = 1;
-//    while($obj = $db->fetch_object($res)){
-//        $class=(fmod($nom++,2)==0?"impair":"pair");
-//        $table .= '<tr class = "'.$class.'"id = "'.$obj->rowid.'">
-//        <td>'.$obj->lastname.' '.mb_substr($obj->firstname, 0, 1, 'UTF-8').'.'.mb_substr($obj->firstname, mb_strrpos($obj->firstname, ' ','UTF-8')+1, 1, 'UTF-8').'.</td>
-//        <td>'.$obj->name.'</td>';
-//        //% виконання запланованого по факту
-//        for($i=8; $i>=0; $i--){
-//            if($i == 8)
-//                $table.='<td style="width: '.($conf->browser->name=='firefox'?(33):(34)).'px; text-align:center;">'.$percent_action[$obj->rowid.'_month'].'</td>';
-//            elseif($i == 0)
-//                $table.='<td style="width: '.($conf->browser->name=='firefox'?(31):(32)).'px; text-align:center;">'.$percent_action[$obj->rowid.'_'.$i].'</td>';
-//            else
-//                 $table.='<td style="width: '.($conf->browser->name=='firefox'?(30):(31)).'px; text-align:center;">'.$percent_action[$obj->rowid.'_'.$i].'</td>';
-//        }
-//        //минуле (факт)
-//        for($i=8; $i>=0; $i--){
-//            if($i == 0)
-//                $table.='<td style="width: '.($conf->browser->name=='firefox'?(31):(32)).'px; text-align:center;">'.$exec_actions[$obj->rowid.'_' . $i].'</td>';
-//            elseif($i == 8)
-//                $table.='<td style="width: '.($conf->browser->name=='firefox'?(33):(34)).'px; text-align:center;">'.$exec_actions[$obj->rowid.'_month'].'</td>';
-//            else
-//                $table.='<td style="width: '.($conf->browser->name=='firefox'?(30):(30)).'px; text-align:center;">' . $exec_actions[$obj->rowid.'_' . $i] . '</td>';
-//        }
-//        $table.='<td style="text-align: center; width: '.($conf->browser->name=='firefox'?(51):(51)).'px">'.$outstanding_actions[$obj->rowid].'</td>';
-//        //майбутнє (план)
-//        for($i=0; $i<9; $i++){
-//            if($i == 0)
-//                $table.='<td  style="text-align: center; width: '.($conf->browser->name=='firefox'?(31):(32)).'px">'.$outstanding_actions[$obj->rowid.'_' . $i].'</td>';
-//            elseif($i == 8)
-//                $table.='<td style="text-align: center; width: '.($conf->browser->name=='firefox'?(33):(34)).'px">'.$outstanding_actions[$obj->rowid.'_month'].'</td>';
-//            else {
-//                $table .= '<td style="text-align: center; width: ' . ($conf->browser->name == 'firefox' ? (30) : (31)) . 'px">' . $outstanding_actions[$obj->rowid.'_' . $i] . '</td>';
-//            }
-//        }
-//        $table .= '</tr>';
-//    }
-    $table .= '</tbody>';
-    return $table;
+    return $taskID;
 }

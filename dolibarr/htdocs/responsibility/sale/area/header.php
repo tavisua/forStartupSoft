@@ -16,7 +16,6 @@ $AsOfTheDate = $langs->trans('AsOfTheOfDate');
 //echo '<pre>';
 //var_dump($_SERVER["REQUEST_URI"]);
 //echo '</pre>';
-//die();
 $region_id = 0;
 
 if(isset($_REQUEST['state_filter'])) {//Если изменялся регион
@@ -41,6 +40,7 @@ if(!$res){
     var_dump($sql);
     dol_print_error($db);
 }
+
 if($db->num_rows($res) > 0) {
     $Classifycation = '<table class="classifycation">';
     for ($i = 0; $i < $db->num_rows($res); $i++) {

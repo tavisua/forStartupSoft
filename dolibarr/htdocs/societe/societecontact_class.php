@@ -81,7 +81,7 @@ class societecontact {
         }
     }
 
-    public function selectPost($htmlname='post', $post=0){
+    public function selectPost($htmlname='post', $post=0, $size=1){
 //        var_dump($post);
 //        die();
         global $db;
@@ -93,7 +93,7 @@ class societecontact {
 
         $resql = $db->query($sql);
         if ($resql) {
-            $out .= '<select id = "'.$htmlname.'" class="combobox" name="' . $htmlname . '">';
+            $out .= '<select id = "'.$htmlname.'" class="combobox" name="'.$htmlname.($size>1?'[]':'').'" size="'.$size.'" '.($size!=1?'multiple=""':'').'>';
             $num = $db->num_rows($resql);
             $i = 0;
             if ($num) {
@@ -101,7 +101,7 @@ class societecontact {
                 $out .= '<option value="0">&nbsp;</option>';
                 while ($i < $num) {
                     $obj = $db->fetch_object($resql);
-                    if (!empty($post) && $post == $obj->rowid) {
+                    if (is_array($post)&&in_array($obj->rowid,$post)||!empty($post) && $post == $obj->rowid) {
                         $out .= '<option value="' . $obj->rowid . '" selected="selected">' .$obj->name . '</option>';
                     } else {
                         $out .= '<option value="' . $obj->rowid . '">' . $obj->name . '</option>';
@@ -362,6 +362,7 @@ class societecontact {
             }
 //        var_dump($saidArray);
 //        die();
+
         mysqli_data_seek($result, 0);
         while($row = $result->fetch_assoc()) {
 
@@ -590,7 +591,7 @@ class societecontact {
         `town_id` = '.(empty($this->town_id)||empty($this->location)?0:$this->town_id).',
         `post_id` = '.(empty($this->post)?0:$this->post).',
         `respon_id`= '.(empty($this->SphereOfResponsibility)?"null":$this->SphereOfResponsibility).',
-        `location`= '.(empty($this->location)?"null":("'".$this->location."'")).',
+        `location`= '.(empty($this->location)?"null":("'".$db->escape($this->location)."'")).',
         `lastname` = "'.$db->escape(trim($this->lastname)).'",
         `firstname` = "'.$db->escape(trim($this->firstname)).'",
         `work_phone`= "'.trim($this->work_phone).'",
@@ -617,6 +618,7 @@ class societecontact {
 //        die($sql);
         $res = $db->query($sql);
         if(!$res){
+            llxHeader();
             var_dump($sql);
             dol_print_error($db);
         }

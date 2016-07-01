@@ -33,12 +33,12 @@
         </table>
         </br>
     </div>
-    <button onclick="RefreshData();">Оновити дані</button>
+    <!--<button onclick="RefreshData();">Оновити дані</button>-->
     <div>
         <table cellspacing="1" class="WidthScroll">
-            <thead>
+              <thead>
                 <tr class="multiple_header_table">
-                    <th rowspan="4" style="width: 105px;">Область</th>
+                    <th rowspan="4" style="width: 110px;">Область</th>
                     <th rowspan="4" style="width: 175px;">Район</th>
                     <th rowspan="4" style="width: 33px;">&nbsp;</th>
                     <th colspan="9">% виконання запланованого по факту</th>
@@ -161,10 +161,7 @@
     </table>
 </div>
 <script>
-    function RefreshData(){
-        <?unset($_SESSION['actions']);?>
-        location.href=location.href;
-    }
+
     $(document).ready(function(){
         $('#reference_body').attr('height', window.innerHeight - 370);
         $('#reference_body').width($('#reference_body').width()+15);
@@ -172,27 +169,170 @@
         var Width = $(".WidthScroll").width();
         var Top = $(".WidthScroll").height();
         $("#sent_task").offset({top:Top+180, left:-Width+5});
-
+        SetTheadColumnWidth();
     })
-    function ShowHideAllTask(classname){
-        var src = $('#img'+classname).attr('src');
-        console.log(classname);
-        if(src.substr(src.length-'1downarrow.png'.length)=='1downarrow.png') {
-            $('#img' + classname).attr('src', '/dolibarr/htdocs/theme/eldy/img/1uparrow.png');
-            $('tr.'+classname).show();
-        }else {
-            $('#img' + classname).attr('src', '/dolibarr/htdocs/theme/eldy/img/1downarrow.png');
-            $('tr.'+classname).hide();
+    function ShowActionsByUsers(typeaction, alias){
+        console.log(typeaction);
+
+        var btn = $('#btnLn'+typeaction+alias+'<?=$user->subdiv_id?>');
+//        console.log(btn);
+//        return;
+        var tr_item = btn.parent().parent();
+        var img = $('#imgLn'+typeaction+alias+'<?=$user->subdiv_id?>');
+                console.log('#imgLn'+typeaction+alias+'<?=$user->subdiv_id?>', img);
+
+//        return;
+
+//        var img = btn.getElementsByTagName('img')[0];
+        var show = img.attr('src').substr(img.attr('src').length-('1downarrow.png').length) == '1downarrow.png';
+        if(show)
+            img.attr('src', img.attr('src').substr(0, img.attr('src').length-('1downarrow.png').length)+'1uparrow.png');
+        else
+            img.attr('src', img.attr('src').substr(0, img.attr('src').length-('1uparrow.png').length)+'1downarrow.png');
+        var code = '';
+        var responding = '';
+        var subdiv_id = '';
+        switch(typeaction){
+            case 'AllTask':{
+                code = 'all';
+                responding='';
+            }break;
+            case 'AC_GLOBAL':{
+                code = "'AC_GLOBAL'";
+                responding='';
+            }break;
+            case 'AC_CURRENT':{
+                code = "'AC_CURRENT'";
+                responding='';
+            }break;
+            case 'AC_CUST':{
+                code = "'AC_CUST'";
+                responding='';
+            }break;
+            case 'DirecorsAllTask':{
+                code = 'all';
+                responding=10;
+            }break;
+
         }
-        if(classname == 'AC_CUST' && $('tr.AC_CUST').length == 0){
-            $.ajax({
-                url:'/dolibarr/htdocs/responsibility/dir_depatment/day_plan.php?action=ac_cust',
-                cache:false,
-                success:function(html){
-                    $('#reference_body').append(html);
-//                    console.log(html);
-                }
-            })
+        if(show) {
+//            console.log('<?=$user->subdiv_id?>');
+            if($('.'+typeaction).length == 0) {
+//                var tr_item = btn.parentNode.parentNode;
+//                console.log(tr_item.attr('class'));
+//                return;
+                var className = tr_item.attr('class');
+                className = className.replace('impair ', '');
+                className = className.replace('pair ', '');
+                className = $.trim(className);
+                var link = '/dolibarr/htdocs/responsibility/gen_dir/day_plan.php?action=getUsersTask&code='+code+'&responding='+alias+'&classname='+className+' '+ '<?=$user->subdiv_id?>'+'&subdiv_id='+'<?=$user->subdiv_id?>';
+//                console.log(link);
+//                return;
+                $.ajax({
+                    url: link,
+                    cache: false,
+                    success: function (html) {
+                        html = html.replace(/ <?=$user->subdiv_id?>/g, '');
+                        html = html.replace(/userlist/g, 'userlist '+typeaction);
+//                        console.log(html);
+                        tr_item = document.getElementById(tr_item.attr('id'));
+                        tr_item.insertAdjacentHTML('afterend', html);
+                    }
+                })
+            }else{
+//                var tr_item = document.getElementsByClassName('<?=$user->subdiv_id?>');
+//                for(var i=0; i<tr_item.length; i++) {
+//                    console.log(tr_item[i].className.substr(tr_item[i].className.length-'<?=$user->subdiv_id?>'.length), '<?=$user->subdiv_id?>');
+//                    if(tr_item[i].className.substr(tr_item[i].className.length-'<?=$user->subdiv_id?>'.length) == '<?=$user->subdiv_id?>' || tr_item[i].className.substr(tr_item[i].className.length-('<?=$user->subdiv_id?>'+' userlist').length) == '<?=$user->subdiv_id?>'+' userlist')
+//                        $('#' + tr_item[i].'<?=$user->subdiv_id?>').show();
+//                }
+                $('.'+typeaction).show();
+            }
+        }else{
+            $('.'+typeaction).hide();
+            img.src = '/dolibarr/htdocs/theme/eldy/img/1downarrow.png';
+        }
+    }
+
+    function ShowLinectiveTask(typeaction){
+//        console.log(typeaction);
+//        return;
+        var btn = document.getElementById('btn'+typeaction);
+        var img = document.getElementById('img'+typeaction);
+        var show = img.src.substr(img.src.length-('1downarrow.png').length) == '1downarrow.png';
+        if(show)
+            img.src = img.src.substr(0, img.src.length-('1downarrow.png').length)+'1uparrow.png';
+        else
+            img.src = img.src.substr(0, img.src.length-('1uparrow.png').length)+'1downarrow.png';
+        var code = '';
+        var responding = '';
+        var subdiv_id = '';
+        switch(typeaction){
+            case 'AllTask':{
+                code = 'all';
+                responding='';
+            }break;
+            case 'AC_GLOBAL':{
+                code = "'AC_GLOBAL'";
+                responding='';
+            }break;
+            case 'AC_CURRENT':{
+                code = "'AC_CURRENT'";
+                responding='';
+            }break;
+            case 'AC_CUST':{
+                code = "'AC_CUST'";
+                responding='';
+            }break;
+            case 'DirecorsAllTask':{
+                code = 'all';
+                responding=10;
+            }break;
+
+        }
+        var tr_item = btn.parentNode.parentNode;
+
+        if(show) {
+            console.log('.'+typeaction+'<?=$user->subdiv_id?>');
+            if($('.lineactive').length == 0) {
+                var className = tr_item.className;
+                className = className.replace('impair ', '');
+                className = className.replace('pair ', '');
+                className = $.trim(className);
+                var link = '/dolibarr/htdocs/responsibility/gen_dir/day_plan.php?action=getLineActiveTask&code='+code+'&classname='+className+' <?=$user->subdiv_id?>&responding='+responding+'&subdiv_id=<?=$user->subdiv_id?>';
+//                console.log(link);
+//                return;
+                $.ajax({
+                    url: link,
+                    cache: false,
+                    success: function (html) {
+                    html = html.replace(/<?=$user->subdiv_id?>, /g, '');
+
+//                        console.log(html);
+                        tr_item.insertAdjacentHTML('afterend', html);
+                    }
+                })
+            }else{
+//                var tr_item = document.getElementsByClassName(id);
+//                for(var i=0; i<tr_item.length; i++) {
+//                    console.log(tr_item[i].className.substr(tr_item[i].className.length-id.length), id);
+//                    if(tr_item[i].className.substr(tr_item[i].className.length-id.length) == id || tr_item[i].className.substr(tr_item[i].className.length-(id+' userlist').length) == id+' userlist')
+//                        $('#' + tr_item[i].id).show();
+//                }
+                $('.lineactive').show();
+            }
+        }else{
+            $('.lineactive').hide();
+            for(var i=0; i<tr_item.length; i++) {
+                var img = tr_item[i].getElementsByTagName('img');
+//                console.log(img.length);
+                if(img.length>0)
+                    img[0].src = '/dolibarr/htdocs/theme/eldy/img/1downarrow.png';
+//                if(tr_item[i].className.substr(tr_item[i].className.length-id.length) != id) {
+//                    console.log(tr_item[i].id);
+//                    $('#' + tr_item[i].id).hide();
+//                }
+            }
 
         }
     }

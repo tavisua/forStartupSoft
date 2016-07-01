@@ -83,6 +83,7 @@ class Societe extends CommonObject
     var $region_id;
     var $formofgoverment_id;
     var $categoryofcustomer_id;
+    var $area;
     var $lineactive=array();//напрямки діяльності
     /**
      * @deprecated Use state_code instead
@@ -1309,6 +1310,15 @@ class Societe extends CommonObject
                     while($item = $this->db->fetch_object($res)){
                         $this->lineactive[]=$item->fk_lineactive;
                     }
+                }
+                //визначення кількості пахотних земель
+                $sql="select value from llx_societe_classificator where soc_id=".$this->id." and classifycation_id=5 and active = 1";
+                $res = $this->db->query($sql);
+                if(!$res)
+                    dol_print_error($this->db);
+                if($this->db->num_rows($res)>0) {
+                    $obj = $this->db->fetch_object($res);
+                    $this->area = $obj->value;
                 }
             }
             else

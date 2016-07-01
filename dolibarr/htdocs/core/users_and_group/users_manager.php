@@ -113,8 +113,8 @@ left join `llx_usergroup` on `'.$tablename.'`.`usergroup_id`=`llx_usergroup`.row
 where `'.$tablename.'`.active=1
 order by login';
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
-$db = new dbBuilder();
-$table = $db->fShowTable($TableParam, $sql, "'".$tablename."'", $conf->theme);
+$dbBuilder = new dbBuilder();
+$table = $dbBuilder->fShowTable($TableParam, $sql, "'".$tablename."'", $conf->theme);
 $new_link = "http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/DBManager/dbManager.php?new=1&tablename='".$tablename."'";
 ob_start();
 include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/users_manager.html');

@@ -133,6 +133,10 @@ if (! empty($_POST['removedfile']) || ! empty($_POST['removedfilehtml']))
 	if ($_POST['removedfile'] || $action='send')     $action='test';
 	if ($_POST['removedfilehtml'] || $action='sendhtml') $action='testhtml';
 }
+//echo '<pre>';
+//var_dump($_REQUEST);
+//echo '</pre>';
+//die();
 
 /*
  * Send mail
@@ -204,8 +208,8 @@ if (($action == 'send' || $action == 'sendhtml') && ! GETPOST('addfile') && ! GE
             $msgishtml,
             $errors_to
         );
-
 		$result=$mailfile->sendfile();
+//		die('test');
 
 		if ($result)
 		{

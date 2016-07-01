@@ -2,7 +2,7 @@
 <div><a href="<?echo $_SERVER['HTTP_REFERER']?>#<?echo $_REQUEST['socid']?>"><?echo $langs->trans($Task)?></a>  /  <?=$langs->trans($Action)?></div>
 </br>
 <div  id="customerinfo">
-    <table id="headercontrol" style="background-color: #ffffff; width: 500px;">
+    <table id="headercontrol" style="background-color: #ffffff; width: 750px;">
         <tr>
             <td style="font-size: small"><b>Суть задачі</b></td>
             <?if(!empty($author_id) && $user->id == $author_id){?>
@@ -10,7 +10,11 @@
             <?}else{?>
                 <td style="font-size: small;"><b>Действия</b></td>
             <?}?>
-
+            <?if(!empty($author_id) && $user->id == $author_id){?>
+                <td style="font-size: small; width: 250px"><b>Контакти виконавця</b></td>
+            <?}else{?>
+                <td style="font-size: small; width: 250px"><b>Контакти замовника</b></td>
+            <?}?>
         </tr>
         <tr>
             <td style="height: 100px; font-size: small"><?=$description?></td>
@@ -22,6 +26,7 @@
             <?}else{?>
                 <td style="font-size: small;"><button  style="width: 100%" onclick="AddResult();">Додати результат дії</button></td>
             <?}?>
+            <td style="font-size: small; vertical-align: top"><?=$contactdata?></td>
         </tr>
     </table>
 </div>
@@ -63,6 +68,7 @@
 <form id="redirect" action="/dolibarr/htdocs/comm/action/result_action.php" method="get">
     <input type="hidden" name="backtopage" value="'<?=$_SERVER['REQUEST_URI']?>'">
     <input type="hidden" name="action_id" value="" id="action_id">
+    <input type="hidden" name="answer_id" value="" id="answer_id">
     <input type="hidden" name="mainmenu" value="<?=$_REQUEST['mainmenu']?>">
     <input type="hidden" value="<?=$actioncode?>" id="redirect_actioncode" name="actioncode">
     <input type="hidden" name="action" value="edit" id="edit_action">
@@ -77,11 +83,162 @@
     }
 </style>
 <script>
-//    $(document).ready(function(){
-//        var top =
-//        $('#showhide_contactlist').offset({top:$('#addcontact').offset().top, left:$('#addcontact').offset().left+$('#addcontact').width()+15});
-//        $('#contactlist').offset({top:$('#contactlist').offset().top-20});
-//    })
+
+    $(window).keypress(function(event) {
+        if(event.keyCode == 27 && event.target.tagName == 'TEXTAREA')
+            $('#'+event.target.id).remove();
+        if(event.ctrlKey && event.keyCode == 13 && event.target.tagName == 'TEXTAREA'){
+
+           if(true){
+               var param = {
+                   rowid:$('#'+event.target.id).attr('rowid'),
+                   fieldname:event.target.id,
+                   action:'setMentorJob',
+                   value:$('#'+event.target.id).val()
+               }
+               $.ajax({
+                   url:'',
+                   data:param,
+                   cashe:false,
+                   type: 'post',
+                   success:function(result){
+                    if(result == '1')
+                        console.log('successfule change');
+                   }
+               })
+               $('td#'+$('#'+event.target.id).attr('rowid')+event.target.id).html($('#'+event.target.id).val());
+               $('#'+event.target.id).remove();
+           }
+//           console.log($('#'+event.target.id).attr('rowid'));
+           return;
+       }
+   });
+    function setDateMentor(){
+        alert('test');
+    }
+
+
+
+
+    $(function(){
+        $('td').click(function(e){
+            var validID = ['work_before_the_next_action_mentor', 'date_next_action_mentor'];
+            var colName = $(this).attr('id').substr($(this).attr('rowid').length);
+            if($.inArray(colName,validID)>=0 && '<?=$accessMentor?>' == '0') {
+                console.log('access denied');
+                return;
+            }else if($.inArray(colName,validID)<0&&$('#'+e.target.id).find('input').length>0){
+                var input = $('#'+e.target.id).find('input');
+                var html = '<textarea id="fulltext"  style="width: 350px;height: 150px">'+input.val()+'</textarea>';
+
+                createNewForm('popupmenu','fulltext_form')
+//                $('#preview').css('width', 350);
+//                $('#preview').css('height',250);
+                $('#fulltext_form').empty().html(html);
+
+                $('#fulltext_form').show();
+                $('#fulltext_form').offset({
+                    top: $('#' + e.target.id).offset().top - 30,
+                    left: $('#' + e.target.id).offset().left - 50
+                });
+                $('#fulltext_form').attr('TitleProposed', 1);
+//                $('#fulltext').focus();
+                $('#fulltext').mouseout(function(e){
+                    $(this).remove();
+                })
+                return;
+            }
+
+//            console.log($.inArray(colName,validID));
+            if($.inArray(colName,validID)>=0){
+//                            console.log('<?=$accessMentor?>');
+                if(colName == 'date_next_action_mentor'){
+                    $(function(){
+                        var html = '<input type="text" id="input'+e.target.id+'" rowid="'+$('#'+e.target.id).attr('rowid')+'" name="'+e.target.id+'">';
+
+                        $('td#'+e.target.id).empty().html(html);
+                        showDP('/dolibarr/htdocs/core/', 'input'+e.target.id,'dd/MM/yy','uk_UA');
+                        $('#input'+e.target.id).change(function(event){
+                                var param = {
+                                    rowid:$('#'+event.target.id).attr('rowid'),
+                                    fieldname:event.target.id.substr('input'.length+$('#'+event.target.id).attr('rowid').length),
+                                    action:'setMentorDate',
+                                    value:$('#'+event.target.id).val()
+                                }
+                                $('td#'+event.target.id.substr('input'.length)).empty().html(param.value);
+                                $('#'+event.target.id).remove();
+                                $.ajax({
+                                   url:'',
+                                   data:param,
+                                   cashe:false,
+                                   type: 'post',
+                                   success:function(result){
+                                    if(result == '1')
+                                        $('#'+event.target.id).remove();
+                                        console.log('successfule change');
+                                   }
+                                })
+//                            	console.log($('#'+event.target.id).val());
+                        })
+                    })
+                    return;
+                }
+
+                var html = '<textarea id="'+colName+'" rowid="'+$('#' + e.target.id).attr('rowid')+'" title="Для збереження даних натисніть Ctrl+Enter, для закриття Ecs">'+$(this).text()+'</textarea>';
+
+                createNewForm('popupmenu',colName+'editor')
+                $('#'+colName+'editor').css('width', 250);
+                //$('#popupmenu').css('height',250);
+                $('#'+colName+'editor').empty().html(html);
+                $('#'+colName+'editor').attr('rowid', $('#' + e.target.id).attr('rowid'))
+
+                $('#'+colName+'editor').show();
+                $('#'+colName+'editor').offset({
+                    top: $('#' + e.target.id).offset().top - 30,
+                    left: $('#' + e.target.id).offset().left - 50
+                });
+                $('#'+colName+'editor').attr('TitleProposed', 1);
+                $('#'+colName).focus();
+            }
+
+
+//            if($(this).attr('id').substr(0, 4)!='calc')
+//                return;
+//            //ловим элемент, по которому кликнули
+//            var t = e.target || e.srcElement; //получаем название тега
+//            var elm_name = t.tagName.toLowerCase(); //если это инпут - ничего не делаем
+//            if(elm_name == 'input') {return false;}
+//
+//            var val = $(this).html();
+//            var field = '<input type="text" id="edit" value="'+val+'" size=2/>';
+//            $(this).empty().append(field); //устанавливаем фокус на свеженарисованное поле
+//            $('#edit').focus();
+//            $('#edit').select();
+//            $('#edit').blur(function() { //устанавливаем обработчик
+//                var val = $(this).val(); //получаем то, что в поле находится
+//                //находим ячейку, опустошаем, вставляем значение из поля
+//                $(this).parent().empty().html(val);
+//                var theme_id, socid;
+//                for(var i = 5; i< e.target.id.length; i++){
+//                    if(e.target.id.substr(i,1)=="_"){
+////                        console.log(i);
+//                        theme_id = e.target.id.substr(5,i-5);
+//                        socid    = e.target.id.substr(i+1);
+//                    }
+//                }
+////                console.log(theme_id, socid);
+//                var td = $('#'+e.target.id).parent();
+//                $.ajax({
+//                    url:'/dolibarr/htdocs/calculator/index.php?action=set&socid='+socid+'&theme_id='+theme_id+'&val='+val+'&id_usr=<?=$user->id?>',
+//                    cache:false,
+//                    success:function(html){
+//
+//                    }
+//                })
+//            });
+        })
+    })
+
     function AddResult(){
         var link = '/dolibarr/htdocs/comm/action/result_action.php';
         var backtopage = location.pathname+location.search;
@@ -98,13 +255,39 @@
         location.href = link+'?action=addonlyresult&backtopage='+backtopage+'&actioncode='+actioncode+'&action_id='+getParameterByName('action_id')+'&onlyresult=1';
     }
     function setExecutedAction(id){
-        ConfirmExec(id);
+//        ConfirmExec(id);
 //        return;
-        var mainmenu = getParameterByName('mainmenu');
-        if(mainmenu == 'global_task')
-            location.href = '/dolibarr/htdocs/global_plan.php?idmenu=10421&mainmenu=global_task&leftmenu=';
-        else if(mainmenu == 'current_task')
-            location.href = '/dolibarr/htdocs/current_plan.php?idmenu=10423&mainmenu=current_task&leftmenu=';
+        if(confirm('Установити відмітку про виконання роботи?')) {
+            var link = "http://" + location.hostname + "/dolibarr/htdocs/comm/action/card.php?action=confirm_exec&rowid=" + id;
+            $.ajax({
+                url: link,
+                cache: false,
+                success: function (html) {
+                    console.log(html, 'confirm_exec');
+                }
+            })
+            var mainmenu = getParameterByName('mainmenu');
+            if (mainmenu == 'global_task')
+                location.href = '/dolibarr/htdocs/global_plan.php?idmenu=10421&mainmenu=global_task&leftmenu=';
+            else if (mainmenu == 'current_task')
+                location.href = '/dolibarr/htdocs/current_plan.php?idmenu=10423&mainmenu=current_task&leftmenu=';
+        }
+    }
+    function DelResultAction(rowid){
+        if(confirm('Видалити запис?')) {
+            var link = '/dolibarr/htdocs/comm/action/card.php?action=delete_resultaction&rowid=' + rowid;
+
+            $.ajax({
+                url: link,
+                cache: false,
+                success: function (html) {
+                    if (html == 1)
+                        location.href = location.href;
+                    else
+                        console.log('помилка ', html, link);
+                }
+            })
+        }
     }
     function ShowHideContactList(object){
         if($('#'+object.attr('id')).text().trim()=='Скрити контакти') {

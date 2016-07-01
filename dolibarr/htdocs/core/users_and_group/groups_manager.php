@@ -72,7 +72,7 @@ $TableParam[]=$ColParam;
 
 $sql = 'select rowid, nom, note, " " as permission, active from `'.$tablename.'` order by nom';
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
-$db = new dbBuilder();
-$table = $db->fShowTable($TableParam, $sql, "'".$tablename."'", $conf->theme);
+$dbBuilder = new dbBuilder();
+$table = $dbBuilder->fShowTable($TableParam, $sql, "'".$tablename."'", $conf->theme);
 include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/eldy/groups_manager.html');
 llxFooter();

@@ -99,7 +99,7 @@ if ($id)
 //    dol_fiche_head($head, 'rights', $title, 0, 'group');
 
 
-    $db = new dbBuilder();
+    $dbBuilder = new dbBuilder();
     $TableParam = array();
     $ColParam['title']=$langs->trans('Module');
     $ColParam['width']='150';

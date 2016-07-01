@@ -3,7 +3,7 @@
 require '../main.inc.php';
 
 if($_GET['action'] == 'set'){
-    global $db;
+//    global $db;
     $sql = 'select region_id from llx_societe where rowid = '.$_GET['socid'];
     $res = $db->query($sql);
     if(!$res)
@@ -37,7 +37,7 @@ if($_GET['action'] == 'set'){
     exit();
 }
 
-global $langs, $db;
+global $langs;
 $Calculator = $langs->trans("Calculator");
 
 llxHeader("",$Calculator,"");

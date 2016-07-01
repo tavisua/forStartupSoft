@@ -61,11 +61,45 @@
     }
 </style>
 <script>
-//    $(document).ready(function(){
-//        var top =
-//        $('#showhide_contactlist').offset({top:$('#addcontact').offset().top, left:$('#addcontact').offset().left+$('#addcontact').width()+15});
-//        $('#contactlist').offset({top:$('#contactlist').offset().top-20});
-//    })
+    $(function(){
+        $('td').click(function(e){
+            console.log($this);
+//            if($(this).attr('id').substr(0, 4)!='calc')
+//                return;
+//            //ловим элемент, по которому кликнули
+//            var t = e.target || e.srcElement; //получаем название тега
+//            var elm_name = t.tagName.toLowerCase(); //если это инпут - ничего не делаем
+//            if(elm_name == 'input') {return false;}
+//
+//            var val = $(this).html();
+//            var field = '<input type="text" id="edit" value="'+val+'" size=2/>';
+//            $(this).empty().append(field); //устанавливаем фокус на свеженарисованное поле
+//            $('#edit').focus();
+//            $('#edit').select();
+//            $('#edit').blur(function() { //устанавливаем обработчик
+//                var val = $(this).val(); //получаем то, что в поле находится
+//                //находим ячейку, опустошаем, вставляем значение из поля
+//                $(this).parent().empty().html(val);
+//                var theme_id, socid;
+//                for(var i = 5; i< e.target.id.length; i++){
+//                    if(e.target.id.substr(i,1)=="_"){
+////                        console.log(i);
+//                        theme_id = e.target.id.substr(5,i-5);
+//                        socid    = e.target.id.substr(i+1);
+//                    }
+//                }
+////                console.log(theme_id, socid);
+//                var td = $('#'+e.target.id).parent();
+//                $.ajax({
+//                    url:'/dolibarr/htdocs/calculator/index.php?action=set&socid='+socid+'&theme_id='+theme_id+'&val='+val+'&id_usr=<?=$user->id?>',
+//                    cache:false,
+//                    success:function(html){
+//
+//                    }
+//                })
+//            });
+        })
+    })
     function ShowHideContactList(object){
         if($('#'+object.attr('id')).text().trim()=='Скрити контакти') {
             $('#' + object.attr('id')).text('Відобразити контакти');

@@ -1,0 +1,206 @@
+<div style=" width:100%; height:1px; clear:both;">.</div>
+<div style="float: left">
+    <div id = "lefttable">
+        <table id="headercontrol" >
+            <tr id="today">
+                <td>
+                    <?=$langs->trans('TitleToday')?>
+                </td>
+                <td class="autoinsert">
+                    <?=date('d.m.Y')?>
+                </td>
+            </tr>
+            <tr id="worker">
+                <td>
+                    <?=$langs->trans('worker')?>
+                </td>
+                <td class="autoinsert">
+                    <?echo $user->lastname?>
+                </td>
+            </tr>
+        </table>
+        </br>
+    </div>
+    <button onclick="RefreshData();">Оновити дані</button>
+
+    <div>
+        <table class="WidthScroll">
+            <thead>
+                <tr class="multiple_header_table">
+                    <th rowspan="4" style="width: 105px;">Область</th>
+                    <th rowspan="4" style="width: 175px;">Район</th>
+                    <th colspan="9">% виконання запланованого по факту</th>
+                    <th colspan="9">минуле (факт)</th>
+                    <th rowspan="4" class="small_size" style="width: 50px;writing-mode:tb-lr;">кільк. простроч.</th>
+                    <th colspan="9">майбутнє (план)</th>
+                </tr>
+                <tr class="multiple_header_table">
+                    <!--% виконання запланованого по факту-->
+                    <th class="small_size" style="width: 35px">за місяць</th>
+                    <th class="small_size" style="width: 30px">за 7 днів</th>
+                    <th class="small_size" style="width: 30px">за 6 днів</th>
+                    <th class="small_size" style="width: 30px">за 5 днів</th>
+                    <th class="small_size" style="width: 30px">за 4 днів</th>
+                    <th class="small_size" style="width: 30px">за 3 дня</th>
+                    <th class="small_size" style="width: 30px">за 2 дня</th>
+                    <th class="small_size" style="width: 30px">за 1 день</th>
+                    <th class="small_size" style="width: 35px">сього- дні</th>
+                    <!--минуле (факт)-->
+                    <th class="small_size" style="width: 35px">за місяць</th>
+                    <th class="small_size" style="width: 30px">за 7 днів</th>
+                    <th class="small_size" style="width: 30px">за 6 днів</th>
+                    <th class="small_size" style="width: 30px">за 5 днів</th>
+                    <th class="small_size" style="width: 30px">за 4 днів</th>
+                    <th class="small_size" style="width: 30px">за 3 дня</th>
+                    <th class="small_size" style="width: 30px">за 2 дня</th>
+                    <th class="small_size" style="width: 30px">за 1 день</th>
+                    <th class="small_size" style="width: 35px">сього- дні</th>
+                    <!--майбутнє (план)-->
+                    <th class="small_size" style="width: 35px">сього- дні</th>
+                    <th class="small_size" style="width: 30px">за 1 день</th>
+                    <th class="small_size" style="width: 30px">за 2 дня</th>
+                    <th class="small_size" style="width: 30px">за 3 дня</th>
+                    <th class="small_size" style="width: 30px">за 4 днів</th>
+                    <th class="small_size" style="width: 30px">за 5 днів</th>
+                    <th class="small_size" style="width: 30px">за 6 днів</th>
+                    <th class="small_size" style="width: 30px">за 7 днів</th>
+                    <th class="small_size" style="width: 35px">за місяць</th>
+                </tr>
+                <tr class="multiple_header_table">
+                    <!--% виконання запланованого по факту-->
+                    <th class="small_size"></th>
+                    <th class="small_size"></th>
+                    <th class="small_size"><?=$langs->trans('ShortDay'.date('w', mktime(0,0,0, date('m'), date('d')-6, date('Y'))))?></th>
+                    <th class="small_size"><?=$langs->trans('ShortDay'.date('w', mktime(0,0,0, date('m'), date('d')-5, date('Y'))))?></th>
+                    <th class="small_size"><?=$langs->trans('ShortDay'.date('w', mktime(0,0,0, date('m'), date('d')-4, date('Y'))))?></th>
+                    <th class="small_size"><?=$langs->trans('ShortDay'.date('w', mktime(0,0,0, date('m'), date('d')-3, date('Y'))))?></th>
+                    <th class="small_size"><?=$langs->trans('ShortDay'.date('w', mktime(0,0,0, date('m'), date('d')-2, date('Y'))))?></th>
+                    <th class="small_size"><?=$langs->trans('ShortDay'.date('w', mktime(0,0,0, date('m'), date('d')-1, date('Y'))))?></th>
+                    <th class="small_size"><?=$langs->trans('ShortDay'.date('w'))?></th>
+                    <!--минуле (факт)-->
+                    <th class="small_size"></th>
+                    <th class="small_size"></th>
+                    <th class="small_size"><?=$langs->trans('ShortDay'.date('w', mktime(0,0,0, date('m'), date('d')-6, date('Y'))))?></th>
+                    <th class="small_size"><?=$langs->trans('ShortDay'.date('w', mktime(0,0,0, date('m'), date('d')-5, date('Y'))))?></th>
+                    <th class="small_size"><?=$langs->trans('ShortDay'.date('w', mktime(0,0,0, date('m'), date('d')-4, date('Y'))))?></th>
+                    <th class="small_size"><?=$langs->trans('ShortDay'.date('w', mktime(0,0,0, date('m'), date('d')-3, date('Y'))))?></th>
+                    <th class="small_size"><?=$langs->trans('ShortDay'.date('w', mktime(0,0,0, date('m'), date('d')-2, date('Y'))))?></th>
+                    <th class="small_size"><?=$langs->trans('ShortDay'.date('w', mktime(0,0,0, date('m'), date('d')-1, date('Y'))))?></th>
+                    <th class="small_size"><?=$langs->trans('ShortDay'.date('w'))?></th>
+                    <!--майбутнє (план)-->
+                    <th class="small_size"><?=$langs->trans('ShortDay'.date('w'))?></th>
+                    <th class="small_size"><?=$langs->trans('ShortDay'.date('w', mktime(0,0,0, date('m'), date('d')+1, date('Y'))))?></th>
+                    <th class="small_size"><?=$langs->trans('ShortDay'.date('w', mktime(0,0,0, date('m'), date('d')+2, date('Y'))))?></th>
+                    <th class="small_size"><?=$langs->trans('ShortDay'.date('w', mktime(0,0,0, date('m'), date('d')+3, date('Y'))))?></th>
+                    <th class="small_size"><?=$langs->trans('ShortDay'.date('w', mktime(0,0,0, date('m'), date('d')+4, date('Y'))))?></th>
+                    <th class="small_size"><?=$langs->trans('ShortDay'.date('w', mktime(0,0,0, date('m'), date('d')+5, date('Y'))))?></th>
+                    <th class="small_size"><?=$langs->trans('ShortDay'.date('w', mktime(0,0,0, date('m'), date('d')+6, date('Y'))))?></th>
+                    <th class="small_size"></th>
+                    <th class="small_size"></th>
+                </tr>
+                <tr class="multiple_header_table">
+                    <!--% виконання запланованого по факту-->
+                    <th class="small_size"></th>
+                    <th class="small_size"></th>
+                    <th class="small_size"><?=date('d.m', (time()+3600*24*-6))?></th>
+                    <th class="small_size"><?=date('d.m', (time()+3600*24*-5))?></th>
+                    <th class="small_size"><?=date('d.m', (time()+3600*24*-4))?></th>
+                    <th class="small_size"><?=date('d.m', (time()+3600*24*-3))?></th>
+                    <th class="small_size"><?=date('d.m', (time()+3600*24*-2))?></th>
+                    <th class="small_size"><?=date('d.m', (time()+3600*24*-1))?></th>
+                    <th class="small_size"><?=date('d.m')?></th>
+                    <!--минуле (факт)-->
+                    <th class="small_size"></th>
+                    <th class="small_size"></th>
+                    <th class="small_size"><?=date('d.m', (time()+3600*24*-6))?></th>
+                    <th class="small_size"><?=date('d.m', (time()+3600*24*-5))?></th>
+                    <th class="small_size"><?=date('d.m', (time()+3600*24*-4))?></th>
+                    <th class="small_size"><?=date('d.m', (time()+3600*24*-3))?></th>
+                    <th class="small_size"><?=date('d.m', (time()+3600*24*-2))?></th>
+                    <th class="small_size"><?=date('d.m', (time()+3600*24*-1))?></th>
+                    <th class="small_size"><?=date('d.m')?></th>
+                    <!--майбутнє (план)-->
+                    <th class="small_size"><?=date('d.m')?></th>
+                    <th class="small_size"><?=date('d.m', (time()+3600*24*1))?></th>
+                    <th class="small_size"><?=date('d.m', (time()+3600*24*2))?></th>
+                    <th class="small_size"><?=date('d.m', (time()+3600*24*3))?></th>
+                    <th class="small_size"><?=date('d.m', (time()+3600*24*4))?></th>
+                    <th class="small_size"><?=date('d.m', (time()+3600*24*5))?></th>
+                    <th class="small_size"><?=date('d.m', (time()+3600*24*6))?></th>
+                    <th class="small_size"></th>
+                    <th class="small_size"></th>
+                </tr>
+            </thead>
+
+            <?=$table?>
+
+        </table>
+    </div>
+
+</div>
+<!--<div id="popupmenu" style="display: none">-->
+    <!--<table style="background: #ffffff">-->
+        <!--<thead><tr class="multiple_header_table" style="width: 100px"><th class="middle_size">Вкажіть дату на яку відобразити завдання</th></tr></thead>-->
+        <!--<tr>-->
+            <!--<td class="middle_size" onclick="setdate();" style="cursor: pointer">1</td>-->
+        <!--</tr>-->
+        <!--<tr>-->
+            <!--<td class="middle_size" onclick="setdate();" style="cursor: pointer">2</td>-->
+        <!--</tr>-->
+    <!--</table>-->
+<!--</div>-->
+<script>
+    $(document).ready(function(){
+        $('#reference_body').attr('height', window.innerHeight - 370);
+        $('#reference_body').width($('#reference_body').width()+15);
+        $('#popupmenu').offset({top:550, left:-250});
+        var Width = $(".WidthScroll").width();
+        var Top = $(".WidthScroll").height();
+        $("#sent_task").offset({top:Top+180, left:-Width+5});
+    })
+    function RefreshData(){
+        <?unset($_SESSION['actions']);?>
+        location.href=location.href;
+    }
+
+
+//    function ShowTask(object){
+//        var id = object.attr('id');
+//        console.log(id);
+//        var td = $('#'+id);
+//        if(id.substr(0, 'current'.length)=='current'||
+//                id.substr(0, 'global'.length)=='global'||
+//                id.substr(0, 'total'.length)=='total' ||
+//                id.substr(0, 'outstand'.length)=='outstand'
+//
+//        ){}else
+//            return;
+//        $.ajax({
+//            url:'/dolibarr/htdocs/day_plan.php?action=getdateaction&type_action='+id,
+//            cache:false,
+//            success:function(html){
+//                if(td.text() == '1'){
+//                    location.href = 'http://'+location.hostname+'/dolibarr/htdocs/hourly_plan.php?idmenu=10420&mainmenu=hourly_plan&leftmenu=&date='+html;
+//                }else {
+//                    console.log(html);
+//                    var tbody = $('table.setdate').find('tbody');
+//                    tbody[0].innerHTML = html;
+//                    $("#popupmenu").attr('type_action', id);
+//                    $("#popupmenu").show();
+//                    $("#popupmenu").offset({
+//                        top: td.offset().top - 50,
+//                        left: td.offset().left - $('#reference_body').width()
+//                    });
+//                }
+//            }
+//        })
+//
+//
+//    }
+    function setdate(id){
+//        console.log($('#'+id).text());
+//        console.log($("#popupmenu").attr('type_action').substr(0, 'current'.length));
+        location.href = 'http://'+location.hostname+'/dolibarr/htdocs/hourly_plan.php?idmenu=10420&mainmenu=hourly_plan&leftmenu=&date='+$('#'+id).text();
+//        $("#popupmenu").hide();
+    }
+</script>

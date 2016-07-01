@@ -75,8 +75,8 @@ FROM llx_menu as m
 WHERE m.fk_menu = 0
 AND m.usertype IN (0,2) ORDER BY m.position, m.rowid';
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
-$db = new dbBuilder();
-$table = $db->fShowTable($TableParam, $sql, "'llx_menu'", $conf->theme);
+$dbBuilder = new dbBuilder();
+$table = $dbBuilder->fShowTable($TableParam, $sql, "'llx_menu'", $conf->theme);
 $new_link = "http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/DBManager/dbManager.php?new=1&tablename='llx_menu'";
 ob_start();
 

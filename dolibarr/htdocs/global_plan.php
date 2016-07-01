@@ -77,7 +77,27 @@ function ShowTask(){
             }
         }
     }
+    if(count($taskID)>0) {
 
+        $sql = "select `llx_societe_action`.`action_id` as rowid, max(`llx_societe_action`.`dtChange`) dtChange from `llx_societe_action`
+        where 1 ";
+        $sql .= " and `llx_societe_action`.`action_id` in (" . implode(',', $taskID) . ")";
+        $sql .= "    and `llx_societe_action`.active = 1
+        group by `llx_societe_action`.`action_id`;";
+//  die($sql);
+        $res = $db->query($sql);
+        if (!$res) {
+            dol_print_error($db);
+        }
+        if ($db->num_rows($res) > 0) {
+            while ($row = $db->fetch_object($res)) {
+                if (!isset($lastaction[$row->rowid])) {
+                    $date = new DateTime($row->dtChange);
+                    $lastaction[$row->rowid] = $date->format('d.m.y');
+                }
+            }
+        }
+    }
     //Завантажую завдання
     $sql = "select id, note, confirmdoc, `datec`, datep2, round((UNIX_TIMESTAMP(datep2)-UNIX_TIMESTAMP(datep))/60,0) iMinute, `dateconfirm`, period, `percent`, `datepreperform`, `llx_c_groupoftask`.`name` groupoftask
     from `llx_actioncomm`
@@ -153,14 +173,13 @@ function ShowTask(){
                     $table .= '<td style="width:51px; text-align: center">&nbsp;</td>';
             }
             //Дії виконавця
-            $lastaction = $Actions->GetLastAction($obj->id, 'datep');
-            if(empty($lastaction)){
-                $lastaction = '<img src="/dolibarr/htdocs/theme/eldy/img/object_action.png">';
+//            $lastaction = $Actions->GetLastAction($obj->id, 'datep');
+            if(!isset($lastaction[$obj->id])){
+                $lastaction_val = '<img src="/dolibarr/htdocs/theme/eldy/img/object_action.png">';
             }else{
-                $date = new DateTime($lastaction);
-                $lastaction = $date->format('d.m.Y');
+                $lastaction_val = $lastaction[$obj->id];
             }
-            $table .= '<td style="width:76px;text-align: center;"><a href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu=global_task">'.$lastaction.'</a></td>';
+            $table .= '<td style="width:76px;text-align: center;"><a href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu=global_task">'.$lastaction_val.'</a></td>';
             $table .= '<td style="width:76px;text-align: center;"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td>';
             $table .= '<td style="width:43px;text-align: center;">'.$obj->iMinute.'</td>';
             //Дії наставника
@@ -193,7 +212,7 @@ function ShowTask(){
 //            $table .= '<td  style="width:25px"><img id="img_"'.$obj->id.' onclick="EditAction('.$obj->id.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Edit').'" src="/dolibarr/htdocs/theme/eldy/img/edit.png"></td>';
 //            $table .= '<td  style="width:25px"><img id="imgManager_'.$obj->id.'" onclick="RedirectAction('.$obj->id.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Redirect').'" src="/dolibarr/htdocs/theme/eldy/img/redirect.png"></td>';
             if($taskAuthor[$obj->id] == $user->id)
-                $table .= '<td  style="width:25px"><img title="Редагувати завдання" id="img_'.$obj->id.'" onclick="EditAction('.$obj->id.', '."'AC_GLOBAL'".');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Edit').'" src="/dolibarr/htdocs/theme/eldy/img/edit.png"></td>';
+                $table .= '<td  style="width:25px"><img title="Редагувати завдання" id="img_'.$obj->id.'" onclick="EditAction('.$obj->id.', null, '."'AC_GLOBAL'".');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Edit').'" src="/dolibarr/htdocs/theme/eldy/img/edit.png"></td>';
             else
                 $table .= '<td  style="width:25px">&nbsp;</td>';
 

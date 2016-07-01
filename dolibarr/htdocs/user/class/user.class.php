@@ -1223,7 +1223,7 @@ class User extends CommonObject
 		if($this->respon_alias == 'sale'|| $this->respon_alias2 == 'sale') {
 			$sql = 'select regions.rowid, regions.state_id, trim(states.name) as states_name, trim(regions.name) as regions_name from states, regions, ' . MAIN_DB_PREFIX . 'user_regions ur
 			where ur.fk_user=' . $this->id . ' and ur.active = 1 and ur.fk_id=regions.rowid and regions.state_id=states.rowid order by regions_name asc, states_name asc';
-		}elseif($this->respon_alias == 'dir_depatment') {
+		}elseif($this->respon_alias == 'dir_depatment' || $this->respon_alias == 'gen_dir') {
 			$sql = 'select regions.rowid, regions.state_id, trim(states.name) as states_name, trim(regions.name) as regions_name
 				from states
 				inner join regions on `regions`.`state_id` = `states`.`rowid`
@@ -1273,10 +1273,11 @@ class User extends CommonObject
 	}
 	function getLineActive(){
 		$sql = 'select fk_lineactive from llx_user_lineactive where fk_user = '.$this->id.' and active = 1';
+
 		$res = $this->db->query($sql);
 		if(!$res)
 			dol_print_error($this->db);
-		$lineactive = array();
+		$lineactive = array(0);
 		while($obj = $this->db->fetch_object($res)){
 			if(!in_array($obj->fk_lineactive, $lineactive))
 				$lineactive[]=$obj->fk_lineactive;
@@ -1297,6 +1298,8 @@ class User extends CommonObject
 					$lineactive[]=$obj->category_id;
 			}
 		}
+//		var_dump($lineactive);
+//		die();
 		return $lineactive;
 	}
 	function update($user,$notrigger=0,$nosyncmember=0,$nosyncmemberpass=0)

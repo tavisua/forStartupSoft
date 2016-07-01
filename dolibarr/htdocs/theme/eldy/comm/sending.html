@@ -29,9 +29,13 @@
         </tbody>
     </table>
     <table>
+        <tr class="email" style="display: none">
+            <td>Відправник </td>
+            <td colspan="4" style="width: 100%; height: 150px"><input id=""></td>
+        </tr>
         <tr class="secondpage" style="display: none">
             <td>Повідомлення </td>
-            <td colspan="4"><textarea style="width: 100%" id="message" name="message"></textarea></td>
+            <td colspan="4" style="width: 100%; height: 150px"><textarea style="width: 100%;height: 100%" id="message" name="message"></textarea></td>
         </tr>
         <tr class="secondpage" style="display: none">
             <td><button onclick="sendTestMessage();">Тестове повідомлення</button></td>
@@ -39,7 +43,8 @@
         </tr>
     </table>
 </div>
-<input type="hidden" id="phones" value="">;
+<input type="hidden" id="phones" value="">
+
 <script>
     $(document).ready(function(){
         $('select#areas [value=0]').html('Вибрати всі');
@@ -49,7 +54,10 @@
     })
     function sendTestMessage(){
 //        console.log(<?=$userphone?>, $('#message').val());
-        sendSMS(<?=$userphone?>, $('#message').val(), true);
+        if('<?=$_REQUEST["type"]?>' == 'sms')
+            sendSMS('<?=$userphone?>', $('#message').val(), true);
+        else ('<?=$_REQUEST["type"]?>' == 'email')
+            sendMail('<?=(empty($user->email)?$user->login:$user->email)?>',$('#message').val(), true);
     }
     function nextstep(){
         var param = {'areas':$('#areas').val(),
@@ -57,7 +65,8 @@
                     'responsibility':$('#responsibility').val(),
                     'from':$('#from').val(),
                     'to':$('#to').val(),
-                    'action':'getCustomers'
+                    'action':'getCustomers',
+                    'type':'<?=$_REQUEST["type"]?>'
                     }
         $.ajax({
             url:'/dolibarr/htdocs/comm/smsSending/card.php',
@@ -73,7 +82,8 @@
             }
         })
     }
-    function postMessage(lastpack, contactlist){
+    function postMessage(lastpack, contactlist, i){
+//        return;
         var param = {
             lastpack: lastpack,
             message: $('textarea#message').val(),
@@ -87,35 +97,51 @@
         if (getParameterByName('type') == 'sms') {
             link = '/dolibarr/htdocs/comm/smsSending/card.php';
         }
+//        console.log(link);
+//        return;
+
         $.ajax({
             url: link,
             data: param,
             cache: false,
             type: 'post',
             success: function (result) {
-//                console.log(result, $('#message').val());
-//                return;
+//                var timeInMs = Date.now();
+//                console.log(i, timeInMs, lastpack);
                 if(lastpack == true) {
-                    sendSMS($('#phones').val(), $('#message').val(), false);
-                    location.href = '/dolibarr/htdocs/responsibility/<?=$user->respon_alias?>/area.php?idmenu=10425&mainmenu=area&leftmenu='
-                }else{
-                    if($('#phones').val().length>0)
-                        $('#phones').val($('#phones').val()+';'+result);
-                    else
-                        $('#phones').val(result);
+//                    if($('#phones').val().length>0)
+//                        $('#phones').val($('#phones').val()+';'+result);
+//                    else
+//                        $('#phones').val(result);
+////                    console.log($('#phones').val());
+////                    return;
+////                    $numbers = result.split(';');
+////                    console.log($numbers.length, result, $('#phones').val());
+////                    return;
+//                                location.href = '/dolibarr/htdocs/responsibility/<?=$user->respon_alias?>/area.php?idmenu=10425&mainmenu=area&leftmenu='
+
                 }
+//                else{
+//                    if($('#phones').val().length>0)
+//                        $('#phones').val($('#phones').val()+';'+result);
+//                    else
+//                        $('#phones').val(result);
+//                    console.log($('#phones').val());
+//                }
 
 //                sendSMS(result, $('#message').val(), false);
             }
         })
     }
+
     function sendMessage(){
         if(confirm('Відправити розсилку?')) {
+            $('#phones').val('');
             var contactlist = [];
+            var target = [];
             var trList = $('#mailing').find('tr.secondpage');
 //            console.log(trList.length);
 //            return;
-            $('#phones').val('');
             for (var i = 0; i < trList.length; i++) {
                 if (trList[i].id !== undefined && trList[i].id.length > 0) {
 //                console.log(trList[i].id);
@@ -125,18 +151,43 @@
                         socid: $('#' + trList[i].id).attr('socid'),
                         phone: td[td.length - 1].innerHTML
                     });
-                    if(i>0&&i%50==0||i==trList.length-1){
-//                        console.log(i);
-                        postMessage(i==trList.length-1, contactlist);
-                        contactlist = [];
-                    }
+                    target.push(td[td.length - 1].innerHTML);
                 }
             }
+            if('<?=$_REQUEST["type"]?>' == 'sms') {
+                target = target.toString();
+                target = target.replace(/\+/gi, '');
+                target = target.replace(/\(/gi, '');
+                target = target.replace(/\)/gi, '');
+                target = target.replace(/\-/gi, '');
+                target = target.replace(/\,/gi, ';');
+                target = target.replace(/ /gi, '');
+                sendSMS(target, $('#message').val(), false);
+            }else{
+                sendMail(target, $('#message').val(), false);
+            }
+//            getStatusMessage();
+//            console.log(messID);
+
         }
     }
+    function getStatusMessage(){
+        $.ajax({
+            url:'/dolibarr/htdocs/comm/smsSending/card.php?action=getStatus',
+            cashe:false,
+            success:function(result){
+                if(result == 1)
+                    location.href = '/dolibarr/htdocs/responsibility/<?=$user->respon_alias?>/area.php?idmenu=10425&mainmenu=area&leftmenu=';
+                else {
+                    console.log(new Date().getTime());
+                    setTimeout(getStatusMessage, 3000);
+                }
+            }
+        })
+    }
 </script>
-<style>
 
+<style>
     #post{
         text-align: center;border-left: solid; border-left-color: #6C7C8B; border-left-width: thin;
     }

@@ -74,6 +74,7 @@
 
         $(document).ready(function(){
             $('.tasklist').mousedown(function(e){
+//                return;
                 var pos = $(this).offset();
                 var elem_left = pos.left;
                 var elem_top = pos.top;
@@ -158,6 +159,7 @@
 //                        console.log(link);
 //                        return;
                         location.href = link;
+//                        window.open(link);
                     }
                 })
             })
@@ -202,6 +204,7 @@
                         var div = task[i].getElementsByTagName('div');
                         for (var d = 0; d < div.length; d++) {
                             div[d].style.height = task[i].style.height;
+//                            console.log(div[d].id, div[d].style.height);
 //                            if(priority != 0){
 //                                div[d].style.height = 50;
 //                            }
@@ -254,6 +257,7 @@
 //            console.log(tr);
 //        }
         function SetTaskParam(prev, task){
+            console.log(task);
 //            if(task.id == '2113'){
 //                console.log(prev, task);
 //            }

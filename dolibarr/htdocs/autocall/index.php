@@ -16,7 +16,7 @@ require_once $_SERVER["DOCUMENT_ROOT"].'/dolibarr/htdocs/core/lib/functions.lib.
 //var_dump($_POST);
 //echo '</pre>';
 //die();
-global $user, $db;
+global $user;
 if($_REQUEST['action']=='registerphone'){
 
 

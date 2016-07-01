@@ -382,6 +382,8 @@ if($_SERVER['PHP_SELF'] =='/dolibarr/htdocs/autocall/index.php') {
 //    die();
 }elseif($_SERVER['PHP_SELF'] =='/dolibarr/htdocs/patch_time.php') {
         define("NOLOGIN",1);
+}elseif($_SERVER['PHP_SELF'] =='/dolibarr/htdocs/reset_actions.php') {
+        define("NOLOGIN",1);
 }
 //die($_SERVER['PHP_SELF']);
 if (! defined('NOLOGIN'))
@@ -1064,12 +1066,13 @@ function llxSendSmsEmail(){
             <table>
                 <tr>
                     <td><a href="/dolibarr/htdocs/comm/smsSending/card.php?action=add&type=sms"><img title="СМС розсилка" src="/dolibarr/htdocs/theme/eldy/img/sms.png"></a></td>
-                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+
                 </tr>
             </table>
         </div>
     ';
-    //<td><a href="/dolibarr/htdocs/comm/smsSending/card.php?action=add&type=email"><img title="Email розсилка" src="/dolibarr/htdocs/theme/eldy/img/emailing.png"></a></td>
+//                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+//                    <td><a href="/dolibarr/htdocs/comm/mailing/card.php?action=create_emaillist&type=email"><img title="Email розсилка" src="/dolibarr/htdocs/theme/eldy/img/emailing.png"></a></td>
 }
 function llxPopupMenu(){
                 print'

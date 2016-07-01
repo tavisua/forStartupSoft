@@ -47,11 +47,11 @@ $TableParam[]=$ColParam;
 $tablename='countries';
 $sql='select rowid, label, code, code_iso, phonecode, active from '.$tablename.' where active=1 order by label';
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
-$db = new dbBuilder();
+$dbBuilder = new dbBuilder();
 if(!isset($_REQUEST['sortfield']))
-    $table = $db->fShowTable($TableParam, $sql, "'".$tablename."'", $conf->theme);
+    $table = $dbBuilder->fShowTable($TableParam, $sql, "'".$tablename."'", $conf->theme);
 else
-    $table = $db->fShowTable($TableParam, $sql, "'".$tablename."'", $conf->theme, $_REQUEST['sortfield'], $_REQUEST['sortorder']);
+    $table = $dbBuilder->fShowTable($TableParam, $sql, "'".$tablename."'", $conf->theme, $_REQUEST['sortfield'], $_REQUEST['sortorder']);
 $new_link = "http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/DBManager/dbManager.php?new=1&tablename='".$tablename."'";
 ob_start();
 include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/countries.html');

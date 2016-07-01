@@ -26,6 +26,14 @@
 if (! defined('NOSTYLECHECK')) define('NOSTYLECHECK','1');
 
 require '../../main.inc.php';
+if($_GET['action'] == 'create_emaillist'){
+	header('Location: /dolibarr/htdocs/comm/smsSending/card.php?action=add&type=email');
+	exit();
+}
+if($_REQUEST['action'] == 'sendmails'){
+	echo sending();
+	exit();
+}
 require_once DOL_DOCUMENT_ROOT.'/core/lib/emailing.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/CMailFile.class.php';
@@ -35,7 +43,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
 
 if($_POST['action']=='delivery'){
-    global $db;
+
     $sql = 'select login, pass, lastname, firstname from `llx_user`
         where active = 1
         and login like "%@%"';
@@ -1251,5 +1259,49 @@ else
 	}
 }
 
-llxFooter();
+//llxFooter();
 $db->close();
+exit();
+function sending(){
+ global $db, $user;
+    //GetLastMessageID
+    $sqlMessID = "select rowid from llx_emailsending where id_usr = ".$user->id." and status = 0 order by rowid desc limit 1";
+    $resMessID = $db->query($sqlMessID);
+    if(!$resMessID)
+        dol_print_error($db);
+    if($db->num_rows($resMessID) == 0) {
+        //Save message
+        $sql = "insert into llx_emailsending(message,status,id_usr)
+        values('" . trim($_REQUEST['message']) . "', 0, " . $user->id . ")";
+        $res = $db->query($sql);
+        if (!$res)
+            dol_print_error($db);
+        $resMessID = $db->query($sqlMessID);
+    }
+    $obj = $db->fetch_object($resMessID);
+    $MessID = $obj->rowid;
+    if(isset($_REQUEST['lastpack'])&&$_REQUEST['lastpack']=='true'){
+        $sql = 'update llx_emailsending set status=1 where rowid='.$MessID;
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+    }
+    //SaveContactList
+    $out = '';
+    foreach($_REQUEST['contacts'] as $contact){
+        $phone = $contact['phone'];
+        $phone = str_replace('+','',$phone);
+        $phone = str_replace('(','',$phone);
+        $phone = str_replace(')','',$phone);
+        $phone = str_replace('-','',$phone);
+        $phone = str_replace(' ','',$phone);
+        $out.=$phone.';';
+        $sql = 'insert into llx_emailsending_target(fk_sending,fk_soc,fk_contact,phone)
+          values('.$MessID.','.$contact['socid'].','.$contact['contactID'].','."'".$phone."'".')';
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+    }
+    $out=substr($out,0,strlen($out)-1);
+    return $out;
+}

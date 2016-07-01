@@ -1,0 +1,115 @@
+<div class="tabs" id="tabs_area" data-role="controlgroup" data-type="horizontal">
+    <div class="inline-block tabsElem tabsElemActive">
+        <a id="user" class="tabactive tab inline-block" data-role="button" href="?page=proposition"><? echo $langs->trans('PropositionStatistic')?></a>
+    </div>
+    <!--<div  class="inline-block tabsElem" id="Calculator">-->
+        <!--<a href="/dolibarr/htdocs/responsibility/sale/calculator.php?idmenu=10425&mainmenu=area<?= isset($_GET['page'])?('&page='.$_GET['page'].'&per_page='.$_GET['per_page']):''?>"class="tab inline-block" data-role="button"><b><? echo $langs->trans('CallStatistic')?></b></a>-->
+    <!--</div>-->
+</div>
+<table id="proposition">
+    <thead>
+        <?=$thead?>
+    </thead>
+    <tbody>
+        <?=$tbody?>
+    </tbody>
+</table>
+<script>
+    $('div').mouseout(function(e){
+        if(e.target.parentNode.id != 'fulltitle')
+            return;
+        $('#fulltitle').remove();
+    })
+    $('th').click(function(e){
+        if(e.target.id.length == 0)
+            return;
+        createNewForm('popupmenu','fulltitle');
+        $('#fulltitle').css('width', '350px');
+        $('#fulltitle').css('height', '150px');
+        var html = '<textarea id="fulltext" style="width: 100%;height: 100%">'+$('#title_'+e.target.id).val()+'</textarea>';
+        $('#fulltitle').empty().html(html);
+        $('#fulltitle').attr('rowid', $('#' + e.target.id).attr('id'))
+
+        $('#fulltitle').show();
+        $('#fulltitle').offset({
+            top: $('#' + e.target.id).offset().top - 30,
+            left: $('#' + e.target.id).offset().left - 50
+        });
+        $('#fulltitle').attr('TitleProposed', 1);
+    })
+    function PropositionByRegions(state_id){
+        var btn = document.getElementById('btnState'+state_id);
+        var tr_item = btn.parentNode.parentNode;
+
+//        return;
+        var img = document.getElementById('imgState'+state_id);
+//        console.log(img);
+//        var img = btn.getElementsByTagName('img')[0];
+        var show = img.src.substr(img.src.length-('1downarrow.png').length) == '1downarrow.png';
+        if(show)
+            img.src = img.src.substr(0, img.src.length-('1downarrow.png').length)+'1uparrow.png';
+        else
+            img.src = img.src.substr(0, img.src.length-('1uparrow.png').length)+'1downarrow.png';
+        if(show) {
+            if ($('.state_' + state_id).length == 0) {
+                $.ajax({
+                    url:'/dolibarr/htdocs/core/performance.php?action=getRegionsStatistic&state_id='+state_id,
+                    cache:false,
+                    success:function(html){
+
+                        tr_item.insertAdjacentHTML('afterend', html);
+                    }
+                })
+
+            }else{
+                $('.state_' + state_id).show();
+            }
+        }else{
+            $('.state_' + state_id).hide();
+        }
+        console.log('test');
+    }
+    function PropositionByContacts(region_id){
+        var btn = document.getElementById('btnRegion'+region_id);
+        var tr_item = btn.parentNode.parentNode;
+
+//        return;
+        var img = document.getElementById('imgRegion'+region_id);
+//        console.log(img);
+//        var img = btn.getElementsByTagName('img')[0];
+        var show = img.src.substr(img.src.length-('1downarrow.png').length) == '1downarrow.png';
+        if(show)
+            img.src = img.src.substr(0, img.src.length-('1downarrow.png').length)+'1uparrow.png';
+        else
+            img.src = img.src.substr(0, img.src.length-('1uparrow.png').length)+'1downarrow.png';
+        if(show) {
+            if ($('.contact_' + region_id).length == 0) {
+                $.ajax({
+                    url:'/dolibarr/htdocs/core/performance.php?action=getContactsStatistic&region_id='+region_id,
+                    cache:false,
+                    success:function(html){
+
+                        tr_item.insertAdjacentHTML('afterend', html);
+                    }
+                })
+
+            }else{
+                $('.contact_' + region_id).show();
+            }
+        }else{
+            $('.contact_' + region_id).hide();
+        }
+        console.log('test');
+    }
+</script>
+<style>
+    th.percent {
+        padding-left: 5px;
+    }
+    #proposition tbody tr:hover{
+        background: #f3bd48!important; /* Цвет фона при наведении */
+        color: #fff!important; /* Цвет текста при наведении */
+        font-size: 14px;
+        font-weight: bold;
+    }
+</style>

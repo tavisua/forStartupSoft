@@ -80,6 +80,7 @@ if(isset($_REQUEST['action'])){
                 case 'area': {
                     $sql = "select `code` from 	llx_c_actioncomm where type in ('user','system')
                 and code not in ('AC_CURRENT','AC_GLOBAL')";
+
                     $res = $db->query($sql);
                     if (!$res)
                         dol_print_error($db);
@@ -115,6 +116,7 @@ if(isset($_REQUEST['action'])){
 header("Location: http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/responsibility/".$user->respon_alias."/day_plan.php?idmenu=10419&mainmenu=plan_of_days&leftmenu=");
 
 exit();
+
 function getNewAcctions($id_usr){
     global $db, $user;
     $sql = "select `llx_actioncomm`.`id`, `llx_actioncomm`.`percent`, `llx_actioncomm`.`code`, `llx_actioncomm`.`datec`, `llx_user`.`lastname` from llx_actioncomm
@@ -123,12 +125,37 @@ function getNewAcctions($id_usr){
         where new = 1
         and `llx_actioncomm_resources`.`fk_element` = ".$id_usr."
         and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`
-        and `llx_actioncomm`.`percent` < 99
-        union
+        and `llx_actioncomm`.`percent` = -1
+        and `llx_actioncomm`.`active` = 1";
+    $sql.=" union
+        select `llx_actioncomm`.`id`, `llx_actioncomm`.`percent`, `llx_actioncomm`.`code`, `llx_actioncomm`.`datec`, `llx_user`.`lastname` from llx_actioncomm
+        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
+        left join `llx_user` on `llx_user`.`rowid` = `llx_actioncomm_resources`.`fk_element`
+        left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
+        where `llx_actioncomm`.new = 1
+        and `llx_actioncomm`.`active` = 1
+        and `llx_actioncomm`.`fk_user_author` = ".$id_usr."
+        and `llx_societe_action`.`id_usr` <> ".$id_usr."
+        and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`
+        and `llx_actioncomm`.`percent` >=0 and `llx_actioncomm`.`percent`<99";
+    $sql.=" union
+        select `llx_actioncomm`.`id`, `llx_actioncomm`.`percent`, `llx_actioncomm`.`code`, `llx_actioncomm`.`datec`, `llx_user`.`lastname` from llx_actioncomm
+        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
+        left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
+        left join `llx_user` on `llx_user`.`rowid` = `llx_societe_action`.`id_mentor`
+        where 1
+        and `llx_actioncomm_resources`.`fk_element` = ".$id_usr."
+        and `llx_societe_action`.`new` = 1
+        and `llx_actioncomm`.`active` = 1
+        and `llx_societe_action`.`id_usr` <> ".$id_usr."
+        and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`
+        and `llx_actioncomm`.`percent` >=0 and `llx_actioncomm`.`percent`<99";
+    $sql.=" union
         select `llx_actioncomm`.`id`, `llx_actioncomm`.`percent`, `llx_actioncomm`.`code`, `llx_actioncomm`.`datea`, `llx_user`.`lastname`  from llx_actioncomm
         left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
         left join `llx_user` on `llx_user`.`rowid` = `llx_actioncomm_resources`.`fk_element`
         where `new` = 1
+        and `llx_actioncomm`.`active` = 1
         and `llx_actioncomm`.`fk_user_author` = ".$id_usr."
         and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`
         and `llx_actioncomm`.`percent` = 99";
@@ -198,7 +225,7 @@ function CalcOutStandingActions($actioncode, $array, $id_usr){
         if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'" || $user->login !="admin")
             $sql .=" and fk_user_author = ".$id_usr;
     $sql .= " and datep2 between date(Now()) and Now()";
-    $sql .=" and llx_actioncomm.`percent` <> 100";
+    $sql .=" and llx_actioncomm.`percent` <> 100 and `llx_actioncomm`.`active` = 1";
 //    if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'"){}
 //        else
 //    echo '<pre>';
@@ -281,6 +308,7 @@ function CalcFutureActions($actioncode, $array, $id_usr){
                 $month =($month+1);
                 $sql .= " and datep2 between '" . date("Y-m-d") . "' and date_add('" . date("Y-m-d") . "', interval 31 day)";
         }
+        $sql.=" and `llx_actioncomm`.`active` = 1";
 //        echo '<pre>';
 //        var_dump($sql);
 //        echo '</pre>';

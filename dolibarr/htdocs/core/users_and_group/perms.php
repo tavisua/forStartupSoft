@@ -55,8 +55,8 @@ $sql = "select rowid, module,  perms, title,bydefault, active from `".$tablename
 $sql .= " order by module, rowid";
 
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
-$db = new dbBuilder();
-$table = $db->fShowTable($TableParam, $sql, "'".$tablename."'", $conf->theme);
+$dbBuilder = new dbBuilder();
+$table = $dbBuilder->fShowTable($TableParam, $sql, "'".$tablename."'", $conf->theme);
 
 ob_start();
 include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/perms.html');

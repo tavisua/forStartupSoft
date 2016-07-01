@@ -1,0 +1,29 @@
+<div style="float:right"><a href="/dolibarr/htdocs/admin/dict.php?id=39#rowid-<?=$_REQUEST['proposed_id']?>"> Повернутись до переліку пропозицій</a></div>
+<table>
+    <thead>
+        <tr class="multiple_header_table">
+            <th>Напрямки діяльності</th>
+            <th>Перелік посад</th>
+        </tr>
+    </thead>
+    <tbody>
+        <form action="" method="post">
+            <tr>
+                <td>
+                    <?=$lineactive?>
+                </td>
+                <td>
+                    <?=$post?>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" style="text-align: right"><input type="submit" name="action" value="OK"><input type="submit" name="action" value="Cancel"></td>
+            </tr>
+        </form>
+    </tbody>
+</table>
+<style>
+    select{
+        width:100%!important;
+    }
+</style>

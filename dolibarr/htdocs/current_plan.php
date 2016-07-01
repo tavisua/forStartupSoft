@@ -85,6 +85,31 @@ function ShowTask(){
 //    echo '</pre>';
 ////    var_dump($user->id, 'userid');
 //    die();
+    if(count($taskID)>0) {
+
+        $sql = "select `llx_societe_action`.`action_id` as rowid, max(`llx_societe_action`.`dtChange`) dtChange from `llx_societe_action`
+        where 1 ";
+        $sql .= " and `llx_societe_action`.`action_id` in (" . implode(',', $taskID) . ")";
+        $sql .= "    and `llx_societe_action`.active = 1
+        group by `llx_societe_action`.`action_id`;";
+//  die($sql);
+        $res = $db->query($sql);
+        if (!$res) {
+            dol_print_error($db);
+        }
+        if ($db->num_rows($res) > 0) {
+            while ($row = $db->fetch_object($res)) {
+                if (!isset($lastaction[$row->rowid])) {
+                    $date = new DateTime($row->dtChange);
+                    $lastaction[$row->rowid] = $date->format('d.m.y');
+                }
+            }
+        }
+    }
+//    echo '<pre>';
+//    var_dump($lastaction);
+//    echo '</pre>';
+//    die();
     //Завантажую завдання
     $sql = "select id, note, confirmdoc, `datec`, datep2, round((UNIX_TIMESTAMP(datep2)-UNIX_TIMESTAMP(datep))/60,0) iMinute, `dateconfirm`,`datepreperform`, fk_order_id, period, `percent`, `llx_c_groupoftask`.`name` groupoftask
     from `llx_actioncomm`
@@ -158,18 +183,18 @@ function ShowTask(){
                     $table .= '<td style="width:51px; text-align: center">&nbsp;</td>';
             }
             //Дії виконавця
-            $lastaction = $Actions->GetLastAction($obj->id, 'datep');
-            if(empty($lastaction)){
-                $lastaction = '<img src="/dolibarr/htdocs/theme/eldy/img/object_action.png">';
+//            $lastaction = $Actions->GetLastAction($obj->id, 'datep');
+            if(!isset($lastaction[$obj->id])){
+                $lastaction_value = '<img src="/dolibarr/htdocs/theme/eldy/img/object_action.png">';
             }else{
-                $date = new DateTime($lastaction);
-                $lastaction = $date->format('d.m.Y');
+                $lastaction_value = $lastaction[$obj->id];
             }
-            $table .= '<td style="width:76px"><a href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu='.$_REQUEST['mainmenu'].'">'.$lastaction.'</a></td>';
+            $table .= '<td style="width:76px"><a href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu='.$_REQUEST['mainmenu'].'">'.$lastaction_value.'</a></td>';
             $table .= '<td style="width:76px"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td>';
             $table .= '<td style="width:41px">'.$obj->iMinute.'</td>';
             //Дії наставника
-            $table .= '<td style="width:76px"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td><td style="width:76px"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td>';
+            $table .= '<td style="width:76px"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td>
+                       <td style="width:76px"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td>';
             //Період виконання
             $table .= '<td style="width:51px" class="small_size">'.mb_strtolower($langs->trans($obj->period), 'UTF-8').'</td>';
             //Статус завдання
@@ -196,7 +221,7 @@ function ShowTask(){
             else
                 $table .= '<td  style="width:51px">&nbsp;</td>';
             if($taskAuthor[$obj->id] == $user->id)
-                $table .= '<td  style="width:25px"><img id="img_"'.$obj->id.' onclick="EditAction('.$obj->id.', '."'AC_CURRENT'".');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Edit').'" src="/dolibarr/htdocs/theme/eldy/img/edit.png"></td>';
+                $table .= '<td  style="width:25px"><img id="img_"'.$obj->id.' onclick="EditAction('.$obj->id.', null, '."'AC_CURRENT'".');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Edit').'" src="/dolibarr/htdocs/theme/eldy/img/edit.png"></td>';
             else
                 $table .= '<td  style="width:25px">&nbsp;</td>';
 
@@ -209,7 +234,7 @@ function ShowTask(){
                 $table .= '<td  style="width:25px;text-align: center"><img id="imgManager_'.$obj->id.'" onclick="DuplicateAction('.$obj->id.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Duplicate').'" src="/dolibarr/htdocs/theme/eldy/img/object_duplicate.png"></td>';
 
             if($taskAuthor[$obj->id] == $user->id)
-                $table .= '<td  style="width:25px"><img title="Видалити завдання" src="/dolibarr/htdocs/theme/eldy/img/delete.png" onclick="ConfirmDelTask(' . $obj->id . ');" id="confirm' . $obj->id . '"></td>';
+                $table .= '<td  style="width:25px"><img title="Видалити завдання" src="/dolibarr/htdocs/theme/eldy/img/delete.png" onclick="ConfirmDelTask(' . $obj->id . ');" id="confirmdel' . $obj->id . '"></td>';
             else
                 $table .= '<td  style="width:25px">&nbsp;</td>';
             $table.='</tr>';

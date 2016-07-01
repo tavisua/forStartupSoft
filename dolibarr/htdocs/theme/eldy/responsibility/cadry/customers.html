@@ -1,0 +1,97 @@
+<div class="contant_tble">
+
+        <div class="tabs" id="tabs_area" data-role="controlgroup" data-type="horizontal">
+            <div class="inline-block tabsElem tabsElemActive">
+                <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/soc.php?mainmenu=companies&idmenu=5217&action=edit&socid=<? echo $object->id?>"><? echo $langs->trans('BasicInfo')?></a>
+            </div>
+            <div  class="inline-block tabsElem" id="Calculator">
+                <a href="/"class="tab inline-block" data-role="button"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<? echo $langs->trans('Calculator')?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b></a>
+            </div>
+
+        </div>
+
+    <table  cellspacing="1" class="WidthScroll">
+        <thead>
+        <tr class="multiple_header_table">
+            <!--<th class="header_table" width="130px">Категорія контрагента</th>-->
+            <!--<th class="header_table" width="150px">Засновник, інвестор, холдинг</th>-->
+            <th width="180px" rowspan="2">Назва контрагента</th>
+            <!--<th class="header_page" width="80px">Форма власності</th>-->
+            <th width="100px" rowspan="2">Місце знаходження</th>
+            <!--<th class="header_page" width="130px">П.І.Б. засновника</th>-->
+            <!--<th class="header_page" width="130px">№ тел.офісу</th>-->
+            <th width="50px" rowspan="2">Орної землі, га</th>
+            <th width="130px" rowspan="2">Особливі відмітки, резюме перемовин</th>
+            <th width="100px" rowspan="2">Наявна потреба</th>
+            <th width="100px" rowspan="2">Завдання</th>
+            <th width="80px" rowspan="2">Дата ост. співпраці</th>
+            <th colspan="2" id="comerc_action">Дії комерц. служби</th>
+            <th colspan="2" id="service_action">Дії сервісн. служби</th>
+            <th colspan="2" id="accounts_action">Дії бухгалтерії</th>
+            <th colspan="2" id="mentor_action">Перевірки наставником</th>
+        </tr>
+        <tr class="multiple_header_table">
+            <th width="75px" class="middle_size">Останні</th>
+            <th width="75px" class="middle_size">Майбутні</th>
+            <th width="75px" class="middle_size">Останні</th>
+            <th width="75px" class="middle_size">Майбутні</th>
+            <th width="75px" class="middle_size">Останні</th>
+            <th width="75px" class="middle_size">Майбутні</th>
+            <th width="75px" class="middle_size">Останні</th>
+            <th width="75px" class="middle_size">Майбутні</th>
+        </tr>
+        </thead>
+
+            <?echo $table?>
+
+    </table>
+</div>
+        <script>
+            $(document).ready(function(){
+                $('#reference_body').attr('height', window.innerHeight - 360);
+                var th = document.getElementsByTagName('th');
+                var left = 30;
+                var widths = [];
+                var TotalWidth = 0;
+                for(var i=0; i<th.length; i++){
+                    if(th[i].className == "middle_size" || th[i].id == '') {
+//                    console.log(th[i].offsetWidth);
+                        var iWidth = th[i].offsetWidth;
+                        if (th[i].className == 'header_table')
+                            left += parseInt(iWidth);
+                        TotalWidth += iWidth;
+                        widths.push(parseInt(iWidth));
+                    }
+                }
+
+                $('.tabs').offset({top:215, left:left});
+//                console.log($('#comerc_action').width());
+                $('#comerc').offset({top:150, left:$('#comerc_action').offset().left});
+                $('#service').offset({top:150, left:$('#service_action').offset().left});
+                $('#accounts').offset({top:150, left:$('#accounts_action').offset().left});
+                $('#mentor').offset({top:150, left:$('#mentor_action').offset().left});
+                $('#tabs_area').width(600);
+                $('#reference_body').offset({left:22});
+////console.log(TotalWidth, widths);
+                $('#reference_body').width(TotalWidth+30);
+            })
+
+        </script>
+<script type="text/javascript">
+    $(document).ready(function(){
+        var tbody = document.getElementById('reference_body');
+        var trList = tbody.getElementsByTagName('tr');
+        for(var index = 0; index<trList.length; index++){
+            var tdList = trList[index].getElementsByTagName('td');
+            for(var tdIndex = 0; tdIndex<tdList.length; tdIndex++){
+                if(tdList[tdIndex].id.substr(tdList[tdIndex].id.length-'nom'.length) == 'nom') {
+//                     http://uspex2015.com/dolibarr/htdocs/user/card.php?id=13
+                    var id = tdList[tdIndex].id.substr(0, (tdList[tdIndex].id.length - 'nom'.length));
+                    tdList[tdIndex].innerHTML = '<a id = "login_'+id+'" href="/dolibarr/htdocs/societe/soc.php?mainmenu=area&idmenu=<?echo $_REQUEST["idmenu"]?>&action=edit&socid='+id+'"> <img border="0"  alt="" src="/dolibarr/htdocs/theme/eldy/img/object_contact.png">' + (tdList[tdIndex].innerHTML) + '</a>';
+//                     console.log(tdList[tdIndex].id.substr(0, (tdList[tdIndex].id.length - 'login'.length)));
+//                     console.log(id);
+                }
+            }
+        }
+    })
+</script>

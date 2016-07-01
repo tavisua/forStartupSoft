@@ -135,7 +135,7 @@ function closeDPBox()
 	document.body.removeChild(showDP.box);
 	displaySelectBoxes();
 	showDP.box=null;	
-	showDP.datefieldID=null;	
+	showDP.datefieldID=null;
 }
 
 function dpChangeDay(dateFieldID,format)

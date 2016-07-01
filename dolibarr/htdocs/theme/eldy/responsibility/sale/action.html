@@ -14,6 +14,8 @@
             <td class="autoinsert"><?=$object->getStateRegion()?></td>
             <td><b>Назва контрагента</b></td>
             <td class="autoinsert"><?echo $object->name?></td>
+            <td><b>Площа, га</b></td>
+            <td class="autoinsert"><?=round($object->area,0)?></td>
             <td><b><?=$langs->trans('worker')?></b></td>
             <td class="autoinsert"><?=$user->lastname?></td>
             <td><b>Станом на</b></td>
@@ -123,6 +125,7 @@
     <input type="hidden" name="backtopage" value="'<?=$_SERVER['REQUEST_URI']?>'">
     <input type="hidden" name="action_id" value="" id="action_id">
     <input type="hidden" name="answer_id" value="" id="answer_id">
+    <input type="hidden" name="actioncode" value="" id="actioncode">
     <input type="hidden" name="socid" value="" id="soc_id">
     <input type="hidden" name="onlyresult" value="" id="onlyresult">
     <input type="hidden" name="complete" value="" id="complete">

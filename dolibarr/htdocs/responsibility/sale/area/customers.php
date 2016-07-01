@@ -20,6 +20,17 @@ $per_page = isset($_GET['per_page'])?$_GET['per_page']:30;
 $regions = array(0);
 
 $sql = "select fk_id from llx_user_regions where fk_user=".$user->id." and active = 1";
+
+if($user->respon_alias == 'gen_dir')
+    $sql="select rowid fk_id from regions where active = 1";
+elseif($user->respon_alias == 'dir_depatment'){
+    $sql = "select llx_user_regions.fk_id from llx_user
+        inner join llx_user_regions on llx_user_regions.fk_user = llx_user.rowid
+        where llx_user.subdiv_id = ".$user->subdiv_id."
+        and llx_user.active = 1
+        and llx_user_regions.active = 1";
+}
+
 $res = $db->query($sql);
 if(!$res)
     dol_print_error($db);
@@ -43,7 +54,8 @@ $sql_count = 'select count(*) iCount from `llx_societe` where 1 ';
         $tmp .= ' and `region_id` = ' . $region_id . ' ';
     elseif(count($regions)>0)
         $tmp .= ' and (`region_id` in ('.implode(',',$regions).') or `region_id` is null and `fk_user_creat` = '.$user->id.')';
-    $tmp .= ' and `llx_societe`.`categoryofcustomer_id` in (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = ' . $user->respon_id . ')';
+    if(!($user->respon_alias == 'gen_dir'||$user->respon_alias == 'dir_depatment'))
+        $tmp .= ' and `llx_societe`.`categoryofcustomer_id` in (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = ' . $user->respon_id . ')';
     $sql .= $tmp;
     $sql_count .= $tmp;
 //}

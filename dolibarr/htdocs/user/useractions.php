@@ -52,7 +52,8 @@ $office_number = str_replace($symbols,'', $object->office_phone);
 //die();
 $phonenumber = '<table><td><a onclick="Call('.$office_number.', '."'users'".', '.$_GET['id_usr'].');">'.$object->office_phone.'</a></td><td onclick="showSMSform('.$office_number.');"><img src="/dolibarr/htdocs/theme/eldy/img/object_sms.png"></td></table>';
 if(!empty($object->user_mobile)) {
-    $user_mobile = str_replace($symbols,'', $obj->office_phone);
+    $user_mobile = str_replace($symbols,'', $object->user_mobile);
+//    die($user_mobile);
     $phonenumber='<table>
             <tr>
                 <td><a onclick="Call('.$office_number.', '."'users'".', '.$_GET['id_usr'].');">'.$object->office_phone.'</a></td>
@@ -349,7 +350,7 @@ function getActions(){
                 $lastactionvalue = 'Виконано';
             $out.='<td class="small_size" style="text-align: center; width:54px; '.($datep < $date&&$obj->percent <= 98?'background:rgb(255, 0, 0);':'').'">'.$lastactionvalue.'</td>';
             if($obj->fk_user_author == $user->id && is_numeric($obj->id))
-                $out.='<td style=" text-align: center; width:60px; "><img src="/dolibarr/htdocs/theme/eldy/img/uncheck.png" onclick="ConfirmExec(' . $obj->id . ');" id="confirm' . $obj->id . '"></td>';
+                $out.='<td style=" text-align: center; width:60px; ">'.($obj->percent != '100'?('<img src="/dolibarr/htdocs/theme/eldy/img/uncheck.png" onclick="ConfirmExec(' . $obj->id . ');" id="confirm' . $obj->id . '">'):'').'</td>';
             else
                 $out.='<td  style="width:51px">&nbsp;</td>';
 //            if(in_array($obj->code, array('AC_GLOBAL', 'AC_CURRENT', 'AC_CONVERSATION'))) {

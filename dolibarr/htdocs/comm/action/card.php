@@ -52,7 +52,7 @@ if($_GET['action']=='get_exectime'){
     exit();
 
 }elseif($_GET['action']=='getlastactivecontact'){
-	global $db;
+
 	$sql = "select `fk_contact` from llx_actioncomm
 	where fk_soc = ".$_REQUEST['socid']."
 	and `llx_actioncomm`.`code` in (select `code` from 	llx_c_actioncomm where type in ('user','system'))
@@ -71,7 +71,7 @@ if($_GET['action']=='get_exectime'){
 		return $obj->fk_contact;
 	}
 }elseif($_GET['action']=='del_task'){
-	global $db;
+
 	$sql = 'update llx_actioncomm set active = 0, fk_user_mod='.$user->id.' where id='.$_REQUEST['id'];
 	$res = $db->query($sql);
     if(!$res){
@@ -86,7 +86,7 @@ if($_GET['action']=='get_exectime'){
     echo $list;
     exit();
 }elseif($_GET['action']=='delete_action'){
-	global $db;
+
 	if(substr($_GET['rowid'], 0, 1)=='_')
 	    $sql = 'update llx_societe_action set active = 0 where rowid='.str_replace('_','', $_GET['rowid']);
 	else
@@ -99,18 +99,26 @@ if($_GET['action']=='get_exectime'){
     echo 1;
     exit();
 }elseif($_GET['action']=='received_action'){
-    global $db;
-    $sql = 'update llx_actioncomm set `dateconfirm` = Now(), `new`=0, `percent`=0 where id='.$_GET['rowid'];
+
+    $sql = 'update llx_actioncomm set `dateconfirm` = Now(), `new`=0, `percent`= case when `percent` = -1 then 0 else `percent` end  where id='.$_GET['rowid'];
 //	die($sql);
     $res = $db->query($sql);
     if(!$res){
         var_dump($sql);
         dol_print_error($db);
     }
+    $sql = 'update llx_societe_action set `new`=0  where action_id='.$_GET['rowid'];
+//	die($sql);
+    $res = $db->query($sql);
+    if(!$res){
+        var_dump($sql);
+        dol_print_error($db);
+    }
+
     return 1;
     exit();
 }elseif($_GET['action']=='shownote'){
-	global $db;
+
 	$sql = 'select note from llx_actioncomm where id='.$_GET['rowid'];
 
 	$res = $db->query($sql);
@@ -123,7 +131,7 @@ if($_GET['action']=='get_exectime'){
 	exit();
 
 }elseif($_GET['action']=='confirm_exec'){
-    global $db;
+
 	$sql = 'select period, datep, datepreperform from `llx_actioncomm` where id='.$_GET['rowid'];
 	$res = $db->query($sql);
 	if(!$res){
@@ -169,6 +177,12 @@ if($_GET['action']=='get_exectime'){
 		$newAction->datep = $newDate;
 		$newAction->datef = $newDate+$lengthOfTime;
 		$newAction->datepreperform = $newPreperform;
+		$newAction->percentage = -1;
+		$newAction->datec = time();
+		$newAction->datem = null;
+//		echo '<pre>';
+//		var_dump(date('Y-m-d H:i:s',$newDate));
+//		echo '</pre>';
 //		$date1 = new DateTime();
 //		$date1->setTimestamp($newAction->datep);
 //		$date2 = new DateTime();
@@ -195,7 +209,7 @@ if($_GET['action']=='get_exectime'){
 //	var_dump($_GET);
 //	echo '</pre>';
 //	die('test');
-	global $db, $user;
+	global $user;
 	$Action = new ActionComm($db);
 	$date = new DateTime();
 	$date->setTimestamp(time());
@@ -252,7 +266,7 @@ if ($cancel)
 //	echo '</pre>';
 //	die();
 	if(empty($backtopage)){
-		global $db;
+
 		$sql = 'select fk_soc from `llx_actioncomm` where id='.$_REQUEST['id'];
 		$res = $db->query($sql);
 		if(!$res)

@@ -119,9 +119,11 @@ if (! defined('NOREQUIRETRAN'))
 /*
  * Object $db
  */
+//var_dump(! defined('NOREQUIREDB'));
+//die();
 if (! defined('NOREQUIREDB'))
 {
-    $db=getDoliDBInstance($conf->db->type,$conf->db->host,$conf->db->user,$conf->db->pass,$conf->db->name,$conf->db->port);
+    $db = getDoliDBInstance($conf->db->type,$conf->db->host,$conf->db->user,$conf->db->pass,$conf->db->name,$conf->db->port);
 
 	if ($db->error)
 	{

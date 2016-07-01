@@ -10,7 +10,7 @@
 
 
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
-$db = new dbBuilder();
+$dbBuilder = new dbBuilder();
 //var_dump($_GET);
 //die();
 if($_GET['tablename'] == 'kindofcustomer')

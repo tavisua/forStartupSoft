@@ -178,7 +178,8 @@ unset($TableParam);
 $datep = new DateTime();
 
 $actiontabe = ShowActionTable();
-
+//var_dump(round($object->area,0));
+//die();
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/action.html';
 //llxFooter();
 llxPopupMenu();
@@ -261,7 +262,7 @@ function showTitleProposition($post_id, $lineactive, $contactid=0, $socid){
         $sql = 'select `llx_c_proposition`.rowid, `text` from  `llx_c_proposition`';
         $sql .= 'where rowid in('.$rowid.')';
     }else {
-        $sql = 'select `llx_c_proposition`.rowid, text
+        $sql = 'select `llx_c_proposition`.rowid, text, llx_c_proposition.prioritet
         from  `llx_c_proposition`
         inner join `llx_post` on `llx_post`.`rowid` = `llx_c_proposition`.`fk_post`
         where 1
@@ -274,9 +275,28 @@ function showTitleProposition($post_id, $lineactive, $contactid=0, $socid){
                 where contactid=' . $contactid . '
                 and proposed_id is not null
                 and active = 1)';
+        $sql.="union
+        select `llx_c_proposition`.rowid, text, llx_c_proposition.prioritet
+            from `llx_c_proposition`
+            inner join llx_proposition_properties on llx_proposition_properties.fk_proposition = `llx_c_proposition`.rowid
+            inner join `llx_post` on `llx_post`.`rowid` = `llx_proposition_properties`.`fk_post`
+            where 1
+            and llx_proposition_properties.fk_post = " . $post_id . "
+            and llx_proposition_properties.fk_lineactive = " . $lineactive . "
+            and llx_proposition_properties.active = 1
+            and ((`llx_c_proposition`.`end` is not null and Now() between `llx_c_proposition`.`begin` and `llx_c_proposition`.`end`) or `llx_c_proposition`.`end` is null)
+            and `llx_c_proposition`.active = 1";
+        if ($contactid != 0)
+            $sql .= ' and `llx_c_proposition`.rowid not in (select distinct proposed_id from `llx_societe_action`
+                where contactid=' . $contactid . '
+                and proposed_id is not null
+                and active = 1)';
         $sql.=' order by prioritet';
     }
-//    die($sql);
+//    echo '<pre>';
+//    var_dump($sql);
+//    echo '</pre>';
+//die();
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
@@ -321,7 +341,16 @@ function getProposition($socid = 0){
     }
 //    var_dump(count($lineactive));
 //    die($sql);
-    $sql ='select distinct `llx_post`.rowid, `llx_post`.postname, `llx_c_proposition`.`fk_lineactive` from `llx_c_proposition`
+    $sql ='select distinct `llx_post`.rowid, `llx_post`.postname, `llx_proposition_properties`.`fk_lineactive` from `llx_c_proposition`
+       inner join `llx_proposition_properties` on `llx_proposition_properties`.`fk_proposition` = `llx_c_proposition`.rowid
+        inner join `llx_post` on `llx_post`.`rowid` = `llx_proposition_properties`.`fk_post`
+        where 1
+        and (Now() between `llx_c_proposition`.`begin` and `llx_c_proposition`.`end` )
+        or `llx_c_proposition`.`end` is null
+        and `llx_c_proposition`.active = 1
+        and `llx_proposition_properties`.`active` = 1
+        union
+        select distinct `llx_post`.rowid, `llx_post`.postname, `llx_c_proposition`.`fk_lineactive` from `llx_c_proposition`
         inner join `llx_post` on `llx_post`.`rowid` = `llx_c_proposition`.`fk_post`
         where 1
         and (Now() between `begin` and `end` )

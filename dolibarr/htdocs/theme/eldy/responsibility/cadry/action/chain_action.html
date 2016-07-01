@@ -1,0 +1,123 @@
+<?if($actioncode != 'AC_CONVERSATION'){?>
+<div><a href="<?echo $_SERVER['HTTP_REFERER']?>#<?echo $_REQUEST['socid']?>"><?echo $langs->trans($Task)?></a>  /  <?=$langs->trans($Action)?></div>
+</br>
+<div  id="customerinfo">
+    <table id="headercontrol" style="background-color: #ffffff; width: 500px;">
+        <tr>
+            <td style="font-size: small"><b>Суть задачі</b></td>
+            <?if(!empty($author_id) && $user->id == $author_id){?>
+                <td style="font-size: small;"><b>Оцінка виконання</b></td>
+            <?}else{?>
+                <td style="font-size: small;"><b>Действия</b></td>
+            <?}?>
+
+        </tr>
+        <tr>
+            <td style="height: 100px; font-size: small"><?=$description?></td>
+            <?if(!empty($author_id) && $user->id == $author_id){?>
+                <td style="font-size: small;">
+                <button style="width: 100%" onclick="setExecutedAction(<?=$_REQUEST['action_id']?>);">&nbspРезультат влаштовує</button>
+                </br></br>
+                <button  style="width: 100%" onclick="AddResult();">Результат <b>НЕ</b> влаштовує</button></td>
+            <?}else{?>
+                <td style="font-size: small;"><button  style="width: 100%" onclick="AddResult();">Додати результат дії</button></td>
+            <?}?>
+        </tr>
+    </table>
+</div>
+</br>
+<?}?>
+<div>
+    <table id="actions">
+        <thead>
+        <tr class="header_table">
+            <th style="width: 80px" class="middle_size">Дата і дії</th>
+            <th style="width: 80px" class="middle_size">Дата і час внесення</th>
+            <th style="width: 100px" class="middle_size">Хто від нас вносив</th>
+            <th style="width: 80px" class="middle_size">Контакт</th>
+            <th style="width: 50px" class="middle_size">Вид дій</th>
+            <th style="width: 80px" class="middle_size">Що йому озвучили</th>
+            <th style="width: 80px" class="middle_size">Що він відповів</th>
+            <th style="width: 80px" class="middle_size">Чим аргументував</th>
+            <th style="width: 80px" class="middle_size">Що важливого сказав</th>
+            <th style="width: 80px" class="middle_size">Результат дій (резюме переговорника)</th>
+            <th style="width: 80px" class="middle_size">Робота до/на наступних дій</th>
+            <th style="width: 80px" class="middle_size">Дата наст.дій</th>
+            <th style="width: 80px" class="middle_size">Робота до/на наступних дій (завдання наставника)</th>
+            <th style="width: 80px" class="middle_size">Запропонована дата виконання наставником</th>
+            <th style="width: 20px" class="middle_size"></th>
+        </tr>
+        </thead>
+        <!--<tbody id="reference_body">-->
+        <?echo $actiontabe?>
+        <!--</tbody>-->
+    </table>
+</div>
+<!--<form id="addaction" action="/dolibarr/htdocs/comm/action/card.php" method="post">-->
+    <!--<input type="hidden" name="backtopage" value="'<?=$_SERVER['REQUEST_URI']?>'">-->
+    <!--<input type="hidden" name="action" value="create" id="edit_action">-->
+    <!--<input type="hidden" name="mainmenu" value="area">-->
+    <!--<input type="hidden" value="<?=$_GET['socid']?>" name="socid">-->
+    <!--<input type="hidden" name="id" value="" id="action_id">-->
+<!--</form>-->
+<form id="redirect" action="/dolibarr/htdocs/comm/action/result_action.php" method="get">
+    <input type="hidden" name="backtopage" value="'<?=$_SERVER['REQUEST_URI']?>'">
+    <input type="hidden" name="action_id" value="" id="action_id">
+    <input type="hidden" name="mainmenu" value="<?=$_REQUEST['mainmenu']?>">
+    <input type="hidden" value="<?=$actioncode?>" id="redirect_actioncode" name="actioncode">
+    <input type="hidden" name="action" value="edit" id="edit_action">
+</form>
+<style>
+    #reference_body td{
+        font-size: 12px;
+    }
+    #prev_action{
+        width: 65%;
+        height: 90px;
+    }
+</style>
+<script>
+//    $(document).ready(function(){
+//        var top =
+//        $('#showhide_contactlist').offset({top:$('#addcontact').offset().top, left:$('#addcontact').offset().left+$('#addcontact').width()+15});
+//        $('#contactlist').offset({top:$('#contactlist').offset().top-20});
+//    })
+    function AddResult(){
+        var link = '/dolibarr/htdocs/comm/action/result_action.php';
+        var backtopage = location.pathname+location.search;
+        backtopage = backtopage.replace(/\=/g,'%3D')
+        backtopage = backtopage.replace(/\?/g,'%3F')
+        backtopage = backtopage.replace(/\//g,'%2F')
+        backtopage = backtopage.replace(/\&/g,'%26')
+        var mainmenu = getParameterByName('mainmenu');
+        var actioncode = '';
+        if(mainmenu == 'global_task')
+            actioncode='AC_GLOBAL';
+        else if(mainmenu == 'current_task')
+            actioncode='AC_CURRENT';
+        location.href = link+'?action=addonlyresult&backtopage='+backtopage+'&actioncode='+actioncode+'&action_id='+getParameterByName('action_id')+'&onlyresult=1';
+    }
+    function setExecutedAction(id){
+        ConfirmExec(id);
+//        return;
+        var mainmenu = getParameterByName('mainmenu');
+        if(mainmenu == 'global_task')
+            location.href = '/dolibarr/htdocs/global_plan.php?idmenu=10421&mainmenu=global_task&leftmenu=';
+        else if(mainmenu == 'current_task')
+            location.href = '/dolibarr/htdocs/current_plan.php?idmenu=10423&mainmenu=current_task&leftmenu=';
+    }
+    function ShowHideContactList(object){
+        if($('#'+object.attr('id')).text().trim()=='Скрити контакти') {
+            $('#' + object.attr('id')).text('Відобразити контакти');
+            $('#contactlist').hide();
+        }else {
+            $('#' + object.attr('id')).text('Скрити контакти');
+            $('#contactlist').show();
+        }
+    }
+    function AddAction(){
+        $("#actionbuttons").attr('action', '/dolibarr/htdocs/comm/action/card.php');
+        console.log($("#actionbuttons").attr('action'));
+    }
+
+</script>

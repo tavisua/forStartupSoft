@@ -127,11 +127,37 @@ tr.subtype:hover {
     background: #f3bd48!important; /* Цвет фона при наведении */
     color: #fff!important; /* Цвет текста при наведении */
 }
-.userlist{
-    background: #88bbdd!important;
+.lineactive{
+    background: #b4d18a!important;
+    color: #000000!important;
+
 }
+.lineactive:hover{
+    background: #f3bd48!important; /* Цвет фона при наведении */
+    color: #fff!important; /* Цвет текста при наведении */
+}
+.userlist{
+  background-color: #C8C8C8;
+}
+.userlist:hover{
+    background: #f3bd48!important; /* Цвет фона при наведении */
+    color: #fff!important; /* Цвет текста при наведении */
+}
+/*.userlist:hover{*/
+    /*!*background: #f3bd48!important; !* Цвет фона при наведении *!*!*/
+    /*!*color: #fff!important; !* Цвет текста при наведении *!*!*/
+    /*border: solid 5px!important;*/
+    /*border-color: #0B63A2!important;*/
+/*}*/
 .bestvalue {
     background-color: #EFEFD4!important;
+}
+.region {
+    background-color: #EAF3F8;
+}
+.region:hover{
+    background: #f3bd48!important; /* Цвет фона при наведении */
+    color: #fff!important; /* Цвет текста при наведении */
 }
 .totalvalue{
     text-align: center!important;
@@ -144,10 +170,35 @@ tr.subtype:hover {
     border-left-width: 0px!important; /* Толщина линии над текстом */
     border-right-width: 0px!important; /* Толщина линии над текстом */
 }
+.even, .nohover .even:hover, tr.even td.nohover {
+    background: rgba(0, 0, 0, 0) -moz-linear-gradient(center bottom , rgb(242, 242, 242) 85%, rgb(248, 248, 248) 100%) repeat scroll 0 0;
+    border: 1px;
+    font-family: arial,tahoma,verdana,helvetica;
+    margin-bottom: 1px;
+}
+.odd{
+    border-color: #939393!important; /* Цвет границы */
+    border-style: solid!important; /* Стиль границы */
+    border-bottom-width: 1px!important; /* Толщина линии внизу текста */
+    border-top-width: 1px!important; /* Толщина линии над текстом */
+    border-left-width: 0px!important; /* Толщина линии над текстом */
+    border-right-width: 0px!important; /* Толщина линии над текстом */
+}
 /**::before, *::after {*/
     /*box-sizing: border-box;*/
 /*}*/
-
+.subdivision{
+    background-color: #428bca;
+    border-color: #ffffff;
+    font-weight: bold;
+    color: white;
+}
+.subdivision:hover{
+    background-color: #d9eef7;
+    border-color: #ffffff;
+    font-weight: bold;
+    color: blue;
+}
 .pagination>.active>a, .pagination>.active>span, .pagination>.active>a:hover, .pagination>.active>span:hover, .pagination>.active>a:focus, .pagination>.active>span:focus {
     z-index: 2;
     color: #fff;
@@ -243,6 +294,14 @@ tr.subtype:hover {
 }
 .message{
     box-shadow: 0 0 5px rgba(0,0,0,0.5); /* Параметры тени */
+}
+#locktools{
+    top:0;
+    position: absolute;
+    height: 50px;
+    width: 100%;
+    opacity: 0.7;
+    background-color: white;
 }
 .message div:hover{
     box-shadow: 0 0 10px rgba(0,0,0,0.5); /* Параметры тени */
@@ -503,9 +562,9 @@ div.header_page, th.header_page, tr.header_table_sel, form.header_page, form.hea
 #taskfield{
     padding: 0!important;
 }
+
 .current_taskitem{
-    font-size: 6;
-    height: 5px;
+    height: 100%;
     position: relative;
     padding: 0 0 0!important;
     border-radius: 8px;
@@ -515,8 +574,7 @@ div.header_page, th.header_page, tr.header_table_sel, form.header_page, form.hea
     z-index: 1;
     cursor: pointer;
 }.global_taskitem{
-    font-size: 6;
-    height: 5px;
+    height: 100%;
     position: relative;
     padding: 0 0 0!important;
     border-radius: 8px;
@@ -527,8 +585,7 @@ div.header_page, th.header_page, tr.header_table_sel, form.header_page, form.hea
     cursor: pointer;
 }
 .office_meetting_taskitem{
-    font-size: 6;
-    height: 5px;
+    height: 100%;
     position: relative;
     padding: 0 0 0!important;
     border-radius: 8px;
@@ -539,16 +596,17 @@ div.header_page, th.header_page, tr.header_table_sel, form.header_page, form.hea
     cursor: pointer;
 }
 .office_callphone_taskitem{
-    font-size: 6;
-    height: 5px;
+    height: 100%;
     position: relative;
     padding: 0 0 0!important;
     border-radius: 8px;
     background: #e2ddcf;
-    border: solid 1px;
-    border-color: #396b9e;
     z-index: 1;
     cursor: pointer;
+}
+.office_callphone_taskitem div, .office_meetting_taskitem div, .global_taskitem div, .current_taskitem div{
+    border-top: solid 1px;
+    border-top-color: #B0B0B0;
 }
 #bookmarkActionPanel {
     background: rgba(0, 0, 0, 0) linear-gradient(to bottom, rgba(119, 172, 42, 1) 0%, rgba(119, 172, 42, 1) 56%, rgba(86, 135, 16, 1) 100%) repeat scroll 0 0;
@@ -610,6 +668,7 @@ div.header_page, th.header_page, tr.header_table_sel, form.header_page, form.hea
     border: none;
     overflow: hidden !important;
 }
+
 .tasklist td{
     border: none !important;
 }
@@ -632,7 +691,7 @@ div.header_page, th.header_page, tr.header_table_sel, form.header_page, form.hea
     background:#f1f1e3;
 }
 .task_cell{
-    font-size: 10px;
+    font-size: 12px;
     border-color: #307fd7;
     border-right: solid 1px;
     height: 100%;
@@ -675,7 +734,7 @@ div.header_page, th.header_page, tr.header_table_sel, form.header_page, form.hea
 }
 #headercontrol td, .classifycation td, #schedule_body td{
     padding: 5px; /* Поля вокруг текста */
-    border: 1px solid #000; /* Рамка вокруг ячеек */
+    border: 2px solid #000; /* Рамка вокруг ячеек */
     min-width: 50px;
 }
 .param_title, .param_title td{

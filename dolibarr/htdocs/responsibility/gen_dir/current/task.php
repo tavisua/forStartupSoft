@@ -5,5 +5,5 @@
  * Date: 03.01.2016
  * Time: 9:57
  */
-include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/gen_dir/current/task.html');
+include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/dir_depatment/current/task.html');
 return;

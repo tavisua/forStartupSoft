@@ -29,7 +29,7 @@ define('NOCSRFCHECK',1);	// This is login page. We must be able to go on it from
 //    $_COOKIE['required_pages'] = array('home','calculator','plan_of_days','hourly_plan','global_task','current_task');
 require 'main.inc.php';
 if($_GET['action']=='requeredpages'){
-    global $db;
+
     $sql = 'select pages from llx_requestpages where id_usr='.$user->id.' and dtChange>"'.date('Y-m-d').'"';
     $res = $db->query($sql);
     if($res)
@@ -83,8 +83,14 @@ $title=$langs->trans("HomeArea").' - TiT '.DOL_VERSION;
 if (! empty($conf->global->MAIN_APPLICATION_TITLE)) $title=$langs->trans("HomeArea").' - '.$conf->global->MAIN_APPLICATION_TITLE;
 
 llxHeader('',$title);
-print_fiche_titre($langs->trans("HomeArea"));
-include DOL_DOCUMENT_ROOT.'/core/homepage.php';
+if($user->respon_id == 6 || $user->respon_id2 == 6 || $user->respon_alias == 'purchase'){
+    print_fiche_titre($langs->trans("Performance"));
+    include DOL_DOCUMENT_ROOT .'/core/performance.php';
+
+}else {
+    print_fiche_titre($langs->trans("HomeArea"));
+    include DOL_DOCUMENT_ROOT . '/core/homepage.php';
+}
 
 
 exit();

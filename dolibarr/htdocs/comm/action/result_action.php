@@ -28,7 +28,7 @@ if($_POST['action'] == 'saveuseraction' || $_POST['action'] == 'saveuseraction_a
 require_once DOL_DOCUMENT_ROOT.'/core/lib/agenda.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formactions.class.php';
-global $user, $db;
+global $user;
 if($_GET['action'] == 'addonlyresult' || $_GET['action'] == 'addonlyresult_and_create' || $_GET['action'] == 'useraction') {
     llxHeader('', $langs->trans("AddResultAction"), $help_url);
 }elseif(isset($_REQUEST["onlyresult"])&&$_REQUEST["onlyresult"]=='1'){
@@ -41,10 +41,12 @@ $socid = 0;
 if (isset($_REQUEST["action_id"])) {
     $action_id = $_REQUEST["action_id"];
     $sql = "select * from llx_societe_action where 1 ";
-    if((!isset($_REQUEST["onlyresult"]) || empty($_REQUEST['onlyresult'])) && isset($_REQUEST["answer_id"]))
+    if((!isset($_REQUEST["onlyresult"]) || empty($_REQUEST['onlyresult'])) && isset($_REQUEST["answer_id"])&&!empty($_REQUEST["answer_id"]))
         $sql.="and rowid=" . $_REQUEST["answer_id"];
     else
         $sql.="and rowid=" . $_REQUEST["action_id"];
+//    var_dump(isset($_REQUEST["answer_id"]));
+//    die($sql);
     $res = $db->query($sql);
     if (!$res) {
         dol_print_error($db);
@@ -155,15 +157,16 @@ if($_GET['action'] == 'edituseration'){//Якщо редагуються рез�
     $object = $db->fetch_object($res);
     $said = empty($object->resultaction['said']) ? $object->said : $object->resultaction['said'];
 }else {
-//        echo '<pre>';
-//        var_dump($object);
-//        echo '</pre>';
-//        die();
+    $percent = $object->percentage==99?100:$object->percentage;
     $said = empty($object->resultaction['said']) ? $object->said : $object->resultaction['said'];
     if (empty($said))
         $said = $_REQUEST['said'];
 ////print '<div class="tabBar">';
 }
+//        echo '<pre>';
+//        var_dump($object);
+//        echo '</pre>';
+//die($percent);
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/addaction.html';
 print '</div>';
 
@@ -371,6 +374,7 @@ function saveaction($rowid, $createaction = false){
         $sql.='`result_of_action`='.(empty($_REQUEST['result_of_action'])?'null':"'".$db->escape($_REQUEST['result_of_action'])."'").', ';
         $sql.='`work_before_the_next_action`='.(empty($_REQUEST['work_before_the_next_action'])?'null':"'".$db->escape($_REQUEST['work_before_the_next_action'])."'").', ';
         $sql.='`id_usr`='.$user->id.' ';
+//        $sql.='`new`=1 ';
         $sql.='where rowid='.$rowid;
     }
 //    llxHeader('','test',null);
@@ -385,7 +389,8 @@ function saveaction($rowid, $createaction = false){
     }
 //    var_dump($res);
 //    die();
-    if(!(substr($_REQUEST['action'], 0, strlen('addonlyresult')) == 'addonlyresult' || (substr($_REQUEST['action'], 0, strlen('updateonlyresult')) == 'updateonlyresult' && strlen($_REQUEST['action'])==strlen('updateonlyresult')))) {
+//    if($_REQUEST['action'] == 'update'||!(substr($_REQUEST['action'], 0, strlen('addonlyresult')) == 'addonlyresult' || (substr($_REQUEST['action'], 0, strlen('updateonlyresult')) == 'updateonlyresult' && strlen($_REQUEST['action'])==strlen('updateonlyresult')))) {
+    if($_REQUEST['action'] == 'update'||(substr($_REQUEST['action'], 0, strlen('addonlyresult')) == 'addonlyresult' || (substr($_REQUEST['action'], 0, strlen('updateonlyresult')) == 'updateonlyresult' && strlen($_REQUEST['action'])==strlen('updateonlyresult')))) {
         if (empty($rowid))
             $rowid = get_last_id();
         $TypeAction = array('AC_GLOBAL', 'AC_CURRENT');
@@ -441,8 +446,12 @@ function saveaction($rowid, $createaction = false){
         header("Location: " . $backtopage);
 
     }else{
-      $backtopage = urlencode(htmlspecialchars(substr($_REQUEST['backtopage'], 1, strlen($_REQUEST['backtopage'])-2)));
-      $backtopage = urlencode(substr($_REQUEST['backtopage'], 1, strlen($_REQUEST['backtopage'])-2));
+        if(substr($_REQUEST['backtopage'], 0, 1) == "'" && substr($_REQUEST['backtopage'], strlen($_REQUEST['backtopage'])-1, 1) == "'")
+            $backtopage = substr($_REQUEST['backtopage'], 1, strlen($_REQUEST['backtopage']) - 2);
+        else
+            $backtopage = $_REQUEST['backtopage'];
+//      $backtopage = urlencode(htmlspecialchars(substr($_REQUEST['backtopage'], 1, strlen($_REQUEST['backtopage'])-2)));
+//      $backtopage = urlencode(substr($_REQUEST['backtopage'], 1, strlen($_REQUEST['backtopage'])-2));
 //        $backtopage = $_REQUEST['backtopage'];
 //        var_dump($backtopage);
 //        die();

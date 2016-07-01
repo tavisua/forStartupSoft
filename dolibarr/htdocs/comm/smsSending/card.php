@@ -18,9 +18,13 @@ if($action == 'add') {
 }elseif($action == 'edit'){
     llxHeader('',$langs->trans('EditMailing'));
     print_fiche_titre($langs->trans("EditMailing"));
+}elseif($action == 'getStatus'){
+    echo getStatusSending();
+    exit();
 }elseif($action == 'getCustomers'){
-    $result = getCustomers();
+    $result = getCustomers($_REQUEST['type']);
     echo $result;
+//    echo '1';
     exit();
 }elseif($action == 'mailing'){
     echo sending();
@@ -44,7 +48,20 @@ $userphone = str_replace(' ','',$userphone);
 //die();
 include DOL_DOCUMENT_ROOT.'/theme/eldy/comm/sending.html';
 exit();
-
+function getStatusSending(){
+    global $db,$user;
+    $sql="select max(rowid) rowid from llx_smssending where id_usr=".$user->id;
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $obj = $db->fetch_object($res);
+    $sql = "select status from llx_smssending where rowid=".$obj->rowid;
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $obj = $db->fetch_object($res);
+    return $obj->status;
+}
 function sending(){
     global $db, $user;
     //GetLastMessageID
@@ -88,12 +105,12 @@ function sending(){
     $out=substr($out,0,strlen($out)-1);
     return $out;
 }
-function getCustomers(){
-
+function getCustomers($type){
+//    die($type);
     global $db, $user;
     $sql = 'select `llx_societe_contact`.`rowid`, `llx_societe_contact`.`socid`, `states`.`name` state_name,
         `formofgavernment`.name as form_gov, `regions`.`name` region_name, `llx_societe`.`nom`, `llx_post`.`postname`,
-        llx_societe_contact.lastname, llx_societe_contact.firstname, llx_societe_contact.mobile_phone1,
+        llx_societe_contact.lastname, llx_societe_contact.firstname, llx_societe_contact.email1, llx_societe_contact.email2, llx_societe_contact.mobile_phone1,
         llx_societe_contact.mobile_phone2, `llx_societe_classificator`.`value`, case when `llx_societe_classificator`.`active` is null then 1 else `llx_societe_classificator`.`active` end `active`
         from llx_societe
         inner join `llx_societe_contact` on `llx_societe_contact`.`socid` = `llx_societe`.`rowid`
@@ -132,8 +149,11 @@ function getCustomers(){
     }elseif(!empty($_REQUEST["to"])){
         $sql .= ' and llx_societe_classificator.value <= '.$_REQUEST["to"];
     }
+    if($_REQUEST['type'] == 'sms')
+        $sql .=' and (call_mobile_phone1 = 1 or call_mobile_phone2 = 1)';
+    elseif($_REQUEST['type'] == 'email')
+        $sql .=' and (send_email1 = 1 or send_email2 = 1)';
 
-    $sql .=' and (call_mobile_phone1 = 1 or call_mobile_phone2 = 1)';
 //    $sql .=' and `llx_societe_classificator`.`active` = 1';
     $sql .=' order by state_name, region_name, nom, lastname';
 
@@ -146,11 +166,20 @@ function getCustomers(){
     $num = 1;
     while($obj = $db->fetch_object($res)){
         if($obj->active) {
-            if (empty($obj->mobile_phone1))
-                $mobilephone = $obj->mobile_phone2;
-            else $mobilephone = $obj->mobile_phone1;
-            $mobilephone = str_replace(' ','',$mobilephone);
-            if (!empty($mobilephone)) {
+            $value = '';
+            if($type == 'sms') {
+                if (empty($obj->mobile_phone1))
+                    $value = $obj->mobile_phone2;
+                else $value = $obj->mobile_phone1;
+                $value = str_replace(' ', '', $value);
+            }elseif($type == 'email'){
+                if (empty($obj->email1))
+                    $value = $obj->email2;
+                else $value = $obj->email1;
+            }
+//            var_dump($type, $value, $obj->email1, $obj->email2, !empty($value));
+//            die();
+            if (!empty($value)) {
                 $class = fmod($num, 2) == 0 ? 'impair' : 'pair';
                 $out .= '<tr id = "' . $obj->rowid . '" socid="' . $obj->socid . '" class="secondpage ' . $class . '">
             <td class="middle_size">' . $num++ . '&nbsp;</td>
@@ -159,7 +188,7 @@ function getCustomers(){
             <td class="middle_size">' . trim($obj->lastname) . '</td>
             <td class="middle_size">' . trim($obj->postname) . '</td>
             <td class="middle_size" style="white-space: nowrap;">' . round($obj->value) . ' га. </td>';
-                $out .= '<td class="middle_size" style="word-wrap: normal">' . $mobilephone . '</td></tr>';
+                $out .= '<td class="middle_size" style="word-wrap: normal">' . $value . '</td></tr>';
             }
         }
     }

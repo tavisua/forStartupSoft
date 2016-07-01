@@ -99,19 +99,19 @@
             }
         }
     })
-    function sendSMS(){
-        var link = 'http://'+location.hostname+'/dolibarr/htdocs/autocall/index.php?action=sendSMS&phonenumber='+$('input#phonenumber').val()+'&text='+$('#text').val()+"&id_usr="+$("input#user_id").val();
-        console.log(link);
-        return;
-        $.ajax({
-            url:link,
-            cache: false,
-            success: function(html){
-                console.log(html);
-                console.log('success sendSMS')
-            }
-        })
-    }
+//    function sendSMS(){
+//        var link = 'http://'+location.hostname+'/dolibarr/htdocs/autocall/index.php?action=sendSMS&phonenumber='+$('input#phonenumber').val()+'&text='+$('#text').val()+"&id_usr="+$("input#user_id").val();
+//        console.log(link);
+//        return;
+//        $.ajax({
+//            url:link,
+//            cache: false,
+//            success: function(html){
+//                console.log(html);
+//                console.log('success sendSMS')
+//            }
+//        })
+//    }
 //    function Call(){
 //        var link = 'http://'+location.hostname+'/dolibarr/htdocs/autocall/index.php?action=CallPhone&phonenumber='+$('input#phonenumber').val().replace('+','*')+"&id_usr="+$("input#user_id").val();
 //        console.log(link);
