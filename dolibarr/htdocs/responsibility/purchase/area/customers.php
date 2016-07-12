@@ -49,9 +49,16 @@ if($user->login != 'admin') {
 if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['lineactive'])&& !empty($_REQUEST['lineactive'])){
     if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])) {
         $phone_number = fPrepPhoneFilter($_REQUEST['filter']);
+        $sql_cat = "select fx_category_counterparty from responsibility_param where `fx_responsibility` = ".$user->respon_id." and fx_category_counterparty is not null";
+        $res_cat = $db->query($sql_cat);
+        $cat_ID = array(0);
+        while($obj = $db->fetch_object($res_cat)){
+            if(!in_array($obj->fx_category_counterparty, $cat_ID))
+                $cat_ID[] = $obj->fx_category_counterparty;
+        }
         $sql_filter = "select llx_societe.rowid from llx_societe
             left join `llx_societe_contact` on `llx_societe_contact`.`socid`=`llx_societe`.`rowid`
-            where 1 and `llx_societe`.`categoryofcustomer_id` = 9 and `llx_societe`.`nom`  like '%" . $_REQUEST['filter'] . "%'
+            where 1 and `llx_societe`.`categoryofcustomer_id` in (".implode(',', $cat_ID).") and `llx_societe`.`nom`  like '%" . $_REQUEST['filter'] . "%'
             or `llx_societe_contact`.`lastname`  like '%" . $_REQUEST['filter'] . "%'
             or `llx_societe_contact`.`firstname`  like '%" . $_REQUEST['filter'] . "%'
             or `llx_societe_contact`.`subdivision`  like '%" . $_REQUEST['filter'] . "%'
@@ -62,6 +69,11 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['lin
         or `llx_societe_contact` . `mobile_phone2`  like '%" . $phone_number . "%' ";
         }
         $sql_filter .= "or `llx_societe_contact`.`skype`  like '%" . $_REQUEST['filter'] . "%'";
+//        echo '<pre>';
+//        var_dump($sql_filter);
+//        echo '</pre>';
+//        die();
+
         $res = $db->query($sql_filter);
         if (!$res)
             dol_print_error($db);

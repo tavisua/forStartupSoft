@@ -32,7 +32,7 @@ exit();
 function callStatistic(){
 //    phpinfo();
     global $db,$langs;
-    if(!isset($_SESSION['callstatistic'])) {
+//    if(!isset($_SESSION['callstatistic'])) {
           $sql = "select sub_user.rowid  id_usr, sub_user.alias, `llx_societe`.`region_id`, sub_user.subdiv_id, llx_actioncomm.percent, date(llx_actioncomm.datep) datep,
         llx_actioncomm.percent, case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT') then llx_actioncomm.`code` else 'AC_CUST' end `code`, `llx_societe_action`.`callstatus`, `llx_societe_action`.rowid as answer_id
         from llx_actioncomm
@@ -44,12 +44,12 @@ function callStatistic(){
         where 1
         and llx_actioncomm.active = 1
         and llx_actioncomm.`code` not in ('AC_GLOBAL', 'AC_CURRENT')
-        and datep2 between '2016-05-01' and '2016-06-01'
+        and datep2 between '2016-06-01' and '2016-07-01'
         order by subdiv_id, id_usr;";
-        //echo '<pre>';
-        //var_dump($sql);
-        //echo '</pre>';
-        //die();
+//        echo '<pre>';
+//        var_dump($sql);
+//        echo '</pre>';
+//        die();
         $res = $db->query($sql);
         if (!$res)
             dol_print_error($db);
@@ -62,9 +62,9 @@ function callStatistic(){
         }
         $_SESSION['callstatistic'] = $actions;
 
-    }else {
-        $actions = $_SESSION['callstatistic'];
-    }
+//    }else {
+//        $actions = $_SESSION['callstatistic'];
+//    }
     $allcall = array();
     $execcall = array();
     $efectcall = array();

@@ -69,7 +69,10 @@ DateActionPlannedStart= Planned start date
 DateActionPlannedEnd= Planned end date
 DateActionDoneStart= Real start date
 DateActionDoneEnd= Real end date
-DateActionStart= Дата і час початку дії
+DateAction=Запланована дата</br>і час виконання
+work_before_the_next_action=Робота до/на наступних дій
+DateActionStart= Виконати кінцево до
+DateNextActionStart=Дата наступних дій
 DateActionEnd= Час завершення дії
 AgendaUrlOptions1=You can also add following parameters to filter output:
 AgendaUrlOptions2=<b>login=%s</b> to restrict output to actions created by or assigned to user <b>%s</b>.

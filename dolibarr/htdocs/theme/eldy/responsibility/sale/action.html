@@ -170,7 +170,8 @@
     })
     $('.result_of_action').click(function(e){
         var param = {
-            action:'showCallStatus'
+            action:'showCallStatus',
+            answer_id:$('#' + e.target.id).attr('answer_id')
         }
 
         $.ajax({
@@ -205,8 +206,9 @@
            CloseCallStatus();
        }
     })
-    function setStatus(rowid, status){
-        console.log(rowid, status);
+    function setStatus(rowid, status, id){
+//        console.log(rowid, status, id);
+//        return;
         $('#'+rowid+'result_of_action').text(status);
         var param = {
             rowid: rowid,
@@ -226,11 +228,16 @@
             }
         })
     }
-    function selStatus(id){
-        if($('#status_id_'+id).find('input').length == 0) {
-            setStatus($('#callStatus').attr('rowid'), $('#status_id_' + id).text());
-//            console.log();
+    function selStatus(id, answer_id){
+        if($('#status_id_'+id).find('input').length == 0 && id!=5) {
+            setStatus($('#callStatus').attr('rowid'), $('#status_id_' + id).text(), id);
             CloseCallStatus();
+        }
+        if(id == 5){
+            location.href = "/dolibarr/htdocs/comm/action/result_action.php?mainmenu=area" +
+                    "&backtopage='%2Fdolibarr%2Fhtdocs%2Fresponsibility%2Fsale%2Faction.php%3Fsocid%3D16374%26idmenu%3D10425%26mainmenu%3Darea%26idmenu%3D10425'" +
+                    "&action_id="+$('#callStatus').attr('rowid')+"&answer_id="+answer_id+"&actioncode=&socid="+getParameterByName('socid')+"&onlyresult=&complete=&actioncode=AC_TEL&action="+
+                    (answer_id == 0?"addonlyresult":"updateonlyresult");
         }
     }
     function CloseCallStatus(){
@@ -291,7 +298,7 @@
                 cache: false,
                 success: function (html) {
                     if (html == 1)
-                        location.href = location.href;
+                        location.href = location.href+'&lastaction=delaction';
                     else
                         console.log('помилка ', html, link);
                 }

@@ -1,3 +1,65 @@
+<div class="vmenu" id="control">
+    <div class="blockvmenupair" style="width: 210px">
+        <div class="menu_titre">
+            <b ><?echo $Control?></b>
+        </div>
+        <div class="menu_top"></div>
+        <div id="addCustomer" class="menu_contenu">
+            <form method="post" action="/dolibarr/htdocs/societe/soc.php?mainmenu=companies&idmenu=5217">
+                <input id="state_id" type="hidden" value="" name="state_id">
+                <input id="region_id" type="hidden" value="0" name="region_id">
+                <input id="backtopage" type="hidden" value="<?echo $_SERVER['REQUEST_URI']?>" name="backtopage">
+                <button  type="submit" style="width: 200px;height: 25px">    Додати клієнта/контрагента    </button>
+            </form>
+            <br>
+        </div>
+        <div class="menu_contenu">
+            <button onclick="showfilter();" style="width: 200px;height: auto">Знайти клієнта/контрагента</button>
+            <button onclick="clearfilter();" style="width: 200px;height: 25px">Зняти фільтр</button>
+        </div>
+        <div class="menu_end"></div>
+    </div>
+</div>
+<script>
+    $(document).ready(function(){
+//        $('.scrolling-table').offset({top:180,left:280});
+        $('#control').offset({top:225});
+        $('.scrolling-table').css('padding-left', '50px');
+        var tbody = document.getElementById('reference_body');
+        var trList = tbody.getElementsByTagName('tr');
+        for(var index = 0; index<trList.length; index++){
+            var tdList = trList[index].getElementsByTagName('td');
+            for(var tdIndex = 0; tdIndex<tdList.length; tdIndex++){
+                if(tdList[tdIndex].id.substr(tdList[tdIndex].id.length-'nom'.length) == 'nom') {
+//                     http://uspex2015.com/dolibarr/htdocs/user/card.php?id=13
+                    var id = tdList[tdIndex].id.substr(0, (tdList[tdIndex].id.length - 'nom'.length));
+                    tdList[tdIndex].innerHTML = '<a id = "login_'+id+'" href="/dolibarr/htdocs/societe/soc.php?mainmenu=companies&idmenu=5217&action=edit&socid='+id+'"> <img border="0"  alt="" src="/dolibarr/htdocs/theme/eldy/img/object_contact.png">' + (tdList[tdIndex].innerHTML) + '</a>';
+//                     console.log(tdList[tdIndex].id.substr(0, (tdList[tdIndex].id.length - 'login'.length)));
+
+                }
+            }
+        }
+    })
+    function closefindmenu(){
+        $('#popupmenu').hide();
+    }
+    function clearfilter(){
+        location.href = '/dolibarr/htdocs/societe/index.php?mainmenu=companies&idmenu=5217';
+    }
+    function showfilter(){
+        console.log($('#control').offset().top + $('#control').height());
+        $('#popupmenu').width(275);
+        $('#popupmenu').height(50);
+        $('#popupmenu').offset({top:($('#control').offset().top + $('#control').height())});
+        $('#popupmenu').show();
+        $('#filter').focus();
+    }
+    $(window).keydown(function(event){ //ловим событие нажатия клавиши
+        if(event.keyCode == 13) { //если это Enter
+           console.log(event.target.id);
+        }
+    });
+</script>
 
 
 <div class="reference">
@@ -15,28 +77,6 @@
     </form>
 </div>
 
-<div class="vmenu" id="control">
-    <div class="blockvmenupair" style="width: 210px">
-        <div class="menu_titre">
-            <b ><?echo $Control?></b>
-        </div>
-        <div class="menu_top"></div>
-        <div class="menu_contenu">
-            <form method="post" action="/dolibarr/htdocs/societe/soc.php?mainmenu=companies&idmenu=5217">
-                <input id="state_id" type="hidden" value="" name="state_id">
-                <input id="region_id" type="hidden" value="0" name="region_id">
-                <input id="backtopage" type="hidden" value="<?echo $_SERVER['REQUEST_URI']?>" name="backtopage">
-                <button type="submit" style="width: 200px;height: 25px">    Додати клієнта/контрагента    </button>
-            </form>
-            <br>
-        </div>
-        <div class="menu_contenu">
-            <button onclick="showfilter();" style="width: 200px;height: 25px">Знайти клієнта/контрагента</button>
-            <button onclick="clearfilter();" style="width: 200px;height: 25px">Зняти фільтр</button>
-        </div>
-        <div class="menu_end"></div>
-    </div>
-</div>
 <!--<script>-->
     <!--$(document).ready(function(){-->
         <!--ChangeEditLink();-->
@@ -51,49 +91,7 @@
         <!--}-->
     <!--}-->
 <!--</script>-->
-<script type="text/javascript">
-    $(document).ready(function(){
-//        $('.scrolling-table').offset({top:180,left:280});
-        $('#control').offset({top:225});
 
-        $('.scrolling-table').css('padding-left', '50px');
-        var tbody = document.getElementById('reference_body');
-        var trList = tbody.getElementsByTagName('tr');
-        for(var index = 0; index<trList.length; index++){
-            var tdList = trList[index].getElementsByTagName('td');
-            for(var tdIndex = 0; tdIndex<tdList.length; tdIndex++){
-                if(tdList[tdIndex].id.substr(tdList[tdIndex].id.length-'nom'.length) == 'nom') {
-//                     http://uspex2015.com/dolibarr/htdocs/user/card.php?id=13
-                    var id = tdList[tdIndex].id.substr(0, (tdList[tdIndex].id.length - 'nom'.length));
-                    tdList[tdIndex].innerHTML = '<a id = "login_'+id+'" href="/dolibarr/htdocs/societe/soc.php?mainmenu=companies&idmenu=5217&action=edit&socid='+id+'"> <img border="0"  alt="" src="/dolibarr/htdocs/theme/eldy/img/object_contact.png">' + (tdList[tdIndex].innerHTML) + '</a>';
-//                     console.log(tdList[tdIndex].id.substr(0, (tdList[tdIndex].id.length - 'login'.length)));
-//                     console.log(id);
-                }
-            }
-        }
-    })
-    function closefindmenu(){
-        $('#popupmenu').hide();
-    }
-    function clearfilter(){
-//                $('#filter').clean();
-        <?unset($_SESSION['state_filter']);?>
-        $('#setfilter').submit();
-    }
-    function showfilter(){
-        console.log($('#control').offset().top + $('#control').height());
-        $('#popupmenu').width(275);
-        $('#popupmenu').height(50);
-        $('#popupmenu').offset({top:($('#control').offset().top + $('#control').height())});
-        $('#popupmenu').show();
-        $('#filter').focus();
-    }
-    $(window).keydown(function(event){ //ловим событие нажатия клавиши
-        if(event.keyCode == 13) { //если это Enter
-           console.log(event.target.id);
-        }
-    });
-</script>
 <script>
     $(document).ready(function(){
 

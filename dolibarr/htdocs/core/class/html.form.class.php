@@ -4018,6 +4018,7 @@ class Form
      *  @see	form_date
      */
     function select_confirmdoc($htmlname='confirmdoc', $docname=''){
+
         global $conf, $langs;
         $sql='select rowid, name from `llx_c_kinddoc` where active=1 order by rowid';
         $out = '<select id="'.$htmlname.'" class="combobox" name="'.$htmlname.'" size=1>';
@@ -4043,8 +4044,12 @@ class Form
         $out.='</select>';
         return $out;
     }
-    function select_date($set_time='', $prefix='re', $h=0, $m=0, $empty=0, $form_name="", $d=1, $addnowbutton=0, $nooutput=0, $disabled=0, $fullday='')
+    function select_date($set_time='', $prefix='re', $h=0, $m=0, $empty=0, $form_name="", $d=1, $addnowbutton=0, $nooutput=0, $disabled=0, $fullday='', $onChange = 'dpChangeDay')
     {
+//        if($prefix == 'ap') {
+//            var_dump($set_time);
+//            die();
+//        }
         global $conf,$langs;
 //        if($prefix == 'p2'){
 //            $datetmp = date('Y-m-d H:i:s', $set_time);
@@ -4126,7 +4131,7 @@ class Form
                     // Zone de saisie manuelle de la date
                     $retstring.='<input id="'.$prefix.'" name="'.$prefix.'" type="'.($prefix=='p2'?'hidden':'text').'" size="9" maxlength="11" value="'.$formated_date.'"';
                     $retstring.=($disabled?' disabled="disabled"':'');
-                    $retstring.=' onChange="dpChangeDay(\''.$prefix.'\',\''.$langs->trans("FormatDateShortJavaInput").'\'); "';  // FormatDateShortInput for dol_print_date / FormatDateShortJavaInput that is same for javascript
+                    $retstring.=' onChange="'.$onChange.'(\''.$prefix.'\',\''.$langs->trans("FormatDateShortJavaInput").'\'); "';  // FormatDateShortInput for dol_print_date / FormatDateShortJavaInput that is same for javascript
                     $retstring.='>';
 
                     // Icone calendrier

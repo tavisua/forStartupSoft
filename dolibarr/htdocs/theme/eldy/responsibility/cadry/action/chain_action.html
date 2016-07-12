@@ -83,28 +83,50 @@
 //        $('#contactlist').offset({top:$('#contactlist').offset().top-20});
 //    })
     function AddResult(){
-        var link = '/dolibarr/htdocs/comm/action/result_action.php';
-        var backtopage = location.pathname+location.search;
-        backtopage = backtopage.replace(/\=/g,'%3D')
-        backtopage = backtopage.replace(/\?/g,'%3F')
-        backtopage = backtopage.replace(/\//g,'%2F')
-        backtopage = backtopage.replace(/\&/g,'%26')
-        var mainmenu = getParameterByName('mainmenu');
-        var actioncode = '';
-        if(mainmenu == 'global_task')
-            actioncode='AC_GLOBAL';
-        else if(mainmenu == 'current_task')
-            actioncode='AC_CURRENT';
-        location.href = link+'?action=addonlyresult&backtopage='+backtopage+'&actioncode='+actioncode+'&action_id='+getParameterByName('action_id')+'&onlyresult=1';
+        $.ajax({
+            url:'/dolibarr/htdocs/comm/action/card.php?getActionStatus&action_id='+getParameterByName('action_id'),
+            cashe:false,
+            success:function(result){
+                if(result == '100'){
+                    alert('Вже встановлено статус дії "Прийнято"');
+                    return;
+                }
+                var link = '/dolibarr/htdocs/comm/action/result_action.php';
+                var backtopage = location.pathname+location.search;
+                backtopage = backtopage.replace(/\=/g,'%3D')
+                backtopage = backtopage.replace(/\?/g,'%3F')
+                backtopage = backtopage.replace(/\//g,'%2F')
+                backtopage = backtopage.replace(/\&/g,'%26')
+                var mainmenu = getParameterByName('mainmenu');
+                var actioncode = '';
+                if(mainmenu == 'global_task')
+                    actioncode='AC_GLOBAL';
+                else if(mainmenu == 'current_task')
+                    actioncode='AC_CURRENT';
+                location.href = link+'?action=addonlyresult&backtopage='+backtopage+'&actioncode='+actioncode+'&action_id='+getParameterByName('action_id')+'&onlyresult=1';
+            }
+        })
     }
     function setExecutedAction(id){
-        ConfirmExec(id);
-//        return;
-        var mainmenu = getParameterByName('mainmenu');
-        if(mainmenu == 'global_task')
-            location.href = '/dolibarr/htdocs/global_plan.php?idmenu=10421&mainmenu=global_task&leftmenu=';
-        else if(mainmenu == 'current_task')
-            location.href = '/dolibarr/htdocs/current_plan.php?idmenu=10423&mainmenu=current_task&leftmenu=';
+        $.ajax({
+            url:'/dolibarr/htdocs/comm/action/card.php?getActionStatus&action_id='+getParameterByName('action_id'),
+            cashe:false,
+            success:function(result) {
+                console.log(result);
+                retun;
+                if (result == '100') {
+                    alert('Вже встановлено статус дії "Прийнято"');
+                    return;
+                }
+                ConfirmExec(id);
+                //        return;
+                var mainmenu = getParameterByName('mainmenu');
+                if (mainmenu == 'global_task')
+                    location.href = '/dolibarr/htdocs/global_plan.php?idmenu=10421&mainmenu=global_task&leftmenu=';
+                else if (mainmenu == 'current_task')
+                    location.href = '/dolibarr/htdocs/current_plan.php?idmenu=10423&mainmenu=current_task&leftmenu=';
+            }
+        })
     }
     function ShowHideContactList(object){
         if($('#'+object.attr('id')).text().trim()=='Скрити контакти') {

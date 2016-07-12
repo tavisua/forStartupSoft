@@ -16,7 +16,7 @@ if(!$res)
     dol_print_error($db);
 $obj = $db->fetch_object($res);
 $subdivision = $obj->name;
-if(!isset($_SESSION['actions'])) {
+//if(!isset($_SESSION['actions'])) {
     $sql = "select distinct sub_user.rowid  id_usr, sub_user.alias, `llx_societe`.`region_id`, llx_actioncomm.id, llx_actioncomm.percent, date(llx_actioncomm.datep) datep, llx_actioncomm.percent,
     case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT') then llx_actioncomm.`code` else 'AC_CUST' end `code`, `llx_societe_action`.`callstatus`
     from llx_actioncomm
@@ -38,13 +38,21 @@ if(!isset($_SESSION['actions'])) {
     $actions = array();
     $time = time();
     while ($obj = $db->fetch_object($res)) {
-        $actions[] = array('id_usr' => $obj->id_usr, 'rowid'=>$obj->id, 'region_id' => $obj->region_id, 'respon_alias' => $obj->alias, 'percent' => $obj->percent, 'datep' => $obj->datep, 'code' => $obj->code, 'callstatus'=>$obj->callstatus);
+//        $date = new DateTime($obj->datep);
+//        $mkDate=dol_mktime($date->format('H'),$date->format('i'),$date->format('s'),$date->format('m'),$date->format('d'),$date->format('Y'));
+//        if($mkDate<time()&&$obj->region_id == 248 && $obj->percent <> '100')
+            $actions[] = array('id_usr' => $obj->id_usr, 'rowid'=>$obj->id, 'region_id' => $obj->region_id, 'respon_alias' => $obj->alias, 'percent' => $obj->percent, 'datep' => $obj->datep, 'code' => $obj->code, 'callstatus'=>$obj->callstatus);
     }
     $_SESSION['actions'] = $actions;
 
-}else {
-    $actions = $_SESSION['actions'];
-}
+//}else {
+//    $actions = $_SESSION['actions'];
+//}
+
+//echo '<pre>';
+//var_dump($actions);
+//echo '</pre>';
+//die();
 
 llxHeader("",$langs->trans('PlanOfDays'),"");
 print_fiche_titre($langs->trans('PlanOfDays'));
@@ -53,7 +61,7 @@ print_fiche_titre($langs->trans('PlanOfDays'));
 
 $table = ShowTable();
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/day_plan.html';
-//llxPopupMenu();
+llxPopupMenu();
 //print '</br>';
 //print'<div style="float: left">test</div>';
 //llxFooter();
@@ -277,7 +285,8 @@ function getRegionsList($id_usr){
 
             if($mkDate < $mkToday && $item['percent'] != 100){//Додав $mkDate < $mkToday. Вважається логічним, щоб кількість прострочених рахувати, коли завдання повинно вже було бути виконано
                 $outstanding[$item["region_id"]]++;
-            }elseif($item['percent'] == 100 && (in_array($item['code'], $actioncode)||$item['callstatus']=='5')){
+            }
+            if($item['percent'] == 100 && (in_array($item['code'], $actioncode)||$item['callstatus']=='5')){
                 $fact[$item["region_id"]][$item["datep"]]++;
                 if($mkToday-$mkDate<=604800)//604800 sec by week
                     $fact[$item["region_id"]]['week']++;
@@ -358,10 +367,10 @@ function getRegionsList($id_usr){
                 $out.='<td style="text-align: center"></td>';
         }
         //прострочено
-        if(isset($outstanding[$obj->rowid]))
-                $out.='<td style="text-align: center">'.$outstanding[$obj->rowid].'</td>';
-            else
-                $out.='<td></td>';
+        if(isset($outstanding[$obj->rowid])) {
+            $out .= '<td id="outstanding'.$obj->rowid.'" style="text-align: center; cursor: pointer;" onclick="ShowOutStandingRegion('.$obj->rowid.', '.$id_usr.');">' . $outstanding[$obj->rowid] . '</td>';
+        }else
+            $out.='<td></td>';
         //заплановано на майбутнє
         for($i=0;$i<=6;$i++){
             if($future[$obj->rowid][date("Y-m-d", (time()+3600*24*$i))])

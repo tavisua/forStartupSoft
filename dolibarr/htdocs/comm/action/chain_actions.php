@@ -1,4 +1,8 @@
 <?php
+//echo '<pre>';
+//var_dump($_SERVER["REQUEST_URI"]);
+//echo '</pre>';
+//die();
 require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
 if($_POST['action'] == 'setMentorJob'){
     saveMentorJob();
@@ -33,19 +37,73 @@ $author_id = getAuthorID($_GET['action_id']);
 $Action = $langs->trans($Action);
 llxHeader("",$Action,"");
 print_fiche_titre($Action);
+$description = GetDescription($_GET['action_id']);
+
 if($actioncode == 'AC_CONVERSATION') {
     $actiontabe = ShowConversation();
 }else{
-    $description = GetDescription($_GET['action_id']);
     $actiontabe = ShowActionTable();
 }
+$deadline = getDeadLine();
+
 $accessMentor = ValidAsseccMentor();
+//var_dump($author_id);
+//die();
 $contactdata = getContactData($author_id);
+$date = new DateTime();
+$addSubAction='<form method="post" action="/dolibarr/htdocs/comm/action/card.php">
+                    <input type="hidden" value="'.$_SERVER['REQUEST_URI'].'" name="backtopage">
+                    <input id="action" type="hidden" value="create" name="action">
+                    <input id="parent_id" type="hidden" value="'.$_GET['action_id'].'" name="parent_id">
+                    <input type="hidden" value="hourly_plan" name="mainmenu">
+                    <input type="hidden" name="actioncode" value="AC_CURRENT">
+                    <input id="id" type="hidden" value="" name="id">
+                    <input id="typeaction" type="hidden" value="subaction" name="typeaction">
+                    <!--<input type="hidden" value="'.$date->format('YmdHis').'" name="datep">-->
+                    <button style="width: 100%" type="submit"> Додати піддію / Запланувати контакт</button>
+               </form>';
+
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/action/chain_action.html';
 //include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/eldy/responsibility/sale/action/chain_action.html';
 //llxFooter();
+//
+
 llxPopupMenu();
 exit();
+function getDeadLine(){
+    global $db;
+    $sql = "select entity from llx_actioncomm where id = ".$_GET['action_id'];
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $obj = $db->fetch_object($res);
+    $out = '';
+    if($obj->entity == 1) {
+        $actionsID = GetChainActions($_GET['action_id']);
+        $sql = "select id from llx_actioncomm where id in (" . implode(',', $actionsID) . ") and entity = 1";
+        $res = $db->query($sql);
+        if (!$res)
+            dol_print_error($db);
+        $obj = $db->fetch_object($res);
+        $sql = "select datepreperform, datep2  from llx_actioncomm where id = " . $obj->id;
+        $res = $db->query($sql);
+        if (!$res)
+            dol_print_error($db);
+        $obj = $db->fetch_object($res);
+        if (!empty($obj->datepreperform)) {
+            $out .= '<b>Попередньо виконати до</b></br>' . $obj->datepreperform . '</br>';
+        }
+        $out .= '<b>Кінцево виконати до</b></br>' . $obj->datep2;
+    }else{
+        $sql = "select datep2  from llx_actioncomm where id = " . $_GET['action_id'];
+        $res = $db->query($sql);
+        if (!$res)
+            dol_print_error($db);
+        $obj = $db->fetch_object($res);
+        $out .= '<b>Кінцево виконати до</b></br>' . $obj->datep2;
+    }
+    return $out;
+}
 function getContactData($author_id){
     global $user,$db;
     $sql = "select llx_actioncomm.fk_user_author, `llx_actioncomm_resources`.`fk_element` from llx_actioncomm
@@ -112,6 +170,7 @@ function ValidAsseccMentor(){
         $sql = "select `llx_actioncomm_resources`.`fk_element` from llx_actioncomm
             inner join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.id
             where llx_actioncomm.id = ".$_GET['action_id'];
+
         $res = $db->query($sql);
         if(!$res)
             dol_print_error($db);
@@ -120,6 +179,7 @@ function ValidAsseccMentor(){
         }
         $obj = $db->fetch_object($res);
         $sql = "select fk_user from llx_user where llx_user.rowid = ".$obj->fk_element;
+
         $res = $db->query($sql);
         if(!$res)
             dol_print_error($db);
@@ -144,28 +204,101 @@ function ShowConversation(){
     
 }
 function ShowActionTable(){
-    global $db, $langs, $conf;
+    global $db, $langs, $conf,$user;
     $chain_actions = array();
     $chain_actions = GetChainActions($_GET['action_id']);
     $sql = 'select fk_parent, datep from `llx_actioncomm` where id in ('.implode(",", $chain_actions).') and fk_parent <> 0';
     $res = $db->query($sql);
+//echo '<pre>';
+//var_dump((implode(",", $chain_actions)));
+//echo '</pre>';
+//die();
     $nextaction = array();
     while($row = $db->fetch_object($res)){
         $nextaction[$row->fk_parent] = $row->datep;
     }
-
-    $sql='select `llx_societe_action`.`rowid` as rowid, `llx_actioncomm`.`datep`, `llx_societe_action`.dtChange as `datec`, `llx_user`.lastname,
-        concat(case when `llx_societe_contact`.lastname is null then "" else `llx_societe_contact`.lastname end,
-        case when `llx_societe_contact`.firstname is null then "" else `llx_societe_contact`.firstname end) as contactname,
-        TypeCode.code kindaction, `llx_societe_action`.`said`, `llx_societe_action`.`answer`,`llx_societe_action`.`argument`,
-        `llx_societe_action`.`said_important`, `llx_societe_action`.`result_of_action`, `llx_societe_action`.`work_before_the_next_action`,`work_before_the_next_action_mentor` work_mentor,
-        `llx_societe_action`.`date_next_action_mentor` date_mentor
-        from `llx_actioncomm`
+    //Завантажую результат дії
+    $sql = 'select `llx_societe_action`.`action_id`, `llx_actioncomm`.percent, `llx_societe_action`.`rowid`, `llx_actioncomm`.`datep`,
+        `llx_societe_action`.dtChange datec, create_user.`lastname`, create_user.rowid author_id, `llx_user`.`lastname` as contactname, `llx_user`.rowid as contactUserID,
+                TypeCode.code kindaction, `llx_societe_action`.`said`, `llx_societe_action`.`answer`,`llx_societe_action`.`argument`,
+                `llx_societe_action`.`said_important`, `llx_societe_action`.`result_of_action`,
+                case when `llx_societe_action`.`rowid` is null then `llx_actioncomm`.`note` else `llx_societe_action`.`work_before_the_next_action` end work_before_the_next_action,`work_before_the_next_action_mentor` work_mentor,
+                `llx_societe_action`.`date_next_action_mentor` date_mentor,`llx_societe_action`.`active`
+        from `llx_societe_action`
+        left join `llx_user` create_user on `llx_societe_action`.id_usr = create_user.rowid
+        inner join `llx_actioncomm` on `llx_actioncomm`.id = `llx_societe_action`.`action_id`
+        left join `llx_user` on `llx_actioncomm`.fk_user_author = `llx_user`.rowid
         inner join (select code, libelle label from `llx_c_actioncomm` where active = 1 and (type = "system" or type = "user")) TypeCode on TypeCode.code = `llx_actioncomm`.code
+        where `llx_societe_action`.`action_id` in ('.implode(",", $chain_actions).')
+        and `llx_societe_action`.active = 1
+        order by `llx_societe_action`.dtChange desc;';
+    $res_result_action = $db->query($sql);
+    $result_action = array();
+    $result_actionID = array();
+    while($array_item = $db->fetch_object($res_result_action)){
+        $result_action[]=(array)$array_item;
+        if(!in_array($array_item->action_id, $result_actionID))
+            $result_actionID[]=$array_item->action_id;
+    }
+//        echo '<pre>';
+//        var_dump($result_actionID);
+//        echo '</pre>';
+//        die();
+//V 0
+//    $sql='select `llx_actioncomm`.id action_id, `llx_actioncomm`.percent, `llx_societe_action`.`rowid` as rowid, `llx_actioncomm`.`datep`,
+//       case when `llx_societe_action`.dtChange is null then `llx_actioncomm`.datec else `llx_societe_action`.dtChange end  as `datec`,
+//       case when `llx_societe_action`.`rowid` is null then `create_user`.`lastname` else `llx_user`.lastname end lastname,
+//       case when `llx_societe_action`.`rowid` is null then `create_user`.`rowid` else `llx_user`.rowid end author_id,
+//        concat(case when `llx_societe_contact`.lastname is null then "" else `llx_societe_contact`.lastname end,
+//        case when `llx_societe_contact`.firstname is null then "" else `llx_societe_contact`.firstname end) as contactname,
+//        TypeCode.code kindaction, `llx_societe_action`.`said`, `llx_societe_action`.`answer`,`llx_societe_action`.`argument`,
+//        `llx_societe_action`.`said_important`, `llx_societe_action`.`result_of_action`,
+//        case when `llx_societe_action`.`rowid` is null then `llx_actioncomm`.`note` else `llx_societe_action`.`work_before_the_next_action` end work_before_the_next_action,`work_before_the_next_action_mentor` work_mentor,
+//        `llx_societe_action`.`date_next_action_mentor` date_mentor,`llx_societe_action`.`active`
+//        from `llx_actioncomm`
+//        inner join (select code, libelle label from `llx_c_actioncomm` where active = 1 and (type = "system" or type = "user")) TypeCode on TypeCode.code = `llx_actioncomm`.code
+//        left join `llx_societe_contact` on `llx_societe_contact`.rowid=`llx_actioncomm`.fk_contact
+//        left join `llx_societe_action` on `llx_actioncomm`.id = `llx_societe_action`.`action_id`
+//        left join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.rowid
+//        left join `llx_user` create_user on `llx_actioncomm`.fk_user_author = `create_user`.rowid
+//        where id in ('.implode(",", $chain_actions).') and llx_actioncomm.active = 1  order by datep desc, datec desc';
+
+//V 1
+//    $sql = 'select `llx_actioncomm`.id action_id, `llx_actioncomm`.percent, `llx_societe_action`.`rowid` as rowid, `llx_actioncomm`.`datep`,
+//       case when `llx_societe_action`.dtChange is null then `llx_actioncomm`.datec else `llx_societe_action`.dtChange end  as `datec`,
+//       `create_user`.`lastname` lastname,
+//       case when `llx_societe_action`.`rowid` is null then `create_user`.`rowid` else `llx_user`.rowid end author_id,
+//        concat(case when `llx_societe_contact`.lastname is null then "" else `llx_societe_contact`.lastname end,
+//        case when `llx_societe_contact`.firstname is null then "" else `llx_societe_contact`.firstname end) as contactname,
+//        TypeCode.code kindaction, `llx_societe_action`.`said`, `llx_societe_action`.`answer`,`llx_societe_action`.`argument`,
+//        `llx_societe_action`.`said_important`, `llx_societe_action`.`result_of_action`,
+//        case when `llx_societe_action`.`rowid` is null then `llx_actioncomm`.`note` else `llx_societe_action`.`work_before_the_next_action` end work_before_the_next_action,`work_before_the_next_action_mentor` work_mentor,
+//        `llx_societe_action`.`date_next_action_mentor` date_mentor,`llx_societe_action`.`active`
+//        from `llx_actioncomm`
+//        inner join (select code, libelle label from `llx_c_actioncomm` where active = 1 and (type = "system" or type = "user")) TypeCode on TypeCode.code = `llx_actioncomm`.code
+//        left join `llx_societe_contact` on `llx_societe_contact`.rowid=`llx_actioncomm`.fk_contact
+//        left join `llx_societe_action` on `llx_actioncomm`.id = `llx_societe_action`.`action_id`
+//        left join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.rowid
+//        left join `llx_user` create_user on `llx_actioncomm`.fk_user_author = `create_user`.rowid
+//        where id in ('.implode(",", $chain_actions).') and llx_actioncomm.active = 1  order by datep desc, datec desc';
+
+//V 2
+    $sql = "select `llx_actioncomm`.id action_id, `llx_actioncomm`.percent, 0 rowid, `llx_actioncomm`.`datep`,
+       `llx_actioncomm`.datec,
+       `create_user`.`lastname` lastname,
+       `create_user`.`rowid` author_id,
+        concat(case when `llx_societe_contact`.lastname is null then '' else `llx_societe_contact`.lastname end,
+        case when `llx_societe_contact`.firstname is null then '' else `llx_societe_contact`.firstname end) as contactname, 0 as contactUserID,
+        TypeCode.code kindaction, '' `said`, '' `answer`, '' `argument`,
+        '' `said_important`, '' `result_of_action`,
+        `llx_actioncomm`.`note` work_before_the_next_action, '' work_mentor,
+        '' date_mentor, null `active`
+        from `llx_actioncomm`
+        inner join (select code, libelle label from `llx_c_actioncomm` where active = 1 and (type = 'system' or type = 'user')) TypeCode on TypeCode.code = `llx_actioncomm`.code
         left join `llx_societe_contact` on `llx_societe_contact`.rowid=`llx_actioncomm`.fk_contact
-        left join `llx_societe_action` on `llx_actioncomm`.id = `llx_societe_action`.`action_id`
-        left join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.rowid
-        where id in ('.implode(",", $chain_actions).') and `llx_societe_action`.`active` = 1 order by datep desc, datec desc';
+        left join `llx_user` create_user on `llx_actioncomm`.fk_user_author = `create_user`.rowid
+        where id in (".implode(",", $chain_actions).") and llx_actioncomm.active = 1
+        order by datec desc";
 //echo '<pre>';
 //var_dump($sql);
 //echo '</pre>';
@@ -193,85 +326,59 @@ function ShowActionTable(){
             <td style="widtd: 80px" class="middle_size">&nbsp;</td>
             <td style="widtd: 80px" class="middle_size">&nbsp;</td>
             <td style="widtd: 80px" class="middle_size">&nbsp;</td>
+            <td style="widtd: 50px" class="middle_size">&nbsp;</td>
             <td style="width: 35px" class="middle_size">&nbsp;</td>
             </tr>';
     }
     $num=0;
 
     while($row = $db->fetch_object($res)){
-        $dtChange = new DateTime($row->datec);
+        if($row->active == null || $row->active == 1) {
 
-        if(isset($nextaction[$row->rowid])) {
-            $row->date_next_action = $nextaction[$row->rowid];
+
+            if (isset($nextaction[$row->rowid])) {
+                $row->date_next_action = $nextaction[$row->rowid];
 //            var_dump($nextaction[$row->rowid]);
 //            die();
-        }
+            }
 //        var_dump($row->work_before_the_next_action);
 //        die();
-        $dtNextAction = new DateTime($row->date_next_action);
-        $dtDateMentor = new DateTime($row->date_mentor);
-        $iconitem='';
-        $title='';
-        switch($row->kindaction){
-            case 'AC_GLOBAL':{
-                $classitem = 'global_taskitem';
-                $iconitem = 'object_global_task.png';
-                $title=$langs->trans('ActionGlobalTask');
-            }break;
-            case 'AC_CURRENT':{
-                $classitem = 'current_taskitem';
-                $iconitem = 'object_current_task.png';
-                $title=$langs->trans('ActionCurrentTask');
-            }break;
-            case 'AC_RDV':{
-                $classitem = 'office_meetting_taskitem';
-                $iconitem = 'object_office_meetting_task.png';
-                $title=$langs->trans('ActionAC_RDV');
-            }break;
-            case 'AC_TEL':{
-                $classitem = 'office_callphone_taskitem';
-                $iconitem = 'object_call2.png';
-                $title=$langs->trans('ActionAC_TEL');
-            }break;
-            case 'AC_DEP':{
-                $classitem = 'departure_taskitem';
-                $iconitem = 'object_departure_task.png';
-                $title=$langs->trans('ActionDepartureMeeteng');
-            }break;
-        }
-        $dateaction = new DateTime($row->datep);
-        $out .= '<tr class="'.(fmod($num++, 2)==0?'impair':'pair').'">
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'dtAction" style="widtd: 80px" class="middle_size">'.(empty($row->datep)?'':($dateaction->format('d.m.y').'</br>'.$dateaction->format('H:i'))).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'dtChange" style="widtd: 80px" class="middle_size">'.(empty($row->datec)?'':$dtChange->format('d.m.y H:i:s')).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'lastname" style="widtd: 100px" class="middle_size">'.$row->lastname.'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'contactname" style="widtd: 80px" class="middle_size">'.$row->contactname.'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'kindaction" style="widtd: 50px; text-align: center;" class="middle_size" ><img src="/dolibarr/htdocs/theme/'.$conf->theme.'/img/'.$iconitem.'" title="'.$title.'"></td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'said" style="widtd: 80px" class="middle_size">'.(strlen($row->said)>20?mb_substr($row->said, 0, 20, 'UTF-8').'...<input type="hidden" value="'.$row->said.'" id="input_'.$row->rowid.'said">':$row->said).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'answer" style="widtd: 80px" class="middle_size">'.(strlen($row->answer)>20?mb_substr($row->answer, 0, 20, 'UTF-8').'...<input type="hidden" value="'.$row->answer.'" id="input_'.$row->rowid.'answer">':$row->answer).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'argument" style="widtd: 80px" class="middle_size">'.(strlen($row->argument)>20?mb_substr($row->argument, 0, 20, 'UTF-8').'...<input type="hidden" value="'.$row->argument.'" id="input_'.$row->rowid.'argument">':$row->argument).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'said_important" style="widtd: 80px" class="middle_size">'.(strlen($row->said_important)>20?mb_substr($row->said_important, 0, 20, 'UTF-8').'...<input type="hidden" value="'.$row->said_important.'" id="input_'.$row->rowid.'said_important>':$row->said_important).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'result_of_action" style="widtd: 80px" class="middle_size">'.(strlen($row->result_of_action)>20?mb_substr($row->result_of_action, 0, 20, 'UTF-8').'...<input type="hidden" value="'.$row->result_of_action.'" id="input_'.$row->rowid.'result_of_action">':$row->result_of_action).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'work_before_the_next_action" style="widtd: 80px" class="middle_size">'.(strlen($row->work_before_the_next_action)>20?mb_substr($row->work_before_the_next_action, 0, 20, 'UTF-8').'...<input type="hidden" value="'.$row->work_before_the_next_action.'" id="input_'.$row->rowid.'work_before_the_next_action">':$row->work_before_the_next_action).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'date_next_action" style="widtd: 80px" class="middle_size">'.(empty($row->date_next_action)?'':$dtNextAction->format('d.m.y H:i:s')).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'work_before_the_next_action_mentor" style="widtd: 80px" class="middle_size">'.(strlen($row->work_mentor)>20?mb_substr($row->work_mentor, 0, 20, 'UTF-8').'...<input type="hidden" value="'.$row->work_mentor.'" id="input_'.$row->rowid.'work_mentor">':$row->work_mentor).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'date_next_action_mentor" style="widtd: 80px" class="middle_size">'.(empty($row->date_mentor)?'':$dtDateMentor->format('d.m.y')).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'action" style="width: 35px" class="middle_size"><script>
-                 var click_event = "/dolibarr/htdocs/societe/addcontact.php?action=edit&mainmenu=companies&rowid=1";
-                </script>';
-//            $out .= '<img id="img_1" "="" onclick="" style="vertical-align: middle" title="'.$langs->trans('AddSubAction').'" src="/dolibarr/htdocs/theme/eldy/img/Add.png">';
-            $actioncode = '';
-            switch($_REQUEST['mainmenu']){
-                case 'current_task':{
-                    $actioncode = "'AC_CURRENT'";
-                }break;
-                case 'global_task':{
-                    $actioncode = "'AC_GLOBAL'";
+
+            if(empty($row->rowid)&&!empty($row->action_id)){
+                $sql = "select fk_element from `llx_actioncomm_resources` where `fk_actioncomm` = ".$row->action_id;
+//                if($row->action_id == 88753) {
+                $resUserID = $db->query($sql);
+                    if(!$resUserID)
+                        dol_print_error($db);
+                if($db->num_rows($resUserID) == 0) {
+//                    var_dump($db->num_rows($res) == 0);
+                    $row->contactUserID = $row->author_id;
+                    $row->contactname = $row->lastname;
+                }else{
+                    $obj = $db->fetch_object($resUserID);
+                    $sql = "select rowid, lastname, firstname from llx_user where rowid = ".$obj->fk_element;
+                    $row->contactUserID = $obj->fk_element;
+                    $resUserID = $db->query($sql);
+                        if(!$resUserID)
+                            dol_print_error($db);
+                    $obj = $db->fetch_object($resUserID);
+                    $row->contactname =  $obj->lastname.' '.mb_substr($obj->firstname,0,1,'UTF-8').'.';
+                }
+
+            }
+            //Перевіряю наявніть результатів перемовин
+            if(in_array($row->action_id, $result_actionID)){
+                foreach($result_action as $item){
+                    if($row->action_id == $item["action_id"]) {
+                        $item = (object)$item;
+                        $out .=CreateNewActionItem($item, $num++, true);
+//                        var_dump($item);
+//                        die();
+                    }
                 }
             }
-            $out .= '<img id="img_1"  onclick="EditAction('.$_REQUEST['action_id'].','.$row->rowid.', '.$actioncode.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Edit').'" src="/dolibarr/htdocs/theme/eldy/img/edit.png">';
-            $out .= '&nbsp;&nbsp;<img  onclick="DelAction('."'_".$row->rowid."'".');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Delete').'" src="/dolibarr/htdocs/theme/eldy/img/delete.png">';
-            $out .= '</td>
-            </tr>';
+            $out .=CreateNewActionItem($row, $num++);
+        }
     }
 //        <th style="width: 80px" class="middle_size">Дата і час внесення</th>
 //            <th style="width: 100px" class="middle_size">Хто від нас вносив</th>
@@ -290,6 +397,139 @@ function ShowActionTable(){
     return $out;
 
 }
+function CreateNewActionItem($row, $num, $result = false){
+    global $db, $conf,$user,$langs;
+    $dtChange = new DateTime($row->datec);
+    $dateaction = new DateTime($row->datep);
+//    $dtNextAction = new DateTime($row->date_next_action);
+    $dtDateMentor = new DateTime($row->date_mentor);
+    $iconitem = '';
+    $title = '';
+    switch ($row->kindaction) {
+        case 'AC_GLOBAL': {
+            $classitem = 'global_taskitem';
+            $iconitem = 'object_global_task.png';
+            $title = $langs->trans('ActionGlobalTask');
+        }
+            break;
+        case 'AC_CURRENT': {
+            $classitem = 'current_taskitem';
+            $iconitem = 'object_current_task.png';
+            $title = $langs->trans('ActionCurrentTask');
+        }
+            break;
+        case 'AC_RDV': {
+            $classitem = 'office_meetting_taskitem';
+            $iconitem = 'object_office_meetting_task.png';
+            $title = $langs->trans('ActionAC_RDV');
+        }
+            break;
+        case 'AC_TEL': {
+            $classitem = 'office_callphone_taskitem';
+            $iconitem = 'object_call2.png';
+            $title = $langs->trans('ActionAC_TEL');
+        }
+            break;
+        case 'AC_DEP': {
+            $classitem = 'departure_taskitem';
+            $iconitem = 'object_departure_task.png';
+            $title = $langs->trans('ActionDepartureMeeteng');
+        }
+            break;
+    }
+    if($result) {
+        $iconitem = 'result_action.png';
+        $title = 'Результат дії '.$title;
+    }
+    $out = '<tr class="' . (fmod($num, 2) == 0 ? 'impair' : 'pair') . '">
+    <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'dtChange" style="widtd: 80px" class="middle_size">' . (empty($row->datec) ? '' : $dtChange->format('d.m.y H:i:s')) . '</td>
+    <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'lastname" style="widtd: 100px" class="middle_size">' . $row->lastname . '</td>
+    <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'contactname" style="widtd: 80px" class="middle_size">' . $row->contactname . '</td>
+    <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'kindaction" style="widtd: 50px; text-align: center;" class="middle_size" ><img src="/dolibarr/htdocs/theme/' . $conf->theme . '/img/' . $iconitem . '" title="' . $title . '"></td>
+    <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'said" style="widtd: 80px" class="middle_size">' . (strlen($row->said) > 20 ? mb_substr($row->said, 0, 20, 'UTF-8') . '...<input type="hidden" value="' . $row->said . '" id="input_' . $row->rowid . 'said">' : $row->said) . '</td>
+    <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'answer" style="widtd: 80px" class="middle_size">' . (strlen($row->answer) > 20 ? mb_substr($row->answer, 0, 20, 'UTF-8') . '...<input type="hidden" value="' . $row->answer . '" id="input_' . $row->rowid . 'answer">' : $row->answer) . '</td>
+    <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'argument" style="widtd: 80px" class="middle_size">' . (strlen($row->argument) > 20 ? mb_substr($row->argument, 0, 20, 'UTF-8') . '...<input type="hidden" value="' . $row->argument . '" id="input_' . $row->rowid . 'argument">' : $row->argument) . '</td>
+    <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'said_important" style="widtd: 80px" class="middle_size">' . (strlen($row->said_important) > 20 ? mb_substr($row->said_important, 0, 20, 'UTF-8') . '...<input type="hidden" value="' . $row->said_important . '" id="input_' . $row->rowid . 'said_important>' : $row->said_important) . '</td>
+    <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'result_of_action" style="widtd: 80px" class="middle_size">' . (strlen($row->result_of_action) > 20 ? mb_substr($row->result_of_action, 0, 20, 'UTF-8') . '...<input type="hidden" value="' . $row->result_of_action . '" id="input_' . $row->rowid . 'result_of_action">' : $row->result_of_action) . '</td>
+    <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'work_before_the_next_action" style="widtd: 80px" class="middle_size">' . (strlen($row->work_before_the_next_action) > 20 ? mb_substr($row->work_before_the_next_action, 0, 20, 'UTF-8') . '...<input type="hidden" value="' . $row->work_before_the_next_action . '" id="input_' . $row->rowid . 'work_before_the_next_action">' : $row->work_before_the_next_action) . '</td>';
+    if(!$result)
+        $out.= '<td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'dtAction" style="widtd: 80px" class="middle_size">' . (empty($row->datep) ? '' : ($dateaction->format('d.m.y') . '</br>' . $dateaction->format('H:i'))) . '</td>';
+    else
+        $out.= '<td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'dtAction" style="widtd: 80px" class="middle_size"></td>';
+    $out.='<td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'work_before_the_next_action_mentor" style="widtd: 80px" class="middle_size">' . (strlen($row->work_mentor) > 20 ? mb_substr($row->work_mentor, 0, 20, 'UTF-8') . '...<input type="hidden" value="' . $row->work_mentor . '" id="input_' . $row->rowid . 'work_mentor">' : $row->work_mentor) . '</td>
+    <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'date_next_action_mentor" style="widtd: 80px" class="middle_size">' . (empty($row->date_mentor) ? '' : $dtDateMentor->format('d.m.Y')) . '</td>';
+
+    //Статус завдання
+//    if ($row->percent == -1)
+//        $status = 'Не розпочато';
+//    elseif ($row->percent > 0 && $row->percent < 99)
+//        $status = 'В роботі(' . $row->percent . '%)';
+//    elseif ($row->percent == 99)
+//        $status = '<img title="Чекає підтвердження" src="/dolibarr/htdocs/theme/eldy/img/warning.png">';
+//    elseif ($row->percent == 0)
+//        $status = 'Тільки-но розпочато';
+//    else
+//        $status = 'Виконано';
+
+    $date = new DateTime();
+    $style = 'style="';
+    if($row->percent < 98) {
+        if (!$result) {
+            if ($dateaction < $date) {
+                $style = 'style="background:rgb(255, 0, 0)';
+            } elseif ($dateaction == $date) {
+                $style = 'style="background:rgb(0, 255, 0)';
+            }
+        }
+        if ($row->percent == "-1")
+            $status = 'ActionNotRunning';
+        elseif ($row->percent == 0)
+            $status = 'ActionRunningNotStarted';
+        elseif ($row->percent > 0 && $row->percent < 98)
+            $status = 'ActionRunningShort';
+        else
+            $status = 'ActionDoneShort';
+    }elseif($row->percent == 99)
+        $status = '<img title="Чекає підтвердження" src="/dolibarr/htdocs/theme/eldy/img/BWarning.png">';
+    else
+        $status = '<img title="Робота прийнята" src="/dolibarr/htdocs/theme/eldy/img/done.png">';
+    if($result)
+        $status = '';
+    $out.='<td '.$style.';widtd: 50px; text-align: center;" class="middle_size" >' . $langs->trans($status) . '</td>';
+
+    $out.='<td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'action" style="width: 35px; text-align: center;" class="middle_size"><script>
+         var click_event = "/dolibarr/htdocs/societe/addcontact.php?action=edit&mainmenu=companies&rowid=1";
+        </script>';
+//<td rowid="' . $row->rowid . '" id = "' . $row->rowid . 'date_next_action" style="widtd: 80px" class="middle_size">' . (empty($row->date_next_action) ? '' : $dtNextAction->format('d.m.Y H:i:s')) . '</td>
+//            $out .= '<img id="img_1" "="" onclick="" style="vertical-align: middle" title="'.$langs->trans('AddSubAction').'" src="/dolibarr/htdocs/theme/eldy/img/Add.png">';
+    $actioncode = '';
+    switch ($_REQUEST['mainmenu']) {
+        case 'current_task': {
+            $actioncode = "'AC_CURRENT'";
+        }
+            break;
+        case 'global_task': {
+            $actioncode = "'AC_GLOBAL'";
+        }
+    }
+    if($row->author_id == $user->id) {
+        if($row->percent == 99 && !$result){
+            $out .= '<img id="confirm'.$row->action_id.'" title = "'.$langs->trans('Confirm').'" onclick="Confirmation('.$row->action_id.');" src="/dolibarr/htdocs/theme/eldy/img/uncheck.png">';
+        }elseif($row->percent < 99) {
+            if ($result)
+                $out .= '<img id="img_1"  onclick="EditOnlyResult(' . $row->action_id . ',' . (empty($row->rowid) ? 0 : $row->rowid) . ', ' . $actioncode . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Edit') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">';
+            else
+                $out .= '<img id="img_1"  onclick="EditAction(' . $row->action_id . ',' . (empty($row->rowid) ? 0 : $row->rowid) . ', ' . $actioncode . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Edit') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">';
+            $out .= '&nbsp;&nbsp;<img  onclick="DelAction(' . (empty($row->rowid) ? "'".$row->action_id : "'_".$row->rowid) . "'" . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Delete') . '" src="/dolibarr/htdocs/theme/eldy/img/delete.png">';
+        }
+    }
+//    elseif($row->contactUserID== $user->id){
+//        $out .= '<img id="img_1"  onclick="EditOnlyResult(' . $row->action_id . ',' . (empty($row->rowid) ? 0 : $row->rowid) . ', ' . $actioncode . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Edit') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">';
+//    }
+    $out .= '</td>
+    </tr>';
+    return $out;
+}
 function GetDescription($action_id){
     global $db;
     $sql = "select note from llx_actioncomm where id = ".$action_id;
@@ -301,17 +541,8 @@ function GetDescription($action_id){
 }
 function GetChainActions($action_id){
     global $db;
-    $chain_actions = array();
-    $chain_actions[]=$action_id;
     $Actions = new ActionComm($db);
-    //Завантажую всі батьківські ІД
-    while($action_id = $Actions->GetLastAction($action_id, 'id')){
-        array_unshift($chain_actions, $action_id);
-    }
-    //Завантажую всі наступні ІД
-    while($action_id = $Actions->GetNextAction($chain_actions[count($chain_actions)-1], 'id')){
-        $chain_actions[] = $action_id;
-    }
+    $chain_actions = $Actions->GetChainActions($action_id);
     return $chain_actions;
 }
 

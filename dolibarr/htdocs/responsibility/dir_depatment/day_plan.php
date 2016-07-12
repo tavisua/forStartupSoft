@@ -97,7 +97,7 @@ llxHeader("",$langs->trans('PlanOfDays'),"");
 print_fiche_titre($langs->trans('PlanOfDays'));
 $table = ShowTable();
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/dir_depatment/day_plan.html';
-
+llxPopupMenu();
 //print '</br>';
 //print'<div style="float: left">test</div>';
 //llxFooter();

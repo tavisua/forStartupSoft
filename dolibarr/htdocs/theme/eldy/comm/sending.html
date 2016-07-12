@@ -35,7 +35,7 @@
         </tr>
         <tr class="secondpage" style="display: none">
             <td>Повідомлення </td>
-            <td colspan="4" style="width: 100%; height: 150px"><textarea style="width: 100%;height: 100%" id="message" name="message"></textarea></td>
+            <td colspan="4" style="width: 100%; height: 150px"><textarea style="width: 100%;height: 100%" <?if($_GET['type'] == 'sms'){?>maxlength="69"<?}?> id="message" name="message"></textarea></td>
         </tr>
         <tr class="secondpage" style="display: none">
             <td><button onclick="sendTestMessage();">Тестове повідомлення</button></td>
@@ -54,10 +54,12 @@
     })
     function sendTestMessage(){
 //        console.log(<?=$userphone?>, $('#message').val());
-        if('<?=$_REQUEST["type"]?>' == 'sms')
+        if('<?=$_REQUEST["type"]?>' == 'sms') {
             sendSMS('<?=$userphone?>', $('#message').val(), true);
-        else ('<?=$_REQUEST["type"]?>' == 'email')
-            sendMail('<?=(empty($user->email)?$user->login:$user->email)?>',$('#message').val(), true);
+        }else {
+            ('<?=$_REQUEST["type"]?>' == 'email')
+            sendMail('<?=(empty($user->email)?$user->login:$user->email)?>', $('#message').val(), true);
+        }
     }
     function nextstep(){
         var param = {'areas':$('#areas').val(),
@@ -144,7 +146,6 @@
 //            return;
             for (var i = 0; i < trList.length; i++) {
                 if (trList[i].id !== undefined && trList[i].id.length > 0) {
-//                console.log(trList[i].id);
                     var td = trList[i].getElementsByTagName('td');
                     contactlist.push({
                         contactID: trList[i].id,
@@ -154,6 +155,9 @@
                     target.push(td[td.length - 1].innerHTML);
                 }
             }
+//            for (var i = 0; i < 400; i++) {
+//                    target.push('+380505223977');
+//            }
             if('<?=$_REQUEST["type"]?>' == 'sms') {
                 target = target.toString();
                 target = target.replace(/\+/gi, '');

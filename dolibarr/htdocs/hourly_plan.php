@@ -10,9 +10,19 @@ require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 
 //echo '<pre>';
-//var_dump($_SERVER);
+//var_dump($_REQUEST['hide'] == 'true');
 //echo '</pre>';
 //die();
+if($_REQUEST['action'] == 'hideAction'){
+    global $db;
+    $hide = $_REQUEST['hide'] == 'true';
+    $sql = "update llx_actioncomm set hide=".($hide?1:0)." where id=".$_REQUEST['action_id'];
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    echo 1;
+    exit();
+}
 
 $HourlyPlan = $langs->trans('HourlyPlan');
 llxHeader("",$HourlyPlan,"");
@@ -59,8 +69,12 @@ while($obj = $db->fetch_object($callres))
     $callstatus[$obj->rowid] = $obj->status;
 
 $actionURL = '/comm/action/card.php';
+if(!isset($_GET['id_usr'])||empty($_GET['id_usr']))
+    $id_usr = $user->id;
+elseif(!empty($_GET['id_usr']))
+    $id_usr = $_GET['id_usr'];
 $sql = "select  `llx_actioncomm`.id as rowid, `llx_actioncomm`.datep, `llx_actioncomm`.datep2,
-        `llx_actioncomm`.`code`, `llx_actioncomm`.fk_user_author, `llx_actioncomm`.label, `regions`.`name` as region_name, case when `llx_actioncomm`.fk_soc is null then `llx_user`.`lastname` else `llx_societe`.`nom` end lastname,
+        `llx_actioncomm`.`code`, `llx_actioncomm`.fk_user_author, `llx_actioncomm`.label, `llx_societe`.region_id, `regions`.`name` as region_name, case when `llx_actioncomm`.fk_soc is null then `llx_user`.`lastname` else `llx_societe`.`nom` end lastname,
         `llx_actioncomm`.`note`, `llx_actioncomm`.`percent`, `llx_c_actioncomm`.`libelle` title, `llx_actioncomm`.confirmdoc,
         `llx_actioncomm`.priority, max(`llx_societe_action`.`callstatus`) as callstatus
         from `llx_actioncomm`
@@ -74,9 +88,10 @@ $sql = "select  `llx_actioncomm`.id as rowid, `llx_actioncomm`.datep, `llx_actio
         where fk_action in
               (select id from `llx_c_actioncomm`
               where `type` in ('system', 'user'))
-        and (case when `llx_actioncomm_resources`.fk_element is null then `llx_actioncomm`.fk_user_author else `llx_actioncomm_resources`.fk_element end = ".$user->id.")
+        and case when `llx_actioncomm_resources`.`fk_element` is null then `llx_actioncomm`.fk_user_author else `llx_actioncomm_resources`.`fk_element` end = ".$id_usr."
         and date(datep) = '".$dateQuery->format('Y-m-d')."'
         and `llx_actioncomm`.active = 1
+        and (`llx_actioncomm`.hide is null or `llx_actioncomm`.hide <> 1)
         group by `llx_actioncomm`.id,  `llx_actioncomm`.datep, `llx_actioncomm`.datep2,
         `llx_actioncomm`.`code`, `llx_actioncomm`.fk_user_author, `llx_actioncomm`.label, `regions`.`name`, case when `llx_actioncomm`.fk_soc is null then `llx_user`.`lastname` else `llx_societe`.`nom` end,
         `llx_actioncomm`.`note`, `llx_actioncomm`.`percent`, `llx_c_actioncomm`.`libelle`, `llx_actioncomm`.confirmdoc,
@@ -183,13 +198,15 @@ while($row = $db->fetch_object($res)) {
            <div class="task_cell" style="float: left; width: 152px;">' .(mb_strlen(trim($row->confirmdoc), 'UTF-8')>25?mb_substr(trim($row->confirmdoc), 0,25,'UTF-8').'...':trim($row->confirmdoc)). '</div>
            <div class="task_cell" style="float: left; width: 130px;">' . $status . '</div>';
     if($user->id == $row->fk_user_author)
-        $task_table .='<div class="task_cell" style="float: left; width: 20px; border-color: transparent"><img src="theme/eldy/img/edit.png"></div>';
+        $task_table .='<div class="task_cell" style="float: left; width: 20px; border-color: transparent"><img title="Редагувати дію" src="theme/eldy/img/edit.png">
+            <!--<img onclick="HideAction('.$row->rowid.');" title="Скрити дію" src="theme/eldy/img/hide.png"></div>-->';
     else
         $task_table .='<div class="task_cell" style="float: left; width: 20px; border-color: transparent"></div>';
 
 //    $task .= '<div id="'.$row->rowid.'" class="'.$classitem.'" style="height: 216px" >' . $task_table . '</div>';
-
-    $task .= '<tr id="' . $row->rowid . '"><td class="' . $classitem . '" >' . $task_table . '</td></tr>';
+    if(!empty($_GET['region_id']))
+        $selected = $_GET['region_id'] == $row->region_id;
+    $task .= '<tr id="' . $row->rowid . '"><td class="' . $classitem . ' '.($selected?"sel_item":"").'" >' . $task_table . '</td></tr>';
 //    $task.='<tr id="'.$row->rowid.'"><td class="'.$classitem.'" style="height: '.($DiffSec/600*($conf->browser->name == 'firefox' ? ($DiffSec/60<=30?($DiffSec/60<15?22:23.8):23.7) : 22)).'px">'.$task_table.'</td></tr>';
     $prev_time = mktime($datep2->format('H'), $datep2->format('i'), $datep2->format('s'), $datep2->format('m'), $datep2->format('d'), $datep2->format('Y'));
 }
@@ -227,8 +244,19 @@ $table .= '</table>';
 //var_dump(htmlspecialchars($table));
 //echo '</pre>';
 //die();
+if(isset($_GET['id_usr'])&&!empty($_GET['id_usr'])){
+    $sql = "select lastname, firstname from llx_user where rowid = ".$_GET['id_usr'];
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $obj = $db->fetch_object($res);
+    $username = '<b class="middle_size">співробитника '.$obj->lastname.' '.$obj->firstname.'</b>';
+}
 
 $backtopage = $_SERVER['REQUEST_URI'];
+global $conf;
+//var_dump($conf->browser->name);
+//die();
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/hourly_plan.html';
 //print '</br>';
 //print'<div style="float: left">test</div>';

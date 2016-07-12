@@ -403,8 +403,10 @@ function ShowUserTasks(id, respon_alias){
         })
     }
 }
-function CalcP(date, minute, id_usr){
-    //alert('test');
+function CalcP(date, minute, id_usr, prefix){
+    //alert(date);
+    //console.log(date, minute, id_usr)
+    //return;
     if(minute === undefined || minute.length == 0)
         return;
 
@@ -415,53 +417,60 @@ function CalcP(date, minute, id_usr){
         cache:false,
         success:function(result){
             var time = result.substr(10,6);
-            //console.log(result);
+            console.log(result);
             //return;
-            if($('#ap').val()!=result.substr(8,2)+'.'+result.substr(5,2)+'.'+result.substr(0,4)) {
-                $('#ap').val(result.substr(8,2)+'.'+result.substr(5,2)+'.'+result.substr(0,4));
-                $('#p2').val(result.substr(8,2)+'.'+result.substr(5,2)+'.'+result.substr(0,4));
-                $('#apday').val(result.substr(8, 2));
-                $('#apmonth').val(result.substr(5, 2));
-                $('#apyear').val(result.substr(0, 4));
-                $('#p2day').val($('#apday').val());
-                $('#p2month').val($('#apmonth').val());
-                $('#p2year').val($('#apyear').val());
+            if($('#'+prefix+'').val()!=result.substr(8,2)+'.'+result.substr(5,2)+'.'+result.substr(0,4)) {
+                $('#'+prefix+'').val(result.substr(8,2)+'.'+result.substr(5,2)+'.'+result.substr(0,4));
+                $('#'+prefix+'day').val(result.substr(8, 2));
+                $('#'+prefix+'month').val(result.substr(5, 2));
+                $('#'+prefix+'year').val(result.substr(0, 4));
+                if(prefix == 'ap') {
+                    $('#p2').val(result.substr(8, 2) + '.' + result.substr(5, 2) + '.' + result.substr(0, 4));
+                    $('#p2day').val($('#' + prefix + 'day').val());
+                    $('#p2month').val($('#' + prefix + 'month').val());
+                    $('#p2year').val($('#' + prefix + 'year').val());
+                }
             }
 
 
 
-            $('#aphour [value='+time.substr(1,2)+']').attr("selected","selected");
-            $('#apmin  [value='+time.substr(4,2)+']').attr("selected","selected");
+            $('#'+prefix+'hour [value='+time.substr(1,2)+']').attr("selected","selected");
+            $('#'+prefix+'min  [value='+time.substr(4,2)+']').attr("selected","selected");
             console.log(time.substr(4,2).trim());
-            CalcP2();
+            CalcP2('exec_time_'+prefix);
 
         }
     })
 }
-function CalcP2(){
-    var hour = parseInt(document.getElementById("aphour").value)+Math.floor($("#exec_time").val()/60);
+function CalcP2(id){
+    //exec_time
+    var postfix = id.substr('exec_time_'.length);
+    console.log(postfix, id);
+    if(postfix == 'ap') {
+        var hour = parseInt(document.getElementById(postfix + "hour").value) + Math.floor($("#" + id).val() / 60);
 
-    //document.getElementById("p2hour").value = hour<10?("0"+hour):hour;
-    var p2min = 0;
-    if(parseInt($("#exec_time").val())%60){
-        p2min = parseInt(document.getElementById("apmin").value)+parseInt($("#exec_time").val());
-        hour = parseInt(document.getElementById("aphour").value)+Math.floor(p2min/60);
-    }else{
-       p2min = parseInt(document.getElementById("apmin").value);
-       hour = parseInt($("#exec_time").val())+parseInt(document.getElementById("aphour").value);
+        //document.getElementById("p2hour").value = hour<10?("0"+hour):hour;
+        var p2min = 0;
+        if (parseInt($("#" + id).val()) % 60) {
+            p2min = parseInt(document.getElementById(postfix + "min").value) + parseInt($("#" + id).val());
+            hour = parseInt(document.getElementById(postfix + "hour").value) + Math.floor(p2min / 60);
+        } else {
+            p2min = parseInt(document.getElementById(postfix + "min").value);
+            hour = parseInt($("#" + id).val()) + parseInt(document.getElementById(postfix + "hour").value);
+        }
+
+        document.getElementById("p2hour").value = hour < 10 ? ("0" + hour) : hour;
+        var min = "";
+        if (p2min % 60 < 10)
+            min = "0" + (p2min % 60).toString();
+        else
+            min = (p2min % 60).toString();
+
+
+        //var sHour = hour<10?("0"+hour.toString()):(hour.toString());
+        //document.getElementById("p2hour").value = sHour;
+        document.getElementById("p2min").value = min;
     }
-
-    document.getElementById("p2hour").value = hour<10?("0"+hour):hour;
-    var min="";
-    if(p2min%60<10)
-        min = "0"+(p2min%60).toString();
-    else
-        min = (p2min%60).toString();
-
-
-    //var sHour = hour<10?("0"+hour.toString()):(hour.toString());
-    //document.getElementById("p2hour").value = sHour;
-    document.getElementById("p2min").value = min;
 }
 function AddOrder(){
      $("#actionbuttons").attr('action', '/dolibarr/htdocs/orders.php?idmenu=10426&mainmenu=orders&leftmenu=');
@@ -557,7 +566,7 @@ function getMessage(){
                 //return;
                 for(var i = 0; i<Object.keys(actions).length; i++){
                     var key = Object.keys(actions)[i];
-                    console.log(actions[key]['id'], actions[key]['code']=='AC_CURRENT', actions[key]['code']=='AC_CURRENT'?'Поточне':'Глобальне');
+                    //console.log(actions[key]['id'], actions[key]['code']=='AC_CURRENT', actions[key]['code']=='AC_CURRENT'?'Поточне':'Глобальне');
                     var code = "'"+actions[key]['code']+"'";
                     html = '<div onclick="RedirectToTask('+actions[key]['id']+', '+code+')" id="mes'+i+'" title="'+(actions[key]['code']=='AC_CURRENT'?'Поточне':'Глобальне')+'" class="message '+(actions[key]['code']=='AC_CURRENT'?'current':'global')+'_taskitem" style="position: absolute; height: auto;">' +
                         ' <div style="width: 150px;height: 40px;">    ' +
@@ -728,6 +737,44 @@ function sendMail(emails,text, confirmSend){
             }
         })
     }
+}
+function sendSingleSMS(){
+    var number = $("#phone_number").val();
+    var text = $("#textsms").val();
+    //console.log(number, text);
+    //return;
+    sendSMS(number, text, true);
+}
+function ShowOutStandingRegion(region_id, id_usr){
+//        console.log(region_id);
+//        return;
+    if(region_id === undefined)
+        region_id = null;
+    var param = {
+        action:'getOutStandingIntoRegion',
+        region_id:region_id,
+        id_usr:id_usr
+    };
+    $.ajax({
+        url:'/dolibarr/htdocs/day_plan.php',
+        data: param,
+        cashe:false,
+        success:function(result){
+            if(region_id == null)
+                region_id = '';
+            createNewForm('popupmenu','getDate');
+            $('#getDate').empty().html(result);
+            $('#getDate').width('auto');
+            $('#getDate').css('top', $('#outstanding'+region_id).offset().top-50);
+            $('#getDate').css('left',$('#outstanding'+region_id).offset().left);
+            console.log($('#outstanding'+region_id), $('#getDate'));
+
+            $('#getDate').show();
+        }
+    })
+}
+function closeForm(obj){
+    obj.remove();
 }
 function sendSMS(number, text, confirmSend){
     number = ' [{"value": "'+number.replace(/\;/gi,'"}, {"value": "')+'"}]';
@@ -1025,6 +1072,24 @@ function DelAction(rowid){
                     console.log('помилка ', html, link);
             }
         })
+    }
+}
+function EditOnlyResult(rowid, answer_id, actioncode){
+    if(!$.isNumeric(rowid)) {
+        $('#onlyresult').val(1);
+        $('#action_id').val(rowid.substr(1));
+    }else
+        $('#action_id').val(rowid);
+    //console.log(answer_id);
+    //return;
+    if(answer_id == 0)
+        $('#edit_action').val('addonlyresult');
+    else
+        $('#edit_action').val('updateonlyresult');
+    if($('#redirect').length>0) {
+        $('#answer_id').val(answer_id);
+        $('#redirect_actioncode').val(actioncode);
+        $('#redirect').submit();
     }
 }
 function EditAction(rowid, answer_id, actioncode){

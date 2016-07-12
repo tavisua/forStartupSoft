@@ -1,3 +1,4 @@
+<?=$username?>
 <table>
     <tr>
         <td>
@@ -19,14 +20,16 @@
                     </table>
                 </form>
             </div>
-            <div><form id="addaction" action="/dolibarr/htdocs/comm/action/card.php" method="post">
+            <div style="float: left"><form id="addaction" action="/dolibarr/htdocs/comm/action/card.php" method="post">
                 <input type="hidden" name="backtopage" value="'<?echo $backtopage?>'">
                 <input type="hidden" name="action" value="create" id="action">
                 <input type="hidden" name="mainmenu" value="hourly_plan">
                 <input type="hidden" name="id" value="" id="id">
                 <input type="hidden" name="datep" value="20151130100000">
                 <button type="submit" title="Додати запис в таблицю 'Дії'"> Додати дію </button>
-            </form> </div>
+            </form>
+            </div>
+            <button style="float: left" onclick="ReCalcAction('<?=$dateQuery->format("Y-m-d")?>');" title="Оптимізує завантаження на поточний день"> Перерахувати </button>
             <div></br></div>
         </td>
     </tr>
@@ -44,15 +47,57 @@
         $(window).load(function(){
             window.location.hash="#8h0m";
         })
+        function ReCalcAction(date){
+            var param = {
+                datep: date,
+                id_usr: '<?=$user->id?>'
+            }
+            $.ajax({
+                url:'/dolibarr/htdocs/putch_time.php',
+                data: param,
+                cache: false,
+                success:function(result){
+                    location.reload();
+                }
+            });
+        }
+
+        function HideAction(rowid){
+            var hide;
+            if($('tr#'+rowid).css('opacity') == 1) {
+                if(!confirm('Скрити дію з плану погодинно?'))
+                    return;
+                $('tr#' + rowid).css('opacity', 0.5);
+                hide = true;
+            }else {
+                if(!confirm('Відображати дію в плані погодинно?'))
+                    return;
+                $('tr#' + rowid).css('opacity', 1);
+                hide = false;
+            }
+            $.cookie('hideactionclick',1);
+            var param = {
+                hide:hide,
+                action_id:rowid,
+                action: 'hideAction'
+            }
+            $.ajax({
+                data: param,
+                cache:false
+            })
+
+        }
         $('div').mouseout(function(e){
             if(e.target.id != 'FullTask')
                 return;
             $('#popupmenu').hide();
+            $.cookie('showfulltext', null);
         })
-        $('div').mouseover(function(e){
+        $('div').click(function(e){
             var cls = e.target.className;
 //            console.log(strpos(cls, 'note'), cls);
             if(strpos(cls, 'note')&& e.target.getElementsByTagName('input').length>0){
+                $.cookie('showfulltext', 'showed');
                 var tbody = e.target.parentNode.parentNode.parentNode;
                 var level = tbody.id.substr('tbody'.length);
 
@@ -75,6 +120,14 @@
         $(document).ready(function(){
             $('.tasklist').mousedown(function(e){
 //                return;
+                if(e.which != 1)
+                    return;
+                if($.cookie('showfulltext') == 'showed' || $.cookie('hideactionclick') == 1) {
+                     $.cookie('hideactionclick',null);
+                    return;
+                }
+//                console.log($.cookie('showfulltext'));
+//                return;
                 var pos = $(this).offset();
                 var elem_left = pos.left;
                 var elem_top = pos.top;
@@ -96,8 +149,9 @@
 //                            console.log(tr[t].id);
                             if(tr[t].id.substr(0, 'empty'.length)!='empty') {
                                 task_id = tr[t].id;
-                                if($('#'+tr[t].id).width() - 25 < Xinner)
-                                    bEdit = true;
+                                if($('#'+tr[t].id).width() - 25 < Xinner) {
+                                        bEdit = true;
+                                }
 //                                console.log('width', $('#'+tr[t].id).width());
                             }
                             break;
@@ -140,9 +194,10 @@
                             }
                         }
                         var link = '';
-                        if(code == 'AC_GLOBAL' || code == 'AC_CURRENT')
+                        if(code == 'AC_GLOBAL' || code == 'AC_CURRENT'||socid.length == 0)
                             link = '/dolibarr/htdocs/comm/action/chain_actions.php?action_id='+task_id+'&mainmenu='+mainmenu;
                         else{
+//                            return;
 //                            var backtopage = location.pathname+location.search;
 //                            backtopage = backtopage.replace(/\=/g,'%3D')
 //                            backtopage = backtopage.replace(/\?/g,'%3F')
@@ -159,6 +214,7 @@
 //                        console.log(link);
 //                        return;
                         location.href = link;
+                        console.log('location.href = link;');
 //                        window.open(link);
                     }
                 })
@@ -192,6 +248,8 @@
 //                    taskfield.remove();
                 var task = taskfield.getElementsByTagName('tr');
 //                var zIndex = -100;
+//                console.log(task);
+//                return;
                 for (var i = 0; i < task.length; i++) {
                     if(priority != 0)
                         $('#tasklist'+priority).offset({top: $('#tasklist0').offset().top});
@@ -257,7 +315,7 @@
 //            console.log(tr);
 //        }
         function SetTaskParam(prev, task){
-            console.log(task);
+//            console.log(task);
 //            if(task.id == '2113'){
 //                console.log(prev, task);
 //            }
@@ -278,11 +336,14 @@
             }
 
             var end_time = div[3].innerHTML;
-            td = $('td#' + parseInt(end_time.substr(0,2)) + 'h' + (Math.floor(parseInt(end_time.substr(3,2)) / 10) * 10) + 'm');
+            td = $('td#' + parseInt(end_time.substr(0, 2)) + 'h' + (Math.floor(parseInt(end_time.substr(3, 2)) / 10) * 10) + 'm');
             end_time = parseInt(end_time.substr(3, 2));
             min_height = (end_time - Math.floor(end_time / 10) * 10) / 10 * td.outerHeight();
-            var button = td.offset().top+min_height ;
-            $("#" + task.id).height(button - $("#" + task.id).offset().top);
+            var button = td.offset().top + min_height;
+            if('<?=$conf->browser->name?>' == 'chrome'){
+                $("#" + task.id).find('td').height(button - $("#" + task.id).offset().top);
+            }else
+                $("#" + task.id).height(button - $("#" + task.id).offset().top);
         }
     </script>
     <!--<script>-->

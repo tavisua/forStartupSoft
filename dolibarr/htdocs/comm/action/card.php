@@ -31,9 +31,18 @@ require '../../main.inc.php';
 //llxHeader('', $langs->trans("AddAction"), $help_url);
 //
 //echo '<pre>';
-//var_dump($_REQUEST);
+//var_dump($_POST);
 //echo '</pre>';
 //die();
+if(isset($_POST['action'])&&$_POST['action'] == 'create' && isset($_POST['parent_id'])&&!empty($_POST['parent_id'])){
+	if(getActionStatus($_POST['parent_id'])=='100'){
+		llxHeader('', 'Помилка', '');
+		print_fiche_titre('Вже встановлено статус "Прийнято" для дії');
+		die('тому неможна створювати додаткову піддію чи планувати контакт');
+	}
+//	die('test');
+//	var_dump(getActionStatus($_POST['parent_id']));
+}
 if(isset($_REQUEST['id_usr'])&&!empty($_REQUEST['id_usr'])&&$_REQUEST['id_usr']!=$user->id){
 //$test = '{"6":{"id":"6","mandatory":0,"transparency":null},"7":{"id":"7","transparency":"on","mandatory":1}}';
 //var_dump(json_decode($test));
@@ -51,6 +60,9 @@ if($_GET['action']=='get_exectime'){
     echo $exec_time;
     exit();
 
+}elseif($_GET['action']=='getActionStatus'){
+	echo getActionStatus($_GET['action_id']);
+	exit();
 }elseif($_GET['action']=='getlastactivecontact'){
 
 	$sql = "select `fk_contact` from llx_actioncomm
@@ -192,6 +204,13 @@ if($_GET['action']=='get_exectime'){
 		$newAction->add($user);
 	}
     $sql = 'update llx_actioncomm set dateSetExec = Now(), percent=100 where id='.$_GET['rowid'];
+//	die($sql);
+    $res = $db->query($sql);
+    if(!$res){
+        dol_print_error($db);
+    }
+	$sql = 'update llx_actioncomm, llx_actioncomm sub_action  set llx_actioncomm.dateSetExec = Now(), llx_actioncomm.percent=99, llx_actioncomm.new = 1 where sub_action.id='.$_GET['rowid'].
+	" and sub_action.fk_parent = llx_actioncomm.id and llx_actioncomm.fk_parent = 0";
 //	die($sql);
     $res = $db->query($sql);
     if(!$res){
@@ -516,6 +535,8 @@ if ($action == 'add')
 		$object->datep = $datep;
 		$object->datef = $datef;
 		$object->datepreperform = $dateprep;
+		if(isset($_REQUEST['typeaction']) && $_REQUEST['typeaction'] == 'subaction' )
+			$object->entity = 0;
 //		var_dump($object->datepreperform);
 //		die();
 		$object->percentage = $percentage;
@@ -549,7 +570,8 @@ if ($action == 'add')
 
 	$object->note = trim($_POST["note"]);
 	$object->confirmdoc = trim($_POST["confirmdoc"]);
-
+	if(isset($_POST["typeaction"]) && $_POST["typeaction"] == 'subaction')
+		$object->entity = 0;
 	if (isset($_POST["contactid"])) $object->contact = $contact;
 
 	if (GETPOST('socid','int') > 0)
@@ -638,8 +660,8 @@ if ($action == 'add')
 					else
 						$backtopage = '/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/action.php?socid='.$object->socid.'&idmenu=10425&mainmenu=area';
 //					$backtopage = '/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/action.php?socid='.$object->socid.'&idmenu=10425&mainmenu=area';
-					var_dump($backtopage);
-					die();
+//					var_dump($backtopage);
+//					die();
 					$Location = "Location: ".str_replace("'",'', $backtopage);
                     header($Location);
 				}
@@ -1007,6 +1029,7 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 	print '<input type="hidden" name="action" value="add">';
 	print '<input type="hidden" name="socid" value="'.$_REQUEST['socid'].'">';
 	print '<input type="hidden" id="showform1" value="0">';
+	print '<input type="hidden" name="type" id="type" value="">';
 	print '<input type="hidden" id="mainmenu" name="mainmenu" value="'.$_REQUEST["mainmenu"].'">';
 	print '<input type="hidden" name="parent_id" value="'.$_REQUEST["parent_id"].'">';
 	print '<input type="hidden" name="donotclearsession" value="1">';
@@ -1030,10 +1053,90 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
     $formactions->select_type_actions(GETPOST("actioncode")?GETPOST("actioncode"):$object->type_code, "actioncode","systemauto");
     print '</td></tr>';
 //	}
-    // Full day
-    print '<tr><td>'.$langs->trans("EventOnFullDay").'</td><td><input type="checkbox" id="fullday" name="fullday" '.(GETPOST('fullday')?' checked="checked"':'').'></td></tr>';
-    $period='';
+	// Assigned to
+	print '<tr><td class="nowrap">'.$langs->trans("ActionAffectedTo").'</td><td style="vertical-align:top">';
+	$listofuserid=array();
+//	var_dump(empty($donotclearsession));
+//	die();
+	if (empty($donotclearsession))
+	{
+		$assignedtouser=GETPOST("assignedtouser")?GETPOST("assignedtouser"):(! empty($object->userownerid) && $object->userownerid > 0 ? $object->userownerid : $user->id);
+		if ($assignedtouser) $listofuserid[$assignedtouser]=array('id'=>$assignedtouser,'mandatory'=>0,'transparency'=>$object->transparency);	// Owner first
+		$_SESSION['assignedtouser']=dol_json_encode($listofuserid);
+	}
+	elseif (!empty($_SESSION['assignedtouser']))
+	{
+		$listofuserid=dol_json_decode($_SESSION['assignedtouser'], true);
+	}
 
+
+	if(isset($_REQUEST["duplicate_action"])) {//if duplicate action, change author action
+		$listofuserid[$user->id] = $listofuserid[array_keys($listofuserid)[0]];
+		$listofuserid[$user->id]['id']=$user->id;
+		foreach (array_keys($listofuserid) as $key) {
+			if ($key != $user->id) {
+				unset($listofuserid[$key]);
+			}
+		}
+		$_SESSION['assignedtouser'] = dol_json_encode($listofuserid);
+
+		$userlist=dol_json_decode($_SESSION['assignedtouser'], true);
+
+		if(!isset($userlist[array_keys($userlist)[0]]["mandatory"])) {
+			$_SESSION['assignedtouser'] = '{"' . $user->id . '":{"id":"' . $user->id . '","mandatory":0,"transparency":null}}';
+		}
+	}
+
+	print $form->select_dolusers_forevent(($action=='create'?'add':'update'), 'assignedtouser', 1, '', 0, '', '', 0, 0, 0, 'AND u.statut != 0', 0, 1, 1);
+
+//	if (in_array($user->id,array_keys($listofuserid))) print $langs->trans("MyAvailability").': <input id="transparency" type="checkbox" name="transparency"'.(((! isset($_GET['transparency']) && ! isset($_POST['transparency'])) || GETPOST('transparency'))?' checked="checked"':'').'> '.$langs->trans("Busy");
+	print '</td></tr>';
+    // Full day
+    print '<tr style="display: none"><td>'.$langs->trans("EventOnFullDay").'</td><td><input type="checkbox" id="fullday" name="fullday" '.(GETPOST('fullday')?' checked="checked"':'').'></td></tr>';
+    $period='';
+	//GroupOfTask
+	print '<tr><td width="10%">'.$langs->trans("GroupOfTask").'</td>';
+	print '<td>';
+	$percent=-1;
+	$respon = array();
+
+	if(count($listofuserid) == 1) {
+		$respon[] = $user->respon_id;
+		$formactions->select_groupoftask('groupoftask', $respon, GETPOST('groupoftask'));
+	}else{
+		$assigneduser = new User($db);
+		foreach($listofuserid as $id_usr){
+			if($id_usr['id'] != $user->id){
+				$assigneduser->fetch($id_usr['id']);
+				if(!in_array($assigneduser->respon_id,$respon))
+					$respon[]=$assigneduser->respon_id;
+			}
+		}
+//		var_dump($respon);
+//		die();
+		$formactions->select_groupoftask('groupoftask', $respon, GETPOST('groupoftask'));
+	}
+
+	print '</td></tr>';
+    // ActionDescription
+	if(!isset($_REQUEST['typeaction']) || $_REQUEST['typeaction'] != 'subaction' )
+    	print '<tr><td valign="top">'.$langs->trans("Description").'</td><td>';
+	else
+    	print '<tr><td valign="top">'.$langs->trans("work_before_the_next_action").'</td><td>';
+    require_once DOL_DOCUMENT_ROOT.'/core/class/doleditor.class.php';
+    $doleditor=new DolEditor('note',(GETPOST('note')?GETPOST('note'):$object->note),'',180,'dolibarr_notes','In',true,true,$conf->fckeditor->enabled,ROWS_6,90);
+    $doleditor->Create();
+    print '</td></tr>';
+    // Note
+    print '<tr><td valign="top">'.$langs->trans("Note").': що зробить, кінцева мета, підтвердження</td><td>';
+    print $form->select_confirmdoc();
+    print '</td></tr>';
+	//Попередньо виконати до
+	if(!isset($_REQUEST['typeaction']) || $_REQUEST['typeaction'] != 'subaction' ) {
+		print '<tr><td class="nowrap">Попередньо виконати до</td><td colspan="3">';
+		$form->select_date($datep ? $datep : $object->datep, 'preperform', 0, 0, 0, "action", 1, 0, 0, 0, 'fulldaystart');
+		print '</td></tr>';
+	}
 	// Date start
 	if(empty($_REQUEST["parent_id"])) {
 		$datep = ($datep ? $datep : $object->datep);
@@ -1045,16 +1148,20 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 			dol_print_error($db);
 		$obj = $db->fetch_object($res);
 //		echo '<pre>';
-//		var_dump($sql);
+//		var_dump($_POST);
 //		echo '</pre>';
 //		die();
+
         $datep = new DateTime($obj->datep);
         $datef = new DateTime($obj->datep2);
 		$datepreperform = new DateTime($obj->datepreperform);
 		$newAction = new ActionComm($db);
-        $period = $obj->period;
-
-		switch($obj->period){
+		$period = '';
+		if(!isset($_POST['typeaction'])||$_POST['typeaction']!='subaction')
+        	$period = $obj->period;
+//var_dump($period);
+//		die();
+		switch($period){
 			case 'EveryDay':{
                 $datep = new DateTime(($datep->format('d')+1).'.'.$datep->format('m').'.'.$datep->format('Y'). ' '.$datep->format('h').':'.$datep->format('i').':'.$datep->format('s'));
                 $datef = new DateTime(($datef->format('d')+1).'.'.$datef->format('m').'.'.$datef->format('Y'). ' '.$datef->format('h').':'.$datef->format('i').':'.$datef->format('s'));
@@ -1098,35 +1205,53 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 			}break;
 		}
 //        var_dump($datep);
-//        die();
 
         $datep = mktime($datep->format('H'),$datep->format('i'),$datep->format('s'),$datep->format('m'),$datep->format('d'),$datep->format('Y'));
         $datef = mktime($datef->format('H'),$datef->format('i'),$datef->format('s'),$datef->format('m'),$datef->format('d'),$datef->format('Y'));
         $datepreperform = mktime($datepreperform->format('H'),$datepreperform->format('i'),$datepreperform->format('s'),$datepreperform->format('m'),$datepreperform->format('d'),$datepreperform->format('Y'));
 
 	}
-
+//var_dump($datep);
+//	die();
 	if (GETPOST('datep','int',1)) $datep=dol_stringtotime(GETPOST('datep','int',1),0);
-	print '<tr><td width="30%" class="nowrap"><span class="fieldrequired">'.$langs->trans("DateActionStart").'</span></td><td>';
+	print '<tr>';
+	if(!isset($_REQUEST['typeaction']) || $_REQUEST['typeaction'] != 'subaction' )
+		print '<td width="30%" class="nowrap"><span class="fieldrequired">'.$langs->trans("DateActionStart").'</span></td><td>';
+	else
+		print '<td width="30%" class="nowrap"><span class="fieldrequired">'.$langs->trans("DateAction").'</span></td><td>';
 	if (GETPOST("afaire") == 1) $form->select_date($datep,'ap',1,1,0,"action",1,1,0,0,'fulldayend');
 	else if (GETPOST("afaire") == 2) $form->select_date($datep,'ap',1,1,1,"action",1,1,0,0,'fulldayend');
 	else $form->select_date($datep,'ap',1,1,1,"action",1,1,0,0,'fulldaystart');
-	print '<span style="font-size: 12px">Необхідно часу  </span><input type="text" class="param" size="2" id = "exec_time" name="exec_time"><span style="font-size: 12px"> хвилин.</span></td></tr>';
+	print '<span style="font-size: 12px">Необхідно часу  </span><input type="text" class="param exec_time" size="2" id = "exec_time_ap" name="exec_time_ap"><span style="font-size: 12px"> хвилин.</span></td></tr>';
+//	var_dump(count($assignedtouser));
+//	die();
+	if(count($assignedtouser) <= 1 && $action == 'create') {//Якщо відбувається створення нової дії тільки для активного користувача
+		print '<script type="text/javascript" src="/dolibarr/htdocs/comm/action/js/action.js'.($ext?'?'.$ext:'').'"> </script>'."\n";
+		print '<script> var user_id='.$user->id.'</script>';
+		print '<tr>';
+		print '<td width="30%" class="nowrap">' . $langs->trans("DateNextActionStart") . '</td><td>';
+		$form->select_date($datep, 'dateNextAction', 1, 1, 1, "action", 1, 1, 0, 0, 'fulldayend', 'dtChangeNextDateAction');
+		print '<span style="font-size: 12px">Необхідно часу  </span><input type="text" class="param exec_time" size="2" id = "exec_time_dateNextAction" name="exec_time_dateNextAction"><span style="font-size: 12px"> хвилин.</span></td></tr>';
 
+	}
+	if(!isset($_REQUEST['typeaction']) || $_REQUEST['typeaction'] != 'subaction' )
+		print '<style> #aphour, #apmin, #apButtonNow {display: none} </style>';
+	else
+		print '<input id="typeaction" type="hidden" value="subaction" name="typeaction">';
 	// Date end
     if (GETPOST('datef','int',1)) $datef=dol_stringtotime(GETPOST('datef','int',1),0);
 	if (empty($datef) && ! empty($datep) && ! empty($conf->global->AGENDA_AUTOSET_END_DATE_WITH_DELTA_HOURS))
 	{
 		$datef=dol_time_plus_duree($datep, $conf->global->AGENDA_AUTOSET_END_DATE_WITH_DELTA_HOURS, 'h');
 	}
-	print '<tr><td><span id="dateend"'.(GETPOST("actioncode") == 'AC_RDV'?' class="fieldrequired"':'').'>'.$langs->trans("DateActionEnd").'</span></td><td>';
+	print '<tr style="display: none"><td><span id="dateend"'.(GETPOST("actioncode") == 'AC_RDV'?' class="fieldrequired"':'').'>'.$langs->trans("DateActionEnd").'</span></td><td>';
 	if (GETPOST("afaire") == 1) $form->select_date($datef,'p2',1,1,1,"action",1,1,0,0,'fulldayend');
 	else if (GETPOST("afaire") == 2) $form->select_date($datef,'p2',1,1,1,"action",1,1,0,0,'fulldayend');
 	else $form->select_date($datef,'p2',1,1,1,"action",1,1,0,0,'fulldayend');
 	print '</td></tr>';
 
 	// Status
-	print '<tr><td width="10%">'.$langs->trans("Status").'</td>';
+	print '<tr style="display: none"><td width="10%">'.$langs->trans("Status").'</td>';
 	print '<td>';
 	$percent=-1;
 	if (isset($_GET['status']) || isset($_POST['status'])) $percent=GETPOST('status');
@@ -1138,47 +1263,6 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 	}
 	$formactions->form_select_status_action('formaction',$percent,1,'complete');
 	print '</td></tr>';
-
-
-	// Assigned to
-	print '<tr><td class="nowrap">'.$langs->trans("ActionAffectedTo").'</td><td style="vertical-align:top">';
-	$listofuserid=array();
-//	var_dump(empty($donotclearsession));
-//	die();
-	if (empty($donotclearsession))
-	{
-		$assignedtouser=GETPOST("assignedtouser")?GETPOST("assignedtouser"):(! empty($object->userownerid) && $object->userownerid > 0 ? $object->userownerid : $user->id);
-		if ($assignedtouser) $listofuserid[$assignedtouser]=array('id'=>$assignedtouser,'mandatory'=>0,'transparency'=>$object->transparency);	// Owner first
-		$_SESSION['assignedtouser']=dol_json_encode($listofuserid);
-	}
-	elseif (!empty($_SESSION['assignedtouser']))
-	{
-		$listofuserid=dol_json_decode($_SESSION['assignedtouser'], true);
-	}
-
-
-	if(isset($_REQUEST["duplicate_action"])) {//if duplicate action, change author action
-		$listofuserid[$user->id] = $listofuserid[array_keys($listofuserid)[0]];
-		$listofuserid[$user->id]['id']=$user->id;
-		foreach (array_keys($listofuserid) as $key) {
-			if ($key != $user->id) {
-				unset($listofuserid[$key]);
-			}
-		}
-		$_SESSION['assignedtouser'] = dol_json_encode($listofuserid);
-
-		$userlist=dol_json_decode($_SESSION['assignedtouser'], true);
-
-		if(!isset($userlist[array_keys($userlist)[0]]["mandatory"])) {
-			$_SESSION['assignedtouser'] = '{"' . $user->id . '":{"id":"' . $user->id . '","mandatory":0,"transparency":null}}';
-		}
-	}
-
-	print $form->select_dolusers_forevent(($action=='create'?'add':'update'), 'assignedtouser', 1, '', 0, '', '', 0, 0, 0, 'AND u.statut != 0', 0, 1, 1);
-
-	if (in_array($user->id,array_keys($listofuserid))) print $langs->trans("MyAvailability").': <input id="transparency" type="checkbox" name="transparency"'.(((! isset($_GET['transparency']) && ! isset($_POST['transparency'])) || GETPOST('transparency'))?' checked="checked"':'').'> '.$langs->trans("Busy");
-	print '</td></tr>';
-
 	// Realised by
 	if (! empty($conf->global->AGENDA_ENABLE_DONEBY))
 	{
@@ -1186,30 +1270,7 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 		print $form->select_dolusers(GETPOST("doneby")?GETPOST("doneby"):(! empty($object->userdoneid) && $percent==100?$object->userdoneid:0),'doneby',1);
 		print '</td></tr>';
 	}
-	//GroupOfTask
-	print '<tr><td width="10%">'.$langs->trans("GroupOfTask").'</td>';
-	print '<td>';
-	$percent=-1;
-	$respon = array();
 
-	if(count($listofuserid) == 1) {
-		$respon[] = $user->respon_id;
-		$formactions->select_groupoftask('groupoftask', $respon, GETPOST('groupoftask'));
-	}else{
-		$assigneduser = new User($db);
-		foreach($listofuserid as $id_usr){
-			if($id_usr['id'] != $user->id){
-				$assigneduser->fetch($id_usr['id']);
-				if(!in_array($assigneduser->respon_id,$respon))
-					$respon[]=$assigneduser->respon_id;
-			}
-		}
-//		var_dump($respon);
-//		die();
-		$formactions->select_groupoftask('groupoftask', $respon, GETPOST('groupoftask'));
-	}
-
-	print '</td></tr>';
 	//type notification
 	print '<tr id="typenotification" style="display: none"><td width="10%">'.$langs->trans("TypeNotification").'</td>';
 	print '<td>';
@@ -1220,9 +1281,7 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 //		print '<tr id="period"><td>'.$langs->trans("Period").'</td><td colspan="3"></td></tr>';
 	print '<tr id="period"><td>'.$langs->trans("Period").'</td><td colspan="3">'.$form->select_period('selperiod', $object->period).'</td></tr>';
 
-		print '<tr><td class="nowrap">Попередньо виконати до</td><td colspan="3">';
-		$form->select_date($datep?$datep:$object->datep,'preperform',0,0,0,"action",1,0,0,0,'fulldaystart');
-		print '</td></tr>';
+
 	print '</table>';
 	print '<br>';
 	print '<table class="border" width="100%">';
@@ -1294,72 +1353,6 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 	print '<tr><td class="nowrap">'.$langs->trans("Priority").'</td><td colspan="3">';
 	print '<input type="text" id="priority" name="priority"  class="param_item" value="'.(GETPOST('priority')?GETPOST('priority'):($object->priority?$object->priority:'')).'" size="5">';
 	print '</td></tr>';
-
-    // ActionDescription
-    print '<tr><td valign="top">'.$langs->trans("ActionDescription").'</td><td>';
-    require_once DOL_DOCUMENT_ROOT.'/core/class/doleditor.class.php';
-    $doleditor=new DolEditor('note',(GETPOST('note')?GETPOST('note'):$object->note),'',180,'dolibarr_notes','In',true,true,$conf->fckeditor->enabled,ROWS_6,90);
-    $doleditor->Create();
-    print '</td></tr>';
-
-    // Note
-    print '<tr><td valign="top">'.$langs->trans("Note").': що зробить, кінцева мета, підтвердження</td><td>';
-//    print '<script>
-//        $(function(){
-//                $("#confirmdoc").autocomplete({
-//                //Определяем обратный вызов к результатам форматирования
-//                source: function(req, add){
-//
-//                    //Передаём запрос на сервер
-//                    $.getJSON("autocomplete.php?callback=?", req, function(data) {
-//                        if(data == null){
-//                            $("#confirmdoc").val(req["term"]);
-//        //                    console.log($("#confirmdoc").val());
-//                            add(null);
-//                            return;
-//                        }
-//                        //Создаем массив для объектов ответа
-//                        var suggestions = [];
-//                        //Обрабатываем ответ
-//                        $.each(data, function(i, val){
-//                            suggestions.push(val.name);
-//                        });
-//
-//                        //Передаем массив обратному вызову
-//                        add(suggestions);
-//                    });
-//                },
-//
-//                //Определяем обработчик селектора
-//                select: function(e, ui) {
-//                    $("#confirmdoc").value = ui.item.value;
-//                    console.log($("#confirmdoc").val());
-//                    $(".ui-helper-hidden-accessible").remove();
-//    //                        //Создаем форматированную переменную cust_name
-//    //                        var cust_name = ui.item.value,
-//    //                                        span = $("<span>").text(cust_name),
-//    //                                        a = $("<a>").addClass("remove").attr({
-//    //                                            href: "javascript:",
-//    //                                            title: "Remove " + cust_name
-//    //                                        }).text("x").appendTo(span);
-//    //
-//    //                                    //Добавляем cust_name к div cust_name
-//    //                                    span.insertBefore("#confirmdoc");
-//                },
-//
-//                //Определяем обработчик выбора
-//                change: function() {
-//                    //Сохраняем поле "Наименование" без изменений и в правильной позиции
-//    //                        $("#confirmdoc").val("").css("top", 2);
-//                }
-//            });
-//        });
-//		</script>
-//    ';
-//    print '<input type="text" id="confirmdoc" name="confirmdoc" size="50" value="">
-//        <img class="hideonsmartphone" border="0" title="" alt="" src="/dolibarr/htdocs/theme/eldy/img/info.png">';
-    print $form->select_confirmdoc();
-    print '</td></tr>';
     // Other attributes
     $parameters=array('id'=>$object->id);
     $reshook=$hookmanager->executeHooks('formObjectOptions',$parameters,$object,$action);    // Note that $action and $object may have been modified by hook
@@ -1506,6 +1499,7 @@ if ($id > 0)
 		print '<form id = "formaction" name="formaction" action="'.$_SERVER['PHP_SELF'].'" method="POST">';
 		print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
 		print '<input type="hidden" name="socid" value="'.$_REQUEST["socid"].'">';
+		print '<input type="hidden" name="type" id="type" value="">';
 		if(!isset($_REQUEST["duplicate_action"])) {
 			print '<input type="hidden" name="action" value="update">';
 			print '<input type="hidden" name="id" value="' . $id . '">';
@@ -1542,48 +1536,6 @@ if ($id > 0)
 			$datep = time();
 			$datef = $datep;
 		}
-
-        // Full day event
-        print '<tr><td>'.$langs->trans("EventOnFullDay").'</td><td colspan="3"><input type="checkbox" id="fullday" name="fullday" '.($object->fulldayevent?' checked="checked"':'').'></td></tr>';
-
-		// Date start
-		print '<tr><td class="nowrap"><span class="fieldrequired">'.$langs->trans("DateActionStart").'</span></td><td colspan="3">';
-		if (GETPOST("afaire") == 1) $form->select_date($datep?$datep:$object->datep,'ap',1,1,0,"action",1,1,0,0,'fulldaystart');
-		else if (GETPOST("afaire") == 2) $form->select_date($datep?$datep:$object->datep,'ap',1,1,1,"action",1,1,0,0,'fulldaystart');
-		else $form->select_date($datep?$datep:$object->datep,'ap',1,1,1,"action",1,1,0,0,'fulldaystart');
-		print '<span style="font-size: 12px">Необхідно часу  </span><input type="text" class="param" size="2" id = "exec_time" name="exec_time" value="'.((int)($object->datef-$object->datep)/60).'"><span style="font-size: 12px"> хвилин.</span></td></tr>';
-		print '</td></tr>';
-		// Date end
-		print '<tr><td>'.$langs->trans("DateActionEnd").'</td><td colspan="3">';
-		if (GETPOST("afaire") == 1) $form->select_date($datef?$datef:$object->datef,'p2',1,1,1,"action",1,1,0,0,'fulldayend');
-		else if (GETPOST("afaire") == 2) $form->select_date($datef?$datef:$object->datef,'p2',1,1,1,"action",1,1,0,0,'fulldayend');
-		else $form->select_date($datef?$datef:$object->datef,'p2',1,1,1,"action",1,1,0,0,'fulldayend');
-		print '</td></tr>';
-
-		// Status
-		print '<tr><td class="nowrap">'.$langs->trans("Status").' / '.$langs->trans("Percentage").'</td><td colspan="3">';
-		$percent=GETPOST("percentage")?GETPOST("percentage"):$object->percentage;
-		if(isset($_REQUEST["duplicate_action"]))
-			$percent = -1;
-		$formactions->form_select_status_action('formaction',$percent,1);
-		print '</td></tr>';
-		// Period
-//    if (GETPOST("actioncode") == "AC_GLOBAL")
-//    {
-//    var_dump((GETPOST("actioncode") != "AC_GLOBAL"));
-//        die(GETPOST("actioncode"));
-//		echo '<pre>';
-//		var_dump($_SESSION['assignedtouser']);
-//		echo '</pre>';
-//		die();
-		print '<tr id="period"><td>'.$langs->trans("Period").'</td><td colspan="3">'.$form->select_period('selperiod', $object->period).'</td></tr>';
-//    }
-        // Location
-	    if (empty($conf->global->AGENDA_DISABLE_LOCATION))
-	    {
-			print '<tr><td>'.$langs->trans("Location").'</td><td colspan="3"><input type="text" name="location" size="50" value="'.$object->location.'"></td></tr>';
-	    }
-
 		// Assigned to
 		print '<tr><td class="nowrap">'.$langs->trans("ActionAssignedTo").'</td><td colspan="3">';
 		$listofuserid=array();
@@ -1609,16 +1561,10 @@ if ($id > 0)
 			}
 		}
 		print $form->select_dolusers_forevent(($action=='create'?'add':'update'), 'assignedtouser', 1, '', 0, '', '', 0, 0, 0, 'AND u.statut != 0');
-		if (in_array($user->id,array_keys($listofuserid))) print $langs->trans("MyAvailability").':  <input id="transparency" type="checkbox" name="transparency"'.($listofuserid[$user->id]['transparency']?' checked="checked"':'').'">'.$langs->trans("Busy");
+//		if (in_array($user->id,array_keys($listofuserid))) print $langs->trans("MyAvailability").':  <input id="transparency" type="checkbox" name="transparency"'.($listofuserid[$user->id]['transparency']?' checked="checked"':'').'">'.$langs->trans("Busy");
 		print '</td></tr>';
-
-		// Realised by
-		if (! empty($conf->global->AGENDA_ENABLE_DONEBY))
-		{
-			print '<tr><td class="nowrap">'.$langs->trans("ActionDoneBy").'</td><td colspan="3">';
-			print $form->select_dolusers($object->userdoneid> 0?$object->userdoneid:-1,'doneby',1);
-			print '</td></tr>';
-		}
+        // Full day event
+        print '<tr style="display: none"><td>'.$langs->trans("EventOnFullDay").'</td><td colspan="3"><input type="checkbox" id="fullday" name="fullday" '.($object->fulldayevent?' checked="checked"':'').'></td></tr>';
 		//GroupOfTask
 		print '<tr><td width="10%">'.$langs->trans("GroupOfTask").'</td>';
 		print '<td>';
@@ -1641,6 +1587,80 @@ if ($id > 0)
 			}
 			$formactions->select_groupoftask('groupoftask', $respon, $object->groupoftask);
 		}
+        // Description
+        print '<tr><td valign="top">'.$langs->trans("Description").'</td><td colspan="3">';
+        // Editeur wysiwyg
+        require_once DOL_DOCUMENT_ROOT.'/core/class/doleditor.class.php';
+        $doleditor=new DolEditor('note',$object->note,'',240,'dolibarr_notes','In',true,true,$conf->fckeditor->enabled,ROWS_5,90);
+        $doleditor->Create();
+        print '</td></tr>';
+		// Note
+		print '<tr><td valign="top">'.$langs->trans("Note").': що зробить, кінцева мета, підтвердження</td><td>';
+//		echo '<pre>';
+//		var_dump($object);
+//		echo '</pre>';
+//		die();
+		print $form->select_confirmdoc('confirmdoc',$object->confirmdoc);
+		print '</td></tr>';
+		if($object->entity == 1) {
+			print '<tr><td class="nowrap">Попередньо виконати до</td><td colspan="3">';
+			$form->select_date($datepreperform ? $datepreperform->format('Y-m-d') : $object->datepreperform->format('Y-m-d'), 'preperform', 0, 0, 0, "action", 1, 0, 0, 0, 'fulldaystart');
+			print '</td></tr>';
+		}
+		// Date start
+		if($object->entity == 1)
+			print '<tr><td class="nowrap"><span class="fieldrequired">'.$langs->trans("DateActionStart").'</span></td><td colspan="3">';
+		elseif($object->entity == 0)
+			print '<td width="30%" class="nowrap"><span class="fieldrequired">'.$langs->trans("DateAction").'</span></td><td>';
+
+		if (GETPOST("afaire") == 1) $form->select_date($datep?$datep:$object->datep,'ap',1,1,0,"action",1,1,0,0,'fulldaystart');
+		else if (GETPOST("afaire") == 2) $form->select_date($datep?$datep:$object->datep,'ap',1,1,1,"action",1,1,0,0,'fulldaystart');
+		else $form->select_date($datep?$datep:$object->datep,'ap',1,1,1,"action",1,1,0,0,'fulldaystart');
+		print '<span style="font-size: 12px">Необхідно часу  </span><input type="text" class="param" size="2" id = "exec_time" name="exec_time" value="'.((int)($object->datef-$object->datep)/60).'"><span style="font-size: 12px"> хвилин.</span></td></tr>';
+		print '</td></tr>';
+		if($object->entity == 1)
+			print '<style> #aphour, #apmin, #apButtonNow {display: none} </style>';
+		else
+			print '<input id="typeaction" type="hidden" value="subaction" name="typeaction">';
+		// Date end
+		print '<tr style="display: none"><td>'.$langs->trans("DateActionEnd").'</td><td colspan="3">';
+		if (GETPOST("afaire") == 1) $form->select_date($datef?$datef:$object->datef,'p2',1,1,1,"action",1,1,0,0,'fulldayend');
+		else if (GETPOST("afaire") == 2) $form->select_date($datef?$datef:$object->datef,'p2',1,1,1,"action",1,1,0,0,'fulldayend');
+		else $form->select_date($datef?$datef:$object->datef,'p2',1,1,1,"action",1,1,0,0,'fulldayend');
+		print '</td></tr>';
+		if($object->entity == 1) {
+			// Status
+			print '<tr><td class="nowrap">' . $langs->trans("Status") . ' / ' . $langs->trans("Percentage") . '</td><td colspan="3">';
+			$percent = GETPOST("percentage") ? GETPOST("percentage") : $object->percentage;
+			if (isset($_REQUEST["duplicate_action"]))
+				$percent = -1;
+			$formactions->form_select_status_action('formaction', $percent, 1);
+			print '</td></tr>';
+		}
+		// Period
+//    if (GETPOST("actioncode") == "AC_GLOBAL")
+//    {
+//    var_dump((GETPOST("actioncode") != "AC_GLOBAL"));
+//        die(GETPOST("actioncode"));
+//		echo '<pre>';
+//		var_dump($_SESSION['assignedtouser']);
+//		echo '</pre>';
+//		die();
+		print '<tr id="period"><td>'.$langs->trans("Period").'</td><td colspan="3">'.$form->select_period('selperiod', $object->period).'</td></tr>';
+//    }
+//        // Location
+//	    if (empty($conf->global->AGENDA_DISABLE_LOCATION))
+//	    {
+//			print '<tr><td>'.$langs->trans("Location").'</td><td colspan="3"><input type="text" name="location" size="50" value="'.$object->location.'"></td></tr>';
+//	    }
+		// Realised by
+		if (! empty($conf->global->AGENDA_ENABLE_DONEBY))
+		{
+			print '<tr><td class="nowrap">'.$langs->trans("ActionDoneBy").'</td><td colspan="3">';
+			print $form->select_dolusers($object->userdoneid> 0?$object->userdoneid:-1,'doneby',1);
+			print '</td></tr>';
+		}
+
 		//type notification
 		print '<tr id="typenotification" style="display: none"><td width="10%">'.$langs->trans("TypeNotification").'</td>';
 		print '<td>';
@@ -1652,9 +1672,6 @@ if ($id > 0)
 		if(empty($datepreperform)){
 			$datepreperform = new DateTime();
 		}
-		print '<tr><td class="nowrap">Попередньо виконати до</td><td colspan="3">';
-		$form->select_date($datepreperform?$datepreperform->format('Y-m-d'):$object->datepreperform->format('Y-m-d'),'preperform',0,0,0,"action",1,0,0,0,'fulldaystart');
-		print '</td></tr>';
 		print '</table>';
 
 		print '<br><br>';
@@ -1707,15 +1724,6 @@ if ($id > 0)
 			print '<tr><td>'.$langs->trans("LinkedObject").'</td>';
 			print '<td colspan="3">'.dolGetElementUrl($object->fk_element,$object->elementtype,1).'</td></tr>';
 		}
-
-        // Description
-        print '<tr><td valign="top">'.$langs->trans("Description").'</td><td colspan="3">';
-        // Editeur wysiwyg
-        require_once DOL_DOCUMENT_ROOT.'/core/class/doleditor.class.php';
-        $doleditor=new DolEditor('note',$object->note,'',240,'dolibarr_notes','In',true,true,$conf->fckeditor->enabled,ROWS_5,90);
-        $doleditor->Create();
-        print '</td></tr>';
-
         // Other attributes
         $parameters=array('colspan'=>' colspan="3"', 'colspanvalue'=>'3', 'id'=>$object->id);
         $reshook=$hookmanager->executeHooks('formObjectOptions',$parameters,$object,$action);    // Note that $action and $object may have been modified by hook
@@ -2041,6 +2049,7 @@ print "<script>
 print '
  <script type="text/javascript">
         $(document).ready(function(){
+
         	$.cookie("ChangeDate", false);
         	$("#actioncode").removeClass("flat");
             $("#actioncode").addClass("combobox");
@@ -2056,15 +2065,16 @@ print '
 //				$("#addassignpanel").offset({top:$("#updateassignedtouser").offset().top-27,left:663});
 //            console.log();
 //            return;
-//			console.log($("#updateassignedtouser").length);
-
-            ActionCodeChanged();
-
+//			console.log("'.$action.'"!="edit", "testoo");
+			if("'.$action.'"!="edit")
+            	ActionCodeChanged();
             $("#assignedtouser").width(350);
             if($("#addassignedtouser").length>0)
             	$("#addassignpanel").offset({top:$("#addassignedtouser").offset().top-1,left:717});
-			else if($("#updateassignedtouser").length>0){
-				$("#addassignpanel").offset({top:$("#updateassignedtouser").offset().top-42,left:663});
+			if($("#updateassignedtouser").length>0){
+				$("#addassignpanel").css("top", $("#updateassignedtouser").offset().top-93);
+				$("#addassignpanel").css("left", $("#updateassignedtouser").offset().left+155);
+//				 ({top:$("#updateassignedtouser").offset().top-42,left:663});
 
 			}
             $("a#sendSMS").attr("id", "addAssignedUsers");
@@ -2085,6 +2095,7 @@ print '
 			$("#assegnedusers").prepend($("<option value='.getUsersByRespon('purchase').'>Постачальники</option>"));
 			$("#assegnedusers").prepend($("<option value='.getUsersByRespon('sale').'>Торгівельні агенти</option>"));
 			$("#assegnedusers").prepend($("<option value='.getUsersByRespon('dir_depatment').'>Директори департаментів</option>"));
+			$("#assegnedusers").prepend($("<option value='.getUsersByRespon('senior_manager').'>Старший відділу</option>"));
 			$("#addAssignedUsersForm").find("select").width(500);
             $(".tabBar").width(800);
             $("#event_desc").on("click", redirect);
@@ -2129,33 +2140,23 @@ print '
         function dpChangeDay(id, format){
 //        	return;
         	console.log("test");
-            if(id == "ap"){
-                $("#p2").val($("#ap").val())
-                $("#apday").val($("#ap").val().substr(0,2));
-                $("#apmonth").val($("#ap").val().substr(3,2));
-                $("#apyear").val($("#ap").val().substr(6,4));
-                $("#p2day").val($("#apday").val());
-                $("#p2month").val($("#apmonth").val());
-                $("#p2year").val($("#apyear").val());
+            if(id == ""+id+""){
+                $("#p2").val($("#"+id+"").val())
+                $("#"+id+"day").val($("#"+id+"").val().substr(0,2));
+                $("#"+id+"month").val($("#"+id+"").val().substr(3,2));
+                $("#"+id+"year").val($("#"+id+"").val().substr(6,4));
+                if(id == "ap"){
+					$("#p2day").val($("#"+id+"day").val());
+					$("#p2month").val($("#"+id+"month").val());
+					$("#p2year").val($("#"+id+"year").val());
+                }
                 if($("#showform").val()!=0){
-				var date = new Date($("#ap").val().substr(6,4), $("#ap").val().substr(3,2), $("#ap").val().substr(0,2));
-				var today = new Date();
-				if(date>today){
-					$("select#aphour").val("00");
-					$("select#apmin").val("00");
-				}
-
-//                	var Date2 = new Date($("#p2year").val(),
-//                						($("#p2month").val().substr(0,1)=="0"?$("#p2month").val().substr(1):$("#p2month").val()),
-//                						($("#p2day").val().substr(0,1)=="0"?$("#p2day").val().substr(1):$("#p2day").val()),
-//                						($("#p2hour").val().substr(0,1)=="0"?$("#p2hour").val().substr(1):$("#p2hour").val()),
-//                						($("#p2min").val().substr(0,1)=="0"?$("#p2min").val().substr(1):$("#p2min").val()),
-//                						0);
-//					var minute = (Date2.getTime()-Date1.getTime())/ (1000*60);
-//					console.log($("#exec_time").val());
-//					return;
-//                	var link = "http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=get_freetime&minute="+$("#exec_time").val()+"&date="+$("#apyear").val()+"-"+$("#apmonth").val()+"-"+$("#apday").val()+"&id_usr='.$user->id.'&actioncode="+$("select#actioncode").val();
-//            		setTime(link);
+					var date = new Date($("#"+id+"").val().substr(6,4), $("#"+id+"").val().substr(3,2), $("#"+id+"").val().substr(0,2));
+					var today = new Date();
+					if(date>today){
+						$("select#"+id+"hour").val("00");
+						$("select#"+id+"min").val("00");
+					}
                 }else{
                 	$("#showform").val(1);
                 }
@@ -2163,22 +2164,23 @@ print '
 //            console.log(getParameterByName("action") != "edit", $.cookie("ChangeDate") == "true");
             if(getParameterByName("action") != "edit" || $.cookie("ChangeDate") == "true"){
 //				setP2(0);
-				CalcP($("#ap").val()+" "+$("select#aphour").val()+":"+$("select#apmin").val(), $("#exec_time").val(), ' . $user->id . ');//Розрахунок часу початку дії
+				CalcP($("#"+id+"").val()+" "+$("select#"+id+"hour").val()+":"+$("select#"+id+"min").val(), $("#exec_time_"+id).val(), ' . $user->id . ', id);//Розрахунок часу початку дії
             }
         }
         $("button").click(function(e){
         	$.cookie("ChangeDate", true);
         	console.log("set ChangeDate");
         })
-        $("#exec_time").keypress(function(e){
+        $(".exec_time").keypress(function(e){
         	if(e.keyCode == 13){
-				CalcP2();
+				CalcP2(e.target.id);
         		return false;
 			}
 //        	console.log(e.keyCode == 13);
         })
         function setP2(showalert){
         	console.log("setP2");
+
             if($("select#actioncode").val() == 0) return;
             else if($("select#actioncode").val()!=0){
             	console.log($("select#aphour").val() == -1 && $("select#apmin").val() == -1);
@@ -2195,8 +2197,9 @@ print '
 					url:link,
 					cache: false,
 					success: function(html){
-						$("#exec_time").val(html);
-						console.log($("#p2day").val(),$("#p2month").val(),$("#p2year").val());
+						$("#exec_time_ap").val(html);
+						if(("#exec_time_dateNextAction").length>0)
+							$("#exec_time_dateNextAction").val(html);
 						var hour = '.date('H').';
 						var min = '.date('i').';
 						if(hour<10)
@@ -2205,13 +2208,14 @@ print '
 							min = "0"+min;
 						$("select#aphour").val(hour);
 						$("select#apmin").val(min);
-						CalcP($("#apyear").val()+"-"+$("#apmonth").val()+"-"+$("#apday").val()+" "+$("#aphour").val()+":"+$("#apmin").val(), $("#exec_time").val(), '.$user->id.');
+
 						$("select#aphour").bind("change", ApHourChanged);
 						$("select#apmin").bind("change", ApHourChanged);
 						$("#p2").val($("#ap").val())
 						$("#apday").val($("#ap").val().substr(0,2));
 						$("#apmonth").val($("#ap").val().substr(3,2));
 						$("#apyear").val($("#ap").val().substr(6,4));
+						CalcP($("#apyear").val()+"-"+$("#apmonth").val()+"-"+$("#apday").val()+" "+$("#aphour").val()+":"+$("#apmin").val(), $("#exec_time_ap").val(), '.$user->id.', "ap");
 						$("#p2day").val($("#apday").val());
 						$("#p2month").val($("#apmonth").val());
 						$("#p2year").val($("#apyear").val());
@@ -2243,8 +2247,6 @@ print '
                 $("#apday").val(day);
                 $("#apmonth").val(month);
                 $("#apyear").val(year);
-
-
                 $("#ap").val((day<10 ? "0" : "") + day+"."+(month<10 ? "0" : "") + month+"."+year);
             }
 ////            console.log($("#aphour").val() ,$("#apmin").val());
@@ -2280,8 +2282,8 @@ print '
 
 					return !!(a==0||a==8||a==9||a==13||c.match(C));
 			});
-			$("#exec_time").blur(function(e){
-				CalcP2();
+			$("#exec_time_ap").blur(function(e){
+				CalcP2(e.target.id);
 			});
 
         </script>';
@@ -2289,15 +2291,25 @@ print '
 
 $db->close();
 exit();
+function getActionStatus($action_id){
+	global $db;
+	$sql = "select percent from llx_actioncomm where id = ".$action_id;
+	$res = $db->query($sql);
+	if(!$res)
+		dol_print_error($db);
+	$obj = $db->fetch_object($res);
+	return $obj->percent;
+}
 function getUsersByRespon($respon)
 {
 	global $db;
 	$sql = "select `llx_user`.`rowid` from llx_user
 		inner join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
+		inner join `responsibility` res2 on `res2`.`rowid`=`llx_user`.`respon_id2`
 		where 1
 		and `responsibility`.active = 1
 		and `llx_user`.`active`=1
-		and `responsibility`.`alias`='" .$respon . "'";
+		and (`responsibility`.`alias`='" .$respon . "' or res2.`alias`='" .$respon . "')";
 	$res = $db->query($sql);
 	$rowidList = array();
 	while ($obj = $db->fetch_object($res)) {

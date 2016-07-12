@@ -13,39 +13,48 @@
     <?}else{?>
     <table id="headercontrol" style="background-color: #ffffff">
         <tr>
-            <td><b>Категорія контрагента</b></td>
-            <td><?= $societe->getCategoryOfCustomer();?></td>
+            <td <?=$style?>><b>Категорія контрагента</b></td>
+            <td <?=$style?>><?= $societe->getCategoryOfCustomer();?></td>
             <td><b>Заголовок</b></td>
             <td><?=$object->label?></td>
             <td><b>Статус</b></td>
             <td><?=$_REQUEST['actioncode']=='AC_TEL'?$formactions->form_select_callstatus('callstatus', empty($object->callstatus)?2:$object->callstatus):$formactions->form_select_status_action('formaction',$percent,1,'complete');?></td>
         </tr>
         <tr>
-            <td><b>Назва контрагента</b></td>
-            <td><?= $societe->name?></td>
+            <td <?=$style?>><b>Назва контрагента</b></td>
+            <td <?=$style?>><?= $societe->name?></td>
             <td><b>Тип дії</b></td>
             <td><?=$langs->trans($object->type)?></td>
-            <td></td>
-            <td></td>
+            <td <?=$style?>><b>Запланована</br>дата початку дії</br></td>
+            <td <?=$style?>><?=$form->select_date($Actions->datep,'ap',1,1,0,"action",1,1,0,0,'fulldayend')?></td>
+            <?if(!empty($style)){?>
+                <td></td>
+                <td></td>
+            <?}?>
         </tr>
         <tr>
-            <td><b>Форма правління</b></td>
-            <td><?=$societe->getFormOfGoverment();?></td>
-            <td><b>Контакт</b></td>
-            <td><?=$societe->getContactname($object->contactid)?></td>
-            <td></td>
-            <td></td>
+            <td <?=$style?>><b>Форма правління</b></td>
+            <td <?=$style?>><?=$societe->getFormOfGoverment();?></td>
+            <td ><b>Контакт</b></td>
+            <td ><?=(!empty($object->contactid)||!empty($_GET['socid'])?$societe->getContactname($object->contactid):$Actions->getAssignedUser($_GET["action_id"]))?></td>
+            <td <?=$style?> id="PlanTimeTitle"></td>
+            <td <?=$style?> id="PlanTimeResult"></td>
+            <?if(!empty($style)){?>
+                <td></td>
+                <td></td>
+            <?}?>
         </tr>
     </table>
     <?}?>
 </div>
 
-</br>
+</br></br>
 <div  id="ActionList">
     <form id="addaction" action="" method="post">
         <input id="backtopage" type="hidden" value="<?=$_GET['backtopage']?>" name="backtopage">
         <input id="rowid" name="rowid" type="hidden" value="<?=empty($object->resultaction['rowid'])?$object->rowid:$object->resultaction['rowid']?>">
         <input id="actionid" name="actionid" type="hidden" value="<?=$action_id?>">
+        <input id="newdate" name="newdate" type="hidden" value="">
         <input id="socid" name="socid" type="hidden" value="<?=isset($_REQUEST['onlyresult'])&&!empty($_REQUEST['onlyresult'])?$object->socid:$_REQUEST['socid']?>">
         <input id="mainmenu" name="mainmenu" type="hidden" value="<?=$_GET['mainmenu']?>">
         <input type="hidden" value="<?=$_GET['actioncode']?>" name="actioncode">
@@ -101,8 +110,59 @@
         <button onclick="back();">Відмінити</button>
     </div>
 </div>
-
+<style>
+    #datepButtonNow{
+        display: none;
+    }
+</style>
 <script>
+    function dpChangeDay(id, format){
+//        	return;
+        console.log(id);
+        if(id == "datep"){
+            $("#apday").val($("#ap").val().substr(0,2));
+            $("#apmonth").val($("#ap").val().substr(3,2));
+            $("#apyear").val($("#ap").val().substr(6,4));
+
+            if($("#showform").val()!=0){
+            var date = new Date($("#ap").val().substr(6,4), $("#ap").val().substr(3,2), $("#ap").val().substr(0,2));
+            var today = new Date();
+            if(date>today){
+                $("select#aphour").val("00");
+                $("select#apmin").val("00");
+            }
+
+//                	var Date2 = new Date($("#p2year").val(),
+//                						($("#p2month").val().substr(0,1)=="0"?$("#p2month").val().substr(1):$("#p2month").val()),
+//                						($("#p2day").val().substr(0,1)=="0"?$("#p2day").val().substr(1):$("#p2day").val()),
+//                						($("#p2hour").val().substr(0,1)=="0"?$("#p2hour").val().substr(1):$("#p2hour").val()),
+//                						($("#p2min").val().substr(0,1)=="0"?$("#p2min").val().substr(1):$("#p2min").val()),
+//                						0);
+//					var minute = (Date2.getTime()-Date1.getTime())/ (1000*60);
+//					console.log($("#exec_time").val());
+//					return;
+//                	var link = "http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=get_freetime&minute="+$("#exec_time").val()+"&date="+$("#apyear").val()+"-"+$("#apmonth").val()+"-"+$("#apday").val()+"&id_usr='.$user->id.'&actioncode="+$("select#actioncode").val();
+//            		setTime(link);
+            }else{
+                $("#showform").val(1);
+            }
+        }
+//            console.log(getParameterByName("action") != "edit", $.cookie("ChangeDate") == "true");
+        if(getParameterByName("action") != "edit" || $.cookie("ChangeDate") == "true"){
+//				setP2(0);
+            $.ajax({
+                url:'?action=get_freetime&action_id='+getParameterByName('action_id')+'&id_usr=<?=$user->id?>&date='+$("#ap").val()+" 00:00",
+                cache:false,
+                success:function(result){
+                    var obj_res = JSON.parse(result);
+                    $('#PlanTimeTitle').html('<b>Запропонована</br>дата та час початку дії</b>')
+                    $('#PlanTimeResult').empty().html(obj_res.freetime);
+                    $('#newdate').val(obj_res.freetime);
+//                    CalcP(obj_res.freetime, obj_res.minute, '<?=$user->id?>');//Розрахунок часу початку дії
+                }
+            })
+        }
+    }
     $('textarea').keydown(function(e){
         if(e.keyCode == 9 &&e.target.value.length == 0){
             e.target.value='-';
@@ -121,12 +181,19 @@
         $("#eyescript").mask("~9.99 ~9.99 999");
     });
 </script>
+<style>
+    #aphour,#apmin{
+        display: none;
+    }
+</style>
 <script type="text/javascript">
     $(document).ready(function(){
         $('#said').focus();
         $("#ActionList").width(800);
         $("#addaction").width(800);
         $(".tabBar").width(800);
+        $('#apButtonNow').remove();
+        $('#apButton').parent().html($('#apButton').parent().html().replace(':',''));
         $("#event_desc").addClass('tabactive');
         if(getParameterByName('action')=='addonlyresult'){
             $('#answer').text('');
@@ -137,12 +204,19 @@
     })
     function back(){
         var link = $('#backtopage').val();
+        if(link.substr(0,1) == "'" && link.substr(link.length-1,1) == "'")
+            link = link.substr(1, link.length-2)
 //                console.log(link);
+//        return;
 //        link = 'http://'+location.hostname+link.substr(1, link.length-2);
         location.href = link;
     }
 
     function save(){
+        if($('#newdate').val().length>0) {
+            console.log($('#newdate').val());
+            confirm('Увага! Було замінено дату виконання дії, тому після зберігання результатів перемовин не буде встановлено статус "Виконано"');
+        }
         if($('#proposed_id').val() === undefined || confirm('Зберегти інформацію?')) {
             var valid = true;
             if('sale' == '<?=$user->respon_alias?>' || 'sale' == '<?=$user->respon_alias2?>')
@@ -225,6 +299,9 @@
         return valid;
     }
     function saveandcreate(){
+        if($('#newdate').val().length>0) {
+            confirm('Увага! Було замінено дату виконання дії, тому після зберігання результатів перемовин не буде встановлено статус "Виконано"');
+        }
         var valid = true;
         if('sale' == '<?=$user->respon_alias?>' || 'sale' == '<?=$user->respon_alias2?>')
             valid=validData();

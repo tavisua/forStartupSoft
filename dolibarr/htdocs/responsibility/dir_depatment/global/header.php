@@ -99,7 +99,6 @@ if($db->num_rows($res) > 0) {
     $Classifycation .='</table>';
 }
 $CreateCompany = $langs->trans('CreateCompany');
-
 include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/dir_depatment/global/header.html');
 return;
 

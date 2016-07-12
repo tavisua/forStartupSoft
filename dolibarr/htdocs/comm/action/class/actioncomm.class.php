@@ -104,6 +104,8 @@ class ActionComm extends CommonObject
     var $parent_id;     //Parent action id
     var $order_id;      //Linked order
     var $groupoftask;   //GroupOfTask
+    var $entity = 1;        //Використовую для визначення базової(первинної) дії
+// $conf->entity використовується, коли є декілька компаній. Тут буде використовуватись, 1 - коли створена головна дія. 0 - це піддія
 
 	var $transparency;	// Transparency (ical standard). Used to say if people assigned to event are busy or not by event. 0=available, 1=busy, 2=busy (refused events)
     var $priority;      // Small int (0 By default)
@@ -187,22 +189,71 @@ class ActionComm extends CommonObject
     function GetLastAction($action_id, $name){
         global $db;
         $sql = 'select id, datep from llx_actioncomm
-        inner join (select fk_parent rowid from llx_actioncomm where id='.$action_id.') parent on parent.rowid=llx_actioncomm.id';
+        inner join (select fk_parent rowid from llx_actioncomm where id='.$action_id.') parent on parent.rowid=llx_actioncomm.id
+        where active = 1';
         $res = $db->query($sql);
         if(!$res)
             dol_print_error($db);
         $result = $db->fetch_array($res);
+//        var_dump($sql);
+//        die();
         return $result[$name];
     }
-    function GetNextAction($action_id, $name){
+    function GetChainActions($action_id){
         global $db;
-        $sql = 'select id, datep from llx_actioncomm
-        where fk_parent='.$action_id;
+        $chain_actions = array();
+        $chain_actions[]=$action_id;
+        //Завантажую всі батьківські ІД
+
+        while($action_id = $this->GetLastAction($action_id, 'id')){
+            array_unshift($chain_actions, $action_id);
+        }
+        //Завантажую всі наступні ІД
+        while($tmp_ID = $this->GetNextAction($chain_actions, 'id')){
+            $added = false;
+            foreach($tmp_ID as $item) {
+                if(!in_array($item, $chain_actions)) {
+                    $added = true;
+                    $chain_actions[] = $item;
+                }
+            }
+            if(!$added)
+                break;
+        }
+    //    var_dump($chain_actions);
+    //    die();
+        return $chain_actions;
+    }
+    function getAssignedUser($action_id){
+        global $db;
+        $chain_actions = $this->GetChainActions($action_id);
+        $sql = "select distinct llx_user.rowid, llx_user.lastname, llx_user.firstname from llx_actioncomm
+            left join `llx_user` on `llx_user`.`rowid` = llx_actioncomm.fk_user_author
+            where id in (".implode(',', $chain_actions).")
+            order by lastname, firstname";
         $res = $db->query($sql);
         if(!$res)
             dol_print_error($db);
-        $result = $db->fetch_array($res);
-        return $result[$name];
+        $out = '<select id="assignUser" class="flat" name="assignUser">';
+        $out.='<option value="-1">Необхідно вибрати</option>';
+        while($obj = $db->fetch_object($res)){
+            $out.='<option value="'.$obj->rowid.'">'.$obj->lastname.' '.$obj->firstname.'</option>';
+        }
+        $out.='</select>';
+        return $out;
+    }
+    function GetNextAction($actions_id, $name){
+        global $db;
+        $sql = 'select id, datep from llx_actioncomm
+        where fk_parent in('.implode(',',$actions_id).')';
+        $sql.=' and active = 1';
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+        $out = array();
+        while($result = $db->fetch_array($res))
+            $out[] = $result[$name];
+        return $out;
     }
     function GetExecTime($code){
         global $db;
@@ -276,6 +327,8 @@ class ActionComm extends CommonObject
 
             $itemDate = dol_mktime(intval(substr($period[0], 0,2)), intval(substr($period[0], 3,2)), intval(substr($period[0], 6,2)), intval(substr($period[2], 6,2)), intval(substr($period[2], 8,2)), intval(substr($period[2], 0,4)));
             $dtDate = new DateTime();
+//            var_dump(intval(substr($period[0], 0,2)), intval(substr($period[0], 3,2)), intval(substr($period[0], 6,2)), intval(substr($period[2], 6,2)), intval(substr($period[2], 8,2)), intval(substr($period[2], 0,4)));
+//            die();
             $dtDate->setTimestamp($itemDate);
 //            var_dump($minutes<=$period[1] && ($itemDate >= $starttime || $num == count($freetime)) && $dtDate->format('H')>=8 && $dtDate->format('H')<=18 &&
 //                ($dtDate->format('H')>=12&& $dtDate->format('H')<14  && $dtDate->format('Y-m-d') == $date->format('Y-m-d')));
@@ -362,6 +415,7 @@ class ActionComm extends CommonObject
                 and (case when `llx_actioncomm_resources`.fk_element is null then `llx_actioncomm`.fk_user_author else `llx_actioncomm_resources`.fk_element end = ".$id_usr.")
             and `llx_actioncomm`.`priority` = ".(empty($prioritet)?0:$prioritet)."
             and `llx_actioncomm`.`active` = 1
+            and (`llx_actioncomm`.hide is null or `llx_actioncomm`.hide <> 1)
             order by `llx_actioncomm`.`datep`, `llx_actioncomm`.`datep2`";
 //        die($sql);
         $res = $db->query($sql);
@@ -513,7 +567,10 @@ class ActionComm extends CommonObject
     }
     function add($user,$notrigger=0)
     {
-
+//        echo '<pre>';
+//        var_dump($this);
+//        echo '</pre>';
+//        die();
         global $langs, $conf, $hookmanager;
 
         $error = 0;
@@ -654,7 +711,10 @@ class ActionComm extends CommonObject
             $sql .= "'" . $this->transparency . "',";
             $sql .= (!empty($this->fk_element) ? $this->fk_element : "null") . ",";
             $sql .= (!empty($this->elementtype) ? "'" . $this->elementtype . "'" : "null") . ",";
-            $sql .= $conf->entity . ",";
+// $conf->entity використовується, коли є декілька компаній. Тут буде використовуватись, 1 - коли створена головна дія. 0 - це піддія
+//            $sql .= $conf->entity . ",";
+            $sql .= $this->entity . ",";
+
             $sql .= "'" . $this->confirmdoc . "',";
             $sql .=  (!empty($this->period)?("'".$this->period."'"):"null") . ",";
             $sql .= "'" . $this->groupoftask . "',";
@@ -925,10 +985,10 @@ class ActionComm extends CommonObject
         $sql.= " a.fk_user_action, a.fk_user_done,";
         $sql.= " a.fk_contact, a.percent as percentage,";
         $sql.= " a.fk_element, a.elementtype,";
-        $sql.= " a.priority, a.fulldayevent, a.location, a.punctual, a.transparency,";
+        $sql.= " a.priority, a.entity, a.fulldayevent, a.location, a.punctual, a.transparency,";
         $sql.= " c.id as type_id, c.code as type_code, c.libelle,";
         $sql.= " s.nom as socname,";
-        $sql.= " u.firstname, u.lastname as lastname, a.period, a.typenotification";
+        $sql.= " u.firstname, u.lastname as lastname, a.period, a.confirmdoc, a.typenotification";
         $sql.= " FROM ".MAIN_DB_PREFIX."actioncomm as a ";
         $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."c_actioncomm as c ON a.fk_action=c.id ";
         $sql.= " LEFT JOIN ".MAIN_DB_PREFIX."user as u on u.rowid = a.fk_user_author";
@@ -939,7 +999,6 @@ class ActionComm extends CommonObject
 
         dol_syslog(get_class($this)."::fetch", LOG_DEBUG);
         $resql=$this->db->query($sql);
-
         if ($resql)
         {
         	$num=$this->db->num_rows($resql);
@@ -950,7 +1009,8 @@ class ActionComm extends CommonObject
                 $this->id        = $obj->id;
                 $this->ref       = $obj->ref;
                 $this->ref_ext   = $obj->ref_ext;
-
+                $this->confirmdoc = $obj->confirmdoc;
+                $this->entity = $obj->entity;
                 // Properties of parent table llx_c_actioncomm (will be deprecated in future)
                 $this->type_id   = $obj->type_id;
                 $this->type_code = $obj->type_code;

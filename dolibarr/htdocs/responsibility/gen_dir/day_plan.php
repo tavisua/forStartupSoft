@@ -618,7 +618,7 @@ function getRegionsList($id_usr){
             }
         }
 
-        $out.='<td colspan="2">'.(empty($obj->rowid)?'':'<a href="/dolibarr/htdocs/responsibility/sale/area.php?idmenu=10425&mainmenu=area&leftmenu=&state_filter=' . $obj->rowid . '" target="_blank">').$obj->name.(!empty($state_name)?' ('.$state_name.')':'').(empty($obj->rowid)?'':'</a>').'</td>';
+        $out.='<td colspan="2">'.(empty($obj->rowid)?'':'<a href="/dolibarr/htdocs/responsibility/sale/area.php?idmenu=10425&mainmenu=area&leftmenu=&id_usr='.$id_usr.'&state_filter=' . $obj->rowid . '" target="_blank">').$obj->name.(!empty($state_name)?' ('.$state_name.')':'').(empty($obj->rowid)?'':'</a>').'</td>';
         $out.='<td></td>';
         
 
@@ -661,8 +661,9 @@ function getRegionsList($id_usr){
             else
                 $out.='<td class="middle_size" style="text-align: center"></td>';
         }
+
         //Прострочено
-        $out.='<td class="middle_size" style="text-align: center; ">'.(isset($outstanding[$obj->rowid])?$outstanding[$obj->rowid]:0).'</td>';
+        $out.='<td id="outstanding'.$obj->rowid.'" style="text-align: center; cursor: pointer;" onclick="ShowOutStandingRegion('.$obj->rowid.', '.$id_usr.');">'.(isset($outstanding[$obj->rowid])?$outstanding[$obj->rowid]:0).'</td>';
 
         //майбутнє (план)
         for($i=0; $i<9; $i++){
@@ -1316,10 +1317,16 @@ function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $ti
     mysqli_data_seek($res,0);
     $out = '';
     $num = 0;
+    if($code == 'AC_GLOBAL')
+        $lnk = '/dolibarr/htdocs/global_plan.php?idmenu=10421&mainmenu=global_task&leftmenu=';
+    elseif($code == 'AC_CURRENT')
+        $lnk = '/dolibarr/htdocs/current_plan.php?idmenu=10423&mainmenu=current_task&leftmenu=';
+    elseif($code == 'AC_CUST')
+        $lnk = '/dolibarr/htdocs/responsibility/sale/area.php?idmenu=10425&mainmenu=area&leftmenu=';
     while($obj = $db->fetch_object($res)){
 //        $class_row = fmod($num,2)==0?'impare':'pare';
         $out.='<tr id="'.$class.$obj->rowid.'" class="'.$class.($bestuserID == $obj->rowid?' bestvalue ':'').' userlist '.$subdiv_id.$respon_alias.'">';
-        $out.='<td colspan="2">'.$obj->lastname.' '.mb_substr($obj->firstname, 0,1,'UTF-8').'.</td>';
+        $out.='<td colspan="2"><a href="'.$lnk.'&user_id='.$obj->rowid.'" target="_blank">'.$obj->lastname.' '.mb_substr($obj->firstname, 0,1,'UTF-8').'.</a></td>';
         if(in_array($code, array('AC_GLOBAL','AC_CURRENT'))||$respon_alias!='sale')
             $out.='<td></td>';
         else

@@ -112,7 +112,7 @@ function resetDP(base,dateFieldID,format,codelang)
 function loadMonth(base,month,year,ymd,codelang)
 {
 	/* showDP.box.innerHTML="Loading..."; */
-	// alert(codelang);
+	 //alert(codelang);
 	var theURL=base+"datepicker.php?cm=shw&lang="+codelang;
 	theURL+="&m="+encodeURIComponent(month);
 	theURL+="&y="+encodeURIComponent(year);
@@ -170,7 +170,7 @@ function dpChangeDay(dateFieldID,format)
 
 function dpClickDay(year,month,day,format)
 {
-
+	console.log(showDP.datefieldID);
 	var thefield=getObjectFromID(showDP.datefieldID);
 	var thefieldday=getObjectFromID(showDP.datefieldID+"day");
 	var thefieldmonth=getObjectFromID(showDP.datefieldID+"month");

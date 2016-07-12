@@ -54,10 +54,13 @@ function print_auguria_menu($db,$atarget,$type_user,&$tabMenu,&$menu,$noout=0)
 	$menuArbo = new Menubase($db,'auguria');
 	$newTabMenu = $menuArbo->menuTopCharger('', '', $type_user, 'auguria',$tabMenu);
 //	echo '<pre>';
-//	var_dump($newTabMenu);
+//	var_dump($user->rights->societe);
 //	echo '</pre>';
     if(!$user->admin){
-        $hidemenu=array("5217");
+//		if(in_array($user->id, array(42)))
+//			$hidemenu=array("0");
+//		else
+        	$hidemenu=array("5217");
         for($i=0; $i<count($newTabMenu); $i++){
 			if(in_array($newTabMenu[$i]['rowid'], array(10425))&&isset($_REQUEST["state_filter"])&&!empty($_REQUEST["state_filter"])){//Correct url if set filter by region
 				$newTabMenu[$i]['url'].='&state_filter='.$_REQUEST["state_filter"];

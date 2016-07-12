@@ -451,6 +451,15 @@ class dbBuilder{
 //            $table .= '</form>'."\r\n";
 
         $table .= $edit_form;
+        if(!$user->admin){
+            $table.="<script>
+                $(document).ready(function(){
+                    $('#addCustomer').remove();
+                })
+                </script>";
+        }
+//        var_dump(htmlspecialchars($table));
+//        die();
         return $table;
     }
 }

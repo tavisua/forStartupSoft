@@ -21,7 +21,7 @@ elseif(isset($_SESSION["state_filter"]))
     $_REQUEST["state_filter"]=$_SESSION["state_filter"];
 
 //echo '<pre>';
-//var_dump($_REQUEST["state_filter"], $_SESSION["state_filter"]);
+//var_dump($user);
 //echo '</pre>';
 //die();
 //Шапка сторінки

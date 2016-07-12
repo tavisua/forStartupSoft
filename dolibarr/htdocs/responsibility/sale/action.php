@@ -189,6 +189,12 @@ function setStatus(){
     global $db,$user;
     $sql = "insert into llx_societe_action(action_id,result_of_action,active,id_usr)
     values(".$_REQUEST['rowid'].", '".$_REQUEST['result_of_action']."', 1, ".$user->id.")";
+//    var_dump($_REQUEST);
+//    die();
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $sql = "update llx_actioncomm set percent = 100 where id = ".$_REQUEST['rowid'];
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
@@ -320,7 +326,7 @@ function showTitleProposition($post_id, $lineactive, $contactid=0, $socid){
 //            $end = $end->format('d.m.Y');
 //        }else
 //            $end = $obj->description;
-        $out .='<tr onclick = "showProposed('.$obj->rowid.', '.$contactid.');" style = "cursor: pointer">
+        $out .='<tr class = "'.(fmod($num,2)==0?'impair':'pair').'" onclick = "showProposed('.$obj->rowid.', '.$contactid.');" style = "cursor: pointer">
                     <td class="middle_size">'.$num++.'</td >
                     <td class="middle_size">'.$obj->text.'</td >
                 </tr >';
@@ -451,7 +457,7 @@ function showCallStatus(){
     if(!$res)
         dol_print_error($db);
     while($obj = $db->fetch_object($res)){
-        $out.='<tr><td id="status_id_'.$obj->rowid.'" class="middle_size" style="cursor:pointer" onclick="selStatus('.$obj->rowid.');">'.$obj->status.'</td></tr>';
+        $out.='<tr><td id="status_id_'.$obj->rowid.'"  class="middle_size" style="cursor:pointer" onclick="selStatus('.$obj->rowid.', '.(empty($_GET['answer_id'])?0:$_GET['answer_id']).');">'.$obj->status.'</td></tr>';
     }
     $out.='</tbody></table>';
     return $out;
@@ -582,7 +588,7 @@ function ShowActionTable(){
                 '<input id="_'.$row->rowid.'argument" type="hidden" value="'.$row->argument.'">':$row->argument).'</td>
             <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'said_important" style="width: 80px" class="middle_size">'.(strlen($row->said_important)>20?mb_substr($row->said_important, 0, 20, 'UTF-8').'...'.
                 '<input id="_'.$row->rowid.'said_important" type="hidden" value="'.$row->said_important.'">':$row->said_important).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'result_of_action" style="width: 80px" class="middle_size result_of_action">'.(strlen($row->result_of_action)>20?mb_substr($row->result_of_action, 0, 20, 'UTF-8').'...'.
+            <td rowid="'.$row->rowid.'" answer_id="'.$row->answer_id.'" id = "'.$row->rowid.'result_of_action" style="width: 80px" class="middle_size result_of_action">'.(strlen($row->result_of_action)>20?mb_substr($row->result_of_action, 0, 20, 'UTF-8').'...'.
                 '<input id="_'.$row->rowid.'result_of_action" type="hidden" value="'.$row->result_of_action.'">':$row->result_of_action).'</td>
             <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'work_before_the_next_action" style="width: 80px" class="middle_size">'.(strlen($row->work_before_the_next_action)>20?mb_substr($row->work_before_the_next_action, 0, 20, 'UTF-8').'...'.
                 '<input id="_'.$row->rowid.'work_before_the_next_action" type="hidden" value="'.$row->work_before_the_next_action.'">':$row->work_before_the_next_action).'</td>

@@ -19,6 +19,16 @@ $table = ShowTask();
 $Title = $langs->trans('CurrentTask');
 llxHeader("",$Title,"");
 print_fiche_titre($Title);
+$sql = "select lastname from llx_user where rowid = ";
+if(!isset($_GET['user_id']))
+    $sql.= $user->id;
+else
+    $sql.= $_GET['user_id'];
+$res = $db->query($sql);
+if(!$res)
+    dol_print_error($db);
+$obj = $db->fetch_object($res);
+$username = $obj->lastname;
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/current/header.php';
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/current/task.php';
 //llxFooter();
@@ -111,7 +121,7 @@ function ShowTask(){
 //    echo '</pre>';
 //    die();
     //Завантажую завдання
-    $sql = "select id, note, confirmdoc, `datec`, datep2, round((UNIX_TIMESTAMP(datep2)-UNIX_TIMESTAMP(datep))/60,0) iMinute, `dateconfirm`,`datepreperform`, fk_order_id, period, `percent`, `llx_c_groupoftask`.`name` groupoftask
+    $sql = "select id, note, confirmdoc, entity, `datec`, datep2, datelastaction, datefutureaction, round((UNIX_TIMESTAMP(datep2)-UNIX_TIMESTAMP(datep))/60,0) iMinute, `dateconfirm`,`datepreperform`, fk_order_id, period, `percent`, `llx_c_groupoftask`.`name` groupoftask
     from `llx_actioncomm`
     left join llx_c_groupoftask on `llx_c_groupoftask`.`rowid` = fk_groupoftask
     where id in (".implode(",", $taskID).")
@@ -129,11 +139,12 @@ function ShowTask(){
     global $langs;
     $numrow = 0;
     $Actions = new ActionComm($db);
-    while($obj = $db->fetch_object($res)){
+    while($obj = $db->fetch_object($res)) {
         $add = false;
-        if ($taskAuthor[$obj->id] == $user->id)
-            $add = true;
-        else {
+        if ($taskAuthor[$obj->id] == $user->id){
+//            $add = true;
+            $add = !(empty($assignedUser[$obj->id])&&$obj->entity == 0);
+        }else {
             $users = explode(',', $assignedUser[$obj->id]);
             $add = in_array($user->id, $users);
         }
@@ -172,7 +183,10 @@ function ShowTask(){
                 $table .= '<td style="width:61px"></td>';
             }
             $deadline = new DateTime($obj->datep2);
-            $table.='<td style="width:51px" class="small_size">'.$deadline->format('d.m.y').'</br>'.$deadline->format('H:i').'</td>';
+            if(!$obj->entity)
+                $table.='<td style="width:53px" class="small_size">'.$deadline->format('d.m.y').'</br>'.$deadline->format('H:i').'</td>';
+            else
+                $table.='<td style="width:53px" class="small_size">'.$deadline->format('d.m.y').'</td>';
             if(!empty($obj->dateconfirm)) {
                 $dateconfirm = new DateTime($obj->dateconfirm);
                 $table .= '<td style="width:51px" class="small_size">' . $dateconfirm->format('d.m.y') . '</br>' . $dateconfirm->format('H:i') . '</td>';
@@ -184,17 +198,22 @@ function ShowTask(){
             }
             //Дії виконавця
 //            $lastaction = $Actions->GetLastAction($obj->id, 'datep');
-            if(!isset($lastaction[$obj->id])){
+            if(empty($obj->datelastaction)){
                 $lastaction_value = '<img src="/dolibarr/htdocs/theme/eldy/img/object_action.png">';
             }else{
-                $lastaction_value = $lastaction[$obj->id];
+                $lastaction_value = $obj->datelastaction;
             }
-            $table .= '<td style="width:76px"><a href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu='.$_REQUEST['mainmenu'].'">'.$lastaction_value.'</a></td>';
-            $table .= '<td style="width:76px"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td>';
+            $table .= '<td style="width:76px;text-align: center"><a href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu='.$_REQUEST['mainmenu'].'">'.$lastaction_value.'</a></td>';
+            if(empty($obj->datefutureaction)){
+                $value = '<img src="/dolibarr/htdocs/theme/eldy/img/object_action.png">';
+            }else{
+                $value = $obj->datefutureaction;
+            }
+            $table .= '<td style="width:76px;text-align: center"><a href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu='.$_REQUEST['mainmenu'].'">'.$value.'</a></td>';
             $table .= '<td style="width:41px">'.$obj->iMinute.'</td>';
             //Дії наставника
-            $table .= '<td style="width:76px"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td>
-                       <td style="width:76px"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td>';
+            $table .= '<td style="width:76px;text-align: center"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td>
+                       <td style="width:76px;text-align: center"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td>';
             //Період виконання
             $table .= '<td style="width:51px" class="small_size">'.mb_strtolower($langs->trans($obj->period), 'UTF-8').'</td>';
             //Статус завдання

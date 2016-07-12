@@ -16,7 +16,50 @@ if(isset($_REQUEST['action'])){
         case 'getnewactions':{
             echo getNewAcctions($user->id);
             exit();
-        }
+        }break;
+        case 'getOutStandingIntoRegion':{
+//            var_dump(empty($_REQUEST["region_id"]));
+//            die();
+            global $db;
+            if(!isset($_GET['id_usr'])||empty($_GET['id_usr']))
+                $id_user = $user->id;
+            else
+                $id_user = $_GET['id_usr'];
+            $sql="select distinct  date(llx_actioncomm.datep) datep
+                from llx_actioncomm
+                inner join (select id from `llx_c_actioncomm` where type in('user','system') and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
+                left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = llx_actioncomm.id
+                left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
+                left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
+                inner join (select `llx_user`.rowid, `responsibility`.`alias`
+                  from `llx_user` inner join `responsibility` on `responsibility`.`rowid` = `llx_user`.`respon_id` where `llx_user`.`rowid` = ".$id_user.")
+                  sub_user on sub_user.rowid = case when llx_actioncomm_resources.fk_element is null then llx_actioncomm.`fk_user_author` else llx_actioncomm_resources.fk_element end
+                where 1
+                and llx_actioncomm.active = 1
+                and datep2 between adddate(date(now()), interval -1 month) and adddate(date(now()), interval 1 month)";
+            if(!empty($_REQUEST["region_id"]))
+                $sql.= "and region_id = ".$_REQUEST["region_id"];
+            else
+                $sql.= "and region_id is null";
+            $sql.= " and percent <> 100
+                and date(datep2)<date(now())";
+            $res = $db->query($sql);
+            if(!$res)
+                dol_print_error($db);
+            $out = '<a class="close" title="Закрити" onclick="closeForm($(this).parent());"></a>
+                <table class="setdate" style="background: #ffffff">
+                <thead>
+                <tr class="multiple_header_table" style="width: 100px">
+                <th class="middle_size">Вкажіть дату на яку відобразити завдання</th>
+                </tr>
+                </thead>';
+            while($obj = $db->fetch_object($res)){
+                $date = new DateTime($obj->datep);
+                $out.='<tr><td onclick="closeForm($(this).parent().parent().parent().parent())" class="small_size"><a target="_blank" href="/dolibarr/htdocs/hourly_plan.php?idmenu=10420&mainmenu=hourly_plan&region_id='.$_REQUEST["region_id"].'&leftmenu=&id_usr='.$id_user.'&date='.$date->format('d.m.Y.').'">'.$date->format('d.m.Y.').'</td></tr>';
+            }
+            $out.='</tbody></table>';
+            echo $out;
+        }break;
         case 'getdateaction':{
             $typeaction = '';
             if(substr($_REQUEST['type_action'], 0, strlen('current_'))=='current_')

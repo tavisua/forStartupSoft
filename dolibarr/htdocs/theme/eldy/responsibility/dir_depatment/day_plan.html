@@ -149,17 +149,7 @@
         </table>
     </div>
 </div>
-<div id="popupmenu" style="display: none">
-    <table style="background: #ffffff">
-        <thead><tr class="multiple_header_table" style="width: 100px"><th class="middle_size">Вкажіть дату на яку відобразити завдання</th></tr></thead>
-        <tr>
-            <td class="middle_size" onclick="setdate();" style="cursor: pointer">1</td>
-        </tr>
-        <tr>
-            <td class="middle_size" onclick="setdate();" style="cursor: pointer">2</td>
-        </tr>
-    </table>
-</div>
+
 <script>
 
     $(document).ready(function(){
@@ -171,16 +161,24 @@
         $("#sent_task").offset({top:Top+180, left:-Width+5});
         SetTheadColumnWidth();
     })
-    function ShowActionsByUsers(typeaction, alias){
+    function ShowActionsByUsers(typeaction, lineactive){
         console.log(typeaction);
 
-        var btn = $('#btnLn'+typeaction+alias+'<?=$user->subdiv_id?>');
-//        console.log(btn);
-//        return;
-        var tr_item = btn.parent().parent();
-        var img = $('#imgLn'+typeaction+alias+'<?=$user->subdiv_id?>');
-                console.log('#imgLn'+typeaction+alias+'<?=$user->subdiv_id?>', img);
 
+        var img;
+        var btn;
+        if(lineactive === undefined) {
+            img = $('#img' + typeaction);
+            btn = $('#btn'+typeaction);
+        }else {
+            img = $('#imgLn' + typeaction + lineactive + '<?=$user->subdiv_id?>');
+            btn = $('#btnLn' + typeaction + lineactive + '<?=$user->subdiv_id?>');
+        }
+
+                console.log( img);
+        var tr_item = btn.parent().parent();
+//        console.log(btn, btn.parent(), btn.parent().parent());
+//        return;
 //        return;
 
 //        var img = btn.getElementsByTagName('img')[0];
@@ -215,6 +213,8 @@
             }break;
 
         }
+//        console.log(show);
+//        return;
         if(show) {
 //            console.log('<?=$user->subdiv_id?>');
             if($('.'+typeaction).length == 0) {
@@ -225,7 +225,9 @@
                 className = className.replace('impair ', '');
                 className = className.replace('pair ', '');
                 className = $.trim(className);
-                var link = '/dolibarr/htdocs/responsibility/gen_dir/day_plan.php?action=getUsersTask&code='+code+'&responding='+alias+'&classname='+className+' '+ '<?=$user->subdiv_id?>'+'&subdiv_id='+'<?=$user->subdiv_id?>';
+                var link = '/dolibarr/htdocs/responsibility/gen_dir/day_plan.php?action=getUsersTask&code='+code+'&classname='+className+' '+ '<?=$user->subdiv_id?>'+'&subdiv_id='+'<?=$user->subdiv_id?>';
+                if(lineactive !== undefined)
+                    link+='&responding='+lineactive;
 //                console.log(link);
 //                return;
                 $.ajax({

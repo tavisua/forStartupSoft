@@ -25,6 +25,9 @@
 .unactivepage{
     background: #cccccc;
 }
+#tabs_area{
+    display: none;
+}
 .subcatalog {
     padding-left: 60px!important;
 }
@@ -524,6 +527,10 @@ div.header_page, th.header_page, tr.header_table_sel, form.header_page, form.hea
     overflow: hidden;
     overflow-y: auto;
 }
+.WidthScroll{
+    padding-top: 15px;
+}
+
 .word_wrap{
     /*white-space: nowrap; *//* Запрещаем перенос строк */
     overflow: hidden; /* Обрезаем все, что не помещается в область */
@@ -652,7 +659,13 @@ div.header_page, th.header_page, tr.header_table_sel, form.header_page, form.hea
     border-color: #396b9e;
     z-index: 1;
     cursor: pointer;
-
+}
+.datenowlink{
+    display: none;
+}
+.sel_item{
+    font-weight: bolder;
+    text-shadow: white;
 }
 .emptyitem{
     padding: 0 0 0!important;
@@ -796,8 +809,9 @@ td.titreProposed {
     margin-left:15px;
     text-align:center;
 }
+
 .address_header{
-    height:80px!important;
+    height:60px!important;
     margin-left:15px!important;
 }
 

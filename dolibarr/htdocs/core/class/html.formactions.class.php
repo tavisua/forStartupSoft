@@ -78,11 +78,12 @@ class FormActions
 			(select rowid, name
 			from `llx_c_groupoftask`
 			where 1 ';
-		if(count($respon_id))
+		if(count($respon_id)&&!empty($respon_id[0]))
 			$sql .= ' and `llx_c_groupoftask`.`fk_respon_id` in ('.implode(',',$respon_id).')';
 		$sql .= 'and active = 1)
 			order by name';
-//		var_dump($sql);
+//		var_dump(count($respon_id));
+//		die();
 		$res = $this->db->query($sql);
 		if(!$res)
 			dol_print_error($this->db);

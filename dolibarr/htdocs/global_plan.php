@@ -19,6 +19,17 @@ $table = ShowTask();
 $HourlyPlan = $langs->trans('GlobalTask');
 llxHeader("",$HourlyPlan,"");
 print_fiche_titre($langs->trans('GlobalTask'));
+$sql = "select lastname from llx_user where rowid = ";
+if(!isset($_GET['user_id']))
+    $sql.= $user->id;
+else
+    $sql.= $_GET['user_id'];
+$res = $db->query($sql);
+if(!$res)
+    dol_print_error($db);
+$obj = $db->fetch_object($res);
+$username = $obj->lastname;
+
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/global/header.php';
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/global/task.php';
 llxPopupMenu();
@@ -99,7 +110,7 @@ function ShowTask(){
         }
     }
     //Завантажую завдання
-    $sql = "select id, note, confirmdoc, `datec`, datep2, round((UNIX_TIMESTAMP(datep2)-UNIX_TIMESTAMP(datep))/60,0) iMinute, `dateconfirm`, period, `percent`, `datepreperform`, `llx_c_groupoftask`.`name` groupoftask
+    $sql = "select id, note, confirmdoc, entity, `datec`, datep2, round((UNIX_TIMESTAMP(datep2)-UNIX_TIMESTAMP(datep))/60,0) iMinute, `dateconfirm`, period, `percent`, `datepreperform`, `llx_c_groupoftask`.`name` groupoftask
     from `llx_actioncomm`
     left join llx_c_groupoftask on `llx_c_groupoftask`.`rowid` = fk_groupoftask
     where id in (".implode(",", $taskID).")
@@ -115,17 +126,22 @@ function ShowTask(){
     global $langs;
     $numrow = 0;
     $Actions = new ActionComm($db);
+    if(!isset($_GET['user_id']))
+        $user_id = $user->id;
+    else
+        $user_id = $_GET['user_id'];
     while($obj = $db->fetch_object($res)){
         $add = false;
-        if($taskAuthor[$obj->id] == $user->id)
+        if($taskAuthor[$obj->id] ==$user_id)
             $add = true;
         else{
             $users = explode(',',$assignedUser[$obj->id]);
-            $add = in_array($user->id, $users);
+            $add = in_array($user_id, $users);
+
         }
         if(isset($_GET['performer']) && !empty($_GET['performer'])) {//If set performer filter
             $users = explode(',', $assignedUser[$obj->id]);
-            $add =  in_array($_GET['performer'], $users) || (empty($assignedUser[$obj->id])&&$user->id == $_GET['performer'] && $user->id == $taskAuthor[$obj->id]);
+            $add =  in_array($_GET['performer'], $users) || (empty($assignedUser[$obj->id])&&$user_id == $_GET['performer'] && $user_id == $taskAuthor[$obj->id]);
 //            if(20971 == $obj->id){
 //                var_dump(count($users), $assignedUser[$obj->id], $_GET['performer']);
 //                die();
@@ -162,7 +178,11 @@ function ShowTask(){
                 $table .= '<td style="width:61px"></td>';
             }
             $deadline = new DateTime($obj->datep2);
-            $table.='<td style="width:53px" class="small_size">'.$deadline->format('d.m.y').'</br>'.$deadline->format('H:i').'</td>';
+
+            if(!$obj->entity)
+                $table.='<td style="width:53px" class="small_size">'.$deadline->format('d.m.y').'</br>'.$deadline->format('H:i').'</td>';
+            else
+                $table.='<td style="width:53px" class="small_size">'.$deadline->format('d.m.y').'</td>';
             if(!empty($obj->dateconfirm)) {
                 $dateconfirm = new DateTime($obj->dateconfirm);
                 $table .= '<td style="width:51px" class="small_size">' . $dateconfirm->format('d.m.y') . '</br>' . $dateconfirm->format('H:i') . '</td>';
@@ -183,7 +203,7 @@ function ShowTask(){
             $table .= '<td style="width:76px;text-align: center;"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td>';
             $table .= '<td style="width:43px;text-align: center;">'.$obj->iMinute.'</td>';
             //Дії наставника
-            $table .= '<td style="width:76px"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td><td style="width:76px"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td>';
+            $table .= '<td style="width:76px;text-align: center"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td><td style="width:76px;text-align: center"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td>';
             //Період виконання
             $table .= '<td style="width:54px" class="small_size">'.mb_strtolower($langs->trans($obj->period), 'UTF-8').'</td>';
             //Статус завдання

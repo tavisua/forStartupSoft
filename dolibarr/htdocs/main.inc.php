@@ -380,7 +380,7 @@ if($_SERVER['PHP_SELF'] =='/dolibarr/htdocs/autocall/index.php') {
     define("NOLOGIN",1);
 //    var_dump(defined('NOLOGIN'));
 //    die();
-}elseif($_SERVER['PHP_SELF'] =='/dolibarr/htdocs/patch_time.php') {
+}elseif($_SERVER['PHP_SELF'] =='/dolibarr/htdocs/putch_time.php') {
         define("NOLOGIN",1);
 }elseif($_SERVER['PHP_SELF'] =='/dolibarr/htdocs/reset_actions.php') {
         define("NOLOGIN",1);
@@ -1552,7 +1552,7 @@ function top_menu($head, $title='', $target='', $disablejs=0, $disablehead=0, $a
                             <input type="hidden" id="phone_number" name="phone_number" value="">
                             <textarea style="width:100%;" id="textsms" name="textsms"></textarea>
                         </form>
-                        <button onclick="sendSMS();">'.$langs->trans("SendSMS").'</button>
+                        <button onclick="sendSingleSMS();">'.$langs->trans("SendSMS").'</button>
                         <button onclick="close_registerform();">'.$langs->trans("Cancel").'</button>
                             <a class="close" title="Закрыть" href="#close"></a>
                      </div>';
