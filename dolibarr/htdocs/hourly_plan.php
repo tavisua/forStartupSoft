@@ -73,7 +73,7 @@ if(!isset($_GET['id_usr'])||empty($_GET['id_usr']))
     $id_usr = $user->id;
 elseif(!empty($_GET['id_usr']))
     $id_usr = $_GET['id_usr'];
-$sql = "select  `llx_actioncomm`.id as rowid, `llx_actioncomm`.datep, `llx_actioncomm`.datep2,
+$sql = "select  `llx_actioncomm`.type, `llx_actioncomm`.id as rowid, `llx_actioncomm`.datep, `llx_actioncomm`.datep2,
         `llx_actioncomm`.`code`, `llx_actioncomm`.fk_user_author, `llx_actioncomm`.label, `llx_societe`.region_id, `regions`.`name` as region_name, case when `llx_actioncomm`.fk_soc is null then `llx_user`.`lastname` else `llx_societe`.`nom` end lastname,
         `llx_actioncomm`.`note`, `llx_actioncomm`.`percent`, `llx_c_actioncomm`.`libelle` title, `llx_actioncomm`.confirmdoc,
         `llx_actioncomm`.priority, max(`llx_societe_action`.`callstatus`) as callstatus
@@ -189,7 +189,8 @@ while($row = $db->fetch_object($res)) {
         $taks=mb_substr($taks, 0, $length, 'UTF-8').'...<input type="hidden" value="'.trim($row->note).'">';
     }
     $task_table = '<div class="task_cell" style="float: left; width: ' . ($conf->browser->name == 'firefox' ? '23px' : '24px') . '"><img src="theme/' . $conf->theme . '/img/' . $iconitem . '" title="' . $langs->trans($row->title) . '"></div>
-           <div class="task_cell" style="float: left; width: ' . ($conf->browser->name == 'firefox' ? '42px' : '43px') . '">' . $datep->format('H:i') . '</div>
+           <div class="task_cell" style="float: left; width: ' . ($conf->browser->name == 'firefox' ? '42px' : '43px') . '">' . $datep->format('H:i') .
+            (!empty($row->type)?'<span style="float: left;margin-left: -5px;z-index: 5"><img title="Час початку дії встановлено вручну" src="/dolibarr/htdocs/theme/eldy/img/object_task.png"></span>':'').'</div>
            <div class="task_cell" style="float: left; width: 36px; height 16px">' . $DiffTime . '</div>
            <div class="task_cell" style="float: left; width: 35px">' . $datep2->format('H:i') . '</div>
            <div class="task_cell" style="float: left; width: 152px">' . trim($row->region_name) .(!empty($row->region_name)?' район':'').'</div>

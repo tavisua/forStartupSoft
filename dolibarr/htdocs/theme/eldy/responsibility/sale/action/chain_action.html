@@ -355,13 +355,14 @@
                         cache: false,
                         success: function (html) {
                             console.log(html, 'confirm_exec');
+                            var mainmenu = getParameterByName('mainmenu');
+                            if (mainmenu == 'global_task')
+                                location.href = '/dolibarr/htdocs/global_plan.php?idmenu=10421&mainmenu=global_task&leftmenu=';
+                            else if (mainmenu == 'current_task')
+                                location.href = '/dolibarr/htdocs/current_plan.php?idmenu=10423&mainmenu=current_task&leftmenu=';
                         }
                     })
-                    var mainmenu = getParameterByName('mainmenu');
-                    if (mainmenu == 'global_task')
-                        location.href = '/dolibarr/htdocs/global_plan.php?idmenu=10421&mainmenu=global_task&leftmenu=';
-                    else if (mainmenu == 'current_task')
-                        location.href = '/dolibarr/htdocs/current_plan.php?idmenu=10423&mainmenu=current_task&leftmenu=';
+
                 }
             }
         })

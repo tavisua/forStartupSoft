@@ -99,7 +99,8 @@ elseif(isset($_REQUEST["onlyresult"])&&$_REQUEST["onlyresult"]=='1' || $_GET['ac
     print_fiche_titre($langs->trans("EditResultAction"));
 }else
     print_fiche_titre($langs->trans("EditAction"));
-
+print '<script type="text/javascript" src="/dolibarr/htdocs/comm/action/js/action.js'.($ext?'?'.$ext:'').'"></script>'."\n";
+print '<script type="text/javascript"> var id_usr = '.$user->id.'</script>'."\n";
 if (! empty($conf->use_javascript_ajax))
 {
     print "\n".'<script type="text/javascript">';
@@ -199,7 +200,7 @@ if(empty($form)){
 }
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/addaction.html';
 print '</div>';
-
+llxPopupMenu();
 //llxFooter();
 exit();
 
@@ -457,10 +458,10 @@ function saveaction($rowid, $createaction = false){
         $sql = "update llx_actioncomm set `new` = 1, ".
             (!empty($newdate)?("datep='".date('Y-m-d H:i:s',$mkNewDatep)."', datep2='".date('Y-m-d H:i:s',$mkNewDatef)."' ,"):"").
             " dateconfirm = case when dateconfirm is null then Now() else dateconfirm end, datea= case when datea is null then Now() else datea end " .
-            (empty($newdate)?(in_array($objCode->code, $TypeAction) ? ', percent ='.(!empty($complete)?$complete:'percent') : ', percent = 100'):""). "
+            (empty($newdate)?(in_array($objCode->code, $TypeAction) ? ', percent ='.(!empty($complete)?$complete:'percent') : ', percent = 100'):""). ", type='".$_REQUEST['typeSetOfDate']."'
             where llx_actioncomm.id in (select llx_societe_action.action_id from `llx_societe_action` where 1
             and llx_societe_action.rowid = " . $rowid . ')';
-//    var_dump($complete);
+//    var_dump($sql);
 //    die();
         $res = $db->query($sql);
         if(!$res)

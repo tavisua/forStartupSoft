@@ -674,6 +674,7 @@ div.header_page, th.header_page, tr.header_table_sel, form.header_page, form.hea
 #tasklist{
     position: relative;
 }
+
 .tasklist, .tasklist tbody{
     width: 980px;
     vertical-align: top;
@@ -789,6 +790,12 @@ div.header_page, th.header_page, tr.header_table_sel, form.header_page, form.hea
 }
 .contant_tble{
     margin-top: 20px;
+}
+.fielderrorSelBorder{
+    outline: 2px solid red;
+}
+.validfieldSelBorder{
+    outline: 2px solid green;
 }
 .fielderror{
     color: red;

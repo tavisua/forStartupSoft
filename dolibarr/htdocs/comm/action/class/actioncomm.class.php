@@ -54,6 +54,7 @@ class ActionComm extends CommonObject
     var $type;			// Label into parent table llx_c_actioncomm (used only if option to use type is set)
     var $type_color;	// Color into parent table llx_c_actioncomm (used only if option to use type is set)
     var $code;			// Free code to identify action. Ie: Agenda trigger add here AC_TRIGGERNAME ('AC_COMPANY_CREATE', 'AC_PROPAL_VALIDATE', ...)
+    var $typeSetOfDate; //Вариант встановлення початку та кінця виконання дії. Якщо null - автоматично. Якщо w - вручну
 
     var $label;
 
@@ -65,6 +66,7 @@ class ActionComm extends CommonObject
 
     var $datec;			// Date creation record (datec)
     var $datem;			// Date modification record (tms)
+    var $dateconfirm;   // Date confirm action
 
     /**
      * Object user that create action
@@ -223,6 +225,34 @@ class ActionComm extends CommonObject
     //    var_dump($chain_actions);
     //    die();
         return $chain_actions;
+    }
+    function validateDateAction($date, $id_usr, $minutes, $prioritet){
+        $valid_date = new DateTime($date);
+
+        $mk_valid_begin = dol_mktime($valid_date->format('H'),$valid_date->format('i'),$valid_date->format('s'),$valid_date->format('m'),$valid_date->format('d'),$valid_date->format('Y'));
+        $mk_valid_end = $mk_valid_begin+$minutes*60;
+//            echo '<pre>';
+//            var_dump($valid_date);
+//            var_dump($mk_valid_date);
+//            echo '</pre>';
+//            die();
+        $freetime = $this->GetFreeTimePeriod($date, $id_usr, $prioritet, true);
+//            echo '<pre>';
+//            var_dump($freetime);
+//            echo '</pre>';
+//            die();
+        foreach($freetime as $period) {
+            $begin = new DateTime($period[2].' '.$period[0]);
+            $mk_begin = dol_mktime($begin->format('H'),$begin->format('i'),$begin->format('s'),$begin->format('m'),$begin->format('d'),$begin->format('Y'));
+            $mk_end = $mk_begin+$period[1]*60;
+            if($mk_valid_begin>=$mk_begin&&$mk_valid_end<=$mk_end)
+                return 1;
+//            echo '<pre>';
+//            var_dump($mk_valid_date-$mk_begin);
+//            echo '</pre>';
+//            die();
+        }
+        return 0;
     }
     function getAssignedUser($action_id){
         global $db;
@@ -403,7 +433,7 @@ class ActionComm extends CommonObject
         }
         return 0;
     }
-    function GetFreeTimePeriod($date, $id_usr, $prioritet){
+    function GetFreeTimePeriod($date, $id_usr, $prioritet, $fullday = false){
         global $db;
         $date = new DateTime($date);
         $sql = "select `llx_actioncomm`.`id`, `llx_actioncomm`.`datep`, `llx_actioncomm`.`datep2` from `llx_actioncomm`
@@ -424,9 +454,12 @@ class ActionComm extends CommonObject
         $Now = new DateTime();
 //        var_dump($sql);
 //        die();
-        if($Now<$date)
-            $time = mktime(8,0,0,$date->format('m'),$date->format('d'),$date->format('Y'));
-        else
+        if($Now<$date) {
+            if(!$fullday)
+                $time = mktime(8, 0, 0, $date->format('m'), $date->format('d'), $date->format('Y'));
+            else
+                $time = mktime(0, 0, 0, $date->format('m'), $date->format('d'), $date->format('Y'));
+        }else
             $time = mktime($Now->format('H'),$Now->format('i'),$Now->format('s'),$date->format('m'),$date->format('d'),$date->format('Y'));
 
         $freetime = array();
@@ -440,7 +473,10 @@ class ActionComm extends CommonObject
             $tmp_date = new DateTime($obj->datep2);
             $time = mktime($tmp_date->format('H'), $tmp_date->format('i'),$tmp_date->format('s'),$tmp_date->format('m'), $tmp_date->format('d'),$tmp_date->format('Y'));
         }
-        $tmp_mk = mktime(19,0,0,$date->format('m'),$date->format('d'),$date->format('Y'));
+        if(!$fullday)
+            $tmp_mk = mktime(19,0,0,$date->format('m'),$date->format('d'),$date->format('Y'));
+        else
+            $tmp_mk = mktime(23,59,0,$date->format('m'),$date->format('d'),$date->format('Y'));
 //        var_dump(($tmp_mk - $time));
 //        die();
         if(($tmp_mk - $time)/60>0) {
@@ -663,8 +699,10 @@ class ActionComm extends CommonObject
             $sql .= "(datec,";
             $sql .= "datep,";
             $sql .= "datep2,";
+            $sql .= "dateconfirm,";
             $sql .= "durationp,";    // deprecated
-            $sql .= "datepreperform,";    // deprecated
+            $sql .= "datepreperform,";
+            $sql .= "type,";
             $sql .= "fk_action,";
             $sql .= "code,";
             $sql .= "fk_soc,";
@@ -695,8 +733,11 @@ class ActionComm extends CommonObject
                 $sql .= (strval($cdatep) != '' ? "'" . $this->db->idate($cdatep) . "'" : "null") . ",";
                 $sql .= (strval($cdatef) != '' ? "'" . $this->db->idate($cdatef) . "'" : "null") . ",";
             }
+            $sql .= ((isset($this->dateconfirm) && !empty($this->dateconfirm)) ? "'" . $this->dateconfirm . "'" : "null") . ",";
+
             $sql .= ((isset($this->durationp) && $this->durationp >= 0 && $this->durationp != '') ? "'" . $this->durationp . "'" : "null") . ",";    // deprecated
             $sql .= (strval($this->datepreperform) != '' ? "'" . $this->db->idate($this->datepreperform) . "'" : "null") . ",";
+            $sql .= (isset($this->typeSetOfDate) ? "'".$this->typeSetOfDate."'" : "null") . ",";
             $sql .= (isset($this->type_id) ? $this->type_id : "null") . ",";
             $sql .= (isset($this->type_code) ? " '" . $this->type_code . "'" : "null") . ",";
             $sql .= ((isset($this->socid) && $this->socid > 0) ? " '" . $this->socid . "'" : "null") . ",";
@@ -1248,6 +1289,7 @@ class ActionComm extends CommonObject
         $sql.= ", datepreperform = ".(strval($this->datepreperform->format('Y-m-d'))!='' ? "'".$this->db->idate($this->datepreperform->format('Y-m-d'))."'" : 'null');
         $sql.= ", durationp = ".(isset($this->durationp) && $this->durationp >= 0 && $this->durationp != ''?"'".$this->durationp."'":"null");	// deprecated
         $sql.= ", note = ".($this->note ? "'".$this->db->escape($this->note)."'":"null");
+        $sql.= ", type = ".($this->typeSetOfDate ? "'".$this->db->escape($this->typeSetOfDate)."'":"null");
         $sql.= ", fk_project =". ($this->fk_project > 0 ? "'".$this->fk_project."'":"null");
         $sql.= ", fk_soc =". ($socid > 0 ? "'".$socid."'":"null");
         $sql.= ", fk_contact =". ($contactid > 0 ? "'".$contactid."'":"null");

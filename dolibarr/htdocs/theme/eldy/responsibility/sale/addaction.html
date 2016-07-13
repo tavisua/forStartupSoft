@@ -26,7 +26,54 @@
             <td><b>Тип дії</b></td>
             <td><?=$langs->trans($object->type)?></td>
             <td <?=$style?>><b>Запланована</br>дата початку дії</br></td>
-            <td <?=$style?>><?=$form->select_date($Actions->datep,'ap',1,1,0,"action",1,1,0,0,'fulldayend')?></td>
+            <td <?=$style?>><?=$form->select_date($Actions->datep,'ap',1,1,0,"action",1,1,0,0,'fulldayend').'<span id="ShowFreeTime" onclick="ShowFreeTime('."'ap'".');" title="Переглянути наявність вільного часу" style="vertical-align: middle"><img src="/dolibarr/htdocs/theme/eldy/img/calendar.png"></span>'?>
+			    <script>
+                    $('select').change(function(e){
+                        if($.inArray(e.target.id, ['aphour','apmin','dateNextActionhour','dateNextActionmin'])>=0){
+                            var prefix;
+                            if(e.target.id.substr(e.target.id.length - 'hour'.length) == 'hour'){
+                                prefix = e.target.id.substr(0, e.target.id.length - 'hour'.length);
+                            }
+                            if(e.target.id.substr(e.target.id.length - 'min'.length) == 'min'){
+                                prefix = e.target.id.substr(0, e.target.id.length - 'min'.length);
+                            }
+                            var param = {
+                                action:'validateDataAction',
+                                date:($('#'+prefix+'year').val().length == 0?'':$('#'+prefix+'year').val()+'-'+$('#'+prefix+'month').val()+'-'+
+                                    $('#'+prefix+'day').val()+' '+$('#'+prefix+'hour').val()+':'+$('#'+prefix+'min').val()),
+                                minutes:$('#exec_time_'+prefix).val(),
+                                id_usr:"<?=$user->id?>",
+                                prioritet:$('#priority').val()
+                            }
+                            $.ajax({
+                                url:'/dolibarr/htdocs/comm/action/card.php',
+                                cache:false,
+                                data:param,
+                                success:function(result){
+                                    $('#type').val('w');
+                                    if(result == 0){
+                                        $('#'+e.target.id).addClass('fielderrorSelBorder');
+                                        $('#'+e.target.id).removeClass('validfieldSelBorder');
+
+
+                                    }else{
+                                        $('#'+e.target.id).addClass('validfieldSelBorder');
+                                        $('#'+e.target.id).removeClass('fielderrorSelBorder');
+                                    }
+
+                                    if(!$('#'+prefix+'hour').hasClass('fielderrorSelBorder')&&
+                                        !$('#'+prefix+'min').hasClass('fielderrorSelBorder'))
+                                        $('#error').val(0);
+                                    else
+                                        $('#error').val(1);
+                                    $('#newdate').val($('#apyear').val()+'-'+$('#apmonth').val()+'-'+$('#apday').val()+' '+$('#'+prefix+'hour').val()+':'+$('#'+prefix+'min').val());
+                                    console.log(result);
+                                }
+                            })
+                        }
+                    });
+                </script>
+            </td>
             <?if(!empty($style)){?>
                 <td></td>
                 <td></td>
@@ -61,6 +108,8 @@
         <input type="hidden" value="<?=$_GET['proposed_id']?>" name="proposed_id">
         <input type="hidden" value="" name="complete" id="complete">
         <input id="action" name="action" type="hidden" value="">
+        <input type="hidden" name="typeSetOfDate" id="type" value="<?=$_REQUEST['typeSetOfDate']?>">
+        <input type="hidden" name="error" id="error" value="<?=$_REQUEST['error']?>">
         <input id="callstatus" name="callstatus" type="hidden" value="<?=empty($object->callstatus)?2:$object->callstatus?>">
 
         </br>
@@ -104,6 +153,14 @@
             </tr>
         </table>
     </form>
+    <script>
+        $('#addaction').submit(function(e){
+            if($('#error').length>0&&$('#error').val()==1){
+                alert('Дані на формі містять помилки.');
+                return false;
+            }
+        });
+    </script>
     <div align="center">
         <button onclick="save();">Зберегти</button>
         <button onclick="saveandcreate();">Зберегти та запланувати наступну дію</button>
@@ -155,9 +212,20 @@
                 cache:false,
                 success:function(result){
                     var obj_res = JSON.parse(result);
-                    $('#PlanTimeTitle').html('<b>Запропонована</br>дата та час початку дії</b>')
-                    $('#PlanTimeResult').empty().html(obj_res.freetime);
-                    $('#newdate').val(obj_res.freetime);
+                    $('#aphour').val(obj_res.freetime.substr(obj_res.freetime.length-8,2));
+                    $('#apmin').val(obj_res.freetime.substr(obj_res.freetime.length-5,2));
+                    $("#aphour").removeClass("fielderrorSelBorder");
+                    $("#apmin").removeClass("fielderrorSelBorder");
+                    $("#type").val("");
+                    $("#error").val(0);
+
+                    var newdate = $('#apyear').val()+'-'+$('#apmonth').val()+'-'+$('#apday').val()+' '+$('#aphour').val()+':'+$('#apmin').val();
+//                    alert(newdate);
+                    $('#newdate').val(newdate);
+
+//                    $('#PlanTimeTitle').html('<b>Запропонована</br>дата та час початку дії</b>')
+//                    $('#PlanTimeResult').empty().html(obj_res.freetime);
+//                    $('#newdate').val(obj_res.freetime);
 //                    CalcP(obj_res.freetime, obj_res.minute, '<?=$user->id?>');//Розрахунок часу початку дії
                 }
             })
@@ -181,11 +249,7 @@
         $("#eyescript").mask("~9.99 ~9.99 999");
     });
 </script>
-<style>
-    #aphour,#apmin{
-        display: none;
-    }
-</style>
+
 <script type="text/javascript">
     $(document).ready(function(){
         $('#said').focus();
@@ -193,7 +257,6 @@
         $("#addaction").width(800);
         $(".tabBar").width(800);
         $('#apButtonNow').remove();
-        $('#apButton').parent().html($('#apButton').parent().html().replace(':',''));
         $("#event_desc").addClass('tabactive');
         if(getParameterByName('action')=='addonlyresult'){
             $('#answer').text('');
@@ -213,10 +276,10 @@
     }
 
     function save(){
-        if($('#newdate').val().length>0) {
-            console.log($('#newdate').val());
-            confirm('Увага! Було замінено дату виконання дії, тому після зберігання результатів перемовин не буде встановлено статус "Виконано"');
-        }
+//        if($('#newdate').val().length>0) {
+//            console.log($('#newdate').val());
+//            confirm('Увага! Було замінено дату виконання дії, тому після зберігання результатів перемовин не буде встановлено статус "Виконано"');
+//        }
         if($('#proposed_id').val() === undefined || confirm('Зберегти інформацію?')) {
             var valid = true;
             if('sale' == '<?=$user->respon_alias?>' || 'sale' == '<?=$user->respon_alias2?>')
@@ -299,9 +362,9 @@
         return valid;
     }
     function saveandcreate(){
-        if($('#newdate').val().length>0) {
-            confirm('Увага! Було замінено дату виконання дії, тому після зберігання результатів перемовин не буде встановлено статус "Виконано"');
-        }
+//        if($('#newdate').val().length>0) {
+//            confirm('Увага! Було замінено дату виконання дії, тому після зберігання результатів перемовин не буде встановлено статус "Виконано"');
+//        }
         var valid = true;
         if('sale' == '<?=$user->respon_alias?>' || 'sale' == '<?=$user->respon_alias2?>')
             valid=validData();

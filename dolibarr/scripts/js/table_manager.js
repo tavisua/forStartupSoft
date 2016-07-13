@@ -437,6 +437,10 @@ function CalcP(date, minute, id_usr, prefix){
             $('#'+prefix+'hour [value='+time.substr(1,2)+']').attr("selected","selected");
             $('#'+prefix+'min  [value='+time.substr(4,2)+']').attr("selected","selected");
             console.log(time.substr(4,2).trim());
+            $('#'+prefix+'hour').removeClass('fielderrorSelBorder');
+            $('#'+prefix+'min').removeClass('fielderrorSelBorder');
+            $('#error').val(0);
+            $('#type').val('');
             CalcP2('exec_time_'+prefix);
 
         }

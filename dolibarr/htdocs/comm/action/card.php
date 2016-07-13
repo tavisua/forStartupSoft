@@ -63,6 +63,10 @@ if($_GET['action']=='get_exectime'){
 }elseif($_GET['action']=='getActionStatus'){
 	echo getActionStatus($_GET['action_id']);
 	exit();
+}elseif($_GET['action']=='validateDataAction'){
+	$Action = new ActionComm($db);
+	echo $Action->validateDateAction($_REQUEST['date'], $_REQUEST['id_usr'],$_REQUEST['minutes'],$_REQUEST['prioritet']);
+	exit();
 }elseif($_GET['action']=='getlastactivecontact'){
 
 	$sql = "select `fk_contact` from llx_actioncomm
@@ -203,7 +207,22 @@ if($_GET['action']=='get_exectime'){
 //		die();
 		$newAction->add($user);
 	}
-    $sql = 'update llx_actioncomm set dateSetExec = Now(), percent=100 where id='.$_GET['rowid'];
+	//Завантажую всі наступні ІД
+	$newAction = new ActionComm($db);
+	$chain_actions = array($_GET['rowid']);
+	while($tmp_ID = $newAction->GetNextAction($chain_actions, 'id')){
+		$added = false;
+		foreach($tmp_ID as $item) {
+			if(!in_array($item, $chain_actions)) {
+				$added = true;
+				$chain_actions[] = $item;
+			}
+		}
+		if(!$added)
+			break;
+	}
+
+    $sql = 'update llx_actioncomm set dateSetExec = Now(), percent=100 where id in ('.implode(',', $chain_actions).')';
 //	die($sql);
     $res = $db->query($sql);
     if(!$res){
@@ -223,6 +242,34 @@ if($_GET['action']=='get_exectime'){
         dol_print_error($db);
     }
     exit();
+}elseif($_GET['action']=='showFreeTime'){
+	$Action = new ActionComm($db);
+	$date = new DateTime($_REQUEST['date']);
+	$out = '<a class="close" title="Закрити" onclick="closeForm($(this).parent());"></a><table class="setdate" style="background: #ffffff"><thead>
+		<tr class="multiple_header_table">
+			<th class="middle_size" colspan="2">Наявність вільного часу</br>'.$date->format('d.m.y').'</th>
+		</tr>
+		<tr class="multiple_header_table">
+			<th class="small_size">Початок періоду</th>
+			<th class="small_size">Кінець періоду</th>
+		</tr>
+		</thead><tbody>';
+	$freetime = $Action->GetFreeTimePeriod($_REQUEST['date'],$_REQUEST['id_usr'],$_REQUEST['prioritet'],true);
+	$num = 0;
+ 	foreach($freetime as $period){
+		$begin = new DateTime($period[2].' '.$period[0]);
+		$mk_begin = dol_mktime($begin->format('H'), $begin->format('i'), 0, $begin->format('m'), $begin->format('d'), $begin->format('Y'));
+		$mk_end = $mk_begin+$period[1]*60;
+		$class = fmod($num, 2) != 1 ? ("impair") : ("pair");
+		$out.='<tr>
+			<td class="small_size '.$class.'">'.$begin->format('H:i').'</td>
+			<td class="small_size '.$class.'">'.date('H:i',$mk_end).'</td>
+		</tr>';
+		$num++;
+	}
+	$out.='</tbody></table>';
+	echo $out;
+	exit();
 }elseif($_GET['action']=='get_freetime'){
 //	echo '<pre>';
 //	var_dump($_GET);
@@ -514,6 +561,7 @@ if ($action == 'add')
 		$object->parent_id= GETPOST("parent_id");
 		$object->groupoftask= GETPOST("groupoftask");
 		$object->typenotification= GETPOST("typenotification");
+		$object->typeSetOfDate = GETPOST("typeSetOfDate");
 //        die($object->parent_id);
 		if (! GETPOST('label'))
 		{
@@ -628,7 +676,26 @@ if ($action == 'add')
 //        echo '</pre>';
 //        die();
 		// On cree l'action
+		if(isset($_REQUEST["dateNextAction"])&&!empty($_REQUEST["dateNextAction"])) {
+			$dateconfirm = new DateTime();
+			$object->dateconfirm = $dateconfirm->format('Y-m-d H:i:s');
+			$object->percentage = 0;
+		}
 		$idaction=$object->add($user);
+		if(isset($_REQUEST["dateNextAction"])&&!empty($_REQUEST["dateNextAction"])){
+			$subaction = new ActionComm($db);
+			$subaction->fetch($idaction);
+			$subaction->id=null;
+			$subaction->parent_id = $idaction;
+			$subaction->percentage = 0;
+			$subaction->datep=dol_mktime($_POST["dateNextActionhour"], $_POST["dateNextActionmin"], 0, $_POST["dateNextActionmonth"], $_POST["dateNextActionday"], $_POST["dateNextActionyear"]);
+			$subaction->datef=$subaction->datep+$_POST["exec_time_dateNextAction"]*60;
+			$subaction->entity = 0;
+			$subaction->note = $_POST["work_before_the_next_action"];
+			$dateconfirm = new DateTime();
+			$subaction->dateconfirm = $dateconfirm->format('Y-m-d H:i:s');
+			$subaction->add($user);
+		}
 //		var_dump($object->errors);
 //		die();
 		if ($idaction > 0)
@@ -740,6 +807,8 @@ if ($action == 'update')
         $object->groupoftask = GETPOST('groupoftask');
 		$object->typenotification= GETPOST("typenotification");
 		$object->period 	 = GETPOST("selperiod");
+		$object->typeSetOfDate = GETPOST("typeSetOfDate");
+
 
         $object->contactid   = GETPOST("contactid",'int');
 
@@ -961,6 +1030,9 @@ elseif($action == 'edit') {
 $form = new Form($db);
 $formfile = new FormFile($db);
 $formactions = new FormActions($db);
+global $user;
+print '<script type="text/javascript" src="/dolibarr/htdocs/comm/action/js/action.js'.($ext?'?'.$ext:'').'"></script>'."\n";
+print '<script type="text/javascript"> var id_usr = '.$user->id.'</script>'."\n";
 
 if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 {
@@ -1024,12 +1096,13 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
         print '</script>'."\n";
     }
 
-		print '<form id="formaction" name="formaction" action="'.$_SERVER['PHP_SELF'].'" method="POST">';
+	print '<form id="formaction" name="formaction" action="'.$_SERVER['PHP_SELF'].'" method="POST">';
 	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
 	print '<input type="hidden" name="action" value="add">';
 	print '<input type="hidden" name="socid" value="'.$_REQUEST['socid'].'">';
 	print '<input type="hidden" id="showform1" value="0">';
-	print '<input type="hidden" name="type" id="type" value="">';
+	print '<input type="hidden" name="typeSetOfDate" id="type" value="">';
+	print '<input type="hidden" name="error" id="error" value="'.$_REQUEST['error'].'">';
 	print '<input type="hidden" id="mainmenu" name="mainmenu" value="'.$_REQUEST["mainmenu"].'">';
 	print '<input type="hidden" name="parent_id" value="'.$_REQUEST["parent_id"].'">';
 	print '<input type="hidden" name="donotclearsession" value="1">';
@@ -1222,20 +1295,70 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 	if (GETPOST("afaire") == 1) $form->select_date($datep,'ap',1,1,0,"action",1,1,0,0,'fulldayend');
 	else if (GETPOST("afaire") == 2) $form->select_date($datep,'ap',1,1,1,"action",1,1,0,0,'fulldayend');
 	else $form->select_date($datep,'ap',1,1,1,"action",1,1,0,0,'fulldaystart');
-	print '<span style="font-size: 12px">Необхідно часу  </span><input type="text" class="param exec_time" size="2" id = "exec_time_ap" name="exec_time_ap"><span style="font-size: 12px"> хвилин.</span></td></tr>';
-//	var_dump(count($assignedtouser));
+	print '<span id="ShowFreeTime" onclick="ShowFreeTime('."'ap'".');" title="Переглянути наявність вільного часу" style="vertical-align: middle"><img src="/dolibarr/htdocs/theme/eldy/img/calendar.png"></span>  ';
+	print '<span style="font-size: 12px">Необхідно часу  </span><input type="text" class="param exec_time" size="2" value="1" id = "exec_time_ap" name="exec_time_ap"><span style="font-size: 12px"> хвилин.</span></td></tr>';
+//	echo '<pre>';
+//	var_dump($_REQUEST);
+//	echo '</pre>';
 //	die();
-	if(count($assignedtouser) <= 1 && $action == 'create') {//Якщо відбувається створення нової дії тільки для активного користувача
-		print '<script type="text/javascript" src="/dolibarr/htdocs/comm/action/js/action.js'.($ext?'?'.$ext:'').'"> </script>'."\n";
+	if(count($assignedtouser) <= 1 && $action == 'create' && (!isset($_REQUEST["typeaction"])||empty($_REQUEST["typeaction"]))) {//Якщо відбувається створення нової дії тільки для активного користувача
 		print '<script> var user_id='.$user->id.'</script>';
-		print '<tr>';
-		print '<td width="30%" class="nowrap">' . $langs->trans("DateNextActionStart") . '</td><td>';
+		print '<tr class="global_current">';
+		print '<td width="30%" class="nowrap" >' . $langs->trans("DateNextActionStart") . '</td><td>';
 		$form->select_date($datep, 'dateNextAction', 1, 1, 1, "action", 1, 1, 0, 0, 'fulldayend', 'dtChangeNextDateAction');
+		print '<span id="ShowFreeTime" onclick="ShowFreeTime('."'dateNextAction'".');" title="Переглянути наявність вільного часу" style="vertical-align: middle"><img src="/dolibarr/htdocs/theme/eldy/img/calendar.png"></span>  ';
 		print '<span style="font-size: 12px">Необхідно часу  </span><input type="text" class="param exec_time" size="2" id = "exec_time_dateNextAction" name="exec_time_dateNextAction"><span style="font-size: 12px"> хвилин.</span></td></tr>';
+		print '<tr class="global_current">';
+		print '<td width="30%" class="nowrap" >Робота до/на наступних дій</td><td>';
+		print '<textarea id="work_before_the_next_action" name="work_before_the_next_action" class="flat" cols="90" rows="6"></textarea></td></tr>';
+		print "<script>
+			$('select').change(function(e){
+				if($.inArray(e.target.id, ['aphour','apmin','dateNextActionhour','dateNextActionmin'])>=0){
+					var prefix;
+					if(e.target.id.substr(e.target.id.length - 'hour'.length) == 'hour'){
+						prefix = e.target.id.substr(0, e.target.id.length - 'hour'.length);
+					}
+					if(e.target.id.substr(e.target.id.length - 'min'.length) == 'min'){
+						prefix = e.target.id.substr(0, e.target.id.length - 'min'.length);
+					}
+					var param = {
+						action:'validateDataAction',
+						date:($('#'+prefix+'year').val().length == 0?'':$('#'+prefix+'year').val()+'-'+$('#'+prefix+'month').val()+'-'+
+							$('#'+prefix+'day').val()+' '+$('#'+prefix+'hour').val()+':'+$('#'+prefix+'min').val()),
+						minutes:$('#exec_time_'+prefix).val(),
+						id_usr: ".$user->id.",
+						prioritet:$('#priority').val()
+					}
+					$.ajax({
+						cache:false,
+						data:param,
+						success:function(result){
+							$('#type').val('w');
+							if(result == 0){
+								$('#'+e.target.id).addClass('fielderrorSelBorder');
+								$('#'+e.target.id).removeClass('validfieldSelBorder');
+
+
+							}else{
+								$('#'+e.target.id).addClass('validfieldSelBorder');
+								$('#'+e.target.id).removeClass('fielderrorSelBorder');
+							}
+
+							if(!$('#'+prefix+'hour').hasClass('fielderrorSelBorder')&&
+								!$('#'+prefix+'min').hasClass('fielderrorSelBorder'))
+								$('#error').val(0);
+							else
+								$('#error').val(1);
+							console.log(result);
+						}
+					})
+				}
+			});
+		</script>";
 
 	}
-	if(!isset($_REQUEST['typeaction']) || $_REQUEST['typeaction'] != 'subaction' )
-		print '<style> #aphour, #apmin, #apButtonNow {display: none} </style>';
+	if(!isset($_REQUEST['typeaction']) || $_REQUEST['typeaction'] != 'subaction' ){}
+//		print '<style> #aphour, #apmin, #apButtonNow {display: none} </style>';
 	else
 		print '<input id="typeaction" type="hidden" value="subaction" name="typeaction">';
 	// Date end
@@ -1370,9 +1493,16 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 	print ' &nbsp; &nbsp; ';
 	print '<input type="submit" class="button" name="cancel" value="'.$langs->trans("Cancel").'">';
 	print '</center>';
-
 	print "</form>";
     print '</div>';
+	print "<script>
+				$('#formaction').submit(function(e){
+					if($('#error').length>0&&$('#error').val()==1){
+						alert('Дані на формі містять помилки.');
+						return false;
+					}
+				});
+		   </script>";
 //    print '<style>
 //            .tabBar{
 //                width: 800px;
@@ -2139,8 +2269,8 @@ print '
 //        })
         function dpChangeDay(id, format){
 //        	return;
-        	console.log("test");
-            if(id == ""+id+""){
+//        	console.log("test");
+//            if(id == ""+id+""){
                 $("#p2").val($("#"+id+"").val())
                 $("#"+id+"day").val($("#"+id+"").val().substr(0,2));
                 $("#"+id+"month").val($("#"+id+"").val().substr(3,2));
@@ -2160,11 +2290,17 @@ print '
                 }else{
                 	$("#showform").val(1);
                 }
-            }
+//            }
 //            console.log(getParameterByName("action") != "edit", $.cookie("ChangeDate") == "true");
             if(getParameterByName("action") != "edit" || $.cookie("ChangeDate") == "true"){
 //				setP2(0);
+				console.log("#"+id+"min");
 				CalcP($("#"+id+"").val()+" "+$("select#"+id+"hour").val()+":"+$("select#"+id+"min").val(), $("#exec_time_"+id).val(), ' . $user->id . ', id);//Розрахунок часу початку дії
+
+				$("#"+id+"hour").removeClass("fielderrorSelBorder");
+				$("#"+id+"min").removeClass("fielderrorSelBorder");
+				$("#type").val("");
+				$("#error").val(0);
             }
         }
         $("button").click(function(e){
@@ -2261,11 +2397,17 @@ print '
             $("#redirect_actioncode").val($("input#actioncode").val());
 //            console.log("showperiod", $("select#actioncode").val() == "AC_CURRENT");
             if($("select#actioncode").val() == "AC_GLOBAL" || $("select#actioncode").val() == "AC_CURRENT"){
+            	$("#apmin").hide();
+            	$("#aphour").hide();
                 $("#period").show();
                 $("#typenotification").show();
+                $(".global_current").show();
             }else{
+            	$(".global_current").hide();
                 $("#period").hide();
                 $("#typenotification").hide();
+            	$("#apmin").show();
+            	$("#aphour").show();
 			}
 
         }
@@ -2288,7 +2430,7 @@ print '
 
         </script>';
 //llxFooter();
-
+llxPopupMenu();
 $db->close();
 exit();
 function getActionStatus($action_id){

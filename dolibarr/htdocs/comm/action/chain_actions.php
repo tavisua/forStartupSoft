@@ -231,7 +231,7 @@ function ShowActionTable(){
         inner join (select code, libelle label from `llx_c_actioncomm` where active = 1 and (type = "system" or type = "user")) TypeCode on TypeCode.code = `llx_actioncomm`.code
         where `llx_societe_action`.`action_id` in ('.implode(",", $chain_actions).')
         and `llx_societe_action`.active = 1
-        order by `llx_societe_action`.dtChange desc;';
+        order by `llx_societe_action`.dtChange desc, `llx_societe_action`.`rowid` desc;';
     $res_result_action = $db->query($sql);
     $result_action = array();
     $result_actionID = array();
@@ -241,7 +241,7 @@ function ShowActionTable(){
             $result_actionID[]=$array_item->action_id;
     }
 //        echo '<pre>';
-//        var_dump($result_actionID);
+//        var_dump($sql);
 //        echo '</pre>';
 //        die();
 //V 0
@@ -298,7 +298,7 @@ function ShowActionTable(){
         left join `llx_societe_contact` on `llx_societe_contact`.rowid=`llx_actioncomm`.fk_contact
         left join `llx_user` create_user on `llx_actioncomm`.fk_user_author = `create_user`.rowid
         where id in (".implode(",", $chain_actions).") and llx_actioncomm.active = 1
-        order by datec desc";
+        order by datec desc, `llx_actioncomm`.id desc";
 //echo '<pre>';
 //var_dump($sql);
 //echo '</pre>';
