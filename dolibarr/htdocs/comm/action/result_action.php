@@ -64,9 +64,11 @@ if (isset($_REQUEST["action_id"])) {
     if((!isset($_REQUEST["onlyresult"]) || empty($_REQUEST['onlyresult'])) && isset($_REQUEST["answer_id"])&&!empty($_REQUEST["answer_id"]))
         $sql.="and rowid=" . $_REQUEST["answer_id"];
     else
-        $sql.="and rowid=" . $_REQUEST["action_id"];
-//    var_dump(isset($_REQUEST["answer_id"]));
-//    die($sql);
+        $sql.="and action_id=" . $_REQUEST["action_id"];
+//    echo '<pre>';
+//    var_dump($_REQUEST);
+//    echo '</pre>';
+//    die();
     $res = $db->query($sql);
     if (!$res) {
         dol_print_error($db);
@@ -77,10 +79,7 @@ if(!isset($_REQUEST["onlyresult"])||empty($_REQUEST["onlyresult"])) {
     $object->fetch($action_id);
     $socid = $object->socid;
 
-//    echo '<pre>';
-//    var_dump('test');
-//    echo '</pre>';
-//    die();
+
 
 
 }elseif($_REQUEST["action"]=='edituseration'){
@@ -168,7 +167,10 @@ if(!($_GET['action'] == 'addonlyresult' || $_GET['action'] == 'updateonlyresult'
 }
 $societe = new Societe($db);
 $societe->fetch(empty($object->socid)&&$_GET['action'] == 'addonlyresult'?$_GET['socid']:$object->socid);
-
+//echo '<pre>';
+//var_dump($object->answer);
+//echo '</pre>';
+//die();
 $formactions = new FormActions($db);
 if($_GET['action'] == 'edituseration'){//Якщо редагуються результати перемовин зі співробітниками
     $sql = "select rowid,said,answer,argument,said_important,result_of_action,work_before_the_next_action,date_next_action,work_before_the_next_action_mentor,date_next_action_mentor

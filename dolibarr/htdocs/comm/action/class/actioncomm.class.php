@@ -256,11 +256,16 @@ class ActionComm extends CommonObject
     }
     function getAssignedUser($action_id){
         global $db;
+//        echo '<pre>';
+//        var_dump($action_id);
+//        echo '</pre>';
+//        die();
         $chain_actions = $this->GetChainActions($action_id);
         $sql = "select distinct llx_user.rowid, llx_user.lastname, llx_user.firstname from llx_actioncomm
             left join `llx_user` on `llx_user`.`rowid` = llx_actioncomm.fk_user_author
             where id in (".implode(',', $chain_actions).")
             order by lastname, firstname";
+
         $res = $db->query($sql);
         if(!$res)
             dol_print_error($db);

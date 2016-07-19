@@ -15,7 +15,8 @@ global $dolibarr_main_db_name, $dolibarr_main_db_user, $dolibarr_main_db_pass, $
 $dolibarr_main_db_host='127.0.0.1';
 $dolibarr_main_db_port='3306';
 $dolibarr_main_document_root=$_SERVER["CONTEXT_DOCUMENT_ROOT"].'/dolibarr/htdocs';
-if($_SERVER['SERVER_NAME']=='uspex2015.com') {
+
+if(in_array($_SERVER['SERVER_NAME'], array('uspex2015.com','uspex2015.com1'))) {
     $dolibarr_main_db_name = 'vopimwkk_uspex2015';
     $dolibarr_main_db_user = 'admin';
     $dolibarr_main_db_pass = 'Gjdeqs4wqpYxGnKm';
