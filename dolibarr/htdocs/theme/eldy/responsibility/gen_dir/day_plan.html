@@ -149,17 +149,7 @@
         </table>
     </div>
 </div>
-<div id="popupmenu" style="display: none">
-    <table style="background: #ffffff">
-        <thead><tr class="multiple_header_table" style="width: 100px"><th class="middle_size">Вкажіть дату на яку відобразити завдання</th></tr></thead>
-        <tr>
-            <td class="middle_size" onclick="setdate();" style="cursor: pointer">1</td>
-        </tr>
-        <tr>
-            <td class="middle_size" onclick="setdate();" style="cursor: pointer">2</td>
-        </tr>
-    </table>
-</div>
+
 
 <script>
     $(document).ready(function(){
@@ -244,12 +234,24 @@
 
     function ShowActionsByUsers(id, typeaction, alias){
         console.log('imgLnAC_CUSTsale1',typeaction,alias,id);
-        var btn = document.getElementById('btnLn'+typeaction+alias+id);
-        var tr_item = btn.parentNode.parentNode;
-
+//        var btn = document.getElementById('btnSub'+typeaction+id);
+//
+////        return;
+//        var img = document.getElementById('imgSub'+typeaction+id);
+        var img;
+        var btn;
+        if(alias === undefined || alias.length == 0) {
+            img = $('#imgSub'+typeaction+id);
+            btn = $('#btnSub'+typeaction+id);
+        }else {
+            img = $('#imgLn' + typeaction + alias + '<?=$user->subdiv_id?>');
+            btn = $('#btnLn' + typeaction + alias + '<?=$user->subdiv_id?>');
+        }
+        var tr_item = btn.parent().parent();
+        img = document.getElementById(img.attr('id'));
+        tr_item = document.getElementById(tr_item.attr('id'));
+//        console.log(tr_item, img, btn);
 //        return;
-        var img = document.getElementById('imgLn'+typeaction+alias+id);
-//        console.log(img);
 //        var img = btn.getElementsByTagName('img')[0];
         var show = img.src.substr(img.src.length-('1downarrow.png').length) == '1downarrow.png';
         if(show)
@@ -283,8 +285,9 @@
 
         }
         if(show) {
-//            console.log(id);
-            if($('.'+id+alias).length == 0) {
+            console.log($('.'+typeaction+'_'+id).length);
+
+            if($('.'+typeaction+'_'+id).length == 0) {
 //                var tr_item = btn.parentNode.parentNode;
                 var className = tr_item.className;
                 className = className.replace('impair ', '');
@@ -308,10 +311,10 @@
 //                    if(tr_item[i].className.substr(tr_item[i].className.length-id.length) == id || tr_item[i].className.substr(tr_item[i].className.length-(id+' userlist').length) == id+' userlist')
 //                        $('#' + tr_item[i].id).show();
 //                }
-                $('.'+id+alias).show();
+                $('.'+typeaction+'_'+id).show();
             }
         }else{
-            $('.'+id+alias).hide();
+            $('.'+typeaction+'_'+id).hide();
             img.src = '/dolibarr/htdocs/theme/eldy/img/1downarrow.png';
         }
     }
@@ -353,7 +356,7 @@
         }
         if(show) {
             console.log(id);
-            if($('.'+id).length == 0) {
+            if($('.lineactive_'+id).length == 0) {
                 var tr_item = btn.parentNode.parentNode;
                 var className = tr_item.className;
                 className = className.replace('impair ', '');
@@ -380,7 +383,7 @@
                 $('.'+id).show();
             }
         }else{
-            $('.'+id).hide();
+            $('.lineactive_'+id).hide();
             var tr_item = document.getElementsByClassName(id);
             for(var i=0; i<tr_item.length; i++) {
                 var img = tr_item[i].getElementsByTagName('img');

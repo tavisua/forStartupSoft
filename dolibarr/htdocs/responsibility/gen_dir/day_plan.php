@@ -110,7 +110,7 @@ $table = ShowTable();
 //die();
 
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/gen_dir/day_plan.html';
-
+llxPopupMenu();
 //echo '<pre>';
 //var_dump($conf->browser);
 //echo '</pre>';
@@ -958,7 +958,7 @@ function getLineActiveTask($subdiv_id, $class, $code = '', $title=''){
     global $langs;
     while($obj = $db->fetch_object($res)){
         $class_row = fmod($num,2)==0?'impare':'pare';
-        $out.='<tr id="'.$class.$obj->name.'" class="'.$class.' '.$class_row.' lineactive">';
+        $out.='<tr id="'.$class.$obj->name.'" class="'.$class.' '.$class_row.' lineactive lineactive_'.$subdiv_id.'">';
         $out.='<td colspan="2">'.$langs->trans($obj->name).'</td>';
         if(in_array($code, array('AC_GLOBAL','AC_CURRENT')))
             $out.='<td></td>';
@@ -1325,7 +1325,7 @@ function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $ti
         $lnk = '/dolibarr/htdocs/responsibility/sale/area.php?idmenu=10425&mainmenu=area&leftmenu=';
     while($obj = $db->fetch_object($res)){
 //        $class_row = fmod($num,2)==0?'impare':'pare';
-        $out.='<tr id="'.$class.$obj->rowid.'" class="'.$class.($bestuserID == $obj->rowid?' bestvalue ':'').' userlist '.$subdiv_id.$respon_alias.'">';
+        $out.='<tr id="'.$class.$obj->rowid.'" class="'.$class.($bestuserID == $obj->rowid?' bestvalue ':'').' userlist '.$subdiv_id.$respon_alias.' '.$code.'_'.$subdiv_id.'">';
         $out.='<td colspan="2"><a href="'.$lnk.'&user_id='.$obj->rowid.'" target="_blank">'.$obj->lastname.' '.mb_substr($obj->firstname, 0,1,'UTF-8').'.</a></td>';
         if(in_array($code, array('AC_GLOBAL','AC_CURRENT'))||$respon_alias!='sale')
             $out.='<td></td>';

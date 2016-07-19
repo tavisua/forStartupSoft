@@ -139,18 +139,22 @@ function ShowTask(){
     global $langs;
     $numrow = 0;
     $Actions = new ActionComm($db);
+    if(!isset($_GET['user_id']))
+        $user_id = $user->id;
+    else
+        $user_id = $_GET['user_id'];
     while($obj = $db->fetch_object($res)) {
         $add = false;
-        if ($taskAuthor[$obj->id] == $user->id){
+        if ($taskAuthor[$obj->id] == $user_id){
 //            $add = true;
             $add = !(empty($assignedUser[$obj->id])&&$obj->entity == 0);
         }else {
             $users = explode(',', $assignedUser[$obj->id]);
-            $add = in_array($user->id, $users);
+            $add = in_array($user_id, $users);
         }
         if(isset($_GET['performer']) && !empty($_GET['performer'])) {//If set performer filter
             $users = explode(',', $assignedUser[$obj->id]);
-            $add =  in_array($_GET['performer'], $users)|| (empty($assignedUser[$obj->id])&&$user->id == $_GET['performer'] && $user->id == $taskAuthor[$obj->id]);
+            $add =  in_array($_GET['performer'], $users)|| (empty($assignedUser[$obj->id])&&$user_id == $_GET['performer'] && $user_id == $taskAuthor[$obj->id]);
         }
         if($add){
             $class = fmod($numrow++,2)==0?'impair':'pair';

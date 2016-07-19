@@ -129,6 +129,7 @@ function getCustomers($type){
     $sql.=' where 1';
     $sql.=' and region_id in (select fk_id from llx_user_regions where fk_user = '.$user->id.' and active = 1) ';
     $sql.=' and llx_societe.active = 1';
+    $sql.=' and `llx_societe_contact`.active = 1';
     if(!(empty($_REQUEST["areas"])||count($_REQUEST["areas"])==1&&$_REQUEST["areas"][0]==0))
         $sql .= ' and region_id in ('.implode(',',$_REQUEST["areas"]).')';
     $add = false;

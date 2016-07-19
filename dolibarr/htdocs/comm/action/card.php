@@ -31,7 +31,7 @@ require '../../main.inc.php';
 //llxHeader('', $langs->trans("AddAction"), $help_url);
 //
 //echo '<pre>';
-//var_dump($_POST);
+//var_dump($_REQUEST);
 //echo '</pre>';
 //die();
 if(isset($_POST['action'])&&$_POST['action'] == 'create' && isset($_POST['parent_id'])&&!empty($_POST['parent_id'])){
@@ -682,7 +682,7 @@ if ($action == 'add')
 			$object->percentage = 0;
 		}
 		$idaction=$object->add($user);
-		if(isset($_REQUEST["dateNextAction"])&&!empty($_REQUEST["dateNextAction"])){
+		if(isset($_REQUEST["dateNextAction"])&&!empty($_REQUEST["dateNextAction"])&&in_array($object->type_code, array('AC_GLOBAL','AC_CURRENT'))){
 			$subaction = new ActionComm($db);
 			$subaction->fetch($idaction);
 			$subaction->id=null;
