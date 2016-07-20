@@ -414,7 +414,8 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
         where 1
         and `llx_actioncomm`.`fk_soc` in (" . implode(',', $rowidList) . ")
         and `llx_actioncomm`.`active` = 1
-        and `llx_actioncomm`.`id` not in (select `llx_societe_action`.`action_id` from llx_societe_action where action_id is not null)";
+        and `llx_actioncomm`.`id` not in (select `llx_societe_action`.`action_id` from llx_societe_action where action_id is not null)
+        order by `llx_actioncomm`.`fk_soc`, llx_actioncomm.datep desc";
 
         $res = $db->query($sql);
         if (!$res) {

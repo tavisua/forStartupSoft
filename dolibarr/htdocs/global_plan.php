@@ -90,27 +90,28 @@ function ShowTask(){
     }
     if(count($taskID)>0) {
 
-        $sql = "select `llx_societe_action`.`action_id` as rowid, max(`llx_societe_action`.`dtChange`) dtChange from `llx_societe_action`
-        where 1 ";
-        $sql .= " and `llx_societe_action`.`action_id` in (" . implode(',', $taskID) . ")";
-        $sql .= "    and `llx_societe_action`.active = 1
-        group by `llx_societe_action`.`action_id`;";
-//  die($sql);
-        $res = $db->query($sql);
-        if (!$res) {
-            dol_print_error($db);
-        }
-        if ($db->num_rows($res) > 0) {
-            while ($row = $db->fetch_object($res)) {
-                if (!isset($lastaction[$row->rowid])) {
-                    $date = new DateTime($row->dtChange);
-                    $lastaction[$row->rowid] = $date->format('d.m.y');
-                }
-            }
-        }
+//        $sql = "select `llx_societe_action`.`action_id` as rowid, max(`llx_societe_action`.`dtChange`) dtChange from `llx_societe_action`
+//        where 1 ";
+//        $sql .= " and `llx_societe_action`.`action_id` in (" . implode(',', $taskID) . ")";
+//        $sql .= "    and `llx_societe_action`.active = 1
+//        group by `llx_societe_action`.`action_id`;";
+////  die($sql);
+//        $res = $db->query($sql);
+//        if (!$res) {
+//            dol_print_error($db);
+//        }
+//        if ($db->num_rows($res) > 0) {
+//            while ($row = $db->fetch_object($res)) {
+//                if (!isset($lastaction[$row->rowid])) {
+//                    $date = new DateTime($row->dtChange);
+//                    $lastaction[$row->rowid] = $date->format('d.m.y');
+//                }
+//            }
+//        }
+//        die('test');
     }
     //Завантажую завдання
-    $sql = "select id, note, confirmdoc, entity, `datec`, datep2, round((UNIX_TIMESTAMP(datep2)-UNIX_TIMESTAMP(datep))/60,0) iMinute, `dateconfirm`, period, `percent`, `datepreperform`, `llx_c_groupoftask`.`name` groupoftask
+    $sql = "select id, note, confirmdoc, entity, datelastaction,datefutureaction, `datec`, datep2, round((UNIX_TIMESTAMP(datep2)-UNIX_TIMESTAMP(datep))/60,0) iMinute, `dateconfirm`, period, `percent`, `datepreperform`, `llx_c_groupoftask`.`name` groupoftask
     from `llx_actioncomm`
     left join llx_c_groupoftask on `llx_c_groupoftask`.`rowid` = fk_groupoftask
     where id in (".implode(",", $taskID).")
@@ -194,13 +195,20 @@ function ShowTask(){
             }
             //Дії виконавця
 //            $lastaction = $Actions->GetLastAction($obj->id, 'datep');
-            if(!isset($lastaction[$obj->id])){
+            if(empty($obj->datelastaction)){
                 $lastaction_val = '<img src="/dolibarr/htdocs/theme/eldy/img/object_action.png">';
             }else{
-                $lastaction_val = $lastaction[$obj->id];
+                $date = new DateTime($obj->datelastaction);
+                $lastaction_val = $date->format('d.m.y').'</br>'.$date->format('H:i');
             }
             $table .= '<td style="width:76px;text-align: center;"><a href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu=global_task">'.$lastaction_val.'</a></td>';
-            $table .= '<td style="width:76px;text-align: center;"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td>';
+            if(empty($obj->datefutureaction)){
+                $futureaction_val = '<img src="/dolibarr/htdocs/theme/eldy/img/object_action.png">';
+            }else{
+                $date = new DateTime($obj->datefutureaction);
+                $futureaction_val = $date->format('d.m.y').'</br>'.$date->format('H:i');
+            }            
+            $table .= '<td style="width:76px;text-align: center;"><a href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu=global_task">'.$futureaction_val.'</a></td>';
             $table .= '<td style="width:43px;text-align: center;">'.$obj->iMinute.'</td>';
             //Дії наставника
             $table .= '<td style="width:76px;text-align: center"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td><td style="width:76px;text-align: center"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td>';

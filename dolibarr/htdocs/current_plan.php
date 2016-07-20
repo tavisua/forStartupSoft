@@ -205,13 +205,15 @@ function ShowTask(){
             if(empty($obj->datelastaction)){
                 $lastaction_value = '<img src="/dolibarr/htdocs/theme/eldy/img/object_action.png">';
             }else{
-                $lastaction_value = $obj->datelastaction;
+                $date = new DateTime($obj->datelastaction);
+                $lastaction_value = $date->format('d.m.y').'</br>'.$date->format('H:i');
             }
             $table .= '<td style="width:76px;text-align: center"><a href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu='.$_REQUEST['mainmenu'].'">'.$lastaction_value.'</a></td>';
             if(empty($obj->datefutureaction)){
                 $value = '<img src="/dolibarr/htdocs/theme/eldy/img/object_action.png">';
             }else{
-                $value = $obj->datefutureaction;
+                $date = new DateTime($obj->datefutureaction);
+                $value = $date->format('d.m.y').'</br>'.$date->format('H:i');
             }
             $table .= '<td style="width:76px;text-align: center"><a href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu='.$_REQUEST['mainmenu'].'">'.$value.'</a></td>';
             $table .= '<td style="width:41px">'.$obj->iMinute.'</td>';

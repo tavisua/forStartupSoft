@@ -476,12 +476,20 @@ function saveaction($rowid, $createaction = false){
             where sub_action.id='.$_REQUEST["actionid"].'
             and sub_action.fk_parent = llx_actioncomm.id
             and llx_actioncomm.fk_parent = 0';
+            $res = $db->query($sql);
+        }
+        require_once $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/comm/action/class/actioncomm.class.php';
+        $Actions = new ActionComm($db);
+        $chain_action = $Actions->GetChainActions($_REQUEST["actionid"]);
+        $sql = "update llx_actioncomm set datelastaction = Now()
+            where id in (".implode(',', $chain_action).") and active = 1";
 //    echo '<pre>';
 //    var_dump($sql);
 //    echo '</pre>';
 //    die();
-            $res = $db->query($sql);
-        }
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
 
 //    if($res)
 //        dol_print_error($db);

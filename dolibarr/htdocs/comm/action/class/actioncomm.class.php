@@ -778,9 +778,18 @@ class ActionComm extends CommonObject
 //            echo '</pre>';
 
             if ($resql) {
+
                 $this->id = $this->db->last_insert_id(MAIN_DB_PREFIX . "actioncomm", "id");
-                //            var_dump($error);
-                //            die();
+
+                if(!empty($this->parent_id)){
+                    $chain_action = $this->GetChainActions($this->parent_id);
+                    $sql = "update llx_actioncomm set datelastaction = Now(),
+                      datefutureaction = case when datefutureaction is null or datefutureaction<'".$this->db->idate($this->datep)."' then '".$this->db->idate($this->datep)."' else datefutureaction end  where id in (".implode(',', $chain_action).") and active = 1";
+
+                    $res = $this->db->query($sql);
+                    if(!$res)
+                        dol_print_error($this->db);
+                }
                 // Now insert assignedusers
                 if (!$error) {
 //                    for($k=0;$k<count(array_keys($this->userassigned));$k++){

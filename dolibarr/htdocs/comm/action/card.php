@@ -105,8 +105,32 @@ if($_GET['action']=='get_exectime'){
 
 	if(substr($_GET['rowid'], 0, 1)=='_')
 	    $sql = 'update llx_societe_action set active = 0 where rowid='.str_replace('_','', $_GET['rowid']);
-	else
-    $sql = 'update llx_actioncomm set active = 0 where id='.$_GET['rowid'];
+	else {
+        require_once $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/comm/action/class/actioncomm.class.php';
+        $Actions = new ActionComm($db);
+        $chain_action = $Actions->GetChainActions($_REQUEST["rowid"]);
+
+		$chain_action = array_flip($chain_action); //Меняем местами ключи и значения
+		unset ($chain_action[$_GET['rowid']]) ; //Удаляем элемент массива
+		$chain_action = array_flip($chain_action); //Меняем местами ключи и значения
+
+		$sql = "select max(datec) maxdate from llx_actioncomm where id in (".(implode(',', $chain_action)).")";
+		$res = $db->query($sql);
+		if(!$res){
+			dol_print_error($db);
+		}
+		$obj = $db->fetch_object($res);
+		$date = new DateTime($obj->maxdate);
+		if(count($chain_action)>1)
+			$sql = "update llx_actioncomm set datefutureaction = '".$date->format('Y-m-d H:i:s')."' where id in (".(implode(',', $chain_action)).")";
+		else
+			$sql = "update llx_actioncomm set datefutureaction = null where id in (".(implode(',', $chain_action)).")";
+		$res = $db->query($sql);
+		if(!$res){
+			dol_print_error($db);
+		}
+		$sql = 'update llx_actioncomm set active = 0 where id=' . $_GET['rowid'];
+	}
     $res = $db->query($sql);
     if(!$res){
         var_dump($sql);
@@ -1104,7 +1128,7 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 	print '<input type="hidden" name="typeSetOfDate" id="type" value="">';
 	print '<input type="hidden" name="error" id="error" value="'.$_REQUEST['error'].'">';
 	print '<input type="hidden" id="mainmenu" name="mainmenu" value="'.$_REQUEST["mainmenu"].'">';
-	print '<input type="hidden" name="parent_id" value="'.$_REQUEST["parent_id"].'">';
+	print '<input type="hidden" id="parent_id" name="parent_id" value="'.$_REQUEST["parent_id"].'">';
 	print '<input type="hidden" name="donotclearsession" value="1">';
 	print '<input type="hidden" id = "backtopage" name="backtopage" value="'.($backtopage != '1' ? $backtopage : $_SERVER["HTTP_REFERER"]).'">';
 
@@ -2396,7 +2420,7 @@ print '
 //            	setP2();
             $("#redirect_actioncode").val($("input#actioncode").val());
 //            console.log("showperiod", $("select#actioncode").val() == "AC_CURRENT");
-            if($("select#actioncode").val() == "AC_GLOBAL" || $("select#actioncode").val() == "AC_CURRENT"){
+            if($.inArray($("select#actioncode").val(), ["AC_GLOBAL","AC_CURRENT"]) >=0 && $("#parent_id").val().length == 0){
             	$("#apmin").hide();
             	$("#aphour").hide();
                 $("#period").show();
