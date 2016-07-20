@@ -26,7 +26,7 @@
             <td><b>Тип дії</b></td>
             <td><?=$langs->trans($object->type)?></td>
             <td <?=$style?>><b>Запланована</br>дата початку дії</br></td>
-            <td <?=$style?>><?=$form->select_date($Actions->datep,'ap',1,1,0,"action",1,1,0,0,'fulldayend').'<span id="ShowFreeTime" onclick="ShowFreeTime('."'ap'".');" title="Переглянути наявність вільного часу" style="vertical-align: middle"><img src="/dolibarr/htdocs/theme/eldy/img/calendar.png"></span>'?>
+            <td <?=$style?>><?=date('d.m.y H:i',$Actions->datep)?>
 			    <script>
                     $('select').change(function(e){
                         if($.inArray(e.target.id, ['aphour','apmin','dateNextActionhour','dateNextActionmin'])>=0){

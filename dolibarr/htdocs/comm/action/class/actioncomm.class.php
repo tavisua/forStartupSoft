@@ -308,7 +308,7 @@ class ActionComm extends CommonObject
             $exec_time = 0;
         return $exec_time;
     }
-    function GetFreeTime($inputdate, $id_usr, $minutes, $prioritet = 0){
+    function GetFreeTime($inputdate, $id_usr, $minutes, $prioritet = 0, $typePeriod='onlyworkday'){
         if(empty($prioritet))$prioritet = 0;
 //        var_dump(substr_count($inputdate, ':'));
 //        die();
@@ -319,16 +319,17 @@ class ActionComm extends CommonObject
 
         $PlanTime = 0;
         while(!$PlanTime) {
-            if($date->format('w')>0 && $date->format('w')<6)
-                $PlanTime = $this->GetFirstFreeTime($date->format('Y-m-d'), $id_usr, $minutes, $prioritet, $starttime);
-            $date = new DateTime(date('Y-m-d', mktime(8,0,0,$date->format('m'),$date->format('d'),$date->format('Y'))+ 86400));
+            if($typePeriod == 'onlyworkday' && $date->format('w')>0 && $date->format('w')<6 || $typePeriod == 'alltime')
+                $PlanTime = $this->GetFirstFreeTime($date->format('Y-m-d'), $id_usr, $minutes, $prioritet, $starttime, $typePeriod);
+            $date = new DateTime(date('Y-m-d', mktime(($typePeriod == 'onlyworkday'?8:0),0,0,$date->format('m'),$date->format('d'),$date->format('Y'))+ 86400));
         }
 //        var_dump($PlanTime);
 //        die();
         return $PlanTime;
     }
-    function GetFirstFreeTime($date, $id_usr, $minutes, $prioritet = 0, $starttime){
-        $freetime = $this->GetFreeTimePeriod($date, $id_usr, $prioritet);
+    function GetFirstFreeTime($date, $id_usr, $minutes, $prioritet = 0, $starttime, $typePeriod){
+//        var_dump($date, $id_usr, $prioritet, $typePeriod == 'alltime');
+        $freetime = $this->GetFreeTimePeriod($date, $id_usr, $prioritet, $typePeriod == 'alltime');
         $date = new DateTime($date);
 //        echo '<pre>';
 //        var_dump($freetime);
@@ -368,7 +369,17 @@ class ActionComm extends CommonObject
 //            var_dump($minutes<=$period[1] && ($itemDate >= $starttime || $num == count($freetime)) && $dtDate->format('H')>=8 && $dtDate->format('H')<=18 &&
 //                ($dtDate->format('H')>=12&& $dtDate->format('H')<14  && $dtDate->format('Y-m-d') == $date->format('Y-m-d')));
 //            die();
-            if($minutes<=$period[1] && ($itemDate >= $starttime || count($freetime) == $num) && $dtDate->format('H')>=8 && !( $dtDate->format('H')>=12&& $dtDate->format('H')<14) && $dtDate->format('Y-m-d') == $date->format('Y-m-d')) {
+//                    var_dump($typePeriod == 'alltime' , $this->validateDateAction($date->format('Y-m-d H:i:s'), $id_usr, $minutes, $prioritet) , $minutes<=$period[1]);
+//                    die();
+            if($typePeriod == 'alltime' && $this->validateDateAction($date->format('Y-m-d H:i:s'), $id_usr, $minutes, $prioritet) && $minutes<=$period[1]){
+                if($itemDate >= $starttime) {
+                    var_dump($period);
+                    die();
+                    return $period[2] . ' ' . $period[0];
+                }else
+                    return date('Y-m-d H:i:s', $starttime);
+            }
+            if($minutes<=$period[1] && ($itemDate >= $starttime || count($freetime) == $num) && ($dtDate->format('H')>=8) && !( $dtDate->format('H')>=12&& $dtDate->format('H')<14) && $dtDate->format('Y-m-d') == $date->format('Y-m-d')) {
 //                var_dump($itemDate >= $starttime);
                 $tmp_date = new DateTime($period[2].' '.$period[0]);
                 $mk_tmp_date = dol_mktime($tmp_date->format('H'),$tmp_date->format('i'),$tmp_date->format('s'),$tmp_date->format('m'),$tmp_date->format('d'),$tmp_date->format('Y'));
@@ -606,10 +617,10 @@ class ActionComm extends CommonObject
 
         return $out;
     }
-    function add($user,$notrigger=0)
+    function add($user,$notrigger=0,$autosetDate=true)
     {
 //        echo '<pre>';
-//        var_dump($this);
+//        var_dump(date('d.m.y H:i', $this->datep));
 //        echo '</pre>';
 //        die();
         global $langs, $conf, $hookmanager;
@@ -684,11 +695,10 @@ class ActionComm extends CommonObject
             $correctdate = false;
             $cdatep=0;
             $cdatef=0;
-            if(count(array_keys($this->userassigned))>1){
+            if(count(array_keys($this->userassigned))>1 && $autosetDate){
                 $correctdate = true;
                 $minute = ($this->datef-$this->datep)/60;
-//                var_dump($this->datep);
-//                die();
+
                 $freedate = new DateTime($this->GetFreeTime(date('Y-m-d H:i',$this->datep),array_keys($this->userassigned)[$i],$minute, $this->priority));
 
                 $cdatep = mktime($freedate->format('H'),$freedate->format('i'),$freedate->format('s'),$freedate->format('m'),$freedate->format('d'),$freedate->format('Y'));
@@ -741,7 +751,11 @@ class ActionComm extends CommonObject
             $sql .= ((isset($this->dateconfirm) && !empty($this->dateconfirm)) ? "'" . $this->dateconfirm . "'" : "null") . ",";
 
             $sql .= ((isset($this->durationp) && $this->durationp >= 0 && $this->durationp != '') ? "'" . $this->durationp . "'" : "null") . ",";    // deprecated
-            $sql .= (strval($this->datepreperform) != '' ? "'" . $this->db->idate($this->datepreperform) . "'" : "null") . ",";
+//            $sql .= (strval($this->datepreperform) != '' ? "'" . $this->db->idate($this->datepreperform) . "'" : "null") . ",";
+            if(is_object($this->datepreperform))
+                $sql.= (strval($this->datepreperform->format('Y-m-d'))!='' ? "'".$this->db->idate($this->datepreperform->format('Y-m-d'))."'" : 'null'). ",";
+            else
+                $sql .= (strval($this->datepreperform) != '' ? "'" . $this->db->idate($this->datepreperform) . "'" : "null") . ",";
             $sql .= (isset($this->typeSetOfDate) ? "'".$this->typeSetOfDate."'" : "null") . ",";
             $sql .= (isset($this->type_id) ? $this->type_id : "null") . ",";
             $sql .= (isset($this->type_code) ? " '" . $this->type_code . "'" : "null") . ",";
@@ -767,15 +781,16 @@ class ActionComm extends CommonObject
             $sql .= " " . (!empty($this->order_id) ? "'" . $this->order_id . "'" : "null"). ",";
             $sql .= "1, '" . $this->typenotification . "'";
             $sql .= ")";
-//                    var_dump($sql);
+//            echo '<pre>';
+//            var_dump($sql);
+//            echo '</pre>';
+//            die();
             dol_syslog(get_class($this) . "::add", LOG_DEBUG);
             $resql=$this->db->query($sql);
             if(!$resql)
                 dol_print_error($this->db);
 //            $resql = 1;
-//            echo '<pre>';
-//            var_dump(array_keys($this->userassigned)[$i]);
-//            echo '</pre>';
+
 
             if ($resql) {
 
@@ -1288,7 +1303,14 @@ class ActionComm extends CommonObject
         $contactid=($this->contactid?$this->contactid:((isset($this->contact->id) && $this->contact->id > 0) ? $this->contact->id : 0));
 		$userownerid=($this->userownerid?$this->userownerid:0);
 		$userdoneid=($this->userdoneid?$this->userdoneid:0);
-
+        if(is_numeric($this->datep))
+            $this->datep = date('Y-m-d H:i:s', $this->datep);
+        if(is_numeric($this->datef))
+            $this->datep = date('Y-m-d H:i:s', $this->datef);
+        if(is_numeric($this->datepreperform)) {
+            $date = new DateTime(date('Y-m-d H:i:s', $this->datepreperform));
+            $this->datepreperform = $date;
+        }
         $this->db->begin();
 
         $sql = "UPDATE ".MAIN_DB_PREFIX."actioncomm ";

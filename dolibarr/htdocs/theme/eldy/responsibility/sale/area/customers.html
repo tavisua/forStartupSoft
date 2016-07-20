@@ -14,7 +14,8 @@
         <tr class="multiple_header_table">
             <!--<th class="header_table" width="130px">Категорія контрагента</th>-->
             <!--<th class="header_table" width="150px">Засновник, інвестор, холдинг</th>-->
-            <th width="180px" rowspan="2">Назва контрагента <img title="Передивитись"></th>
+            <th style="text-align: center"; width="180px" rowspan="2">Назва контрагента</br> <button title="Сортувати від А до Я" onclick="SortByName('asc');"><img src="/dolibarr/htdocs/theme/eldy/img/1uparrow.png"></button>
+                <button title="Сортувати від Я до А" onclick="SortByName('desc');"><img src="/dolibarr/htdocs/theme/eldy/img/1downarrow.png"></button></th>
             <!--<th class="header_page" width="80px">Форма власності</th>-->
             <th width="100px" rowspan="2">Місце знаходження</th>
             <!--<th class="header_page" width="130px">П.І.Б. засновника</th>-->
@@ -70,6 +71,9 @@
         <script>
             function closefindmenu(){
                 $('#popupmenu').hide();
+            }
+            function SortByName(sorted){
+                location.href= '/dolibarr/htdocs/responsibility/sale/area.php?idmenu=10425&mainmenu=area&leftmenu=&sortby=nom&sorted='+sorted;
             }
             $(document).ready(function(){
                 $('#reference_body').attr('height', window.innerHeight - 420);

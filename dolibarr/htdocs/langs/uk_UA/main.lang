@@ -491,6 +491,7 @@ ActionsDoneShort=Done
 ActionNotRunning=Кіт не валявся
 ActionNotApplicable=Не використовується
 ActionRunningNotStarted=Тільки-но розпочато
+ActionPostponedToAnotherTime=Перенесено на інший час
 ActionRunningShort=В процесі виконання
 ActionDoneShort=Виконано
 ActionUncomplete=Uncomplete

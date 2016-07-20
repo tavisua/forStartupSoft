@@ -19,6 +19,7 @@ function ShowFreeTime(prefix){
         id_usr: id_usr,
         prioritet:$('#priority').val()
     }
+    console.log(param);
     $.ajax({
         url:'/dolibarr/htdocs/comm/action/card.php',
         cache:false,
@@ -41,7 +42,7 @@ function ShowFreeTime(prefix){
 }
 $('select').change(function(e){
     console.log('select');
-    if($.inArray(e.target.id, ['aphour','apmin','dateNextActionhour','dateNextActionmin'])>=0){
+    if($.inArray(e.target.id, ['datehour','datemin','aphour','apmin','dateNextActionhour','dateNextActionmin'])>=0){
         var prefix;
         if(e.target.id.substr(e.target.id.length - 'hour'.length) == 'hour'){
             prefix = e.target.id.substr(0, e.target.id.length - 'hour'.length);
@@ -54,10 +55,11 @@ $('select').change(function(e){
             date:($('#'+prefix+'year').val().length == 0?'':$('#'+prefix+'year').val()+'-'+$('#'+prefix+'month').val()+'-'+
                 $('#'+prefix+'day').val()+' '+$('#'+prefix+'hour').val()+':'+$('#'+prefix+'min').val()),
             minutes:$('#exec_time_'+prefix).val(),
-            id_usr:".$user->id.",
+            id_usr: id_usr,
             prioritet:$('#priority').val()
         }
         $.ajax({
+            url: '/dolibarr/htdocs/comm/action/card.php',
             cache:false,
             data:param,
             success:function(result){

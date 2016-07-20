@@ -218,7 +218,7 @@ function ShowActionTable(){
         $nextaction[$row->fk_parent] = $row->datep;
     }
     //Завантажую результат дії
-    $sql = 'select `llx_societe_action`.`action_id`, `llx_actioncomm`.percent, `llx_societe_action`.`rowid`, `llx_actioncomm`.`datep`,
+    $sql = 'select `llx_societe_action`.`action_id`, `llx_actioncomm`.`type`, `llx_actioncomm`.percent, `llx_societe_action`.`rowid`, `llx_actioncomm`.`datep`,
         `llx_societe_action`.dtChange datec, create_user.`lastname`, create_user.rowid author_id, `llx_user`.`lastname` as contactname, `llx_user`.rowid as contactUserID,
                 TypeCode.code kindaction, `llx_societe_action`.`said`, `llx_societe_action`.`answer`,`llx_societe_action`.`argument`,
                 `llx_societe_action`.`said_important`, `llx_societe_action`.`result_of_action`,
@@ -283,7 +283,7 @@ function ShowActionTable(){
 //        where id in ('.implode(",", $chain_actions).') and llx_actioncomm.active = 1  order by datep desc, datec desc';
 
 //V 2
-    $sql = "select `llx_actioncomm`.id action_id, `llx_actioncomm`.percent, 0 rowid, `llx_actioncomm`.`datep`,
+    $sql = "select round((UNIX_TIMESTAMP(datep2)-UNIX_TIMESTAMP(datep))/60,0) iMinute, `llx_actioncomm`.`type`, `llx_actioncomm`.fk_user_mod, `llx_actioncomm`.id action_id, `llx_actioncomm`.percent, 0 rowid, `llx_actioncomm`.`datep`,
        `llx_actioncomm`.datec,
        `create_user`.`lastname` lastname,
        `create_user`.`rowid` author_id,
@@ -341,12 +341,13 @@ function ShowActionTable(){
 //            var_dump($nextaction[$row->rowid]);
 //            die();
             }
-//        var_dump($row->work_before_the_next_action);
-//        die();
+
 
             if(empty($row->rowid)&&!empty($row->action_id)){
-                $sql = "select fk_element from `llx_actioncomm_resources` where `fk_actioncomm` = ".$row->action_id;
+                $sql = "select fk_element from `llx_actioncomm_resources` where `fk_actioncomm` = ".$row->action_id.' and `fk_element` <> '.$row->author_id;
 //                if($row->action_id == 88753) {
+//                        var_dump($sql);
+//                        die();
                 $resUserID = $db->query($sql);
                     if(!$resUserID)
                         dol_print_error($db);
@@ -441,8 +442,53 @@ function CreateNewActionItem($row, $num, $result = false){
         $iconitem = 'result_action.png';
         $title = 'Результат дії '.$title;
     }
-    $out = '<tr class="' . (fmod($num, 2) == 0 ? 'impair' : 'pair') . '">
-    <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'dtChange" style="widtd: 80px" class="middle_size">' . (empty($row->datec) ? '' : $dtChange->format('d.m.y H:i:s')) . '</td>
+    $style = 'style="';
+    $status = '';
+    $date = new DateTime();
+//    if(!empty($row->percent)) {
+        if($row->percent < 98) {
+            if ($dateaction < $date) {
+                $style = 'style="background:rgb(255, 0, 0)';
+            } elseif ($dateaction == $date) {
+                $style = 'style="background:rgb(0, 255, 0)';
+            }
+            if ($row->percent == "-1")
+                $status = 'ActionNotRunning';
+            elseif ($row->percent == 0)
+                $status = 'ActionRunningNotStarted';
+            elseif ($row->percent == "-100") {
+                $status = 'ActionPostponedToAnotherTime';
+                $style = 'style="';
+            }
+            elseif ($row->percent > 0 && $row->percent < 98)
+                $status = 'ActionRunningShort';
+            else
+                $status = 'ActionDoneShort';
+        }elseif($row->percent == 99){
+            $status = '<img src="/dolibarr/htdocs/theme/eldy/img/BWarning.png" title="Чекає підтвердження про виконання" style="width: 50px;">';
+        }else{
+            $status = '<img style="width:20px;height:20px" src="/dolibarr/htdocs/theme/eldy/img/done.png" title="Задачу виконано">';
+        }
+        $style.=';width=50px"';
+
+//    }
+//    var_dump($row->percent);
+//    die();
+//    $out = '<tr class="' . (fmod($num, 2) == 0 ? 'impair' : 'pair') . '">';
+    $username = '';
+    if($status == 'ActionPostponedToAnotherTime'){
+        $sql = "select lastname, firstname from llx_user where rowid=".$row->fk_user_mod;
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+        $obj = $db->fetch_object($res);
+        $username = $obj->lastname.' '.mb_substr($obj->firstname, 0,1,'UTF-8').'.';
+    }
+//    var_dump($result);
+//    die();
+    $out = '<tr class="'.($status == 'ActionPostponedToAnotherTime'?'postponedAction':(fmod($num++, 2)==0?'impair':'pair')).
+        '" title="'.($status == 'ActionPostponedToAnotherTime'?$langs->trans('ActionPostponedToAnotherTime').' '.$username:'').'" >';
+    $out.='<td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'dtChange" style="widtd: 80px" class="middle_size">' . (empty($row->datec) ? '' : $dtChange->format('d.m.y H:i:s')) . '</td>
     <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'lastname" style="widtd: 100px" class="middle_size">' . $row->lastname . '</td>
     <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'contactname" style="widtd: 80px" class="middle_size">' . $row->contactname . '</td>
     <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'kindaction" style="widtd: 50px; text-align: center;" class="middle_size" ><img src="/dolibarr/htdocs/theme/' . $conf->theme . '/img/' . $iconitem . '" title="' . $title . '"></td>
@@ -453,9 +499,10 @@ function CreateNewActionItem($row, $num, $result = false){
     <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'result_of_action" style="widtd: 80px" class="middle_size">' . (strlen($row->result_of_action) > 20 ? mb_substr($row->result_of_action, 0, 20, 'UTF-8') . '...<input type="hidden" value="' . $row->result_of_action . '" id="input_' . $row->rowid . 'result_of_action">' : $row->result_of_action) . '</td>
     <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'work_before_the_next_action" style="widtd: 80px" class="middle_size">' . (strlen($row->work_before_the_next_action) > 20 ? mb_substr($row->work_before_the_next_action, 0, 20, 'UTF-8') . '...<input type="hidden" value="' . $row->work_before_the_next_action . '" id="input_' . $row->rowid . 'work_before_the_next_action">' : $row->work_before_the_next_action) . '</td>';
     if(!$result)
-        $out.= '<td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'dtAction" style="widtd: 80px" class="middle_size">' . (empty($row->datep) ? '' : ($dateaction->format('d.m.y') . '</br>' . $dateaction->format('H:i'))) . '</td>';
+        $out.= '<td status="'.(($row->percent >= -1 && $row->percent < 98)?'0':'1').'" date="'.$row->datep.'"minutes="'.$row->iMinute.'" rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'date_next_action" style="widtd: 80px" class="'.(($row->percent >= -1 && $row->percent < 98)?'button_cell':'').' date_next_action middle_size">' .var_dump($row->type).' '. (empty($row->datep) ? '' : ($dateaction->format('d.m.y') . '</br>' . $dateaction->format('H:i'))) .
+            (!empty($row->type)?'<div style="float: right; margin-top: -15px" title="Час початку дії встановлено вручну"><img src="/dolibarr/htdocs/theme/eldy/img/object_task.png"></div>':'').'</td>';
     else
-        $out.= '<td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'dtAction" style="widtd: 80px" class="middle_size"></td>';
+        $out.= '<td status="'.($status=='ActionNotRunning'?'0':'1').'" rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'dtAction" style="widtd: 80px" class="'.($status=='ActionNotRunning'?'button_cell':'').' middle_size"></td>';
     $out.='<td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'work_before_the_next_action_mentor" style="widtd: 80px" class="middle_size">' . (strlen($row->work_mentor) > 20 ? mb_substr($row->work_mentor, 0, 20, 'UTF-8') . '...<input type="hidden" value="' . $row->work_mentor . '" id="input_' . $row->rowid . 'work_mentor">' : $row->work_mentor) . '</td>
     <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'date_next_action_mentor" style="widtd: 80px" class="middle_size">' . (empty($row->date_mentor) ? '' : $dtDateMentor->format('d.m.Y')) . '</td>';
 
@@ -471,30 +518,32 @@ function CreateNewActionItem($row, $num, $result = false){
 //    else
 //        $status = 'Виконано';
 
-    $date = new DateTime();
-    $style = 'style="';
-    if($row->percent < 98) {
-        if (!$result) {
-            if ($dateaction < $date) {
-                $style = 'style="background:rgb(255, 0, 0)';
-            } elseif ($dateaction == $date) {
-                $style = 'style="background:rgb(0, 255, 0)';
-            }
-        }
-        if ($row->percent == "-1")
-            $status = 'ActionNotRunning';
-        elseif ($row->percent == 0)
-            $status = 'ActionRunningNotStarted';
-        elseif ($row->percent > 0 && $row->percent < 98)
-            $status = 'ActionRunningShort';
-        else
-            $status = 'ActionDoneShort';
-    }elseif($row->percent == 99)
-        $status = '<img title="Чекає підтвердження" src="/dolibarr/htdocs/theme/eldy/img/BWarning.png">';
-    else
-        $status = '<img title="Робота прийнята" src="/dolibarr/htdocs/theme/eldy/img/done.png">';
-    if($result)
-        $status = '';
+//    $date = new DateTime();
+//    $style = 'style="';
+//    if($row->percent < 98) {
+//        if (!$result) {
+//            if ($dateaction < $date) {
+//                $style = 'style="background:rgb(255, 0, 0)';
+//            } elseif ($dateaction == $date) {
+//                $style = 'style="background:rgb(0, 255, 0)';
+//            }
+//        }
+//        if ($row->percent == "-1")
+//            $status = 'ActionNotRunning';
+//        elseif ($row->percent == 0)
+//            $status = 'ActionRunningNotStarted';
+//        elseif ($row->percent > 0 && $row->percent < 98)
+//            $status = 'ActionRunningShort';
+//        else
+//            $status = 'ActionDoneShort';
+//    }elseif($row->percent == 99)
+//        $status = '<img title="Чекає підтвердження" src="/dolibarr/htdocs/theme/eldy/img/BWarning.png">';
+//    else
+//        $status = '<img title="Робота прийнята" src="/dolibarr/htdocs/theme/eldy/img/done.png">';
+//    if($result)
+//        $status = '';
+//    var_dump($status);
+//    die();
     $out.='<td '.$style.';widtd: 50px; text-align: center;" class="middle_size" >' . $langs->trans($status) . '</td>';
 
     $out.='<td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'action" style="width: 35px; text-align: center;" class="middle_size"><script>
@@ -512,7 +561,7 @@ function CreateNewActionItem($row, $num, $result = false){
             $actioncode = "'AC_GLOBAL'";
         }
     }
-    if($row->author_id == $user->id) {
+    if($row->author_id == $user->id && !in_array($row->percent, array(-100,100))) {
         if($row->percent == 99 && !$result){
             $out .= '<img id="confirm'.$row->action_id.'" title = "'.$langs->trans('Confirm').'" onclick="Confirmation('.$row->action_id.');" src="/dolibarr/htdocs/theme/eldy/img/uncheck.png">';
         }elseif($row->percent < 99) {

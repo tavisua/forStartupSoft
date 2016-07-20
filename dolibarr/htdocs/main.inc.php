@@ -1066,8 +1066,8 @@ function llxSendSmsEmail(){
             <table>
                 <tr>
                     <td><a href="/dolibarr/htdocs/comm/smsSending/card.php?action=add&type=sms"><img title="СМС розсилка" src="/dolibarr/htdocs/theme/eldy/img/sms.png"></a></td>
-                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-                    <td><a href="/dolibarr/htdocs/comm/mailing/card.php?action=create_emaillist&type=email"><img title="Email розсилка" src="/dolibarr/htdocs/theme/eldy/img/emailing.png"></a></td>
+                    <!--<td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                    <td><a href="/dolibarr/htdocs/comm/mailing/card.php?action=create_emaillist&type=email"><img title="Email розсилка" src="/dolibarr/htdocs/theme/eldy/img/emailing.png"></a></td>-->
                 </tr>
             </table>
         </div>
