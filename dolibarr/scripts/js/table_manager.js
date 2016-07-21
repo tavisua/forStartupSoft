@@ -476,9 +476,32 @@ function CalcP2(id){
         document.getElementById("p2min").value = min;
     }
 }
+function SpyMode(id_usr){
+    //console.log(location);
+    //return;
+    var param = {
+        action: 'setSpyMode',
+        id_usr: id_usr
+    }
+    $.ajax({
+        url:'/dolibarr/htdocs/responsibility/gen_dir/day_plan.php',
+        data:param,
+        cahse:false,
+        success:function(result){
+            switch (result){
+                case '1':{
+                    window.open(location.origin);
+                }break;
+                case '2':{
+                    location.href = '/dolibarr/htdocs/day_plan.php?idmenu=10419&mainmenu=plan_of_days&leftmenu=';
+                }break;
+            }
+        }
+    })
+    console.log(id_usr);
+}
 function AddOrder(){
      $("#actionbuttons").attr('action', '/dolibarr/htdocs/orders.php?idmenu=10426&mainmenu=orders&leftmenu=');
-    console.log('test');
 }
 function saveorders(typicalqueries){
         //console.log(typicalqueries, $.cookie('products_id'), $.cookie('answerId'));

@@ -154,7 +154,7 @@ while($row = $db->fetch_object($res)) {
             break;
     }
     if(trim($row->code) == 'AC_TEL'){
-        if ($row->percent == -1)
+        if ($row->percent <=0)
             $status = 'Не розпочато';
         else {
             $status = $callstatus[(empty($row->callstatus) ? 2 : $row->callstatus)];

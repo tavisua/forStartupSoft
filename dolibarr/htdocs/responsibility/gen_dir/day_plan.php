@@ -72,14 +72,18 @@ require $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/main.inc.php';
 //}else{
 //    $future = $_SESSION['future'];
 //}
-//echo '<pre>';
-//var_dump(array_filter($actions, function($action){
-////    var_dump($action['id_usr']==57);
-////    die();
-//    return $action['id_usr'] == 57;
-//}) );
-//echo '</pre>';
-//die();
+
+if(isset($_REQUEST['action'])&&$_REQUEST['action']=='setSpyMode'){
+
+    if(isset($_REQUEST['id_usr'])&&!empty($_REQUEST['id_usr'])) {
+        $_SESSION['spy_id_usr'] = $_REQUEST['id_usr'];
+        echo 1;
+    }else {
+        unset($_SESSION['spy_id_usr']);
+        echo 2;
+    }
+    exit();
+}
 if(isset($_REQUEST['action'])&&$_REQUEST['action']=='gettask'){
     if(isset($_REQUEST['subdiv_id'])&&empty($_REQUEST['subdiv_id']))
         echo getActionsBySub($_REQUEST['classname'], $_REQUEST['code']);
@@ -344,7 +348,7 @@ function getTotalUserAction($user_id, $class, $title, $code = '')
     $sql = "select count(*)iCount from llx_actioncomm
         left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
         where date(datep) between adddate(date(now()), interval -1 month) and date(now())
-        and llx_actioncomm.percent <> 100
+        and llx_actioncomm.percent not in (100, -100)
         and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end = ".$user_id;
     if(empty($code))
         $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
@@ -536,7 +540,7 @@ function getRegionsList($id_usr){
             and fk_user_author = ".$id_usr."
             and llx_actioncomm.active = 1
             and date(datep) between  adddate(date(now()), interval -1 month) and date(now())
-            and llx_actioncomm.percent <> 100
+            and llx_actioncomm.percent not in (100, -100)
             and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
                   where active = 1
                   and `type` in ('system','user')
@@ -850,7 +854,7 @@ function getLineActiveTask($subdiv_id, $class, $code = '', $title=''){
         left join responsibility on llx_user.respon_id = responsibility.rowid";
     $sql.=" where 1";
     $sql.=" and date(datep) between adddate(date(now()), interval -1 month) and date(now())
-        and llx_actioncomm.percent <> 100 ";
+        and llx_actioncomm.percent not in (100, -100) ";
     if(empty($code))
         $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
     else{
@@ -1201,7 +1205,7 @@ function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $ti
         left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
     $sql.=" where 1";
     $sql.=" and date(datep) between adddate(date(now()), interval -1 month) and date(now())
-        and llx_actioncomm.percent <> 100 ";
+        and llx_actioncomm.percent not in (100, -100) ";
     if(empty($code))
         $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
     else{
@@ -1312,7 +1316,7 @@ function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $ti
             $bestuserID = $obj->rowid;
         }
     }
-//    var_dump($bestuserID);
+//    var_dump($code);
 //    die();
     mysqli_data_seek($res,0);
     $out = '';
@@ -1324,9 +1328,11 @@ function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $ti
     elseif($code == 'AC_CUST')
         $lnk = '/dolibarr/htdocs/responsibility/sale/area.php?idmenu=10425&mainmenu=area&leftmenu=';
     while($obj = $db->fetch_object($res)){
+        if(empty($code))
+            $lnk = 'onclick="SpyMode('.$obj->rowid.')"';
 //        $class_row = fmod($num,2)==0?'impare':'pare';
         $out.='<tr id="'.$class.$obj->rowid.'" class="'.$class.($bestuserID == $obj->rowid?' bestvalue ':'').' userlist '.$subdiv_id.$respon_alias.' '.$code.'_'.$subdiv_id.'">';
-        $out.='<td colspan="2"><a href="'.$lnk.'&user_id='.$obj->rowid.'" target="_blank">'.$obj->lastname.' '.mb_substr($obj->firstname, 0,1,'UTF-8').'.</a></td>';
+        $out.='<td colspan="2"><a '.(empty($code)?$lnk.' class="link"':'href="'.$lnk.'&user_id='.$obj->rowid.'"').' target="_blank">'.$obj->lastname.' '.mb_substr($obj->firstname, 0,1,'UTF-8').'.</a></td>';
         if(in_array($code, array('AC_GLOBAL','AC_CURRENT'))||$respon_alias!='sale')
             $out.='<td></td>';
         else
@@ -1550,7 +1556,7 @@ function getActionsBySub($class, $code){
         left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
     $sql.=" where 1";
     $sql.=" and date(datep) between adddate(date(now()), interval -1 month) and date(now())
-        and llx_actioncomm.percent <> 100 ";
+        and llx_actioncomm.percent not in (100, -100) ";
     if(empty($code))
         $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
     else{
@@ -1940,7 +1946,7 @@ $percent_block = '';
     else
         $sql.=" where 1";
     $sql.=" and date(datep) between adddate(date(now()), interval -1 month) and date(now())
-        and llx_actioncomm.percent <> 100 ";
+        and llx_actioncomm.percent not in (100, -100) ";
     if(empty($code))
         $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
     else{
@@ -2107,7 +2113,7 @@ function ShowTable_tmp(){
         $date = new DateTime($obj->datep);
         $mkDate = dol_mktime(0,0,0,$date->format('m'),$date->format('d'),$date->format('Y'));
 
-        if($mkDate <= $mkToday && $obj->percent != 100) {
+        if($mkDate <= $mkToday && !in_array($obj->percent, array(100, -100))) {
             $array[$id_usr][$obj->code]++;
 //            if($obj->id_usr == 43){
 //                $count[]=$obj->datep;
@@ -2323,7 +2329,7 @@ function CalcOutStandingActions($actions, $code=''){
 //        die();
         $date = new DateTime($obj->datep);
         $mkDate = dol_mktime(0,0,0,$date->format('m'),$date->format('d'),$date->format('Y'));
-        if($mkDate <= $mkToday && $obj->percent != 100) {
+        if($mkDate <= $mkToday && !in_array($obj->percent, array(100, -100))) {
             $array[$obj->id_usr][$obj->code]++;
 //            if($obj->id_usr == 43){
 //                $count[]=$obj->datep;

@@ -222,8 +222,8 @@ class ActionComm extends CommonObject
             if(!$added)
                 break;
         }
-    //    var_dump($chain_actions);
-    //    die();
+//        var_dump($chain_actions);
+//        die();
         return $chain_actions;
     }
     function validateDateAction($date, $id_usr, $minutes, $prioritet){
@@ -278,14 +278,16 @@ class ActionComm extends CommonObject
         return $out;
     }
     function GetNextAction($actions_id, $name){
+        if(empty($actions_id))
+            return array(0);
         global $db;
         $sql = 'select id, datep from llx_actioncomm
         where fk_parent in('.implode(',',$actions_id).')';
         $sql.=' and active = 1';
-        echo '<pre>';
-        var_dump($sql);
-        echo '</pre>';
-        die();
+//        echo '<pre>';
+//        var_dump($sql);
+//        echo '</pre>';
+//        die();
         $res = $db->query($sql);
         if(!$res)
             dol_print_error($db);

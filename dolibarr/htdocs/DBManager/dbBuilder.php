@@ -147,7 +147,7 @@ class dbBuilder{
         return $table;
     }
     public function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $sortorder='', $readonly = array(), $showtitle=true){
-        global $user, $conf, $langs;
+        global $user, $conf, $langs,$db;
 
 
         if(empty($sortorder))
@@ -157,9 +157,12 @@ class dbBuilder{
 //            var_dump($sql);
 //            echo '</pre>';
 //            die();
-
-            $result = $this->mysqli->query($sql.' limit 1');
-
+//            var_dump(substr($sql, 0, strpos($sql, 'limit')).' limit 1');
+//            die();
+            $result = $db->query(substr($sql, 0, strpos($sql, 'limit')).' limit 1');
+            if(!$result)
+                dol_print_error($db);
+//var_dump(date('H:i:s',time()));
             $fields = $result->fetch_fields();
             $num_col=0;
             for($i=1;$i<count($fields);$i++){
@@ -173,19 +176,24 @@ class dbBuilder{
                             $t_name = substr($fields[$i]->name, 2, strpos($fields[$i]->name, '_', 3)-2);//
                             $fieldname = substr($fields[$i]->name, strpos($fields[$i]->name, '_', 3)+1);
                         }
-                        if(count($readonly) == 0)
-                            $result = $this->mysqli->query(substr($sql, 0, strpos($sql, 'order by')).' order by trim(`'.$t_name.'`.`'.$fieldname.'`) '.$sortorder);
-                        else {
-                            $result = $this->mysqli->query(substr($sql, 0, strpos($sql, 'order by')) . ' order by trim(`' . $fieldname . '`) ' . $sortorder);
+                        if(count($readonly) == 0) {
+                            $sql_tmp = substr($sql, 0, strpos($sql, 'order by')).' order by trim(`'.$t_name.'`.`'.$fieldname.'`) '.$sortorder;
+                        }else {
+                            $sql_tmp = substr($sql, 0, strpos($sql, 'order by')) . ' order by trim(`' . $fieldname . '`) ' . $sortorder;
                         }
+                        $final_sql = $sql_tmp;
+                        $page = isset($_GET['page'])?$_GET['page']:1;
+                        $per_page = isset($_GET['per_page'])?$_GET['per_page']:30;
+                        $final_sql .= ' limit '.($page-1)*$per_page.','.$per_page;
+                        $result = $this->mysqli->query($final_sql);
                         break;
                     }
                 }
                 $num_col++;
             }
+//var_dump(date('H:i:s',time()));
+//die();
         }
-//var_dump($sql);
-//        die();
         $fields = $result->fetch_fields();
 
         if($showtitle) {

@@ -465,6 +465,8 @@
         if(show) {
             console.log(id);
             if($('.'+id).length == 0) {
+//                createNewForm('popupmenu','waitForm');
+//                $('#waitForm').show();
                 var tr_item = btn.parentNode.parentNode;
                 var className = tr_item.className;
                 className = className.replace('impair ', '');
@@ -479,6 +481,7 @@
                     success: function (html) {
 //                        console.log(html);
                         tr_item.insertAdjacentHTML('afterend', html);
+                        $('#waitForm').remove();
                     }
                 })
             }else{

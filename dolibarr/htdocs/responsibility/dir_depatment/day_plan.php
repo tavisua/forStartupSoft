@@ -295,7 +295,7 @@ function getUserList(){
                 $calc_action[$id_usr]['fact'.date("Y-m-d", (time()-3600*24*$i))] += $outstanding[$id_usr]['fact'.date("Y-m-d", (time()-3600*24*$i))]['AC_CUST'];
             if(isset($outstanding[$id_usr]['total'.date("Y-m-d", (time()-3600*24*$i))]['AC_CUST']))
                 $calc_action[$id_usr]['total'.date("Y-m-d", (time()-3600*24*$i))] += $outstanding[$id_usr]['total'.date("Y-m-d", (time()-3600*24*$i))]['AC_CUST'];
-        }        
+        }
     }
 //    echo '<pre>';
 //    var_dump($bestID);
@@ -1042,7 +1042,7 @@ $percent_block = '';
     else
         $sql.=" where 1";
     $sql.=" and date(datep) between adddate(date(now()), interval -1 month) and date(now())
-        and llx_actioncomm.percent <> 100 ";
+        and llx_actioncomm.percent not in (100, -100) ";
     if(empty($code))
         $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
     else{
@@ -1338,7 +1338,7 @@ function getTotalUserAction($user_id, $class, $title, $code = '')
     $sql = "select count(*)iCount from llx_actioncomm
         left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
         where date(datep) between adddate(date(now()), interval -1 month) and date(now())
-        and llx_actioncomm.percent <> 100
+        and llx_actioncomm.percent not in (100, -100)
         and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end = ".$user_id;
     if(empty($code))
         $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
@@ -1592,7 +1592,7 @@ function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $ti
         left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
     $sql.=" where 1";
     $sql.=" and date(datep) between adddate(date(now()), interval -1 month) and date(now())
-        and llx_actioncomm.percent <> 100 ";
+        and llx_actioncomm.percent not in (100, -100) ";
     if(empty($code))
         $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
     else{

@@ -113,21 +113,24 @@ if($_GET['action']=='get_exectime'){
 		$chain_action = array_flip($chain_action); //Меняем местами ключи и значения
 		unset ($chain_action[$_GET['rowid']]) ; //Удаляем элемент массива
 		$chain_action = array_flip($chain_action); //Меняем местами ключи и значения
-
-		$sql = "select max(datec) maxdate from llx_actioncomm where id in (".(implode(',', $chain_action)).")";
-		$res = $db->query($sql);
-		if(!$res){
-			dol_print_error($db);
-		}
-		$obj = $db->fetch_object($res);
-		$date = new DateTime($obj->maxdate);
-		if(count($chain_action)>1)
-			$sql = "update llx_actioncomm set datefutureaction = '".$date->format('Y-m-d H:i:s')."' where id in (".(implode(',', $chain_action)).")";
-		else
-			$sql = "update llx_actioncomm set datefutureaction = null where id in (".(implode(',', $chain_action)).")";
-		$res = $db->query($sql);
-		if(!$res){
-			dol_print_error($db);
+		if(count($chain_action)>0) {
+			$sql = "select max(datec) maxdate from llx_actioncomm where id in (" . (implode(',', $chain_action)) . ")";
+//			var_dump(count($chain_action));
+//			die();
+			$res = $db->query($sql);
+			if (!$res) {
+				dol_print_error($db);
+			}
+			$obj = $db->fetch_object($res);
+			$date = new DateTime($obj->maxdate);
+			if (count($chain_action) > 1)
+				$sql = "update llx_actioncomm set datefutureaction = '" . $date->format('Y-m-d H:i:s') . "' where id in (" . (implode(',', $chain_action)) . ")";
+			else
+				$sql = "update llx_actioncomm set datefutureaction = null where id in (" . (implode(',', $chain_action)) . ")";
+			$res = $db->query($sql);
+			if (!$res) {
+				dol_print_error($db);
+			}
 		}
 		$sql = 'update llx_actioncomm set active = 0 where id=' . $_GET['rowid'];
 	}

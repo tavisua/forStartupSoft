@@ -231,7 +231,6 @@ $sessiontimeout='DOLSESSTIMEOUT_'.$prefix;
 if (! empty($_COOKIE[$sessiontimeout])) ini_set('session.gc_maxlifetime',$_COOKIE[$sessiontimeout]);
 session_name($sessionname);
 session_start();
-
 if (ini_get('register_globals'))    // To solve bug in using $_SESSION
 {
     foreach ($_SESSION as $key=>$value)
@@ -590,8 +589,15 @@ if (! defined('NOLOGIN'))
         // We are already into an authenticated session
         $login=$_SESSION["dol_login"];
         dol_syslog("This is an already logged session. _SESSION['dol_login']=".$login);
-
-        $resultFetchUser=$user->fetch('',$login);
+//        echo '<pre>';
+//        var_dump($_SESSION['spy_id_usr']);
+//        echo '</pre>';
+//        die();
+        //Перевірка: якщо відкритий режим spy_mode, роблю подміну
+        if(isset($_SESSION['spy_id_usr']) && !empty($_SESSION['spy_id_usr'])){
+            $resultFetchUser=$user->fetch($_SESSION['spy_id_usr']);
+        }else
+            $resultFetchUser=$user->fetch('',$login);
         if ($resultFetchUser <= 0)
         {
             // Account has been removed after login
@@ -1655,9 +1661,23 @@ function top_menu($head, $title='', $target='', $disablejs=0, $disablehead=0, $a
 	        $companylink=' ('.$thirdpartystatic->getNomUrl('','').')';
 	        $company=' ('.$langs->trans("Company").': '.$thirdpartystatic->name.')';
 	    }
-	    $logintext='<div class="login"><a href="'.DOL_URL_ROOT.'/user/card.php?id='.$user->id.'"';
-	    $logintext.=$target?(' target="'.$target.'"'):'';
-	    $logintext.='>'.$user->login.'</a>';
+	    $logintext='<div class="login">';
+        if(!isset($_SESSION['spy_id_usr'])) {
+            $logintext .= '<a href="' . DOL_URL_ROOT . '/user/card.php?id=' . $user->id . '"';
+            $logintext .= $target ? (' target="' . $target . '"') : '';
+            $logintext .= '>' . $user->login . '</a>';
+        }else{
+            $sql = "select rowid from llx_user where login = '".$_SESSION['dol_login']."' and active = 1";
+            $res = $db->query($sql);
+            if(!$res)
+                dol_print_error($db);
+            $obj = $db->fetch_object($res);
+            $logintext .= '<a href="' . DOL_URL_ROOT . '/user/card.php?id=' . $obj->rowid . '"';
+            $logintext .= $target ? (' target="' . $target . '"') : '';
+            $logintext .= '>' . $_SESSION['dol_login'] . '</a>';
+//            var_dump($_SESSION['spy_id_usr']);
+//            die();
+        }
 	    if ($user->societe_id) $logintext.=$companylink;
 	    $logintext.='</div>';
 	    $loginhtmltext.='<u>'.$langs->trans("User").'</u>';

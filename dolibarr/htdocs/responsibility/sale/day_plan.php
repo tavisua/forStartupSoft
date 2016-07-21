@@ -107,7 +107,7 @@ function ShowTable(){
                 }if($mkDate-$mkToday<=2678400)//2678400 sec by month
                     $userActions['future_month'][$obj->code]++;
             }
-            if($mkDate <= $mkToday && $obj->percent != 100) {
+            if($mkDate <= $mkToday && !in_array($obj->percent, array(100, -100))) {
                 $userActions['outstanding'][$obj->code]++;
             }
             if($mkDate <= $mkToday && $obj->percent == 100 && (in_array($action['code'], $actioncode) || $action['callstatus'] == '5')){
@@ -214,7 +214,7 @@ function ShowTable(){
                 }if($mkDate-$mkToday<=2678400)//2678400 sec by month
                     $userActions['future_month'][$obj->code]++;
             }
-            if($mkDate <= $mkToday && $obj->percent != 100) {
+            if($mkDate <= $mkToday && !in_array($obj->percent, array(100, -100))) {
                 $userActions['outstanding'][$obj->code]++;
             }
             if($mkDate <= $mkToday && $obj->percent == 100 && (in_array($obj->code, $actioncode) || $obj->callstatus == '5') ){

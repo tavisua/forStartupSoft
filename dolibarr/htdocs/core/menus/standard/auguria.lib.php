@@ -133,8 +133,15 @@ function print_auguria_menu($db,$atarget,$type_user,&$tabMenu,&$menu,$noout=0)
 		$menu->add($shorturl, $newTabMenu[$i]['titre'], 0, $showmode, ($newTabMenu[$i]['target']?$newTabMenu[$i]['target']:$atarget), ($newTabMenu[$i]['mainmenu']?$newTabMenu[$i]['mainmenu']:$newTabMenu[$i]['rowid']), '');
 
 	}
+
 	$showmode=1;
 	if (empty($noout)) print_start_menu_entry_auguria('','class="tmenuend"',$showmode);
+	if(isset($_SESSION['spy_id_usr'])&&!empty($_SESSION['spy_id_usr'])) {
+		print '<div class="spymode">
+			<a class="close" title="Вийти з режиму" style="margin-right: 95px;margin-top: 10px" onclick="SpyMode(0);"></a>
+			<div style="float: left"><img src="/dolibarr/htdocs/theme/eldy/img/spy.png"></div>
+			Режим перегляду профілю</br>'.$user->lastname.' '.$user->firstname.'</div>';
+	}
 	if (empty($noout)) print_end_menu_entry_auguria($showmode);
 
 	if (empty($noout)) print_end_menu_array_auguria();
