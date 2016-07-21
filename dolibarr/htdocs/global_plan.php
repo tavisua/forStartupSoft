@@ -45,7 +45,7 @@ function ShowTask(){
         where fk_action in
               (select id from `llx_c_actioncomm`
               where `code` in ('AC_GLOBAL'))
-              and percent not in (100, -100)
+              and percent != 100
               and active = 1";
     if(isset($_POST["filterdates"])&&!empty($_POST["filterdates"])){
         if($_POST["datetype"]=='execdate')

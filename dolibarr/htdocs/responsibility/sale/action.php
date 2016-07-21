@@ -20,9 +20,6 @@ if(isset($_REQUEST['action'])||isset($_POST['action'])){
 
         echo getProposition($_REQUEST['socid']);
         exit();
-    }elseif($_REQUEST['action'] == 'ChangeDateOfAction'){
-        echo getDateForm($_REQUEST['date'],$_REQUEST['minutes'],$_REQUEST['action_id']);
-        exit();
     }elseif($_REQUEST['action'] == 'setStatus'){
         echo setStatus();
         exit();
@@ -187,40 +184,7 @@ include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/respo
 //llxFooter();
 llxPopupMenu();
 exit();
-function getExecutorID($action_id){
-    global $user,$db;
-    $sql = "select llx_actioncomm.fk_user_author, `llx_actioncomm_resources`.`fk_element` from llx_actioncomm
-        left join `llx_actioncomm_resources`on `fk_actioncomm` = `llx_actioncomm`.`id`
-        where 1 ";
-    if(strpos($action_id, 'date_next_action'))
-        $sql.=" and id = ".substr($action_id, 0, strlen($action_id)-strlen('date_next_action'));
-    else
-        $sql.=" and id = ".$action_id;
 
-    $sql .= " and llx_actioncomm.fk_user_author<>`llx_actioncomm_resources`.`fk_element`";
-    $res = $db->query($sql);
-    if($db->num_rows($res) == 0){
-        $sql = "select llx_actioncomm.fk_user_author, `llx_actioncomm_resources`.`fk_element` from llx_actioncomm
-            left join `llx_actioncomm_resources`on `fk_actioncomm` = `llx_actioncomm`.`id`
-            where 1 ";
-        if(strpos($action_id, 'date_next_action'))
-            $sql.=" and id = ".substr($action_id, 0, strlen($action_id)-strlen('date_next_action'));
-        else
-            $sql.=" and id = ".$action_id;
-        $res = $db->query($sql);
-    }
-//    var_dump($sql);
-//    die();
-    if(!$res)
-        dol_print_error($db);
-    $obj = $db->fetch_object($res);
-
-    if(!empty($obj->fk_element)) {
-        return $obj->fk_element;
-    }else {
-        return $obj->fk_user_author;
-    }
-}
 function setStatus(){
     global $db,$user;
     $sql = "insert into llx_societe_action(action_id,result_of_action,active,id_usr)
@@ -236,83 +200,7 @@ function setStatus(){
         dol_print_error($db);
     return 1;
 }
-function getDateForm($date,$minutes,$action_id){
-    global $db,$user;
-    $ext='.sql';
-    $form = new Form($db);
-    print '<script type="text/javascript" src="/dolibarr/htdocs/comm/action/js/action.js'.($ext?'?'.$ext:'').'"></script>'."\n";
-    print '<script type="text/javascript"> var id_usr = '.getExecutorID($action_id).'</script>'."\n";
-    $out='   <a class="close" title="Закрыть" onclick="closeForm($(this).parent());"></a>';
-    $out.='<table style="width: 250px">
-    <thead>
-    <tr class="header_table">
-        <th class="middle_size">Вкажіть дату і час, на яку треба перемістити дію</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr><td>';
-    print $out;
-    $out=$form->select_date($date,'date',1,1,0,"action",1,1,0,0,'fulldayend');
-    $out.='
-        <span id="ShowFreeTime" onclick="ShowFreeTime('."'date'".');" title="Переглянути наявність вільного часу" style="vertical-align: middle"><img src="/dolibarr/htdocs/theme/eldy/img/calendar.png"></span>
-        <input type="hidden" value="'.$minutes.'" id="exec_time_date", name="exec_time_date">
-    </td></tr>
-    <tr>
-        <td><button onclick="ChangeDateAction('.$action_id.');">Зберегти</button><button onclick="closeForm($(this).parent().parent().parent().parent().parent());">Відмінити</button></td>
-    </tr>
-    </tbody>
-    </table>';
-    $out.="<script>
-        jQuery(function($) {
-            $.mask.definitions['~']='[+-]';
-            $('.fulldate').mask('99.99.9999');
-        });
-        </script>";
-    $out.='<script>
-        function ChangeDateAction(action_id){
-            console.log(action_id);
-//            console.log($(this));
-            if(confirm("Перенести виконання дії на інший час?")){
-                var param ={
-                    action:"ChangeDateAction",
-                    action_id:action_id,
-                    newdate: $("#dateyear").val()+"-"+$("#datemonth").val()+"-"+$("#dateday").val()+" "+$("#datehour").val()+":"+$("#datemin").val(),
-                    minutes: $("#"+action_id+"date_next_action").attr("minutes"),
-                    type:$("#manual_date").val()==1?"w":"null"
-                };
-                $.ajax({
-                    url:"/dolibarr/htdocs/comm/action/card.php",
-                    cache:false,
-                    data:param,
-                    success:function(result){
-                        if(result == 1)
-                            location.reload();
-                        $("#ChangeDateAction").remove();
-                    }
-                })
-            }
-        }
 
-        function dpChangeDay(id, format){
-
-            var newdate = $("#date").val();
-            $("#dateday").val(newdate.substr(0,2));
-            $("#datemonth").val(newdate.substr(3,2));
-            $("#dateyear").val(newdate.substr(6,4))
-            $("#dateday").val()+"."+$("#datemonth").val()+"."+$("#dateyear").val();
-            console.log("newdate", $("#dateday").val()+"."+$("#datemonth").val()+"."+$("#dateyear").val(), $("#date").val());
-            $("#"+id).val(newdate);
-            CalcP(newdate+" "+$("select#"+id+"hour").val()+":"+$("select#"+id+"min").val(), $("#exec_time_"+id).val(), ' . $user->id . ', id, ($("#manual_"+id).val()==1?"alltime":"onlyworkday"));//Розрахунок часу початку дії
-
-            $("#"+id+"hour").removeClass("fielderrorSelBorder");
-            $("#"+id+"min").removeClass("fielderrorSelBorder");
-            $("#type").val("");
-            $("#error").val(0);
-
-        }
-    </script>';
-    return $out;
-}
 function showProposition($proposed_id,$contactid=0){
     global $db, $langs;
     $sql = 'select `begin`, `end`, `description`,  `text`
@@ -558,7 +446,7 @@ function loadcontactlist($contactid){
 }
 function showCallStatus(){
     global $db;
-    $sql = "select rowid, status from llx_c_callstatus where active = 1 and rowid <> 5";
+    $sql = "select rowid, status from llx_c_callstatus where active = 1";
     $out='<table class="setdate" style="background: #ffffff; width: 250px">
             <thead><tr class="multiple_header_table"><th class="middle_size" colspan="3" style="width: 100%">Результат перемовин </th>
             <a class="close" style="margin-left: -160px" onclick="CloseCallStatus();" title="Закрити"></a>
@@ -582,7 +470,7 @@ function ShowActionTable(){
     while($row = $db->fetch_object($res)){
         $nextaction[$row->fk_parent] = $row->datep;
     }
-    $sql = "select round((UNIX_TIMESTAMP(datep2)-UNIX_TIMESTAMP(datep))/60,0) iMinute, `llx_actioncomm`.type, `llx_actioncomm`.percent, `llx_actioncomm`.id as rowid, `llx_societe_action`.`rowid` as answer_id, `llx_actioncomm`.`datep`, `llx_societe_action`.dtChange as `datec`, `llx_user`.lastname,
+    $sql = "select `llx_actioncomm`.type, `llx_actioncomm`.id as rowid, `llx_societe_action`.`rowid` as answer_id, `llx_actioncomm`.`datep`, `llx_societe_action`.dtChange as `datec`, `llx_user`.lastname,
         concat(case when `llx_societe_contact`.lastname is null then '' else `llx_societe_contact`.lastname end,  ' ',
         case when `llx_societe_contact`.firstname is null then '' else `llx_societe_contact`.firstname end) as contactname,
         TypeCode.code kindaction, `llx_societe_action`.`said`, `llx_societe_action`.`answer`,`llx_societe_action`.`argument`,
@@ -594,7 +482,7 @@ function ShowActionTable(){
         left join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.rowid
         where fk_soc = ".(empty($_REQUEST["socid"])?0:$_REQUEST["socid"])." and `llx_actioncomm`.`active` = 1
         union
-        select '', '', '', concat('_',`llx_societe_action`.`rowid`) rowid, `llx_societe_action`.`rowid`, `llx_societe_action`.dtChange datep, `llx_societe_action`.dtChange as `datec`, `llx_user`.lastname,
+        select '', concat('_',`llx_societe_action`.`rowid`) rowid, `llx_societe_action`.`rowid`, `llx_societe_action`.dtChange datep, `llx_societe_action`.dtChange as `datec`, `llx_user`.lastname,
         concat(case when `llx_societe_contact`.lastname is null then '' else `llx_societe_contact`.lastname end, ' ',
         case when `llx_societe_contact`.firstname is null then '' else `llx_societe_contact`.firstname end) as contactname, null, `llx_societe_action`.`said`, `llx_societe_action`.`answer`,`llx_societe_action`.`argument`,
         `llx_societe_action`.`said_important`, `llx_societe_action`.`result_of_action`, `llx_societe_action`.`work_before_the_next_action`
@@ -640,7 +528,7 @@ function ShowActionTable(){
             </tr>';
     }
     $num=0;
-    $date = new DateTime();
+
     while($row = $db->fetch_object($res)){
         $dtChange = new DateTime($row->datec);
 
@@ -685,38 +573,9 @@ function ShowActionTable(){
             }break;
         }
         $dateaction = new DateTime($row->datep);
-        $style = 'style="';
-        $status = '';
-        if(!empty($row->percent)) {
-            if($row->percent < 98) {
-                if ($dateaction < $date) {
-                    $style = 'style="background:rgb(255, 0, 0)';
-                } elseif ($dateaction == $date) {
-                    $style = 'style="background:rgb(0, 255, 0)';
-                }
-                if ($row->percent == "-1")
-                    $status = 'ActionNotRunning';
-                elseif ($row->percent == 0)
-                    $status = 'ActionRunningNotStarted';
-                elseif ($row->percent == "-100") {
-                    $status = 'ActionPostponedToAnotherTime';
-                    $style = 'style="';
-                }
-                elseif ($row->percent > 0 && $row->percent < 98)
-                    $status = 'ActionRunningShort';
-                else
-                    $status = 'ActionDoneShort';
-            }elseif($row->percent == 99){
-                $status = '<img src="/dolibarr/htdocs/theme/eldy/img/BWarning.png" title="Чекає підтвердження про виконання" style="width: 50px;">';
-            }else{
-                $status = '<img style="width:20px;height:20px" src="/dolibarr/htdocs/theme/eldy/img/done.png" title="Задачу виконано">';
-            }
-            $style.=';width=50px"';
-
-        }
-        $out .= '<tr class="'.($status == 'ActionPostponedToAnotherTime'?'postponedAction':(fmod($num++, 2)==0?'impair':'pair')).
-            '" title="'.($status == 'ActionPostponedToAnotherTime'?$langs->trans('ActionPostponedToAnotherTime'):'').'" >
-
+        $out .= '<tr class="'.(fmod($num++, 2)==0?'impair':'pair').'">
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'dtAction" style="width: 80px" class="middle_size">'.(empty($row->datep)?'':($dateaction->format('d.m.y').'</br>'.$dateaction->format('H:i'))).
+            (!empty($row->type)?'<div style="float: right; margin-top: -15px" title="Час початку дії встановлено вручну"><img src="/dolibarr/htdocs/theme/eldy/img/object_task.png"></div>':'').'</td>
             <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'dtChange" style="width: 80px" class="middle_size">'.(empty($row->datec)?'':$dtChange->format('d.m.y H:i:s')).'</td>
             <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'lastname" style="width: 100px" class="middle_size">'.$row->lastname.'</td>
             <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'contactname" style="width: 80px" class="middle_size">'.$row->contactname.'</td>
@@ -730,24 +589,18 @@ function ShowActionTable(){
                 '<input id="_'.$row->rowid.'argument" type="hidden" value="'.$row->argument.'">':$row->argument).'</td>
             <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'said_important" style="width: 80px" class="middle_size">'.(strlen($row->said_important)>20?mb_substr($row->said_important, 0, 20, 'UTF-8').'...'.
                 '<input id="_'.$row->rowid.'said_important" type="hidden" value="'.$row->said_important.'">':$row->said_important).'</td>
-            <td status="'.($status=='ActionNotRunning'||$row->percent == 0?'0':'1').'" rowid="'.$row->rowid.'" answer_id="'.$row->answer_id.'" id = "'.$row->rowid.'result_of_action" style="width: 80px" class="'.($status=='ActionNotRunning'||$row->percent == 0?'button_cell':'').' middle_size result_of_action">'.(strlen($row->result_of_action)>20?mb_substr($row->result_of_action, 0, 20, 'UTF-8').'...'.
+            <td rowid="'.$row->rowid.'" answer_id="'.$row->answer_id.'" id = "'.$row->rowid.'result_of_action" style="width: 80px" class="middle_size result_of_action">'.(strlen($row->result_of_action)>20?mb_substr($row->result_of_action, 0, 20, 'UTF-8').'...'.
                 '<input id="_'.$row->rowid.'result_of_action" type="hidden" value="'.$row->result_of_action.'">':$row->result_of_action).'</td>
             <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'work_before_the_next_action" style="width: 80px" class="middle_size">'.(strlen($row->work_before_the_next_action)>20?mb_substr($row->work_before_the_next_action, 0, 20, 'UTF-8').'...'.
                 '<input id="_'.$row->rowid.'work_before_the_next_action" type="hidden" value="'.$row->work_before_the_next_action.'">':$row->work_before_the_next_action).'</td>
-
-            <!--<td rowid="'.$row->rowid.'" id = "'.$row->rowid.'date_next_action" style="width: 80px" class="middle_size">'.(empty($row->date_next_action)?'':$dtNextAction->format('d.m.y H:i:s')).'</td>-->
-            <td status="'.($status=='ActionNotRunning'||$row->percent == 0?'0':'1').'" minutes="'.$row->iMinute.'" date="'.$row->datep.'" rowid="'.$row->rowid.'" id = "'.$row->rowid.'date_next_action" style="width: 80px" class="'.($status=='ActionNotRunning'||$row->percent == 0?'button_cell':'').' date_next_action middle_size">'.(empty($row->datep)?'':($dateaction->format('d.m.y').'</br>'.$dateaction->format('H:i'))).
-            (!empty($row->type)?'<div style="float: right; margin-top: -15px" title="Час початку дії встановлено вручну"><img src="/dolibarr/htdocs/theme/eldy/img/object_task.png"></div>':'').'</td>
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'date_next_action" style="width: 80px" class="middle_size">'.(empty($row->date_next_action)?'':$dtNextAction->format('d.m.y H:i:s')).'</td>
             <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'work_before_the_next_action_mentor" style="width: 80px" class="middle_size">'.(strlen($row->work_mentor)>20?mb_substr($row->work_mentor, 0, 20, 'UTF-8').'...'.
                 '<input id="_'.$row->rowid.'work_before_the_next_action_mentor" type="hidden" value="'.$row->work_mentor.'">':$row->work_mentor).'</td>
-            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'date_next_action_mentor" style="width: 80px" class="middle_size">'.(empty($row->date_mentor)?'':$dtDateMentor->format('d.m.y H:i:s')).'</td>';
-
-            $out.='<td rowid="'.$row->rowid.'" id = "'.$row->rowid.'status" '.$style.' class="middle_size">'.$langs->trans($status).'</td>';
-            $out.='<td rowid="'.$row->rowid.'" id = "'.$row->rowid.'action" style="width: 35px" class="middle_size"><script>
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'date_next_action_mentor" style="width: 80px" class="middle_size">'.(empty($row->date_mentor)?'':$dtDateMentor->format('d.m.y H:i:s')).'</td>
+            <td rowid="'.$row->rowid.'" id = "'.$row->rowid.'action" style="width: 35px" class="middle_size"><script>
                  var click_event = "/dolibarr/htdocs/societe/addcontact.php?action=edit&mainmenu=companies&rowid=1";
                 </script>';
 //        $out.='<img onclick="" style="vertical-align: middle" title="'.$langs->trans('AddSubAction').'" src="/dolibarr/htdocs/theme/eldy/img/Add.png">';
-
         $out.='<img onclick="EditAction('.(substr($row->rowid, 0,1)=='_'?"'".$row->rowid."'":$row->rowid).', '.(empty($row->answer_id)?'0':$row->answer_id).', '."'".(empty($row->kindaction)?'AC_TEL':$row->kindaction)."'".');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Edit').'" src="/dolibarr/htdocs/theme/eldy/img/edit.png">
                 <img onclick="DelAction('.(substr($row->rowid, 0,1)=='_'?"'".$row->rowid."'":$row->rowid).');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('delete').'" src="/dolibarr/htdocs/theme/eldy/img/delete.png">
             </td>

@@ -478,18 +478,22 @@ function saveaction($rowid, $createaction = false){
             and llx_actioncomm.fk_parent = 0';
             $res = $db->query($sql);
         }
-        require_once $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/comm/action/class/actioncomm.class.php';
-        $Actions = new ActionComm($db);
-        $chain_action = $Actions->GetChainActions($_REQUEST["actionid"]);
-        $sql = "update llx_actioncomm set datelastaction = Now()
-            where id in (".implode(',', $chain_action).") and active = 1";
+        if(!empty($_REQUEST["actionid"])) {
+            require_once $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/comm/action/class/actioncomm.class.php';
+            $Actions = new ActionComm($db);
 //    echo '<pre>';
-//    var_dump($sql);
+//    var_dump();
 //    echo '</pre>';
 //    die();
-        $res = $db->query($sql);
-        if(!$res)
-            dol_print_error($db);
+
+            $chain_action = $Actions->GetChainActions($_REQUEST["actionid"]);
+
+            $sql = "update llx_actioncomm set datelastaction = Now()
+            where id in (" . implode(',', $chain_action) . ") and active = 1";
+            $res = $db->query($sql);
+            if (!$res)
+                dol_print_error($db);
+        }
 
 //    if($res)
 //        dol_print_error($db);

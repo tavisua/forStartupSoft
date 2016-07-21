@@ -91,7 +91,6 @@ $sql = "select  `llx_actioncomm`.type, `llx_actioncomm`.id as rowid, `llx_action
         and case when `llx_actioncomm_resources`.`fk_element` is null then `llx_actioncomm`.fk_user_author else `llx_actioncomm_resources`.`fk_element` end = ".$id_usr."
         and date(datep) = '".$dateQuery->format('Y-m-d')."'
         and `llx_actioncomm`.active = 1
-        and `llx_actioncomm`.percent not in(-100)
         and (`llx_actioncomm`.hide is null or `llx_actioncomm`.hide <> 1)
         group by `llx_actioncomm`.id,  `llx_actioncomm`.datep, `llx_actioncomm`.datep2,
         `llx_actioncomm`.`code`, `llx_actioncomm`.fk_user_author, `llx_actioncomm`.label, `regions`.`name`, case when `llx_actioncomm`.fk_soc is null then `llx_user`.`lastname` else `llx_societe`.`nom` end,
@@ -155,15 +154,12 @@ while($row = $db->fetch_object($res)) {
             break;
     }
     if(trim($row->code) == 'AC_TEL'){
-        if ($row->percent <= 0)
+        if ($row->percent == -1)
             $status = 'Не розпочато';
         else {
             $status = $callstatus[(empty($row->callstatus) ? 2 : $row->callstatus)];
-
-//            if($row->rowid == 102923) {
-//                var_dump($row->callstatus == null);
-//                die();
-//            }
+//            if($row->rowid == 36782)
+//                die($status);
             if($status == 'виконано')
                 $count++;
         }

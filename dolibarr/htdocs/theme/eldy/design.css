@@ -55,9 +55,6 @@ overflow-y: auto; /* прокрутка по вертикали */
     border-left-color: #e8e8e8!important;
     width: 80px;
 }
-.postponedAction {
-    background-image: repeating-linear-gradient(-45deg, transparent, transparent 15px, rgba(255,255,255,1) 15px, rgba(255,255,255,1) 30px);
-}
 .popupmenu{
     /*border-color: #00adee;*/
     /*border-top: solid;*/
@@ -67,9 +64,6 @@ overflow-y: auto; /* прокрутка по вертикали */
     border-color: #999999!important;;
     border-top-color: #e8e8e8!important;;
     border-left-color: #e8e8e8!important;;
-}
-.bodyline{
-    z-index: 10;
 }
 #groupproducts{
     background-color: white;
@@ -800,15 +794,6 @@ div.header_page, th.header_page, tr.header_table_sel, form.header_page, form.hea
 .fielderrorSelBorder{
     outline: 2px solid red;
 }
-.user_preview{
-    background-color: white;
-    width: 200px;
-    height: 45px;
-    border-radius: 5px;
-    margin-right: 90px;
-    opacity: 0.7;
-    z-index: 10;
-}
 .validfieldSelBorder{
     outline: 2px solid green;
 }
@@ -822,16 +807,6 @@ td.titreProposed {
 	color: rgb(50, 50, 130);
     font-size: 16px;
 	text-decoration: none;
-}
-.button_cell{
-    cursor: pointer;
-    border: solid!important;
-    border-width: 2px!important;
-    border-color: #999999!important;
-    border-top-color: #e8e8e8!important;
-    border-left-color: #e8e8e8!important;
-    border-image-width: 0 0 0 0;
-    width: 80px;
 }
 .areas_header, .address_header{
     width:auto;

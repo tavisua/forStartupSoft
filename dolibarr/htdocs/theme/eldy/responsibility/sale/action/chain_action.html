@@ -142,41 +142,6 @@
             })
         }
     }
-    $('.date_next_action').click(function(e){
-        if($('#' + e.target.id).attr('status') == 0) {
-            var param={
-                action:'ChangeDateOfAction',
-                date:$('#'+e.target.id).attr('date'),
-                minutes:$('#'+e.target.id).attr('minutes'),
-                action_id:$('#'+e.target.id).attr('rowid')
-            }
-//            console.log(param);
-            $.ajax({
-                url:'/dolibarr/htdocs/responsibility/sale/action.php',
-                data:param,
-                cashe:false,
-                success:function(html){
-                    createNewForm('popupmenu', 'ChangeDateAction')
-                            console.log(html);
-
-                    $('#ChangeDateAction').addClass('setdate');
-                    $('#ChangeDateAction').css('width', 'auto');
-                    $('#ChangeDateAction').css('background', '#fff');
-
-                    $('#ChangeDateAction').empty().html(html);
-                    $('#ChangeDateAction').attr('rowid', $('#' + e.target.id).attr('rowid'))
-
-                    $('#ChangeDateAction').show();
-                    $('#ChangeDateAction').offset({
-                        top: $('#' + e.target.id).offset().top - 30,
-                        left: $('#' + e.target.id).offset().left - 50
-                    });
-                    $('#ChangeDateAction').attr('TitleProposed', 1);
-                }
-            })
-
-        }
-    })
     $(window).keypress(function(event) {
         if(event.keyCode == 27 && event.target.tagName == 'TEXTAREA')
             $('#'+event.target.id).remove();

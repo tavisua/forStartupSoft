@@ -63,9 +63,6 @@ if($_GET['action']=='get_exectime'){
 }elseif($_GET['action']=='getActionStatus'){
 	echo getActionStatus($_GET['action_id']);
 	exit();
-}elseif($_GET['action']=='ChangeDateAction'){
-	echo changeDateAction($_GET['action_id'],$_GET['newdate'],$_GET['minutes'],$_GET['type']);
-	exit();
 }elseif($_GET['action']=='validateDataAction'){
 	$Action = new ActionComm($db);
 	echo $Action->validateDateAction($_REQUEST['date'], $_REQUEST['id_usr'],$_REQUEST['minutes'],$_REQUEST['prioritet']);
@@ -308,7 +305,7 @@ if($_GET['action']=='get_exectime'){
 	$date->setTimestamp(time());
 //	var_dump($date);
 //	die();
-	$freetime = $Action->GetFreeTime($_GET['date'], $_GET['id_usr'], $_GET['minute'], $_GET['priority'],$_GET['typePeriod']);
+	$freetime = $Action->GetFreeTime($_GET['date'], $_GET['id_usr'], $_GET['minute'], $_GET['priority']);
 
 	echo $freetime;
 	exit();
@@ -2468,43 +2465,6 @@ function getActionStatus($action_id){
 		dol_print_error($db);
 	$obj = $db->fetch_object($res);
 	return $obj->percent;
-}
-function changeDateAction($action_id, $newdate, $minutes, $type){
-//	echo '<pre>';
-//	var_dump($action_id, $newdate, $minutes, $type);
-//	echo '</pre>';
-//	die();
-	global $db,$user;
-	$sql = "select datep from llx_actioncomm where id = ".$action_id;
-	$res = $db->query($sql);
-	if(!$res)
-		dol_print_error($db);
-	$obj = $db->fetch_object($res);
-	if($obj->datep == $newdate.':00')
-		return 0;
-	$date = new DateTime($newdate);
-//	var_dump(date('Y-m-d H:i:s', mktime($date->format('H'), $date->format('i'), 0, $date->format('m'), $date->format('d'), $date->format('Y'))+ $minutes*60));
-//	die();
-	$Action = new ActionComm($db);
-	$Action->fetch($action_id);
-
-	$Action->percentage = -100;
-	$Action->update($user);
-	$Action->percentage = 0;
-	$Action->parent_id = $Action->id;
-	$Action->id = null;
-	$usr_tmp = new User($db);
-	$usr_tmp->fetch($Action->authorid);
-	$Action->datep = dol_mktime($date->format('H'), $date->format('i'), 0, $date->format('m'), $date->format('d'), $date->format('Y'));
-	$Action->datef = $Action->datep + $minutes*60;
-	$Action->usermodid = $user->id;
-	$Action->typeSetOfDate = $type;
-//	echo '<pre>';
-//	var_dump($Action);
-//	echo '</pre>';
-//	die();
-	$Action->add($usr_tmp,0,false);
-	return 1;
 }
 function getUsersByRespon($respon)
 {

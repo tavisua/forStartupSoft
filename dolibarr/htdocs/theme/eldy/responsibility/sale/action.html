@@ -89,7 +89,7 @@
     <table id="actions_table">
         <thead>
         <tr class="header_table">
-            <!--<th style="width: 80px" class="middle_size">Запланована дата і час  дії</th>-->
+            <th style="width: 80px" class="middle_size">Запланована дата і час  дії</th>
             <th style="width: 80px" class="middle_size">Дата і час внесення</th>
             <th style="width: 100px" class="middle_size">Хто від нас вносив</th>
             <th style="width: 80px" class="middle_size">Контакт</th>
@@ -103,7 +103,6 @@
             <th style="width: 80px" class="middle_size">Дата наст.дій</th>
             <th style="width: 80px" class="middle_size">Робота до/на наступних дій (завдання наставника)</th>
             <th style="width: 80px" class="middle_size">Запропонована дата виконання наставником</th>
-            <th style="width: 50px" class="middle_size">Статус</th>
             <th style="width: 50px" class="middle_size"></th>
         </tr>
         </thead>
@@ -143,7 +142,6 @@
     }
 </style>
 <input type="hidden" id="starttimer" value="">
-
 <script>
 
     $(document).ready(function(){
@@ -171,20 +169,17 @@
         LoadProposition();
     })
     $('.result_of_action').click(function(e){
-//        console.log($('#' + e.target.id).attr('status') == 0);
-//        return;
-        if($('#' + e.target.id).attr('status') == 0) {
-            var param = {
-                action: 'showCallStatus',
-                answer_id: $('#' + e.target.id).attr('answer_id')
-            }
+        var param = {
+            action:'showCallStatus',
+            answer_id:$('#' + e.target.id).attr('answer_id')
+        }
 
-            $.ajax({
-                url: '/dolibarr/htdocs/responsibility/sale/action.php',
-                data: param,
-                cache: false,
-                success: function (html) {
-                    createNewForm('popupmenu', 'callStatus')
+        $.ajax({
+            url:'/dolibarr/htdocs/responsibility/sale/action.php',
+            data: param,
+            cache:false,
+            success:function(html){
+                createNewForm('popupmenu','callStatus')
 //                    console.log($('#' + e.target.id).attr('rowid'));
 
                     $('#callStatus').css('width', 250);
@@ -199,43 +194,8 @@
                     });
                     $('#callStatus').attr('TitleProposed', 1);
 //                }
-                }
-            })
-        }
-    })
-    $('.date_next_action').click(function(e){
-        if($('#' + e.target.id).attr('status') == 0) {
-            var param={
-                action:'ChangeDateOfAction',
-                date:$('#'+e.target.id).attr('date'),
-                minutes:$('#'+e.target.id).attr('minutes'),
-                action_id:$('#'+e.target.id).attr('rowid')
             }
-//            console.log(param);
-            $.ajax({
-                data:param,
-                cashe:false,
-                success:function(html){
-                    createNewForm('popupmenu', 'ChangeDateAction')
-                            console.log(html);
-
-                    $('#ChangeDateAction').addClass('setdate');
-                    $('#ChangeDateAction').css('width', 'auto');
-                    $('#ChangeDateAction').css('background', '#fff');
-
-                    $('#ChangeDateAction').empty().html(html);
-                    $('#ChangeDateAction').attr('rowid', $('#' + e.target.id).attr('rowid'))
-
-                    $('#ChangeDateAction').show();
-                    $('#ChangeDateAction').offset({
-                        top: $('#' + e.target.id).offset().top - 30,
-                        left: $('#' + e.target.id).offset().left - 50
-                    });
-                    $('#ChangeDateAction').attr('TitleProposed', 1);
-                }
-            })
-
-        }
+        })
     })
    $(window).keydown(function(event){
        console.log(event.keyCode );

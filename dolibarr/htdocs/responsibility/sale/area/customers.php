@@ -120,10 +120,7 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])){
         $sql_count .= ' and `llx_societe`.`rowid` in (' . implode(',', $filterid) . ')';
     }
 }
-if(!isset($_REQUEST['sortby'])||empty($_REQUEST['sortby']))
-    $sql .= ' order by width desc, nom';
-else
-    $sql .= ' order by `llx_societe`.'.$_REQUEST['sortby'].' '.$_REQUEST['sorted'];
+$sql .= ' order by width desc, nom';
 $sql .= ' limit '.($page-1)*$per_page.','.$per_page;
 $res = $db->query($sql_count);
 if(!$res)

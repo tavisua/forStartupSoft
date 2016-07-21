@@ -4129,18 +4129,10 @@ class Form
                 if ($usecalendar == "eldy")
                 {
                     // Zone de saisie manuelle de la date
-                    $retstring.='<input id="manual_'.$prefix.'" type="hidden" value="">';
-                    $retstring.='<input id="'.$prefix.'" name="'.$prefix.'" class="fulldate" type="'.($prefix=='p2'?'hidden':'text').'" size="9" maxlength="11" value="'.$formated_date.'"';
+                    $retstring.='<input id="'.$prefix.'" name="'.$prefix.'" type="'.($prefix=='p2'?'hidden':'text').'" size="9" maxlength="11" value="'.$formated_date.'"';
                     $retstring.=($disabled?' disabled="disabled"':'');
-                    $retstring.='onclick="dateclick();" onChange="'.$onChange.'(\''.$prefix.'\',\''.$langs->trans("FormatDateShortJavaInput").'\'); "';  // FormatDateShortInput for dol_print_date / FormatDateShortJavaInput that is same for javascript
+                    $retstring.=' onChange="'.$onChange.'(\''.$prefix.'\',\''.$langs->trans("FormatDateShortJavaInput").'\'); "';  // FormatDateShortInput for dol_print_date / FormatDateShortJavaInput that is same for javascript
                     $retstring.='>';
-                    $retstring.='<script>
-                        function dateclick(e){
-                            console.log(e);
-                            $("#manual_'.$prefix.'").val(1);
-                        }
-                    </script>';
-
 
                     // Icone calendrier
                     if($prefix!='p2') {

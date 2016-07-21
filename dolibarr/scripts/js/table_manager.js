@@ -403,9 +403,9 @@ function ShowUserTasks(id, respon_alias){
         })
     }
 }
-function CalcP(date, minute, id_usr, prefix, typePeriod){
+function CalcP(date, minute, id_usr, prefix){
     //alert(date);
-    //console.log(date, minute, id_usr, prefix, typePeriod)
+    //console.log(date, minute, id_usr)
     //return;
     if(minute === undefined || minute.length == 0)
         return;
@@ -413,7 +413,7 @@ function CalcP(date, minute, id_usr, prefix, typePeriod){
     //if(date.substr(0,1)!="'")
     //    date = "'"+date+"'";
     $.ajax({
-        url:'/dolibarr/htdocs/comm/action/card.php?date='+date+'&minute='+minute+'&id_usr='+id_usr+'&action=get_freetime&typePeriod='+typePeriod,
+        url:'/dolibarr/htdocs/comm/action/card.php?date='+date+'&minute='+minute+'&id_usr='+id_usr+'&action=get_freetime',
         cache:false,
         success:function(result){
             var time = result.substr(10,6);
