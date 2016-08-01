@@ -312,14 +312,27 @@ class societecontact {
 //        var_dump($result);
 //        echo '</pre>';
 //        die();
-        $sql = 'select distinct `llx_c_proposition`.rowid as prososed_id, `llx_societe_contact`.post_id, `llx_c_proposition`.`fk_lineactive` from `llx_societe_contact`
-            inner join `llx_societe` on `llx_societe`.rowid = `llx_societe_contact`.`socid`
-            inner join `llx_c_proposition` on `llx_c_proposition`.`fk_post` = `llx_societe_contact`.post_id
-            left join `llx_societe_lineactive` on `llx_societe_lineactive`.`fk_soc`= `llx_societe`.rowid
-            where `llx_societe_contact`.`socid`='.(empty($obj->socid)?$_REQUEST['socid']:$obj->socid).'
-            and `llx_societe_contact`.`active` = 1
-            and `llx_c_proposition`.active = 1
-            and `llx_c_proposition`.`begin`<=Now() and (`llx_c_proposition`.`end`>= Now() or `llx_c_proposition`.`end` is null )';
+
+//        $sql = 'select distinct `llx_c_proposition`.rowid as prososed_id, `llx_societe_contact`.post_id, `llx_c_proposition`.`fk_lineactive` from `llx_societe_contact`
+//            inner join `llx_societe` on `llx_societe`.rowid = `llx_societe_contact`.`socid`
+//            inner join `llx_c_proposition` on `llx_c_proposition`.`fk_post` = `llx_societe_contact`.post_id
+//            left join `llx_societe_lineactive` on `llx_societe_lineactive`.`fk_soc`= `llx_societe`.rowid
+//            where `llx_societe_contact`.`socid`='.(empty($obj->socid)?$_REQUEST['socid']:$obj->socid).'
+//            and `llx_societe_contact`.`active` = 1
+//            and `llx_c_proposition`.active = 1
+//            and `llx_c_proposition`.`begin`<=Now() and (`llx_c_proposition`.`end`>= Now() or `llx_c_proposition`.`end` is null )';
+        $sql = "select distinct `proposition`.fk_proposition as prososed_id, `proposition`.fk_post as post_id, `proposition`.`fk_lineactive`
+                from  `llx_societe_contact`
+                inner join `llx_societe` on `llx_societe`.rowid = `llx_societe_contact`.`socid`
+                inner join (select llx_proposition_properties.fk_proposition, llx_proposition_properties.fk_post, `llx_proposition_properties`.fk_lineactive from llx_c_proposition
+                  inner join llx_proposition_properties on llx_c_proposition.rowid = llx_proposition_properties.fk_proposition
+                  where 1
+                  and `llx_c_proposition`.active = 1
+                  and `llx_c_proposition`.`begin`<=Now() and (`llx_c_proposition`.`end`>= Now() or `llx_c_proposition`.`end` is null )
+                  and llx_proposition_properties.active = 1) proposition on `llx_societe_contact`.post_id = proposition.fk_post
+                where `llx_societe_contact`.`socid`= ".(empty($obj->socid)?$_REQUEST['socid']:$obj->socid)."
+                and `llx_societe_contact`.`active` = 1";
+
 
 //        $sql.='and `llx_societe_lineactive`.`fk_lineactive` = `llx_c_proposition`.`fk_lineactive`;';
         $resPost = $db->query($sql);
@@ -360,8 +373,14 @@ class societecontact {
                     $saidArray[$obj->contactid]=array();
                 $saidArray[$obj->contactid][]=$obj->proposed_id;
             }
-//        var_dump($saidArray);
+//        var_dump($sql);
 //        die();
+        $sql = "select `categoryofcustomer_id` from llx_societe where rowid = ".(empty($obj->socid)?$_REQUEST['socid']:$obj->socid);
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+        $obj = $db->fetch_object($res);
+        $category_id = $obj->categoryofcustomer_id;
 
         mysqli_data_seek($result, 0);
         while($row = $result->fetch_assoc()) {
@@ -379,7 +398,7 @@ class societecontact {
             foreach($row as $cell=>$value){
 
                 $proposed = false;
-                if(isset($row['post_id'])&&in_array($row['post_id'], array_keys($postArray))){
+                if($category_id == 5 && isset($row['post_id'])&&in_array($row['post_id'], array_keys($postArray))){
                     foreach($postArray[$row['post_id']] as $item){
 
                         if(count($saidArray) == 0 || (isset($saidArray[$row['rowid']])&&!in_array($item[1], $saidArray[$row['rowid']])) || !isset($saidArray[$row['rowid']])){

@@ -127,12 +127,15 @@ exit();
 
 function Contractors($id_usr){
     global $db;
+    $usr_tmp = new User($db);
+    $usr_tmp->fetch($id_usr);
     $sql = "select distinct case when `responsibility_param`.`fx_category_counterparty` is null then `other_category` else `fx_category_counterparty` end `fx_category_counterparty`, `category_counterparty`.`name`
         from `responsibility_param`
-        inner join (select rowid from `responsibility` where alias ='counter') counter on counter.rowid=responsibility_param.fx_responsibility
+        inner join (select rowid from `responsibility` where alias in ('".(empty($usr_tmp->respon_alias)?'null':$usr_tmp->respon_alias)."','".(empty($usr_tmp->respon_alias2)?'null':$usr_tmp->respon_alias2)."')) counter on counter.rowid=responsibility_param.fx_responsibility
         left join `category_counterparty` on `category_counterparty`.`rowid` = `responsibility_param`.`fx_category_counterparty`
         where `category_counterparty`.`active` = 1
-        or `responsibility_param`.`fx_category_counterparty` is null";
+        or `responsibility_param`.`fx_category_counterparty` is null
+        and `category_counterparty`.`name` is not null";
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);

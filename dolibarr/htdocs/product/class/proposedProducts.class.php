@@ -38,6 +38,12 @@ class proposedProducts
         $this->conf = $conf;
         $this->langs = $langs;
 	}
+    function del($rowid){
+        $sql = 'update llx_proposition_product set active = 0, id_usr = '.$this->user->id.' where rowid = '.$rowid;
+        $res = $this->db->query($sql);
+        if(!$res)
+            dol_print_error($this->db);
+    }
     function add(){
         $sql = 'insert into llx_proposition_product (fx_proposition,fx_category,Prodaction,
                 ProductName,articul,Number1C,Nal,ed_izm,shipTown,featureOffers,
@@ -72,27 +78,32 @@ class proposedProducts
         $sql = 'update llx_proposition_product set ';
         $sql .="fx_proposition=".$this->fx_proposition.",";
         $sql .="fx_category=".$this->fx_category.",";
-        $sql .="Prodaction=".(empty($this->Prodaction)?"null":("'".trim($this->Prodaction)."'")).",";
-        $sql .="ProductName=".(empty($this->ProductName)?"null":("'".trim($this->ProductName)."'")).",";
-        $sql .="articul=".(empty($this->articul)?"null":("'".trim($this->articul)."'")).",";
-        $sql .="Number1C=".(empty($this->Number1C)?"null":("'".trim($this->Number1C)."'")).",";
+        $sql .="Prodaction=".(empty($this->Prodaction)?"null":("'".$this->db->escape(trim($this->Prodaction))."'")).",";
+        $sql .="ProductName=".(empty($this->ProductName)?"null":("'".$this->db->escape(trim($this->ProductName))."'")).",";
+        $sql .="articul=".(empty($this->articul)?"null":("'".$this->db->escape(trim($this->articul))."'")).",";
+        $sql .="Number1C=".(empty($this->Number1C)?"null":("'".$this->db->escape(trim($this->Number1C))."'")).",";
         $sql .="Nal=".(empty($this->Nal)?"null":$this->Nal).",";
-        $sql .="ed_izm=".(empty($this->ed_izm)?"null":("'".trim($this->ed_izm)."'")).",";
-        $sql .="shipTown=".(empty($this->shipTown)?"null":("'".trim($this->shipTown)."'")).",";
-        $sql .="featureOffers=".(empty($this->featureOffers)?"null":("'".trim($this->featureOffers)."'")).",";
-        $sql .="profitCustomer=".(empty($this->profitCustomer)?"null":("'".trim($this->profitCustomer)."'")).",";
-        $sql .="price=".(empty($this->price)?"null":$this->price).',';
-        $sql .="offerPrice=".(empty($this->offerPrice)?"null":$this->offerPrice).',';
-        $sql .="advance=".(empty($this->advance)?"null":$this->advance).',';
-        $sql .="deadlineAdvance=".(empty($this->deadlineAdvance)?"null":("'".trim($this->deadlineAdvance)."'")).",";
-        $sql .="deadlineSale=".(empty($this->deadlineSale)?"null":("'".trim($this->deadlineSale)."'")).",";
-        $sql .="dateExec=".(empty($this->dateExec)?"null":("'".trim($this->dateExec)."'")).",";
-        $sql .="delivary=".(empty($this->delivary)?"null":("'".trim($this->delivary)."'")).",";
-        $sql .="otherDiscont=".(empty($this->otherDiscont)?"null":("'".trim($this->otherDiscont)."'")).",";
-        $sql .="description=".(empty($this->description)?"null":("'".trim($this->description)."'")).",";
+        $sql .="ed_izm=".(empty($this->ed_izm)?"null":("'".$this->db->escape(trim($this->ed_izm))."'")).",";
+        $sql .="shipTown=".(empty($this->shipTown)?"null":("'".$this->db->escape(trim($this->shipTown))."'")).",";
+        $sql .="featureOffers=".(empty($this->featureOffers)?"null":("'".$this->db->escape(trim($this->featureOffers))."'")).",";
+        $sql .="profitCustomer=".(empty($this->profitCustomer)?"null":("'".$this->db->escape(trim($this->profitCustomer))."'")).",";
+        $sql .="price=".(empty($this->price)?"null":("'".$this->db->escape($this->price)."'")).',';
+        $sql .="offerPrice=".(empty($this->offerPrice)?"null":("'".$this->db->escape($this->offerPrice)."'")).',';
+        $sql .="advance=".(empty($this->advance)?"null":("'".$this->db->escape($this->advance)."'")).',';
+        $sql .="deadlineAdvance=".(empty($this->deadlineAdvance)?"null":("'".$this->db->escape(trim($this->deadlineAdvance))."'")).",";
+        $sql .="deadlineSale=".(empty($this->deadlineSale)?"null":("'".$this->db->escape(trim($this->deadlineSale))."'")).",";
+        $sql .="dateExec=".(empty($this->dateExec)?"null":("'".$this->db->escape(trim($this->dateExec))."'")).",";
+        $sql .="delivary=".(empty($this->delivary)?"null":("'".$this->db->escape(trim($this->delivary))."'")).",";
+        $sql .="otherDiscont=".(empty($this->otherDiscont)?"null":("'".$this->db->escape(rim($this->otherDiscont))."'")).",";
+        $sql .="description=".(empty($this->description)?"null":("'".$this->db->escape(trim($this->description))."'")).",";
         $sql .="active=1,";
         $sql .="id_usr=".$this->user->id.' ';
         $sql .="where rowid=".$this->rowid;
+//        llxHeader();
+//        echo '<pre>';
+//        var_dump($sql);
+//        echo '</pre>';
+//        die();
         $res = $this->db->query($sql);
         if(!$res)
             dol_print_error($this->db);

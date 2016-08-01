@@ -70,6 +70,25 @@
         }
         console.log();
     }
+    function del_item(rowid){
+        if(confirm('Видалити товар зі списку?')) {
+            var param = {
+                action: 'del',
+                rowid: rowid
+            }
+            $.ajax({
+                data: param,
+                cache: false,
+                success: function (result) {
+                    if (result == 1)
+                        location.reload();
+                    else
+                        alert('Товар не було видалено');
+
+                }
+            })
+        }
+    }
     function show_item(rowid){
         var tr_item = $('#proposedProductList').find('tr#'+rowid);
         var td = $('#'+tr_item.attr('id')).find('td');

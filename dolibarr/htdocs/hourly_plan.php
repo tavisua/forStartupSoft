@@ -10,7 +10,7 @@ require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 
 //echo '<pre>';
-//var_dump($_REQUEST['hide'] == 'true');
+//var_dump($conf->browser->name);
 //echo '</pre>';
 //die();
 if($_REQUEST['action'] == 'hideAction'){

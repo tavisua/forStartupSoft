@@ -1152,42 +1152,42 @@ function EditAction(rowid, answer_id, actioncode){
     else if($('#addaction').length>0)
         $('#addaction').submit();
 }
-    function SetTheadColumnWidth(){
-        var tr = $('#reference_body').find('tr')[$('#reference_body').find('tr').length-1];
-        var td = tr.getElementsByTagName('td');
+function SetTheadColumnWidth(){
+    var tr = $('#reference_body').find('tr')[$('#reference_body').find('tr').length-1];
+    var td = tr.getElementsByTagName('td');
 //        td[0].outerWidth =
-        var thead = $('thead').find('tr')[0];
-        var tableWidth = 0;
-        var th = thead.getElementsByTagName('th');
-        td[0].style.minWidth = th[0].clientWidth+th[1].clientWidth-1+'px';
-        td[1].style.minWidth = th[2].clientWidth-1+'px';
-        td[1].style.maxWidth = th[2].clientWidth-1+'px';
-        tableWidth += th[0].clientWidth+th[1].clientWidth-3+th[2].clientWidth+th[2].clientWidth;
+    var thead = $('thead').find('tr')[0];
+    var tableWidth = 0;
+    var th = thead.getElementsByTagName('th');
+    td[0].style.minWidth = th[0].clientWidth+th[1].clientWidth-1+'px';
+    td[1].style.minWidth = th[2].clientWidth-1+'px';
+    td[1].style.maxWidth = th[2].clientWidth-1+'px';
+    tableWidth += th[0].clientWidth+th[1].clientWidth-3+th[2].clientWidth+th[2].clientWidth;
 
-        thead = $('thead').find('tr')[1];
-        th = thead.getElementsByTagName('th');
-        for(var c = 2; c<=20; c++){
-            td[c].style.minWidth = th[c-2].clientWidth-2+'px';
-            td[c].style.maxWidth = th[c-2].clientWidth-2+'px';
-            tableWidth += th[c-2].clientWidth-2;
+    thead = $('thead').find('tr')[1];
+    th = thead.getElementsByTagName('th');
+    for(var c = 2; c<=20; c++){
+        td[c].style.minWidth = th[c-2].clientWidth-2+'px';
+        td[c].style.maxWidth = th[c-2].clientWidth-2+'px';
+        tableWidth += th[c-2].clientWidth-2;
 //            console.log(th[c-2]);
-        }
-        thead = $('thead').find('tr')[0];
-        th = thead.getElementsByTagName('th');
-        td[20].style.minWidth = th[5].clientWidth-2+'px';
-        td[20].style.maxWidth = th[5].clientWidth-2+'px';
-        tableWidth += th[5].clientWidth-2;
-
-        thead = $('thead').find('tr')[1];
-        th = thead.getElementsByTagName('th');
-        for(var c = 21; c<=29; c++){
-            td[c].style.minWidth = th[c-3].clientWidth-2+'px';
-            td[c].style.maxWidth = th[c-3].clientWidth-2+'px';
-            tableWidth += th[c-3].clientWidth-2;
-            //console.log(td[c], th[c-3]);
-        }
-        console.log('width '+tableWidth);
     }
+    thead = $('thead').find('tr')[0];
+    th = thead.getElementsByTagName('th');
+    td[20].style.minWidth = th[5].clientWidth-2+'px';
+    td[20].style.maxWidth = th[5].clientWidth-2+'px';
+    tableWidth += th[5].clientWidth-2;
+
+    thead = $('thead').find('tr')[1];
+    th = thead.getElementsByTagName('th');
+    for(var c = 21; c<=29; c++){
+        td[c].style.minWidth = th[c-3].clientWidth-2+'px';
+        td[c].style.maxWidth = th[c-3].clientWidth-2+'px';
+        tableWidth += th[c-3].clientWidth-2;
+        //console.log(td[c], th[c-3]);
+    }
+    console.log('width '+tableWidth);
+}
 function ShowProducts(){//Відображення кількості замовлених товарів
     if($.cookie('products_id') != null) {
         var product = $.cookie('products_id').split(',');
@@ -1633,10 +1633,18 @@ function edit_item(rowid){
     var sID=rowid.toString();
     var paramList = $('td.param').find('.param');
     if(paramList.length>0){
-
+        var paramfield = '';
+        console.log($('td.param'));
+        for(var i=0;i<$('td.param').length; i++) {
+            var td = $('td.param')[i];
+            if (td.id.length > 0) {
+                paramfield = td.id;
+                break;
+            }
+        }
         //console.log(tablename);
-        var link = 'http://'+location.hostname+'/dolibarr/htdocs/DBManager/dbManager.php?loadparam=1&rowid='+rowid+'&tablename='+tablename+'_param&col_name='+tablename+'_id&loadfield='+$('td.param').attr('id');
-        //console.log(link);
+        var link = 'http://'+location.hostname+'/dolibarr/htdocs/DBManager/dbManager.php?loadparam=1&rowid='+rowid+'&tablename='+tablename+'_param&col_name='+tablename+'_id&loadfield='+paramfield;
+        console.log(link);
         $.ajax({
             url: link,
             cache: false,

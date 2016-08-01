@@ -41,17 +41,19 @@ if(isset($_REQUEST['action']) && $_REQUEST['action'] == 'update'){
     $page = ((!isset($_REQUEST['page'])||empty($_REQUEST['page']))?'1':$_REQUEST['page']);
     $update_user = new User($db);
     $update_user->info($_REQUEST['id']);
-    $lineactive = explode(',', $_REQUEST['values']);
-    $sql = 'select fk_lineactive, rowid from llx_user_lineactive where fk_user='.$update_user->id.' and page='.$page;
+//    $lineactive = explode(',', $_REQUEST['values']);
+//    select_lineaction
+    $lineactive = $_REQUEST["select_lineaction"];
+
+    $sql = 'select fk_lineactive, rowid, active from llx_user_lineactive where fk_user='.$update_user->id.' and page='.$page;
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
     $user_lineactive = array();
     while($obj = $db->fetch_object($res)){
-        $user_lineactive[$obj->fk_lineactive] = $obj->rowid;
+        $user_lineactive[$obj->fk_lineactive] = array($obj->rowid, $obj->active);
     }
     $inserted_values = array_keys($user_lineactive);
-
     foreach($inserted_values as $item){//Помічаю на видалення
         if(!in_array($item, $lineactive)){
             $sql = 'update llx_user_lineactive set active = 0, id_usr='.$user->id.
@@ -71,9 +73,16 @@ if(isset($_REQUEST['action']) && $_REQUEST['action'] == 'update'){
                 ' where fk_user='.$update_user->id.' and fk_lineactive='.$item.' and page='.$page.' limit 1';
 //        die($sql);
         $res = $db->query($sql);
-//        if(!$res)
-//            dol_print_error($db);
+        if(!$res) {
+            dol_print_error($db);
+//echo '<pre>';
+//var_dump($lineactive, $user_lineactive);
+//echo '</pre>';
+//            die($sql);
+        }
     }
+
+//die();
 }
 $langs->load("users");
 $langs->load("admin");
@@ -133,9 +142,9 @@ print '<input id="id" name="id" value="'.$user->id.'" type="hidden">';
 print '<input id="mainmenu" name="mainmenu" value="'.$_REQUEST['mainmenu'].'" type="hidden">';
 print '<input id="idmenu" name="idmenu" value="'.$_REQUEST['idmenu'].'" type="hidden">';
 print '<input id="page" name="page" value="'.$page.'" type="hidden">';
-print '<input id="values" name="values" value="" type="hidden">';
+//print '<input id="values" name="values" value="" type="hidden">';
 print '<input id="action" name="action" value="update" type="hidden">';
-print $form->selectLineAction($lineactive, 'select_lineaction', 30);
+print $form->selectLineAction($lineactive, 'select_lineaction[]', 30);
 print '</br>';
 print '<input type="submit" value="Зберегти">';
 print '</form>';

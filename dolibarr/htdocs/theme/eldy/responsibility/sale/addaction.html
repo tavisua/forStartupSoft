@@ -83,7 +83,7 @@
             <td <?=$style?>><b>Форма правління</b></td>
             <td <?=$style?>><?=$societe->getFormOfGoverment();?></td>
             <td ><b>Контакт</b></td>
-            <td ><?=(!empty($object->contactid)||!empty($_GET['socid'])?$societe->getContactname($object->contactid):$Actions->getAssignedUser($_REQUEST["action_id"]))?></td>
+            <td ><?=(!empty($object->contactid)||!empty($_GET['socid'])?$form->selectcontacts(empty($_GET['socid']) ? $object->socid : $_GET['socid'], $object->contactid, 'contactid', 1):$Actions->getAssignedUser($_REQUEST["action_id"]))?></td>
             <td <?=$style?> id="PlanTimeTitle"></td>
             <td <?=$style?> id="PlanTimeResult"></td>
             <?if(!empty($style)){?>
@@ -108,12 +108,13 @@
         <input type="hidden" value="<?=$_GET['proposed_id']?>" name="proposed_id">
         <input type="hidden" value="" name="complete" id="complete">
         <input id="action" name="action" type="hidden" value="">
+        <input id="changedContactID" name="changedContactID" type="hidden" value="">
         <input type="hidden" name="typeSetOfDate" id="type" value="<?=$_REQUEST['typeSetOfDate']?>">
         <input type="hidden" name="error" id="error" value="<?=$_REQUEST['error']?>">
         <input id="callstatus" name="callstatus" type="hidden" value="<?=empty($object->callstatus)?2:$object->callstatus?>">
 
         </br>
-        <table class="border" width="100%">
+        <table class="border" style="margin-top: 20px" width="100%">
             <?=$contactlist?>
             <tr>
                 <td>
@@ -173,6 +174,10 @@
     }
 </style>
 <script>
+    $('#contactid').change(function(e){
+        $('#changedContactID').val($(this).val());
+//        console.log();
+    })
     function dpChangeDay(id, format){
 //        	return;
         console.log(id);

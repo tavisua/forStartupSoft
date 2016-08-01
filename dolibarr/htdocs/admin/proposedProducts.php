@@ -24,6 +24,10 @@ if($action == 'create') {
     $grouparray = array();
     include DOL_DOCUMENT_ROOT . '/theme/eldy/admin/addProposedProducts.html';
     exit();
+}elseif($action == 'del'){
+    $proposedPoducts->del($_REQUEST['rowid']);
+    echo 1;
+    exit();
 }elseif($action == 'edit'){
     $proposedPoducts->fetchProductsItem($_REQUEST['rowid']);
 //    echo '<pre>';

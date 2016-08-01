@@ -11,27 +11,32 @@ if(count($_POST)>0) {
 //    die($sql);
     $res = $db->query($sql);
     if(!$res){
-        var_dump($sql);
         dol_print_error($db);
     }
     $id_respon = array();
+
+
     if(!empty($_POST['id_respon'])) {
-        $id_respon = explode(';', GETPOST('id_respon'));
-        $num = 0;
-        foreach($id_respon as $id){
-            if(!is_numeric($id)) {
+        if(strpos(GETPOST('id_respon'),';'))
+            $PostArray = explode(';', GETPOST('id_respon'));
+        else
+            $PostArray = explode(',', GETPOST('id_respon'));
+//var_dump($PostArray);
+//die();
+        foreach($PostArray as $id){
+//            if(!is_numeric($id)) {
                 $id = "'" . $id . "'";
-                $id_respon[$num]=$id;
-            }
-            $num++;
+                if(!in_array($id, $id_respon))
+                    $id_respon[]=$id;
+//            }
         }
-//        var_dump($id_respon);
-//        die();
+        $respon_sql = str_replace("''","'",implode(',', $id_respon));
+//        $respon_sql.= str_replace("'\"",'',$respon_sql);
         $sql = 'delete from responsibility_param where fx_responsibility = ' . GETPOST('rowid') . '
             and (
-                (fx_category_counterparty not in (' . implode(',', $id_respon) . ') and other_category is null)
+                (fx_category_counterparty not in (' . str_replace("'",'',$respon_sql) . ') and other_category is null)
             or
-                (other_category not in (' . implode(',', $id_respon) . ') and fx_category_counterparty is null)
+                (other_category not in (' . $respon_sql . ') and fx_category_counterparty is null)
             )';
     }else{
         $sql = 'delete from responsibility_param where fx_responsibility = ' . GETPOST('rowid');
@@ -100,4 +105,4 @@ $Alias = $row->alias;
 $ShowLineActive = $row->showlineactive;
 include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility_editor.html');
 echo ob_get_clean();
-llxFooter();
+//llxFooter();

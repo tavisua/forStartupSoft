@@ -64,9 +64,9 @@ if (isset($_REQUEST["action_id"])) {
     if((!isset($_REQUEST["onlyresult"]) || empty($_REQUEST['onlyresult'])) && isset($_REQUEST["answer_id"])&&!empty($_REQUEST["answer_id"]))
         $sql.="and rowid=" . $_REQUEST["answer_id"];
     else
-        $sql.="and action_id=" . $_REQUEST["action_id"];
+        $sql.="and rowid=" . $_REQUEST["action_id"];
 //    echo '<pre>';
-//    var_dump($_REQUEST);
+//    var_dump($sql);
 //    echo '</pre>';
 //    die();
     $res = $db->query($sql);
@@ -78,10 +78,6 @@ if(!isset($_REQUEST["onlyresult"])||empty($_REQUEST["onlyresult"])) {
     $object = new ActionComm($db);
     $object->fetch($action_id);
     $socid = $object->socid;
-
-
-
-
 }elseif($_REQUEST["action"]=='edituseration'){
 
 
@@ -139,7 +135,7 @@ if (! empty($conf->use_javascript_ajax))
 //print '<input type="hidden" name="backtopage" value="'.$_GET['backtopage'].'">';
 //if (empty($conf->global->AGENDA_USE_EVENT_TYPE)) print '<input type="hidden" name="actioncode" value="'.$object->type_code.'">';
 
-if(!($_GET['action'] == 'addonlyresult' || $_GET['action'] == 'updateonlyresult' || (isset($_REQUEST["onlyresult"])&&$_REQUEST["onlyresult"]=='1'))) {
+if(!($_GET['action'] == 'addonlyresult' || (isset($_REQUEST["onlyresult"])&&$_REQUEST["onlyresult"]=='1'))) {
     if(!($_GET['action'] == 'useraction'||$_GET['action'] == 'edituseration'))
         dol_fiche_head($head, 'event_desc', $langs->trans("Action"), 0, 'action');
     $contactlist='';
@@ -438,6 +434,14 @@ function saveaction($rowid, $createaction = false){
 //    var_dump($res);
 //    die();
 //    if($_REQUEST['action'] == 'update'||!(substr($_REQUEST['action'], 0, strlen('addonlyresult')) == 'addonlyresult' || (substr($_REQUEST['action'], 0, strlen('updateonlyresult')) == 'updateonlyresult' && strlen($_REQUEST['action'])==strlen('updateonlyresult')))) {
+
+    if(isset($_REQUEST['changedContactID'])&&!empty($_REQUEST['changedContactID'])){//Змінюю контактне лице, якщо його змінили під час внесення даних
+        $sql = "update llx_actioncomm set fk_contact = ".$_REQUEST['changedContactID']." where id = ".$_REQUEST["actionid"];
+        $res = $db->query($sql);
+        if(!$res){
+            dol_print_error($db);
+        }
+    }
     if($_REQUEST['action'] == 'update'||(substr($_REQUEST['action'], 0, strlen('addonlyresult')) == 'addonlyresult' || (substr($_REQUEST['action'], 0, strlen('updateonlyresult')) == 'updateonlyresult' && strlen($_REQUEST['action'])==strlen('updateonlyresult')))) {
         if (empty($rowid))
             $rowid = get_last_id();

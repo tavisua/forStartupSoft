@@ -4394,7 +4394,7 @@ class Form
     function selectlineactive($htmlname, $id=''){
         global $conf, $langs;
         $sql='select rowid, line from `llx_c_line_active` where active=1';
-        $out = '<select id="'.$htmlname.'" class="combobox" name="'.$htmlname.'" size=1 onchange="loadkind_assets();">';
+        $out = '<select id="'.$htmlname.'" class="combobox" name="'.$htmlname.'" size=1 onchange="loadkind_assets($(this));">';
         $res = $this->db->query($sql);
         while($row = $this->db->fetch_object($res)){
             $out .= '<option '.($id == $row->rowid?('selected = "selected"'):'').' value="'.$row->rowid.'">'.$langs->trans($row->line).'</option>';

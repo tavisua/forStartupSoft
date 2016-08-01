@@ -1906,7 +1906,7 @@ function fieldList($fieldlist,$obj='',$tabname='', $show=0)//Відображе�
         elseif ($fieldlist[$field] == 'LineActive' && ($tabname ==  MAIN_DB_PREFIX."c_model"))
         {
             print '<td align="left">';
-            print $form->selectlineactive('LineActive');
+            print $form->selectlineactive('LineActive1');
             print '</td>';
         }
         //напрямок в моделі

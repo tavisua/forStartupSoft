@@ -95,7 +95,7 @@
         })
         $('div').click(function(e){
             var cls = e.target.className;
-//            console.log(strpos(cls, 'note'), cls);
+            console.log($(this).find('input').length);
             if(strpos(cls, 'note')&& e.target.getElementsByTagName('input').length>0){
                 $.cookie('showfulltext', 'showed');
                 var tbody = e.target.parentNode.parentNode.parentNode;
@@ -122,6 +122,7 @@
 //                return;
                 if(e.which != 1)
                     return;
+//console.log($.cookie('showfulltext') == 'showed', $.cookie('hideactionclick') == 1);
                 if($.cookie('showfulltext') == 'showed' || $.cookie('hideactionclick') == 1) {
                      $.cookie('hideactionclick',null);
                     return;
@@ -213,9 +214,10 @@
 
 //                        console.log(link);
 //                        return;
-                        location.href = link;
-                        console.log('location.href = link;');
-//                        window.open(link);
+                        if('<?=($conf->browser->name)?>' == 'chrome')
+                            location.href = link;
+                        else
+                            window.open(link);
                     }
                 })
             })

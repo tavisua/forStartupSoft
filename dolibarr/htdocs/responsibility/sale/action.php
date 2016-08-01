@@ -373,7 +373,8 @@ function getProposition($socid = 0){
                         <td class="middle_size" style="padding-left: 10px;" colspan="4" id="'.$obj->rowid.'">'.$obj->postname.'</td>
                     </tr>';
     }
-//var_dump(htmlspecialchars($out));
+//    llxHeader();
+//    var_dump($out);
 //    die();
     return $out;
 }

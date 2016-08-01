@@ -1,0 +1,210 @@
+<div class="contant_tble" style="padding-top: 32px">
+
+        <div class="tabs" id="tabs_area" data-role="controlgroup" data-type="horizontal">
+            <div class="inline-block tabsElem tabsElemActive">
+                <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/responsibility/sale/area.php?idmenu=10425&mainmenu=area<?= isset($_GET['page'])?('&page='.$_GET['page'].'&per_page='.$_GET['per_page']):''?><? echo $object->id?>"><? echo $langs->trans('BasicInfo')?></a>
+            </div>
+            <div  class="inline-block tabsElem" id="Calculator">
+                <a href="/dolibarr/htdocs/responsibility/sale/calculator.php?idmenu=10425&mainmenu=area<?= isset($_GET['page'])?('&page='.$_GET['page'].'&per_page='.$_GET['per_page']):''?>"class="tab inline-block" data-role="button"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<? echo $langs->trans('Calculator')?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b></a>
+            </div>
+        </div>
+
+    <table  cellspacing="1" class="WidthScroll">
+        <thead>
+        <tr class="multiple_header_table">
+            <!--<th class="header_table" width="130px">Категорія контрагента</th>-->
+            <!--<th class="header_table" width="150px">Засновник, інвестор, холдинг</th>-->
+            <th width="180px" rowspan="2">Назва контрагента <img title="Передивитись"></th>
+            <!--<th class="header_page" width="80px">Форма власності</th>-->
+            <th width="100px" rowspan="2">Місце знаходження</th>
+            <!--<th class="header_page" width="130px">П.І.Б. засновника</th>-->
+            <!--<th class="header_page" width="130px">№ тел.офісу</th>-->
+            <th width="50px" rowspan="2">Орної землі, га</th>
+            <th width="130px" rowspan="2">Особливі відмітки, резюме перемовин</th>
+            <th width="100px" rowspan="2">Наявна потреба</th>
+            <th width="100px" rowspan="2">Завдання</th>
+            <th width="80px" rowspan="2">Дата ост. співпраці</th>
+            <th colspan="3" id="comerc_action">Дії комерц. служби</th>
+            <th colspan="2" id="service_action">Дії сервісн. служби</th>
+            <th colspan="2" id="accounts_action">Дії бухгалтерії</th>
+            <th colspan="2" id="mentor_action">Перевірки наставником</th>
+            <th width="50px" rowspan="2">Активне</th>
+        </tr>
+        <tr class="multiple_header_table">
+            <th width="75px" class="middle_size">Останні</th>
+            <th width="75px" class="middle_size">Майбутні</th>
+            <th width="40px" class="middle_size">Необх. часу, хв.</th>
+            <th width="75px" class="middle_size">Останні</th>
+            <th width="75px" class="middle_size">Майбутні</th>
+            <th width="75px" class="middle_size">Останні</th>
+            <th width="75px" class="middle_size">Майбутні</th>
+            <th width="75px" class="middle_size">Останні</th>
+            <th width="75px" class="middle_size">Майбутні</th>
+        </tr>
+        </thead>
+
+            <?echo $table?>
+
+    </table>
+
+</div>
+<div id="popupmenu" style="display: none; position: absolute; width: auto; height: auto" class="pair popupmenu" >
+    <form id="setfilter" action="" method="get">
+        <table style="border-collapse: collapse">
+            <tr>
+                <td style="width: 200px">
+                    <input type="hidden" name="mainmenu" value="<?=$_REQUEST['mainmenu']?>">
+                    <input type="hidden" name="idmenu" value="<?=$_REQUEST['idmenu']?>">
+                    <input type="hidden" id = "lineactiveFilter" name="lineactive" value="<?=$_REQUEST['lineactive']?>">
+                    <input type="text" name="filter" value="" id="filter" size="45">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input type="submit" value="Пошук">
+                    <input type="button" onclick="closefindmenu();" value="Відміна">
+                </td>
+            </tr>
+        </table>
+    </form>
+</div>
+        <script>
+            function closefindmenu(){
+                $('#popupmenu').hide();
+            }
+            function setLineActiveFilter(){
+                $('#lineactiveFilter').val($('#lineactive').val());
+                $('#setfilter').submit();
+            }
+            $(document).ready(function(){
+                $('#reference_body').attr('height', window.innerHeight - 420);
+                var th = document.getElementsByTagName('th');
+                var left = 30;
+                var widths = [];
+                var TotalWidth = 0;
+                for(var i=0; i<th.length; i++){
+                    if(th[i].className == "middle_size" || th[i].id == '') {
+//                    console.log(th[i].offsetWidth);
+                        var iWidth = th[i].offsetWidth;
+                        if (th[i].className == 'header_table')
+                            left += parseInt(iWidth);
+                        TotalWidth += iWidth;
+                        widths.push(parseInt(iWidth));
+                    }
+                }
+                var tr = $('#reference_body').find('tr');
+                var now = new Date()
+                var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+//                console.log(now.getFullYear(), now.getMonth(), now.getDate());
+                for(var i=0; i<tr.length; i++){
+                    if($('#'+tr[i].id.substr(2)+'futuredatecomerc').text().length==9){
+                        var date = new Date(parseInt('20'+$('#'+tr[i].id.substr(2)+'futuredatecomerc').text().substr(6,2)),
+                                parseInt($('#'+tr[i].id.substr(2)+'futuredatecomerc').text().substr(3,2))-1,
+                                parseInt($('#'+tr[i].id.substr(2)+'futuredatecomerc').text().substr(0,2)));
+                        console.log(tr[i].id, date, today);
+                        if(date<today)
+                            $('#'+tr[i].id.substr(2)+'futuredatecomerc').find('a').css('color','red');
+                        else if(date.getFullYear() == today.getFullYear() && date.getMonth() == today.getMonth() && date.getDate() == today.getDate())
+                            $('#'+tr[i].id.substr(2)+'futuredatecomerc').find('a').parent().css('background-color', ':rgb(0, 255, 0)');
+//                        console.log($('#'+tr[i].id.substr(2)+'futuredatecomerc').text(), parseInt('20'+$('#'+tr[i].id.substr(2)+'futuredatecomerc').text().substr(6,2)),
+//                                parseInt($('#'+tr[i].id.substr(2)+'futuredatecomerc').text().substr(3,2)),
+//                                parseInt($('#'+tr[i].id.substr(2)+'futuredatecomerc').text().substr(0,2)));
+                    }
+
+                }
+
+                $('.tabs').offset({top:250, left:left});
+//                console.log($('#comerc_action').width());
+                $('#comerc').offset({top:142, left:$('#comerc_action').offset().left});
+                $('#service').offset({top:142, left:$('#service_action').offset().left});
+                $('#accounts').offset({top:142, left:$('#accounts_action').offset().left});
+                $('#mentor').offset({top:142, left:$('#mentor_action').offset().left});
+                $('#tabs_area').width(600);
+                $('#reference_body').offset({left:22});
+////console.log(TotalWidth, widths);
+                $('#reference_body').width(TotalWidth+30);
+            })
+            function clearfilter(){
+//                $('#filter').clean();
+                <?unset($_SESSION['state_filter']);?>
+                $('#setfilter').submit();
+            }
+            function showfilter(){
+                $('#popupmenu').offset({top:220});
+                $('#popupmenu').show();
+                $('#filter').focus();
+            }
+            $(window).keydown(function(event){ //ловим событие нажатия клавиши
+                if(event.keyCode == 13) { //если это Enter
+                   console.log(event.target.id);
+                }
+            });
+        </script>
+<script type="text/javascript">
+    $(document).ready(function(){
+
+        var tbody = document.getElementById('reference_body');
+        if(tbody == null)return;
+        var trList = tbody.getElementsByTagName('tr');
+        for(var index = 0; index<trList.length; index++){
+            var tdList = trList[index].getElementsByTagName('td');
+            for(var tdIndex = 0; tdIndex<tdList.length; tdIndex++){
+                if(tdList[tdIndex].id.substr(tdList[tdIndex].id.length-'nom'.length) == 'nom') {
+//                     http://uspex2015.com/dolibarr/htdocs/user/card.php?id=13
+                    var id = tdList[tdIndex].id.substr(0, (tdList[tdIndex].id.length - 'nom'.length));
+                    if(tdList[tdIndex].id.substr(0,4)!='prev') {
+                        if (!strpos(tdList[tdIndex].innerHTML, '<img'))
+                            tdList[tdIndex].innerHTML = '<a id = "login_' + id + '" href="/dolibarr/htdocs/societe/soc.php?mainmenu=area&idmenu=<?echo $_REQUEST["idmenu"]?>&action=edit&socid=' + id + '"> <img border="0"  alt="" src="/dolibarr/htdocs/theme/eldy/img/object_contact.png">' + (tdList[tdIndex].innerHTML) + '</a>';
+                        else {
+                            var text = tdList[tdIndex].innerHTML.substr(0, strpos(tdList[tdIndex].innerHTML, '<img'));
+                            tdList[tdIndex].innerHTML = '<a id = "login_' + id + '" href="/dolibarr/htdocs/societe/soc.php?mainmenu=area&idmenu=<?echo $_REQUEST["idmenu"]?>&action=edit&socid=' + id + '"> <img border="0"  alt="" src="/dolibarr/htdocs/theme/eldy/img/object_contact.png">' + (text) + '</a>' +
+                            tdList[tdIndex].innerHTML.substr(strpos(tdList[tdIndex].innerHTML, '<img'));
+                        }
+                    }
+                }
+            }
+        }
+    })
+    function preview(object){
+        console.log(object);
+        $("#prev_form").text($("#full"+object).text());
+        location.href="#peview_form";
+//        $("#peview_form").offset({top:10, left:10});
+    }
+    function change_switch(rowid){
+        var x;
+        x = document.getElementById('img' + rowid );
+
+        //console.log('img' + rowid + col_name);
+        var check = false;
+        var end = strpos(x.src, '/img/');
+        //console.log(x.src);
+        //console.log(x.src.substr(0, end+4)+'/switch_on.png');
+        if(x.src == x.src.substr(0, end+4)+'/switch_on.png'){
+            x.src = x.src.substr(0, end+4)+'/switch_off.png';
+        }else{
+            x.src =  x.src.substr(0, end+4)+'/switch_on.png';
+            check = true;
+        }
+        if(rowid != 0) {
+            var link = 'http://'+location.hostname+'/dolibarr/htdocs/DBManager/dbManager.php?rowid='+rowid+'&edit=1&tablename=llx_societe&col_name=active&value='+check;
+            console.log(link);
+            update_data(link);
+        }
+    }
+    function update_data(link){
+        var id_usr = <?=$user->id?>;
+        $.ajax({
+            url: link+'&id_usr='+id_usr,
+            cache: false,
+            success: function (html) {
+                console.log(html);
+            }
+        });
+
+    };
+    function strpos( haystack, needle, offset){ // Find position of first occurrence of a string
+        var i = haystack.indexOf( needle, offset ); // returns -1
+        return i >= 0 ? i : false;
+    }
+</script>

@@ -3,7 +3,7 @@
 //    var_dump($_REQUEST);
 //    echo '</pre>';
 //    die();
-
+    require_once $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
     if(isset($_REQUEST['edit'])){
         edit_item();
     }elseif(isset($_REQUEST['save'])){
@@ -14,15 +14,11 @@
         load_param();
     }
     function load_param(){
-//        echo '<pre>';
-//        var_dump($_REQUEST);
-//        echo '</pre>';
-//        die();
-        include 'db.php';
-        $mysqli = new dbMysqli();
+        global $db;
         $sql = 'select `'.$_REQUEST['loadfield'].'`, `value` from `'.$_REQUEST['tablename'].'` where `'.$_REQUEST['col_name'].'`='.$_REQUEST['rowid'];
-        $res = $mysqli->mysqli->query($sql);
-
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
 //        die($sql);
         $param=''; $values='';
         while($row = $res->fetch_assoc()){
@@ -169,7 +165,9 @@
                         $sql = 'update `'.$_REQUEST["paramtable"].'` set value='.$values_array[$i].', id_usr='.$_REQUEST["id_usr"].', dtChange=Now()
                             where `'.$_REQUEST["tablename"].'_id`='.$_REQUEST['rowid'].' and `'.$_REQUEST["paramfield"].'` = '.$param_array[$i];
                     }
-                    $bM->mysqli->query($sql);
+                    $res = $bM->mysqli->query($sql);
+                    if(!$res)
+                        dol_print_error($bM->mysqli);
                 }
 
 

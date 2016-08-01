@@ -14,7 +14,15 @@ if(isset($_REQUEST['action'])){
     global $db,$user;
     switch($_REQUEST['action']) {
         case 'getnewactions':{
-            echo getNewAcctions($user->id);
+            $id_user = $user->id;
+            if(isset($_SESSION['spy_id_usr'])&&!empty($_SESSION['spy_id_usr'])){
+                $sql = "select rowid from llx_user where login = '".$_SESSION['dol_login']."' and active = 1";
+                $res = $db->query($sql);
+                if(!$res)
+                    dol_print_error($db);
+                $id_user = $obj->rowid;
+            }
+            echo getNewAcctions($id_user);
             exit();
         }break;
         case 'getOutStandingIntoRegion':{
