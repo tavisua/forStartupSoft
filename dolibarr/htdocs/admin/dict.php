@@ -716,7 +716,7 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
 //            var_dump(($value == 'Trademark'&&!isset($_POST['Trademark'])));
 //            die();
 //        }
-        if ($id == 30 && ($value == 'Model' || $value == 'Description'||($value == 'Trademark'&&!isset($_POST['Trademark']))))continue;
+        if ($id == 30 && ($value == 'LineActive' ||$value == 'Model' || $value == 'Description'||($value == 'Trademark'&&!isset($_POST['Trademark']))))continue;
 		if ($id == 34 && ($value == 'responsibility'))continue;
         if ($id == 35 && ($value == 'ed_name'))continue;
         if ($id == 39 && ($value == 'LineActiveCustomer'|| $value == 'prioritet'|| $value == 'square' || $value == 'postname'|| $value == 'end'|| $value == 'proposition' ||$value == 'description' || $value == 'tests' || $value == 'products'|| $value == 'properties')){
@@ -731,7 +731,7 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
 		)
         {
 //                    echo '<pre>';
-//                    var_dump($_POST[$value],$value);
+//                    var_dump($_POST,$value);
 //                    echo '</pre>';
 //                    die();
             $ok=0;
@@ -899,7 +899,8 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
                 $i++;
             }
             $sql .= ",1" . ($id >= 25 ? ("," . $user->id) : "") . ")";
-
+//var_dump($sql);
+//    die();
 
             dol_syslog("actionadd", LOG_DEBUG);
             $result = $db->query($sql);
@@ -940,22 +941,25 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
             else if ($field == 'entity') {
             	$_POST[$listfieldvalue[$i]] = $conf->entity;
             }
-            if ($i) $sql.=",";
-            $sql.= $field."=";
-            if ($_POST[$listfieldvalue[$i]] == ''){
-				if($id==39 && ('LineActiveCustomer' == $listfieldvalue[$i] || 'postname' == $listfieldvalue[$i])){
-					switch($listfieldvalue[$i]){
-						case 'LineActiveCustomer':{
-							$sql.= 	$_POST['fk_lineactive'];
-						}break;
-						case 'postname':{
-							$sql.= 	$_POST['fk_post'];
-						}break;
-					}
-				}else
-					$sql.="null";
-			}
-            else $sql.="'".$db->escape($_POST[$listfieldvalue[$i]])."'";
+            if(!empty($field)) {
+                if ($i && ($i - 1>=0 && !empty($listfieldmodify[$i - 1]))) $sql .= ",";
+                $sql .= $field . "=";
+                if ($_POST[$listfieldvalue[$i]] == '') {
+                    if ($id == 39 && ('LineActiveCustomer' == $listfieldvalue[$i] || 'postname' == $listfieldvalue[$i])) {
+                        switch ($listfieldvalue[$i]) {
+                            case 'LineActiveCustomer': {
+                                $sql .= $_POST['fk_lineactive'];
+                            }
+                                break;
+                            case 'postname': {
+                                $sql .= $_POST['fk_post'];
+                            }
+                                break;
+                        }
+                    } else
+                        $sql .= "null";
+                } else $sql .= "'" . $db->escape($_POST[$listfieldvalue[$i]]) . "'";
+            }
             $i++;
         }
         if($id>=25){
@@ -966,7 +970,8 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
         dol_syslog("actionmodify", LOG_DEBUG);
         //print $sql;
 //var_dump($_POST);
-//var_dump($listfieldvalue);
+//var_dump($listfieldmodify);
+//llxHeader();
 //die($sql);
 
         $resql = $db->query($sql);
@@ -1388,7 +1393,7 @@ if ($id)
                     $parameters=array('fieldlist'=>$fieldlist, 'tabname'=>$tabname[$id]);
                     $reshook=$hookmanager->executeHooks('editDictionaryFieldlist',$parameters,$obj, $tmpaction);    // Note that $action and $object may have been modified by some hooks
                     $error=$hookmanager->error; $errors=$hookmanager->errors;
-//						if($id == 39){
+//						if($id == 30){
 //							echo '<pre>';
 //							var_dump($fieldlist, $obj);
 //							echo '</pre>';
@@ -1774,6 +1779,21 @@ function fieldList($fieldlist,$obj='',$tabname='', $show=0)//Відображе�
 	$formadmin = new FormAdmin($db);
 	$formcompany = new FormCompany($db);
 	$societecontact = new societecontact($db);
+    if($_REQUEST['action']=='edit'&&$_REQUEST['id']==30){
+        $sql = "select llx_c_line_active.rowid lineactive, llx_c_kind_assets.rowid KindAssets, `llx_c_model`.`fx_trademark` Trademark
+            from `llx_c_model`
+            left join llx_c_kind_assets on `llx_c_model`.fx_kind_assets = `llx_c_kind_assets`.`rowid`
+            left join llx_c_line_active on `llx_c_kind_assets`.`fx_line_active` = `llx_c_line_active`.`rowid`
+            where `llx_c_model`.`rowid` = ".$_REQUEST['rowid'];
+        $resItem = $db->query($sql);
+        if(!$resItem)
+            dol_print_error($db);
+        $objItem = $db->fetch_object($resItem);
+        $lineactive_id = $objItem->lineactive;
+        $kindassets_id = $objItem->KindAssets;
+        $trademark_id = $objItem->Trademark;
+    }
+
 
 	foreach ($fieldlist as $field => $value)
 	{
@@ -1891,7 +1911,7 @@ function fieldList($fieldlist,$obj='',$tabname='', $show=0)//Відображе�
 //            print $form->selectkindassets('fx_kind_assets');
 //            print '</td>';
             print '<td align="left">';
-            print $form->selecttrademark($fieldlist[$field]);
+            print $form->selecttrademark($fieldlist[$field], $trademark_id);
             print '</td>';
         }
 		//Сфера відповідальності
@@ -1905,15 +1925,16 @@ function fieldList($fieldlist,$obj='',$tabname='', $show=0)//Відображе�
         //напрямок в моделі
         elseif ($fieldlist[$field] == 'LineActive' && ($tabname ==  MAIN_DB_PREFIX."c_model"))
         {
+            $sql = "select ";
             print '<td align="left">';
-            print $form->selectlineactive('LineActive1');
+            print $form->selectlineactive('LineActive1',$lineactive_id);
             print '</td>';
         }
         //напрямок в моделі
         elseif ($fieldlist[$field] == 'KindAssets' && ($tabname ==  MAIN_DB_PREFIX."c_model"))
         {
             print '<td align="left">';
-            print $form->selectkindassets('KindAssets');
+            print $form->selectkindassets('KindAssets',$lineactive_id, $kindassets_id);
             print '</td>';
         }
         //напрямок
@@ -2001,6 +2022,10 @@ function fieldList($fieldlist,$obj='',$tabname='', $show=0)//Відображе�
 		}
 		else
 		{
+//            echo '<pre>';
+//            var_dump($obj);
+//            echo '</pre>';
+//            die();
 			print '<td>';
 			$size='';
 			if ($fieldlist[$field]=='libelle') $size='size="32" ';

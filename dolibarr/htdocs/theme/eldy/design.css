@@ -201,10 +201,16 @@ tr.subtype:hover {
     /*box-sizing: border-box;*/
 /*}*/
 .subdivision{
-    background-color: #428bca;
+    background-color: #6facd5;
     border-color: #ffffff;
     font-weight: bold;
     color: white;
+}
+.dictinary:hover{
+    background-color: #d9eef7;
+    border-color: #ffffff;
+    font-weight: bold;
+    color: black;
 }
 .subdivision:hover{
     background-color: #d9eef7;

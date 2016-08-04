@@ -45,7 +45,7 @@ llxHeader("",$langs->trans('PlanOfDays'),"");
 print_fiche_titre($langs->trans('PlanOfDays'));
 $table = ShowTable();
 
-include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/purchase/day_plan.html';
+include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/service/day_plan.html';
 
 //print '</br>';
 //print'<div style="float: left">test</div>';

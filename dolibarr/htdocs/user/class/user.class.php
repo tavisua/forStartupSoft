@@ -1271,8 +1271,8 @@ class User extends CommonObject
 
 		return $categories;
 	}
-	function getLineActive(){
-		$sql = 'select fk_lineactive from llx_user_lineactive where fk_user = '.$this->id.' and active = 1';
+	function getLineActive($id_usr){
+		$sql = 'select fk_lineactive from llx_user_lineactive where fk_user = '.(empty($id_usr)?$this->id:$id_usr).' and active = 1';
 
 		$res = $this->db->query($sql);
 		if(!$res)

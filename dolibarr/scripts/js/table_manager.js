@@ -318,6 +318,94 @@ function getRegionsList(id_usr){
         img.src = '/dolibarr/htdocs/theme/eldy/img/1downarrow.png';
     }
 }
+function getLineActiveService(id_usr, btn){
+    //var btn = document.getElementById('btnUsr'+id_usr);
+    var tr_item = btn.parent().parent();
+    console.log(tr_item);
+//        return;
+//    var img = document.getElementById('imgUsr'+id_usr);
+    var img = btn.find('img');
+//        console.log(img);
+//        var img = btn.getElementsByTagName('img')[0];
+    var show = img.attr('src').substr(img.attr('src').length-('1downarrow.png').length) == '1downarrow.png';
+    if(show)
+        img.attr('src', img.attr('src').substr(0, img.attr('src').length-('1downarrow.png').length)+'1uparrow.png');
+    else
+        img.attr('src', img.attr('src').substr(0, img.attr('src').length-('1uparrow.png').length)+'1downarrow.png');
+    if(show) {
+//            console.log(id);
+        if($('.serviceLineActive'+id_usr).length == 0) {
+//                var tr_item = btn.parentNode.parentNode;
+            var className = tr_item.attr('class');
+            className = className.replace('impair ', '');
+            className = className.replace('pair ', '');
+            className = $.trim(className);
+            var link = '/dolibarr/htdocs/responsibility/gen_dir/day_plan.php?action=getLineActiveService&id_usr='+id_usr+'&class=serviceLineActive'+id_usr;
+//                console.log(link);
+//                return;
+            $("#loading_img").show();
+            $.ajax({
+                url: link,
+                cache: false,
+                success: function (html) {
+//                        console.log(html);
+                    tr_item = document.getElementById(tr_item.attr('id'));
+                    tr_item.insertAdjacentHTML('afterend', html);
+                    $("#loading_img").hide();
+                }
+            })
+        }else{
+            $('.serviceLineActive'+id_usr).show();
+        }
+    }else{
+        $('.serviceLineActive'+id_usr).hide();
+        img.src = '/dolibarr/htdocs/theme/eldy/img/1downarrow.png';
+    }
+}
+function getLineActiveList(id_usr, btn){
+    //var btn = document.getElementById('btnUsr'+id_usr);
+    var tr_item = btn.parent().parent();
+    console.log(tr_item);
+//        return;
+//    var img = document.getElementById('imgUsr'+id_usr);
+    var img = btn.find('img');
+//        console.log(img);
+//        var img = btn.getElementsByTagName('img')[0];
+    var show = img.attr('src').substr(img.attr('src').length-('1downarrow.png').length) == '1downarrow.png';
+    if(show)
+        img.attr('src', img.attr('src').substr(0, img.attr('src').length-('1downarrow.png').length)+'1uparrow.png');
+    else
+        img.attr('src', img.attr('src').substr(0, img.attr('src').length-('1uparrow.png').length)+'1downarrow.png');
+    if(show) {
+//            console.log(id);
+        if($('.purchLineActive'+id_usr).length == 0) {
+//                var tr_item = btn.parentNode.parentNode;
+            var className = tr_item.attr('class');
+            className = className.replace('impair ', '');
+            className = className.replace('pair ', '');
+            className = $.trim(className);
+            var link = '/dolibarr/htdocs/responsibility/gen_dir/day_plan.php?action=getLineActiveList&id_usr='+id_usr+'&class=purchLineActive'+id_usr;
+//                console.log(link);
+//                return;
+            $("#loading_img").show();
+            $.ajax({
+                url: link,
+                cache: false,
+                success: function (html) {
+//                        console.log(html);
+                    tr_item = document.getElementById(tr_item.attr('id'));
+                    tr_item.insertAdjacentHTML('afterend', html);
+                    $("#loading_img").hide();
+                }
+            })
+        }else{
+            $('.purchLineActive'+id_usr).show();
+        }
+    }else{
+        $('.purchLineActive'+id_usr).hide();
+        img.src = '/dolibarr/htdocs/theme/eldy/img/1downarrow.png';
+    }
+}
 function showTitleProposed(post_id, lineactive, contactid, td, socid){
     var param = {
         post_id: post_id,
@@ -1152,10 +1240,30 @@ function EditAction(rowid, answer_id, actioncode){
     else if($('#addaction').length>0)
         $('#addaction').submit();
 }
+function loading(){
+    var img = $("#loading_img").find("img");
+    for(var position = 0; position<img.length; position++){
+        if(img[position].style.opacity == "1"){
+            if(position == 7)
+                position = -1;
+            img[++position].style.opacity = "1";
+            var minusCount=0;
+            for(var k=-1; k>=-4; k--){
+                if(position+k<0)
+                    minusCount++;
+                var index = position+k>=0?position+k:8-minusCount;
+                var opacity = (3+k)/3;
+                img[index].style.opacity = opacity;
+            }
+        }
+    }
+    setTimeout(loading, 100);
+}
 function SetTheadColumnWidth(){
     var tr = $('#reference_body').find('tr')[$('#reference_body').find('tr').length-1];
+    if(tr == null)
+        return;
     var td = tr.getElementsByTagName('td');
-//        td[0].outerWidth =
     var thead = $('thead').find('tr')[0];
     var tableWidth = 0;
     var th = thead.getElementsByTagName('th');

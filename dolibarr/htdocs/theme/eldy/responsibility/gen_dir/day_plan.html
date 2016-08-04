@@ -36,7 +36,7 @@
 
     <div>
         <table cellspacing="1" class="WidthScroll">
-              <thead>
+              <thead id="theadDay">
                 <tr class="multiple_header_table">
                     <th rowspan="4" style="width: 110px;">Область</th>
                     <th rowspan="4" style="width: 175px;">Район</th>
@@ -161,9 +161,20 @@
 //        }else if('<?=$conf->browser->name?>' =='chrome')
 //            $('#reference_body').width(width-90);
         $('#popupmenu').offset({top:550, left:-250});
-        SetTheadColumnWidth();
-        var width = $('#reference_body').width();
-        $('#reference_body').width(width+20);
+        var param = {
+            action:'ShowTable'
+        }
+        $.ajax({
+            data:param,
+            cache:false,
+            success:function(html){
+                $('#loading_img').hide();
+                document.getElementById('theadDay').insertAdjacentHTML('afterend', html);
+                SetTheadColumnWidth();
+                var width = $('#reference_body').width();
+                $('#reference_body').width(width+20);
+            }
+        })
     })
 
     function ShowTask(object){
@@ -297,12 +308,16 @@
 
 //                console.log(link);
 //                return;
+                $('#loading_img').show();
                 $.ajax({
                     url: link,
                     cache: false,
                     success: function (html) {
 //                        console.log(html);
                         tr_item.insertAdjacentHTML('afterend', html);
+                        $('#loading_img').hide();
+
+//                        soundPlay();
                     }
                 })
             }else{
@@ -322,6 +337,7 @@
     function ShowLinectiveTask(id, typeaction){
 //        console.log(typeaction);
 //        return;
+
         var btn = document.getElementById('btnSub'+typeaction+id);
         var img = document.getElementById('imgSub'+typeaction+id);
         var show = img.src.substr(img.src.length-('1downarrow.png').length) == '1downarrow.png';
@@ -366,12 +382,14 @@
                 var link = '/dolibarr/htdocs/responsibility/gen_dir/day_plan.php?action=getLineActiveTask&code='+code+'&classname='+className+' '+ id+'&responding='+responding+'&subdiv_id='+id;
 //                console.log(link);
 //                return;
+                $('#loading_img').show();
                 $.ajax({
                     url: link,
                     cache: false,
                     success: function (html) {
 //                        console.log(html);
                         tr_item.insertAdjacentHTML('afterend', html);
+                        $('#loading_img').hide();
                     }
                 })
             }else{
@@ -476,13 +494,14 @@
                 var link = '/dolibarr/htdocs/responsibility/gen_dir/day_plan.php?action=gettask&code='+code+'&classname='+className+' '+ id+'&responding='+responding+'&subdiv_id='+subdiv_id;
 //                console.log(link);
 //                return;
+                $('#loading_img').show();
                 $.ajax({
                     url: link,
                     cache: false,
                     success: function (html) {
 //                        console.log(html);
                         tr_item.insertAdjacentHTML('afterend', html);
-                        $('#waitForm').remove();
+                        $('#loading_img').hide();
                     }
                 })
             }else{

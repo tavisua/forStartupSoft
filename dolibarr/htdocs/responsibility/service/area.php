@@ -7,7 +7,7 @@
  */
 
 require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
-require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/purchase/lib/function.php';
+require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/service/lib/function.php';
 if(count($_POST)>0){
     $_SESSION['region_id'] = GETPOST('lineacitve', 'int');
 //    echo '<pre>';
@@ -36,9 +36,9 @@ if(isset($_GET['id_usr'])&&!empty($_GET['id_usr'])){
 }
 
 //Шапка сторінки
-include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/purchase/area/header.php';
+include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/service/area/header.php';
 //Перелік контрагентів
-include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/purchase/area/customers.php';
+include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/service/area/customers.php';
 if(strpos($_SERVER['QUERY_STRING'],'&page='))
     $link_page = $_SERVER['PHP_SELF'].'?'.substr($_SERVER['QUERY_STRING'],0,strpos($_SERVER['QUERY_STRING'],'&page='));
 else

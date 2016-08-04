@@ -2,7 +2,7 @@
 
 require $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
-require_once DOL_DOCUMENT_ROOT.'/responsibility/purchase/lib/function.php';
+
 
 $actions = array();
 $future = array();
@@ -22,7 +22,6 @@ if(isset($_GET['id_usr'])&&!empty($_GET['id_usr'])){
     $id_usr = $user->id;
     $username = $user->lastname;
 }
-
 $sql = 'select name from subdivision where rowid = '.(empty($user->subdiv_id)?0:$user->subdiv_id);
 $res = $db->query($sql);
 if(!$res)
@@ -55,6 +54,8 @@ $subdivision = $obj->name;
             $socidArray[]=$obj->socid;
         }
     }
+    if(count($socidArray) == 0)
+        $socidArray[]=-1;
 //Визначаю напрямки діяльності вибраних контрагентів
     $sql = "select fk_soc, fk_lineactive from llx_societe_lineactive
         where fk_soc in (".implode(',',$socidArray).")
@@ -64,6 +65,7 @@ $subdivision = $obj->name;
     $fksoc = 0;
     $num = 0;
     $outLineactive = array();
+    require_once DOL_DOCUMENT_ROOT.'/core/lib/day_plan.php';
     while($obj = $db->fetch_object($resLineactive)){
         $num++;
         if($fksoc != $obj->fk_soc || $num == $db->num_rows($resLineactive)){
@@ -86,7 +88,8 @@ $subdivision = $obj->name;
 //var_dump($outLineactive);
 //echo '</pre>';
 //die();
-
+    if(count($lineactive) == 0)
+        $lineactive[]=-1;
 //Визначаю напрямки діяльності постачальника
     $tmp_lineactive = array();
     $sql = "select distinct fk_lineactive from llx_user_lineactive
@@ -153,21 +156,6 @@ llxPopupMenu();
 //llxFooter();
 
 exit();
-function GetBestUserID(){
-    global $CustActions,$user;
-
-    $maxCount = 0;
-    $id_usr = 0;
-
-    foreach(array_keys($CustActions) as $userID){
-        if($maxCount<$CustActions[$userID]){
-            $maxCount = $CustActions[$userID];
-            $id_usr = $userID;
-        }
-    }
-    return $id_usr;
-
-}
 
 function ShowTable(){
     global $actions,$user,$CustActions,$userActions,$actioncode;
@@ -285,6 +273,7 @@ function ShowTable(){
     $table.= ShowTasks('AC_CUST', 'Всього по напрямках');
 
     $userActions = array();
+    require_once DOL_DOCUMENT_ROOT.'/core/lib/day_plan.php';
     $bestuser_id = GetBestUserID();
 //    var_dump($bestuser_id);
 //    die();
@@ -325,184 +314,11 @@ function ShowTable(){
 //        die();
     $table.= ShowTasks('AC_CUST', 'Найкращі показники по підрозділу', true);
 
-    $table.= getLineActiveList($user->id);
+    $table.= getLinePurchaseActiveList($user->id);
 
 
     $table .= '</tbody>';
     return $table;
-}
-function getLineActiveList($id_usr){
-    global $db, $actions,$actioncode;
-    $outstanding = array();
-    $future=array();
-    $fact = array();
-    $total = array();
-    $regions = array();
-    $maxAction = array();
-    $today = new DateTime();
-    $mkToday = dol_mktime(0,0,0,$today->format('m'),$today->format('d'),$today->format('Y'));
-    $count = 0;
-    $sql = "select responsibility.alias, resp2.alias as alias2 from llx_user
-        left join responsibility on responsibility.rowid = llx_user.respon_id
-        left join responsibility resp2 on resp2.rowid = llx_user.respon_id2
-        where llx_user.rowid = ".$id_usr;
-
-    $res = $db->query($sql);
-    if(!$res)
-        dol_print_error($db);
-
-    $respon_alias = array();
-    if($db->num_rows($res)>0){
-        $obj = $db->fetch_object($res);
-        if(!empty($obj->alias))
-            $respon_alias[]=$obj->alias;
-        if(!empty($obj->alias2))
-            $respon_alias[]=$obj->alias2;
-    }
-//    echo '<pre>';
-//    var_dump($actions);
-//    echo '</pre>';
-//    die();
-    foreach($actions as $item){
-
-        if($item["id_usr"]==$id_usr&&$item["code"]=='AC_CUST'&&in_array($item["respon_alias"],$respon_alias)){
-//            if($item["socid"]==9963) {
-//                var_dump($item);
-//                die();
-//            }
-            if(!in_array(empty($item["region_id"])?'null':$item["region_id"], $regions))
-                $regions[]=empty($item["region_id"])?'null':$item["region_id"];
-            $date = new DateTime($item["datep"]);
-            $mkDate = dol_mktime(0, 0, 0, $date->format('m'), $date->format('d'), $date->format('Y'));
-//            echo $item["datep"].' '.var_dump($mkDate >= $mkToday).'</br>';
-
-//            if($item["datep"]=='2016-05-11'){
-//                die('test');
-//            }
-            if ($mkDate == $mkToday)
-                $count++;
-            if ($mkDate >= $mkToday) {
-                $future[$item["region_id"]][$item["datep"]]++;
-                if ($mkDate - $mkToday <= 604800)//604800 sec by week
-                    $future[$item["region_id"]]['week']++;
-                if ($mkDate - $mkToday <= 2678400)//2678400 sec by month
-                    $future[$item["region_id"]]['month']++;
-            }
-
-            if($mkDate < $mkToday && $item['percent'] != 100){//Додав $mkDate < $mkToday. Вважається логічним, щоб кількість прострочених рахувати, коли завдання повинно вже було бути виконано
-                $outstanding[$item["region_id"]]++;
-            }
-            if($item['percent'] == 100 && (in_array($item['code'], $actioncode)||$item['callstatus']=='5')){
-                $fact[$item["region_id"]][$item["datep"]]++;
-                if($mkToday-$mkDate<=604800)//604800 sec by week
-                    $fact[$item["region_id"]]['week']++;
-                if($mkToday-$mkDate<=2678400)//2678400 sec by month
-                    $fact[$item["region_id"]]['month']++;
-            }
-
-            $total[$item["region_id"]][$item["datep"]]++;
-            if($mkToday-$mkDate<=604800)//604800 sec by week
-                $total[$item["region_id"]]['week']++;
-            if($mkToday-$mkDate<=2678400)//2678400 sec by month
-                $total[$item["region_id"]]['month']++;
-        }
-    }
-//    echo '<pre>';
-//    var_dump($fact);
-//    echo '</pre>';
-//    die();
-    $lineactive = getLineActive($id_usr);
-    $lineactive[0]=array("name"=> "Напрямок не вказано", "type"=>"");
-
-//    echo '<pre>';
-//    var_dump($lineactive);
-//    echo '</pre>';
-//    die();
-//    $sql = "select `regions`.`rowid`,`states`.`name` statename, `regions`.`name` from `regions`
-//        inner join `states` on `states`.`rowid` = `regions`.`state_id`
-//        where (`regions`.`rowid` in (select `llx_user_regions`.fk_id from `llx_user_regions` where `llx_user_regions`.fk_user = ".$id_usr."
-//              and `llx_user_regions`.active = 1)
-//              or `regions`.`rowid` in (".(count($regions)>0?implode(",",$regions):0)."))
-//        and `regions`.active = 1";
-//    if(count($regions)>0 && in_array('null', $regions))
-//        $sql.=" union select null, 'Район', 'не вказано'";
-//    $sql.=" order by statename, `name`";
-
-    $out = '';
-//    $res = $db->query($sql);
-//    if(!$res)
-//        dol_print_error($db);
-//    while($obj = $db->fetch_object($res)){
-    foreach(array_keys($lineactive) as $key){
-        $out.='<tr id="reg'.$key.'" class="regions subtype middle_size">';
-        if(!empty($key)) {
-            $out .= '<td colspan="2"><a href="/dolibarr/htdocs/responsibility/purchase/area.php?idmenu=10425&filter=&mainmenu=area&leftmenu=&lineactive=' . $key . '" target="_blank">' . $lineactive[$key]['name'] . '</a></td>';
-//            $out .= '<td></td>';
-        }else{
-            $out .= '<td colspan="2">'. $lineactive[$key]['name'] . '</td>';
-//            $out .= '<td></td>';
-        }
-//        $out.='<td></td>';
-        //відсоток виконання
-        if(isset($total[$key]['month'])){
-            $value = round($fact[$key]['month']/$total[$key]['month']*100,0);
-            $out.='<td style="text-align: center">'.$value.'</td>';
-        }else
-            $out.='<td></td>';
-        if(isset($total[$key]['week'])){
-            $value = round($fact[$key]['week']/$total[$key]['week']*100,0);
-            $out.='<td style="text-align: center">'.$value.'</td>';
-        }else
-            $out.='<td></td>';
-        for($i=6;$i>=0;$i--) {
-            if(isset($total[$key][date("Y-m-d", (time()-3600*24*$i))])){
-                $value = round($fact[$key][date("Y-m-d", (time()-3600*24*$i))]/$total[$key][date("Y-m-d", (time()-3600*24*$i))]*100,0);
-                $out.='<td style="text-align: center">'.$value.'</td>';
-            }else
-                $out .= '<td></td>';
-        }
-        //фактично виконано
-//        echo '<pre>';
-//        var_dump($key, $fact[$key]);
-//        echo '</pre>';
-//        die();
-        if(isset($fact[$key]['month']))
-                $out.='<td style="text-align: center">'.$fact[$key]['month'].'</td>';
-            else
-                $out.='<td></td>';
-        if(isset($fact[$key]['week']))
-                $out.='<td style="text-align: center">'.$fact[$key]['week'].'</td>';
-            else
-                $out.='<td></td>';
-        for($i=6;$i>=0;$i--){
-            if(isset($fact[$key][date("Y-m-d", (time()-3600*24*$i))]))
-                $out.='<td style="text-align: center">'.$fact[$key][date("Y-m-d", (time()-3600*24*$i))].'</td>';
-            else
-                $out.='<td style="text-align: center"></td>';
-        }
-        //прострочено
-        if(isset($outstanding[$key])) {
-            $out .= '<td id="outstanding'.$key.'" style="text-align: center; cursor: pointer;" onclick="ShowOutStandingRegion('.$key.', '.$id_usr.');">' . $outstanding[$key] . '</td>';
-        }else
-            $out.='<td></td>';
-        //заплановано на майбутнє
-        for($i=0;$i<=6;$i++){
-            if($future[$key][date("Y-m-d", (time()+3600*24*$i))])
-                $out.='<td style="text-align: center">'.$future[$key][date("Y-m-d", (time()+3600*24*$i))].'</td>';
-            else
-                $out.='<td></td>';
-        }
-        if(isset($future[$key]['week']))
-                $out.='<td style="text-align: center">'.$future[$key]['week'].'</td>';
-            else
-                $out.='<td></td>';
-        if(isset($future[$key]['month']))
-                $out.='<td style="text-align: center">'.$future[$key]['month'].'</td>';
-            else
-                $out.='<td></td>';
-        $out.='</tr>';
-    }
-    return $out;
 }
 function ShowTasks($Code, $Title, $bestvalue = false){
     global $userActions;

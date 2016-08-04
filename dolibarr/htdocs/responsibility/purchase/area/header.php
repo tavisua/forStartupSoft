@@ -104,7 +104,7 @@ return;
 
 
 function LineActive(){
-    global $db, $user;
+    global $db, $user, $id_usr;
 //    $sql = 'select `oc_category_description`.category_id, `oc_category_description`.name from `oc_category_description`
 //            inner join
 //                (select fk_lineactive as category_id from `llx_user_lineactive`
@@ -120,7 +120,8 @@ function LineActive(){
 //    $res = $db->query($sql);
 //    if(!$res)
 //        dol_print_error($db);
-    $lineactive = getLineActive($user->id);
+    require DOL_DOCUMENT_ROOT.'/core/lib/day_plan.php';
+    $lineactive = getLineActive($id_usr);
 //    echo '<pre>';
 //    var_dump($lineactive);
 //    echo '</pre>';

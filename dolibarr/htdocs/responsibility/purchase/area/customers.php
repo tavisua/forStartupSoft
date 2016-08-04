@@ -29,8 +29,15 @@ $sql_count = 'select count(*) iCount from
 left join `llx_societe_lineactive` on `llx_societe_lineactive`.fk_soc = `llx_societe`.rowid
 where 1  ';
 
+$respon_sql = "select respon_id,respon_id2 from llx_user where rowid = ".$id_usr;
+$res_respon = $db->query($respon_sql);
+if(!$res_respon)
+    dol_print_error($db);
+$resp_obj = $db->fetch_object($res_respon);
+//var_dump($id_usr);
+//die();
     $tmp = 'and `llx_societe`.`categoryofcustomer_id` in
-(select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = '.$user->respon_id.')';
+(select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility in('.$resp_obj->respon_id.', '.(empty($resp_obj->respon_id2)?'0':$resp_obj->respon_id2).'))';
     $sql.=$tmp;
     $sql_count.=$tmp;
 
@@ -42,11 +49,11 @@ where 1  ';
 //echo '</pre>';
 //die();
 
-if($user->login != 'admin') {
-    $tmp = ' and (`llx_societe`. fk_user_creat = '.$user->id.' or `llx_societe_lineactive`.`fk_lineactive` in ('.implode(',', $user->getLineActive()).'))';
-    $sql.=$tmp;
-    $sql_count.=$tmp;
-}
+//if($user->login != 'admin') {
+//    $tmp = ' and (`llx_societe`. fk_user_creat = '.$user->id.' or `llx_societe_lineactive`.`fk_lineactive` in ('.implode(',', $user->getLineActive($id_usr)).'))';
+//    $sql.=$tmp;
+//    $sql_count.=$tmp;
+//}
 if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['lineactive'])&& !empty($_REQUEST['lineactive'])){
     if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])) {
         $phone_number = fPrepPhoneFilter($_REQUEST['filter']);

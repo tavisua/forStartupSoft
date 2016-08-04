@@ -4414,17 +4414,18 @@ class Form
         return $out;
     }
     function selectkindassets($htmlname, $fx_lineactive = 0, $id=''){
-        global $conf, $langs;
-
+        global $conf, $langs,$db;
         $out = '<select '.(empty($fx_lineactive)?'style="width:150px"':'').' id="'.$htmlname.'" class="combobox" name="'.$htmlname.'" size=1" >';
         if($fx_lineactive == 0){
             $out.='</select>';
             return $out;
         }
-        $sql='select rowid, line from `llx_c_line_active` where fx_line_active = '.$fx_lineactive.' and active=1';
+        $sql='select rowid, kind_assets from `llx_c_kind_assets` where fx_line_active = '.$fx_lineactive.' and active=1';
         $res = $this->db->query($sql);
+        if(!$res)
+            dol_print_error($db);
         while($row = $this->db->fetch_object($res)){
-            $out .= '<option '.($id == $row->rowid?('selected = "selected"'):'').' value="'.$row->rowid.'">'.$langs->trans($row->line).'</option>';
+            $out .= '<option '.($id == $row->rowid?('selected = "selected"'):'').' value="'.$row->rowid.'">'.$langs->trans($row->kind_assets).'</option>';
         }
         $out.='</select>';
         return $out;

@@ -1,7 +1,6 @@
 <?php
-
 require $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/main.inc.php';
-//require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/day_plan.php';
 
 //$actions = array();
 //$future = array();
@@ -73,6 +72,14 @@ require $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/main.inc.php';
 //    $future = $_SESSION['future'];
 //}
 
+if(isset($_REQUEST['action'])&&$_REQUEST['action'] == 'ShowTable'){
+    print ShowTable();
+    exit();
+}
+if(isset($_REQUEST['action'])&&$_REQUEST['action'] == 'getLineActiveList'){
+    print getLinePurchaseActiveList($_REQUEST['id_usr']);
+    exit();
+}
 if(isset($_REQUEST['action'])&&$_REQUEST['action']=='setSpyMode'){
 
     if(isset($_REQUEST['id_usr'])&&!empty($_REQUEST['id_usr'])) {
@@ -88,6 +95,10 @@ if(isset($_REQUEST['action'])&&$_REQUEST['action']=='gettask'){
     if(isset($_REQUEST['subdiv_id'])&&empty($_REQUEST['subdiv_id']))
         echo getActionsBySub($_REQUEST['classname'], $_REQUEST['code']);
 //    echo 'test';
+    exit();
+}
+if(isset($_REQUEST['action'])&&$_REQUEST['action']=='getLineActiveService'){
+    echo getLineActiveService($_REQUEST['id_usr']);
     exit();
 }
 if(isset($_REQUEST['action'])&&$_REQUEST['action']=='getLineActiveTask'){
@@ -109,7 +120,8 @@ if(isset($_REQUEST['action'])&&$_REQUEST['action']=='getRegions'){
 
 llxHeader("",$langs->trans('PlanOfDays'),"");
 print_fiche_titre($langs->trans('PlanOfDays'));
-$table = ShowTable();
+llxLoadingForm();
+//$table = ShowTable();
 //var_dump(htmlspecialchars($table));
 //die();
 
@@ -1333,10 +1345,23 @@ function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $ti
 //        $class_row = fmod($num,2)==0?'impare':'pare';
         $out.='<tr id="'.$class.$obj->rowid.'" class="'.$class.($bestuserID == $obj->rowid?' bestvalue ':'').' userlist '.$subdiv_id.$respon_alias.' '.$code.'_'.$subdiv_id.'">';
         $out.='<td colspan="2"><a '.(empty($code)?$lnk.' class="link"':'href="'.$lnk.'&user_id='.$obj->rowid.'"').' target="_blank">'.$obj->lastname.' '.mb_substr($obj->firstname, 0,1,'UTF-8').'.</a></td>';
-        if(in_array($code, array('AC_GLOBAL','AC_CURRENT'))||$respon_alias!='sale')
+        if(in_array($code, array('AC_GLOBAL','AC_CURRENT'))||!in_array($respon_alias, array('sale', 'purchase', 'service')))
             $out.='<td></td>';
-        else
-            $out.='<td><button id="btnUsr'.$obj->rowid.'" onclick="getRegionsList('.$obj->rowid.');"><img id="imgUsr'.$obj->rowid.'" src="/dolibarr/htdocs/theme/eldy/img/1downarrow.png"></button></td>';
+        else {
+            $functionName='';
+            switch($respon_alias){
+                case 'sale':{
+                    $functionName = 'getRegionsList';
+                }break;
+                case 'purchase':{
+                    $functionName = 'getLineActiveList';
+                }break;
+                case 'service':{
+                    $functionName = 'getLineActiveService';
+                }break;
+            }
+            $out .= '<td><button id="btnUsr' . $obj->rowid . '" onclick="'.$functionName.'(' . $obj->rowid . ', $(this));"><img id="imgUsr' . $obj->rowid . '" src="/dolibarr/htdocs/theme/eldy/img/1downarrow.png"></button></td>';
+        }
          //% виконання запланованого по факту
             for($i=8; $i>=0; $i--){
                 if($i < 8) {
@@ -2393,20 +2418,5 @@ function GetBestDepID(){
         }
     }
     return $subdiv_id;
-
-}
-function GetBestUserID(){
-    global $CustActions,$user;
-
-    $maxCount = 0;
-    $id_usr = 0;
-
-    foreach(array_keys($CustActions) as $userID){
-        if($maxCount<$CustActions[$userID]){
-            $maxCount = $CustActions[$userID];
-            $id_usr = $userID;
-        }
-    }
-    return $id_usr;
 
 }

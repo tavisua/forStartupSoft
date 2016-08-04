@@ -852,7 +852,7 @@ if (! defined('NOREQUIRETRAN'))
 }
 
 // Define some constants used for style of arrays
-$bc=array(0=>'class="impair"',1=>'class="pair"');
+$bc=array(0=>'class="dictinary impair"',1=>'class="dictinary pair"');
 $bcdd=array(0=>'class="impair drag drop"',1=>'class="pair drag drop"');
 $bcnd=array(0=>'class="impair nodrag nodrop"',1=>'class="pair nodrag nodrop"');
 
@@ -1078,6 +1078,31 @@ function llxSendSmsEmail(){
             </table>
         </div>
     ';
+}
+function llxLoadingForm(){
+    $out = '<div id="loading_img" style="width: 200px; height: 200px; position: fixed; z-index: 10000; opacity: 0;  top: 115px;">
+        <img src="/dolibarr/htdocs/theme/eldy/img/loading/loading0.png" style="position: absolute; top: 0px; left: 0px; opacity: 1; width: 196px; height: 196px; margin-top: 2px; margin-left: 2px;">
+        <img src="/dolibarr/htdocs/theme/eldy/img/loading/loading1.png" style="position: absolute; top: 0px; left: 0px; opacity: 0; width: 196px; height: 196px; margin-top: 2px; margin-left: 2px;">
+        <img src="/dolibarr/htdocs/theme/eldy/img/loading/loading2.png" style="position: absolute; top: 0px; left: 0px; opacity: 0; margin-top: 6px; margin-left: 6px; width: 188px; height: 188px;">
+        <img src="/dolibarr/htdocs/theme/eldy/img/loading/loading3.png" style="position: absolute; top: 0px; left: 0px; opacity: 0; margin-top: 4px; margin-left: 4px; width: 192px; height: 192px;">
+        <img src="/dolibarr/htdocs/theme/eldy/img/loading/loading4.png" style="position: absolute; top: 0px; left: 0px; opacity: 0; margin-top: 2px; margin-left: 2px; width: 196px; height: 196px;">
+        <img src="/dolibarr/htdocs/theme/eldy/img/loading/loading5.png" style="position: absolute; top: 0px; left: 0px; opacity: 0; margin-top: 8px; margin-left: 8px; width: 184px; height: 184px;">
+        <img src="/dolibarr/htdocs/theme/eldy/img/loading/loading6.png" style="position: absolute; top: 0px; left: 0px; opacity: 0; margin-top: 6px; margin-left: 6px; width: 188px; height: 188px;">
+        <img src="/dolibarr/htdocs/theme/eldy/img/loading/loading7.png" style="position: absolute; top: 0px; left: 0px; opacity: 0; margin-top: 4px; margin-left: 4px; width: 192px; height: 192px;">
+        <script>
+            $(document).ready(function(){
+                console.log(window.innerWidth/2-100);
+                $("#loading_img").offset({top:115, left:$(".WidthScroll").width()/2-100});
+                $("#loading_img").css("opacity",1);
+
+                var img = $("#loading_img").find("img");
+                img[0].style.opacity = "1";
+                loading();
+            })
+
+        </script>
+        </div>';
+    print $out;
 }
 function llxPopupMenu(){
                 print'

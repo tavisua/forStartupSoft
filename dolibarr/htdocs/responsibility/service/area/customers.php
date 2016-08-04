@@ -29,8 +29,15 @@ $sql_count = 'select count(*) iCount from
 left join `llx_societe_lineactive` on `llx_societe_lineactive`.fk_soc = `llx_societe`.rowid
 where 1  ';
 
+$respon_sql = "select respon_id,respon_id2 from llx_user where rowid = ".$id_usr;
+$res_respon = $db->query($respon_sql);
+if(!$res_respon)
+    dol_print_error($db);
+$resp_obj = $db->fetch_object($res_respon);
+//var_dump($id_usr);
+//die();
     $tmp = 'and `llx_societe`.`categoryofcustomer_id` in
-(select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = '.$user->respon_id.')';
+(select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility in('.$resp_obj->respon_id.', '.(empty($resp_obj->respon_id2)?'0':$resp_obj->respon_id2).'))';
     $sql.=$tmp;
     $sql_count.=$tmp;
 
@@ -42,11 +49,11 @@ where 1  ';
 //echo '</pre>';
 //die();
 
-if($user->login != 'admin') {
-    $tmp = ' and (`llx_societe`. fk_user_creat = '.$user->id.' or `llx_societe_lineactive`.`fk_lineactive` in ('.implode(',', $user->getLineActive()).'))';
-    $sql.=$tmp;
-    $sql_count.=$tmp;
-}
+//if($user->login != 'admin') {
+//    $tmp = ' and (`llx_societe`. fk_user_creat = '.$user->id.' or `llx_societe_lineactive`.`fk_lineactive` in ('.implode(',', $user->getLineActive($id_usr)).'))';
+//    $sql.=$tmp;
+//    $sql_count.=$tmp;
+//}
 if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['lineactive'])&& !empty($_REQUEST['lineactive'])){
     if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])) {
         $phone_number = fPrepPhoneFilter($_REQUEST['filter']);
@@ -296,7 +303,7 @@ $table = fShowTable($TableParam, $sql, "'" . $tablename . "'", $conf->theme, $_R
 
 //$row = $db_mysql->fShowTable($TableParam, $sql, "'" . $tablename . "'", $conf->theme, $_REQUEST['sortfield'], $_REQUEST['sortorder'], $readonly = array(-1), false);
 
-include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/purchase/area/customers.html');
+include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/service/area/customers.html');
 $prev_form = "<a href='#x' class='overlay' id='peview_form'></a>
                      <div class='popup' style='width: 300px;height: 150px'>
                      <textarea readonly id='prev_form' style='width: 100%;height: 100%;resize: none'></textarea>
@@ -389,7 +396,7 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
     if($db->num_rows($result)==0)
         ClearFilterMessage();
     mysqli_data_seek($result, 0);
-    $actionfields = array('futuredatecomerc'=>'purchase', 'lastdatecomerc'=>'purchase',  'lastdateservice'=>'service', 'lastdateaccounts'=>'accounts',  'lastdatementor'=>'mentor');
+    $actionfields = array('futuredatecomerc'=>'service', 'lastdatecomerc'=>'service',  'lastdateservice'=>'service', 'lastdateaccounts'=>'accounts',  'lastdatementor'=>'mentor');
     if(!$result)return;
     $page = isset($_GET['page'])?$_GET['page']:1;
     $per_page = isset($_GET['per_page'])?$_GET['per_page']:30;
