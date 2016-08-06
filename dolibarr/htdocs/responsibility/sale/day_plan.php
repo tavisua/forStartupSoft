@@ -9,7 +9,17 @@ $outstanding = array();
 $CustActions = array();
 $userActions = array();
 $actioncode = array('AC_GLOBAL', 'AC_CURRENT');
-
+if(isset($_GET['id_usr'])&&!empty($_GET['id_usr'])){
+    global $db;
+    $sql = 'select lastname from llx_user where rowid = '.$_GET['id_usr'];
+    $res = $db->query($sql);
+    $obj = $db->fetch_object($res);
+    $username = $obj->lastname;
+    $id_usr = $_GET['id_usr'];
+}else {
+    $id_usr = $user->id;
+    $username = $user->lastname;
+}
 $sql = 'select name from subdivision where rowid = '.(empty($user->subdiv_id)?0:$user->subdiv_id);
 $res = $db->query($sql);
 if(!$res)
@@ -84,7 +94,7 @@ function GetBestUserID(){
 }
 
 function ShowTable(){
-    global $actions,$user,$CustActions,$userActions,$actioncode;
+    global $actions,$user,$CustActions,$userActions,$actioncode,$id_usr;
     $today = new DateTime();
     $mkToday = dol_mktime(0,0,0,$today->format('m'),$today->format('d'),$today->format('Y'));
 
@@ -239,7 +249,7 @@ function ShowTable(){
 //        die();
     $table.= ShowTasks('AC_CUST', 'Найкращі показники по підрозділу', true);
 
-    $table.= getRegionsList($user->id);
+    $table.= getRegionsList($id_usr);
 
 
     $table .= '</tbody>';

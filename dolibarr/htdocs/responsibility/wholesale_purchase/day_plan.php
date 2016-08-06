@@ -7,7 +7,17 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 //var_dump($_SERVER);
 //echo '</pre>';
 //die();
-
+if(isset($_GET['id_usr'])&&!empty($_GET['id_usr'])){
+    global $db;
+    $sql = 'select lastname from llx_user where rowid = '.$_GET['id_usr'];
+    $res = $db->query($sql);
+    $obj = $db->fetch_object($res);
+    $username = $obj->lastname;
+    $id_usr = $_GET['id_usr'];
+}else {
+    $id_usr = $user->id;
+    $username = $user->lastname;
+}
 llxHeader("",$langs->trans('PlanOfDays'),"");
 print_fiche_titre($langs->trans('PlanOfDays'));
 $table = ShowTable();

@@ -13,6 +13,17 @@ $subdivTaskID = array();
 $actcode = array('AC_GLOBAL', 'AC_CURRENT');
 $user_respon = array();
 $DepActions = array();
+if(isset($_GET['id_usr'])&&!empty($_GET['id_usr'])){
+    global $db;
+    $sql = 'select lastname from llx_user where rowid = '.$_GET['id_usr'];
+    $res = $db->query($sql);
+    $obj = $db->fetch_object($res);
+    $username = $obj->lastname;
+    $id_usr = $_GET['id_usr'];
+}else {
+    $id_usr = $user->id;
+    $username = $user->lastname;
+}
 $sql = "select rowid, lastname, firstname, subdiv_id from llx_user where active = 1 and subdiv_id is not null and lastname <> 'test'";
 $res = $db->query($sql);
 if(!$res)

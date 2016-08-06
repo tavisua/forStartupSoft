@@ -158,7 +158,7 @@ llxPopupMenu();
 exit();
 
 function ShowTable(){
-    global $actions,$user,$CustActions,$userActions,$actioncode;
+    global $actions,$user,$CustActions,$userActions,$actioncode,$id_usr;
     $today = new DateTime();
     $mkToday = dol_mktime(0,0,0,$today->format('m'),$today->format('d'),$today->format('Y'));
 
@@ -314,7 +314,7 @@ function ShowTable(){
 //        die();
     $table.= ShowTasks('AC_CUST', 'Найкращі показники по підрозділу', true);
 
-    $table.= getLineActiveList($user->id);
+    $table.= getLineActiveList($id_usr);
 
 
     $table .= '</tbody>';

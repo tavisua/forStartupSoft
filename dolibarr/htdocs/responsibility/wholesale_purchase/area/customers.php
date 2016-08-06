@@ -15,7 +15,7 @@ foreach($search as $elem) {
 $page = isset($_GET['page'])?$_GET['page']:1;
 $per_page = isset($_GET['per_page'])?$_GET['per_page']:30;
 
-$sql = "select fx_category_counterparty from `responsibility_param` where `fx_responsibility` = ".$user->respon_id;
+$sql = "select fx_category_counterparty from `responsibility_param` where `fx_responsibility` = ".$respon_id;
 $res = $db->query($sql);
 $category = array();
 if($db->num_rows($res)>0)
@@ -30,23 +30,23 @@ from `llx_societe` left join `category_counterparty` on `llx_societe`.`categoryo
 left join `formofgavernment` on `llx_societe`.`formofgoverment_id` = `formofgavernment`.rowid
 left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`
 left join `llx_societe_lineactive` on `llx_societe_lineactive`.fk_soc = `llx_societe`.rowid
-where 1 and `llx_societe`.active = 1 and `llx_societe`.`categoryofcustomer_id` in (".(count($category)>0?implode(',',$category):'0').") and (`llx_societe`. fk_user_creat = ".$user->id." or `llx_societe_lineactive`.`fk_lineactive` in (".implode(',', $user->getLineActive())."))";
+where 1 and `llx_societe`.active = 1 and `llx_societe`.`categoryofcustomer_id` in (".(count($category)>0?implode(',',$category):'0').") and (`llx_societe`. fk_user_creat = ".$id_usr." or `llx_societe_lineactive`.`fk_lineactive` in (".implode(',', $user->getLineActive($id_usr))."))";
 
 
 $sql_count = 'select count(*) iCount from
 (select distinct `llx_societe`.*  from `llx_societe`
 left join `llx_societe_lineactive` on `llx_societe_lineactive`.fk_soc = `llx_societe`.rowid
-where 1 and `llx_societe`.active = 1 and `llx_societe`.`categoryofcustomer_id` in ('.(count($category)>0?implode(',',$category):'0').') and (`llx_societe`. fk_user_creat = '.$user->id.' or `llx_societe_lineactive`.`fk_lineactive` in ('.implode(',', $user->getLineActive()).')) ';
+where 1 and `llx_societe`.active = 1 and `llx_societe`.`categoryofcustomer_id` in ('.(count($category)>0?implode(',',$category):'0').') and (`llx_societe`. fk_user_creat = '.$id_usr.' or `llx_societe_lineactive`.`fk_lineactive` in ('.implode(',', $user->getLineActive($id_usr)).')) ';
 
 //    $tmp = 'and `llx_societe`.`categoryofcustomer_id` in
-//(select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = '.$user->respon_id.')';
+//(select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = '.$respon_id.')';
 //    $sql.=$tmp;
 //    $sql_count.=$tmp;
 
     $sql_count.=' and `llx_societe`.active = 1 ';
 
 //echo '<pre>';
-//var_dump($user->id);
+//var_dump($id_usr);
 //echo '</pre>';
 
 if(isset($_REQUEST['lineactive'])&& !empty($_REQUEST['lineactive']) && $_REQUEST['lineactive'] == -1) {
@@ -54,7 +54,7 @@ if(isset($_REQUEST['lineactive'])&& !empty($_REQUEST['lineactive']) && $_REQUEST
         left join `llx_societe_lineactive` on `llx_societe_lineactive`.fk_soc = `llx_societe`.rowid
         left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`
         where 1  and `llx_societe`.active = 1
-        and (`llx_societe`. fk_user_creat = '.$user->id.' and (`llx_societe`.`categoryofcustomer_id` in ('.(count($category)>0?implode(',',$category):'0').') or `llx_societe_lineactive`.`fk_lineactive` in ('.implode(',', $user->getLineActive()).')))
+        and (`llx_societe`. fk_user_creat = '.$id_usr.' and (`llx_societe`.`categoryofcustomer_id` in ('.(count($category)>0?implode(',',$category):'0').') or `llx_societe_lineactive`.`fk_lineactive` in ('.implode(',', $user->getLineActive($id_usr)).')))
         order by round(`llx_societe_classificator`.`value`,0) desc, nom';
 //echo '<pre>';
 //var_dump($tmp);
@@ -67,14 +67,14 @@ if(isset($_REQUEST['lineactive'])&& !empty($_REQUEST['lineactive']) && $_REQUEST
             $socID[]=$obj->rowid;
         }
 
-//    $tmp = ' and (`llx_societe`. fk_user_creat = '.$user->id.' or `llx_societe_lineactive`.`fk_lineactive` in ('.implode(',', $user->getLineActive()).'))';
+//    $tmp = ' and (`llx_societe`. fk_user_creat = '.$id_usr.' or `llx_societe_lineactive`.`fk_lineactive` in ('.implode(',', $user->getLineActive()).'))';
     $tmp = ' and `llx_societe`.rowid in ('.implode(',',$socID).')';
     $sql.=$tmp;
 }
 if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['lineactive'])&& !empty($_REQUEST['lineactive'])){
     if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])) {
         $phone_number = fPrepPhoneFilter($_REQUEST['filter']);
-        $sql_cat = "select fx_category_counterparty from responsibility_param where `fx_responsibility` = ".$user->respon_id." and fx_category_counterparty is not null";
+        $sql_cat = "select fx_category_counterparty from responsibility_param where `fx_responsibility` = ".$respon_id." and fx_category_counterparty is not null";
         $res_cat = $db->query($sql_cat);
         $cat_ID = array(0);
         while($obj = $db->fetch_object($res_cat)){
@@ -128,7 +128,7 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['lin
             }break;
             case 'category':{
                 if(is_numeric($_REQUEST['lineactive'])){
-                    $sql_filter = 'select `llx_societe`.`rowid` from `llx_societe` where fk_user_creat = '.$user->id.' and categoryofcustomer_id = '.$_REQUEST['lineactive'].' and active = 1';
+                    $sql_filter = 'select `llx_societe`.`rowid` from `llx_societe` where fk_user_creat = '.$id_usr.' and categoryofcustomer_id = '.$_REQUEST['lineactive'].' and active = 1';
                 }
             }break;
         }
@@ -384,7 +384,7 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
         $rowidList[]=$obj->rowid;
     }
     mysqli_data_seek($result, 0);
-    $actionfields = array('futuredatecomerc'=>'sale', 'lastdatecomerc'=>'sale',  'lastdateservice'=>'service', 'lastdateaccounts'=>'accounts',  'lastdatementor'=>'mentor');
+    $actionfields = array('futuredatecomerc'=>'wholesale_purchase', 'lastdatecomerc'=>'wholesale_purchase',  'lastdateservice'=>'service', 'lastdateaccounts'=>'accounts',  'lastdatementor'=>'mentor');
     if(!$result)return;
     $page = isset($_GET['page'])?$_GET['page']:1;
     $per_page = isset($_GET['per_page'])?$_GET['per_page']:30;
@@ -412,7 +412,10 @@ if(count($rowidList)>0) {
         $sql .= " and `llx_societe_action`.`socid` in (" . implode(',', $rowidList) . ")";
         $sql .= "    and `llx_societe_action`.active = 1
         group by `llx_societe_action`.`socid`, `responsibility`.`alias`;";
-//  die($sql);
+//    echo '<pre>';
+//    var_dump($sql);
+//    echo '</pre>';
+//    die();
         $res = $db->query($sql);
         if (!$res) {
             dol_print_error($db);
@@ -558,7 +561,7 @@ if(count($rowidList)>0) {
         $edit_form = "<a href='#x' class='overlay' id='editor'></a>
                      <div class='popup'>
                      <form>
-                     <input type='hidden' id='user_id' name='user_id' value=" . $user->id . ">
+                     <input type='hidden' id='user_id' name='user_id' value=" . $id_usr . ">
                      <input type='hidden' id='edit_rowid' name='rowid' value='0'>
                      <table id='edit_table'>
                      <tbody>";
@@ -651,6 +654,12 @@ if(count($rowidList)>0) {
                                 $table .='</td>';
                                 $full_text = trim($value);
                             }else {
+//                                if($row['rowid'] == 3582){
+//                                    echo '<pre>';
+//                                    var_dump($actionfields);
+//                                    echo '</pre>';
+//                                    die('test');
+//                                }
                                 if(isset($actionfields[$fields[$num_col]->name])){
                                     $alias = $actionfields[$fields[$num_col]->name];
                                     $full_text = '';
