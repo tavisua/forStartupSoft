@@ -102,3 +102,4 @@ $CreateCompany = $langs->trans('CreateCompany');
 
 include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/'.$user->respon_alias.'/current/header.html');
 return;
+

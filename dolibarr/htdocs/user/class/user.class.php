@@ -1256,8 +1256,8 @@ class User extends CommonObject
 		$out .= '</select>';
 		return $out;
 	}
-	function getCategoriesContractor(){
-		$sql = 'select case when fk_categories <> 0 then fk_categories else other_categories end fk_categories from llx_user_categories_contractor where fk_user = '.$this->id.' and active = 1';
+	function getCategoriesContractor($id_usr){
+		$sql = 'select case when fk_categories <> 0 then fk_categories else other_categories end fk_categories from llx_user_categories_contractor where fk_user = '.(empty($id_usr)?$this->id:$id_usr).' and active = 1';
 //		die($sql);
 		$res = $this->db->query($sql);
 		if(!$res)

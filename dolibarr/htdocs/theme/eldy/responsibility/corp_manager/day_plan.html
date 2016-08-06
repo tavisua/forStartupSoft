@@ -27,8 +27,7 @@
         <table cellspacing="1" class="WidthScroll">
             <thead>
                 <tr class="multiple_header_table">
-                    <th rowspan="4" style="width: 105px;">Область</th>
-                    <th rowspan="4" style="width: 145px;">Район</th>
+                    <th rowspan="4" style="width: 250px;">Напрямок</th>
                     <th colspan="9">% виконання запланованого по факту</th>
                     <th colspan="9">минуле (факт)</th>
                     <th rowspan="4" class="small_size" style="width: 50px;writing-mode:tb-lr;">кільк. простроч.</th>
@@ -131,7 +130,7 @@
                     <th class="small_size"></th>
                 </tr>
                 <tr class="multiple_header_table whitetitle">
-                    <th  colspan="2">Всього задач</th>
+                    <th>Всього задач</th>
                     <!--% виконання запланованого по факту-->
                     <th class="totalvalue" id="total_percent_month"><?=$total_percent["percent_month"]?></th>
                     <th class="totalvalue" id="total_percent_day_m7"><?=$total_percent["percent_7"]?></th>
@@ -166,7 +165,7 @@
                     <th class="totalvalue" id="total_future_month"><?=$global_task['future_month']+$current_task['future_month']+$lineaction['future_month']?></th>
                 </tr>
                 <tr class="multiple_header_table whitetitle">
-                    <th  colspan="2">Глобальні задачі(ТОПЗ)</th>
+                    <th>Глобальні задачі(ТОПЗ)</th>
                     <!--% виконання запланованого по факту-->
                     <th class="totalvalue" id="global_percent_month"><?=$global_task["percent_month"]?></th>
                     <th class="totalvalue" id="global_percent_day_m7"><?=$global_task["percent_7"]?></th>
@@ -201,7 +200,7 @@
                     <th class="totalvalue" id="global_future_month"><?=$global_task['future_month']?></th>
                 </tr>
                 <tr class="multiple_header_table whitetitle">
-                    <th  colspan="2">Поточні задачі</th>
+                    <th>Поточні задачі</th>
                     <!--% виконання запланованого по факту-->
                     <th class="totalvalue" id="current_percent_month"><?=$current_task["percent_month"]?></th>
                     <th class="totalvalue" id="current_percent_day_m7"><?=$current_task["percent_7"]?></th>
@@ -236,7 +235,7 @@
                     <th class="totalvalue" id="current_future_month"><?=$current_task['future_month']?></th>
                 </tr>
                 <tr class="multiple_header_table whitetitle">
-                    <th  colspan="2" class="bestvalue">Всього по найкращому</th>
+                    <th class="bestvalue">Всього по найкращому</th>
                     <!--% виконання запланованого по факту-->
                     <th class="totalvalue bestvalue" id="bestvalue_percent_month"><?=$bestvalue["percent_month"]?></th>
                     <th class="totalvalue bestvalue" id="bestvalue_percent_day_m7"><?=$bestvalue["percent_7"]?></th>
@@ -271,7 +270,7 @@
                     <th class="totalvalue bestvalue" id="bestvalue_future_month"><?=$bestvalue['future_month']?></th>
                 </tr>
                 <tr class="multiple_header_table whitetitle">
-                    <th  colspan="2">Всього по направленнях/контрагентах</th>
+                    <th>Всього по направленнях/контрагентах</th>
                     <!--% виконання запланованого по факту-->
                     <th class="totalvalue" id="lineactive_percent_month"><?=$lineaction["percent_month"]?></th>
                     <th class="totalvalue" id="lineactive_percent_day_m7"><?=$lineaction["percent_7"]?></th>
@@ -313,54 +312,44 @@
     </div>
 
 </div>
-<!--<div id="popupmenu" style="display: none">-->
-    <!--<table style="background: #ffffff">-->
-        <!--<thead><tr class="multiple_header_table" style="width: 100px"><th class="middle_size">Вкажіть дату на яку відобразити завдання</th></tr></thead>-->
-        <!--<tr>-->
-            <!--<td class="middle_size" onclick="setdate();" style="cursor: pointer">1</td>-->
-        <!--</tr>-->
-        <!--<tr>-->
-            <!--<td class="middle_size" onclick="setdate();" style="cursor: pointer">2</td>-->
-        <!--</tr>-->
-    <!--</table>-->
-<!--</div>-->
+
+
+<script>
+    $('th').click(function(e){
+        ShowTask(e);
+    })
+</script>
 <script>
     $(document).ready(function(){
         $('#reference_body').attr('height', window.innerHeight - 370);
-        $('#reference_body').width($('#reference_body').width()+15);
+//        $('#reference_body').width(1260);
         $('#popupmenu').offset({top:550, left:-250});
         var Width = $(".WidthScroll").width();
         var Top = $(".WidthScroll").height();
         $("#sent_task").offset({top:Top+180, left:-Width+5});
     })
-
     function RefreshData(){
         <?unset($_SESSION['actions']);?>
         location.href=location.href;
     }
-
 //    function ShowTask(object){
-//        var id = object.attr('id');
-//        console.log(id);
-//        var td = $('#'+id);
-//        if(id.substr(0, 'current'.length)=='current'||
-//                id.substr(0, 'global'.length)=='global'||
-//                id.substr(0, 'total'.length)=='total' ||
-//                id.substr(0, 'outstand'.length)=='outstand'
-//
+//        var td = $('#'+object.target.id);
+//        if(object.target.id.substr(0, 'current'.length)=='current'||
+//                object.target.id.substr(0, 'global'.length)=='global'||
+//                        object.target.id.substr(0, 'total'.length)=='total'
 //        ){}else
 //            return;
 //        $.ajax({
-//            url:'/dolibarr/htdocs/day_plan.php?action=getdateaction&type_action='+id,
+//            url:'/dolibarr/htdocs/day_plan.php?action=getdateaction&type_action='+object.target.id,
 //            cache:false,
 //            success:function(html){
 //                if(td.text() == '1'){
 //                    location.href = 'http://'+location.hostname+'/dolibarr/htdocs/hourly_plan.php?idmenu=10420&mainmenu=hourly_plan&leftmenu=&date='+html;
-//                }else {
 //                    console.log(html);
+//                }else {
 //                    var tbody = $('table.setdate').find('tbody');
 //                    tbody[0].innerHTML = html;
-//                    $("#popupmenu").attr('type_action', id);
+//                    $("#popupmenu").attr('type_action', object.target.id);
 //                    $("#popupmenu").show();
 //                    $("#popupmenu").offset({
 //                        top: td.offset().top - 50,

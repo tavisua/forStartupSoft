@@ -55,6 +55,7 @@
                 <td style="width: 200px">
                     <input type="hidden" name="mainmenu" value="<?=$_REQUEST['mainmenu']?>">
                     <input type="hidden" name="idmenu" value="<?=$_REQUEST['idmenu']?>">
+                    <input type="hidden" id = "lineactiveFilter" name="contractors" value="<?=$_REQUEST['contractors']?>">
                     <input type="text" name="filter" value="" id="filter" size="45">
                 </td>
             </tr>
@@ -70,6 +71,10 @@
         <script>
             function closefindmenu(){
                 $('#popupmenu').hide();
+            }
+            function setLineActiveFilter(){
+                $('#lineactiveFilter').val($('#lineactive').val());
+                $('#setfilter').submit();
             }
             $(document).ready(function(){
                 $('#reference_body').attr('height', window.innerHeight - 420);
@@ -94,14 +99,13 @@
                 for(var i=0; i<tr.length; i++){
                     if($('#'+tr[i].id.substr(2)+'futuredatecomerc').text().length==9){
                         var date = new Date(parseInt('20'+$('#'+tr[i].id.substr(2)+'futuredatecomerc').text().substr(6,2)),
-                                parseInt($('#'+tr[i].id.substr(2)+'futuredatecomerc').text().substr(3,2))-1,
+                                parseInt($('#'+tr[i].id.substr(2)+'futuredatecomerc').text().substr(3,1))+2,
                                 parseInt($('#'+tr[i].id.substr(2)+'futuredatecomerc').text().substr(0,2)));
-                        console.log(tr[i].id, date, today);
                         if(date<today)
                             $('#'+tr[i].id.substr(2)+'futuredatecomerc').find('a').css('color','red');
-//                        console.log($('#'+tr[i].id.substr(2)+'futuredatecomerc').text(), parseInt('20'+$('#'+tr[i].id.substr(2)+'futuredatecomerc').text().substr(6,2)),
-//                                parseInt($('#'+tr[i].id.substr(2)+'futuredatecomerc').text().substr(3,2)),
-//                                parseInt($('#'+tr[i].id.substr(2)+'futuredatecomerc').text().substr(0,2)));
+                        else if(date.getFullYear() == today.getFullYear() && date.getMonth() == today.getMonth() && date.getDate() == today.getDate())
+                            $('#'+tr[i].id.substr(2)+'futuredatecomerc').find('a').parent().css('background-color', ':rgb(0, 255, 0)');
+//                        console.log(today);
                     }
 
                 }
@@ -132,7 +136,6 @@
                    console.log(event.target.id);
                 }
             });
-
         </script>
 <script type="text/javascript">
     $(document).ready(function(){

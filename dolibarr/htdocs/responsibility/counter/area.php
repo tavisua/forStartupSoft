@@ -22,7 +22,17 @@ $Area = $langs->trans('Area');
 llxHeader("",$Area,"");
 print_fiche_titre($Area);
 //print '<div>';
-
+if(isset($_GET['id_usr'])&&!empty($_GET['id_usr'])){
+    global $db;
+    $sql = 'select lastname from llx_user where rowid = '.$_GET['id_usr'];
+    $res = $db->query($sql);
+    $obj = $db->fetch_object($res);
+    $id_usr = $_GET['id_usr'];
+    $username = $obj->lastname;
+}else {
+    $username = $user->lastname;
+    $id_usr = $user->id;
+}
 //Шапка сторінки
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/counter/area/header.php';
 //Перелік контрагентів

@@ -59,14 +59,15 @@ function user_prepare_head($object)
         $head[$h][2] = 'areas';
         $h++;
     }
-	if($object->respon_alias == 'service' ||$object->respon_alias == 'purchase' || $object->respon_alias2 == 'service' ||$object->respon_alias2 == 'purchase' || $object->respon_alias == 'wholesale_purchase'|| $object->respon_alias2 == 'wholesale_purchase'){
+
+	if(count(array_intersect(array($object->respon_alias,$object->respon_alias2), array('service','purchase','wholesale_purchase'))) > 0){
         $head[$h][0] = DOL_URL_ROOT.'/user/lineactive.php?id='.$object->id.'&mainmenu=tools&idmenu=5223';
         $head[$h][1] = $langs->trans("PropLineActive");
         $head[$h][2] = 'lineactive';
         $h++;
     }
-	$category_alias = array('counter','wholesale_purchase','logistika','jurist');
-	if(in_array($object->respon_alias, $category_alias) ||in_array($object->respon_alias2, $category_alias)){
+
+	if(count(array_intersect(array($object->respon_alias,$object->respon_alias2), array('counter','corp_manager','wholesale_purchase','logistika','jurist'))) > 0){
 		$head[$h][0] = DOL_URL_ROOT.'/user/categories.php?id='.$object->id.'&mainmenu=tools&idmenu=5223';
         $head[$h][1] = $langs->trans("CategoriesContractors");
         $head[$h][2] = 'categories';

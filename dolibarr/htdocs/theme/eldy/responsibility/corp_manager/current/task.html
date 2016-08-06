@@ -2,7 +2,7 @@
 
         <div class="tabs" id="tabs_area" data-role="controlgroup" data-type="horizontal">
             <div class="inline-block tabsElem tabsElemActive">
-                <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/soc.php?mainmenu=companies&idmenu=5217&action=edit&socid=<? echo $object->id?>"><? echo $langs->trans('BasicInfo')?></a>
+                <a id="user" class="tabactive tab inline-block" data-role="button" href="/"><? echo $langs->trans('BasicInfo')?></a>
             </div>
             <div  class="inline-block tabsElem" id="Calculator">
                 <a href="/"class="tab inline-block" data-role="button"><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<? echo $langs->trans('Calculator')?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</b></a>
@@ -33,6 +33,7 @@
             <th width="50px" class="small_size" rowspan="2">Відмітка : особливе, важливе</th>
             <th width="50px" class="small_size" rowspan="2">Статус завдання</th>
             <th width="50px" class="small_size" rowspan="2" title="Підтвердження про виконання">Підтв. про викон.</th>
+            <th width="25px" class="small_size" rowspan="2"></th>
             <th width="25px" class="small_size" rowspan="2"></th>
             <th width="25px" class="small_size" rowspan="2"></th>
 
@@ -72,8 +73,9 @@
         $('#mentor').offset({top:110, left:$('#mentor_action').offset().left});
         $('#tabs_area').width(600);
         $('#reference_body').offset({left:22});
-        $('#reference_body').width(TotalWidth+40);
+        $('#reference_body').width(TotalWidth+20);
     })
+
 
 </script>
 <script type="text/javascript">

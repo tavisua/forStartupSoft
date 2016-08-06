@@ -18,11 +18,22 @@ if(count($_POST)>0){
 //var_dump($_REQUEST);
 //echo '</pre>';
 //die();
+global $user;
 $Area = $langs->trans('Area');
 llxHeader("",$Area,"");
 print_fiche_titre($Area);
 //print '<div>';
-
+if(isset($_GET['id_usr'])&&!empty($_GET['id_usr'])){
+    global $db;
+    $sql = 'select lastname from llx_user where rowid = '.$_GET['id_usr'];
+    $res = $db->query($sql);
+    $obj = $db->fetch_object($res);
+    $username = $obj->lastname;
+    $id_usr = $_GET['id_usr'];
+}else {
+    $id_usr = $user->id;
+    $username = $user->lastname;
+}
 //Шапка сторінки
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/jurist/area/header.php';
 //Перелік контрагентів

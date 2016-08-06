@@ -24,8 +24,8 @@ $res = $db->query($sql);
 
 $region_id = 0;
 
-if(isset($_REQUEST['state_filter'])) {//Если изменялся регион
-    $region_id = $_REQUEST['state_filter'];
+if(strlen(GETPOST('state_filter'))>0) {//Если изменялся регион
+    $region_id = GETPOST('state_filter');
 //    var_dump(GETPOST('state_filter'), 'all');
 }
 if($db->num_rows($res)>0) {
@@ -44,10 +44,10 @@ if($db->num_rows($res)>0) {
             $state_id = $obj->state_id;
         }
     }
-    $AreaList .= '<option id="users" value="users" >Співробітники</option>';
     $AreaList .= '</select></form>';
 }
 
+$_SESSION['region_id'] = $region_id;
 
 //$region_id = 210;
 $sql = "select `classifycation`.name, SUM(b.value) value from `classifycation` left join
@@ -58,7 +58,6 @@ if($region_id != 0)
 else
     $sql .=" where 1) b on `classifycation`.rowid = b.`classifycation_id`";
 $sql .=" where `classifycation`.calc=0 and `classifycation`.active = 1 group by `classifycation`.name order by classifycation.rowid";
-
 $res = $db->query($sql);
 if(!$res){
     var_dump($sql);
@@ -99,5 +98,38 @@ if($db->num_rows($res) > 0) {
     $Classifycation .='</table>';
 }
 $CreateCompany = $langs->trans('CreateCompany');
-include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/area/header.html');
+
+include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/counter/area/header.html');
 return;
+
+function CategoriesContractors(){
+    global $db, $id_usr;
+    $sql = 'select case when llx_user_categories_contractor.fk_categories <> 0 then llx_user_categories_contractor.fk_categories else llx_user_categories_contractor.other_categories end fk_categories,
+        `category_counterparty`.`name`
+        from llx_user_categories_contractor
+        left join `category_counterparty` on `category_counterparty`.`rowid` = `llx_user_categories_contractor`.`fk_categories`
+        where llx_user_categories_contractor.`fk_user` = '.$id_usr.'
+        and llx_user_categories_contractor.active = 1 order by `category_counterparty`.`name`';
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $out = '<select id="category" name = "category" class="combobox" onchange="setCategoryFilter();">';
+    $out.='<option value="-1" selected="selected">Відобразити всі</option>';
+    $category_id = isset($_REQUEST['category'])&& !empty($_REQUEST['category'])?$_REQUEST['category']:0;
+
+    while($obj = $db->fetch_object($res)){
+        $selected = is_numeric($obj->fk_categories)==is_numeric($category_id) && $category_id == $obj->fk_categories;
+        switch($obj->fk_categories){
+            case 'users':{
+                $name = 'Співробітники';
+            }break;
+            default:{
+                $name = $obj->name;
+            }
+        }
+        $out .= '<option '.($obj->fk_categories == 'users'?'id="users"':'').' value="'.$obj->fk_categories.'" '.($selected?'selected="selected"':'').'>'.$name.'</option>\n';
+    }
+    $out.='</selected>';
+
+    return $out;
+}

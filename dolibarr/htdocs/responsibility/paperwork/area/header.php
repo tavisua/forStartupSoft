@@ -99,42 +99,37 @@ if($db->num_rows($res) > 0) {
 }
 $CreateCompany = $langs->trans('CreateCompany');
 
-include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/wholesale_purchase/area/header.html');
+include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/jurist/area/header.html');
 return;
 
-
-function LineActive(){
+function CategoriesContractors(){
     global $db, $user;
-    $sql = 'select `oc_category_description`.category_id, `oc_category_description`.name from `oc_category_description`
-            inner join
-                (select fk_lineactive as category_id from `llx_user_lineactive`
-                where fk_user = '.$user->id.'
-                and active = 1) lineactive on lineactive.category_id = `oc_category_description`.category_id
-            where `oc_category_description`.language_id = 4';
+    $sql = 'select case when llx_user_categories_contractor.fk_categories <> 0 then llx_user_categories_contractor.fk_categories else llx_user_categories_contractor.other_categories end fk_categories,
+        `category_counterparty`.`name`
+        from llx_user_categories_contractor
+        left join `category_counterparty` on `category_counterparty`.`rowid` = `llx_user_categories_contractor`.`fk_categories`
+        where llx_user_categories_contractor.`fk_user` = '.$user->id.'
+        and llx_user_categories_contractor.active = 1 order by `category_counterparty`.`name`';
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
-    $out = '<select id="lineactive" class="combobox" onchange="setLineActiveFilter();">';
+    $out = '<select id="category" name = "category" class="combobox" onchange="setCategoryFilter();">';
     $out.='<option value="-1" selected="selected">Відобразити всі</option>';
-    $category_id = isset($_REQUEST['lineactive'])&& !empty($_REQUEST['lineactive'])?$_REQUEST['lineactive']:0;
-    $kind = isset($_REQUEST['kind'])&& !empty($_REQUEST['kind'])?$_REQUEST['kind']:'';
+    $category_id = isset($_REQUEST['category'])&& !empty($_REQUEST['category'])?$_REQUEST['category']:0;
 
     while($obj = $db->fetch_object($res)){
-        $out.='<option kind="lineactive" value="'.$obj->category_id.'" '.($category_id == $obj->category_id&&$kind=='lineactive'?'selected="selected"':'').'>'.$obj->name.'</option>';
-    }
-    $sql = "select case when fx_category_counterparty is null then other_category else fx_category_counterparty end fx_category_counterparty,
-        case when case when fx_category_counterparty is null then other_category else fx_category_counterparty end = 'users' then 'Співробітники' else `category_counterparty`.`name` end `name`
-        from `responsibility_param`
-        left join `category_counterparty` on `category_counterparty`.`rowid` = case when fx_category_counterparty is null then other_category else fx_category_counterparty end
-        where `fx_responsibility` in (select rowid from `responsibility`
-        where alias = '".$user->respon_alias."')
-        and fx_category_counterparty is not null;";
-    $res = $db->query($sql);
-    if(!$res)
-        dol_print_error($db);
-    while($obj = $db->fetch_object($res)){
-        $out.='<option kind="category" value="'.$obj->fx_category_counterparty.'" '.($category_id == $obj->fx_category_counterparty&&$kind=='category'?'selected="selected"':'').'>'.$obj->name.'</option>';
+        $selected = is_numeric($obj->fk_categories)==is_numeric($category_id) && $category_id == $obj->fk_categories;
+        switch($obj->fk_categories){
+            case 'users':{
+                $name = 'Співробітники';
+            }break;
+            default:{
+                $name = $obj->name;
+            }
+        }
+        $out .= '<option '.($obj->fk_categories == 'users'?'id="users"':'').' value="'.$obj->fk_categories.'" '.($selected?'selected="selected"':'').'>'.$name.'</option>\n';
     }
     $out.='</selected>';
+
     return $out;
 }

@@ -362,6 +362,45 @@ function getLineActiveService(id_usr, btn){
         img.src = '/dolibarr/htdocs/theme/eldy/img/1downarrow.png';
     }
 }
+function getCategoryCounterParty(id_usr, btn){
+    var tr_item = btn.parent().parent();
+    var img = btn.find('img');
+    var show = img.attr('src').substr(img.attr('src').length-('1downarrow.png').length) == '1downarrow.png';
+    if(show)
+        img.attr('src', img.attr('src').substr(0, img.attr('src').length-('1downarrow.png').length)+'1uparrow.png');
+    else
+        img.attr('src', img.attr('src').substr(0, img.attr('src').length-('1uparrow.png').length)+'1downarrow.png');
+    if(show) {
+//            console.log(id);
+        if($('.CategoryCounterParty'+id_usr).length == 0) {
+//                var tr_item = btn.parentNode.parentNode;
+            var className = tr_item.attr('class');
+            className = className.replace('impair ', '');
+            className = className.replace('pair ', '');
+            className = className.replace('userlist ', '');
+            className = $.trim(className);
+            var link = '/dolibarr/htdocs/responsibility/gen_dir/day_plan.php?action=getCategoryCounterParty&id_usr='+id_usr+'&class=CategoryCounterParty'+id_usr+' '+className;
+//                console.log(link);
+//                return;
+            $("#loading_img").show();
+            $.ajax({
+                url: link,
+                cache: false,
+                success: function (html) {
+//                        console.log(html);
+                    tr_item = document.getElementById(tr_item.attr('id'));
+                    tr_item.insertAdjacentHTML('afterend', html);
+                    $("#loading_img").hide();
+                }
+            })
+        }else{
+            $('.CategoryCounterParty'+id_usr).show();
+        }
+    }else{
+        $('.CategoryCounterParty'+id_usr).hide();
+        img.src = '/dolibarr/htdocs/theme/eldy/img/1downarrow.png';
+    }
+}
 function getLineActiveList(id_usr, btn){
     //var btn = document.getElementById('btnUsr'+id_usr);
     var tr_item = btn.parent().parent();
@@ -578,7 +617,7 @@ function SpyMode(id_usr){
         success:function(result){
             switch (result){
                 case '1':{
-                    window.open(location.origin);
+                    window.open('/dolibarr/htdocs/index.php?mainmenu=home&leftmenu=&idmenu=5216&mainmenu=home&leftmenu=');
                 }break;
                 case '2':{
                     location.href = '/dolibarr/htdocs/day_plan.php?idmenu=10419&mainmenu=plan_of_days&leftmenu=';
@@ -586,6 +625,8 @@ function SpyMode(id_usr){
             }
         }
     })
+    if(id_usr == 0)
+        window.close();
     console.log(id_usr);
 }
 function AddOrder(){
@@ -674,6 +715,7 @@ function getMessage(){
             success:function(result){
                 if(result == '0')
                     return;
+                console.log(result);
                 var actions = JSON.parse(result);
                 //console.log(Object.keys(actions).length);
                 var html = '<div id="locktools" style="text-align: center; vertical-align: middle; font-size: 16px;color: red;font-weight: bold"><a style="margin-top: 25px;margin-right: 20px" class="close" onclick="UnLockTools();" title="Закрити"></a>Зверніть будь ласка увагу на нові сповіщення</div>';

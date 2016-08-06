@@ -99,16 +99,16 @@ if($db->num_rows($res) > 0) {
 }
 $CreateCompany = $langs->trans('CreateCompany');
 
-include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/logistika/area/header.html');
+include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/jurist/area/header.html');
 return;
 
 function CategoriesContractors(){
-    global $db, $user;
+    global $db, $id_usr;
     $sql = 'select case when llx_user_categories_contractor.fk_categories <> 0 then llx_user_categories_contractor.fk_categories else llx_user_categories_contractor.other_categories end fk_categories,
         `category_counterparty`.`name`
         from llx_user_categories_contractor
         left join `category_counterparty` on `category_counterparty`.`rowid` = `llx_user_categories_contractor`.`fk_categories`
-        where llx_user_categories_contractor.`fk_user` = '.$user->id.'
+        where llx_user_categories_contractor.`fk_user` = '.$id_usr.'
         and llx_user_categories_contractor.active = 1 order by `category_counterparty`.`name`';
     $res = $db->query($sql);
     if(!$res)

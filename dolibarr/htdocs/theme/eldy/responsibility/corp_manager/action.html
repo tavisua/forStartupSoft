@@ -1,7 +1,5 @@
 <a href="<?=$refer_link?>#<?echo $_REQUEST['socid']?>"><?echo $langs->trans('Area')?></a>  /  <b><?echo $langs->trans('ActionArea')?></b></div>
 
-
-
 </br>
 <div  id="customerinfo" style="float: left">
     <table id="headercontrol" style="background-color: #ffffff">
@@ -22,7 +20,7 @@
     </table>
 </div>
 </br>
-<div style="width: 100%; height: 40px"></div>
+<div style="width: 100%; height: 80px"></div>
 <div>
     <form method="post" action="/dolibarr/htdocs/societe/addcontact.php">
         <input id="url" type="hidden" value="<?echo $_SERVER['REQUEST_URI']?>" name="url">
@@ -45,7 +43,7 @@
             <th id="th_firstname"><?echo $langs->trans('Firstname')?></th>
             <th id="th_phonepro"><?echo $langs->trans('PhonePro')?></th>
             <th id="th_fax"><?echo $langs->trans('Fax')?></th>
-            <th id="th_phonemobile" style="width: 140px"><?echo $langs->trans('PhoneMobile')?></th>
+            <th id="th_phonemobile" style="width: 100px"><?echo $langs->trans('PhoneMobile')?></th>
             <th id="th_email"><?echo $langs->trans('Email')?></th>
             <th id="th_skype"><?echo $langs->trans('Skype')?></th>
             <th id="th_birthdate"><?echo $langs->trans('BirthdayDate')?></th>
@@ -69,12 +67,12 @@
         <input type="hidden" value="<?=$_SERVER['REQUEST_URI']?>" name="backtopage">
         <input type="hidden" value="create" name="action">
         <input type="hidden" value="<?=$_GET['socid']?>" name="socid">
-        <input type="hidden" value="<?=$_REQUEST['mainmenu']?>" name="mainmenu">
+        <input type="hidden" value="hourly_plan" name="mainmenu">
         <input type="hidden" value="<?=$datep->format('d.m.Y')?>" name="datep">
 
         <button title="Скрити чи відобразити таблицю 'Дії'">    Скрити дії    </button>
 
-        <button title="Запланувати дію" onclick="AddAction();">    Додати дію    </button>
+        <button title="Додати запис в таблицю 'Дії'" onclick="AddAction();">    Додати дію    </button>
         <button title="Додати результат перемовин в таблицю 'Дії'" onclick="AddResultAction(false, null);">    Додати результат перемовин    </button>
 
         <!--<button title="Додати запис в таблицю 'Дії'" onclick="location.href=location.href+'&action=add'">    Додати дію    </button>-->
@@ -119,12 +117,9 @@
     <!--<input type="hidden" name="id" value="" id="action_id">-->
 <!--</form>-->
 <form id="redirect" action="/dolibarr/htdocs/comm/action/result_action.php" method="get">
-    <input type="hidden" name="mainmenu" value="<?=$_REQUEST['mainmenu']?>" id="mainmenu_action">
     <input type="hidden" name="backtopage" value="'<?=$_SERVER['REQUEST_URI']?>'">
     <input type="hidden" name="id" value="" id="action_id">
-    <input type="hidden" name="socid" value="" id="soc_id">
-    <input type="hidden" name="onlyresult" value="" id="onlyresult">
-    <input type="hidden" name="complete" value="" id="complete">
+    <input type="hidden" name="mainmenu" value="<?=$_REQUEST['mainmenu']?>">
     <input type="hidden" value="<?=$actioncode?>" id="redirect_actioncode" name="actioncode">
     <input type="hidden" name="action" value="edit" id="edit_action">
 </form>
@@ -137,10 +132,8 @@
         height: 90px;
     }
 </style>
-<input type="hidden" id="starttimer" value="">
 <script>
     $(document).ready(function(){
-        $("#bookmarkActionPanel").show();
         var top =
         $('#showhide_contactlist').offset({top:$('#addcontact').offset().top, left:$('#addcontact').offset().left+$('#addcontact').width()+15});
         $('#contactlist').offset({top:$('#contactlist').offset().top-20});
@@ -160,16 +153,8 @@
             }
         }
         setcallphonelink();
-//        setActionPanelPosition();
-        LoadProposition();
+//        LoadProposition();
     })
-
-    function showSMSform(phonenumber){
-        $('input#phone_number').val(phonenumber);
-        $('b#phone_numbertitle').text(phonenumber);
-        location.href = '#sendSMS';
-        $('#sendSMSform').show();
-    }
     function setcallphonelink(){
         var tbody = document.getElementById('contactlist_body');
         if(tbody != null){
@@ -229,41 +214,5 @@
         $("#actionbuttons").attr('action', '/dolibarr/htdocs/comm/action/card.php');
         console.log($("#actionbuttons").attr('action'));
     }
-    $(function(e){
-        $('td').mouseover(function(e){
-//            console.log(e.target.id, $('input#_'+e.target.id).val(),$('input#'+e.target.id).val());
-//            return;
-            if($('#'+e.target.id).parent().parent().parent().attr('id')!='actions_table')
-                return;
-            actions_table = true;
-            var text = $('#'+e.target.id).text();
-//             console.log(text.substr(text.length-3)=='...');
-            if(text.substr(text.length-3)=='...') {
-//                var id = e.target.id.substr(0,1)!='_'?(e.target.id):('_'+e.target.id);
-                var id = e.target.id;
-//                console.log(id);
-//                return;
-                $('#popupmenu').css('width',350);
-                $('#popupmenu').css('height',100);
-                var fullText='';
-                console.log($('input#'+id).length);
-                if($('input#_'+id).length > 0)
-                    fullText=$('input#_'+id).val();
-                else
-                    fullText=$('input#'+id).val();
-                $('#popupmenu').html('<div><textarea style="width: 100%;height: 100%">'+fullText+'</textarea></div>');
-                $('#popupmenu').attr('TitleProposed',null);
-                $('#popupmenu').show();
-                $('#popupmenu').offset({top:$('#'+e.target.id).offset().top,left:$('#'+e.target.id).offset().left});
-//                console.log($('#'+e.target.id).offset());
-
-            }
-            $('#popupmenu').mouseout(function(e){
-                if($('#popupmenu').attr('TitleProposed') === undefined)
-                    $('#popupmenu').hide();
-            })
-        })
-
-    })
 
 </script>

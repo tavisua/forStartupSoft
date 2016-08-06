@@ -7,77 +7,67 @@
             <td><?= $societe->getCategoryOfCustomer();?></td>
             <td><b>Заголовок</b></td>
             <td><?=$object->label?></td>
-            <td><b>Статус</b></td>
-            <td><?=$formactions->form_select_status_action('formaction',$percent,1,'complete');?></td>
         </tr>
         <tr>
             <td><b>Назва контрагента</b></td>
             <td><?= $societe->name?></td>
             <td><b>Тип дії</b></td>
             <td><?=$langs->trans($object->type)?></td>
-            <td></td>
-            <td></td>
         </tr>
         <tr>
             <td><b>Форма правління</b></td>
             <td><?=$societe->getFormOfGoverment();?></td>
             <td><b>Контакт</b></td>
             <td><?=$societe->getContactname($object->contactid)?></td>
-            <td></td>
-            <td></td>
         </tr>
     </table>
 </div>
-
-</br>
 <div  id="ActionList">
     <form id="addaction" action="" method="post">
         <input id="backtopage" type="hidden" value="<?=$_GET['backtopage']?>" name="backtopage">
-        <input id="rowid" name="rowid" type="hidden" value="<?=empty($object->resultaction['rowid'])?$object->rowid:$object->resultaction['rowid']?>">
-        <input id="actionid" name="actionid" type="hidden" value="<?=!isset($_REQUEST['onlyresult'])||empty($_REQUEST['onlyresult'])?$_GET['id']:''?>">
-        <input id="socid" name="socid" type="hidden" value="<?=isset($_REQUEST['onlyresult'])&&!empty($_REQUEST['onlyresult'])?$object->socid:$_REQUEST['socid']?>">
+        <input id="rowid" name="rowid" type="hidden" value="<?=$object->resultaction['rowid']?>">
+        <input id="actionid" name="actionid" type="hidden" value="<?=$_GET['id']?>">
+        <!--<input id="master_action" name="master_action" type="hidden" value="">-->
         <input id="mainmenu" name="mainmenu" type="hidden" value="<?=$_GET['mainmenu']?>">
         <input type="hidden" value="<?=$_GET['actioncode']?>" name="actioncode">
-        <input type="hidden" value="" name="complete" id="complete">
         <input id="action" name="action" type="hidden" value="">
 
         </br>
         <table class="border" width="100%">
-            <?=$contactlist?>
             <tr>
                 <td>
                     &nbsp;&nbsp;&nbsp;<?echo $langs->trans('WhatSaidHim')?></br>
-                    <textarea id="said" class="edit_text" name="said" maxlength="255"><?=$said?></textarea>
+                    <textarea id="said" class="edit_text" name="said" maxlength="255"><?=$object->resultaction['said']?></textarea>
                 </td>
             </tr>
             <tr>
                 <td>
                     &nbsp;&nbsp;&nbsp;<?echo $langs->trans('WhatAnswer')?></br>
-                    <textarea id="answer" class="edit_text" name="answer" maxlength="255"><?=empty($object->resultaction['answer'])?$object->answer:$object->resultaction['answer']?></textarea>
+                    <textarea id="answer" class="edit_text" name="answer" maxlength="255"><?=$object->resultaction['answer']?></textarea>
                 </td>
             </tr>
             <tr>
                 <td>
                     &nbsp;&nbsp;&nbsp;<?echo $langs->trans('HerArgument')?></br>
-                    <textarea id="argument" class="edit_text" name="argument" maxlength="255"><?=empty($object->resultaction['argument'])?$object->argument:$object->resultaction['argument']?></textarea>
+                    <textarea id="argument" class="edit_text" name="argument" maxlength="255"><?=$object->resultaction['argument']?></textarea>
                 </td>
             </tr>
             <tr>
                 <td>
                     &nbsp;&nbsp;&nbsp;<?echo $langs->trans('SaidImportant')?>
-                    <textarea id="said_important" class="edit_text" name="said_important" maxlength="255"><?=empty($object->resultaction['said_important'])?$object->said_important:$object->resultaction['said_important']?></textarea>
+                    <textarea id="said_important" class="edit_text" name="said_important" maxlength="255"><?=$object->resultaction['said_important']?></textarea>
                 </td>
             </tr>
             <tr>
                 <td>
                     &nbsp;&nbsp;&nbsp;<?echo $langs->trans('ResultAction')?>
-                    <textarea id="result_of_action" class="edit_text" name="result_of_action" maxlength="255"><?=empty($object->resultaction['result_of_action'])?$object->result_of_action:$object->resultaction['result_of_action']?></textarea>
+                    <textarea id="result_of_action" class="edit_text" name="result_of_action" maxlength="255"><?=$object->resultaction['result_of_action']?></textarea>
                 </td>
             </tr>
             <tr>
                 <td>
                     &nbsp;&nbsp;&nbsp;<?echo $langs->trans('WorkBeforeAction')?>
-                    <textarea id="work_before_the_next_action" class="edit_text" name="work_before_the_next_action" maxlength="255"><?=empty($object->resultaction['work_before_the_next_action'])?$object->work_before_the_next_action:$object->resultaction['work_before_the_next_action']?></textarea>
+                    <textarea id="work_before_the_next_action" class="edit_text" name="work_before_the_next_action" maxlength="255"><?=$object->resultaction['work_before_the_next_action']?></textarea>
                 </td>
             </tr>
         </table>
@@ -114,47 +104,16 @@
         link = 'http://'+location.hostname+link.substr(1, link.length-2);
         location.href = link;
     }
-
     function save(){
-        var search = location.search.substr(1);
-        var param = {};
-        search.split('&').forEach(function(item){
-            item = item.split('=');
-            param[item[0]]=item[1];
-        })
-//        console.log(param);
-//        return;
-        $('#socid').val(param.socid);
         $("#addaction").attr('action', '/dolibarr/htdocs/comm/action/result_action.php');
-        if(param.action == 'addonlyresult')
-            $("#action").val('addonlyresult');
-        else if(param.onlyresult !== undefined)
-            $("#action").val('updateonlyresult');
-        else
-            $("#action").val('update');
-        $('#complete').val($('#valcomplete').val());
-        console.log($("addaction").attr('action'));
+        $("#action").val('update');
         $("#addaction").submit();
 //        alert('test');
-
+        console.log($("addaction").attr('action'));
     }
     function saveandcreate(){
-        var search = location.search.substr(1);
-        var param = {};
-        search.split('&').forEach(function(item){
-            item = item.split('=');
-            param[item[0]]=item[1];
-        })
-
-        $('#complete').val($('#valcomplete').val());
-
         $("#addaction").attr('action', '/dolibarr/htdocs/comm/action/result_action.php');
-        if(param.action == 'addonlyresult')
-            $("#action").val('addonlyresult_and_create');
-        else if(param.onlyresult !== undefined)
-            $("#action").val('updateonlyresult_and_create');
-        else
-            $("#action").val('update_and_create');
+        $("#action").val('update_and_create');
         $("#addaction").submit();
     }
 //    function loadcontactlist(){
@@ -170,13 +129,5 @@
 //            }
 //        });
 //    }
-    $.ajax({
-
-    })
 
 </script>
-<style>
-    #ActionList{
-        padding-top: 60px;
-    }
-</style>

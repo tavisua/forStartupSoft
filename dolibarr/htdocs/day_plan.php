@@ -15,11 +15,16 @@ if(isset($_REQUEST['action'])){
     switch($_REQUEST['action']) {
         case 'getnewactions':{
             $id_user = $user->id;
+//            echo '<pre>';
+//            var_dump($_SESSION['dol_login']);
+//            echo '</pre>';
+//            die();
             if(isset($_SESSION['spy_id_usr'])&&!empty($_SESSION['spy_id_usr'])){
                 $sql = "select rowid from llx_user where login = '".$_SESSION['dol_login']."' and active = 1";
                 $res = $db->query($sql);
                 if(!$res)
                     dol_print_error($db);
+                $obj = $db->fetch_object($res);
                 $id_user = $obj->rowid;
             }
             echo getNewAcctions($id_user);
@@ -169,6 +174,10 @@ header("Location: http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/responsibil
 exit();
 
 function getNewAcctions($id_usr){
+//    echo '<pre>';
+//    var_dump($id_usr);
+//    echo '</pre>';
+//    die();
     global $db, $user;
     $sql = "select `llx_actioncomm`.`id`, `llx_actioncomm`.`percent`, `llx_actioncomm`.`code`, `llx_actioncomm`.`datec`, `llx_user`.`lastname` from llx_actioncomm
         left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`

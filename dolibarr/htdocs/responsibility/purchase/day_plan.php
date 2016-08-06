@@ -314,7 +314,7 @@ function ShowTable(){
 //        die();
     $table.= ShowTasks('AC_CUST', 'Найкращі показники по підрозділу', true);
 
-    $table.= getLinePurchaseActiveList($user->id);
+    $table.= getLineActiveList($user->id);
 
 
     $table .= '</tbody>';

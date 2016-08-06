@@ -77,7 +77,7 @@ if(isset($_REQUEST['action'])&&$_REQUEST['action'] == 'ShowTable'){
     exit();
 }
 if(isset($_REQUEST['action'])&&$_REQUEST['action'] == 'getLineActiveList'){
-    print getLinePurchaseActiveList($_REQUEST['id_usr']);
+    print getLineActiveList($_REQUEST['id_usr']);
     exit();
 }
 if(isset($_REQUEST['action'])&&$_REQUEST['action']=='setSpyMode'){
@@ -95,6 +95,10 @@ if(isset($_REQUEST['action'])&&$_REQUEST['action']=='gettask'){
     if(isset($_REQUEST['subdiv_id'])&&empty($_REQUEST['subdiv_id']))
         echo getActionsBySub($_REQUEST['classname'], $_REQUEST['code']);
 //    echo 'test';
+    exit();
+}
+if(isset($_REQUEST['action'])&&$_REQUEST['action']=='getCategoryCounterParty'){
+    echo getCategoryCounterParty($_REQUEST['id_usr']);
     exit();
 }
 if(isset($_REQUEST['action'])&&$_REQUEST['action']=='getLineActiveService'){
@@ -131,7 +135,9 @@ llxPopupMenu();
 //var_dump($conf->browser);
 //echo '</pre>';
 exit();
-
+function getCategoryCounterParty($id_usr){
+    return getLineActiveList($id_usr);
+}
 function ShowTable(){
     global $db,$user;
     $out = '<tbody id="reference_body">';
@@ -1311,7 +1317,7 @@ function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $ti
 //    var_dump($outstanding, time()-$start);
 //    echo '</pre>';
 //    die();
-    $sql = "select rowid, `lastname`, `firstname` from llx_user
+    $sql = "select rowid, respon_id, respon_id2,  `lastname`, `firstname` from llx_user
         where active = 1
         and subdiv_id = ".$subdiv_id;
     if(count($respon)>0)
@@ -1338,14 +1344,14 @@ function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $ti
     elseif($code == 'AC_CURRENT')
         $lnk = '/dolibarr/htdocs/current_plan.php?idmenu=10423&mainmenu=current_task&leftmenu=';
     elseif($code == 'AC_CUST')
-        $lnk = '/dolibarr/htdocs/responsibility/sale/area.php?idmenu=10425&mainmenu=area&leftmenu=';
+        $lnk = '/dolibarr/htdocs/responsibility/'.$respon_alias.'/area.php?idmenu=10425&mainmenu=area&leftmenu=';
     while($obj = $db->fetch_object($res)){
         if(empty($code))
             $lnk = 'onclick="SpyMode('.$obj->rowid.')"';
 //        $class_row = fmod($num,2)==0?'impare':'pare';
-        $out.='<tr id="'.$class.$obj->rowid.'" class="'.$class.($bestuserID == $obj->rowid?' bestvalue ':'').' userlist '.$subdiv_id.$respon_alias.' '.$code.'_'.$subdiv_id.'">';
-        $out.='<td colspan="2"><a '.(empty($code)?$lnk.' class="link"':'href="'.$lnk.'&user_id='.$obj->rowid.'"').' target="_blank">'.$obj->lastname.' '.mb_substr($obj->firstname, 0,1,'UTF-8').'.</a></td>';
-        if(in_array($code, array('AC_GLOBAL','AC_CURRENT'))||!in_array($respon_alias, array('sale', 'purchase', 'service')))
+        $out.='<tr id="'.$class.$obj->rowid.'" class="'.$class.($bestuserID == $obj->rowid?' bestvalue ':'').' userlist '.$code.'_'.$subdiv_id.' '.$subdiv_id.$respon_alias.'">';
+        $out.='<td colspan="2"><a '.(empty($code)?$lnk.' class="link"':'href="'.$lnk.'&id_usr='.$obj->rowid.'"').' target="_blank">'.$obj->lastname.' '.mb_substr($obj->firstname, 0,1,'UTF-8').'.</a></td>';
+        if(in_array($code, array('AC_GLOBAL','AC_CURRENT'))||!in_array($respon_alias, array('sale', 'purchase', 'service', 'corp_manager', 'jurist', 'paperwork', 'logistika', 'counter')))
             $out.='<td></td>';
         else {
             $functionName='';
@@ -1358,6 +1364,21 @@ function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $ti
                 }break;
                 case 'service':{
                     $functionName = 'getLineActiveService';
+                }break;
+                case 'jurist':{
+                    $functionName = 'getCategoryCounterParty';
+                }break;
+                case 'logistika':{
+                    $functionName = 'getCategoryCounterParty';
+                }break;
+                case 'corp_manager':{
+                    $functionName = 'getCategoryCounterParty';
+                }break;
+                case 'paperwork':{
+                    $functionName = 'getCategoryCounterParty';
+                }break;
+                case 'counter':{
+                    $functionName = 'getCategoryCounterParty';
                 }break;
             }
             $out .= '<td><button id="btnUsr' . $obj->rowid . '" onclick="'.$functionName.'(' . $obj->rowid . ', $(this));"><img id="imgUsr' . $obj->rowid . '" src="/dolibarr/htdocs/theme/eldy/img/1downarrow.png"></button></td>';

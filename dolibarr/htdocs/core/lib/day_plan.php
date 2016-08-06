@@ -36,7 +36,7 @@ function loadActions($id_usr){
     $subdiv_id = $obj->rowid;
     $subdivision = $obj->name;
     //if(!isset($_SESSION['actions'])) {
-        $sql = "select distinct sub_user.rowid  id_usr, sub_user.alias, `llx_societe`.`rowid` socid, llx_actioncomm.id, llx_actioncomm.percent, date(llx_actioncomm.datep) datep, llx_actioncomm.percent,
+        $sql = "select distinct sub_user.rowid  id_usr, sub_user.alias, `llx_societe`.`categoryofcustomer_id`, `llx_societe`.`rowid` socid, llx_actioncomm.id, llx_actioncomm.percent, date(llx_actioncomm.datep) datep, llx_actioncomm.percent,
         case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT') then llx_actioncomm.`code` else 'AC_CUST' end `code`, `llx_societe_action`.`callstatus`
         from llx_actioncomm
         inner join (select id from `llx_c_actioncomm` where type in('user','system') and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
@@ -63,10 +63,29 @@ function loadActions($id_usr){
         }
     if(count($socidArray) == 0)
         $socidArray[]=-1;
+    //Визначаю сферу відповідальності користувача
+    $sql = "select res1.alias, res2.alias alias2 from llx_user
+        left join responsibility res1 on res1.rowid = llx_user.respon_id
+        left join responsibility res2 on res1.rowid = llx_user.respon_id2
+        where llx_user.rowid = ".$id_usr;
+    $resAlias = $db->query($sql);
+    $objAlias = $db->fetch_object($resAlias);
+    $arrayAlias = array($objAlias->alias, $objAlias->alias2);
+//    var_dump(in_array($arrayAlias, array('purchase', 'service')));
+//    die();
+    $actions = array();
 
-    //Визначаю напрямки діяльності вибраних контрагентів
+    if(count(array_intersect($arrayAlias, array('jurist', 'paperwork','corp_manager','counter','logistika')))) {//Якщо користувач - юрист, логіст, корпоративне управління, діловодство, бухгалтерія
+        mysqli_data_seek($res,0);
+        $time = time();
+        while ($obj = $db->fetch_object($res)) {
+            $actions[] = array('id_usr' => $obj->id_usr, 'rowid'=>$obj->id, 'socid'=>$obj->socid, 'region_id' => $obj->categoryofcustomer_id, 'respon_alias' => $obj->alias, 'percent' => $obj->percent, 'datep' => $obj->datep, 'code' => $obj->code, 'callstatus'=>$obj->callstatus);
+        }
+    }
+    if(count(array_intersect($arrayAlias, array('purchase', 'service')))) {//Якщо користувач - постачальник-сервісник (для сервіса зробити додатково райони по клієнтам)
+        //Визначаю напрямки діяльності вибраних контрагентів
         $sql = "select fk_soc, fk_lineactive from llx_societe_lineactive
-            where fk_soc in (".implode(',',$socidArray).")
+            where fk_soc in (" . implode(',', $socidArray) . ")
             and active = 1
             order by fk_soc";
         $resLineactive = $db->query($sql);
@@ -74,38 +93,38 @@ function loadActions($id_usr){
         $num = 0;
         $outLineactive = array();
         $lineactive = array();
-        while($obj = $db->fetch_object($resLineactive)){
+        while ($obj = $db->fetch_object($resLineactive)) {
             $num++;
-            if($fksoc != $obj->fk_soc || $num == $db->num_rows($resLineactive)){
-                if($fksoc != 0 || $num == $db->num_rows($resLineactive)) {
-    //                if($fksoc == 9963){
-    //                    echo '<pre>';
-    //                    var_dump(getSubLineActive($lineactive));
-    //                    echo '</pre>';
-    //                    die('test');
-    //                }
+            if ($fksoc != $obj->fk_soc || $num == $db->num_rows($resLineactive)) {
+                if ($fksoc != 0 || $num == $db->num_rows($resLineactive)) {
+                    //                if($fksoc == 9963){
+                    //                    echo '<pre>';
+                    //                    var_dump(getSubLineActive($lineactive));
+                    //                    echo '</pre>';
+                    //                    die('test');
+                    //                }
                     $outLineactive[$fksoc] = getSubLineActive($lineactive);
                 }
                 $lineactive = array();
                 $fksoc = $obj->fk_soc;
             }
-            if(!in_array($obj->fk_lineactive, $lineactive))
+            if (!in_array($obj->fk_lineactive, $lineactive))
                 $lineactive[] = $obj->fk_lineactive;
         }
 //    echo '<pre>';
 //    var_dump($lineactive);
 //    echo '</pre>';
 //    die();
-    if(count($lineactive) == 0)
-        $lineactive[]=-1;
-    //Визначаю напрямки діяльності постачальника
+        if (count($lineactive) == 0)
+            $lineactive[] = -1;
+        //Визначаю напрямки діяльності постачальника
         $tmp_lineactive = array();
         $sql = "select distinct fk_lineactive from llx_user_lineactive
-          where fk_user = ".$id_usr." and active = 1";
+          where fk_user = " . $id_usr . " and active = 1";
         $resUserLineActive = $db->query($sql);
         $outUserLineActive = array();
-        while($obj = $db->fetch_object($resUserLineActive)){
-            if(!in_array($obj->fk_lineactive, $lineactive))
+        while ($obj = $db->fetch_object($resUserLineActive)) {
+            if (!in_array($obj->fk_lineactive, $lineactive))
                 $tmp_lineactive[] = $obj->fk_lineactive;
         }
         $outUserLineActive = getSubLineActive($tmp_lineactive);
@@ -115,7 +134,6 @@ function loadActions($id_usr){
 //    echo '</pre>';
 //    die();
         mysqli_data_seek($res,0);
-        $actions = array();
         $time = time();
         while ($obj = $db->fetch_object($res)) {
             //Визначаю напрямок діяльності поточного контрагента
@@ -140,6 +158,8 @@ function loadActions($id_usr){
             }
             $actions[] = array('id_usr' => $obj->id_usr, 'rowid'=>$obj->id, 'socid'=>$obj->socid, 'region_id' => $lineactive_id, 'respon_alias' => $obj->alias, 'percent' => $obj->percent, 'datep' => $obj->datep, 'code' => $obj->code, 'callstatus'=>$obj->callstatus);
         }
+    }
+
 //    echo '<pre>';
 //    var_dump($actions);
 //    echo '</pre>';
@@ -147,13 +167,20 @@ function loadActions($id_usr){
 //        $_SESSION['actions'] = $actions;
     return $actions;
 }
-function getLinePurchaseActiveList($id_usr){
+function getLineActiveList($id_usr){
     global $db, $actions,$actioncode,$user;
     $actioncode = array('AC_GLOBAL', 'AC_CURRENT');
     if($actions == null)
         $actions = loadActions($id_usr);
+//    $sql = "select subdiv_id from llx_user where rowid = ".$id_usr;
+//    $res = $db->fetch_object($sql);
+//    if(!$res)
+//        dol_print_error($res);
+//    $obj = $db->fetch_object($res);
+//    $subdiv_id = $obj->subdiv_id;
+
 //    echo '<pre>';
-//    var_dump($_SERVER);
+//    var_dump($actions);
 //    echo '</pre>';
 //    die();
     $outstanding = array();
@@ -183,7 +210,7 @@ function getLinePurchaseActiveList($id_usr){
             $respon_alias[]=$obj->alias2;
     }
 //    echo '<pre>';
-//    var_dump($actions);
+//    var_dump($respon_alias);
 //    echo '</pre>';
 //    die();
     foreach($actions as $item){
@@ -521,30 +548,59 @@ function getLineActiveService($id_usr){
 }
 function getLineActive($id_usr){
     global $db;
-    $sql = "select fk_lineactive, `oc_category_description`.`name`, min(page) page from `llx_user_lineactive`
+    //Визначаю сферу відповідальності користувача
+    $sql = "select res1.alias, res2.alias alias2 from llx_user
+        left join responsibility res1 on res1.rowid = llx_user.respon_id
+        left join responsibility res2 on res1.rowid = llx_user.respon_id2
+        where llx_user.rowid = ".$id_usr;
+    $resAlias = $db->query($sql);
+    $objAlias = $db->fetch_object($resAlias);
+    $arrayAlias = array($objAlias->alias, $objAlias->alias2);
+    $lineactive = array();
+
+    if(count(array_intersect($arrayAlias, array('jurist', 'corp_manager', 'paperwork','counter','logistika')))) {
+        $sql = "select category_counterparty.rowid, category_counterparty.name from `llx_user_categories_contractor`
+            inner join `category_counterparty` on `category_counterparty`.`rowid` = `llx_user_categories_contractor`.`fk_categories`
+            where `llx_user_categories_contractor`.fk_user = " . $id_usr . "
+            and `llx_user_categories_contractor`.`active` = 1";
+        $res = $db->query($sql);
+        if (!$res)
+            dol_print_error($db);
+        while ($obj = $db->fetch_object($res)) {
+            if (!isset($lineactive[$obj->rowid])) {
+                $lineactive[$obj->rowid] = array('name' => $obj->name);
+            }
+        }
+    }
+
+    if(count(array_intersect($arrayAlias, array('purchase','service')))) {
+        $sql = "select fk_lineactive, `oc_category_description`.`name`, min(page) page from `llx_user_lineactive`
         inner join `oc_category_description` on `oc_category_description`.`category_id` = `llx_user_lineactive`.fk_lineactive
-        where llx_user_lineactive.fk_user = ".$id_usr."
+        where llx_user_lineactive.fk_user = " . $id_usr . "
         and llx_user_lineactive.active = 1
         and oc_category_description.`language_id` = 4
         group by fk_lineactive, `oc_category_description`.`name`";
-    $res = $db->query($sql);
-    if(!$res)
-        dol_print_error($db);
-    $lineactive = array();
-    while($obj = $db->fetch_object($res)){
-        if(!isset($lineactive[$obj->fk_lineactive])) {
-            switch($obj->page){
-                case 1:{
-                    $type = 'Ціле';
-                }break;
-                case 2:{
-                    $type = 'Унік.з/ч';
-                }break;
-                case 3:{
-                    $type = 'Станд.вир';
-                }break;
+        $res = $db->query($sql);
+        if (!$res)
+            dol_print_error($db);
+        while ($obj = $db->fetch_object($res)) {
+            if (!isset($lineactive[$obj->fk_lineactive])) {
+                switch ($obj->page) {
+                    case 1: {
+                        $type = 'Ціле';
+                    }
+                        break;
+                    case 2: {
+                        $type = 'Унік.з/ч';
+                    }
+                        break;
+                    case 3: {
+                        $type = 'Станд.вир';
+                    }
+                        break;
+                }
+                $lineactive[$obj->fk_lineactive] = array('name' => $obj->name, 'type' => $type);
             }
-            $lineactive[$obj->fk_lineactive] = array('name' => $obj->name, 'type'=>$type);
         }
     }
     return $lineactive;
