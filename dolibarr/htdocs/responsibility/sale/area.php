@@ -30,8 +30,11 @@ if(isset($_GET['id_usr'])&&!empty($_GET['id_usr'])){
     $res = $db->query($sql);
     $obj = $db->fetch_object($res);
     $username = $obj->lastname;
-}else
+    $id_usr = $_GET['id_usr'];
+}else {
     $username = $user->lastname;
+    $id_usr = $user->id;
+}
 //Шапка сторінки
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/sale/area/header.php';
 //Перелік контрагентів

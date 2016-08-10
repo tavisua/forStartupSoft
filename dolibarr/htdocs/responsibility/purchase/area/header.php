@@ -104,6 +104,7 @@ return;
 
 
 function LineActive(){
+
     global $db, $user, $id_usr;
 //    $sql = 'select `oc_category_description`.category_id, `oc_category_description`.name from `oc_category_description`
 //            inner join

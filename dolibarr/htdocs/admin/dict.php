@@ -83,7 +83,7 @@ $hookmanager->initHooks(array('admin'));
 // Put here declaration of dictionaries properties
 
 // Sort order to show dictionary (0 is space). All other dictionaries (added by modules) will be at end of this.
-$taborder=array(26,27,28,29,30,31,32,33,34,35,6,9,36,37,38,39,0,40,41,42,43,44,
+$taborder=array(26,27,28,29,30,31,32,33,34,35,6,9,36,37,38,39,0,40,41,42,43,44,0,45,
 		0,3,2,0,1,8,19,16,0,5,11,0,0,10,23,12,13,0,14,0,7,17,0,22,20,18,21,0,15,0,24,0,25);
 
 // Name of SQL tables of dictionaries
@@ -132,6 +132,7 @@ $tabname[41]= MAIN_DB_PREFIX."c_actiontoaddress";
 $tabname[42]= MAIN_DB_PREFIX."c_callstatus";
 $tabname[43]= MAIN_DB_PREFIX."c_typenotification";
 $tabname[44]= MAIN_DB_PREFIX."c_raports";
+$tabname[45]= MAIN_DB_PREFIX."c_lineactive_marketing";
 
 // Dictionary labels
 $tablib=array();
@@ -179,6 +180,7 @@ $tablib[41]= "ActionToAddress";
 $tablib[42]= "CallStatus";
 $tablib[43]= "TypeNotification";
 $tablib[44]= "Raports";
+$tablib[45]= "LineActiveMarketing";
 
 // Requests to extract data
 $tabsql=array();
@@ -244,6 +246,8 @@ $tabsql[41]= "select `llx_c_actiontoaddress`.`rowid`,  `llx_c_groupoforgissues`.
 $tabsql[42]= "select rowid, status, active from ".MAIN_DB_PREFIX."c_callstatus";
 $tabsql[43]= "select rowid, type, code, active from ".MAIN_DB_PREFIX."c_typenotification";
 $tabsql[44]= "select rowid, `name`, active from ".MAIN_DB_PREFIX."c_raports";
+$tabsql[45]= "select rowid, name, active  from ".MAIN_DB_PREFIX."c_lineactive_marketing where 1";
+
 // Criteria to sort dictionaries
 $tabsqlsort=array();
 $tabsqlsort[1] ="country ASC, code ASC";
@@ -290,6 +294,7 @@ $tabsqlsort[41]="rowid ASC";
 $tabsqlsort[42]="rowid ASC";
 $tabsqlsort[43]="rowid ASC";
 $tabsqlsort[44]="rowid ASC";
+$tabsqlsort[45]="rowid ASC";
 
 // Nom des champs en resultat de select pour affichage du dictionnaire
 $tabfield=array();
@@ -337,6 +342,7 @@ $tabfield[41]= "fk_groupissues,fk_subdivision,action,responsible,directly_respon
 $tabfield[42]= "status";
 $tabfield[43]= "type,code";
 $tabfield[44]= "name";
+$tabfield[45]= "name";
 
 // Nom des champs d'edition pour modification d'un enregistrement
 $tabfieldvalue=array();
@@ -384,6 +390,7 @@ $tabfieldvalue[41]= "fk_groupissues,fk_subdivision,action,responsible,directly_r
 $tabfieldvalue[42]= "status";
 $tabfieldvalue[43]= "type,code";
 $tabfieldvalue[44]= "name";
+$tabfieldvalue[45]= "name";
 
 
 
@@ -434,6 +441,7 @@ $tabfieldinsert[41]= "fk_groupissues,fk_subdivision,action,responsible,directly_
 $tabfieldinsert[42]= "status";
 $tabfieldinsert[43]= "type,code";
 $tabfieldinsert[44]= "name";
+$tabfieldinsert[45]= "name";
 
 // Nom du rowid si le champ n'est pas de type autoincrement
 // Example: "" if id field is "rowid" and has autoincrement on
@@ -483,6 +491,7 @@ $tabrowid[41]= "rowid";
 $tabrowid[42]= "rowid";
 $tabrowid[43]= "rowid";
 $tabrowid[44]= "rowid";
+$tabrowid[45]= "rowid";
 
 // Condition to show dictionary in setup page
 $tabcond=array();
@@ -530,6 +539,7 @@ $tabcond[41]= true;
 $tabcond[42]= true;
 $tabcond[43]= true;
 $tabcond[44]= true;
+$tabcond[45]= true;
 
 // List of help for fields
 $tabhelp=array();
@@ -577,6 +587,7 @@ $tabhelp[41] = array();
 $tabhelp[42] = array();
 $tabhelp[43] = array();
 $tabhelp[44] = array();
+$tabhelp[45] = array();
 
 // List of check for fields (NOT USED YET)
 $tabfieldcheck=array();
@@ -624,6 +635,7 @@ $tabfieldcheck[41] = array();
 $tabfieldcheck[42] = array();
 $tabfieldcheck[43] = array();
 $tabfieldcheck[44] = array();
+$tabfieldcheck[45] = array();
 
 // Complete all arrays with entries found into modules
 complete_dictionary_with_modules($taborder,$tabname,$tablib,$tabsql,$tabsqlsort,$tabfield,$tabfieldvalue,$tabfieldinsert,$tabrowid,$tabcond,$tabhelp,$tabfieldcheck);

@@ -1227,6 +1227,7 @@ class Form
      * 	@return	string					HTML select string
      *  @see select_dolgroups
      */
+
     function selectLineAction($selected=array(), $htmlname, $size=5){
         global $db, $langs;
         $sql = "SELECT DISTINCT c.category_id, c.parent_id, cd2.name,  (SELECT  GROUP_CONCAT(cd1.name ORDER BY level SEPARATOR ' &gt; ')
@@ -4650,6 +4651,26 @@ class Form
             $out .= '<option value="0">&nbsp;</option>';
             while($row = $result->fetch_assoc()){
                 if($selected == trim($row['rowid'])){
+                    $out .= '<option value="'.$row['rowid'].'" selected = "selected">'.trim($row['name']).'</option>';
+                }else{
+                    $out .= '<option value="'.$row['rowid'].'"> '.trim($row['name']).'</option>';
+                }
+            }
+            $out.='</select>';
+            return $out;
+        }else {
+            dol_print_error($this->db);
+        }
+    }
+    function select_lineaction_marketing($selected = array(), $name, $size){
+
+        $sql ="select rowid, name from `llx_c_lineactive_marketing` where active = 1 order by name";
+        $result= $this->db->query($sql);
+        if($result){
+            $out = '<select id="'.$name.'" class="combobox"size="'.$size.'" '.($size>1?'multiple=""':'').' name="'.$name.'" onchange="setvisiblbloks();">';
+            $out .= '<option value="0">&nbsp;</option>';
+            while($row = $result->fetch_assoc()){
+                if(in_array(trim($row['rowid']), $selected)){
                     $out .= '<option value="'.$row['rowid'].'" selected = "selected">'.trim($row['name']).'</option>';
                 }else{
                     $out .= '<option value="'.$row['rowid'].'"> '.trim($row['name']).'</option>';

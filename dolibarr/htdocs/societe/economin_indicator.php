@@ -145,31 +145,39 @@ print '
             <div class="inline-block tabsElem">
                 <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societecontact.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('ContactList').'</a>
             </div>';
-            $sql = "select `responsibility_param`.`fx_category_counterparty` category_id from `responsibility`
+            $sql = "select `responsibility_param`.`fx_category_counterparty` category_id, `responsibility`.`alias` from `responsibility`
                 inner join `responsibility_param` on `responsibility_param`.`fx_responsibility` = `responsibility`.`rowid`
-                where `responsibility`.`alias`='sale'";
+                where `responsibility`.`alias` in ('sale','purchase','marketing')";
             $res = $db->query($sql);
             if(!$res)
                 dol_print_error($db);
             $sales_category = array();
-            while($obj = $db->fetch_object($res)){
-                $sales_category[]=$obj->category_id;
-            }
-            $sql = "select `responsibility_param`.`fx_category_counterparty` category_id from `responsibility`
-                inner join `responsibility_param` on `responsibility_param`.`fx_responsibility` = `responsibility`.`rowid`
-                where `responsibility`.`alias`='purchase'";
-            $res = $db->query($sql);
-            if(!$res)
-                dol_print_error($db);
             $purchase_category = array();
+            $marketing_category = array();
             while($obj = $db->fetch_object($res)){
-                $purchase_category[]=$obj->category_id;
+                if(!empty($obj->category_id)) {
+                    switch ($obj->alias) {
+                        case 'sale': {
+                            $sales_category[] = $obj->category_id;
+                        }
+                            break;
+                        case 'purchase': {
+                            $purchase_category[] = $obj->category_id;
+                        }
+                            break;
+                        case 'marketing': {
+                            $marketing_category[] = $obj->category_id;
+                        }
+                            break;
+                    }
+                }
             }
+
             if(in_array($object->categoryofcustomer_id, $sales_category))
                 print '<div class="inline-block tabsElem">
                                 <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('EconomicData').'</a>
                             </div>';
-            elseif(in_array($object->categoryofcustomer_id, $purchase_category)) {
+            elseif(in_array($object->categoryofcustomer_id, $purchase_category)||in_array($object->categoryofcustomer_id, $marketing_category)) {
                 print '<div class="inline-block tabsElem">
                                 <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('LineActive').'</a>
                             </div>';
@@ -181,6 +189,7 @@ print '<div class="inline-block tabsElem">
                 <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/partners.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&socid='.$object->id.'">'.$langs->trans('PartnersOfCustomer').'</a>
             </div>
         </div>';
+
 if(in_array($object->categoryofcustomer_id, $sales_category)){
     include($_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/theme/' . $conf->theme . '/economic_indicator.html');
     print '<script>
@@ -199,7 +208,7 @@ if(in_array($object->categoryofcustomer_id, $sales_category)){
                      <a class='close' title='Закрыть' href='#close'></a>
                      </div>";
     print $prev_form;
-}elseif(in_array($object->categoryofcustomer_id, $purchase_category)) {
+}elseif(in_array($object->categoryofcustomer_id, $purchase_category)||in_array($object->categoryofcustomer_id, $marketing_category)) {
     $lineactive=array();
     $sql = 'select fk_lineactive from llx_societe_lineactive where fk_soc = '.$object->id.' and active=1';
     $res = $db->query($sql);
@@ -209,7 +218,6 @@ if(in_array($object->categoryofcustomer_id, $sales_category)){
         while($obj = $db->fetch_object($res)){
             $lineactive[]=$obj->fk_lineactive;
         }
-
 
     require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
     $form = new Form($db);
@@ -230,6 +238,7 @@ if(in_array($object->categoryofcustomer_id, $sales_category)){
             </tr>
         </table>
     </div>';
+
     print '<form id="lineaction" action="economin_indicator.php" method="post" style="width: 550px; padding-left: 200px">';
     print '<input id="id" name="id" value="'.$user->id.'" type="hidden">';
     print '<input id="mainmenu" name="mainmenu" value="'.$_REQUEST['mainmenu'].'" type="hidden">';
@@ -238,7 +247,10 @@ if(in_array($object->categoryofcustomer_id, $sales_category)){
     print '<input id="action" name="action" value="edit" type="hidden">';
     print '<input id="socid" name="socid" value="'.$_REQUEST['socid'].'" type="hidden">';
     print '<input id="actionlineactive" name="actionlineactive" value="updatelineactive" type="hidden">';
-    print $form->selectLineAction($lineactive, 'select_lineaction', 30);
+    if(in_array($object->categoryofcustomer_id, $purchase_category))
+        print $form->selectLineAction($lineactive, 'select_lineaction', 30);
+    elseif(in_array($object->categoryofcustomer_id, $marketing_category))
+        print $form->select_lineaction_marketing($lineactive, 'select_lineaction', 30);
     print '</br>';
     print '<input type="submit" value="Зберегти">';
     print '</form>';

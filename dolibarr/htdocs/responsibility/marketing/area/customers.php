@@ -30,7 +30,7 @@ left join `llx_societe_lineactive` on `llx_societe_lineactive`.fk_soc = `llx_soc
 where 1  ';
 
     $tmp = 'and `llx_societe`.`categoryofcustomer_id` in
-(select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = '.$user->respon_id.')';
+(select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = '.$respon_id.')';
     $sql.=$tmp;
     $sql_count.=$tmp;
 
@@ -42,18 +42,33 @@ where 1  ';
 //echo '</pre>';
 
 if($user->login != 'admin') {
-    $tmp = ' and (`llx_societe`. fk_user_creat = '.$user->id.' or `llx_societe_lineactive`.`fk_lineactive` in ('.implode(',', $user->getLineActive()).'))';
+    $tmp = ' and (`llx_societe`. fk_user_creat = '.$user->id.' or `llx_societe_lineactive`.`fk_lineactive` in ('.implode(',', $user->getLineActive($id_usr)).'))';
     $sql.=$tmp;
     $sql_count.=$tmp;
 }
+global $respon_id;
 $filterid = array();
+$categoryofcustomer_id = array();
+$sql_cat = 'select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = '.$respon_id;
+$res_cat = $db->query($sql_cat);
+if(!$res_cat)
+    dol_print_error($db);
+while($obj_cat = $db->fetch_object($res_cat)) {
+    if(!in_array($obj_cat->fx_category_counterparty, $categoryofcustomer_id)&&!empty($obj_cat->fx_category_counterparty))
+        $categoryofcustomer_id[] = $obj_cat->fx_category_counterparty;
+}
+if(count($categoryofcustomer_id) == 0)
+    $categoryofcustomer_id[]=0;
 
-if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['category_counterparty'])&& !empty($_REQUEST['category_counterparty'])){
+//var_dump($categoryofcustomer_id);
+//die();
+
+if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['lineactiveID'])&& !empty($_REQUEST['lineactiveID'])){
     if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])) {
         $phone_number = fPrepPhoneFilter($_REQUEST['filter']);
         $sql_filter = "select llx_societe.rowid from llx_societe
             left join `llx_societe_contact` on `llx_societe_contact`.`socid`=`llx_societe`.`rowid`
-            where 1 and `llx_societe`.`categoryofcustomer_id` = 9 and `llx_societe`.`nom`  like '%" . $_REQUEST['filter'] . "%'
+            where 1 and `llx_societe`.`categoryofcustomer_id` in (".implode(',', $categoryofcustomer_id).") and `llx_societe`.`nom`  like '%" . $_REQUEST['filter'] . "%'
             or `llx_societe_contact`.`lastname`  like '%" . $_REQUEST['filter'] . "%'
             or `llx_societe_contact`.`firstname`  like '%" . $_REQUEST['filter'] . "%'
             or `llx_societe_contact`.`subdivision`  like '%" . $_REQUEST['filter'] . "%'
@@ -74,8 +89,21 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['cat
             }
 
     }
-    if(isset($_REQUEST['category_counterparty'])&& !empty($_REQUEST['category_counterparty']) && $_REQUEST['category_counterparty'] != -1){
-        $sql_filter='select `llx_societe`.`rowid` from `llx_societe` where categoryofcustomer_id = '.$_REQUEST['category_counterparty'];
+//echo '<pre>';
+//var_dump($filterid);
+//echo '</pre>';
+//die();
+    if(isset($_REQUEST['lineactiveID'])&& !empty($_REQUEST['lineactiveID']) && $_REQUEST['lineactiveID'] != -1){
+        $sql_filter="select `llx_societe`.`rowid`
+            from `llx_societe`
+            inner join `llx_societe_lineactive` on `llx_societe_lineactive`.`fk_soc` = `llx_societe`.`rowid`
+            where categoryofcustomer_id in (".implode(',', $categoryofcustomer_id).")
+            and `llx_societe_lineactive`.`fk_lineactive` = ".$_REQUEST['lineactiveID'];
+        $sql_filter.=" and `llx_societe_lineactive`.active = 1";
+//        echo '<pre>';
+//        var_dump($sql_filter);
+//        echo '</pre>';
+//        die();
         $res = $db->query($sql_filter);
         if (!$res)
             dol_print_error($db);
@@ -90,7 +118,7 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['cat
         $sql .= ' and `llx_societe`.`rowid` in (' . implode(',', $filterid) . ') ';
         $sql_count .= ' and `llx_societe`.`rowid` in (' . implode(',', $filterid) . ')';
     }else{
-        if(isset($_REQUEST['category_counterparty'])&& !empty($_REQUEST['category_counterparty']) && $_REQUEST['category_counterparty'] != -1) {
+        if(isset($_REQUEST['lineactiveID'])&& !empty($_REQUEST['lineactiveID']) && $_REQUEST['lineactiveID'] != -1) {
             $sql .= ' and `llx_societe`.`rowid` in (0) ';
             $sql_count .= ' and `llx_societe`.`rowid` in (0)';
         }
@@ -103,10 +131,7 @@ $sql .= ' limit '.($page-1)*$per_page.','.$per_page;
 $res = $db->query($sql_count);
 $count = $db->fetch_object($res);
 
-//echo '<pre>';
-//var_dump($filterid);
-//echo '</pre>';
-//die();
+
 $total = ceil($count->iCount/$per_page);
 
 $TableParam = array();
@@ -299,6 +324,12 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
             $num_col++;
         }
     }
+//    echo '<pre>';
+//    var_dump($sql);
+//    echo '</pre>';
+//    die();
+    if($db->num_rows($result)==0)
+        ClearFilterMessage();
     $rowidList=array();
     while($obj = $db->fetch_object($result)){
         $rowidList[]=$obj->rowid;
@@ -323,7 +354,7 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
 //    and `llx_actioncomm`.active = 1
 //    group by `llx_societe`.rowid, `responsibility`.`alias` ";
 //    $sql .= ' limit '.($page-1)*$per_page.','.$per_page;
-if(count($rowidList)>0) {
+    if(count($rowidList)>0) {
 
         $sql = "select `llx_societe_action`.`socid` as rowid, max(`llx_societe_action`.`dtChange`) dtChange, `responsibility`.`alias`  from `llx_societe_action`
         left join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.`rowid`
@@ -661,4 +692,19 @@ if(count($rowidList)>0) {
 
     $table .= $edit_form;
     return $table;
+}
+function ClearFilterMessage(){
+        echo '<div style="height: 150px"></div>';
+        print '<form id="setfilter" action="" method="get">
+                <input type="hidden" name="mainmenu" value="'.$_REQUEST["mainmenu"].'">
+                <input type="hidden" name="idmenu" value="'.$_REQUEST["idmenu"].'">
+                <input type="hidden" name="filter" value="" id="filter" size="45">
+        </form>';
+        print "
+        <script>
+        function clearfilter(){
+            $('#setfilter').submit();
+        }
+        </script>";
+        die('<span style="font-size: 20px">Не знайдено жодного господарства. Натисніть кнопку <button style="height: 25px" onclick="clearfilter();">Зняти фільтр</button></span>');
 }

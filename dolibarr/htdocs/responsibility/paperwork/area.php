@@ -24,12 +24,15 @@ print_fiche_titre($Area);
 //print '<div>';
 if(isset($_GET['id_usr'])&&!empty($_GET['id_usr'])){
     global $db;
-    $sql = 'select lastname from llx_user where rowid = '.$_GET['id_usr'];
+    $sql = 'select lastname, respon_id from llx_user where rowid = '.$_GET['id_usr'];
     $res = $db->query($sql);
     $obj = $db->fetch_object($res);
     $username = $obj->lastname;
-}else
+    $respon_id = $obj->respon_id;
+}else {
     $username = $user->lastname;
+    $respon_id = $user->respon_id;
+}
 //Шапка сторінки
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/jurist/area/header.php';
 //Перелік контрагентів

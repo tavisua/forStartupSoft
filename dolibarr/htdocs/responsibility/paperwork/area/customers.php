@@ -51,12 +51,25 @@ where 1  ';
 //    $sql.=$tmp;
 //    $sql_count.=$tmp;
 //}
+global $respon_id;
+$categoryofcustomer_id = array();
+$sql_cat = 'select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = '.$respon_id;
+$res_cat = $db->query($sql_cat);
+if(!$res_cat)
+    dol_print_error($db);
+while($obj_cat = $db->fetch_object($res_cat)) {
+    if(!in_array($obj_cat->fx_category_counterparty, $categoryofcustomer_id)&&!empty($obj_cat->fx_category_counterparty))
+        $categoryofcustomer_id[] = $obj_cat->fx_category_counterparty;
+}
+if(count($categoryofcustomer_id) == 0)
+    $categoryofcustomer_id[]=0;
+
 if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['category'])&& !empty($_REQUEST['category'])){
     if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])) {
         $phone_number = fPrepPhoneFilter($_REQUEST['filter']);
         $sql_filter = "select llx_societe.rowid from llx_societe
             left join `llx_societe_contact` on `llx_societe_contact`.`socid`=`llx_societe`.`rowid`
-            where 1 and `llx_societe`.`categoryofcustomer_id` = 9 and `llx_societe`.`nom`  like '%" . $_REQUEST['filter'] . "%'
+            where 1 and `llx_societe`.`categoryofcustomer_id` in (".implode(',', $categoryofcustomer_id).") and `llx_societe`.`nom`  like '%" . $_REQUEST['filter'] . "%'
             or `llx_societe_contact`.`lastname`  like '%" . $_REQUEST['filter'] . "%'
             or `llx_societe_contact`.`firstname`  like '%" . $_REQUEST['filter'] . "%'
             or `llx_societe_contact`.`subdivision`  like '%" . $_REQUEST['filter'] . "%'

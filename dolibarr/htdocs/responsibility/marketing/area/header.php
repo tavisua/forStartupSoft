@@ -103,31 +103,25 @@ include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/respo
 return;
 
 
-function CaregoryCounterparty(){
-    global $db, $user;
-    $sql = "select `category_counterparty`.`rowid` as category_id, case when fx_category_counterparty is null then other_category else fx_category_counterparty end fx_category_counterparty,
-        case when case when fx_category_counterparty is null then other_category else fx_category_counterparty end = 'users' then 'Співробітники' else `category_counterparty`.`name` end `name`
-        from `responsibility_param`
-        left join `category_counterparty` on `category_counterparty`.`rowid` = case when fx_category_counterparty is null then other_category else fx_category_counterparty end
-        where `fx_responsibility` in (select rowid from `responsibility`
-        where alias = '".$user->respon_alias."')
-        and fx_category_counterparty is not null";
-//    $sql.=" union
-//    select 'users', 'Співробитники'  ";
+function LineActive(){
+
+    global $db, $user, $id_usr;
+    require DOL_DOCUMENT_ROOT.'/core/lib/day_plan.php';
+    $lineactive = getLineActive($id_usr);
+
 //    echo '<pre>';
-//    var_dump($sql);
+//    var_dump($lineactive);
 //    echo '</pre>';
 //    die();
-    $res = $db->query($sql);
-    if(!$res)
-        dol_print_error($db);
-    $out = '<select id="category_counterparty" class="combobox" onchange="setCategoryFilter();">';
+    $out = '<select id="lineactive" class="combobox" onchange="setLineActiveFilter();">';
     $out.='<option value="-1" selected="selected">Відобразити всі</option>';
-    $category_id = isset($_REQUEST['category_counterparty'])&& !empty($_REQUEST['category_counterparty'])?$_REQUEST['category_counterparty']:0;
-    while($obj = $db->fetch_object($res)){
-        $out.='<option '.($obj->category_id == 'users'?'id="users"':'').' value="'.$obj->category_id.'" '.(is_numeric($category_id) == is_numeric($obj->category_id) && $category_id == $obj->category_id?'selected="selected"':'').'>'.$obj->name.'</option>';
+    $lineactiveID = isset($_REQUEST['lineactiveID'])&& !empty($_REQUEST['lineactiveID'])?$_REQUEST['lineactiveID']:0;
+//    while($obj = $db->fetch_object($res)){
+//        $out.='<option '.($obj->category_id == 'users'?'id="users"':'').' value="'.$obj->category_id.'" '.(is_numeric($category_id) == is_numeric($obj->category_id) && $category_id == $obj->category_id?'selected="selected"':'').'>'.$obj->name.'</option>';
+//    }
+    foreach(array_keys($lineactive) as $key){
+        $out.='<option '.($key == 'users'?'id="users"':'').' value="'.$key.'" '.(is_numeric($lineactiveID) == is_numeric($key) && $lineactiveID == $key?'selected="selected"':'').'>'.$lineactive[$key]['name'].' '.(!empty($lineactive[$key]['type'])?'['.$lineactive[$key]['type'].']':'').'</option>';
     }
     $out.='</selected>';
-//    var_dump(htmlspecialchars($out));
     return $out;
 }

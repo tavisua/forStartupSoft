@@ -878,18 +878,24 @@ else
         $res = $db->query($sql);
         if(!$res)
             dol_print_error($db);
+//        echo '<pre>';
+//        var_dump($object);
+//        echo '</pre>';
+//        die();
         $purchase_category = array();
         while($obj = $db->fetch_object($res)){
             $purchase_category[]=$obj->category_id;
         }
-        if(in_array($object->categoryofcustomer_id, $sales_category))
-            print '<div class="inline-block tabsElem">
-                            <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('EconomicData').'</a>
+        if(!empty($object->categoryofcustomer_id)) {
+            if (in_array($object->categoryofcustomer_id, $sales_category))
+                print '<div class="inline-block tabsElem">
+                            <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu=' . $_REQUEST['mainmenu'] . '&idmenu=' . $_REQUEST['idmenu'] . '&action=edit&socid=' . $object->id . '">' . $langs->trans('EconomicData') . '</a>
                         </div>';
-        elseif(in_array($object->categoryofcustomer_id, $purchase_category)) {
-            print '<div class="inline-block tabsElem">
-                            <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('LineActive').'</a>
+            if (in_array($object->categoryofcustomer_id, $purchase_category)) {
+                print '<div class="inline-block tabsElem">
+                            <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu=' . $_REQUEST['mainmenu'] . '&idmenu=' . $_REQUEST['idmenu'] . '&action=edit&socid=' . $object->id . '">' . $langs->trans('LineActive') . '</a>
                         </div>';
+            }
         }
         print '<div class="inline-block tabsElem" >
             <b class="tab inline-block inactiveTab" data-role="button">'.$langs->trans('FinanceAndDetails').'</b>
@@ -1880,28 +1886,30 @@ else
             <div class="inline-block tabsElem">
                 <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societecontact.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('ContactList').'</a>
             </div>';
-        $sql = "select `responsibility_param`.`fx_category_counterparty` category_id from `responsibility`
+        $sql = "select `responsibility_param`.`fx_category_counterparty` category_id, `responsibility`.`alias` from `responsibility`
             inner join `responsibility_param` on `responsibility_param`.`fx_responsibility` = `responsibility`.`rowid`
-            where `responsibility`.`alias`='sale'";
+            where `responsibility`.`alias` in('sale', 'purchase', 'marketing')";
         $res = $db->query($sql);
         if(!$res)
             dol_print_error($db);
         $sales_category = array();
         while($obj = $db->fetch_object($res)){
-            $sales_category[]=$obj->category_id;
+            switch($obj->alias) {
+                case 'sale': {
+                    $sales_category[] = $obj->category_id;
+                }break;
+                case 'purchase': {
+                    $purchase_category[] = $obj->category_id;
+                }break;
+                case 'marketing':{
+                    $marketing_category[] = $obj->category_id;
+                }
+            }
+
         }
-        $sql = "select `responsibility_param`.`fx_category_counterparty` category_id from `responsibility`
-            inner join `responsibility_param` on `responsibility_param`.`fx_responsibility` = `responsibility`.`rowid`
-            where `responsibility`.`alias`='purchase'";
-        $res = $db->query($sql);
-        if(!$res)
-            dol_print_error($db);
-        $purchase_category = array();
-        while($obj = $db->fetch_object($res)){
-            $purchase_category[]=$obj->category_id;
-        }
+
 //        echo '<pre>';
-//        var_dump($sales_category);
+//        var_dump($object);
 //        echo '</pre>';
 //        die($object->categoryofcustomer_id);
         if(in_array($object->categoryofcustomer_id, $sales_category))
@@ -1909,6 +1917,10 @@ else
                             <a id="user" class=" tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('EconomicData').'</a>
                         </div>';
         elseif(in_array($object->categoryofcustomer_id, $purchase_category)) {
+            print '<div class="inline-block tabsElem">
+                            <a id="user" class=" tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('LineActive').'</a>
+                        </div>';
+        }elseif(in_array($object->categoryofcustomer_id, $marketing_category)){
             print '<div class="inline-block tabsElem">
                             <a id="user" class=" tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('LineActive').'</a>
                         </div>';

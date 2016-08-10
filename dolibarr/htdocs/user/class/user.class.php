@@ -1272,7 +1272,8 @@ class User extends CommonObject
 		return $categories;
 	}
 	function getLineActive($id_usr){
-		$sql = 'select fk_lineactive from llx_user_lineactive where fk_user = '.(empty($id_usr)?$this->id:$id_usr).' and active = 1';
+		$id_usr = (empty($id_usr)?$this->id:$id_usr);
+		$sql = 'select fk_lineactive from llx_user_lineactive where fk_user = '.$id_usr.' and active = 1';
 
 		$res = $this->db->query($sql);
 		if(!$res)
@@ -1282,22 +1283,46 @@ class User extends CommonObject
 			if(!in_array($obj->fk_lineactive, $lineactive))
 				$lineactive[]=$obj->fk_lineactive;
 		}
-		foreach($lineactive as $item) {
-			$sql = 'select ' . $item . ' as category_id
+		$sql = "select res.alias, res2.alias alias2 from llx_user
+			left join `responsibility` res on res.rowid = llx_user.respon_id
+			left join `responsibility` res2 on res2.rowid = llx_user.respon_id2
+			where llx_user.rowid = ".$id_usr;
+		$resAlias = $this->db->query($sql);
+		if(!$resAlias)
+			dol_print_error($this->db);
+		$object = $this->db->fetch_object($resAlias);
+		if(count(array_intersect(array($object->respon_alias,$object->respon_alias2), array('service','purchase','wholesale_purchase'))) > 0) {
+			foreach ($lineactive as $item) {
+				$sql = 'select ' . $item . ' as category_id
               union
               select category_id from `oc_category`
               where parent_id=' . $item . '
               union
               select parent_id from `oc_category`
               where category_id=' . $item;
-			$res = $this->db->query($sql);
-			if(!$res)
-				dol_print_error($this->db);
-			while($obj = $this->db->fetch_object($res)){
-				if(!in_array($obj->category_id, $lineactive))
-					$lineactive[]=$obj->category_id;
+				$res = $this->db->query($sql);
+				if (!$res)
+					dol_print_error($this->db);
+				while ($obj = $this->db->fetch_object($res)) {
+					if (!in_array($obj->category_id, $lineactive))
+						$lineactive[] = $obj->category_id;
+				}
 			}
 		}
+		if(count(array_intersect(array($object->respon_alias,$object->respon_alias2), array('marketing'))) > 0) {
+			$sql = "select fk_lineactive from `llx_user_lineactive`
+				where `fk_user` = ".$id_usr."
+				and active = 1
+				and page is null";
+			$res = $this->db->query($sql);
+			if (!$res)
+				dol_print_error($this->db);
+			while ($obj = $this->db->fetch_object($res)) {
+				if (!in_array($obj->fk_lineactive, $lineactive))
+					$lineactive[] = $obj->fk_lineactive;
+			}
+		}
+
 //		var_dump($lineactive);
 //		die();
 		return $lineactive;

@@ -55,7 +55,7 @@
                 <td style="width: 200px">
                     <input type="hidden" name="mainmenu" value="<?=$_REQUEST['mainmenu']?>">
                     <input type="hidden" name="idmenu" value="<?=$_REQUEST['idmenu']?>">
-                    <input type="hidden" id = "category_id" name="category_counterparty" value="<?=$_REQUEST['category_counterparty']?>">
+                    <input type="hidden" id = "lineactiveFilter" name="lineactiveID" value="<?=$_REQUEST['lineactiveID']?>">
                     <input type="text" name="filter" value="" id="filter" size="45">
                 </td>
             </tr>
@@ -72,9 +72,8 @@
             function closefindmenu(){
                 $('#popupmenu').hide();
             }
-            function setCategoryFilter(){
-                $('#category_id').val($('select#category_counterparty').val());
-//                console.log($('#category_id').val(), $('select#category_counterparty').val());
+            function setLineActiveFilter(){
+                $('#lineactiveFilter').val($('#lineactive').val());
                 $('#setfilter').submit();
             }
             $(document).ready(function(){

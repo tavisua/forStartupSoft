@@ -557,6 +557,23 @@ function getLineActive($id_usr){
     $objAlias = $db->fetch_object($resAlias);
     $arrayAlias = array($objAlias->alias, $objAlias->alias2);
     $lineactive = array();
+    if(count(array_intersect($arrayAlias, array('marketing')))) {
+        $sql = "select distinct `llx_c_lineactive_marketing`.`rowid`, `llx_c_lineactive_marketing`.`name` from llx_c_lineactive_marketing
+            inner join `llx_user_lineactive` on `llx_user_lineactive`.`fk_lineactive` = llx_c_lineactive_marketing.rowid
+            where 1
+            and `llx_user_lineactive`.`fk_user` = ".$id_usr."
+            and `llx_user_lineactive`.`active` = 1
+            and `llx_user_lineactive`.`page` is null";
+        $res = $db->query($sql);
+        if (!$res)
+            dol_print_error($db);
+        while ($obj = $db->fetch_object($res)) {
+            if (!isset($lineactive[$obj->rowid])) {
+                $lineactive[$obj->rowid] = array('name' => $obj->name);
+            }
+        }
+    }
+
 
     if(count(array_intersect($arrayAlias, array('jurist', 'corp_manager', 'paperwork','counter','logistika')))) {
         $sql = "select category_counterparty.rowid, category_counterparty.name from `llx_user_categories_contractor`
