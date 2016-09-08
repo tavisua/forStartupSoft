@@ -179,8 +179,15 @@ include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
 $db_mysql = new dbBuilder();
 $table = $db_mysql->fShowTable($TableParam, $sql, "'" . $tablename . "'", $conf->theme, $_REQUEST['sortfield'], $_REQUEST['sortorder']);
 
-
+llxSendSmsEmail('all');
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/societe.html';
+print "
+    <script>
+        $(document).ready(function(){
+           $('#sendSmsEmail').offset({top:160, left:40});
+        })
+    </script>
+";
 if(strpos($_SERVER['QUERY_STRING'],'&page='))
     $link_page = $_SERVER['PHP_SELF'].'?'.substr($_SERVER['QUERY_STRING'],0,strpos($_SERVER['QUERY_STRING'],'&page='));
 else {

@@ -45,7 +45,7 @@ $resp_obj = $db->fetch_object($res_respon);
     $sql_count.=' and `llx_societe`.active = 1 ';
 
 //echo '<pre>';
-//var_dump(empty($_REQUEST['lineactive']));
+//var_dump($sql);
 //echo '</pre>';
 //die();
 
@@ -106,7 +106,7 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['lin
 //              where category_id='.$_REQUEST['lineactive'].') lineactive on lineactive.category_id=`llx_societe_lineactive`.`fk_lineactive`
 //            where 1
 //            and `llx_societe`.`categoryofcustomer_id` in
-//                (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = '.$user->respon_id.')';
+//                (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = '.$respon_id.')';
 
         $lineactive = getSubLineActive(array($_REQUEST['lineactive']));
 

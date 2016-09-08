@@ -24,6 +24,7 @@ else {
 }
 $sql .= " and `llx_actioncomm`.`code` not in ('AC_OTH_AUTO')
 and `llx_actioncomm`.active = 1
+and (`llx_actioncomm`.`entity` = 0 AND `llx_actioncomm`.`code` IN('AC_GLOBAL','AC_CURRENT') OR `llx_actioncomm`.`entity` = 1 AND `llx_actioncomm`.`code` NOT IN('AC_GLOBAL','AC_CURRENT'))
 and (`llx_actioncomm`.hide is null or `llx_actioncomm`.hide <> 1)
 order by case when `llx_actioncomm_resources`.`fk_element` is null then `llx_actioncomm`.fk_user_author else `llx_actioncomm_resources`.`fk_element` end, `llx_actioncomm`.priority, datep;";
 //echo '<pre>';

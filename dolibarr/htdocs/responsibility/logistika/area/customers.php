@@ -16,7 +16,6 @@ foreach($search as $elem) {
 }
 $page = isset($_GET['page'])?$_GET['page']:1;
 $per_page = isset($_GET['per_page'])?$_GET['per_page']:30;
-
 $sql = "select distinct `llx_societe`.rowid, concat(case when `formofgavernment`.`name` is null then '' else `formofgavernment`.`name` end,' ',`llx_societe`.`nom`) nom,
 `llx_societe`.`town`, round(`llx_societe_classificator`.`value`,0) as width, `llx_societe`.`remark`, ' ' deficit,
 ' ' task,' ' lastdate, ' ' lastdatecomerc, ' ' futuredatecomerc, ' ' exec_time, ' ' lastdateservice,
@@ -30,16 +29,48 @@ $sql_count = 'select count(*) iCount from
 (select distinct `llx_societe`.*  from `llx_societe`
 left join `llx_societe_lineactive` on `llx_societe_lineactive`.fk_soc = `llx_societe`.rowid
 where 1  ';
-    if(empty($_REQUEST['category']) || $_REQUEST['category'] == -1) {
-        $category = implode(',', $user->getCategoriesContractor());
-        $tmp = 'and `llx_societe`.`categoryofcustomer_id` in (' .(empty($category)?'0':$category). ')';
-    }else
-        $tmp = 'and `llx_societe`.`categoryofcustomer_id` = '.$_REQUEST['category'];
-    $sql.=$tmp;
-    $sql_count.=$tmp;
 
-    $sql .= ' and `llx_societe`.active = 1 ';
-    $sql_count.=' and `llx_societe`.active = 1 ';
+    if(isset($_REQUEST['stateID'])&&!empty($_REQUEST['stateID']) || isset($_REQUEST['regionID'])&&!empty($_REQUEST['regionID'])){
+        $category = implode(',', $user->getCategoriesContractor($id_usr));
+        $sqlRegionFilter = "select `llx_societe`.rowid
+            from `llx_societe`
+            left join `llx_societe_address` on `llx_societe_address`.`fk_soc` = `llx_societe`.`rowid`
+            where 1 and `llx_societe`.`categoryofcustomer_id` in (".$category.") and `llx_societe`.active = 1
+            and (";
+        if(isset($_REQUEST['stateID'])&&!empty($_REQUEST['stateID']))
+            $sqlRegionFilter.="case when `llx_societe_address`.state_id is null then `llx_societe`.state_id else `llx_societe_address`.state_id end in(".$_REQUEST['stateID'].")";
+        if(isset($_REQUEST['stateID'])&&!empty($_REQUEST['stateID']) && isset($_REQUEST['regionID'])&&!empty($_REQUEST['regionID']))
+            $sqlRegionFilter.=" or ";
+        if(isset($_REQUEST['regionID'])&&!empty($_REQUEST['regionID']))
+            $sqlRegionFilter.="case when `llx_societe_address`.region_id is null then `llx_societe`.region_id else `llx_societe_address`.region_id end in (".$_REQUEST['regionID'].")";
+        $sqlRegionFilter.=")";
+        $resFilter = $db->query($sqlRegionFilter);
+        if(!$res)
+            dol_print_error($resFilter);
+        $socID = array();
+        while($obj = $db->fetch_object($resFilter)){
+            $socID[]= $obj->rowid;
+        }
+        if(count($socID)>0) {
+            $sql .= " and `llx_societe`.rowid in (" . implode(',', $socID) . ")";
+            $sql_count .= " and `llx_societe`.rowid in (" . implode(',', $socID) . ")";
+
+        }
+//        echo '<pre>';
+//        var_dump($sql);
+//        echo '</pre>';
+//        die();
+    }else {
+        if(empty($_REQUEST['category']) || $_REQUEST['category'] == -1) {
+            $category = implode(',', $user->getCategoriesContractor($id_usr));
+            $tmp = 'and `llx_societe`.`categoryofcustomer_id` in (' .(empty($category)?'0':$category). ')';
+        }else
+            $tmp = 'and `llx_societe`.`categoryofcustomer_id` = '.$_REQUEST['category'];
+        $sql.=$tmp;
+        $sql_count.=$tmp;
+        $sql .= ' and `llx_societe`.active = 1 ';
+        $sql_count .= ' and `llx_societe`.active = 1 ';
+    }
 
 //echo '<pre>';
 //var_dump( $_REQUEST);
@@ -252,7 +283,7 @@ $table = fShowTable($TableParam, $sql, "'" . $tablename . "'", $conf->theme, $_R
 
 //$row = $db_mysql->fShowTable($TableParam, $sql, "'" . $tablename . "'", $conf->theme, $_REQUEST['sortfield'], $_REQUEST['sortorder'], $readonly = array(-1), false);
 
-include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/jurist/area/customers.html');
+include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/logistika/area/customers.html');
 $prev_form = "<a href='#x' class='overlay' id='peview_form'></a>
                      <div class='popup' style='width: 300px;height: 150px'>
                      <textarea readonly id='prev_form' style='width: 100%;height: 100%;resize: none'></textarea>

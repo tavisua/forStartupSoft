@@ -7,13 +7,13 @@
  */
 
 require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
-if(count($_POST)>0){
-    $_SESSION['region_id'] = GETPOST('state_filter', 'int');
-    echo '<pre>';
-    var_dump($_SESSION['region_id']);
-    echo '</pre>';
-    die();
-}
+//if(count($_POST)>0){
+//    $_SESSION['region_id'] = GETPOST('state_filter', 'int');
+//    echo '<pre>';
+//    var_dump($_SESSION['region_id']);
+//    echo '</pre>';
+//    die();
+//}
 //echo '<pre>';
 //var_dump($_REQUEST);
 //echo '</pre>';
@@ -22,21 +22,23 @@ $Area = $langs->trans('Area');
 llxHeader("",$Area,"");
 print_fiche_titre($Area);
 //print '<div>';
+global $db,$user;
 if(isset($_GET['id_usr'])&&!empty($_GET['id_usr'])){
-    global $db;
     $sql = 'select lastname, respon_id from llx_user where rowid = '.$_GET['id_usr'];
     $res = $db->query($sql);
     $obj = $db->fetch_object($res);
     $username = $obj->lastname;
     $respon_id = $obj->respon_id;
+    $id_usr = $_GET['id_usr'];
 }else {
     $username = $user->lastname;
     $respon_id = $user->respon_id;
+    $id_usr = $user->id;
 }
 //Шапка сторінки
-include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/jurist/area/header.php';
+include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/paperwork/area/header.php';
 //Перелік контрагентів
-include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/jurist/area/customers.php';
+include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/paperwork/area/customers.php';
 if(strpos($_SERVER['QUERY_STRING'],'&page='))
     $link_page = $_SERVER['PHP_SELF'].'?'.substr($_SERVER['QUERY_STRING'],0,strpos($_SERVER['QUERY_STRING'],'&page='));
 else

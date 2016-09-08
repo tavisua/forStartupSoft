@@ -34,14 +34,36 @@ require '../../main.inc.php';
 //var_dump($_REQUEST);
 //echo '</pre>';
 //die();
+require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
+
 if(isset($_POST['action'])&&$_POST['action'] == 'create' && isset($_POST['parent_id'])&&!empty($_POST['parent_id'])){
 	if(getActionStatus($_POST['parent_id'])=='100'){
 		llxHeader('', 'Помилка', '');
 		print_fiche_titre('Вже встановлено статус "Прийнято" для дії');
 		die('тому неможна створювати додаткову піддію чи планувати контакт');
 	}
-//	die('test');
-//	var_dump(getActionStatus($_POST['parent_id']));
+	//Якщо активний користувач є замовником первинної дії - автоматично під'єдную виконавця дії
+	$Action = new ActionComm($db);
+	$chain_actions = $Action->GetChainActions($_POST['parent_id']);
+	$firstID = 0;
+	foreach($chain_actions as $item){
+		if($firstID == 0 || $firstID>$item)
+			$firstID = $item;
+	}
+	$sql = "select fk_element from `llx_actioncomm_resources`
+			where `fk_actioncomm` = ".$firstID;
+	$res = $db->query($sql);
+	if(!$res)
+		dol_print_error($db);
+	if($db->num_rows($res)>0) {
+		$obj = $db->fetch_object($res);
+		$json = '{"'.$user->id.'":{"id":"'.$user->id.'","mandatory":0,"transparency":null},"'.$obj->fk_element.'":{"id":"'.$obj->fk_element.'","transparency":"on","mandatory":1}}';
+//		$_POST['assignedtouser']= $obj->fk_element;
+		$_POST['addassignedtouser'] = '1';
+		$_SESSION['assignedtouser']=$json;
+//		var_dump($_POST['addassignedtouser']);
+//		die();
+	}
 }
 if(isset($_REQUEST['id_usr'])&&!empty($_REQUEST['id_usr'])&&$_REQUEST['id_usr']!=$user->id){
 //$test = '{"6":{"id":"6","mandatory":0,"transparency":null},"7":{"id":"7","transparency":"on","mandatory":1}}';
@@ -50,7 +72,6 @@ if(isset($_REQUEST['id_usr'])&&!empty($_REQUEST['id_usr'])&&$_REQUEST['id_usr']!
 	$json = '{"'.$user->id.'":{"id":"'.$user->id.'","mandatory":0,"transparency":null},"'.$_REQUEST['id_usr'].'":{"id":"'.$_REQUEST['id_usr'].'","transparency":"on","mandatory":1}}';
 	$_SESSION['assignedtouser']=$json;
 }
-require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
 //var_dump($_REQUEST);
 //die();
 if($_GET['action']=='get_exectime'){
@@ -332,6 +353,7 @@ if (! empty($conf->projet->enabled))
 require_once DOL_DOCUMENT_ROOT.'/core/class/extrafields.class.php';
 
 
+
 $langs->load("companies");
 $langs->load("commercial");
 $langs->load("other");
@@ -481,12 +503,12 @@ if(GETPOST('assignedJSON')){
 //	var_du?mp($assignedtouser).'</br>';
 //	die();
 }
-
+//	var_dump(GETPOST('assignedtouser'), GETPOST('assignedtouser') > 0);
+//	die();
 if (GETPOST('addassignedtouser') || GETPOST('updateassignedtouser') || GETPOST('duplicate_action'))
 {
 //	llxHeader();
-//	var_dump(GETPOST('addassignedtouser'), GETPOST('assignedtouser'));
-//	die();
+
 	// Add a new user
 	if (GETPOST('assignedtouser') > 0)
 	{
@@ -572,11 +594,6 @@ if ($action == 'add')
 //	echo '</pre>';
 	if (! $error)
 	{
-
-//        echo '<pre>';
-//        var_dump($_POST);
-//        echo '</pre>';
-//        die();
 		// Initialisation objet actioncomm
 		$object->priority = GETPOST("priority")?GETPOST("priority"):0;
 		$object->fulldayevent = (! empty($fulldayevent)?1:0);
@@ -612,7 +629,7 @@ if ($action == 'add')
 		$object->datepreperform = $dateprep;
 		if(isset($_REQUEST['typeaction']) && $_REQUEST['typeaction'] == 'subaction' )
 			$object->entity = 0;
-//		var_dump($object->datepreperform);
+//		var_dump($object->entity);
 //		die();
 		$object->percentage = $percentage;
 		$object->duree=((float) (GETPOST('dureehour') * 60) + (float) GETPOST('dureemin')) * 60;
@@ -1311,7 +1328,7 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
         $datepreperform = mktime($datepreperform->format('H'),$datepreperform->format('i'),$datepreperform->format('s'),$datepreperform->format('m'),$datepreperform->format('d'),$datepreperform->format('Y'));
 
 	}
-//var_dump($datep);
+//var_dump($_REQUEST);
 //	die();
 	if (GETPOST('datep','int',1)) $datep=dol_stringtotime(GETPOST('datep','int',1),0);
 	print '<tr>';
@@ -1322,8 +1339,11 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 	if (GETPOST("afaire") == 1) $form->select_date($datep,'ap',1,1,0,"action",1,1,0,0,'fulldayend');
 	else if (GETPOST("afaire") == 2) $form->select_date($datep,'ap',1,1,1,"action",1,1,0,0,'fulldayend');
 	else $form->select_date($datep,'ap',1,1,1,"action",1,1,0,0,'fulldaystart');
-	print '<span id="ShowFreeTime" onclick="ShowFreeTime('."'ap'".');" title="Переглянути наявність вільного часу" style="vertical-align: middle"><img src="/dolibarr/htdocs/theme/eldy/img/calendar.png"></span>  ';
-	print '<span style="font-size: 12px">Необхідно часу  </span><input type="text" class="param exec_time" size="2" value="1" id = "exec_time_ap" name="exec_time_ap"><span style="font-size: 12px"> хвилин.</span></td></tr>';
+	if(!empty($_REQUEST["parent_id"])||$_REQUEST['actioncode']=='AC_TEL') {
+		print '<span id="ShowFreeTime" onclick="ShowFreeTime(' . "'ap'" . ');" title="Переглянути наявність вільного часу" style="vertical-align: middle"><img src="/dolibarr/htdocs/theme/eldy/img/calendar.png"></span>  ';
+		print '<span style="font-size: 12px">Необхідно часу  </span><input type="text" class="param exec_time" size="2" value="1" id = "exec_time_ap" name="exec_time_ap"><span style="font-size: 12px"> хвилин.</span>';
+	}
+	print '</td></tr>';
 //	echo '<pre>';
 //	var_dump($_REQUEST);
 //	echo '</pre>';
@@ -1548,6 +1568,7 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 }
 //var_dump($id);
 //die();
+
 // View or edit
 if ($id > 0)
 {
@@ -1630,7 +1651,7 @@ if ($id > 0)
 
                         $("#event_desc").removeClass("tabactive");
                         $("#event_desc").addClass("tab");
-                        $(".tabBar").width(600);
+                        $(".tabBar").width(850);
                         $("#formaction").width(600);
                    })';
             print '</script>'."\n";
@@ -1775,7 +1796,7 @@ if ($id > 0)
 		else $form->select_date($datep?$datep:$object->datep,'ap',1,1,1,"action",1,1,0,0,'fulldaystart');
 		print '<span style="font-size: 12px">Необхідно часу  </span><input type="text" class="param" size="2" id = "exec_time" name="exec_time" value="'.((int)($object->datef-$object->datep)/60).'"><span style="font-size: 12px"> хвилин.</span></td></tr>';
 		print '</td></tr>';
-		if($object->entity == 1)
+		if($object->entity == 1 && $_REQUEST['actioncode']!='AC_TEL')
 			print '<style> #aphour, #apmin, #apButtonNow {display: none} </style>';
 		else
 			print '<input id="typeaction" type="hidden" value="subaction" name="typeaction">';
@@ -1900,6 +1921,15 @@ if ($id > 0)
 		print '</form>';
 //        print '</div>';
 //		unset($_REQUEST["duplicate_action"]);
+		print '<script>
+			function ExecTimeOnChange(){
+				CalcP2($(this).attr("id"));
+				console.log($("#exec_time").val());
+			}
+			$(document).ready(function(){
+				$("#exec_time").bind("change",ExecTimeOnChange);
+			})
+		</script>';
 
 	}
 //	else
@@ -2250,11 +2280,13 @@ print '
 			assignedForm.id = "selectAssignedUser";
 			assignedForm.innerHTML = "<select id=assegnedusers name=assignedusers[] size=20 class=combobox multiple>"+$("#assignedtouser").html()+"</select>";
 			$("#assegnedusers").prepend($("<option value='.getUsersByRespon('purchase').'>Постачальники</option>"));
+			$("#assegnedusers").prepend($("<option value='.getUsersByRespon('service').'>Сервісники</option>"));
 			$("#assegnedusers").prepend($("<option value='.getUsersByRespon('sale').'>Торгівельні агенти</option>"));
-			$("#assegnedusers").prepend($("<option value='.getUsersByRespon('dir_depatment').'>Директори департаментів</option>"));
+			$("#assegnedusers").prepend($("<option value='.getUsersByRespon('dir_depatment', 'regions').'>Директори департаментів(по областям)</option>"));
+			$("#assegnedusers").prepend($("<option value='.getUsersByRespon('dir_depatment').'>Директори департаментів(всі)</option>"));
 			$("#assegnedusers").prepend($("<option value='.getUsersByRespon('senior_manager').'>Старший відділу</option>"));
 			$("#addAssignedUsersForm").find("select").width(500);
-            $(".tabBar").width(800);
+            $(".tabBar").width(850);
             $("#event_desc").on("click", redirect);
             $("#priority").on("change",ActionCodeChanged);
 //            var link = "http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=get_freetime&date=2016-01-21";
@@ -2399,7 +2431,7 @@ print '
 
         }
 		function ApHourChanged(){
-			CalcP($("#apyear").val()+"-"+$("#apmonth").val()+"-"+$("#apday").val()+" "+$("#aphour").val()+":"+$("#apmin").val(), $("#exec_time").val(), '.$user->id.');
+			CalcP($("#apyear").val()+"-"+$("#apmonth").val()+"-"+$("#apday").val()+" "+$("#aphour").val()+":"+$("#apmin").val(), $("#exec_time").length == 0?$("#exec_time_ap").val():$("#exec_time").val(), '.$user->id.', "ap");
 		}
         function ActionCodeChanged(){
             if(!$("#ap").val()){
@@ -2426,12 +2458,12 @@ print '
             if($.inArray($("select#actioncode").val(), ["AC_GLOBAL","AC_CURRENT"]) >=0 && $("#parent_id").val().length == 0){
             	$("#apmin").hide();
             	$("#aphour").hide();
-                $("#period").show();
+//                $("#period").show();
                 $("#typenotification").show();
                 $(".global_current").show();
             }else{
             	$(".global_current").hide();
-                $("#period").hide();
+//                $("#period").hide();
                 $("#typenotification").hide();
             	$("#apmin").show();
             	$("#aphour").show();
@@ -2469,7 +2501,7 @@ function getActionStatus($action_id){
 	$obj = $db->fetch_object($res);
 	return $obj->percent;
 }
-function getUsersByRespon($respon)
+function getUsersByRespon($respon, $addParam)
 {
 	global $db;
 	$sql = "select `llx_user`.`rowid` from llx_user
@@ -2477,8 +2509,18 @@ function getUsersByRespon($respon)
 		inner join `responsibility` res2 on `res2`.`rowid`=`llx_user`.`respon_id2`
 		where 1
 		and `responsibility`.active = 1
-		and `llx_user`.`active`=1
+		and `llx_user`.`active`= 1
+		and `llx_user`.`statut`= 1
 		and (`responsibility`.`alias`='" .$respon . "' or res2.`alias`='" .$respon . "')";
+	switch($addParam){
+		case 'regions':{
+			$sql.=" and subdiv_id in (2,3,4,5,6,7,8,9,10,11,12,13,14,15)";
+		}break;
+	}
+//	echo '<pre>';
+//	var_dump($sql);
+//	echo '</pre>';
+//	die();
 	$res = $db->query($sql);
 	$rowidList = array();
 	while ($obj = $db->fetch_object($res)) {

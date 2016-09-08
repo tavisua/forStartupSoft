@@ -137,10 +137,11 @@ class proposedProducts
             $restitle = $this->db->query($sql);
             $obj = $this->db->fetch_object($restitle);
             $out .= '<tr>';
-            $out .= '<td class="titreProposed" id="titleProposition" colspan="4">'.trim($obj->text).'</td>';
+            $out .= '<td class="titreProposed" id="titleProposition" colspan="3" style="width: '.(100+$this->db->num_rows($res)*100).'px">'.trim($obj->text).'</td>';
+            $out.='<td width="10px"></td>';
             $out .= '</tr>';
             $out .= '<tr>';
-            $out .= '<td  id="titleProposition" colspan="4">Вдалося озвучити пропозицію клієнту <input id="cansaid" type="checkbox" name="cansaid"></td>';
+            $out .= '<td id="titleProposition" colspan="4">Вдалося озвучити пропозицію клієнту <input id="cansaid" type="checkbox" name="cansaid"></td>';
             $out .= '</tr>';
             $title = array('Завод-виробник','№ по катагогу (атикул)','№ карточки в 1С',
                 'Наявність','Од.виміру','Місце відвантаження','ОСОБЛИВІСТЬ ПРОПОЗИЦІЇ','ВИГОДИ КЛІЄНТУ',
@@ -155,19 +156,20 @@ class proposedProducts
                 fmod($num,2)==0?$class="pair":$class="impair";
                 if($num == 0){
                     $out .= '<tr>';
-                    $out .= '<td class="multiple_header_table"></td>';
+                    $out .= '<td width="150px" class="multiple_header_table"></td>';
                     mysqli_data_seek($res, 0);
                     while($obj = $this->db->fetch_array($res)){
-                        $out .= '<td class="multiple_header_table productname" id="productname'.$obj['rowid'].'">'.$obj[$param[1]].'</td>';
+                        $out .= '<td style="width:100px" class="middle_size multiple_header_table productname" id="productname'.$obj['rowid'].'">'.$obj[$param[1]].'</td>';
                     }
+                    $out.='<td width="10px"></td>';
                     $out .= '</tr>';
                 }
                 $out .= '<tr class="'.$class.'">';
-                $out .= '<td class="middle_size"><b>' . trim($item) . '</b></td>';
+                $out .= '<td class="middle_size" style="width:150px"><b>' . trim($item) . '</b></td>';
                 if($num<count($param)) {
                     mysqli_data_seek($res, 0);
                     while ($obj = $this->db->fetch_array($res)) {
-                        $out .= '<td class="middle_size">' . $obj[$param[$num]] . '</td>';
+                        $out .= '<td class="middle_size" style="width:100px">' . $obj[$param[$num]] . '</td>';
                     }
                     $num++;
                     if ($num == 1)
@@ -175,9 +177,10 @@ class proposedProducts
                 }else{
                     mysqli_data_seek($res, 0);
                     while ($obj = $this->db->fetch_object($res)) {
-                        $out .= '<td class="middle_size"><input type="text" class="need" id="need'.$obj->rowid.'" name="need'.$obj->rowid.'" style="width:100%"></td>';
+                        $out .= '<td class="middle_size" style="width:100px"><input type="text" class="need" id="need'.$obj->rowid.'" name="need'.$obj->rowid.'" style="width:100%"></td>';
                     }
                 }
+                $out.='<td width="10px"></td>';
                 $out .= '</tr>';
             }
         }else {

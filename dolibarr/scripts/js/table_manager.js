@@ -235,7 +235,7 @@ function showProposed(id,contactid){
         data: param,
         cache:false,
         success:function(html){
-            //console.log(html);
+            console.log(html);
             createNewForm('popupmenu','Proposition')
             $('#Proposition').addClass('setdate');
             $('#Proposition').css('width','auto');
@@ -243,7 +243,10 @@ function showProposed(id,contactid){
             $('#Proposition').empty().html(html);
 
             $('#Proposition').show();
-            $('#Proposition').offset({top:$('#contactlist').offset().top-30,left:$('#contactlist').offset().left+$('#contactlist').width()/2});
+            if($('#contactlist').length > 0)
+                $('#Proposition').offset({top:$('#contactlist').offset().top-30,left:$('#contactlist').offset().left+$('#contactlist').width()/2});
+            else
+                $('#savebutton').remove();
             $('#Proposition').attr('TitleProposed', 1);
             $('#Proposition').attr('fx_proposition', id);
         }
@@ -471,10 +474,17 @@ function showTitleProposed(post_id, lineactive, contactid, td, socid){
                 $('#popupmenu').empty().html(html);
 
                 $('#popupmenu').show();
-                $('#popupmenu').offset({
-                    top: $('#' + td.id).offset().top - 30,
-                    left: $('#' + td.id).offset().left - 50
-                });
+                if(contactid != 0) {
+                    $('#popupmenu').offset({
+                        top: $('#' + td.id).offset().top - 30,
+                        left: $('#' + td.id).offset().left - 50
+                    });
+                }else{
+                    $('#popupmenu').offset({
+                        top: $('#' + td.id).offset().top - 30,
+                        left: $('#' + td.id).offset().left - 50
+                    });
+                }
                 $('#popupmenu').attr('TitleProposed', 1);
             }
         }
@@ -560,10 +570,15 @@ function CalcP(date, minute, id_usr, prefix){
             }
 
 
-
+            $('#'+prefix+'hour option:selected').each(function(){
+                this.selected='';
+            })
+            $('#'+prefix+'min option:selected').each(function(){
+                this.selected='';
+            })
             $('#'+prefix+'hour [value='+time.substr(1,2)+']').attr("selected","selected");
             $('#'+prefix+'min  [value='+time.substr(4,2)+']').attr("selected","selected");
-            console.log(time.substr(4,2).trim());
+            console.log('#'+prefix+'hour [value='+time.substr(1,2)+']',time.substr(4,2).trim());
             $('#'+prefix+'hour').removeClass('fielderrorSelBorder');
             $('#'+prefix+'min').removeClass('fielderrorSelBorder');
             $('#error').val(0);
@@ -576,8 +591,10 @@ function CalcP(date, minute, id_usr, prefix){
 function CalcP2(id){
     //exec_time
     var postfix = id.substr('exec_time_'.length);
-    console.log(postfix, id);
-    if(postfix == 'ap') {
+    //console.log(postfix.length, 'id');
+    if(postfix == 'ap' || id == 'exec_time') {
+        if(postfix.length == 0)
+            postfix = 'ap';
         var hour = parseInt(document.getElementById(postfix + "hour").value) + Math.floor($("#" + id).val() / 60);
 
         //document.getElementById("p2hour").value = hour<10?("0"+hour):hour;
@@ -590,7 +607,8 @@ function CalcP2(id){
             hour = parseInt($("#" + id).val()) + parseInt(document.getElementById(postfix + "hour").value);
         }
 
-        document.getElementById("p2hour").value = hour < 10 ? ("0" + hour) : hour;
+        //document.getElementById("p2hour").value = hour < 10 ? ("0" + hour) : hour;
+        $("#p2hour [value = '"+(hour < 10 ? ("0" + hour) : hour)+"']").attr('selected','selected');
         var min = "";
         if (p2min % 60 < 10)
             min = "0" + (p2min % 60).toString();
@@ -601,6 +619,7 @@ function CalcP2(id){
         //var sHour = hour<10?("0"+hour.toString()):(hour.toString());
         //document.getElementById("p2hour").value = sHour;
         document.getElementById("p2min").value = min;
+        console.log(hour+':'+min);
     }
 }
 function SpyMode(id_usr){
@@ -615,19 +634,22 @@ function SpyMode(id_usr){
         data:param,
         cahse:false,
         success:function(result){
+            console.log(result);
             switch (result){
                 case '1':{
                     window.open('/dolibarr/htdocs/index.php?mainmenu=home&leftmenu=&idmenu=5216&mainmenu=home&leftmenu=');
                 }break;
                 case '2':{
-                    location.href = '/dolibarr/htdocs/day_plan.php?idmenu=10419&mainmenu=plan_of_days&leftmenu=';
+                    window.close();
+                    console.log(id_usr);
+                    //location.href = '/dolibarr/htdocs/day_plan.php?idmenu=10419&mainmenu=plan_of_days&leftmenu=';
                 }break;
             }
         }
     })
-    if(id_usr == 0)
-        window.close();
-    console.log(id_usr);
+    //if(id_usr == 0)
+    //    window.close();
+    //console.log(id_usr);
 }
 function AddOrder(){
      $("#actionbuttons").attr('action', '/dolibarr/htdocs/orders.php?idmenu=10426&mainmenu=orders&leftmenu=');
@@ -708,6 +730,10 @@ function UnLockTools(){
     $('#locktools').remove();
 }
 function getMessage(){
+    if($("#autorefresh").length>0&&getParameterByName('autorefresh') == '1') {
+        return false;
+    }
+    //console.log($("#autorefresh").length>0,getParameterByName('autorefresh') == '1');
     setTimeout(function(){
         $.ajax({
             url:'/dolibarr/htdocs/day_plan.php?action=getnewactions',
@@ -1218,13 +1244,15 @@ function AddResultAction(contacttype, contactid){
 function DelAction(rowid){
     if(confirm('Видалити дію?')) {
         var link = '/dolibarr/htdocs/comm/action/card.php?action=delete_action&rowid=' + rowid;
-
+        if($('#loading_img').length>0)
+            $('#loading_img').show();
         $.ajax({
             url: link,
             cache: false,
             success: function (html) {
+                console.log(html);
                 if (html == 1)
-                    location.href = location.href;
+                    location.reload();
                 else
                     console.log('помилка ', html, link);
             }
@@ -1250,9 +1278,12 @@ function EditOnlyResult(rowid, answer_id, actioncode){
     }
 }
 function EditAction(rowid, answer_id, actioncode){
-    console.log(rowid, actioncode);
+    //console.log(rowid, actioncode == 'AC_GLOBAL' || actioncode == 'AC_CURRENT');
+    //alert(rowid, actioncode);
     //alert(actioncode == 'AC_GLOBAL' || actioncode == 'AC_CURRENT');
     //return;
+    if($('#loading_img').length>0)
+        $('#loading_img').show();
     var search = location.search.substr(1);
     search.split('&').forEach(function(item){
         item = item.split('=');
@@ -1267,13 +1298,21 @@ function EditAction(rowid, answer_id, actioncode){
     if(!$.isNumeric(rowid)) {
         $('#onlyresult').val(1);
         $('#action_id').val(rowid.substr(1));
-    }else
-        $('#action_id').val(rowid);
+    }else {
+        if($('#action_id').length>0)
+            $('#action_id').val(rowid);
+        else if(('#id').length>0)
+            $('#id').val(rowid);
+    }
 
-    if(actioncode == 'AC_GLOBAL' || actioncode == 'AC_CURRENT')
-        $('#edit_action').val('edit');
-    else
+    if(actioncode == 'AC_GLOBAL' || actioncode == 'AC_CURRENT') {
+        if($('#edit_action').length>0)
+            $('#edit_action').val('edit');
+        else if($('#action').length>0)
+            $('#action').val('edit');
+    }else {
         $('#edit_action').val('updateonlyresult');
+    }
     if($('#redirect').length>0) {
         $('#answer_id').val(answer_id);
         $('#redirect_actioncode').val(actioncode);
@@ -1413,70 +1452,274 @@ function OpenFolder(id_cat, showeditfield){
 function ClosePopupMenu(elem){
     if(elem === undefined)
         $("#popupmenu").hide();
-    else
-        $('#'+elem.parent().attr('id')).hide();
-}
-function GetPerformers(){
-    var html = '';
-    if(!strpos(location.search, 'performer')) {
-        var performer = $('.performer');
-        var array = {};
-        for (var i = 0; i < performer.length; i++) {
-            array[$('#' + performer[i].id).attr('id_usr')] = $('#' + performer[i].id).text();
-        }
-        var keys = new Array();
-        var values = new Array();
-        $.each(array, function (index, value) {
-            keys.push(index);
-            values.push(value);
-        })
-        sort = false;
-        for (var i = 0; i < values.length - 1; i++) {
-            if (values[i] > values[i + 1]) {
-                //console.log(i, values);
-                $val1 = values[i];
-                $val2 = values[i + 1];
-                $key1 = keys[i];
-                $key2 = keys[i + 1];
-                values[i] = $val2;
-                values[i + 1] = $val1;
-                keys[i] = $key2;
-                keys[i + 1] = $key1;
-                //console.log(i, values);
-                i --;
-                sort = true;
-            }
-            if(i == values.length - 1 && sort == true){
-                i = -1;
-                sort = false;
-            }
-        }
-
-
-        html = '<tr>' +
-            '<td class="middle_size" onclick="setPerformetFilter(0);" style="cursor: pointer; width: 250px"><b>Всі завдання</b></td>'+
-            '</tr>';
-        $.each(keys, function (index, value) {
-            html += '<tr>' +
-                '<td class="middle_size" onclick="setPerformetFilter(' + value + ');" style="cursor: pointer; width: 250px">' + array[value] + '</td>' +
-                '</tr>'
-        })
-        $.cookie('performers', html);
-    }else{
-        html =  $.cookie('performers');
+    else {
+        while(elem.parent().attr('id') === undefined)
+            elem = elem.parent();
+        $('#' + elem.parent().attr('id')).remove();
     }
-    $('#popupmenu').find('table').find('thead').find('th').html('Виберіть виконавця')
-    //$('#popupmenu').find('table').find('thead').empty().html();
-    $('#popupmenu').find('table').find('tbody').empty();
-    $('#popupmenu').find('table').find('tbody').html(html);
-    $('#popupmenu').show();
-    $('#popupmenu').offset({top:$('#PerformerFilter').offset().top-50,left:$('#PerformerFilter').offset().left-50});
 }
-function setPerformetFilter(id_usr){
-    if(id_usr!=0)
-        location.href='?mainmenu='+GetMainMenu()+'&performer='+id_usr;
-    else
-        location.href='?mainmenu='+GetMainMenu();
+function GetGroupOfTask(id_usr){
+    var param = {
+        action:'getGroupOfTask',
+        id_usr:id_usr
+    }
+    $.ajax({
+        url:'/dolibarr/htdocs/core/lib/actioncomm.php',
+        data:param,
+        cache:false,
+        success:function(result){
+            //console.log(result);
+            createNewForm('popupmenu','groupoftask');
+            $('#groupoftask').find('a').remove();
+            $('#groupoftask').find('table').find('thead').find('th').html('Виберіть групу завдань <a class="close" style="margin-left: -160px" onclick="ClosePopupMenu($(this));" title="Закрити"></a>')
+            //$('#popupmenu').find('table').find('thead').empty().html();
+            $('#groupoftask').find('table').find('tbody').empty();
+            $('#groupoftask').find('table').find('tbody').html(result);
+            var htmlCloseLnk = '<a class="close" style="margin-left: -160px" onclick="ClosePopupMenu($(this));" title="Закрити"></a>';
+            $('#groupoftask').show();
+
+            $('#groupoftask').offset({top:$('#GroupTaskFilter').offset().top-50,left:$('#GroupTaskFilter').offset().left-50});
+        }
+    })
+}
+function AutoRefreshPage(){
+    console.log('checked', $('#autorefresh').attr('checked') == 'checked');
+    //alert('test');
+    if($('#autorefresh').attr('checked') == 'checked') {
+
+        //console.log('test');
+
+        var searchString = location.search.substr(1).split('&');
+        var searchParam = {};
+        $.each(searchString, function (index, value) {
+            searchParam[value.substr(0, strpos(value, '='))] = value.substr(strpos(value, '=') + 1);
+            //console.log(value.substr(strpos(value, '=')+1), strpos(value, '='));
+        })
+        //console.log($('#autorefresh').attr('checked'));
+        if($('#autorefresh').attr('checked') === 'checked')
+            searchParam['autorefresh'] = 1;
+        else
+            searchParam['autorefresh'] = 0;
+        searchString = '?';
+        $.each(searchParam, function (index, value) {
+            console.log(searchString.substr(searchString.length - 1, 1));
+
+            if (searchString.substr(searchString.length - 1, 1) != '?')
+                searchString += '&';
+            searchString += index + '=' + value;
+        })
+        //console.log(location.pathname + searchString);
+        location = location.pathname + searchString;
+    }
+}
+//function setGroupTaskFilter(groupoftaskID){
+//    var searchString = location.search.substr(1).split('&');
+//    var searchParam = {};
+//    $.each(searchString, function(index, value){
+//        searchParam[value.substr(0,strpos(value, '='))] = value.substr(strpos(value, '=')+1);
+//       //console.log(value.substr(strpos(value, '=')+1), strpos(value, '='));
+//    })
+//    searchParam['groupoftaskID'] = groupoftaskID;
+//    searchString = '?';
+//    $.each(searchParam, function(index, value) {
+//        console.log(searchString.substr(searchString.length-1,1));
+//
+//        if(searchString.substr(searchString.length-1,1)!='?')
+//            searchString+='&';
+//        searchString+=index+'='+value;
+//    })
+//    location = location.pathname+searchString;
+//}
+function GetSubdivision(id_usr, prefix){
+    var param = {
+        action:'getSubdivision',
+        id_usr:id_usr,
+        code:getParameterByName('mainmenu') == 'global_task'?'AC_GLOBAL':'AC_CURRENT',
+        prefix:prefix
+    }
+    $.ajax({
+        url:'/dolibarr/htdocs/core/lib/actioncomm.php',
+        data:param,
+        cache:false,
+        success:function(result){
+            //console.log(result);
+            createNewForm('popupmenu','subdivision');
+            $('#subdivision').find('a').remove();
+            $('#subdivision').find('table').find('thead').find('th').html('Виберіть підрозділ <a class="close" style="margin-left: -160px" onclick="ClosePopupMenu($(this));" title="Закрити"></a>')
+            //$('#popupmenu').find('table').find('thead').empty().html();
+            $('#subdivision').find('table').find('tbody').empty();
+            $('#subdivision').find('table').find('tbody').html(result);
+            //var htmlCloseLnk = '<a class="close" style="margin-left: -160px" onclick="ClosePopupMenu($(this));" title="Закрити"></a>';
+            $('#subdivision').find('table').find('thead').find('tr').css('width','');
+            $('#subdivision').find('table').css('width','auto');
+            $('#subdivision').css('width','auto');
+            $('#subdivision').show();
+            if(prefix == 'p')
+                $('#subdivision').offset({top:$('#SubdivisionFilter').offset().top-50,left:$('#SubdivisionFilter').offset().left-70});
+            else if(prefix == 'c')
+                $('#subdivision').offset({top:$('#SubdivisionCFilter').offset().top-50,left:$('#SubdivisionCFilter').offset().left-70});
+
+        }
+    })
+}
+function setSubdivision(subdiv_id, prefix){
+    var searchString = location.search.substr(1).split('&');
+    var searchParam = {};
+    $.each(searchString, function(index, value){
+        searchParam[value.substr(0,strpos(value, '='))] = value.substr(strpos(value, '=')+1);
+    })
+    searchParam[prefix+'_subdiv_id'] = subdiv_id;
+    searchString = '?';
+    $.each(searchParam, function(index, value) {
+        console.log(searchString.substr(searchString.length-1,1));
+
+        if(searchString.substr(searchString.length-1,1)!='?')
+            searchString+='&';
+        searchString+=index+'='+value;
+    })
+    location = location.pathname+searchString;
+}
+function GetCustomer(id_usr){
+    var param = {
+        action:'getCustomer',
+        id_usr:id_usr,
+        code:getParameterByName('mainmenu') == 'global_task'?'AC_GLOBAL':'AC_CURRENT'
+    }
+    $.ajax({
+        url:'/dolibarr/htdocs/core/lib/actioncomm.php',
+        data:param,
+        cache:false,
+        success:function(result){
+            //console.log(result);
+            createNewForm('popupmenu','customer');
+            $('#customer').find('a').remove();
+            $('#customer').find('table').find('thead').find('th').html('Виберіть групу завдань <a class="close" style="margin-left: -160px" onclick="ClosePopupMenu($(this));" title="Закрити"></a>')
+            //$('#popupmenu').find('table').find('thead').empty().html();
+            $('#customer').find('table').find('tbody').empty();
+            $('#customer').find('table').find('tbody').html(result);
+            var htmlCloseLnk = '<a class="close" style="margin-left: -160px" onclick="ClosePopupMenu($(this));" title="Закрити"></a>';
+            $('#customer').find('table').find('thead').find('tr').css('width','');
+            $('#customer').find('table').css('width','auto');
+            $('#customer').css('width','auto');
+            $('#customer').show();
+            $('#customer').offset({top:$('#CustomerFilter').offset().top-50,left:$('#CustomerFilter').offset().left-100});
+        }
+    })
+}
+function GetStatusAction(){
+    var param = {
+        action:'getStatusAction',
+        code:getParameterByName('mainmenu') == 'global_task'?'AC_GLOBAL':'AC_CURRENT'
+    }
+    $.ajax({
+        url:'/dolibarr/htdocs/core/lib/actioncomm.php',
+        data:param,
+        cache:false,
+        success:function(result){
+            //console.log(result);
+            createNewForm('popupmenu','statusAction');
+            $('#statusAction').find('a').remove();
+            $('#statusAction').find('table').find('thead').find('th').html('Вкажіть статус завдань <a class="close" style="margin-left: -160px" onclick="ClosePopupMenu($(this));" title="Закрити"></a>')
+            //$('#popupmenu').find('table').find('thead').empty().html();
+            $('#statusAction').find('table').find('tbody').empty();
+            $('#statusAction').find('table').find('tbody').html(result);
+            var htmlCloseLnk = '<a class="close" style="margin-left: -160px" onclick="ClosePopupMenu($(this));" title="Закрити"></a>';
+            $('#statusAction').find('table').find('thead').find('tr').css('width','');
+            $('#statusAction').find('table').css('width','auto');
+            $('#statusAction').css('width','auto');
+            $('#statusAction').show();
+            $('#statusAction').offset({top:$('#StatusFilter').offset().top-50,left:$('#StatusFilter').offset().left-100});
+        }
+    })
+}
+function setParam(name,value){
+    var searchString = location.search.substr(1).split('&');
+    var searchParam = {};
+    $.each(searchString, function(index, value){
+        searchParam[value.substr(0,strpos(value, '='))] = value.substr(strpos(value, '=')+1);
+    })
+    searchParam[name] = value;
+    searchString = '?';
+    $.each(searchParam, function(index, value) {
+        console.log(searchString.substr(searchString.length-1,1));
+
+        if(searchString.substr(searchString.length-1,1)!='?')
+            searchString+='&';
+        searchString+=index+'='+value;
+    })
+    location = location.pathname+searchString;
+}
+function GetPerformers(id_usr){
+    var param = {
+        action:'getPerformance',
+        id_usr:id_usr,
+        code:getParameterByName('mainmenu') == 'global_task'?'AC_GLOBAL':'AC_CURRENT'
+    }
+    $.ajax({
+        url:'/dolibarr/htdocs/core/lib/actioncomm.php',
+        data:param,
+        cache:false,
+        success:function(result){
+            //console.log(result);
+            createNewForm('popupmenu','performance');
+            $('#performance').find('a').remove();
+            $('#performance').find('table').find('thead').find('th').html('Виберіть групу завдань <a class="close" style="margin-left: -160px" onclick="ClosePopupMenu($(this));" title="Закрити"></a>')
+            //$('#popupmenu').find('table').find('thead').empty().html();
+            $('#performance').find('table').find('tbody').empty();
+            $('#performance').find('table').find('tbody').html(result);
+            var htmlCloseLnk = '<a class="close" style="margin-left: -160px" onclick="ClosePopupMenu($(this));" title="Закрити"></a>';
+            $('#performance').find('table').find('thead').find('tr').css('width','');
+            $('#performance').find('table').css('width','auto');
+            $('#performance').css('width','auto');
+            $('#performance').show();
+
+            $('#performance').offset({top:$('#GroupTaskFilter').offset().top-50,left:$('#GroupTaskFilter').offset().left-150});
+        }
+    })
+}
+function setPerformerFilter(id_usr){
+    //if(id_usr!=0)
+    //    location.href='?mainmenu='+GetMainMenu()+'&performer='+id_usr;
+    //else
+    //    location.href='?mainmenu='+GetMainMenu();
+    var searchString = location.search.substr(1).split('&');
+    var searchParam = {};
+    $.each(searchString, function(index, value){
+        searchParam[value.substr(0,strpos(value, '='))] = value.substr(strpos(value, '=')+1);
+       //console.log(value.substr(strpos(value, '=')+1), strpos(value, '='));
+    })
+    searchParam['performer'] = id_usr;
+    searchString = '?';
+    $.each(searchParam, function(index, value) {
+        console.log(searchString.substr(searchString.length-1,1));
+
+        if(searchString.substr(searchString.length-1,1)!='?')
+            searchString+='&';
+        searchString+=index+'='+value;
+    })
+    location = location.pathname+searchString;
+}
+function setCustomerFilter(id_usr){
+    //if(id_usr!=0)
+    //    location.href='?mainmenu='+GetMainMenu()+'&performer='+id_usr;
+    //else
+    //    location.href='?mainmenu='+GetMainMenu();
+    var searchString = location.search.substr(1).split('&');
+    var searchParam = {};
+    $.each(searchString, function(index, value){
+        searchParam[value.substr(0,strpos(value, '='))] = value.substr(strpos(value, '=')+1);
+       //console.log(value.substr(strpos(value, '=')+1), strpos(value, '='));
+    })
+    searchParam['customer'] = id_usr;
+    searchString = '?';
+    $.each(searchParam, function(index, value) {
+        console.log(searchString.substr(searchString.length-1,1));
+
+        if(searchString.substr(searchString.length-1,1)!='?')
+            searchString+='&';
+        searchString+=index+'='+value;
+    })
+    location = location.pathname+searchString;
 }
 function GetMainMenu(){
     var mainmenu = '';

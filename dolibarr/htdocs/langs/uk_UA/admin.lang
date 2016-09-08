@@ -825,7 +825,7 @@ DictionaryAccountancysystem=Models for chart of accounts
 DictionaryEMailTemplates=Emails templates
 SetupSaved=Setup saved
 BackToModuleList=Back to modules list
-BackToDictionaryList=Повернутись до налаштування словників
+BackToDictionaryList=Повернутись до налаштування довідників
 VATReceivedOnly=Special rate not charged
 VATManagement=VAT Management
 VATIsUsedDesc=The VAT rate by default when creating prospects, invoices, orders etc follow the active standard rule:<br>If the seller is not subjected to VAT, then VAT by default=0. End of rule.<br>If the (selling country= buying country), then the VAT by default=VAT of the product in the selling country. End of rule. <br>If seller and buyer in the European Community and goods are transport products (car, ship, plane), the default VAT=0 ( The VAT should be paid by the buyer at the customoffice of his country and not at the seller). End of rule.<br>If seller and buyer in the European Community and buyer is not a company, then the VAT by default=VAT of product sold.  End of rule.<br>If seller and buyer in the European Community and buyer is a company, then the VAT by default=0. End of rule.<br>Else the proposed default VAT=0. End of rule.

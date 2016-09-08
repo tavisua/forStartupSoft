@@ -116,7 +116,6 @@ class FormActions
     function form_select_status_action($formname,$selected,$canedit=1,$htmlname='complete',$showempty=0,$onlyselect=0)
     {
         global $langs,$conf;
-
         $listofstatus = array(
             '-1' => $langs->trans("ActionNotApplicable"),
             '0' => $langs->trans("ActionRunningNotStarted"),

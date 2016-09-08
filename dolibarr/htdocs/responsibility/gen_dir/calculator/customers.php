@@ -25,7 +25,7 @@ $sql_count = 'select count(*) iCount from `llx_societe`';
 if($region_id != 0) {
     $tmp = ' where `region_id` = ' . $region_id . ' ';
     $tmp .= 'and `llx_societe`.`categoryofcustomer_id` in
-(select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = '.$user->respon_id.')';
+(select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = '.$respon_id.')';
     $sql.=$tmp;
     $sql_count.=$tmp;
 }else {

@@ -85,10 +85,12 @@ $sql = "select  `llx_actioncomm`.type, `llx_actioncomm`.id as rowid, `llx_action
         left join `llx_c_actioncomm` on `llx_c_actioncomm`.`code` = `llx_actioncomm`.`code`
         left join `llx_actioncomm_resources` on `llx_actioncomm`.`id` =  `llx_actioncomm_resources`.`fk_actioncomm`
         left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
-        where fk_action in
+        where 1
+        and (`llx_actioncomm`.`entity` = 0 AND `llx_actioncomm`.`code` IN('AC_GLOBAL','AC_CURRENT') OR `llx_actioncomm`.`entity` = 1 AND `llx_actioncomm`.`code` NOT IN('AC_GLOBAL','AC_CURRENT'))
+        and fk_action in
               (select id from `llx_c_actioncomm`
               where `type` in ('system', 'user'))
-        and case when `llx_actioncomm_resources`.`fk_element` is null then `llx_actioncomm`.fk_user_author else `llx_actioncomm_resources`.`fk_element` end = ".$id_usr."
+        and (`llx_actioncomm`.fk_user_author = ".$id_usr." or `llx_actioncomm_resources`.`fk_element` = ".$id_usr.")
         and date(datep) = '".$dateQuery->format('Y-m-d')."'
         and `llx_actioncomm`.active = 1
         and (`llx_actioncomm`.hide is null or `llx_actioncomm`.hide <> 1)
@@ -198,10 +200,13 @@ while($row = $db->fetch_object($res)) {
            <div class="task_cell note" style="float: left; width: 202px;">' . $taks . '</div>
            <div class="task_cell" style="float: left; width: 152px;">' .(mb_strlen(trim($row->confirmdoc), 'UTF-8')>25?mb_substr(trim($row->confirmdoc), 0,25,'UTF-8').'...':trim($row->confirmdoc)). '</div>
            <div class="task_cell" style="float: left; width: 130px;">' . $status . '</div>';
-    if($user->id == $row->fk_user_author)
-        $task_table .='<div class="task_cell" style="float: left; width: 20px; border-color: transparent"><img title="Редагувати дію" src="theme/eldy/img/edit.png">
-            <!--<img onclick="HideAction('.$row->rowid.');" title="Скрити дію" src="theme/eldy/img/hide.png"></div>-->';
-    else
+    if($user->id == $row->fk_user_author) {
+        $task_table .= '<div id="action'.$row->rowid.'" class="task_cell" style="float: left; width: 40px; border-color: transparent"><img class="action" id="edit'.$row->rowid.'" onclick="EditAction('.$row->rowid.',0,'."'".strtoupper($row->code)."'".');" title="Редагувати дію" src="theme/eldy/img/edit.png">';
+        $task_table .= '&nbsp;&nbsp;<img id="del'.$row->rowid.'" class="action" onclick="DelAction(' . $row->rowid . ');" title="Видалити дію" src="theme/eldy/img/delete.png">';
+//        if($row->percent == 100)
+//            $task_table .= '<img onclick="HideAction(' . $row->rowid . ');" title="Скрити дію" src="theme/eldy/img/hide.png">';
+        $task_table .= '</div>';
+    }else
         $task_table .='<div class="task_cell" style="float: left; width: 20px; border-color: transparent"></div>';
 
 //    $task .= '<div id="'.$row->rowid.'" class="'.$classitem.'" style="height: 216px" >' . $task_table . '</div>';
@@ -263,3 +268,4 @@ include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/hourl
 //print'<div style="float: left">test</div>';
 //llxFooter();
 llxPopupMenu();
+llxLoadingForm();

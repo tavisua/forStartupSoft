@@ -19,8 +19,8 @@
             <th width="100px" class="middle_size"rowspan="2">Структурний підрозділ "ХТО"</th>
             <th width="100px" class="middle_size" rowspan="2">ПІБ "ХТО"</th>
             <th width="100px" class="middle_size"rowspan="2">Структурний підрозділ "КОМУ"</th>
-            <th width="100px" class="middle_size" rowspan="2">ПІБ "КОМУ" </br></br></br><img  id="PerformerFilter" onclick="GetPerformers();" title="Встановити фільтр по виконавцю" src="/dolibarr/htdocs/theme/eldy/img/btn_arrow_down.png"></th>
-            <th width="80px" class="middle_size" rowspan="2">Група завдань</th>
+            <th width="100px" class="middle_size" rowspan="2">ПІБ "КОМУ"&nbsp;&nbsp;<img  id="PerformerFilter" onclick="GetPerformers(<?=$id_usr?>);" title="Встановити фільтр по виконавцю" src="/dolibarr/htdocs/theme/eldy/img/btn_arrow_down.png"></th>
+            <th width="80px" class="middle_size" rowspan="2">Група завдань <br><img  id="GroupTaskFilter" onclick="GetGroupOfTask(<?=$id_usr?>);" title="Встановити фільтр групі звадань" src="/dolibarr/htdocs/theme/eldy/img/btn_arrow_down.png"></th>
             <th width="100px" class="middle_size" rowspan="2">Задача</th>
             <th width="100px" class="small_size" rowspan="2">Примітка: Що зробить, кінцева мета, підтвердження</th>
             <th width="50px" class="small_size" rowspan="2">Виконати попередньо до </br></br><img  id="PreparedDateFilter" onclick="GetExecDate('prepareddate');" title="Встановити фільтр по даті попереднього виконання" src="/dolibarr/htdocs/theme/eldy/img/btn_arrow_down.png"></th>
@@ -34,6 +34,8 @@
             <th width="50px" class="small_size" rowspan="2" title="Підтвердження про виконання">Підтв. про викон.</th>
             <th width="25px" class="small_size" rowspan="2"></th>
             <th width="25px" class="small_size" rowspan="2"></th>
+            <th width="25px" class="small_size" rowspan="2"></th>
+
         </tr>
         <tr class="multiple_header_table">
             <th width="75px" class="middle_size">Останні</th>

@@ -216,7 +216,7 @@ function ShowTable(){
     $table .= '</tbody>';
     return $table;
 }
-function ShowTasks($Code, $Title, $bestvalue = false){
+function ShowTasks1($Code, $Title, $bestvalue = false){
     global $userActions;
 //    if($Title == 'Найкращі показники по підрозділу') {
 //        echo '<pre>';

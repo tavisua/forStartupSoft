@@ -793,7 +793,7 @@ class Form
         $outarray=array();
 
         // On recherche les societes
-        $sql = "SELECT s.rowid, s.nom as name, s.client, s.fournisseur, s.code_client, s.code_fournisseur";
+        $sql = "SELECT s.rowid, s.nom as name, s.client, s.fournisseur, s.code_client, s.code_fournisseur, s.categoryofcustomer_id";
         $sql.= " FROM ".MAIN_DB_PREFIX ."societe as s";
         if (!$user->rights->societe->client->voir && !$user->societe_id) $sql .= ", ".MAIN_DB_PREFIX."societe_commerciaux as sc";
         $sql.= " WHERE s.entity IN (".getEntity('societe', 1).")";
@@ -801,6 +801,8 @@ class Form
         if ($filter) $sql.= " AND (".$filter.")";
         if (!$user->rights->societe->client->voir && !$user->societe_id) $sql.= " AND s.rowid = sc.fk_soc AND sc.fk_user = " .$user->id;
         if (! empty($conf->global->COMPANY_HIDE_INACTIVE_IN_COMBOBOX)) $sql.= " AND s.status<>0 ";
+        $sql .= " and active = 1";
+
         // Add criteria
         if ($filterkey && $filterkey != '')
         {
@@ -823,11 +825,37 @@ class Form
         	}
         	$sql.=")";
         }
-        if($id_usr != 0)
-            $sql .= ' and s.`fk_user_creat`=' . $id_usr;
+        if($id_usr != 0) {
+            $sqlusr = "select `responsibility`.`alias`, res2.alias as alias2, respon_id, respon_id2 from llx_user
+                        inner join `responsibility` on `responsibility`.rowid = llx_user.respon_id
+                        left join `responsibility` res2 on `res2`.rowid = llx_user.respon_id2
+                        where llx_user.rowid = ".$id_usr;
+            $resusr = $this->db->query($sqlusr);
+            if(!$resusr)
+                dol_print_error($this->db);
+            $objusr = $this->db->fetch_object($resusr);
+            switch($objusr->alias){
+                case 'sale':{
+                    $sql .= ' and s.region_id in (select fk_id from llx_user_regions
+                                        where 1
+                                        and fk_user = '.$id_usr.'
+                                        and active = 1)';
+                }break;
+                case 'purchase':{
+                    $sql .= " and `s`.`categoryofcustomer_id` in
+                        (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility in(".$objusr->respon_id.", ".(empty($objusr->respon_id2)?0:$objusr->respon_id2)."))";
+                }break;
+                default:{
+                    $sql .= ' and s.`fk_user_creat`=' . $id_usr;
+                }break;
+            }
+        }
         $sql.=$this->db->order("nom","ASC");
 		if ($limit > 0) $sql.=$this->db->plimit($limit);
-
+//        echo '<pre>';
+//        var_dump($sql);
+//        echo '</pre>';
+//        die();
         dol_syslog(get_class($this)."::select_thirdparty_list", LOG_DEBUG);
         $resql=$this->db->query($sql);
         if ($resql)
@@ -896,7 +924,7 @@ class Form
             }
 
             // Construct $out and $outarray
-            $out.= '<select id="'.$htmlname.'" class="flat" name="'.$htmlname.'">'."\n";
+            $out.= '<select id="'.$htmlname.'" class="flat" style="width:80%" name="'.$htmlname.'">'."\n";
 
             $textifempty='';
             // Do not use textempty = ' ' or '&nbsp;' here, or search on key will search on ' key'.

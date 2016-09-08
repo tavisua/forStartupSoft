@@ -9,7 +9,9 @@
             </div>
 
         </div>
-
+    <?if(in_array($user->respon_alias2, array('dir_depatment','senior_manager'))){?>
+        <input id="autorefresh" type="checkbox" onclick="AutoRefreshClick();">&nbsp;&nbsp;&nbsp;&nbsp;Автоматичне оновлення сторінки</input>
+    <?}?>
     <table  cellspacing="1" class="WidthScroll">
         <thead>
         <tr class="multiple_header_table">
@@ -19,8 +21,8 @@
             <th width="100px" class="middle_size"rowspan="2">Структурний підрозділ "ХТО"</th>
             <th width="100px" class="middle_size" rowspan="2">ПІБ "ХТО"</th>
             <th width="100px" class="middle_size"rowspan="2">Структурний підрозділ "КОМУ"</th>
-            <th width="100px" class="middle_size" rowspan="2">ПІБ "КОМУ"&nbsp;&nbsp;<img  id="PerformerFilter" onclick="GetPerformers();" title="Встановити фільтр по виконавцю" src="/dolibarr/htdocs/theme/eldy/img/btn_arrow_down.png"></th>
-            <th width="80px" class="middle_size" rowspan="2">Група завдань</th>
+            <th width="100px" class="middle_size" rowspan="2">ПІБ "КОМУ"&nbsp;&nbsp;<img  id="PerformerFilter" onclick="GetPerformers(<?=$id_usr?>);" title="Встановити фільтр по виконавцю" src="/dolibarr/htdocs/theme/eldy/img/btn_arrow_down.png"></th>
+            <th width="80px" class="middle_size" rowspan="2">Група завдань <br><img  id="GroupTaskFilter" onclick="GetGroupOfTask(<?=$id_usr?>);" title="Встановити фільтр групі звадань" src="/dolibarr/htdocs/theme/eldy/img/btn_arrow_down.png"></th>
             <th width="100px" class="middle_size" rowspan="2">Задача</th>
             <th width="100px" class="small_size" rowspan="2">Примітка: Що зробить, кінцева мета, підтвердження</th>
             <th width="50px" class="small_size" rowspan="2">Виконати попередньо до </br></br><img  id="PreparedDateFilter" onclick="GetExecDate('prepareddate');" title="Встановити фільтр по даті попереднього виконання" src="/dolibarr/htdocs/theme/eldy/img/btn_arrow_down.png"></th>
@@ -51,6 +53,34 @@
     </table>
 </div>
 <script type="text/javascript">
+    function AutoRefreshClick(){
+        console.log($('#autorefresh').attr('checked'));
+        if($('#autorefresh').attr('checked') == 'checked')
+            AutoRefreshPage();
+        else{
+            var searchString = location.search.substr(1).split('&');
+            var searchParam = {};
+            $.each(searchString, function (index, value) {
+                searchParam[value.substr(0, strpos(value, '='))] = value.substr(strpos(value, '=') + 1);
+                //console.log(value.substr(strpos(value, '=')+1), strpos(value, '='));
+            })
+            //console.log($('#autorefresh').attr('checked'));
+            if($('#autorefresh').attr('checked') === 'checked')
+                searchParam['autorefresh'] = 1;
+            else
+                searchParam['autorefresh'] = 0;
+            searchString = '?';
+            $.each(searchParam, function (index, value) {
+                console.log(searchString.substr(searchString.length - 1, 1));
+                if (searchString.substr(searchString.length - 1, 1) != '?')
+                    searchString += '&';
+                if(index != 'autorefresh' || index == 'autorefresh' && value != '0')
+                    searchString += index + '=' + value;
+            })
+            console.log(searchString);
+            location = location.pathname + searchString;
+        }
+    }
     $(document).ready(function(){
         $('#reference_body').attr('height', window.innerHeight - 360);
         var th = document.getElementsByTagName('th');
@@ -73,6 +103,10 @@
         $('#tabs_area').width(600);
         $('#reference_body').offset({left:22});
         $('#reference_body').width(TotalWidth+30);
+        if(getParameterByName('autorefresh') == '1'){
+            $('#autorefresh').attr('checked','checked');
+            setTimeout(AutoRefreshPage, 5000);
+        }
     })
 
 

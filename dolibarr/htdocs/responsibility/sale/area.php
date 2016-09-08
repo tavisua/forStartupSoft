@@ -26,11 +26,12 @@ print_fiche_titre($Area);
 //die();
 if(isset($_GET['id_usr'])&&!empty($_GET['id_usr'])){
     global $db;
-    $sql = 'select lastname from llx_user where rowid = '.$_GET['id_usr'];
+    $sql = 'select lastname, respon_id from llx_user where rowid = '.$_GET['id_usr'];
     $res = $db->query($sql);
     $obj = $db->fetch_object($res);
     $username = $obj->lastname;
     $id_usr = $_GET['id_usr'];
+    $respon_id = $obj->respon_id;
 }else {
     $username = $user->lastname;
     $id_usr = $user->id;

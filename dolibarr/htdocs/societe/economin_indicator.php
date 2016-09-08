@@ -92,42 +92,8 @@ if($_REQUEST['action'] == 'get_economic_indicators') {
     $action_url = $_SERVER['PHP_SELF'];
     include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/eldy/addparam.html';
     exit();
-}elseif(isset($_REQUEST['actionlineactive']) && $_REQUEST['actionlineactive'] == 'updatelineactive'){
-        global $user;
-    $update_user = new User($db);
-    $update_user->info($_REQUEST['id']);
-    $lineactive = explode(',', $_REQUEST['values']);
-    $sql = 'select fk_lineactive, rowid from llx_societe_lineactive where fk_soc='.$object->id;
-    $res = $db->query($sql);
-    if(!$res)
-        dol_print_error($db);
-    $user_lineactive = array();
-    while($obj = $db->fetch_object($res)){
-        $user_lineactive[$obj->fk_lineactive] = $obj->rowid;
-    }
-    $inserted_values = array_keys($user_lineactive);
-
-    foreach($inserted_values as $item){//Помічаю на видалення
-        if(!in_array($item, $lineactive)){
-            $sql = 'update llx_societe_lineactive set active = 0, id_usr='.$user->id.
-                ' where fk_soc='.$object->id.' and fk_lineactive='.$item.' limit 1';
-            $res = $db->query($sql);
-            if(!$res)
-                dol_print_error($db);
-        }
-    }
-    foreach($lineactive as $item){//Добавляю інші
-        if(!isset($user_lineactive[$item]))
-            $sql = 'insert into llx_societe_lineactive(fk_soc,fk_lineactive,active,id_usr)
-            values('.$object->id.', '.$item.', 1, '.$user->id.')';
-        else
-            $sql = 'update llx_societe_lineactive set active = 1, id_usr='.$user->id.
-                ' where fk_soc='.$object->id.' and fk_lineactive='.$item.' limit 1';
-        $res = $db->query($sql);
-//        if(!$res)
-//            dol_print_error($db);
-    }
 }
+
 
 
 $Title = $langs->trans("EconomicIndicators");
@@ -145,7 +111,7 @@ print '
             <div class="inline-block tabsElem">
                 <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societecontact.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('ContactList').'</a>
             </div>';
-            $sql = "select `responsibility_param`.`fx_category_counterparty` category_id, `responsibility`.`alias` from `responsibility`
+            $sql = "select case when `responsibility_param`.`fx_category_counterparty` is null then `responsibility_param`.`other_category` else `responsibility_param`.`fx_category_counterparty` end category_id, `responsibility`.`alias` from `responsibility`
                 inner join `responsibility_param` on `responsibility_param`.`fx_responsibility` = `responsibility`.`rowid`
                 where `responsibility`.`alias` in ('sale','purchase','marketing')";
             $res = $db->query($sql);
@@ -173,13 +139,12 @@ print '
                 }
             }
 
-            if(in_array($object->categoryofcustomer_id, $sales_category))
+            print '<div class="inline-block tabsElem">
+                            <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('EconomicData').'</a>
+                        </div>';
+            if(in_array($object->categoryofcustomer_id, $purchase_category)||in_array($object->categoryofcustomer_id, $marketing_category)) {
                 print '<div class="inline-block tabsElem">
-                                <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('EconomicData').'</a>
-                            </div>';
-            elseif(in_array($object->categoryofcustomer_id, $purchase_category)||in_array($object->categoryofcustomer_id, $marketing_category)) {
-                print '<div class="inline-block tabsElem">
-                                <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('LineActive').'</a>
+                                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/lineactive.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('LineActive').'</a>
                             </div>';
             }
 print '<div class="inline-block tabsElem">
@@ -190,7 +155,7 @@ print '<div class="inline-block tabsElem">
             </div>
         </div>';
 
-if(in_array($object->categoryofcustomer_id, $sales_category)){
+//if(in_array($object->categoryofcustomer_id, $sales_category)){
     include($_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/theme/' . $conf->theme . '/economic_indicator.html');
     print '<script>
     function preview(object){
@@ -208,61 +173,7 @@ if(in_array($object->categoryofcustomer_id, $sales_category)){
                      <a class='close' title='Закрыть' href='#close'></a>
                      </div>";
     print $prev_form;
-}elseif(in_array($object->categoryofcustomer_id, $purchase_category)||in_array($object->categoryofcustomer_id, $marketing_category)) {
-    $lineactive=array();
-    $sql = 'select fk_lineactive from llx_societe_lineactive where fk_soc = '.$object->id.' and active=1';
-    $res = $db->query($sql);
-    if(!$res)
-        dol_print_error($db);
-    if($db->num_rows($res)>0)
-        while($obj = $db->fetch_object($res)){
-            $lineactive[]=$obj->fk_lineactive;
-        }
+//}
 
-    require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
-    $form = new Form($db);
-    print '<div id="LineActive" class="tabPage">';
-    print '    <div class="address_header">
-        <table id="headercontrol" style="background-color: #ffffff">
-            <tr>
-                <td><b>Категорія контрагента</b></td>
-                <td>'.$object->getCategoryOfCustomer().'</td>
-            </tr>
-            <tr>
-                <td><b>Назва контрагента</b></td>
-                <td>'.$object->name.'</td>
-            </tr>
-            <tr>
-                <td><b>Форма правління</b></td>
-                <td>'.$object->getFormOfGoverment().'</td>
-            </tr>
-        </table>
-    </div>';
-
-    print '<form id="lineaction" action="economin_indicator.php" method="post" style="width: 550px; padding-left: 200px">';
-    print '<input id="id" name="id" value="'.$user->id.'" type="hidden">';
-    print '<input id="mainmenu" name="mainmenu" value="'.$_REQUEST['mainmenu'].'" type="hidden">';
-    print '<input id="idmenu" name="idmenu" value="'.$_REQUEST['idmenu'].'" type="hidden">';
-    print '<input id="values" name="values" value="" type="hidden">';
-    print '<input id="action" name="action" value="edit" type="hidden">';
-    print '<input id="socid" name="socid" value="'.$_REQUEST['socid'].'" type="hidden">';
-    print '<input id="actionlineactive" name="actionlineactive" value="updatelineactive" type="hidden">';
-    if(in_array($object->categoryofcustomer_id, $purchase_category))
-        print $form->selectLineAction($lineactive, 'select_lineaction', 30);
-    elseif(in_array($object->categoryofcustomer_id, $marketing_category))
-        print $form->select_lineaction_marketing($lineactive, 'select_lineaction', 30);
-    print '</br>';
-    print '<input type="submit" value="Зберегти">';
-    print '</form>';
-    print '</div>';
-    print "<script>
-        $(document).ready(function(){
-            $('#select_lineaction').on('change', SelectLineaction);
-        })
-        function SelectLineaction(){
-            $('#values').val($('#select_lineaction').val());
-        }
-    </script>";
-}
 echo ob_get_clean();
 //llxFooter();

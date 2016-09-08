@@ -100,6 +100,6 @@ if($db->num_rows($res) > 0) {
 }
 $CreateCompany = $langs->trans('CreateCompany');
 
-include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/'.$user->respon_alias.'/current/header.html');
+include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/current/header.html');
 return;
 

@@ -31,7 +31,7 @@ $obj = $db->fetch_object($res);
 $subdivision = $obj->name;
 //if(!isset($_SESSION['actions'])) {
     $sql = "select distinct sub_user.rowid  id_usr, sub_user.alias, `llx_societe`.`rowid` socid, llx_actioncomm.id, llx_actioncomm.percent, date(llx_actioncomm.datep) datep, llx_actioncomm.percent,
-    case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT') then llx_actioncomm.`code` else 'AC_CUST' end `code`, `llx_societe_action`.`callstatus`
+    case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT','AC_EDUCATION', 'AC_INITIATIV', 'AC_PROJECT') then llx_actioncomm.`code` else 'AC_CUST' end `code`, `llx_societe_action`.`callstatus`
     from llx_actioncomm
     inner join (select id from `llx_c_actioncomm` where type in('user','system') and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
     left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = llx_actioncomm.id
@@ -314,12 +314,14 @@ function ShowTable(){
     $table.= ShowTasks('AC_CUST', 'Найкращі показники по підрозділу', true);
     global $id_usr;
     $table.= getLineActiveList($id_usr);
-
+    $table.= ShowTasks('AC_PROJECT', 'Проекти', true);
+    $table.= ShowTasks('AC_EDUCATION, ', 'Навчання', true);
+    $table.= ShowTasks('AC_INITIATIV, , ', 'Ініціативи', true);
 
     $table .= '</tbody>';
     return $table;
 }
-function ShowTasks($Code, $Title, $bestvalue = false){
+function ShowTasks1($Code, $Title, $bestvalue = false){
     global $userActions;
 //    if($Title == 'Найкращі показники по підрозділу') {
 //        echo '<pre>';

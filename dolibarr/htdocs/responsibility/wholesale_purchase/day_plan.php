@@ -20,8 +20,29 @@ if(isset($_GET['id_usr'])&&!empty($_GET['id_usr'])){
 }
 llxHeader("",$langs->trans('PlanOfDays'),"");
 print_fiche_titre($langs->trans('PlanOfDays'));
-$table = ShowTable();
 
+//Підрахунок проектів
+$project_task = array();
+$project_task = CalcOutStandingActions("'AC_PROJECT'", $project_task, $user->id);
+$project_task = CalcFutureActions("'AC_PROJECT'", $project_task, $user->id);
+$project_task = CalcFaktActions("'AC_PROJECT'", $project_task, $user->id);
+$project_task = CalcPercentExecActions("'AC_PROJECT'", $project_task, $user->id);
+
+//Підрахунок навчаннь
+$edutaction_task = array();
+$edutaction_task = CalcOutStandingActions("'AC_EDUCATION'", $edutaction_task, $user->id);
+$edutaction_task = CalcFutureActions("'AC_EDUCATION'", $edutaction_task, $user->id);
+$edutaction_task = CalcFaktActions("'AC_EDUCATION'", $edutaction_task, $user->id);
+$edutaction_task = CalcPercentExecActions("'AC_EDUCATION'", $edutaction_task, $user->id);
+
+//Підрахунок ініціатив
+$initiative_task = array();
+$initiative_task = CalcOutStandingActions("'AC_INITIATIV'", $initiative_task, $user->id);
+$initiative_task = CalcFutureActions("'AC_INITIATIV'", $initiative_task, $user->id);
+$initiative_task = CalcFaktActions("'AC_INITIATIV'", $initiative_task, $user->id);
+$initiative_task = CalcPercentExecActions("'AC_INITIATIV'", $initiative_task, $user->id);
+
+$table = ShowTable();
 //Підрахунок глобальних задач
 $global_task = array();
 $global_task = CalcOutStandingActions("'AC_GLOBAL'", $global_task, $user->id);
@@ -36,10 +57,16 @@ $current_task = CalcFutureActions("'AC_CURRENT'", $current_task, $user->id);
 $current_task = CalcFaktActions("'AC_CURRENT'", $current_task, $user->id);
 $current_task = CalcPercentExecActions("'AC_CURRENT'", $current_task, $user->id);
 
+
+//echo '<pre>';
+//var_dump($project_task);
+//echo '</pre>';
+//die();
+
 //Підрахунок по направленнях
 $sql = "select `code` from llx_c_actioncomm
 where type in ('system','user')
-and code not in ('AC_GLOBAL', 'AC_CURRENT')";
+and code not in ('AC_GLOBAL','AC_CURRENT','AC_EDUCATION','AC_INITIATIV','AC_PROJECT')";
 $res = $db->query($sql);
 if(!$res)
     dol_print_error($db);
@@ -50,11 +77,13 @@ while($obj = $db->fetch_object($res)){
     else
         $Code .= ",'".$obj->code."'";
 }
+//die($Code);
 $lineaction = array();
 $lineaction = CalcOutStandingActions($Code, $lineaction, $user->id);
 $lineaction = CalcFutureActions($Code, $lineaction, $user->id);
 $lineaction = CalcFaktActions($Code, $lineaction, $user->id);
 $lineaction = CalcPercentExecActions($Code, $lineaction, $user->id);
+
 
 $bestvalue = array();
 $bestuser_id = GetBestUserID();
@@ -138,11 +167,13 @@ function CalcPercentExecActions($actioncode, $array, $id_usr){
     $exectask = array();
     for($i = 0; $i<9; $i++){
         $sql = "select count(*) as iCount  from `llx_actioncomm`
-        inner join
-        (select id from `llx_c_actioncomm` where code in(".$actioncode.") and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
         left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
         inner join `llx_actioncomm_resources` on `llx_actioncomm`.`id` =  `llx_actioncomm_resources`.`fk_actioncomm`
-        where 1 ";
+        where 1";
+        if(!strpos($actioncode,','))
+            $sql.=" and llx_actioncomm.`code` = ".$actioncode;
+        else
+            $sql.=" and llx_actioncomm.`code` in(".$actioncode.") ";
         $sql .= " and `llx_actioncomm_resources`.fk_element = ".$id_usr;
         if($i<8) {
             $query_date = date("Y-m-d", (time()+3600*24*(-$i)));
@@ -192,12 +223,14 @@ function CalcFaktActions($actioncode, $array, $id_usr){
     //Минулі виконані дії
     for($i=0; $i<9; $i++) {
         $sql = "select count(*) as iCount  from `llx_actioncomm`
-        inner join
-        (select id from `llx_c_actioncomm` where code in(".$actioncode.") and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
         left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
         inner join `llx_actioncomm_resources` on `llx_actioncomm`.`id` =  `llx_actioncomm_resources`.`fk_actioncomm`
         where 1";
-        if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'" || $id_usr != 1)
+        if(!strpos($actioncode,','))
+            $sql.=" and llx_actioncomm.`code` = ".$actioncode;
+        else
+            $sql.=" and llx_actioncomm.`code` in(".$actioncode.") ";
+        if(in_array($actioncode, array('AC_GLOBAL','AC_CURRENT','AC_EDUCATION','AC_INITIATIV','AC_PROJECT')) || $id_usr != 1)
             $sql .=" and `llx_actioncomm_resources`.fk_element = ".$id_usr;
         if($i<8) {
             $query_date = date("Y-m-d", (time()+3600*24*(-$i)));
@@ -229,14 +262,20 @@ function CalcFaktActions($actioncode, $array, $id_usr){
 
 function CalcFutureActions($actioncode, $array, $id_usr){
     global $db, $user;
+    $start = time();
     //Майбутні дії
     for($i=0; $i<9; $i++) {
         $sql = "select count(*) as iCount  from `llx_actioncomm`
-        inner join
-        (select id from `llx_c_actioncomm` where code in(".$actioncode.") and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
         left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
         where 1";
-        if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'" || $user->login !="admin")
+//        var_dump(strpos(',',$actioncode));
+//        die();
+        if(!strpos($actioncode,','))
+            $sql.=" and llx_actioncomm.`code` = ".$actioncode;
+        else
+            $sql.=" and llx_actioncomm.`code` in(".$actioncode.") ";
+
+        if(in_array($actioncode, array('AC_GLOBAL','AC_CURRENT','AC_EDUCATION','AC_INITIATIV','AC_PROJECT')) || $user->login !="admin")
             $sql .=" and fk_user_author = ".$id_usr;
         if($i<8) {
             $query_date = date("Y-m-d", (time()+3600*24*$i));
@@ -253,7 +292,12 @@ function CalcFutureActions($actioncode, $array, $id_usr){
                 $sql .= " and datep2 between '" . date("Y-m-d") . "' and date_add('" . date("Y-m-d") . "', interval 31 day)";
         }
         $sql .=" and datea is null";
-
+//        if($actioncode == "'AC_PROJECT'") {
+//            echo '<pre>';
+//            var_dump($sql);
+//            echo '</pre>';
+//            die();
+//        }
         $res = $db->query($sql);
         while($res && $obj = $db->fetch_object($res)){
             if($i<8) {
@@ -271,12 +315,18 @@ function CalcFutureActions($actioncode, $array, $id_usr){
 function CalcOutStandingActions($actioncode, $array, $id_usr){
     global $db, $user;
     $sql = "select count(*) as iCount  from `llx_actioncomm`
-    inner join
-    (select id from `llx_c_actioncomm` where code in(".$actioncode.") and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
     left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
     left join llx_actioncomm_resources on llx_actioncomm_resources.fk_actioncomm = `llx_actioncomm`.id
     where 1";
-        if($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'" || $user->login !="admin")
+//    if($actioncode == "'AC_TEL','AC_FAX','AC_EMAIL','AC_RDV','AC_INT','AC_OTH','AC_DEP'"){
+//        var_dump(strpos($actioncode,","));
+//        die();
+//    }
+    if(!strpos($actioncode,','))
+        $sql.=" and llx_actioncomm.`code` = ".$actioncode;
+    else
+        $sql.=" and llx_actioncomm.`code` in(".$actioncode.") ";
+        if(in_array($actioncode, array('AC_GLOBAL','AC_CURRENT','AC_EDUCATION','AC_INITIATIV','AC_PROJECT')) || $user->login !="admin")
             $sql .=" and llx_actioncomm_resources.fk_element = ".$id_usr;
     $sql .= " and datep2 < '".date("Y-m-d")."'";
     $sql .=" and percent <> 100 and datea is null";
@@ -292,12 +342,30 @@ function CalcOutStandingActions($actioncode, $array, $id_usr){
 }
 function ShowTable(){
     global $db, $user, $conf;
+
+    //Визначаю категорії контрагентів, з якими працює користувач
+
+    $sql = "select case when fx_category_counterparty is null then other_category else fx_category_counterparty end fx_category_counterparty
+        from `responsibility_param`
+        inner join `category_counterparty` on `category_counterparty`.`rowid` = case when fx_category_counterparty is null then other_category else fx_category_counterparty end
+        where `responsibility_param`.fx_responsibility in(".implode(',',array($user->respon_id, $user->respon_id2)).")
+        and `category_counterparty`.`active` = 1";
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $categiryID = array();
+    while($obj = $db->fetch_object($res)){
+        if(!in_array($obj->fx_category_counterparty, $categiryID))
+            $categiryID[]=$obj->fx_category_counterparty;
+    }
+//    var_dump($sql);
+//    die(implode(',',$categiryID));
     $future_actions = array();
     //Майбутні дії
     for($i=0; $i<9; $i++) {
         $sql = "select `llx_societe`.`region_id`, count(*) as iCount  from `llx_actioncomm`
         inner join
-        (select id from `llx_c_actioncomm` where type in ('system','user') and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
+        (select `code` from `llx_c_actioncomm` where type in ('system','user') and active = 1) type_action on type_action.`code` = `llx_actioncomm`.`code`
         left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
         where 1 ";
         if($i<8) {
@@ -316,7 +384,10 @@ function ShowTable(){
         }
         $sql .=" and datea is null
         group by `llx_societe`.`region_id`";
-
+//    echo '<pre>';
+//    var_dump($sql);
+//    echo '</pre>';
+//    die();
         $res = $db->query($sql);
         while($res && $obj = $db->fetch_object($res)){
             if($i<8)
@@ -330,13 +401,20 @@ function ShowTable(){
     $outstanding_actions = array();
     $sql = "select `llx_societe`.`region_id`, count(*) as iCount  from `llx_actioncomm`
     inner join
-    (select id from `llx_c_actioncomm` where type in ('system','user') and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
+    (select `code` from `llx_c_actioncomm` where type in ('system','user') and active = 1) type_action on type_action.`code` = `llx_actioncomm`.`code`
     left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
-    where 1";
-    $sql .= " and datep2 < '".date("Y-m-d")."'";
+    where 1 ";
+//    $sql .= " and datep2 < '".date("Y-m-d")."'";
+    $sql .= "and datep2 between adddate(date(now()), interval -1 month) and date(now())";
     $sql .=" and datea is null
     group by `llx_societe`.`region_id`";
+//    echo '<pre>';
+//    var_dump($sql);
+//    echo '</pre>';
+//    die();
     $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
     while($obj = $db->fetch_object($res)){
         $outstanding_actions[$obj->region_id]=$obj->iCount;
     }
@@ -346,7 +424,7 @@ function ShowTable(){
     for($i=0; $i<9; $i++) {
         $sql = "select `llx_societe`.`region_id`, count(*) as iCount  from `llx_actioncomm`
         inner join
-        (select id from `llx_c_actioncomm` where type in ('system','user') and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
+        (select `code` from `llx_c_actioncomm` where type in ('system','user') and active = 1) type_action on type_action.`code` = `llx_actioncomm`.`code`
         left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
         inner join `llx_actioncomm_resources` on `llx_actioncomm`.`id` =  `llx_actioncomm_resources`.`fk_actioncomm`
         where 1 ";
@@ -466,6 +544,120 @@ function ShowTable(){
             }
         $table.='</tr>';
     }
+    //Проекти
+    global $project_task,$edutaction_task,$initiative_task;
+//    echo '<pre>';
+//    var_dump($project_task);
+//    echo '</pre>';
+//    die();
+
+
+    $table.='<tr class="multiple_header_table whitetitle">
+        <td>Проекти</td>
+        <!--% виконання запланованого по факту-->
+        <td class="totalvalue" id="project_percent_montd">'.$project_task["percent_montd"].'</td>
+        <td class="totalvalue" id="project_percent_day_m7">'.$project_task["percent_7"].'</td>
+        <td class="totalvalue" id="project_percent_day_m6">'.$project_task["percent_6"].'</td>
+        <td class="totalvalue" id="project_percent_day_m5">'.$project_task["percent_5"].'</td>
+        <td class="totalvalue" id="project_percent_day_m4">'.$project_task["percent_4"].'</td>
+        <td class="totalvalue" id="project_percent_day_m3">'.$project_task["percent_3"].'</td>
+        <td class="totalvalue" id="project_percent_day_m2">'.$project_task["percent_2"].'</td>
+        <td class="totalvalue" id="project_percent_day_m1">'.$project_task["percent_1"].'</td>
+        <td class="totalvalue" id="project_percent_today">'.$project_task["percent_0"].'</td>
+        <!--минуле (факт)-->
+        <td class="totalvalue" id="project_fakt_montd">'.$project_task["fakt_montd"].'</td>
+        <td class="totalvalue" id="project_fakt_day_m7">'.$project_task["fakt_day_m7"].'</td>
+        <td class="totalvalue" id="project_fakt_day_m6">'.$project_task["fakt_day_m6"].'</td>
+        <td class="totalvalue" id="project_fakt_day_m5">'.$project_task["fakt_day_m5"].'</td>
+        <td class="totalvalue" id="project_fakt_day_m4">'.$project_task["fakt_day_m4"].'</td>
+        <td class="totalvalue" id="project_fakt_day_m3">'.$project_task["fakt_day_m3"].'</td>
+        <td class="totalvalue" id="project_fakt_day_m2">'.$project_task["fakt_day_m2"].'</td>
+        <td class="totalvalue" id="project_fakt_day_m1">'.$project_task["fakt_day_m1"].'</td>
+        <td class="totalvalue" id="project_fakt_today">'.$project_task["fakt_today"].'</td>
+        <!--майбутнє (план)-->
+        <td class="totalvalue" id="project_outstanding">'.$project_task["outstanding"].'</td>
+        <td class="totalvalue" id="project_future_today">'.$project_task["future_today"].'</td>
+        <td class="totalvalue" id="project_future_day_pl1">'.$project_task["future_day_pl1"].'</td>
+        <td class="totalvalue" id="project_future_day_pl2">'.$project_task["future_day_pl2"].'</td>
+        <td class="totalvalue" id="project_future_day_pl3">'.$project_task["future_day_pl3"].'</td>
+        <td class="totalvalue" id="project_future_day_pl4">'.$project_task["future_day_pl4"].'</td>
+        <td class="totalvalue" id="project_future_day_pl5">'.$project_task["future_day_pl5"].'</td>
+        <td class="totalvalue" id="project_future_day_pl6">'.$project_task["future_day_pl6"].'</td>
+        <td class="totalvalue" id="project_future_day_pl7">'.$project_task["future_day_pl7"].'</td>
+        <!--ітого за місяць-->
+        <td class="totalvalue" id="project_future_montd">'.$project_task["future_month"].'</td>
+    </tr>';    
+    $table.='<tr class="multiple_header_table whitetitle">
+        <td>Ініціативи</td>
+        <!--% виконання запланованого по факту-->
+        <td class="totalvalue" id="initiative_percent_montd">'.$initiative_task["percent_montd"].'</td>
+        <td class="totalvalue" id="initiative_percent_day_m7">'.$initiative_task["percent_7"].'</td>
+        <td class="totalvalue" id="initiative_percent_day_m6">'.$initiative_task["percent_6"].'</td>
+        <td class="totalvalue" id="initiative_percent_day_m5">'.$initiative_task["percent_5"].'</td>
+        <td class="totalvalue" id="initiative_percent_day_m4">'.$initiative_task["percent_4"].'</td>
+        <td class="totalvalue" id="initiative_percent_day_m3">'.$initiative_task["percent_3"].'</td>
+        <td class="totalvalue" id="initiative_percent_day_m2">'.$initiative_task["percent_2"].'</td>
+        <td class="totalvalue" id="initiative_percent_day_m1">'.$initiative_task["percent_1"].'</td>
+        <td class="totalvalue" id="initiative_percent_today">'.$initiative_task["percent_0"].'</td>
+        <!--минуле (факт)-->
+        <td class="totalvalue" id="initiative_fakt_montd">'.$initiative_task["fakt_montd"].'</td>
+        <td class="totalvalue" id="initiative_fakt_day_m7">'.$initiative_task["fakt_day_m7"].'</td>
+        <td class="totalvalue" id="initiative_fakt_day_m6">'.$initiative_task["fakt_day_m6"].'</td>
+        <td class="totalvalue" id="initiative_fakt_day_m5">'.$initiative_task["fakt_day_m5"].'</td>
+        <td class="totalvalue" id="initiative_fakt_day_m4">'.$initiative_task["fakt_day_m4"].'</td>
+        <td class="totalvalue" id="initiative_fakt_day_m3">'.$initiative_task["fakt_day_m3"].'</td>
+        <td class="totalvalue" id="initiative_fakt_day_m2">'.$initiative_task["fakt_day_m2"].'</td>
+        <td class="totalvalue" id="initiative_fakt_day_m1">'.$initiative_task["fakt_day_m1"].'</td>
+        <td class="totalvalue" id="initiative_fakt_today">'.$initiative_task["fakt_today"].'</td>
+        <!--майбутнє (план)-->
+        <td class="totalvalue" id="initiative_outstanding">'.$initiative_task["outstanding"].'</td>
+        <td class="totalvalue" id="initiative_future_today">'.$initiative_task["future_today"].'</td>
+        <td class="totalvalue" id="initiative_future_day_pl1">'.$initiative_task["future_day_pl1"].'</td>
+        <td class="totalvalue" id="initiative_future_day_pl2">'.$initiative_task["future_day_pl2"].'</td>
+        <td class="totalvalue" id="initiative_future_day_pl3">'.$initiative_task["future_day_pl3"].'</td>
+        <td class="totalvalue" id="initiative_future_day_pl4">'.$initiative_task["future_day_pl4"].'</td>
+        <td class="totalvalue" id="initiative_future_day_pl5">'.$initiative_task["future_day_pl5"].'</td>
+        <td class="totalvalue" id="initiative_future_day_pl6">'.$initiative_task["future_day_pl6"].'</td>
+        <td class="totalvalue" id="initiative_future_day_pl7">'.$initiative_task["future_day_pl7"].'</td>
+        <!--ітого за місяць-->
+        <td class="totalvalue" id="initiative_future_montd">'.$initiative_task["future_month"].'</td>
+    </tr>';           
+    $table.='<tr class="multiple_header_table whitetitle">
+        <td>Навчання</td>
+        <!--% виконання запланованого по факту-->
+        <td class="totalvalue" id="edutaction_percent_montd">'.$edutaction_task["percent_montd"].'</td>
+        <td class="totalvalue" id="edutaction_percent_day_m7">'.$edutaction_task["percent_7"].'</td>
+        <td class="totalvalue" id="edutaction_percent_day_m6">'.$edutaction_task["percent_6"].'</td>
+        <td class="totalvalue" id="edutaction_percent_day_m5">'.$edutaction_task["percent_5"].'</td>
+        <td class="totalvalue" id="edutaction_percent_day_m4">'.$edutaction_task["percent_4"].'</td>
+        <td class="totalvalue" id="edutaction_percent_day_m3">'.$edutaction_task["percent_3"].'</td>
+        <td class="totalvalue" id="edutaction_percent_day_m2">'.$edutaction_task["percent_2"].'</td>
+        <td class="totalvalue" id="edutaction_percent_day_m1">'.$edutaction_task["percent_1"].'</td>
+        <td class="totalvalue" id="edutaction_percent_today">'.$edutaction_task["percent_0"].'</td>
+        <!--минуле (факт)-->
+        <td class="totalvalue" id="edutaction_fakt_montd">'.$edutaction_task["fakt_montd"].'</td>
+        <td class="totalvalue" id="edutaction_fakt_day_m7">'.$edutaction_task["fakt_day_m7"].'</td>
+        <td class="totalvalue" id="edutaction_fakt_day_m6">'.$edutaction_task["fakt_day_m6"].'</td>
+        <td class="totalvalue" id="edutaction_fakt_day_m5">'.$edutaction_task["fakt_day_m5"].'</td>
+        <td class="totalvalue" id="edutaction_fakt_day_m4">'.$edutaction_task["fakt_day_m4"].'</td>
+        <td class="totalvalue" id="edutaction_fakt_day_m3">'.$edutaction_task["fakt_day_m3"].'</td>
+        <td class="totalvalue" id="edutaction_fakt_day_m2">'.$edutaction_task["fakt_day_m2"].'</td>
+        <td class="totalvalue" id="edutaction_fakt_day_m1">'.$edutaction_task["fakt_day_m1"].'</td>
+        <td class="totalvalue" id="edutaction_fakt_today">'.$edutaction_task["fakt_today"].'</td>
+        <!--майбутнє (план)-->
+        <td class="totalvalue" id="edutaction_outstanding">'.$edutaction_task["outstanding"].'</td>
+        <td class="totalvalue" id="edutaction_future_today">'.$edutaction_task["future_today"].'</td>
+        <td class="totalvalue" id="edutaction_future_day_pl1">'.$edutaction_task["future_day_pl1"].'</td>
+        <td class="totalvalue" id="edutaction_future_day_pl2">'.$edutaction_task["future_day_pl2"].'</td>
+        <td class="totalvalue" id="edutaction_future_day_pl3">'.$edutaction_task["future_day_pl3"].'</td>
+        <td class="totalvalue" id="edutaction_future_day_pl4">'.$edutaction_task["future_day_pl4"].'</td>
+        <td class="totalvalue" id="edutaction_future_day_pl5">'.$edutaction_task["future_day_pl5"].'</td>
+        <td class="totalvalue" id="edutaction_future_day_pl6">'.$edutaction_task["future_day_pl6"].'</td>
+        <td class="totalvalue" id="edutaction_future_day_pl7">'.$edutaction_task["future_day_pl7"].'</td>
+        <!--ітого за місяць-->
+        <td class="totalvalue" id="edutaction_future_montd">'.$edutaction_task["future_month"].'</td>
+    </tr>';        
+    
     $table .= '</tbody>';
     return $table;
 }

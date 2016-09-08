@@ -259,7 +259,6 @@ class ActionComm extends CommonObject
 //        echo '<pre>';
 //        var_dump($action_id);
 //        echo '</pre>';
-//        die();
         $chain_actions = $this->GetChainActions($action_id);
         $sql = "select distinct llx_user.rowid, llx_user.lastname, llx_user.firstname from llx_actioncomm
             left join `llx_user` on `llx_user`.`rowid` = llx_actioncomm.fk_user_author

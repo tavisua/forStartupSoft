@@ -53,7 +53,8 @@ function user_prepare_head($object)
     $h++;
 
 	//Добавляю ссылку на страницу закрепленных районов ответственности
-    if($object->respon_alias == 'sale' || $object->respon_alias2 == 'sale'){
+//    if($object->respon_alias == 'sale' || $object->respon_alias2 == 'sale'){
+	if(count(array_intersect(array($object->respon_alias,$object->respon_alias2), array('sale','wholesale_purchase'))) > 0){
         $head[$h][0] = DOL_URL_ROOT.'/user/areas.php?id='.$object->id.'&mainmenu=tools&idmenu=5223';
         $head[$h][1] = $langs->trans("Areas");
         $head[$h][2] = 'areas';
@@ -72,7 +73,7 @@ function user_prepare_head($object)
         $head[$h][2] = 'lineactive';
         $h++;
     }
-	if(count(array_intersect(array($object->respon_alias,$object->respon_alias2), array('counter','corp_manager','wholesale_purchase','logistika','jurist'))) > 0){
+	if(count(array_intersect(array($object->respon_alias,$object->respon_alias2), array('counter','corp_manager','purchase','paperwork','cadry','wholesale_purchase','logistika','jurist'))) > 0){
 		$head[$h][0] = DOL_URL_ROOT.'/user/categories.php?id='.$object->id.'&mainmenu=tools&idmenu=5223';
         $head[$h][1] = $langs->trans("CategoriesContractors");
         $head[$h][2] = 'categories';

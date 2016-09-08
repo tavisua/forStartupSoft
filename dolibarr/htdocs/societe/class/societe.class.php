@@ -595,22 +595,28 @@ class Societe extends CommonObject
     }
     function setLineactive(){
         global $user;
-        $sql = 'update llx_societe_lineactive set active = 0 where fk_soc='.$this->id.' and fk_lineactive not in ('.(count($this->lineactive)>0?implode(',', $this->lineactive):0).')';
+//        echo '<pre>';
+//        var_dump(empty($this->lineactive));
+//        echo '</pre>';
+//        die();
+        $sql = 'update llx_societe_lineactive set active = 0 where fk_soc='.$this->id.' and fk_lineactive not in ('.(count($this->lineactive)>0&&!empty($this->lineactive)?implode(',', $this->lineactive):0).')';
         $res = $this->db->query($sql);
         if(!$res)
             dol_print_error($this->db);
-        foreach($this->lineactive as $item){
-            $sql = 'select rowid from llx_societe_lineactive where fk_soc='.$this->id.' and fk_lineactive='.$item;
-            $res = $this->db->query($sql);
-            if($this->db->num_rows($res) == 0)
-                $sql = "insert into llx_societe_lineactive(fk_soc,fk_lineactive,active,id_usr)
-                  values(".$this->id.", ".$item.", 1, ".$user->id.")";
-            else
-                $sql = "update llx_societe_lineactive set active = 1, id_usr=".$user->id." where fk_soc=".$this->id." and fk_lineactive=".$item;
+        if(!empty($this->lineactive)) {
+            foreach ($this->lineactive as $item) {
+                $sql = 'select rowid from llx_societe_lineactive where fk_soc=' . $this->id . ' and fk_lineactive=' . $item;
+                $res = $this->db->query($sql);
+                if ($this->db->num_rows($res) == 0)
+                    $sql = "insert into llx_societe_lineactive(fk_soc,fk_lineactive,active,id_usr)
+                  values(" . $this->id . ", " . $item . ", 1, " . $user->id . ")";
+                else
+                    $sql = "update llx_societe_lineactive set active = 1, id_usr=" . $user->id . " where fk_soc=" . $this->id . " and fk_lineactive=" . $item;
 //            var_dump($sql);
-            $res = $this->db->query($sql);
-            if(!$res)
-                dol_print_error($this->db);
+                $res = $this->db->query($sql);
+                if (!$res)
+                    dol_print_error($this->db);
+            }
         }
     }
     function setclassification(){

@@ -154,12 +154,16 @@ class dbBuilder{
             $result = $this->mysqli->query($sql);
         else{
 //            echo '<pre>';
-//            var_dump($sql);
+//            var_dump(strpos($sql, 'limit'));
 //            echo '</pre>';
 //            die();
 //            var_dump(substr($sql, 0, strpos($sql, 'limit')).' limit 1');
 //            die();
-            $result = $db->query(substr($sql, 0, strpos($sql, 'limit')).' limit 1');
+            if(strpos($sql, 'limit'))
+                $result = $db->query(substr($sql, 0, strpos($sql, 'limit')).' limit 1');
+            else
+                $result = $db->query($sql.' limit 1');
+
             if(!$result)
                 dol_print_error($db);
 //var_dump(date('H:i:s',time()));

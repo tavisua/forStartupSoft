@@ -134,8 +134,10 @@ function LineActive(){
 //        $out.='<option '.($obj->category_id == 'users'?'id="users"':'').' value="'.$obj->category_id.'" '.(is_numeric($category_id) == is_numeric($obj->category_id) && $category_id == $obj->category_id?'selected="selected"':'').'>'.$obj->name.'</option>';
 //    }
     foreach(array_keys($lineactive) as $key){
-        $out.='<option '.($key == 'users'?'id="users"':'').' value="'.$key.'" '.(is_numeric($category_id) == is_numeric($key) && $category_id == $key?'selected="selected"':'').'>'.$lineactive[$key]['name'].' ['.$lineactive[$key]['type'].']</option>';
+        $out.='<option '.($key == 'users'?'id="users"':'').' kind="'.$lineactive[$key]['kind'].'" value="'.$key.'" '.(is_numeric($category_id) == is_numeric($key) && $category_id == $key?'selected="selected"':'').'>'.$lineactive[$key]['name'].' '.(!empty($lineactive[$key]['type'])?'['.$lineactive[$key]['type'].']':'').'</option>';
     }
+
+
     $out.='</selected>';
     return $out;
 }

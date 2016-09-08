@@ -52,7 +52,7 @@ while($obj = $db->fetch_object($res)){
 //unset($_SESSION['actions']);
 if(!isset($_SESSION['actions'])) {
     $sql = "select llx_actioncomm.id, sub_user.rowid  id_usr, sub_user.alias, `llx_societe`.`region_id`, sub_user.subdiv_id, llx_actioncomm.percent, date(llx_actioncomm.datep) datep,
-    llx_actioncomm.percent, case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT') then llx_actioncomm.`code` else 'AC_CUST' end `code`, `llx_societe_action`.`callstatus`
+    llx_actioncomm.percent, case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT','AC_EDUCATION', 'AC_INITIATIV', 'AC_PROJECT') then llx_actioncomm.`code` else 'AC_CUST' end `code`, `llx_societe_action`.`callstatus`
     from llx_actioncomm
     inner join (select id from `llx_c_actioncomm` where type in('user','system') and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
     left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = llx_actioncomm.id
@@ -584,7 +584,7 @@ function CalcPercentExecActions($actioncode, $array, $id_usr=0, $responding=''){
         inner join (select fk_id from `llx_user_regions`where fk_user = ".$id_usr." and llx_user_regions.active = 1) as active_regions on active_regions.fk_id = `llx_societe`.region_id
         inner join `llx_actioncomm_resources` on `llx_actioncomm`.`id` =  `llx_actioncomm_resources`.`fk_actioncomm`
         where 1 ";
-        if(($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'" || $user->login !="admin")&& $id_usr != 0) {
+        if((in_array($actioncode, array('AC_GLOBAL','AC_CURRENT','AC_EDUCATION','AC_INITIATIV','AC_PROJECT')) || $user->login !="admin")&& $id_usr != 0) {
             $sql .= " and `llx_actioncomm_resources`.fk_element = " . $id_usr;
         }else {
             if(!empty($user->subdiv_id))
@@ -646,7 +646,7 @@ function CalcFaktActions($actioncode, $array, $id_usr=0, $responding=''){
         left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
         inner join `llx_actioncomm_resources` on `llx_actioncomm`.`id` =  `llx_actioncomm_resources`.`fk_actioncomm`
         where 1";
-        if(($actioncode == "'AC_GLOBAL'" || $actioncode == "'AC_CURRENT'" || $user->login !="admin")&& $id_usr != 0)
+        if((in_array($actioncode, array('AC_GLOBAL','AC_CURRENT','AC_EDUCATION','AC_INITIATIV','AC_PROJECT')) || $user->login !="admin")&& $id_usr != 0)
             $sql .=" and `llx_actioncomm_resources`.fk_element = ".$id_usr;
         elseif(!empty($user->subdiv_id))
             $sql .=" and `llx_actioncomm_resources`.fk_element in (select rowid from llx_user where 1 ".(empty($user->subdiv_id)?"":"and `subdiv_id` = ".$user->subdiv_id).(empty($responding)?"":" and respon_id in(".$responding.")").")";

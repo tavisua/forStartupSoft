@@ -19,7 +19,7 @@ left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_clas
 if($region_id != 0) {
     $sql .= 'where `region_id` = ' . $region_id . ' ';
     $sql .= 'and `llx_societe`.`categoryofcustomer_id` in
-(select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = '.$user->respon_id.')';
+(select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = '.$respon_id.')';
 }else
     $sql .= 'where 1 ';
 

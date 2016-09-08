@@ -30,7 +30,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/day_plan.php';
 //unset($_SESSION['actions']);
 //if(!isset($_SESSION['actions'])) {
 //    $sql = "select llx_actioncomm.id, sub_user.rowid  id_usr, sub_user.alias, `llx_societe`.`region_id`, sub_user.subdiv_id, llx_actioncomm.percent, date(llx_actioncomm.datep) datep,
-//    llx_actioncomm.percent, case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT') then llx_actioncomm.`code` else 'AC_CUST' end `code`, `llx_societe_action`.`callstatus`
+//    llx_actioncomm.percent, case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT','AC_EDUCATION', 'AC_INITIATIV', 'AC_PROJECT') then llx_actioncomm.`code` else 'AC_CUST' end `code`, `llx_societe_action`.`callstatus`
 //    from llx_actioncomm
 //    inner join (select id from `llx_c_actioncomm` where type in('user','system') and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
 //    left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = llx_actioncomm.id
@@ -82,7 +82,7 @@ if(isset($_REQUEST['action'])&&$_REQUEST['action'] == 'getLineActiveList'){
 }
 if(isset($_REQUEST['action'])&&$_REQUEST['action']=='setSpyMode'){
 
-    if(isset($_REQUEST['id_usr'])&&!empty($_REQUEST['id_usr'])) {
+    if(isset($_REQUEST['id_usr'])&&!empty($_REQUEST['id_usr'])&&$_REQUEST['id_usr'] != '0') {
         $_SESSION['spy_id_usr'] = $_REQUEST['id_usr'];
         echo 1;
     }else {
@@ -98,6 +98,7 @@ if(isset($_REQUEST['action'])&&$_REQUEST['action']=='gettask'){
     exit();
 }
 if(isset($_REQUEST['action'])&&$_REQUEST['action']=='getCategoryCounterParty'){
+    unset($_SESSION['spy_id_usr']);
     echo getCategoryCounterParty($_REQUEST['id_usr']);
     exit();
 }
@@ -1061,7 +1062,7 @@ function getLineActiveTask($subdiv_id, $class, $code = '', $title=''){
 function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $title=''){
 //    var_dump($subdiv_id, $class, $code);
 //    die();
-    if($code=='all')
+    if($code=='AllTask')
         $code='';
     elseif(substr($code,0,1) == "'" && substr($code,strlen($code)-1,1)=="'")
         $code = substr($code, 1, strlen($code)-2);
@@ -1094,9 +1095,10 @@ function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $ti
         $sql = "select llx_user.rowid, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
             left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
             left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
-        if(!empty($subdiv_id))
-            $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
-        else
+        if(!empty($subdiv_id)) {
+            $sql .= " where llx_user.subdiv_id = " . $subdiv_id;
+            $sql .= " and llx_user.statut = 1";
+        }else
             $sql.=" where 1";
 
         $sql.=" and date(datep) between  adddate(date(now()), interval -1 ".$period.") and date(now())";

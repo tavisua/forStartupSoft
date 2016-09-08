@@ -16,7 +16,7 @@
             <!--<th class="header_table" width="150px">Засновник, інвестор, холдинг</th>-->
             <th width="180px" rowspan="2">Назва контрагента <img title="Передивитись"></th>
             <!--<th class="header_page" width="80px">Форма власності</th>-->
-            <th width="100px" rowspan="2">Місце знаходження</th>
+            <th width="100px" rowspan="2">Місце знаходження <img id="PerformerFilter" src="/dolibarr/htdocs/theme/eldy/img/btn_arrow_down.png" title="Встановити фільтр місцю знаходження" onclick="GetStates();"></th>
             <!--<th class="header_page" width="130px">П.І.Б. засновника</th>-->
             <!--<th class="header_page" width="130px">№ тел.офісу</th>-->
             <th width="50px" rowspan="2">Орної землі, га</th>
@@ -48,29 +48,96 @@
     </table>
 
 </div>
-<div id="popupmenu" style="display: none; position: absolute; width: auto; height: auto" class="pair popupmenu" >
-    <form id="setfilter" action="" method="get">
-        <table style="border-collapse: collapse">
-            <tr>
-                <td style="width: 200px">
-                    <input type="hidden" name="mainmenu" value="<?=$_REQUEST['mainmenu']?>">
-                    <input type="hidden" name="idmenu" value="<?=$_REQUEST['idmenu']?>">
-                    <input type="hidden" id = "lineactiveFilter" name="contractors" value="<?=$_REQUEST['contractors']?>">
-                    <input type="text" name="filter" value="" id="filter" size="45">
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <input type="submit" value="Пошук">
-                    <input type="button" onclick="closefindmenu();" value="Відміна">
-                </td>
-            </tr>
-        </table>
-    </form>
-</div>
+<!--<div id="popupmenu" style="display: none; position: absolute; width: auto; height: auto" class="pair popupmenu" >-->
+    <!---->
+<!--</div>-->
         <script>
+            function GetStates(){
+                var param = {
+                    action:'getStates'
+                };
+                $.ajax({
+                    url:'/dolibarr/htdocs/responsibility/logistika/area/lib.php',
+                    cache:false,
+                    data:param,
+                    success:function(html){
+                        createNewForm('popupmenu','LocationFilter');
+                        $('#LocationFilter').addClass('setdate');
+                        $('#LocationFilter').html(html);
+                        $('#LocationFilter').offset({top:50,left:100});
+                        $('#LocationFilter').width('auto');
+                        $('#LocationFilter').find('thead').find('th')[0].remove();
+                        $('#LocationFilter').show();
+                        console.log($('#LocationFilter').length);
+                    }
+                })
+            }
+            function GetRegions(stateID){
+                if($(".state"+stateID).length == 0){
+                    $('#btnState'+stateID).find("img").attr("src","/dolibarr/htdocs/theme/eldy/img/1uparrow.png")
+                    var src = $('#state'+stateID).find('div').find('img').attr("src");
+//                    console.log(src.substr(src.length-"uncheck.png".length) == "check.png");
+//                    return;
+                    var param = {
+                        stateID: stateID,
+                        action: 'getRegions',
+                        checked: src.substr(src.length-"uncheck.png".length) == "check.png"
+                    };
+                    $.ajax({
+                        url: '/dolibarr/htdocs/responsibility/logistika/area/lib.php',
+                        cache: false,
+                        data: param,
+                        success: function (html) {
+                            console.log(html);
+                            document.getElementById('state' + stateID).insertAdjacentHTML('afterend', html);
+                        }
+                    })
+                }else{
+                    var src = $('#btnState'+stateID).find("img").attr("src");
+                    var path="";
+                    var img;
+                    var tr = $(".state"+stateID).parent().parent().parent();
+                    if(src.substr(src.length-"1uparrow.png".length) == "1uparrow.png"){
+                        path = src.substr(0,src.length-"1uparrow.png".length);
+                        img = "1downarrow.png";
+                        $.each(tr,function(i,val){
+                            val.style.display = 'none';
+                        })
+                    }else{
+                        path = src.substr(0,src.length-"1downarrow.png".length);
+                        img = "1uparrow.png";
+                        $.each(tr,function(i,val){
+                            val.style.display = '';
+                        })
+                    }
+                    $('#btnState'+stateID).find("img").attr("src",path+img);
+                    console.log(tr);
+                }
+            }
             function closefindmenu(){
-                $('#popupmenu').hide();
+//                console.log($(this).parent().parent().parent().parent().parent().parent());
+                $('#filterform').remove();
+            }
+            function clearlogistikafilter(){
+//                alert('test');
+                var searchString = location.search.substr(1).split("&");
+                var searchParam = {};
+                var defaultSearch = ['idmenu','mainmenu','leftmenu'];
+                $.each(searchString, function (index, value) {
+                    searchParam[value.substr(0, strpos(value, "="))] = value.substr(strpos(value, "=") + 1);
+                })
+                searchString = "?";
+                $.each(searchParam, function (index, value) {
+//                    console.log(index, $.inArray(index,defaultSearch));
+                    if($.inArray(index,defaultSearch)>=0) {
+                        if (searchString.substr(searchString.length - 1, 1) != "?")
+                            searchString += "&";
+                        searchString += index + "=" + value;
+                    }
+                })
+//                console.log(location.pathname + searchString);
+//                return;
+                location = location.pathname + searchString;
             }
             function setLineActiveFilter(){
                 $('#lineactiveFilter').val($('#lineactive').val());
@@ -107,7 +174,6 @@
                             $('#'+tr[i].id.substr(2)+'futuredatecomerc').find('a').parent().css('background-color', ':rgb(0, 255, 0)');
 //                        console.log(today);
                     }
-
                 }
 
                 $('.tabs').offset({top:250, left:left});
@@ -127,8 +193,29 @@
                 $('#setfilter').submit();
             }
             function showfilter(){
-                $('#popupmenu').offset({top:220});
-                $('#popupmenu').show();
+                var html = '<div class="pair popupmenu" style="width: 270px"><form id="setfilter" action="" method="get">';
+                html+=' <table style="border-collapse: collapse">';
+                html+=' <tr>';
+                html+=' <td style="width: 200px">';
+                html+=' <input type="hidden" name="mainmenu" value="<?=$_REQUEST['mainmenu']?>">';
+                html+=' <input type="hidden" name="idmenu" value="<?=$_REQUEST['idmenu']?>">';
+                html+=' <input type="hidden" id = "lineactiveFilter" name="contractors" value="<?=$_REQUEST['contractors']?>">';
+                html+=' <input type="text" name="filter" value="" id="filter" size="45">';
+                html+=' </td>';
+                html+=' </tr>';
+                html+=' <tr>';
+                html+=' <td>';
+                html+=' <input type="submit" value="Пошук">';
+                html+=' <input type="button" onclick="closefindmenu();" value="Відміна">';
+                html+=' </td>';
+                html+=' </tr>';
+                html+=' </table>';
+                html+=' </form></div>';
+                createNewForm('popupmenu','filterform');
+//                console.log($('#filterform').html());
+                $('#filterform').html(html);
+                $('#filterform').offset({top:50,left:-100});
+                $('#filterform').show();
                 $('#filter').focus();
             }
             $(window).keydown(function(event){ //ловим событие нажатия клавиши

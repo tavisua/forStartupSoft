@@ -196,6 +196,16 @@ if(($_GET['action']=='addonlyresult'||$_GET['action']=='updateonlyresult')&&empt
 if(empty($form)){
     $form = new Form($db);
 }
+//["callstatus"]
+if(isset($_REQUEST["callstatus"])&&!empty($_REQUEST["callstatus"])){
+    $object->callstatus = $_REQUEST["callstatus"];
+}
+if(empty($_REQUEST["action_id"])&&!empty($_REQUEST["id"]))
+    $_REQUEST["action_id"] = $_REQUEST["id"];
+//echo '<pre>';
+//var_dump($object->callstatus);
+//echo '</pre>';
+//die();
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/addaction.html';
 print '</div>';
 llxPopupMenu();
@@ -451,15 +461,18 @@ function saveaction($rowid, $createaction = false){
         $res = $db->query($sql);
         $objCode = $db->fetch_object($res);
         $complete=$_REQUEST['complete'];
+        $authorID = 0;
         if($complete == '100'){
             $sql = 'select fk_user_author from `llx_actioncomm` where id='.$_REQUEST['actionid'];
             $res = $db->query($sql);
             if(!$res)
                 dol_print_error($db);
             $obj = $db->fetch_object($res);
+            $authorID = $obj->fk_user_author;
             if($obj->fk_user_author != $user->id)
                 $complete = '99';
         }
+
 
         $sql = "update llx_actioncomm set `new` = 1, ".
             (!empty($newdate)?("datep='".date('Y-m-d H:i:s',$mkNewDatep)."', datep2='".date('Y-m-d H:i:s',$mkNewDatef)."' ,"):"").
@@ -485,18 +498,22 @@ function saveaction($rowid, $createaction = false){
         if(!empty($_REQUEST["actionid"])) {
             require_once $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/comm/action/class/actioncomm.class.php';
             $Actions = new ActionComm($db);
-//    echo '<pre>';
-//    var_dump();
-//    echo '</pre>';
-//    die();
-
             $chain_action = $Actions->GetChainActions($_REQUEST["actionid"]);
-
+//            echo '<pre>';
+//            var_dump($chain_action);
+//            echo '</pre>';
+//            die();
             $sql = "update llx_actioncomm set datelastaction = Now()
             where id in (" . implode(',', $chain_action) . ") and active = 1";
             $res = $db->query($sql);
             if (!$res)
                 dol_print_error($db);
+            if(count($chain_action)>0 && $authorID == $user->id) {//Якщо основна задача очикує підтвердження про виконання, але результат дії не влаштовує - знімаю відмітку
+                $sql = "update llx_actioncomm set percent = 50,`llx_actioncomm`.`new` = 1 where id = " . $chain_action[0] . " and percent = 99";
+                $res = $db->query($sql);
+                if (!$res)
+                    dol_print_error($db);
+            }
         }
 
 //    if($res)

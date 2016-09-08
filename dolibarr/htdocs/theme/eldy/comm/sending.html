@@ -1,4 +1,4 @@
-<div class="tabBar" style="width: 800px;">
+<div class="tabBar" style="width: 900px;">
     <table style="border-collapse:collapse" class="WidthScroll">
         <tbody id="mailing">
             <tr class="firstpage">
@@ -14,9 +14,9 @@
                 <td id="sphereOfResponsibility">Сфера відповідальності</td>
             </tr>
             <tr class="firstpage">
-                <td><?=$user->getAreasList(0, 'areas', 10, '');?></td>
-                <td id="PostList"><?=$user->getContactPostsList();?></td>
-                <td id="ResponsibilityList"><?=$user->getContactResponsibility();?></td>
+                <td><?=$user->getAreasList(0, 'areas', 10, '', $_GET['addParam']);?></td>
+                <td id="PostList"><?=$user->getContactPostsList('postlist',10,$_GET['addParam']);?></td>
+                <td id="ResponsibilityList"><?=$user->getContactResponsibility('responsibility',10,$_GET['addParam']);?></td>
             </tr>
             <tr class="firstpage">
                 <td>Кількість землі </td>
@@ -30,8 +30,12 @@
     </table>
     <table>
         <tr class="email" style="display: none">
-            <td>Відправник </td>
-            <td colspan="4" style="width: 100%; height: 150px"><input id=""></td>
+            <td>Ім'я відправника </td>
+            <td colspan="4" style="width: 100%;"><input name="username" value="<?=$user->lastname.' '.mb_substr($user->firstname, 0,1, 'UTF-8').'.'?>"></td>
+        </tr>
+        <tr class="email" style="display: none">
+            <td>Адреса відправника </td>
+            <td colspan="4" style="width: 100%;"><input name="username" value="tavis@shtorm.com"></td>
         </tr>
         <tr class="secondpage" style="display: none">
             <td>Повідомлення </td>
@@ -51,6 +55,7 @@
         $('#postlist').prepend($('select#areas [value=0]').clone());
         $('#responsibility').prepend($('select#areas [value=0]').clone());
         $('select').css('width','100%');
+//        console.log($('.secondpage').css('display'));
     })
     function sendTestMessage(){
 //        console.log(<?=$userphone?>, $('#message').val());
@@ -68,7 +73,8 @@
                     'from':$('#from').val(),
                     'to':$('#to').val(),
                     'action':'getCustomers',
-                    'type':'<?=$_REQUEST["type"]?>'
+                    'type':'<?=$_REQUEST["type"]?>',
+                    'addParam':'<?=$_REQUEST["addParam"]?>'
                     }
         $.ajax({
             url:'/dolibarr/htdocs/comm/smsSending/card.php',
@@ -81,6 +87,9 @@
 //                $('#ContactList').html(result);
                 $('.firstpage').hide();
                 $('.secondpage').show();
+                if(getParameterByName('type') == 'email'){
+                    $('.email').show();
+                }
             }
         })
     }

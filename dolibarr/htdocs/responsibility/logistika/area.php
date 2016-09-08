@@ -35,10 +35,14 @@ if(isset($_GET['id_usr'])&&!empty($_GET['id_usr'])){
     $username = $user->lastname;
     $respon_id = $user->respon_id;
 }
+//echo '<pre>';
+//var_dump($_REQUEST);
+//echo '</pre>';
+//die();
 //Шапка сторінки
-include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/jurist/area/header.php';
+include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/logistika/area/header.php';
 //Перелік контрагентів
-include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/jurist/area/customers.php';
+include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/logistika/area/customers.php';
 if(strpos($_SERVER['QUERY_STRING'],'&page='))
     $link_page = $_SERVER['PHP_SELF'].'?'.substr($_SERVER['QUERY_STRING'],0,strpos($_SERVER['QUERY_STRING'],'&page='));
 else
@@ -47,6 +51,7 @@ else
 //var_dump($link_page);
 //echo '</pre>';
 //die();
+llxPopupMenu();
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/static_content/layout/pagination.phtml';
 //print '</div>';
 //llxFooter();

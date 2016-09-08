@@ -43,7 +43,7 @@ $userphone = str_replace('-','',$userphone);
 $userphone = str_replace(' ','',$userphone);
 //$userphone = "'".$userphone."'";
 //echo '<pre>';
-//var_dump($user);
+//var_dump($_REQUEST);
 //echo '<pre>';
 //die();
 include DOL_DOCUMENT_ROOT.'/theme/eldy/comm/sending.html';
@@ -127,7 +127,8 @@ function getCustomers($type){
 
 //    $sql.=' where 1 and fk_user_creat ='.$user->id;
     $sql.=' where 1';
-    $sql.=' and region_id in (select fk_id from llx_user_regions where fk_user = '.$user->id.' and active = 1) ';
+    if(!isset($_REQUEST['addParam'])||empty($_REQUEST['addParam']))
+        $sql.=' and region_id in (select fk_id from llx_user_regions where fk_user = '.$user->id.' and active = 1) ';
     $sql.=' and llx_societe.active = 1';
     $sql.=' and `llx_societe_contact`.active = 1';
     if(!(empty($_REQUEST["areas"])||count($_REQUEST["areas"])==1&&$_REQUEST["areas"][0]==0))

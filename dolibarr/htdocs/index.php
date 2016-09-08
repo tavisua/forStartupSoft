@@ -41,7 +41,9 @@ exit();
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
 
 
-
+//echo '<pre>';
+//var_dump($_REQUEST);
+//echo '</pre>';
 
 // If not defined, we select menu "home"
 $_GET['mainmenu']=GETPOST('mainmenu', 'alpha')?GETPOST('mainmenu', 'alpha'):'home';
@@ -83,10 +85,15 @@ $title=$langs->trans("HomeArea").' - TiT '.DOL_VERSION;
 if (! empty($conf->global->MAIN_APPLICATION_TITLE)) $title=$langs->trans("HomeArea").' - '.$conf->global->MAIN_APPLICATION_TITLE;
 
 llxHeader('',$title);
-if($user->respon_id == 8 || $user->respon_id2 == 8 || $user->respon_alias == 'purchase'){
+//echo '<pre>';
+//var_dump($user);
+//echo '</pre>';
+if($user->respon_id == 8 || $user->respon_id2 == 8 || $user->respon_alias == 'purchase') {
     print_fiche_titre($langs->trans("Performance"));
-    include DOL_DOCUMENT_ROOT .'/core/performance.php';
-
+    include DOL_DOCUMENT_ROOT . '/core/performance.php';
+}elseif($user->respon_id == 10 || $user->respon_id2 == 10 || $user->respon_alias == 'gen_dir'){
+    print_fiche_titre($langs->trans("Performance"));
+    include DOL_DOCUMENT_ROOT . '/core/gen_performance.php';
 }else {
     print_fiche_titre($langs->trans("HomeArea"));
     include DOL_DOCUMENT_ROOT . '/core/homepage.php';

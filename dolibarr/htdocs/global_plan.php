@@ -20,16 +20,18 @@ $HourlyPlan = $langs->trans('GlobalTask');
 llxHeader("",$HourlyPlan,"");
 print_fiche_titre($langs->trans('GlobalTask'));
 $sql = "select lastname from llx_user where rowid = ";
-if(!isset($_GET['user_id']))
-    $sql.= $user->id;
-else
-    $sql.= $_GET['user_id'];
+if(!isset($_GET['id_usr'])) {
+    $sql .= $user->id;
+    $id_usr = $user->id;
+}else {
+    $sql .= $_GET['id_usr'];
+    $id_usr = $_GET['id_usr'];
+}
 $res = $db->query($sql);
 if(!$res)
     dol_print_error($db);
 $obj = $db->fetch_object($res);
 $username = $obj->lastname;
-
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/global/header.php';
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/global/task.php';
 llxPopupMenu();
@@ -46,7 +48,9 @@ function ShowTask(){
               (select id from `llx_c_actioncomm`
               where `code` in ('AC_GLOBAL'))
               and percent != 100
+              and (entity = 1)
               and active = 1";
+//and (entity = 1 and `llx_actioncomm`.`fk_user_author` = ".$user->id." or entity = 0 and `llx_actioncomm`.`fk_user_author` <> ".$user->id.")
     if(isset($_POST["filterdates"])&&!empty($_POST["filterdates"])){
         if($_POST["datetype"]=='execdate')
             $sql.=" and date(datep2) ";
@@ -127,22 +131,22 @@ function ShowTask(){
     global $langs;
     $numrow = 0;
     $Actions = new ActionComm($db);
-    if(!isset($_GET['user_id']))
-        $user_id = $user->id;
+    if(!isset($_GET['id_usr']))
+        $id_usr = $user->id;
     else
-        $user_id = $_GET['user_id'];
+        $id_usr = $_GET['id_usr'];
     while($obj = $db->fetch_object($res)){
         $add = false;
-        if($taskAuthor[$obj->id] ==$user_id)
+        if($taskAuthor[$obj->id] ==$id_usr)
             $add = true;
         else{
             $users = explode(',',$assignedUser[$obj->id]);
-            $add = in_array($user_id, $users);
+            $add = in_array($id_usr, $users);
 
         }
-        if(isset($_GET['performer']) && !empty($_GET['performer'])) {//If set performer filter
+        if(isset($_GET['performer']) && !empty($_GET['performer'])&&$add) {//If set performer filter
             $users = explode(',', $assignedUser[$obj->id]);
-            $add =  in_array($_GET['performer'], $users) || (empty($assignedUser[$obj->id])&&$user_id == $_GET['performer'] && $user_id == $taskAuthor[$obj->id]);
+            $add =  in_array($_GET['performer'], $users) || (empty($assignedUser[$obj->id])&&$id_usr == $_GET['performer'] && $id_usr == $taskAuthor[$obj->id]);
 //            if(20971 == $obj->id){
 //                var_dump(count($users), $assignedUser[$obj->id], $_GET['performer']);
 //                die();

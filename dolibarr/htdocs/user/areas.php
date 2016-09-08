@@ -24,7 +24,9 @@
  *       \file       htdocs/user/perms.php
  *       \brief      Onglet user et permissions de la fiche utilisateur
  */
-
+//echo '<pre>';
+//var_dump($_REQUEST);
+//echo '</pre>';
 require '../main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/usergroups.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
@@ -46,8 +48,37 @@ if(isset($_REQUEST['switch_active'])){
         echo 'succesfull';
     else
         echo $sql;
+    //Переподключаю задачи
+    if($param[2] == 1) {
+        $sql = "update `llx_actioncomm_resources` ,(select id,`fk_user_author` from llx_actioncomm
+            inner join (select rowid from llx_societe where region_id = " . $id_param . ") societe on societe.rowid = llx_actioncomm.fk_soc
+            inner join (select code from `llx_c_actioncomm` where active = 1 and (type = 'system' or type = 'user'))code_t on code_t.`code` = `llx_actioncomm`.`code`
+            where date(datep2)>=date(now())
+            and percent <> 100) actioncomm
+            set fk_element = ".$param[0]."
+            where `llx_actioncomm_resources`.`fk_actioncomm` = actioncomm.id
+            and `llx_actioncomm_resources`.`fk_element` = actioncomm.`fk_user_author`";
+        $res = $db->query($sql);
+        if (!$res)
+            dol_print_error($db);
+        else
+            echo ' redirect llx_actioncomm_resources';
+        $sql = "update llx_actioncomm,
+            (select id from llx_actioncomm
+            inner join (select rowid from llx_societe where region_id = " . $id_param . ") societe on societe.rowid = llx_actioncomm.fk_soc
+            inner join (select code from `llx_c_actioncomm` where active = 1 and (type = 'system' or type = 'user'))code_t on code_t.`code` = `llx_actioncomm`.`code`
+            where 1 #date(datep2)>=date(now())
+            and percent <> 100) actioncomm
+            set `fk_user_author` = " . $param[0] . "
+            where llx_actioncomm.id = actioncomm.id";
 //    var_dump($sql);
 //    die();
+        $res = $db->query($sql);
+        if (!$res)
+            dol_print_error($db);
+        else
+            echo ' redirect_task';
+    }
     exit();
 }
 $langs->load("users");
@@ -119,6 +150,11 @@ if(GETPOST('state_filter') != 0){
     $sql.= ' where state_id = '. GETPOST('state_filter');
 }
 $sql.=' order by `'.$tablename.'`.name';
+
+//echo '<pre>';
+//var_dump($sql);
+//echo '</pre>';
+//die();
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
 $db_mysql = new dbBuilder();
 if(!isset($_REQUEST['sortfield']))

@@ -1179,12 +1179,14 @@ class User extends CommonObject
 	 *		@param	int		$nosyncmemberpass	0=Synchronize linked member (password), 1=Do not synchronize linked member
 	 *    	@return int 		        		<0 si KO, >=0 si OK
 	 */
-	function getContactResponsibility($htmlname='responsibility', $size=10){
+	function getContactResponsibility($htmlname='responsibility', $size=10,$addParam){
 		$sql='select distinct `responsibility`.`rowid`, `responsibility`.`name` from llx_societe
 			inner join `llx_societe_contact` on `llx_societe_contact`.`socid`=`llx_societe`.`rowid`
 			inner join `responsibility` on `responsibility`.`rowid` = `llx_societe_contact`.`respon_id`
-			where `fk_user_creat` = '.$this->id.'
-			and `responsibility`.`active` = 1
+			where 1';
+		if($addParam != 'all')
+			$sql .=' and `fk_user_creat` = '.$this->id;
+		$sql.='	and `responsibility`.`active` = 1
 			and `llx_societe_contact`.`active` = 1
 			and llx_societe.`active` = 1
 			order by `responsibility`.`name`';
@@ -1199,16 +1201,24 @@ class User extends CommonObject
 		$out .= '</select>';
 		return $out;
 	}
-	function getContactPostsList($htmlname='postlist', $size=10){
+	function getContactPostsList($htmlname='postlist', $size=10,$addParam){
+//		echo '<pre>';
+//		var_dump($htmlname, $size,$addParam);
+//		echo '</pre>';
+//		die();
 		$sql='select distinct `llx_post`.`rowid`, `llx_post`.`postname` from llx_societe
 			inner join `llx_societe_contact` on `llx_societe_contact`.`socid`=`llx_societe`.`rowid`
 			inner join `llx_post` on `llx_post`.`rowid` = `llx_societe_contact`.`post_id`
-			where `fk_user_creat` = '.$this->id.'
-			and `llx_post`.`active` = 1
+			where 1';
+		if($addParam != 'all')
+			$sql .=' and `fk_user_creat` = '.$this->id;
+		$sql.=' and `llx_post`.`active` = 1
 			and `llx_societe_contact`.`active` = 1
 			and llx_societe.`active` = 1
 			order by `llx_post`.`postname`';
 		$res = $this->db->query($sql);
+		if(!$res)
+			dol_print_error($this->db);
 		$out =  '<select name = "'.$htmlname.'" id="'.$htmlname.'" size="'.$size.'" '.($size>1?"multiple":"").' class="combobox">';
 		if($this->db->num_rows($res)>0) {
 			for ($i = 0; $i < $this->db->num_rows($res); $i++) {
@@ -1219,10 +1229,14 @@ class User extends CommonObject
 		$out .= '</select>';
 		return $out;
 	}
-	function getAreasList($region_id, $htmlname='state_filter', $size=1, $event ='this.form.submit()'){
-		if($this->respon_alias == 'sale'|| $this->respon_alias2 == 'sale') {
-			$sql = 'select regions.rowid, regions.state_id, trim(states.name) as states_name, trim(regions.name) as regions_name from states, regions, ' . MAIN_DB_PREFIX . 'user_regions ur
-			where ur.fk_user=' . $this->id . ' and ur.active = 1 and ur.fk_id=regions.rowid and regions.state_id=states.rowid order by regions_name asc, states_name asc';
+	function getAreasList($region_id, $htmlname='state_filter', $size=1, $event ='this.form.submit()', $addParam=''){
+		if($this->respon_alias == 'sale'|| $this->respon_alias2 == 'sale' || $addParam == 'all') {
+			if($addParam == 'all')
+				$sql = 'select regions.rowid, regions.state_id, trim(states.name) as states_name, trim(regions.name) as regions_name from states, regions
+					where 1 and regions.state_id=states.rowid order by regions_name asc, states_name asc';
+			else
+				$sql = 'select regions.rowid, regions.state_id, trim(states.name) as states_name, trim(regions.name) as regions_name from states, regions, ' . MAIN_DB_PREFIX . 'user_regions ur
+					where ur.fk_user=' . $this->id . ' and ur.active = 1 and ur.fk_id=regions.rowid and regions.state_id=states.rowid order by regions_name asc, states_name asc';
 		}elseif($this->respon_alias == 'dir_depatment' || $this->respon_alias == 'gen_dir') {
 			$sql = 'select regions.rowid, regions.state_id, trim(states.name) as states_name, trim(regions.name) as regions_name
 				from states

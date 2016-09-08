@@ -30,7 +30,7 @@ $obj = $db->fetch_object($res);
 $subdivision = $obj->name;
 if(!isset($_SESSION['actions'])) {
     $sql = "select distinct sub_user.rowid  id_usr, sub_user.alias, `llx_societe`.`region_id`, llx_actioncomm.id, llx_actioncomm.percent, date(llx_actioncomm.datep) datep, llx_actioncomm.percent,
-    case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT') then llx_actioncomm.`code` else 'AC_CUST' end `code`, `llx_societe_action`.`callstatus`
+    case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT','AC_EDUCATION', 'AC_INITIATIV', 'AC_PROJECT') then llx_actioncomm.`code` else 'AC_CUST' end `code`, `llx_societe_action`.`callstatus`
     from llx_actioncomm
     inner join (select id from `llx_c_actioncomm` where type in('user','system') and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
     left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = llx_actioncomm.id
@@ -71,22 +71,6 @@ include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/respo
 //llxFooter();
 
 exit();
-function GetBestUserID(){
-    global $CustActions,$user;
-
-    $maxCount = 0;
-    $id_usr = 0;
-
-    foreach(array_keys($CustActions) as $userID){
-        if($maxCount<$CustActions[$userID]){
-            $maxCount = $CustActions[$userID];
-            $id_usr = $userID;
-        }
-    }
-    return $id_usr;
-
-}
-
 function ShowTable(){
     global $actions,$user,$CustActions,$userActions,$actioncode,$id_usr;
     $today = new DateTime();
@@ -393,7 +377,7 @@ function getRegionsList($id_usr){
     }
     return $out;
 }
-function ShowTasks($Code, $Title, $bestvalue = false){
+function ShowTasks1($Code, $Title, $bestvalue = false){
     global $userActions;
 //    if($Title == 'Найкращі показники по підрозділу') {
 //        echo '<pre>';

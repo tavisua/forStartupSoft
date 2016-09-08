@@ -10,7 +10,8 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 
 require_once $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/comm/action/class/actioncomm.class.php';
 unset($_SESSION['assignedtouser']);
-
+//var_dump($token = dol_hash(uniqid(mt_rand(),TRUE)));
+//die();
 $table = ShowTask();
 //echo '<pre>';
 //var_dump($_REQUEST);
@@ -20,17 +21,20 @@ $Title = $langs->trans('CurrentTask');
 llxHeader("",$Title,"");
 print_fiche_titre($Title);
 $sql = "select lastname from llx_user where rowid = ";
-if(!isset($_GET['user_id']))
-    $sql.= $user->id;
-else
-    $sql.= $_GET['user_id'];
+if(!isset($_GET['id_usr'])) {
+    $sql .= $user->id;
+    $id_usr = $user->id;
+}else {
+    $sql .= $_GET['id_usr'];
+    $id_usr = $_GET['id_usr'];
+}
 $res = $db->query($sql);
 if(!$res)
     dol_print_error($db);
 $obj = $db->fetch_object($res);
 $username = $obj->lastname;
-include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/current/header.php';
-include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/current/task.php';
+include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/sale/current/header.php';
+include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/sale/current/task.php';
 //llxFooter();
 llxPopupMenu();
 return;
@@ -42,9 +46,28 @@ function ShowTask(){
         from `llx_actioncomm`
         where fk_action in
               (select id from `llx_c_actioncomm`
-              where `code` in ('AC_CURRENT'))
-              and percent != 100
+              where `code` in ('AC_CURRENT'))";
+    if(isset($_REQUEST['status'])&&!empty($_REQUEST['status'])) {
+        switch($_REQUEST['status']){
+            case 'ActionNotRunning':{
+                $sql.=" and percent = -1";
+            }break;
+            case 'ActionRunningNotStarted':{
+                $sql.=" and percent = 0";
+            }break;
+            case 'ActionRunningShort':{
+                $sql.=" and (percent between 1 and 99)";
+            }break;
+            case 'ActionDoneShort':{
+                $sql.=" and percent = 100";
+            }break;
+        }
+    }else
+        $sql.=" and percent != 100";
+    $sql.=" and (entity = 1)
               and active = 1";
+//and (entity = 1 and `llx_actioncomm`.`fk_user_author` = ".$user->id." or entity = 0 and `llx_actioncomm`.`fk_user_author` <> ".$user->id.")
+
     if(isset($_POST["filterdates"])&&!empty($_POST["filterdates"])){
         if($_POST["datetype"]=='execdate')
             $sql.=" and date(datep2) ";
@@ -121,7 +144,7 @@ function ShowTask(){
 //    echo '</pre>';
 //    die();
     //Завантажую завдання
-    $sql = "select id, note, confirmdoc, entity, `datec`, datep2, datelastaction, datefutureaction, round((UNIX_TIMESTAMP(datep2)-UNIX_TIMESTAMP(datep))/60,0) iMinute, `dateconfirm`,`datepreperform`, fk_order_id, period, `percent`, `llx_c_groupoftask`.`name` groupoftask
+    $sql = "select id, note, confirmdoc, entity, `datec`, datep2, datelastaction, datefutureaction, round((UNIX_TIMESTAMP(datep2)-UNIX_TIMESTAMP(datep))/60,0) iMinute, `dateconfirm`,`datepreperform`, fk_order_id, period, `percent`, `llx_c_groupoftask`.`name` groupoftask, fk_groupoftask
     from `llx_actioncomm`
     left join llx_c_groupoftask on `llx_c_groupoftask`.`rowid` = fk_groupoftask
     where id in (".implode(",", $taskID).")
@@ -139,23 +162,97 @@ function ShowTask(){
     global $langs;
     $numrow = 0;
     $Actions = new ActionComm($db);
-    if(!isset($_GET['user_id']))
+    if(!isset($_GET['id_usr']))
         $user_id = $user->id;
     else
-        $user_id = $_GET['user_id'];
+        $user_id = $_GET['id_usr'];
+    $performersID = array();
+    if(isset($_GET['performer']) && !empty($_GET['performer'])) {//If set performer filter
+        if($_GET['performer'] == '-1'){
+            $sql = "select rowid from llx_user
+                inner join (select subdiv_id from llx_user where rowid = ".$user_id.") subdiv on subdiv.subdiv_id = llx_user.subdiv_id
+                where 1
+                and llx_user.active = 1";
+            $resPerformes = $db->query($sql);
+            if(!$resPerformes)
+                dol_print_error($db);
+            while($obj = $db->fetch_object($resPerformes)){
+                $performersID[]=$obj->rowid;
+            }
+        }
+    }
+//    echo '<pre>';
+//    var_dump($performersID);
+//    echo '</pre>';
+//    die();
+    $p_subdivID = array();
+    if(isset($_GET['p_subdiv_id']) && !empty($_GET['p_subdiv_id'])) {//If set performer filter
+        $sql = "select `llx_actioncomm`.`id`, `llx_user`.`subdiv_id` from `llx_actioncomm`
+            inner join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
+            inner join `llx_user` on `llx_user`.`rowid` = `llx_actioncomm_resources`.`fk_element`
+            where 1
+            and percent != 100
+            and code = 'AC_CURRENT'
+            and (`llx_actioncomm`.`fk_user_author` = ".$user_id." or `llx_actioncomm_resources`.`fk_element` = ".$user_id.")";
+        $resSubdiv = $db->query($sql);
+        while($obj = $db->fetch_object($resSubdiv)){
+            $p_subdivID[$obj->id] = $obj->subdiv_id;
+        }
+    }
+    $c_subdivID = array();
+    if(isset($_GET['c_subdiv_id']) && !empty($_GET['c_subdiv_id'])) {//If set performer filter
+        $sql = "select `llx_actioncomm`.`id`, `llx_user`.`subdiv_id` from `llx_actioncomm`
+            inner join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
+            inner join `llx_user` on `llx_user`.`rowid` = `llx_actioncomm`.`fk_user_author`
+            where 1
+            and percent != 100
+            and code = 'AC_CURRENT'
+            and (`llx_actioncomm`.`fk_user_author` = ".$user_id." or `llx_actioncomm_resources`.`fk_element` = ".$user_id.")";
+        $resSubdiv = $db->query($sql);
+        while($obj = $db->fetch_object($resSubdiv)){
+            $c_subdivID[$obj->id] = $obj->subdiv_id;
+        }
+    }
+
     while($obj = $db->fetch_object($res)) {
-        $add = false;
-        if ($taskAuthor[$obj->id] == $user_id){
+        $add = true;
+        if(!isset($_GET['performer'])||isset($_GET['performer']) && (empty($_GET['performer']))) {
+            if ($taskAuthor[$obj->id] == $user_id) {
 //            $add = true;
-            $add = !(empty($assignedUser[$obj->id])&&$obj->entity == 0);
-        }else {
-            $users = explode(',', $assignedUser[$obj->id]);
-            $add = in_array($user_id, $users);
+                $add = !(empty($assignedUser[$obj->id]) && $obj->entity == 0);
+            } else {
+                $users = explode(',', $assignedUser[$obj->id]);
+                $add = in_array($user_id, $users);
+            }
         }
-        if(isset($_GET['performer']) && !empty($_GET['performer'])) {//If set performer filter
-            $users = explode(',', $assignedUser[$obj->id]);
-            $add =  in_array($_GET['performer'], $users)|| (empty($assignedUser[$obj->id])&&$user_id == $_GET['performer'] && $user_id == $taskAuthor[$obj->id]);
+
+        //Перевірка на фільтр по підрозділу-замовнику
+        if(isset($_GET['c_subdiv_id']) && !empty($_GET['c_subdiv_id'])&&$add) {//If set performer filter
+            $add = isset($c_subdivID[$obj->id])&&$c_subdivID[$obj->id] == $_GET['c_subdiv_id'];
         }
+        //Перевірка на фільтр по замовнику
+        if(isset($_GET['customer']) && !empty($_GET['customer'])&&$add) {//If set performer filter
+//            $users = explode(',', $assignedUser[$obj->id]);
+            $add =  $_GET['customer'] == $taskAuthor[$obj->id];
+        }
+        //Перевірка на фільтр по підрозділу-виконавцю
+        if(isset($_GET['p_subdiv_id']) && !empty($_GET['p_subdiv_id'])&&$add) {//If set performer filter
+            $add = isset($p_subdivID[$obj->id])&&$p_subdivID[$obj->id] == $_GET['p_subdiv_id'];
+        }
+        //Перевірка на фільтр по виконавцю
+        if(isset($_GET['performer']) && !empty($_GET['performer'])&&$add) {//If set performer filter
+            $users = explode(',', $assignedUser[$obj->id]);
+            $exist = in_array($_GET['performer'], $users);
+            if($_GET['performer'] == '-1')
+                $exist = count(array_intersect($users, $performersID)) > 0;
+            $add =  $exist || (empty($assignedUser[$obj->id])&&$user_id == $_GET['performer'] && $user_id == $taskAuthor[$obj->id]);
+        }
+
+        //Перевірка на фільтр по групі завдань
+        if($add && isset($_GET['groupoftaskID']) && !empty($_GET['groupoftaskID'])){
+            $add = $_GET['groupoftaskID'] == $obj->fk_groupoftask;
+        }
+
         if($add){
             $class = fmod($numrow++,2)==0?'impair':'pair';
             $datec = new DateTime($obj->datec);
@@ -235,30 +332,35 @@ function ShowTask(){
                     $status = 'ActionNotRunning';
                 elseif ($obj->percent == 0)
                     $status = 'ActionRunningNotStarted';
-                elseif ($obj->percent > 0 && $obj->percent < 98)
+                elseif ($obj->percent > 0 && $obj->percent <= 98)
                     $status = 'ActionRunningShort';
                 else
                     $status = 'ActionDoneShort';
             }
-            $table .= '<td '.$style.'; width:51px; text-align: center;" class="small_size">'.($obj->percent <= 98?($langs->trans($status)):'<img src="theme/eldy/img/BWarning.png" title="Задачу виконано" style=width: 50px;">').'</td>';
-            if($taskAuthor[$obj->id] == $user->id)
+            if($obj->percent <= 99)
+                $table .= '<td '.$style.'; width:51px; text-align: center;" class="small_size">'.($obj->percent <= 98?($langs->trans($status)):'<img src="theme/eldy/img/BWarning.png" title="Задачу виконано" style=width: 50px;">').'</td>';
+            else
+                $table .= '<td '.$style.'; width:51px; text-align: center;" class="small_size">'.($obj->percent <= 98?($langs->trans($status)):'<img src="theme/eldy/img/done.png" title="Задачу виконано" style=width: 50px;">').'</td>';
+
+            if($taskAuthor[$obj->id] == $user->id && $obj->percent <= 99)
                  $table .= '<td style="width:51px; text-align: center"><img src="/dolibarr/htdocs/theme/eldy/img/uncheck.png" onclick="ConfirmExec(' . $obj->id . ');" id="confirm' . $obj->id . '"></td>';
             else
                 $table .= '<td  style="width:51px">&nbsp;</td>';
-            if($taskAuthor[$obj->id] == $user->id)
+            if($taskAuthor[$obj->id] == $user->id && $obj->percent <= 99)
                 $table .= '<td  style="width:25px"><img id="img_"'.$obj->id.' onclick="EditAction('.$obj->id.', null, '."'AC_CURRENT'".');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Edit').'" src="/dolibarr/htdocs/theme/eldy/img/edit.png"></td>';
             else
                 $table .= '<td  style="width:25px">&nbsp;</td>';
-
-            if(in_array($user->respon_alias, array('purchase', 'wholesale_purchase'))){
-                if(empty($obj->fk_order_id))
-                    $table .= '<td  style="width:25px;text-align: center"><img id="imgManager_'.$obj->id.'" onclick="DuplicateAction('.$obj->id.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Duplicate').'" src="/dolibarr/htdocs/theme/eldy/img/object_duplicate.png"></td>';
-                else
-                    $table .= '<td  style="width:25px"><img id="img_prep'.$obj->id.'" onclick="PrepareOrder('.$obj->fk_order_id.', '.$obj->id.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('RedirectToOrder').'" src="/dolibarr/htdocs/theme/eldy/img/addfile.png"></td>';
+            if($obj->percent <= 99) {
+                if (in_array($user->respon_alias, array('purchase', 'wholesale_purchase'))) {
+                    if (empty($obj->fk_order_id))
+                        $table .= '<td  style="width:25px;text-align: center"><img id="imgManager_' . $obj->id . '" onclick="DuplicateAction(' . $obj->id . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Duplicate') . '" src="/dolibarr/htdocs/theme/eldy/img/object_duplicate.png"></td>';
+                    else
+                        $table .= '<td  style="width:25px"><img id="img_prep' . $obj->id . '" onclick="PrepareOrder(' . $obj->fk_order_id . ', ' . $obj->id . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('RedirectToOrder') . '" src="/dolibarr/htdocs/theme/eldy/img/addfile.png"></td>';
+                } else
+                    $table .= '<td  style="width:25px;text-align: center"><img id="imgManager_' . $obj->id . '" onclick="DuplicateAction(' . $obj->id . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Duplicate') . '" src="/dolibarr/htdocs/theme/eldy/img/object_duplicate.png"></td>';
             }else
-                $table .= '<td  style="width:25px;text-align: center"><img id="imgManager_'.$obj->id.'" onclick="DuplicateAction('.$obj->id.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Duplicate').'" src="/dolibarr/htdocs/theme/eldy/img/object_duplicate.png"></td>';
-
-            if($taskAuthor[$obj->id] == $user->id)
+                $table .= '<td  style="width:25px">&nbsp;</td>';
+            if($taskAuthor[$obj->id] == $user->id && $obj->percent <= 99)
                 $table .= '<td  style="width:25px"><img title="Видалити завдання" src="/dolibarr/htdocs/theme/eldy/img/delete.png" onclick="ConfirmDelTask(' . $obj->id . ');" id="confirmdel' . $obj->id . '"></td>';
             else
                 $table .= '<td  style="width:25px">&nbsp;</td>';

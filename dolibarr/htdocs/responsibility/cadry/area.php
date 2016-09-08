@@ -19,15 +19,27 @@ if(count($_POST)>0){
 $Area = $langs->trans('Area');
 llxHeader("",$Area,"");
 print_fiche_titre($Area);
-
+if(isset($_GET['id_usr'])&&!empty($_GET['id_usr'])){
+    global $db;
+    $sql = 'select lastname,respon_id from llx_user where rowid = '.$_GET['id_usr'];
+    $res = $db->query($sql);
+    $obj = $db->fetch_object($res);
+    $username = $obj->lastname;
+    $id_usr = $_GET['id_usr'];
+    $respon_id = $obj->respon_id;
+}else {
+    $id_usr = $user->id;
+    $username = $user->lastname;
+    $respon_id = $user->respon_id;
+}
 //echo '<pre>';
 //var_dump($_SESSION['state_filter']);
 //echo '</pre>';
 //die();
 //Шапка сторінки
-include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/sale/area/header.php';
+include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/cadry/area/header.php';
 //Перелік контрагентів
-include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/sale/area/customers.php';
+include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/cadry/area/customers.php';
 if(strpos($_SERVER['QUERY_STRING'],'&page='))
     $link_page = $_SERVER['PHP_SELF'].'?'.substr($_SERVER['QUERY_STRING'],0,strpos($_SERVER['QUERY_STRING'],'&page='));
 else

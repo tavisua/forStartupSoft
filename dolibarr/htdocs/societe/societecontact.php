@@ -50,33 +50,40 @@ print '
             <div class="inline-block tabsElem tabsElemActive">
                 <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societecontact.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('ContactList').'</a>
             </div>';
-            $sql = "select `responsibility_param`.`fx_category_counterparty` category_id from `responsibility`
+$sql = "select case when `responsibility_param`.`fx_category_counterparty` is null then `responsibility_param`.`other_category` else `responsibility_param`.`fx_category_counterparty` end category_id, `responsibility`.`alias` from `responsibility`
                 inner join `responsibility_param` on `responsibility_param`.`fx_responsibility` = `responsibility`.`rowid`
-                where `responsibility`.`alias`='sale'";
+                where `responsibility`.`alias` in ('sale','purchase','marketing')";
             $res = $db->query($sql);
             if(!$res)
                 dol_print_error($db);
             $sales_category = array();
-            while($obj = $db->fetch_object($res)){
-                $sales_category[]=$obj->category_id;
-            }
-            $sql = "select `responsibility_param`.`fx_category_counterparty` category_id from `responsibility`
-                inner join `responsibility_param` on `responsibility_param`.`fx_responsibility` = `responsibility`.`rowid`
-                where `responsibility`.`alias`='purchase'";
-            $res = $db->query($sql);
-            if(!$res)
-                dol_print_error($db);
             $purchase_category = array();
+            $marketing_category = array();
             while($obj = $db->fetch_object($res)){
-                $purchase_category[]=$obj->category_id;
+                if(!empty($obj->category_id)) {
+                    switch ($obj->alias) {
+                        case 'sale': {
+                            $sales_category[] = $obj->category_id;
+                        }
+                            break;
+                        case 'purchase': {
+                            $purchase_category[] = $obj->category_id;
+                        }
+                            break;
+                        case 'marketing': {
+                            $marketing_category[] = $obj->category_id;
+                        }
+                            break;
+                    }
+                }
             }
-            if(in_array($object->categoryofcustomer_id, $sales_category))
+
                 print '<div class="inline-block tabsElem">
                                 <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('EconomicData').'</a>
                             </div>';
-            elseif(in_array($object->categoryofcustomer_id, $purchase_category)) {
+            if(in_array($object->categoryofcustomer_id, $purchase_category)||in_array($object->categoryofcustomer_id, $marketing_category)) {
                 print '<div class="inline-block tabsElem">
-                                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('LineActive').'</a>
+                                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/lineactive.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('LineActive').'</a>
                             </div>';
             }
 print '<div class="inline-block tabsElem">

@@ -25,11 +25,36 @@ if(empty($_GET['page'])||$_GET == 'proposition'){
 //$tbody = callStatistic();
     $thead = getPropositionHead();
     $tbody = getPropositionBody();
+    $tbodyPropositionByPost = getPropositionByPost();
     include DOL_DOCUMENT_ROOT . '/theme/eldy/performance/proposition.html';
 }
 llxPopupMenu();
 exit();
-
+function getPropositionByPost(){
+    global $db;
+    $sql = "select  distinct `llx_post`.`rowid`, `llx_post`.`postname`
+        from  `llx_c_proposition`
+        inner join llx_proposition_properties on llx_proposition_properties.fk_proposition = `llx_c_proposition`.rowid
+        inner join `llx_post` on `llx_post`.`rowid` = `llx_proposition_properties`.`fk_post`
+        where 1
+        and ((`llx_c_proposition`.`end` is not null and Now() between `llx_c_proposition`.`begin` and `llx_c_proposition`.`end`) or `llx_c_proposition`.`end` is null)
+        order by postname";
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $out = '';
+    $count = 0;
+    while($obj = $db->fetch_object($res)){
+        $count++;
+        $class = fmod($count,2)==1?("impair"):("pair");
+        $out.='<tr class="'.$class.'">';
+        $out.='<td class="middle_size">'.$obj->postname.'</td>';
+        $out.='<td onclick="showTitleProposed('.$obj->rowid.',1,0, proposed'.$obj->rowid.');" style="width: 20px" id="proposed'.$obj->rowid.'">
+        <img src="/dolibarr/htdocs/theme/eldy/img/strawberry.png" title="Заголовок"></td>';
+        $out.='</tr>';
+    }
+    return $out;
+}
 function getContactsStatistic($region_id){
     global $db;
     $sql="select min(llx_c_proposition.rowid) rowid

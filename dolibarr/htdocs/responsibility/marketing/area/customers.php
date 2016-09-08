@@ -30,7 +30,7 @@ left join `llx_societe_lineactive` on `llx_societe_lineactive`.fk_soc = `llx_soc
 where 1  ';
 
     $tmp = 'and `llx_societe`.`categoryofcustomer_id` in
-(select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = '.$respon_id.')';
+(select case when `fx_category_counterparty` is null then `other_category` else `fx_category_counterparty` end fx_category_counterparty from responsibility_param  where fx_responsibility = '.$respon_id.')';
     $sql.=$tmp;
     $sql_count.=$tmp;
 
@@ -49,8 +49,12 @@ if($user->login != 'admin') {
 global $respon_id;
 $filterid = array();
 $categoryofcustomer_id = array();
-$sql_cat = 'select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = '.$respon_id;
+$sql_cat = 'select case when `fx_category_counterparty` is null then `other_category` else `fx_category_counterparty` end fx_category_counterparty from responsibility_param  where fx_responsibility = '.$respon_id;
 $res_cat = $db->query($sql_cat);
+//echo '<pre>';
+//var_dump($sql_cat);
+//echo '</pre>';
+//die();
 if(!$res_cat)
     dol_print_error($db);
 while($obj_cat = $db->fetch_object($res_cat)) {
@@ -127,6 +131,11 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['lin
 $sql_count.=') societe';
 $sql .= ' order by width desc, nom';
 $sql .= ' limit '.($page-1)*$per_page.','.$per_page;
+
+//        echo '<pre>';
+//        var_dump($sql);
+//        echo '</pre>';
+//        die();
 
 $res = $db->query($sql_count);
 $count = $db->fetch_object($res);

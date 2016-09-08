@@ -35,6 +35,7 @@ $TableParam[]=$ColParam;
 
 $tablename = "responsibility";
 $sql='select rowid, name, alias, active from '.$tablename.' order by name';
+//die($sql);
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
 $dbBuilder = new dbBuilder();
 if(!isset($_REQUEST['sortfield']))

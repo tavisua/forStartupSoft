@@ -16,6 +16,7 @@
 //    </tr>
 //
 //    </tbody>';
+
 $table = ShowTable();
 include_once $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/homepage/index.html';
 
@@ -27,6 +28,7 @@ function ShowTable(){
         left join `regions` on `regions`.`rowid` = `llx_user_regions`.`fk_id`
         inner join `states` on `states`.`rowid` = `regions`.`state_id`
         where `llx_user_regions`.`fk_user` = '.$user->id.'
+        and `llx_user_regions`.`active` = 1
         order by states_name, regions_name';
     $regions = $db->query($sql);
     if(!$regions){

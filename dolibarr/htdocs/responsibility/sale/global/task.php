@@ -5,5 +5,6 @@
  * Date: 03.01.2016
  * Time: 9:57
  */
+global $id_usr;
 include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/global/task.html');
 return;

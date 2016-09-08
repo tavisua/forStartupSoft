@@ -99,10 +99,11 @@ if($db->num_rows($res) > 0) {
 }
 $CreateCompany = $langs->trans('CreateCompany');
 
-include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/jurist/area/header.html');
+include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/logistika/area/header.html');
 return;
 
 function CategoriesContractors(){
+
     global $db, $id_usr;
     $sql = 'select case when llx_user_categories_contractor.fk_categories <> 0 then llx_user_categories_contractor.fk_categories else llx_user_categories_contractor.other_categories end fk_categories,
         `category_counterparty`.`name`
@@ -113,8 +114,9 @@ function CategoriesContractors(){
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
+
     $out = '<select id="category" name = "category" class="combobox" onchange="setCategoryFilter();">';
-    $out.='<option value="-1" selected="selected">Відобразити всі</option>';
+    $out.= '<option value="-1" selected="selected">Відобразити всі</option>';
     $category_id = isset($_REQUEST['category'])&& !empty($_REQUEST['category'])?$_REQUEST['category']:0;
 
     while($obj = $db->fetch_object($res)){

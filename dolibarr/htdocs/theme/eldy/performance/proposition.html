@@ -14,6 +14,42 @@
         <?=$tbody?>
     </tbody>
 </table>
+</br>
+</br>
+<b>Перелік посад для яких на активні пропозиції</b>
+</br>
+<table id="propositionByPost">
+    <thead>
+        <tr class="multiple_header_table">
+            <th  width="180px">Посада</th>
+            <th width="30px"></th>
+        </tr>
+    </thead>
+    <tbody>
+        <?=$tbodyPropositionByPost?>
+    </tbody>
+</table>
+</br>
+</br></br>
+</br></br>
+</br></br>
+</br></br>
+</br></br>
+</br>
+<script>
+    $(document).ready(function(){
+        var top = 0;
+        if($("div#Proposition").length>0)
+            top = $("div#Proposition").offset().top;
+        var height = $(window).height() - 200;
+        if(height<500)
+            height = 550;
+//        console.log(height);
+        $("tbody#bodyProposition").height('550px');
+        $("tbody#bodyProposition").width('650px');
+
+    })
+</script>';
 <script>
     $('div').mouseout(function(e){
         if(e.target.parentNode.id != 'fulltitle')

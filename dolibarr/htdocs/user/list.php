@@ -34,7 +34,7 @@ function callStatistic(){
     global $db,$langs;
 //    if(!isset($_SESSION['callstatistic'])) {
           $sql = "select sub_user.rowid  id_usr, sub_user.alias, `llx_societe`.`region_id`, sub_user.subdiv_id, llx_actioncomm.percent, date(llx_actioncomm.datep) datep,
-        llx_actioncomm.percent, case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT') then llx_actioncomm.`code` else 'AC_CUST' end `code`, `llx_societe_action`.`callstatus`, `llx_societe_action`.rowid as answer_id
+        llx_actioncomm.percent, case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT','AC_EDUCATION', 'AC_INITIATIV', 'AC_PROJECT') then llx_actioncomm.`code` else 'AC_CUST' end `code`, `llx_societe_action`.`callstatus`, `llx_societe_action`.rowid as answer_id
         from llx_actioncomm
         inner join (select id from `llx_c_actioncomm` where type in('user','system') and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
         left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = llx_actioncomm.id
@@ -44,7 +44,7 @@ function callStatistic(){
         where 1
         and llx_actioncomm.active = 1
         and llx_actioncomm.`code` not in ('AC_GLOBAL', 'AC_CURRENT')
-        and datep2 between '2016-06-01' and '2016-07-01'
+        and datep2 between '2016-08-01' and '2016-09-01'
         order by subdiv_id, id_usr;";
 //        echo '<pre>';
 //        var_dump($sql);
@@ -144,13 +144,14 @@ function callStatistic(){
 function showUserList(){
 
     global $db,$langs;
-    $sql = "select `llx_user`.rowid, `llx_user`.login email, `llx_user`.lastname, `llx_user`.firstname,  `llx_user`.`office_phone`, `llx_user`.`skype`,
+    $sql = "select `llx_user`.rowid, `llx_user`.login email, `llx_user`.lastname, `llx_user`.firstname,  `llx_user`.`office_phone`,`llx_user`.`user_mobile`,`llx_user`.`skype`,
         `subdivision`.`name` as s_subdivision_name, `llx_usergroup`.`nom` as s_llx_usergroup_nom, `responsibility`.alias,`llx_post`.`postname`
         from `llx_user` left join `subdivision` on `llx_user`.`subdiv_id`= `subdivision`.rowid
         left join `llx_usergroup` on `llx_user`.`usergroup_id`=`llx_usergroup`.rowid
         left join `responsibility` on `responsibility`.rowid = `llx_user`.respon_id
         left join `llx_post` on `llx_post`.`rowid` = `llx_user`.`post_id`
         where `llx_user`.active=1
+        and `llx_user`.statut = 1
         and `subdivision`.`name` is not null
         and `llx_user`.login not in ('test')";
 //echo '<pre>';
@@ -179,17 +180,19 @@ function showUserList(){
 
     while($obj = $db->fetch_object($res)){
         $class = fmod($count, 2) != 1 ? ("impair") : ("pair");
+        $phone_title = (empty($obj->user_mobile)?$obj->office_phone:$obj->user_mobile);
         $out.='<tr id="rowid_'.$obj->rowid.'" class="'.$class.'">';
         $out.='<td class="middle_size" style="width:152px"id="s_subdivision_name_'.$obj->rowid.'">'.$obj->s_subdivision_name.'</td>';
         $out.='<td class="middle_size" style="width:186px"id="alias_'.$obj->rowid.'">'.$langs->trans($obj->alias).'</td>';
         $out.='<td class="middle_size" style="width:152px"id="postname_'.$obj->rowid.'">'.$obj->postname.'</td>';
         $out.='<td class="middle_size" style="width:148px"id="lastname_'.$obj->rowid.'"><a href="/dolibarr/htdocs/user/useractions.php?id_usr='.$obj->rowid.'">'.$obj->lastname.'</a></td>';
         $out.='<td class="middle_size" style="width:147px"id="firstname_'.$obj->rowid.'">'.$obj->firstname.'</td>';
-        $phone = str_replace($symbols,'', $obj->office_phone);
-        if(!empty($obj->office_phone)) {
+
+        $phone = str_replace($symbols,'', $phone_title);
+        if(!empty($phone_title)) {
             $phonelink = '<a onclick="Call('.$phone.', '."'users'".', '.$obj->rowid.');">';
             $out .= '<td class="middle_size" style="width:148px"><table class="phone"><tbody><tr>';
-            $out .= '<td class="middle_size" style="width:130px"= id="office_phone_' . $obj->rowid . '">' . $phonelink . $obj->office_phone . '</a></td>';
+            $out .= '<td class="middle_size" style="width:130px"= id="office_phone_' . $obj->rowid . '">' . $phonelink . $phone_title . '</a></td>';
             $out .= '<td class="middle_size" id="sms_' . $obj->rowid . '" onclick="showSMSform(' . $phone . ');" style="width: 20px"><img src="/dolibarr/htdocs/theme/eldy/img/object_sms.png"></td>';
             $out .= '</tr></tbody></table></td>';
         }else{
@@ -200,6 +203,7 @@ function showUserList(){
         $out.='<td style="width:127px" class="emptycol">&nbsp;</td>';
         $out.='</tr>';
         $count++;
+
     }
     $out.='</tbody>';
     return $out;

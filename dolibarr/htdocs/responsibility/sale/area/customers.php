@@ -19,17 +19,18 @@ $per_page = isset($_GET['per_page'])?$_GET['per_page']:30;
 
 $regions = array(0);
 
-$sql = "select fk_id from llx_user_regions where fk_user=".$user->id." and active = 1";
-
-if($user->respon_alias == 'gen_dir')
-    $sql="select rowid fk_id from regions where active = 1";
-elseif($user->respon_alias == 'dir_depatment'){
-    $sql = "select llx_user_regions.fk_id from llx_user
-        inner join llx_user_regions on llx_user_regions.fk_user = llx_user.rowid
-        where llx_user.subdiv_id = ".$user->subdiv_id."
-        and llx_user.active = 1
-        and llx_user_regions.active = 1";
-}
+$sql = "select fk_id from llx_user_regions where fk_user=".$id_usr." and active = 1";
+//die($sql);
+//Закоментував відображення районів для ген.директора та директорів департаментів
+//if($user->respon_alias == 'gen_dir')
+//    $sql="select rowid fk_id from regions where active = 1";
+//elseif($user->respon_alias == 'dir_depatment'){
+//    $sql = "select llx_user_regions.fk_id from llx_user
+//        inner join llx_user_regions on llx_user_regions.fk_user = llx_user.rowid
+//        where llx_user.subdiv_id = ".$user->subdiv_id."
+//        and llx_user.active = 1
+//        and llx_user_regions.active = 1";
+//}
 
 $res = $db->query($sql);
 if(!$res)
@@ -96,7 +97,7 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])){
         $sql_filter .= "or `llx_societe_contact`.`skype`  like '%" . $db->escape($_REQUEST['filter']) . "%'";
     }else{
         $sql_filter="select fk_soc as rowid from `llx_actioncomm`
-          where datep between '".date('Y-m-d')."' and adddate('".date('Y-m-d')."', interval 1 day)";
+          where date(datep) =  '".date('Y-m-d')."' and active = 1";
     }
 //    die($sql_filter);
     $res = $db->query($sql_filter);
@@ -131,7 +132,7 @@ $count = $db->fetch_object($res);
 $total = ceil($count->iCount/$per_page);
 
 //echo '<pre>';
-//var_dump($sql);
+//var_dump(count($filterid), $filterid);
 //echo '</pre>';
 //die();
 $TableParam = array();

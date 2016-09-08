@@ -21,8 +21,6 @@
             <tr id="action" style="text-align: center">
                 <td colspan="2">
                     <form id="CreateCompanyForm" action="/dolibarr/htdocs/societe/soc.php?mainmenu=area&idmenu=10425" method="post">
-                        <!--<input id="state_id" name="state_id" type="hidden" value="<?echo $state_id?>">-->
-                        <!--<input id="region_id" name="region_id" type="hidden" value="<?echo $region_id?>">-->
                         <button>&nbsp;&nbsp;&nbsp;&nbsp;<?echo $CreateCompany?>&nbsp;&nbsp;&nbsp;&nbsp;</button>
                     </form>
                 </td>
@@ -32,16 +30,16 @@
                    <?=$langs->trans('CategoriesContractors')?>
                 </td>
                 <td style="width: 200px">
-                    <form action="" method="get" id="filterCategory">
+                    <!--<form action="" method="get" id="filterCategory">-->
                         <?=CategoriesContractors()?>
-                    </form>
+                    <!--</form>-->
                 </td>
             </tr>
 
             <tr>
                 <td colspan="2" style="text-align: center">
                     <button style="width: 222px;height: 25px" onclick="showfilter();">Знайти клієнта/контрагента</button>
-                    <button style="height: 25px" onclick="clearfilter();">Зняти фільтр</button>
+                    <button style="height: 25px" onclick="clearlogistikafilter();">Зняти фільтр</button>
                 </td>
             </tr>
         </table>
@@ -155,7 +153,25 @@
         GetUserPlan(link);
     })
     function setCategoryFilter(){
-        $('#filterCategory').submit();
+        var search = location.search.substr(1);
+        var searchArray = search.split('&');
+        var searchParam={};
+        $.each(searchArray, function(key,value){
+            searchParam[value.substr(0,strpos(value,'='))] = value.substr(strpos(value,'=')+1)
+        });
+        searchParam['category'] = $('#category').val();
+        search = '?';
+        $.each(searchParam, function(key,value){
+            if(search.length>1)
+                search+='&';
+            search+=key+'='+value;
+        });
+//            console.log(search);
+        location = location.pathname+search;
+
+//        console.log(searchArray);
+//        return false;
+//        $('#filterCategory').submit();
     }
     function CreateCompany(){
         var mainmenu = '<?=$_REQUEST["mainmenu"]?>';

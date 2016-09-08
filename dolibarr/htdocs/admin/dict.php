@@ -133,6 +133,7 @@ $tabname[42]= MAIN_DB_PREFIX."c_callstatus";
 $tabname[43]= MAIN_DB_PREFIX."c_typenotification";
 $tabname[44]= MAIN_DB_PREFIX."c_raports";
 $tabname[45]= MAIN_DB_PREFIX."c_lineactive_marketing";
+$tabname[46]= MAIN_DB_PREFIX."c_smtp_servers";
 
 // Dictionary labels
 $tablib=array();
@@ -181,6 +182,7 @@ $tablib[42]= "CallStatus";
 $tablib[43]= "TypeNotification";
 $tablib[44]= "Raports";
 $tablib[45]= "LineActiveMarketing";
+$tablib[46]= "SMTPsParameter";
 
 // Requests to extract data
 $tabsql=array();
@@ -247,6 +249,7 @@ $tabsql[42]= "select rowid, status, active from ".MAIN_DB_PREFIX."c_callstatus";
 $tabsql[43]= "select rowid, type, code, active from ".MAIN_DB_PREFIX."c_typenotification";
 $tabsql[44]= "select rowid, `name`, active from ".MAIN_DB_PREFIX."c_raports";
 $tabsql[45]= "select rowid, name, active  from ".MAIN_DB_PREFIX."c_lineactive_marketing where 1";
+$tabsql[46]= "select rowid, name SMTPname, 'properties' as properties, active  from ".MAIN_DB_PREFIX."c_smtp_servers where 1";
 
 // Criteria to sort dictionaries
 $tabsqlsort=array();
@@ -295,6 +298,7 @@ $tabsqlsort[42]="rowid ASC";
 $tabsqlsort[43]="rowid ASC";
 $tabsqlsort[44]="rowid ASC";
 $tabsqlsort[45]="rowid ASC";
+$tabsqlsort[46]="rowid ASC";
 
 // Nom des champs en resultat de select pour affichage du dictionnaire
 $tabfield=array();
@@ -343,6 +347,7 @@ $tabfield[42]= "status";
 $tabfield[43]= "type,code";
 $tabfield[44]= "name";
 $tabfield[45]= "name";
+$tabfield[46]= "SMTPname,properties";
 
 // Nom des champs d'edition pour modification d'un enregistrement
 $tabfieldvalue=array();
@@ -391,6 +396,7 @@ $tabfieldvalue[42]= "status";
 $tabfieldvalue[43]= "type,code";
 $tabfieldvalue[44]= "name";
 $tabfieldvalue[45]= "name";
+$tabfieldvalue[46]= "SMTPname";
 
 
 
@@ -442,6 +448,7 @@ $tabfieldinsert[42]= "status";
 $tabfieldinsert[43]= "type,code";
 $tabfieldinsert[44]= "name";
 $tabfieldinsert[45]= "name";
+$tabfieldinsert[46]= "name";
 
 // Nom du rowid si le champ n'est pas de type autoincrement
 // Example: "" if id field is "rowid" and has autoincrement on
@@ -492,6 +499,7 @@ $tabrowid[42]= "rowid";
 $tabrowid[43]= "rowid";
 $tabrowid[44]= "rowid";
 $tabrowid[45]= "rowid";
+$tabrowid[46]= "rowid";
 
 // Condition to show dictionary in setup page
 $tabcond=array();
@@ -540,6 +548,7 @@ $tabcond[42]= true;
 $tabcond[43]= true;
 $tabcond[44]= true;
 $tabcond[45]= true;
+$tabcond[46]= true;
 
 // List of help for fields
 $tabhelp=array();
@@ -588,6 +597,7 @@ $tabhelp[42] = array();
 $tabhelp[43] = array();
 $tabhelp[44] = array();
 $tabhelp[45] = array();
+$tabhelp[46] = array();
 
 // List of check for fields (NOT USED YET)
 $tabfieldcheck=array();
@@ -636,10 +646,10 @@ $tabfieldcheck[42] = array();
 $tabfieldcheck[43] = array();
 $tabfieldcheck[44] = array();
 $tabfieldcheck[45] = array();
+$tabfieldcheck[46] = array();
 
 // Complete all arrays with entries found into modules
 complete_dictionary_with_modules($taborder,$tabname,$tablib,$tabsql,$tabsqlsort,$tabfield,$tabfieldvalue,$tabfieldinsert,$tabrowid,$tabcond,$tabhelp,$tabfieldcheck);
-
 
 // Define elementList and sourceList (used for dictionary type of contacts "llx_c_type_contact")
 $elementList = array();
@@ -731,11 +741,16 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
         if ($id == 30 && ($value == 'LineActive' ||$value == 'Model' || $value == 'Description'||($value == 'Trademark'&&!isset($_POST['Trademark']))))continue;
 		if ($id == 34 && ($value == 'responsibility'))continue;
         if ($id == 35 && ($value == 'ed_name'))continue;
-        if ($id == 39 && ($value == 'LineActiveCustomer'|| $value == 'prioritet'|| $value == 'square' || $value == 'postname'|| $value == 'end'|| $value == 'proposition' ||$value == 'description' || $value == 'tests' || $value == 'products'|| $value == 'properties')){
+        if ( in_array($id, array(39,46)) && ($value == 'LineActiveCustomer'|| $value == 'prioritet'|| $value == 'square' || $value == 'postname'|| $value == 'end'|| $value == 'proposition' ||$value == 'description' || $value == 'tests' || $value == 'products'|| $value == 'properties')){
 //            if($value == 'end')
 //                unset($_POST['end']);
             continue;
         }
+//        if ($id == 46 && ($value == 'properties')){
+////            if($value == 'end')
+////                unset($_POST['end']);
+//            continue;
+//        }
         if ($id == 41 && ($value == 'fk_groupissues' || $value == 'fk_subdivision'))continue;
 
         if ((! isset($_POST[$value]) || $_POST[$value]=='')
@@ -1169,7 +1184,8 @@ if ($id)
 //    die($sql);
 
     $fieldlist=explode(',',$tabfield[$id]);
-
+//var_dump($fieldlist);
+//    die();
     print '<form action="'.$_SERVER['PHP_SELF'].'?id='.$id.'" method="POST">';
     print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
     print '<table class="noborder" width="100%">';
@@ -1181,7 +1197,10 @@ if ($id)
         $var=false;
 
         $fieldlist=explode(',',$tabfield[$id]);
-
+//        echo '<pre>';
+//        var_dump($fieldlist);
+//        echo '</pre>';
+//        die();
         // Line for title
         print '<tr class="liste_titre">';
         foreach ($fieldlist as $field => $value)
@@ -1270,7 +1289,6 @@ if ($id)
                 	$obj->$val=GETPOST($val);
             }
         }
-
         $tmpaction = 'create';
         $parameters=array('fieldlist'=>$fieldlist, 'tabname'=>$tabname[$id]);
         $reshook=$hookmanager->executeHooks('createDictionaryFieldlist',$parameters, $obj, $tmpaction);    // Note that $action and $object may have been modified by some hooks
@@ -1728,7 +1746,16 @@ if($id == 35){
         })
     </script>';
 }
-if($id == 39){
+if($id == 39 || $id == 46){
+    $link = '';
+    switch($id){
+        case 39:{
+            $link = '/dolibarr/htdocs/admin/proposedProperties.php?proposed_id=';
+        }break;
+        case 46:{
+            $link = '/dolibarr/htdocs/admin/SMTP_Parameters.php?id=';
+        }
+    }
     print "<script>
         $(document).ready(function(){
 //            console.log(document.getElementsByTagName('td').innerHTML = 'test');
@@ -1743,7 +1770,7 @@ if($id == 39){
 
                 }else if(td[i].innerHTML == 'properties'){
                     var id = td[i].parentElement.id.substr(6);
-                    td[i].innerHTML = '<a href="."/dolibarr/htdocs/admin/proposedProperties.php?proposed_id='+id+'"."><img style = ".'"cursor:pointer"'."src =/dolibarr/htdocs/theme/eldy/img/properties.png title=Налаштування></a>';
+                    td[i].innerHTML = '<a href=".$link."'+id+'"."><img style = ".'"cursor:pointer"'."src =/dolibarr/htdocs/theme/eldy/img/properties.png title=Налаштування></a>';
 
                 }
             }
@@ -1980,6 +2007,15 @@ function fieldList($fieldlist,$obj='',$tabname='', $show=0)//Відображе�
 				print '</td>';
 			}
 		}
+		elseif($tabname == MAIN_DB_PREFIX."c_smtp_servers"){
+//            var_dump($fieldlist);
+//            die();
+            if($fieldlist[$field] == 'SMTPname'){
+                print '<td align="left">';
+                print '<input id="' . $fieldlist[$field] . '" class="ui-autocomplete-input" type="text" autofocus="autofocus" value="' . (isset($obj->$fieldlist[$field]) ? $obj->$fieldlist[$field] : '') . '" name="' . $fieldlist[$field] . '" maxlength="60" size="60" autocomplete="off">';
+                print '</td>';
+			}
+        }
 		elseif($tabname == MAIN_DB_PREFIX."c_proposition")
 		{
 //				if($show == 1) {

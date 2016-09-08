@@ -8,7 +8,8 @@ $future = array();
 $outstanding = array();
 $CustActions = array();
 $userActions = array();
-$actioncode = array('AC_GLOBAL', 'AC_CURRENT');
+$actioncode = array('AC_GLOBAL','AC_CURRENT','AC_EDUCATION','AC_INITIATIV','AC_PROJECT');
+
 if(isset($_GET['id_usr'])&&!empty($_GET['id_usr'])){
     global $db;
     $sql = 'select lastname from llx_user where rowid = '.$_GET['id_usr'];
@@ -28,7 +29,7 @@ $obj = $db->fetch_object($res);
 $subdivision = $obj->name;
 //if(!isset($_SESSION['actions'])) {
     $sql = "select distinct sub_user.rowid  id_usr, sub_user.alias, `llx_societe`.`region_id`, llx_actioncomm.id, llx_actioncomm.percent, date(llx_actioncomm.datep) datep, llx_actioncomm.percent,
-    case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT') then llx_actioncomm.`code` else 'AC_CUST' end `code`, `llx_societe_action`.`callstatus`
+    case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT','AC_EDUCATION', 'AC_INITIATIV', 'AC_PROJECT') then llx_actioncomm.`code` else 'AC_CUST' end `code`, `llx_societe_action`.`callstatus`
     from llx_actioncomm
     inner join (select id from `llx_c_actioncomm` where type in('user','system') and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
     left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = llx_actioncomm.id
@@ -77,21 +78,21 @@ llxPopupMenu();
 //llxFooter();
 
 exit();
-function GetBestUserID(){
-    global $CustActions,$user;
-
-    $maxCount = 0;
-    $id_usr = 0;
-
-    foreach(array_keys($CustActions) as $userID){
-        if($maxCount<$CustActions[$userID]){
-            $maxCount = $CustActions[$userID];
-            $id_usr = $userID;
-        }
-    }
-    return $id_usr;
-
-}
+//function GetBestUserID(){
+//    global $CustActions,$user;
+//
+//    $maxCount = 0;
+//    $id_usr = 0;
+//
+//    foreach(array_keys($CustActions) as $userID){
+//        if($maxCount<$CustActions[$userID]){
+//            $maxCount = $CustActions[$userID];
+//            $id_usr = $userID;
+//        }
+//    }
+//    return $id_usr;
+//
+//}
 
 function ShowTable(){
     global $actions,$user,$CustActions,$userActions,$actioncode,$id_usr;
@@ -203,6 +204,7 @@ function ShowTable(){
         }
     }
     $table.='</tr>';
+    require_once DOL_DOCUMENT_ROOT.'/core/lib/day_plan.php';
 //Всього глобальні задачі
     $table.= ShowTasks('AC_GLOBAL', 'Глобальні задачі(ТОПЗ)');
     $table.= ShowTasks('AC_CURRENT', 'Поточні задачі');
@@ -251,6 +253,9 @@ function ShowTable(){
 
     $table.= getRegionsList($id_usr);
 
+    $table.= ShowTasks('AC_PROJECT', 'Проекти', true);
+    $table.= ShowTasks('AC_EDUCATION, ', 'Навчання', true);
+    $table.= ShowTasks('AC_INITIATIV, , ', 'Ініціативи', true);
 
     $table .= '</tbody>';
     return $table;
@@ -399,64 +404,4 @@ function getRegionsList($id_usr){
         $out.='</tr>';
     }
     return $out;
-}
-function ShowTasks($Code, $Title, $bestvalue = false){
-    global $userActions;
-//    if($Title == 'Найкращі показники по підрозділу') {
-//        echo '<pre>';
-//        var_dump($userActions);
-//        echo '</pre>';
-//        die();
-//    }
-    $table='<tr '.($bestvalue?'class="bestvalue"':'').'><td colspan="2" class="middle_size" style="width: 105px;"><b>'.$Title.'</b></td>';
-    //% виконання запланованого по факту
-    for($i=8; $i>=0; $i--){
-        $percent = '';
-        if($i < 8) {
-            if($i<7) {
-                $count = (isset($userActions['fact_' . date("Y-m-d", (time() - 3600 * 24 * $i))][$Code]) ? $userActions['fact_' . date("Y-m-d", (time() - 3600 * 24 * $i))][$Code] : ('0'));
-                $total = (isset($userActions['total_' . date("Y-m-d", (time() - 3600 * 24 * $i))][$Code]) ? $userActions['total_' . date("Y-m-d", (time() - 3600 * 24 * $i))][$Code] : (''));
-            }else{
-                $count = $userActions['fact_week'][$Code];
-                $total = $userActions['total_week'][$Code];
-            }
-        }else{
-            $count = isset($userActions['fact_month'][$Code])?$userActions['fact_month'][$Code]:('0');
-            $total = isset($userActions['total_month'][$Code])?$userActions['total_month'][$Code]:('0');
-        }
-        if(!empty($total))
-            $percent = round(100*$count/($total==0?1:$total));
-        $table .= '<td class="middle_size" style="width: ' . (in_array($i, array(0,8))?'35':'30') . 'px; text-align:center;">' . $percent. '</td>';
-    }
-    //минуле факт
-    for($i=8; $i>=0; $i--){
-        if($i < 8)
-            $table.='<td class="middle_size" style="width: '.(in_array($i, array(0,8))?'35':'30').'px; text-align:center;">'.($i<7?(isset($userActions['fact_'.date("Y-m-d", (time()-3600*24*$i))][$Code])?$userActions['fact_'.date("Y-m-d", (time()-3600*24*$i))][$Code]:('')):$userActions['fact_week'][$Code]).'</td>';
-        else
-            $table.='<td class="middle_size" style="width: '.(in_array($i, array(0,8))?'35':'30').'px; text-align:center;">'.(isset($userActions['fact_month'][$Code])?$userActions['fact_month'][$Code]:('')).'</td>';
-    }
-    //прострочено
-    $value = '';
-    if(!empty($userActions['outstanding'][$Code]))
-        $value = $userActions['outstanding'][$Code];
-    $table .= '<td class="middle_size" style="text-align: center; width: 51px">' . $value . '</td>';
-    //майбутнє заплановано
-    for($i=0; $i<9; $i++){
-        $value = '';
-        if($i < 8) {
-            if($i < 7)
-                $value =  (isset($userActions[date("Y-m-d", (time() + 3600 * 24 * $i))][$Code]) ? $userActions[date("Y-m-d", (time() + 3600 * 24 * $i))][$Code] : (''));
-            else {
-                if(!empty($userActions['future_week'][$Code]))
-                    $value = $userActions['future_week'][$Code];
-            }
-            $table .= '<td class="middle_size" style="text-align: center; width: ' . (in_array($i, array(0))?'35':'30') . 'px">'.(($i < 7)?'<a href="/dolibarr/htdocs/hourly_plan.php?idmenu=10420&mainmenu=hourly_plan&leftmenu=&date=' . date("Y-m-d", (time() + 3600 * 24 * $i)) . '">':'') . $value . (($i < 7)?'</a>':'').'</td>';
-        }else {
-            if(!empty($userActions['future_month'][$Code]))
-                $value = $userActions['future_month'][$Code];
-            $table .= '<td class="middle_size" style="text-align: center; width: 35px">' . $value . '</td>';
-        }
-    }
-    $table.='</tr>';
-    return $table;
 }

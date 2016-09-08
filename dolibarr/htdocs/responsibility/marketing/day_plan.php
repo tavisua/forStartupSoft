@@ -14,7 +14,7 @@ if(!$res)
 $obj = $db->fetch_object($res);
 $subdivision = $obj->name;
 if(!isset($_SESSION['actions'])) {
-    $sql = "select sub_user.rowid  id_usr, sub_user.alias, `llx_societe`.`region_id`, llx_actioncomm.percent, date(llx_actioncomm.datep) datep, llx_actioncomm.percent, case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT') then llx_actioncomm.`code` else 'AC_CUST' end `code`
+    $sql = "select sub_user.rowid  id_usr, sub_user.alias, `llx_societe`.`region_id`, llx_actioncomm.percent, date(llx_actioncomm.datep) datep, llx_actioncomm.percent, case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT','AC_EDUCATION', 'AC_INITIATIV', 'AC_PROJECT') then llx_actioncomm.`code` else 'AC_CUST' end `code`
     from llx_actioncomm
     inner join (select id from `llx_c_actioncomm` where type in('user','system') and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
     left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = llx_actioncomm.id
@@ -152,6 +152,8 @@ function ShowTable(){
 //Всього глобальні задачі
     $table.= ShowGlobalCurrentTasks('AC_GLOBAL', 'Глобальні задачі(ТОПЗ)');
     $table.= ShowGlobalCurrentTasks('AC_CURRENT', 'Поточні задачі');
+    $table.= ShowGlobalCurrentTasks('AC_PROJECT', 'Проекти');
+    $table.= ShowGlobalCurrentTasks('AC_EDUCATION', 'Навчання');
     $table .= '</tbody>';
     return $table;
 }

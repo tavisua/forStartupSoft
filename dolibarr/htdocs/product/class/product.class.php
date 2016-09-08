@@ -430,6 +430,10 @@ class Product extends CommonObject
 			where `llx_user_lineactive`.`fk_lineactive` in (select '.$id_cat.' union select category_id from `oc_category`
 				where parent_id = '.$id_cat.')
 			 and `llx_user_lineactive`.`active`=1';
+//		echo '<pre>';
+//		var_dump($sql);
+//		echo '</pre>';
+//		die();
 		$res = $db->query($sql);
 		if(!$res)
 			dol_print_error($db);
