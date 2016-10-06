@@ -122,6 +122,6 @@ function LineActive(){
     foreach(array_keys($lineactive) as $key){
         $out.='<option '.($key == 'users'?'id="users"':'').' value="'.$key.'" '.(is_numeric($lineactiveID) == is_numeric($key) && $lineactiveID == $key?'selected="selected"':'').'>'.$lineactive[$key]['name'].' '.(!empty($lineactive[$key]['type'])?'['.$lineactive[$key]['type'].']':'').'</option>';
     }
-    $out.='</selected>';
+    $out.='</select>';
     return $out;
 }

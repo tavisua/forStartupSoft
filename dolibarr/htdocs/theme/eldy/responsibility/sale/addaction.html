@@ -91,6 +91,7 @@
                 <td></td>
             <?}?>
         </tr>
+
     </table>
     <?}?>
 </div>
@@ -216,6 +217,8 @@
                 url:'?action=get_freetime&action_id='+getParameterByName('action_id')+'&id_usr=<?=$user->id?>&date='+$("#ap").val()+" 00:00",
                 cache:false,
                 success:function(result){
+                    if(!result)
+                        return;
                     var obj_res = JSON.parse(result);
                     $('#aphour').val(obj_res.freetime.substr(obj_res.freetime.length-8,2));
                     $('#apmin').val(obj_res.freetime.substr(obj_res.freetime.length-5,2));
@@ -281,6 +284,8 @@
     }
 
     function save(){
+//        console.log($('#proposed_id').val());
+//        return;
 //        if($('#newdate').val().length>0) {
 //            console.log($('#newdate').val());
 //            confirm('Увага! Було замінено дату виконання дії, тому після зберігання результатів перемовин не буде встановлено статус "Виконано"');
@@ -303,7 +308,7 @@
             $('#socid').val(param.socid);
             $("#addaction").attr('action', '/dolibarr/htdocs/comm/action/result_action.php');
             if (param.action == 'addonlyresult')
-                $("#action").val('addonlyresult');
+                $("#action").val('saveonlyresult');
             else if(param.action == 'useraction' || param.action == 'edituseration')
                 $("#action").val('saveuseraction');
             else if (param.onlyresult !== undefined)

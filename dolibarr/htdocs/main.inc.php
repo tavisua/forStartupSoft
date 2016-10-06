@@ -238,7 +238,6 @@ if (ini_get('register_globals'))    // To solve bug in using $_SESSION
         if (isset($GLOBALS[$key])) unset($GLOBALS[$key]);
     }
 }
-
 // Init the 5 global objects
 // This include will set: $conf, $db, $langs, $user, $mysoc objects
 require_once 'master.inc.php';
@@ -586,18 +585,18 @@ if (! defined('NOLOGIN'))
     }
     else
     {
+
         // We are already into an authenticated session
         $login=$_SESSION["dol_login"];
         dol_syslog("This is an already logged session. _SESSION['dol_login']=".$login);
-//        echo '<pre>';
-//        var_dump($_SESSION['spy_id_usr']);
-//        echo '</pre>';
-//        die();
         //Перевірка: якщо відкритий режим spy_mode, роблю подміну
+
         if(isset($_SESSION['spy_id_usr']) && !empty($_SESSION['spy_id_usr'])){
             $resultFetchUser=$user->fetch($_SESSION['spy_id_usr']);
+            define("NOLOGIN",1);
         }else
             $resultFetchUser=$user->fetch('',$login);
+
         if ($resultFetchUser <= 0)
         {
             // Account has been removed after login
@@ -732,9 +731,12 @@ if (! defined('NOLOGIN'))
         if ($reshook < 0) $error++;
     }
 
-
+//            echo '<pre>';
+//            var_dump($user);
+//            echo '</pre>';
     // If user admin, we force the rights-based modules
-    if ($user->admin)
+//    if ($user->admin)
+    if($user->login == 'admin')
     {
         $user->rights->user->user->lire=1;
         $user->rights->user->user->creer=1;
@@ -838,6 +840,7 @@ if (! defined('NOLOGIN'))
     // Load permissions
     $user->getrights();
 }
+
 
 
 dol_syslog("--- Access to ".$_SERVER["PHP_SELF"]);
@@ -1055,6 +1058,8 @@ if (! function_exists("llxHeader"))
 
 		// main area
 		main_area($title);
+//        var_dump($_SESSION['spy_id_usr']);
+
 	}
 }
 

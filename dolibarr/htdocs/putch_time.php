@@ -17,7 +17,7 @@ inner join `llx_c_actioncomm` on `llx_c_actioncomm`.`code` = `llx_actioncomm`.`c
 left join `llx_actioncomm_resources` on `llx_actioncomm`.`id` = `llx_actioncomm_resources`.`fk_actioncomm`
 where 1";
 if(!isset($_GET['datep'])||empty($_GET['datep']))
-    $sql.=" and datep > '2016-04-04'";
+    $sql.=" and datep > '2016-09-01'";
 else {
     $sql .= " and date(datep) = '" . $_GET['datep'] . "'";
     $sql .= " and (`llx_actioncomm`.fk_user_author = ".$_GET['id_usr']." or `llx_actioncomm_resources`.`fk_element` = ".$_GET['id_usr'].")";

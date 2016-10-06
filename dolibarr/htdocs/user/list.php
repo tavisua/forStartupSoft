@@ -22,6 +22,16 @@ if($_REQUEST['list']=='contactlist') {
     $tbody = showDictActionToAddress();
     include $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/theme/eldy/users/contactlist.html';
 }elseif($_REQUEST['list']=='callstatistic'){
+    if(empty($_REQUEST['month'])) {
+        $date = new DateTime();
+        $month = $date->format('m');
+    }else
+        $month = $_REQUEST['month'];
+    $months = '<select id="months" name="months" onchange="SetMonthFilter();">';
+    for($i=1;$i<=12;$i++){
+        $months.='<option id="Month'.$i.'" '.($month==$i?('selected = "selected"'):'').' value="'.$i.'">'.$langs->trans('Month'.($i<10?('0'.$i):$i)).'</option>';
+    }
+    $months.='</select>';
     $tbody = callStatistic();
     include $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/theme/eldy/users/callstatistic.html';
 }else {
@@ -32,20 +42,70 @@ exit();
 function callStatistic(){
 //    phpinfo();
     global $db,$langs;
-//    if(!isset($_SESSION['callstatistic'])) {
-          $sql = "select sub_user.rowid  id_usr, sub_user.alias, `llx_societe`.`region_id`, sub_user.subdiv_id, llx_actioncomm.percent, date(llx_actioncomm.datep) datep,
-        llx_actioncomm.percent, case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT','AC_EDUCATION', 'AC_INITIATIV', 'AC_PROJECT') then llx_actioncomm.`code` else 'AC_CUST' end `code`, `llx_societe_action`.`callstatus`, `llx_societe_action`.rowid as answer_id
-        from llx_actioncomm
-        inner join (select id from `llx_c_actioncomm` where type in('user','system') and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
-        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = llx_actioncomm.id
-        left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
-        left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
-        inner join (select `llx_user`.rowid, `responsibility`.`alias`, `llx_user`.subdiv_id from `llx_user` inner join `responsibility` on `responsibility`.`rowid` = `llx_user`.`respon_id` where 1 and `llx_user`.`active` = 1) sub_user on sub_user.rowid = case when llx_actioncomm_resources.fk_element is null then llx_actioncomm.`fk_user_author` else llx_actioncomm_resources.fk_element end
-        where 1
-        and llx_actioncomm.active = 1
-        and llx_actioncomm.`code` not in ('AC_GLOBAL', 'AC_CURRENT')
-        and datep2 between '2016-08-01' and '2016-09-01'
-        order by subdiv_id, id_usr;";
+
+        $now = new DateTime();
+        $nowMonth = $now->format('m');
+
+//          $sql = "select sub_user.rowid  id_usr, sub_user.alias, `llx_societe`.`region_id`, sub_user.subdiv_id, llx_actioncomm.percent, date(llx_actioncomm.datep) datep,
+//        llx_actioncomm.percent, case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT','AC_EDUCATION', 'AC_INITIATIV', 'AC_PROJECT') then llx_actioncomm.`code` else 'AC_CUST' end `code`, `llx_societe_action`.`callstatus`, `llx_societe_action`.rowid as answer_id
+//        from llx_actioncomm
+//        inner join (select id from `llx_c_actioncomm` where type in('user','system') and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
+//        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = llx_actioncomm.id
+//        left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
+//        left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
+//        inner join (select `llx_user`.rowid, `responsibility`.`alias`, `llx_user`.subdiv_id from `llx_user` inner join `responsibility` on `responsibility`.`rowid` = `llx_user`.`respon_id` where 1 and `llx_user`.`active` = 1) sub_user on sub_user.rowid = case when llx_actioncomm_resources.fk_element is null then llx_actioncomm.`fk_user_author` else llx_actioncomm_resources.fk_element end
+//        where 1";
+//
+//        if(empty($_REQUEST['month'])){
+//            $sql.= " and datep2 between '2016-".($nowMonth)."-01' and '2016-".($nowMonth+1)."-01'";
+//        }else {
+//            $selMonth = $_REQUEST['month'];
+//            if($selMonth<10)$selMonth.='0'.$selMonth;
+//            $sql .= " and datep2 between '2016-".$selMonth."-01' and '2016-".($nowMonth+1)."-01'";
+//        }
+//        $sql .= " and llx_actioncomm.active = 1
+//                  and llx_actioncomm.`code` not in ('AC_GLOBAL', 'AC_CURRENT')";
+//        $sql.= " order by subdiv_id, id_usr;";
+
+//        $sql = "select id, percent, datep,fk_soc,`code`,fk_user_author from llx_actioncomm
+//        where 1 and datep2 between ";
+//        if(empty($_REQUEST['month'])){
+//            $sql.= " and datep between '2016-".($nowMonth)."-01' and '2016-".($nowMonth+1)."-01'";
+//        }else {
+//            $selMonth = $_REQUEST['month'];
+//            if($selMonth<10)$selMonth='0'.$selMonth;
+////            echo '<pre>';
+////            var_dump($selMonth);
+////            echo '</pre>';
+////            die();
+//            $sql .= " and datep between '2016-".$selMonth."-01' and '2016-".($nowMonth+1)."-01'";
+//        }
+//        $sql.= " and llx_actioncomm.active = 1
+//                  and `code` not in ('AC_GLOBAL', 'AC_CURRENT')";
+
+
+
+        $sql = "select sub_user.rowid  id_usr, sub_user.alias, `llx_societe`.`region_id`, sub_user.subdiv_id, actioncomm.percent, date(actioncomm.datep) datep,
+        case when actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT','AC_EDUCATION', 'AC_INITIATIV', 'AC_PROJECT') then actioncomm.`code` else 'AC_CUST' end `code`,
+        `llx_societe_action`.`callstatus`, `llx_societe_action`.rowid as answer_id
+
+        from
+        (select id, percent, datep,fk_soc,`code`,fk_user_author from llx_actioncomm
+        where 1";
+
+        if(empty($_REQUEST['month'])){
+            $sql.= " and datep between '2016-".($nowMonth)."-01' and '2016-".($nowMonth+1)."-01'";
+        }else {
+            $selMonth = $_REQUEST['month'];
+            if($selMonth<10)$selMonth='0'.$selMonth;
+            $sql .= " and datep between '2016-".$selMonth."-01' and '2016-".($selMonth+1)."-01'";
+        }
+        $sql.=" and llx_actioncomm.active = 1
+                  and `code` not in ('AC_GLOBAL', 'AC_CURRENT')) actioncomm
+        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = actioncomm.id
+        left join `llx_societe` on `llx_societe`.`rowid` = `actioncomm`.`fk_soc`
+        left join `llx_societe_action` on `llx_societe_action`.`action_id` = `actioncomm`.`id`
+        inner join (select `llx_user`.rowid, `responsibility`.`alias`, `llx_user`.subdiv_id from `llx_user` inner join `responsibility` on `responsibility`.`rowid` = `llx_user`.`respon_id` where 1 and `llx_user`.`active` = 1) sub_user on sub_user.rowid = case when llx_actioncomm_resources.fk_element is null then actioncomm.`fk_user_author` else llx_actioncomm_resources.fk_element end";
 //        echo '<pre>';
 //        var_dump($sql);
 //        echo '</pre>';

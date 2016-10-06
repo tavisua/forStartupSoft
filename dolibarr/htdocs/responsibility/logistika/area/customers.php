@@ -7,6 +7,7 @@
  */
 if(!empty($_REQUEST['category']) && $_REQUEST['category'] == 'users')
     die('</br></br></br></br></br>Вибачте, співробітники поки не відображаються');
+
  $region_id = $_SESSION['region_id'];
 $search = explode(',',$_GET['search']);
 $search_array = array();
@@ -73,7 +74,7 @@ where 1  ';
     }
 
 //echo '<pre>';
-//var_dump( $_REQUEST);
+//var_dump($sql);
 //echo '</pre>';
 //die();
 

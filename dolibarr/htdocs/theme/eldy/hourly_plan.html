@@ -122,12 +122,13 @@
 
         $(document).ready(function(){
             $('#loading_img').hide();
+
+//            console.log($('#tasklist0').height(), 'px');
+//            $('#tasklist1').offset({top:-$('#tasklist0').height()});
             function DelAction(){
                 ClickType='delete';
             }
             $('.tasklist').mousedown(function(e){
-
-
                 var pos = $(this).offset();
                 var elem_left = pos.left;
                 var elem_top = pos.top;
@@ -139,12 +140,13 @@
 //                console.log(elem_left, Xinner, e.target.id, e.target.className);
                     return;
                 }
-                console.log($('#'+e.target.id), e.target, e.target.parentElement);
+//                console.log($('#'+e.target.id), e.target, e.target.parentElement);
                 var td = e.target.parentElement;
                 var div = td.getElementsByTagName('div');
-                if(div[6].innerText.trim().length == 0)
+                var div_tmp = div[6];
+//                console.log(strpos(div[6].innerText, 'input') == false, 'input');
+                if(div[6].innerText.trim().length == 0 || strpos(div[6].innerText, 'input') == false)
                     $.cookie('showfulltext','');
-                console.log(div[6].innerText.trim().length, $.cookie('showfulltext') == 'showed');
                 if(e.which != 1)
                     return;
 //console.log($.cookie('showfulltext') == 'showed', $.cookie('hideactionclick') == 1);
@@ -233,7 +235,6 @@
                         }
 
 
-//                        console.log(link);
 //                        return;
                         if('<?=($conf->browser->name)?>' == 'chrome')
                             location.href = link;
@@ -275,7 +276,7 @@
 //                return;
                 for (var i = 0; i < task.length; i++) {
                     if(priority != 0)
-                        $('#tasklist'+priority).offset({top: $('#tasklist0').offset().top});
+                        $('#tasklist'+priority).offset({top: $('#tasklist'+priority).offset().top});
 //                    if(priority != 0)
 //                        console.log(task[i].id);
                     if (task[i].id.substr(0, 5) != "empty") {

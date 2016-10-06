@@ -81,9 +81,9 @@ if(isset($_REQUEST['action'])&&$_REQUEST['action'] == 'getLineActiveList'){
     exit();
 }
 if(isset($_REQUEST['action'])&&$_REQUEST['action']=='setSpyMode'){
-
     if(isset($_REQUEST['id_usr'])&&!empty($_REQUEST['id_usr'])&&$_REQUEST['id_usr'] != '0') {
         $_SESSION['spy_id_usr'] = $_REQUEST['id_usr'];
+        $_COOKIE['spy_id_usr'] = $_REQUEST['id_usr'];
         echo 1;
     }else {
         unset($_SESSION['spy_id_usr']);
@@ -1062,7 +1062,7 @@ function getLineActiveTask($subdiv_id, $class, $code = '', $title=''){
 function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $title=''){
 //    var_dump($subdiv_id, $class, $code);
 //    die();
-    if($code=='AllTask')
+    if($code=='AllTask' || $code == 'all')
         $code='';
     elseif(substr($code,0,1) == "'" && substr($code,strlen($code)-1,1)=="'")
         $code = substr($code, 1, strlen($code)-2);
@@ -1779,8 +1779,6 @@ function getActionsBySub($class, $code){
         }
         $out .='</tr>';
     }
-
-
 //    echo '<pre>';
 //    var_dump(htmlspecialchars($out), time()-$start);
 //    echo '</pre>';

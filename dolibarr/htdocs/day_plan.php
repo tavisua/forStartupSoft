@@ -9,10 +9,14 @@
 //var_dump($_SERVER);
 //echo '</pre>';
 //die();
+
 require $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/main.inc.php';
 if(isset($_REQUEST['action'])){
     global $db,$user;
     switch($_REQUEST['action']) {
+        case 'createStatisticPage':{
+            exit();
+        }
         case 'getnewactions':{
             $id_user = $user->id;
 //            echo '<pre>';
@@ -124,6 +128,10 @@ if(isset($_REQUEST['action'])){
         }break;
         case 'getuserplan': {
             $typeaction = '';
+//            echo '<pre>';
+//            var_dump($_REQUEST);
+//            echo '</pre>';
+//            die();
             switch ($_REQUEST['mainmenu']) {
                 case 'current_task': {
                     $typeaction = "'AC_CURRENT'";
@@ -168,7 +176,9 @@ if(isset($_REQUEST['action'])){
     }
     exit();
 }
+//echo 'pleace wait...';
 
+//die("Location: http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/responsibility/".$user->respon_alias."/day_plan.php?idmenu=10419&mainmenu=plan_of_days&leftmenu=");
 header("Location: http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/responsibility/".$user->respon_alias."/day_plan.php?idmenu=10419&mainmenu=plan_of_days&leftmenu=");
 
 exit();

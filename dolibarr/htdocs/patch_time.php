@@ -16,7 +16,7 @@ end as fk_element , `llx_c_actioncomm`.`exec_time`, `llx_actioncomm`.`code` from
 inner join `llx_c_actioncomm` on `llx_c_actioncomm`.`code` = `llx_actioncomm`.`code`
 left join `llx_actioncomm_resources` on `llx_actioncomm`.`id` = `llx_actioncomm_resources`.`fk_actioncomm`
 where 1
-and datep > '2016-04-04'
+and datep > '2016-08-01'
 and `llx_actioncomm`.`code` not in ('AC_OTH_AUTO')
 and `llx_actioncomm`.active = 1
 order by case when `llx_actioncomm_resources`.`fk_element` is null then `llx_actioncomm`.fk_user_author else `llx_actioncomm_resources`.`fk_element` end, `llx_actioncomm`.priority, datep;";

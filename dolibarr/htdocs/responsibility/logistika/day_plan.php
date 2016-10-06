@@ -3,7 +3,6 @@
 require $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 
-
 $actions = array();
 $future = array();
 $outstanding = array();
@@ -28,14 +27,16 @@ if(!$res)
     dol_print_error($db);
 $obj = $db->fetch_object($res);
 $subdivision = $obj->name;
-   $sql = "select distinct sub_user.rowid  id_usr, sub_user.alias, `llx_societe`.`region_id`, llx_actioncomm.id, llx_actioncomm.percent, date(llx_actioncomm.datep) datep, llx_actioncomm.percent,
-    case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT','AC_EDUCATION', 'AC_INITIATIV', 'AC_PROJECT') then llx_actioncomm.`code` else 'AC_CUST' end `code`, `llx_societe_action`.`callstatus`
+if(!isset($_SESSION['actions'])) {
+    $sql = "select distinct sub_user.rowid  id_usr, sub_user.alias, `llx_societe`.`region_id`, llx_actioncomm.id, llx_actioncomm.percent, date(llx_actioncomm.datep) datep, llx_actioncomm.percent,
+    case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT','AC_EDUCATION', 'AC_INITIATIV', 'AC_PROJECT') then llx_actioncomm.`code` else 'AC_CUST' end `code`, `llx_societe_action`.`callstatus`,
+    `llx_societe`.`categoryofcustomer_id`
     from llx_actioncomm
     inner join (select id from `llx_c_actioncomm` where type in('user','system') and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
     left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = llx_actioncomm.id
     left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
     left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
-    inner join (select `llx_user`.rowid, `responsibility`.`alias` from `llx_user` inner join `responsibility` on `responsibility`.`rowid` = `llx_user`.`respon_id` where `llx_user`.`subdiv_id` = ".$user->subdiv_id." and `llx_user`.`active` = 1) sub_user on sub_user.rowid = case when llx_actioncomm_resources.fk_element is null then llx_actioncomm.`fk_user_author` else llx_actioncomm_resources.fk_element end
+    inner join (select `llx_user`.rowid, `responsibility`.`alias` from `llx_user` inner join `responsibility` on `responsibility`.`rowid` = `llx_user`.`respon_id` where `llx_user`.`subdiv_id` = " . $user->subdiv_id . " and `llx_user`.`active` = 1) sub_user on sub_user.rowid = case when llx_actioncomm_resources.fk_element is null then llx_actioncomm.`fk_user_author` else llx_actioncomm_resources.fk_element end
     where 1
     and llx_actioncomm.active = 1
     and datep2 between adddate(date(now()), interval -1 month) and adddate(date(now()), interval 1 month)";
@@ -52,8 +53,17 @@ $subdivision = $obj->name;
 //        $date = new DateTime($obj->datep);
 //        $mkDate=dol_mktime($date->format('H'),$date->format('i'),$date->format('s'),$date->format('m'),$date->format('d'),$date->format('Y'));
 //        if($mkDate<time()&&$obj->region_id == 248 && $obj->percent <> '100')
-            $actions[] = array('id_usr' => $obj->id_usr, 'rowid'=>$obj->id, 'region_id' => $obj->region_id, 'respon_alias' => $obj->alias, 'percent' => $obj->percent, 'datep' => $obj->datep, 'code' => $obj->code, 'callstatus'=>$obj->callstatus);
+        $actions[] = array('id_usr' => $obj->id_usr, 'rowid' => $obj->id,
+            'region_id' => $obj->region_id, 'categoryofcustomer_id' => $obj->categoryofcustomer_id, 'respon_alias' => $obj->alias, 'percent' => $obj->percent, 'datep' => $obj->datep, 'code' => $obj->code, 'callstatus' => $obj->callstatus);
     }
+}else{
+    $actions = $_SESSION['actions'];
+}
+
+if($_REQUEST['action']=='getActionsByRegions'){
+    echo getRegionsList($_REQUEST['id_usr']);
+    exit();
+}
 
 //echo '<pre>';
 //var_dump($actions);
@@ -66,14 +76,162 @@ print_fiche_titre($langs->trans('PlanOfDays'));
 
 
 $table = ShowTable();
-include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/day_plan.html';
+include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/logistika/day_plan.html';
 llxPopupMenu();
 //print '</br>';
 //print'<div style="float: left">test</div>';
 //llxFooter();
 
 exit();
+function getRegionsList($id_usr){
+    global $db, $actions,$actioncode;
+    $outstanding = array();
+    $future=array();
+    $fact = array();
+    $total = array();
+    $regions = array();
+    $maxAction = array();
+    $today = new DateTime();
+    $mkToday = dol_mktime(0,0,0,$today->format('m'),$today->format('d'),$today->format('Y'));
+    $count = 0;
+//    echo '<pre>';
+//    var_dump($actions);
+//    echo '</pre>';
+//    die();
+    foreach($actions as $item){
+//        var_dump($item);
+//        die();
+        if($item["id_usr"]==$id_usr/*&&$item["code"]=='AC_CUST'*/&&$item["respon_alias"]=='logistika' && $item["categoryofcustomer_id"]==$_REQUEST['cat_id']){
+//            if(empty($item["region_id"])&&$item["datep"]=='2016-05-27'){
+//                var_dump($item).'</br>';
+////                die();
+//            }
+            if(!in_array(empty($item["region_id"])?'null':$item["region_id"], $regions))
+                $regions[]=empty($item["region_id"])?'null':$item["region_id"];
+            $date = new DateTime($item["datep"]);
+            $mkDate = dol_mktime(0, 0, 0, $date->format('m'), $date->format('d'), $date->format('Y'));
+//            echo $item["datep"].' '.var_dump($mkDate >= $mkToday).'</br>';
 
+//            if($item["datep"]=='2016-05-11'){
+//                die('test');
+//            }
+            if ($mkDate == $mkToday)
+                $count++;
+            if ($mkDate >= $mkToday) {
+                $future[$item["region_id"]][$item["datep"]]++;
+                if ($mkDate - $mkToday <= 604800)//604800 sec by week
+                    $future[$item["region_id"]]['week']++;
+                if ($mkDate - $mkToday <= 2678400)//2678400 sec by month
+                    $future[$item["region_id"]]['month']++;
+            }
+
+            if($mkDate < $mkToday && $item['percent'] != 100){//Додав $mkDate < $mkToday. Вважається логічним, щоб кількість прострочених рахувати, коли завдання повинно вже було бути виконано
+                $outstanding[$item["region_id"]]++;
+            }
+            if($item['percent'] == 100 && (in_array($item['code'], $actioncode))){
+                $fact[$item["region_id"]][$item["datep"]]++;
+                if($mkToday-$mkDate<=604800)//604800 sec by week
+                    $fact[$item["region_id"]]['week']++;
+                if($mkToday-$mkDate<=2678400)//2678400 sec by month
+                    $fact[$item["region_id"]]['month']++;
+            }
+
+            $total[$item["region_id"]][$item["datep"]]++;
+            if($mkToday-$mkDate<=604800)//604800 sec by week
+                $total[$item["region_id"]]['week']++;
+            if($mkToday-$mkDate<=2678400)//2678400 sec by month
+                $total[$item["region_id"]]['month']++;
+        }
+    }
+//    echo '<pre>';
+//    var_dump($regions);
+//    echo '</pre>';
+//    die();
+
+    $sql = "select `regions`.`rowid`,`states`.`name` statename, `regions`.`name` from `regions`
+        inner join `states` on `states`.`rowid` = `regions`.`state_id`
+        where `regions`.`rowid` in (".(count($regions)>0?implode(",",$regions):0).")
+        and `regions`.active = 1";
+    if(count($regions)>0 && in_array('null', $regions))
+        $sql.=" union select null, 'Район', 'не вказано'";
+    $sql.=" order by statename, `name`";
+//    echo '<pre>';
+//    var_dump($sql);
+//    echo '</pre>';
+//    die();
+    $out = '';
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    while($obj = $db->fetch_object($res)){
+        $out.='<tr id="reg'.$obj->rowid.'" class="regions subtype middle_size">';
+        if(!empty($obj->rowid)) {
+            $out .= '<td><a href="/dolibarr/htdocs/responsibility/sale/area.php?idmenu=10425&mainmenu=area&leftmenu=&state_filter=' . $obj->rowid . '" target="_blank">' . $obj->statename . '</a></td>';
+            $out .= '<td><a href="/dolibarr/htdocs/responsibility/sale/area.php?idmenu=10425&mainmenu=area&leftmenu=&state_filter=' . $obj->rowid . '" target="_blank">' . $obj->name . '</a></td>';
+        }else{
+            $out .= '<td>'. $obj->statename . '</td>';
+            $out .= '<td>'. $obj->name . '</td>';
+        }
+//        $out.='<td></td>';
+        $out .= '<td style="width: 33px">&nbsp;</td>';
+
+        //відсоток виконання
+        if(isset($total[$obj->rowid]['month'])){
+            $value = round($fact[$obj->rowid]['month']/$total[$obj->rowid]['month']*100,0);
+            $out.='<td style="text-align: center">'.$value.'</td>';
+        }else
+            $out.='<td></td>';
+        if(isset($total[$obj->rowid]['week'])){
+            $value = round($fact[$obj->rowid]['week']/$total[$obj->rowid]['week']*100,0);
+            $out.='<td style="text-align: center">'.$value.'</td>';
+        }else
+            $out.='<td></td>';
+        for($i=6;$i>=0;$i--) {
+            if(isset($total[$obj->rowid][date("Y-m-d", (time()-3600*24*$i))])){
+                $value = round($fact[$obj->rowid][date("Y-m-d", (time()-3600*24*$i))]/$total[$obj->rowid][date("Y-m-d", (time()-3600*24*$i))]*100,0);
+                $out.='<td style="text-align: center">'.$value.'</td>';
+            }else
+                $out .= '<td></td>';
+        }
+        //фактично виконано
+        if(isset($fact[$obj->rowid]['month']))
+                $out.='<td style="text-align: center">'.$fact[$obj->rowid]['month'].'</td>';
+            else
+                $out.='<td></td>';
+        if(isset($fact[$obj->rowid]['week']))
+                $out.='<td style="text-align: center">'.$fact[$obj->rowid]['week'].'</td>';
+            else
+                $out.='<td></td>';
+        for($i=6;$i>=0;$i--){
+            if(isset($fact[$obj->rowid][date("Y-m-d", (time()-3600*24*$i))]))
+                $out.='<td style="text-align: center">'.$fact[$obj->rowid][date("Y-m-d", (time()-3600*24*$i))].'</td>';
+            else
+                $out.='<td style="text-align: center"></td>';
+        }
+        //прострочено
+        if(isset($outstanding[$obj->rowid])) {
+            $out .= '<td id="outstanding'.$obj->rowid.'" style="text-align: center; cursor: pointer;" onclick="ShowOutStandingRegion('.$obj->rowid.', '.$id_usr.');">' . $outstanding[$obj->rowid] . '</td>';
+        }else
+            $out.='<td></td>';
+        //заплановано на майбутнє
+        for($i=0;$i<=6;$i++){
+            if($future[$obj->rowid][date("Y-m-d", (time()+3600*24*$i))])
+                $out.='<td style="text-align: center">'.$future[$obj->rowid][date("Y-m-d", (time()+3600*24*$i))].'</td>';
+            else
+                $out.='<td></td>';
+        }
+        if(isset($future[$obj->rowid]['week']))
+                $out.='<td style="text-align: center">'.$future[$obj->rowid]['week'].'</td>';
+            else
+                $out.='<td></td>';
+        if(isset($future[$obj->rowid]['month']))
+                $out.='<td style="text-align: center">'.$future[$obj->rowid]['month'].'</td>';
+            else
+                $out.='<td></td>';
+        $out.='</tr>';
+    }
+    return $out;
+}
 function ShowTable(){
     global $actions,$user,$CustActions,$userActions,$actioncode;
     $today = new DateTime();
@@ -81,7 +239,7 @@ function ShowTable(){
 
     foreach($actions as $action){
 //        echo '<pre>';
-//        var_dump($action);
+//        var_dump($actions);
 //        echo '</pre>';
 //        die();
 
@@ -121,20 +279,18 @@ function ShowTable(){
                     $userActions['total_month'][$obj->code]++;                
             }
         }
-        if($mkDate <= $mkToday && $action['percent'] == 100 && $action['code'] == 'AC_CUST' && $action['callstatus'] == '5'){
-                if($mkToday-$mkDate<=604800&&$mkToday-$mkDate>=0)//604800 sec by week
+        if($mkDate <= $mkToday && $action['percent'] == 100 && $action['code'] == 'AC_CUST'){
+            if($mkToday-$mkDate<=604800&&$mkToday-$mkDate>=0)//604800 sec by week
                     $CustActions[$action['id_usr']]++;
 
         }
     }
-//    echo '<pre>';
-//    var_dump($userActions);
-//    echo '</pre>';
-//    die();
+
     $table = '<tbody id="reference_body">';
 //Всього задач
     $table.='<tr><td class="middle_size" style="width: 105px"><b>Всього задач</b></td>
-    <td style="width: 175px">&nbsp;</td>';
+    <td style="width: 175px">&nbsp;</td>
+    <td style="width: 33px">&nbsp;</td>';
     //% виконання запланованого по факту
     for($i=8; $i>=0; $i--){
         if($i < 8) {

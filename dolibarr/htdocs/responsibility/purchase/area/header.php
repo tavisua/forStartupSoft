@@ -138,6 +138,6 @@ function LineActive(){
     }
 
 
-    $out.='</selected>';
+    $out.='</select>';
     return $out;
 }

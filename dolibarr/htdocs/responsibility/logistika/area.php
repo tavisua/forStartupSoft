@@ -39,6 +39,8 @@ if(isset($_GET['id_usr'])&&!empty($_GET['id_usr'])){
 //var_dump($_REQUEST);
 //echo '</pre>';
 //die();
+if(empty($_REQUEST['category'])&&!empty($_REQUEST['lineactive']))
+    $_REQUEST['category'] = $_REQUEST['lineactive'];
 //Шапка сторінки
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/logistika/area/header.php';
 //Перелік контрагентів

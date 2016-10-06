@@ -50,27 +50,31 @@ if(isset($_REQUEST['switch_active'])){
         echo $sql;
     //Переподключаю задачи
     if($param[2] == 1) {
-        $sql = "update `llx_actioncomm_resources` ,(select id,`fk_user_author` from llx_actioncomm
+        $sql = "select id,`fk_user_author` from llx_actioncomm
             inner join (select rowid from llx_societe where region_id = " . $id_param . ") societe on societe.rowid = llx_actioncomm.fk_soc
             inner join (select code from `llx_c_actioncomm` where active = 1 and (type = 'system' or type = 'user'))code_t on code_t.`code` = `llx_actioncomm`.`code`
-            where date(datep2)>=date(now())
-            and percent <> 100) actioncomm
+            where 1
+            and percent <> 100";
+        $resAction = $db->query($sql);
+        $actionsID = array();
+        while($obj = $db->fetch_object($resAction)){
+            $actionsID[] = $obj->id;
+        }
+        $sql = "update `llx_actioncomm_resources`
             set fk_element = ".$param[0]."
-            where `llx_actioncomm_resources`.`fk_actioncomm` = actioncomm.id
-            and `llx_actioncomm_resources`.`fk_element` = actioncomm.`fk_user_author`";
+            where `llx_actioncomm_resources`.`fk_actioncomm` in (".implode(",",$actionsID).")";
+//        echo '<pre>';
+//        var_dump($sql);
+//        echo '</pre>';
+//        die();
         $res = $db->query($sql);
         if (!$res)
             dol_print_error($db);
         else
             echo ' redirect llx_actioncomm_resources';
-        $sql = "update llx_actioncomm,
-            (select id from llx_actioncomm
-            inner join (select rowid from llx_societe where region_id = " . $id_param . ") societe on societe.rowid = llx_actioncomm.fk_soc
-            inner join (select code from `llx_c_actioncomm` where active = 1 and (type = 'system' or type = 'user'))code_t on code_t.`code` = `llx_actioncomm`.`code`
-            where 1 #date(datep2)>=date(now())
-            and percent <> 100) actioncomm
+        $sql = "update llx_actioncomm
             set `fk_user_author` = " . $param[0] . "
-            where llx_actioncomm.id = actioncomm.id";
+            where llx_actioncomm.id in (".implode(",",$actionsID).")";
 //    var_dump($sql);
 //    die();
         $res = $db->query($sql);

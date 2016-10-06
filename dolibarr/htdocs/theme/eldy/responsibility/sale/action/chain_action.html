@@ -182,6 +182,10 @@
 
 
     $(function(){
+        $('textarea#work_before_the_next_action_mentor').mouseout(function(e){
+                console.log('test');
+            $('textarea#work_before_the_next_action_mentor').hide();
+        })
         $('td').click(function(e){
             if($(this).attr('id') === undefined) {
                 console.log('empty item');
@@ -189,12 +193,14 @@
             }
             var validID = ['work_before_the_next_action_mentor', 'date_next_action_mentor'];
             var colName = $(this).attr('id').substr($(this).attr('rowid').length);
-            console.log($.inArray(colName,validID));
+            console.log('<?=$accessMentor?>',$.inArray(colName,validID));
             if($.inArray(colName,validID)>=0 && '<?=$accessMentor?>' == '0') {
                 console.log('access denied');
                 return;
             }
-            if($.inArray(colName,validID)<0&&$('#'+e.target.id).find('input').length>0){
+            console.log($.inArray(colName,validID)<0,$('#'+e.target.id).find('input').length>0);
+
+            if($('#'+e.target.id).find('input').length>0){
                 var input = $('#'+e.target.id).find('input');
                 var html = '<textarea id="fulltext"  style="width: 350px;height: 150px">'+input.val()+'</textarea>';
 

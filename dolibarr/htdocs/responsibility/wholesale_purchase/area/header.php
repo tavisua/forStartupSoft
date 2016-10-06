@@ -134,6 +134,6 @@ function LineActive(){
     while($obj = $db->fetch_object($res)){
         $out.='<option kind="category" value="'.$obj->fx_category_counterparty.'" '.($category_id == $obj->fx_category_counterparty&&$kind=='category'?'selected="selected"':'').'>'.$obj->name.'</option>';
     }
-    $out.='</selected>';
+    $out.='</select>';
     return $out;
 }

@@ -406,24 +406,30 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
 //     $sql .= " and `llx_actioncomm`.`id` not in (select `llx_societe_action`.`action_id` from llx_societe_action where action_id is not null)
 //        and `llx_actioncomm`.active = 1";
     if(count($rowidList)>0) {
-        $sql = "select `llx_actioncomm`.`fk_soc` rowid, llx_actioncomm.datep, `responsibility`.`alias` from `llx_actioncomm`
+        $sql = "select `llx_actioncomm`.`fk_soc` rowid, llx_actioncomm.datep, `llx_user`.login, `responsibility`.`alias`,`resp2`.`alias` alias2 from `llx_actioncomm`
         left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm`=`llx_actioncomm`.id
         inner join (select code, libelle label from `llx_c_actioncomm` where active = 1
         and (type = 'system' or type = 'user')) TypeCode on TypeCode.code = `llx_actioncomm`.code
         inner join `llx_user` on `llx_actioncomm`.`fk_user_author` = `llx_user`.`rowid`
         left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
+        left join `responsibility` `resp2` on `resp2`.`rowid`=`llx_user`.`respon_id2`
         where 1
         and `llx_actioncomm`.`fk_soc` in (" . implode(',', $rowidList) . ")
         and `llx_actioncomm`.`active` = 1
         and `llx_actioncomm`.`id` not in (select `llx_societe_action`.`action_id` from llx_societe_action where action_id is not null)
         order by `llx_actioncomm`.`fk_soc`, llx_actioncomm.datep desc";
-
+//        echo '<pre>';
+//        var_dump($sql);
+//        echo '</pre>';
+//        die();
         $res = $db->query($sql);
         if (!$res) {
             dol_print_error($db);
         }
         if ($db->num_rows($res) > 0) {
             while ($row = $db->fetch_object($res)) {
+                $rowalias = array($row->alias,$row->alias2);
+                $useralias = array($user->respon_alias,$user->respon_alias2);
                 $alias = $row->alias;
                 if($alias == $user->respon_alias && !empty($user->respon_alias2)) {
                     $alias = $user->respon_alias2;

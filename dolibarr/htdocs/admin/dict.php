@@ -219,7 +219,7 @@ from `llx_c_line_active`,`llx_c_kind_assets`
 where `llx_c_line_active`.`rowid`=`llx_c_kind_assets`.`fx_line_active`";
 $tabsql[29]= "select rowid,trademark as Trademark,active from ".MAIN_DB_PREFIX."c_trademark";
 $tabsql[30]= "select `llx_c_model`.rowid, llx_c_line_active.line LineActive, llx_c_kind_assets.kind_assets KindAssets, `llx_c_model`.model as Model,
-`llx_c_model`.`Description`, `llx_c_trademark`.trademark as Trademark, `llx_c_model`.active
+`llx_c_model`.`Description`, `llx_c_trademark`.trademark as Trademark, `llx_c_model`.`basic_param`,`llx_c_model`.`productivity`, `llx_c_model`.active
 from `llx_c_model`
 left join `llx_c_trademark` on `llx_c_trademark`.`rowid`=`llx_c_model`.`fx_trademark`
 left join llx_c_kind_assets on `llx_c_model`.fx_kind_assets = `llx_c_kind_assets`.`rowid`
@@ -238,7 +238,7 @@ $tabsql[38]= "select rowid, name, active  from ".MAIN_DB_PREFIX."c_lineactive_cu
 $tabsql[39]= "select llx_c_proposition.rowid, `llx_c_proposition`.`prioritet`,`llx_c_proposition`.`square`, `llx_c_proposition`.`begin`,`llx_c_proposition`.`end`,`llx_c_proposition`.`text` proposition, `llx_c_proposition`.`description`, `llx_c_proposition`.`active`, 'test' as tests, 'products' as products, 'properties' as properties
 	from `llx_c_proposition`
 	left join `llx_c_lineactive_customer` on `llx_c_lineactive_customer`.rowid = `llx_c_proposition`.`fk_lineactive`
-	left join `llx_post` on `llx_post`.`rowid` = `llx_c_proposition`.`fk_post` where `llx_c_proposition`.`active` = 1";
+	left join `llx_post` on `llx_post`.`rowid` = `llx_c_proposition`.`fk_post` where 1 #`llx_c_proposition`.`active` = 1";
 $tabsql[40]= "select rowid, issues, active  from ".MAIN_DB_PREFIX."c_groupoforgissues where 1 and active = 1";
 $tabsql[41]= "select `llx_c_actiontoaddress`.`rowid`,  `llx_c_groupoforgissues`.`issues` fk_groupissues, case when `llx_c_actiontoaddress`.`fk_subdivision` = -1 then 'Всі підрозділи' else `subdivision`.`name` end fk_subdivision, `llx_c_actiontoaddress`.`action`,
 	`llx_c_actiontoaddress`.`responsible`,`llx_c_actiontoaddress`.`directly_responsible`
@@ -331,7 +331,7 @@ $tabfield[26]= "label";
 $tabfield[27]= "TypeEconomicIndicators,LineActive";
 $tabfield[28]= "LineActive,KindAssets";
 $tabfield[29]= "Trademark";
-$tabfield[30]= "LineActive,KindAssets,Trademark,Model,Description";
+$tabfield[30]= "LineActive,KindAssets,Trademark,Model,basic_param,productivity,Description";
 $tabfield[31]= "name";
 $tabfield[32]= "name";
 $tabfield[33]= "name,position";
@@ -380,7 +380,7 @@ $tabfieldvalue[26]= "label";
 $tabfieldvalue[27]= "TypeEconomicIndicators,LineActive";
 $tabfieldvalue[28]= "LineActive,KindAssets";
 $tabfieldvalue[29]= "Trademark";
-$tabfieldvalue[30]= "LineActive,KindAssets,Trademark,Model,Description";
+$tabfieldvalue[30]= "LineActive,KindAssets,Trademark,Model,basic_param,productivity,Description";
 $tabfieldvalue[31]= "name";
 $tabfieldvalue[32]= "name";
 $tabfieldvalue[33]= "name,position";
@@ -431,7 +431,7 @@ $tabfieldinsert[26]= "type";
 $tabfieldinsert[27]= "fx_type_indicator,line";
 $tabfieldinsert[28]= "fx_line_active,kind_assets";
 $tabfieldinsert[29]= "trademark";
-$tabfieldinsert[30]= ",fx_kind_assets,fx_trademark,Model,Description";
+$tabfieldinsert[30]= ",fx_kind_assets,fx_trademark,Model,basic_param,productivity,Description";
 $tabfieldinsert[31]= "name";
 $tabfieldinsert[32]= "name";
 $tabfieldinsert[33]= "name,position";
@@ -879,7 +879,7 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
                     } else {
                         switch ($listfieldvalue[$i]) {
                             case 'proposition': {
-                                $sql .= empty($_POST['proposition']) ? "null," : ("'" . $_POST['proposition'] . "'");
+                                $sql .= empty($_POST['proposition']) ? "null," : ("'" . $db->escape($_POST['proposition']) . "'");
                             }
                                 break;
                             case 'LineActiveCustomer': {

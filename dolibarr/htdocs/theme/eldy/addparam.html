@@ -1,7 +1,7 @@
 <script type="text/javascript" src="/dolibarr/htdocs/societe/js/jquery.maskedinput-1.2.2.js"></script>
 
 <div class="tabPage">
-    <div class="address_header">
+    <div class="address_header" style="margin-bottom: 20px">
         <table id="headercontrol" style="background-color: #ffffff">
             <tr>
                 <td><b>Категорія контрагента</b></td>
@@ -19,7 +19,7 @@
     </div>
 
     <form id="addaddress" action="<?echo $action_url?>" method="post">
-        <input id="rowid" name="rowid" type="hidden" value="<?echo $soc_contact->rowid?>">
+        <input id="rowid" name="rowid" type="hidden" value="<?echo $EconomicIndicators->rowid?>">
         <input id="url" name="url" type="hidden" value="<?echo $url?>">
         <input id="action" name="action" type="hidden" value="<?echo $action?>">
         <input id="line_active" name="line_active" type="hidden" value="<?echo $soc_contact->town_id?>">
@@ -73,7 +73,7 @@
                     Кількість
                 </td>
                 <td>
-                    <input id="count" name="count" type="text" value="0" style="width: 50px">
+                    <input id="count" name="count" type="text" value="<?=$EconomicIndicators->count?>" style="width: 50px">
                     <?echo $EconomicIndicators->selectMeasurement('UnMeasurement', $EconomicIndicators->UnMeasurement)?>
                 </td>
             </tr>
@@ -82,7 +82,7 @@
                     Рік випуску
                 </td>
                 <td>
-                    <input id="Year" name="year" type="text" value="0">
+                    <input id="Year" name="year" type="text" value="<?=$EconomicIndicators->year?>">
                 </td>
             </tr>
             <tr class="additional">
@@ -92,6 +92,22 @@
                 <td>
                     <input id="container" name="container" type="text" value="0" style="width: 50px">
                     <?echo $EconomicIndicators->selectMeasurement('ContainerUnMeasurement', $EconomicIndicators->ContainerUnMeasurement)?>
+                </td>
+            </tr>
+            <tr class="fixed_assets">
+                <td>
+                    Технічні параметри
+                </td>
+                <td>
+                    <textarea id="tech_param" name="tech_param" type="text"  style="width: 80%"><?=$EconomicIndicators->tech_param?></textarea>
+                </td>
+            </tr>
+            <tr class="fixed_assets">
+                <td>
+                    Продуктивність
+                </td>
+                <td>
+                    <textarea id="productivity" name="productivity" type="text"  style="width: 80%"><?=$EconomicIndicators->productivity?></textarea>
                 </td>
             </tr>
             <tr class="additional">

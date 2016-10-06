@@ -27,35 +27,37 @@ if(!$res)
     dol_print_error($db);
 $obj = $db->fetch_object($res);
 $subdivision = $obj->name;
-//if(!isset($_SESSION['actions'])) {
-    $sql = "select distinct sub_user.rowid  id_usr, sub_user.alias, `llx_societe`.`region_id`, llx_actioncomm.id, llx_actioncomm.percent, date(llx_actioncomm.datep) datep, llx_actioncomm.percent,
-    case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT','AC_EDUCATION', 'AC_INITIATIV', 'AC_PROJECT') then llx_actioncomm.`code` else 'AC_CUST' end `code`, `llx_societe_action`.`callstatus`
-    from llx_actioncomm
-    inner join (select id from `llx_c_actioncomm` where type in('user','system') and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
-    left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = llx_actioncomm.id
-    left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
-    left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
-    inner join (select `llx_user`.rowid, `responsibility`.`alias` from `llx_user` inner join `responsibility` on `responsibility`.`rowid` = `llx_user`.`respon_id` where `llx_user`.`subdiv_id` = ".$user->subdiv_id." and `llx_user`.`active` = 1) sub_user on sub_user.rowid = case when llx_actioncomm_resources.fk_element is null then llx_actioncomm.`fk_user_author` else llx_actioncomm_resources.fk_element end
-    where 1
-    and llx_actioncomm.active = 1
-    and datep2 between adddate(date(now()), interval -1 month) and adddate(date(now()), interval 1 month)";
-//echo '<pre>';
-//var_dump($sql);
-//echo '</pre>';
-//die();
-    $res = $db->query($sql);
-    if (!$res)
-        dol_print_error($db);
-    $actions = array();
-    $time = time();
-    while ($obj = $db->fetch_object($res)) {
-//        $date = new DateTime($obj->datep);
-//        $mkDate=dol_mktime($date->format('H'),$date->format('i'),$date->format('s'),$date->format('m'),$date->format('d'),$date->format('Y'));
-//        if($mkDate<time()&&$obj->region_id == 248 && $obj->percent <> '100')
-            $actions[] = array('id_usr' => $obj->id_usr, 'rowid'=>$obj->id, 'region_id' => $obj->region_id, 'respon_alias' => $obj->alias, 'percent' => $obj->percent, 'datep' => $obj->datep, 'code' => $obj->code, 'callstatus'=>$obj->callstatus);
-    }
-    $_SESSION['actions'] = $actions;
+////if(!isset($_SESSION['actions'])) {
+//    $sql = "select distinct sub_user.rowid  id_usr, sub_user.alias, `llx_societe`.`region_id`, llx_actioncomm.id, llx_actioncomm.percent, date(llx_actioncomm.datep) datep, llx_actioncomm.percent,
+//    case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT','AC_EDUCATION', 'AC_INITIATIV', 'AC_PROJECT') then llx_actioncomm.`code` else 'AC_CUST' end `code`, `llx_societe_action`.`callstatus`
+//    from llx_actioncomm
+//    inner join (select id from `llx_c_actioncomm` where type in('user','system') and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
+//    left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = llx_actioncomm.id
+//    left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
+//    left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
+//    inner join (select `llx_user`.rowid, `responsibility`.`alias` from `llx_user` inner join `responsibility` on `responsibility`.`rowid` = `llx_user`.`respon_id` where `llx_user`.`subdiv_id` = ".$user->subdiv_id." and `llx_user`.`active` = 1) sub_user on sub_user.rowid = case when llx_actioncomm_resources.fk_element is null then llx_actioncomm.`fk_user_author` else llx_actioncomm_resources.fk_element end
+//    where 1
+//    and llx_actioncomm.active = 1
+//    and datep2 between adddate(date(now()), interval -1 month) and adddate(date(now()), interval 1 month)";
+////echo '<pre>';
+////var_dump($sql);
+////echo '</pre>';
+////die();
+//    $res = $db->query($sql);
+//    if (!$res)
+//        dol_print_error($db);
+//    $actions = array();
+//    $time = time();
+//    while ($obj = $db->fetch_object($res)) {
+////        $date = new DateTime($obj->datep);
+////        $mkDate=dol_mktime($date->format('H'),$date->format('i'),$date->format('s'),$date->format('m'),$date->format('d'),$date->format('Y'));
+////        if($mkDate<time()&&$obj->region_id == 248 && $obj->percent <> '100')
+//            $actions[] = array('id_usr' => $obj->id_usr, 'rowid'=>$obj->id, 'region_id' => $obj->region_id, 'respon_alias' => $obj->alias, 'percent' => $obj->percent, 'datep' => $obj->datep, 'code' => $obj->code, 'callstatus'=>$obj->callstatus);
+//    }
+//    $_SESSION['actions'] = $actions;
+require_once DOL_DOCUMENT_ROOT.'/core/lib/day_plan.php';
 
+$actions = loadActions($id_usr);
 //}else {
 //    $actions = $_SESSION['actions'];
 //}
@@ -69,7 +71,6 @@ llxHeader("",$langs->trans('PlanOfDays'),"");
 print_fiche_titre($langs->trans('PlanOfDays'));
 
 
-
 $table = ShowTable();
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/day_plan.html';
 llxPopupMenu();
@@ -81,15 +82,13 @@ exit();
 
 function ShowTable(){
     global $actions,$user,$CustActions,$userActions,$actioncode;
-    $today = new DateTime();
-    $mkToday = dol_mktime(0,0,0,$today->format('m'),$today->format('d'),$today->format('Y'));
-
-    foreach($actions as $action){
 //        echo '<pre>';
-//        var_dump($action);
+//        var_dump($actions);
 //        echo '</pre>';
 //        die();
-
+    $today = new DateTime();
+    $mkToday = dol_mktime(0,0,0,$today->format('m'),$today->format('d'),$today->format('Y'));
+    foreach($actions as $action){
         $obj = (object)$action;
         $date = new DateTime($obj->datep);
         $mkDate = dol_mktime(0,0,0,$date->format('m'),$date->format('d'),$date->format('Y'));
@@ -189,13 +188,14 @@ function ShowTable(){
         }
     }
     $table.='</tr>';
+    require_once DOL_DOCUMENT_ROOT.'/core/lib/day_plan.php';
+
 //Всього глобальні задачі
     $table.= ShowTasks('AC_GLOBAL', 'Глобальні задачі(ТОПЗ)');
     $table.= ShowTasks('AC_CURRENT', 'Поточні задачі');
     $table.= ShowTasks('AC_CUST', 'Всього по напрямках');
 
     $userActions = array();
-    require_once DOL_DOCUMENT_ROOT.'/core/lib/day_plan.php';
     $bestuser_id = GetBestUserID();
 //    var_dump($bestuser_id);
 //    die();

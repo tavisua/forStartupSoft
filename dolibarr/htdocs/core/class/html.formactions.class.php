@@ -82,7 +82,7 @@ class FormActions
 			$sql .= ' and `llx_c_groupoftask`.`fk_respon_id` in ('.implode(',',$respon_id).')';
 		$sql .= 'and active = 1)
 			order by name';
-//		var_dump(count($respon_id));
+//		var_dump($sql);
 //		die();
 		$res = $this->db->query($sql);
 		if(!$res)
@@ -309,7 +309,7 @@ class FormActions
      */
     function select_type_actions($selected='',$htmlname='actioncode',$excludetype='',$onlyautoornot=0, $hideinfohelp=0)
     {
-        global $langs,$user,$form,$conf;
+        global $db,$langs,$user,$form,$conf;
 
         if (! is_object($form)) $form=new Form($db);
 
@@ -327,6 +327,8 @@ class FormActions
 
        	if (! empty($conf->global->AGENDA_ALWAYS_HIDE_AUTO)) unset($arraylist['AC_OTH_AUTO']);
         $selector = $form->selectarray($htmlname, $arraylist, $selected);
+//		var_dump($selector);
+//		die();
         if(strpos($selector, 'name')){
             print substr($selector, 0, strpos($selector, 'name')).' onchange="ActionCodeChanged();" '.substr($selector, strpos($selector, 'name'));
         }else

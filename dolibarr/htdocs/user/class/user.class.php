@@ -588,7 +588,8 @@ class User extends CommonObject
 	function getrights($moduletag='')
 	{
 		global $conf;
-
+//		var_dump($this->rights);
+//		die();
 		if ($moduletag && isset($this->_tab_loaded[$moduletag]) && $this->_tab_loaded[$moduletag])
 		{
 			// Le fichier de ce module est deja charge
@@ -614,6 +615,7 @@ class User extends CommonObject
 		if ($moduletag) $sql.= " AND r.module = '".$this->db->escape($moduletag)."'";
 
 		dol_syslog(get_class($this).'::getrights', LOG_DEBUG);
+
 		$resql = $this->db->query($sql);
 		if ($resql)
 		{
@@ -626,7 +628,12 @@ class User extends CommonObject
 				$module=$obj->module;
 				$perms=$obj->perms;
 				$subperms=$obj->subperms;
-
+//					if($obj->module == 'user') {
+//						die('ha');
+//					}
+//				if($obj->module == 'users'){
+//
+//				}
 				if ($perms)
 				{
 					if (! isset($this->rights) || ! is_object($this->rights)) $this->rights = new stdClass(); // For avoid error
@@ -1180,12 +1187,15 @@ class User extends CommonObject
 	 *    	@return int 		        		<0 si KO, >=0 si OK
 	 */
 	function getContactResponsibility($htmlname='responsibility', $size=10,$addParam){
-		$sql='select distinct `responsibility`.`rowid`, `responsibility`.`name` from llx_societe
-			inner join `llx_societe_contact` on `llx_societe_contact`.`socid`=`llx_societe`.`rowid`
+
+		$sql='select distinct `responsibility`.`rowid`, `responsibility`.`name` from llx_societe';
+		if($addParam != 'all')
+			$sql.= ' inner join (select fk_id from `llx_user_regions` where fk_user = '.$this->id.' and active = 1) regions on regions.fk_id = llx_societe.region_id';
+		$sql.=' inner join `llx_societe_contact` on `llx_societe_contact`.`socid`=`llx_societe`.`rowid`
 			inner join `responsibility` on `responsibility`.`rowid` = `llx_societe_contact`.`respon_id`
 			where 1';
-		if($addParam != 'all')
-			$sql .=' and `fk_user_creat` = '.$this->id;
+//		if($addParam != 'all')
+//			$sql .=' and `fk_user_creat` = '.$this->id;
 		$sql.='	and `responsibility`.`active` = 1
 			and `llx_societe_contact`.`active` = 1
 			and llx_societe.`active` = 1
@@ -1206,17 +1216,22 @@ class User extends CommonObject
 //		var_dump($htmlname, $size,$addParam);
 //		echo '</pre>';
 //		die();
-		$sql='select distinct `llx_post`.`rowid`, `llx_post`.`postname` from llx_societe
-			inner join `llx_societe_contact` on `llx_societe_contact`.`socid`=`llx_societe`.`rowid`
+		$sql='select distinct `llx_post`.`rowid`, `llx_post`.`postname` from llx_societe ';
+		if($addParam != 'all')
+			$sql.= ' inner join (select fk_id from `llx_user_regions` where fk_user = '.$this->id.' and active = 1) regions on regions.fk_id = llx_societe.region_id';
+		$sql.='   inner join `llx_societe_contact` on `llx_societe_contact`.`socid`=`llx_societe`.`rowid`
 			inner join `llx_post` on `llx_post`.`rowid` = `llx_societe_contact`.`post_id`
 			where 1';
-		if($addParam != 'all')
-			$sql .=' and `fk_user_creat` = '.$this->id;
+//			$sql .=' and `fk_user_creat` = '.$this->id;
 		$sql.=' and `llx_post`.`active` = 1
 			and `llx_societe_contact`.`active` = 1
 			and llx_societe.`active` = 1
 			order by `llx_post`.`postname`';
 		$res = $this->db->query($sql);
+//		echo '<pre>';
+//		var_dump($sql);
+//		echo '</pre>';
+//		die();
 		if(!$res)
 			dol_print_error($this->db);
 		$out =  '<select name = "'.$htmlname.'" id="'.$htmlname.'" size="'.$size.'" '.($size>1?"multiple":"").' class="combobox">';
@@ -1790,6 +1805,10 @@ class User extends CommonObject
             0,
             $msgishtml
         );
+//		echo '<pre>';
+//		var_dump($this);
+//		echo '</pre>';
+//		die();
 
 		if ($mailfile->sendfile())
 		{

@@ -310,7 +310,7 @@ $sql.= " WHERE r.libelle NOT LIKE 'tou%'";    // On ignore droits "tous"
 $sql.= " AND r.entity = ".((! empty($conf->multicompany->enabled) && ! empty($fuser->entity)) ? $fuser->entity : $conf->entity);
 if (empty($conf->global->MAIN_USE_ADVANCED_PERMS)) $sql.= " AND r.perms NOT LIKE '%_advance'";  // Hide advanced perms if option is disable
 $sql.= " ORDER BY r.module, r.id";
-
+//die($sql);
 $result=$db->query($sql);
 if ($result)
 {
@@ -339,8 +339,8 @@ if ($result)
         	$objMod=$modules[$obj->module];
         	$picto=($objMod->picto?$objMod->picto:'generic');
 
-        	if ($caneditperms && (empty($objMod->rights_admin_allowed) || empty($fuser->admin)))
-        	{
+//        	if ($caneditperms && (empty($objMod->rights_admin_allowed) || empty($fuser->admin)))
+//        	{
         		// On affiche ligne pour modifier droits
         		print '<tr '. $bc[$var].'>';
         		print '<td class="nowrap">'.img_object('',$picto).' '.$objMod->getName();
@@ -352,7 +352,7 @@ if ($result)
         		print '</td>';
         		print '<td colspan="2">&nbsp;</td>';
         		print '</tr>'."\n";
-        	}
+//        	}
         }
 
         print '<tr '. $bc[$var].'>';
@@ -361,17 +361,18 @@ if ($result)
         print '<td>'.img_object('',$picto).' '.$objMod->getName().'</td>';
 
         // Permission and tick
-        if (! empty($fuser->admin) && ! empty($objMod->rights_admin_allowed))    // Permission own because admin
-        {
-        	if ($caneditperms)
-        	{
-        		print '<td align="center">'.img_picto($langs->trans("Administrator"),'star').'</td>';
-        	}
-        	print '<td align="center" class="nowrap">';
-        	print img_picto($langs->trans("Active"),'tick');
-        	print '</td>';
-        }
-        else if (in_array($obj->id, $permsuser))					// Permission own by user
+//        if (! empty($fuser->admin) && ! empty($objMod->rights_admin_allowed))    // Permission own because admin
+//        {
+//        	if ($caneditperms)
+//        	{
+//        		print '<td align="center">'.img_picto($langs->trans("Administrator"),'star').'</td>';
+//        	}
+//        	print '<td align="center" class="nowrap">';
+//        	print img_picto($langs->trans("Active"),'tick');
+//        	print '</td>';
+//        }
+//        else
+			if (in_array($obj->id, $permsuser))					// Permission own by user
         {
         	if ($caneditperms)
         	{

@@ -1,6 +1,134 @@
 /**
  * Created by tavis on 06.10.2015.
  */
+    $.session = {
+
+        _id: null,
+
+        _cookieCache: undefined,
+
+        _init: function()
+        {
+            if (!window.name) {
+                window.name = Math.random();
+            }
+            this._id = window.name;
+            this._initCache();
+
+            // See if we've changed protcols
+
+            var matches = (new RegExp(this._generatePrefix() + "=([^;]+);")).exec(document.cookie);
+            if (matches && document.location.protocol !== matches[1]) {
+               this._clearSession();
+               for (var key in this._cookieCache) {
+                   try {
+                   window.sessionStorage.setItem(key, this._cookieCache[key]);
+                   } catch (e) {};
+               }
+            }
+
+            document.cookie = this._generatePrefix() + "=" + document.location.protocol + ';path=/;expires=' + (new Date((new Date).getTime() + 120000)).toUTCString();
+
+        },
+
+        _generatePrefix: function()
+        {
+            return '__session:' + this._id + ':';
+        },
+
+        _initCache: function()
+        {
+            var cookies = document.cookie.split(';');
+            this._cookieCache = {};
+            for (var i in cookies) {
+                var kv = cookies[i].split('=');
+                if ((new RegExp(this._generatePrefix() + '.+')).test(kv[0]) && kv[1]) {
+                    this._cookieCache[kv[0].split(':', 3)[2]] = kv[1];
+                }
+            }
+        },
+
+        _setFallback: function(key, value, onceOnly)
+        {
+            var cookie = this._generatePrefix() + key + "=" + value + "; path=/";
+            if (onceOnly) {
+                cookie += "; expires=" + (new Date(Date.now() + 120000)).toUTCString();
+            }
+            document.cookie = cookie;
+            this._cookieCache[key] = value;
+            return this;
+        },
+
+        _getFallback: function(key)
+        {
+            if (!this._cookieCache) {
+                this._initCache();
+            }
+            return this._cookieCache[key];
+        },
+
+        _clearFallback: function()
+        {
+            for (var i in this._cookieCache) {
+                document.cookie = this._generatePrefix() + i + '=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+            }
+            this._cookieCache = {};
+        },
+
+        _deleteFallback: function(key)
+        {
+            document.cookie = this._generatePrefix() + key + '=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+            delete this._cookieCache[key];
+        },
+
+        get: function(key)
+        {
+            return window.sessionStorage.getItem(key) || this._getFallback(key);
+        },
+
+        set: function(key, value, onceOnly)
+        {
+            try {
+                window.sessionStorage.setItem(key, value);
+            } catch (e) {}
+            this._setFallback(key, value, onceOnly || false);
+            return this;
+        },
+
+        'delete': function(key){
+            return this.remove(key);
+        },
+
+        remove: function(key)
+        {
+            try {
+            window.sessionStorage.removeItem(key);
+            } catch (e) {};
+            this._deleteFallback(key);
+            return this;
+        },
+
+        _clearSession: function()
+        {
+          try {
+                window.sessionStorage.clear();
+            } catch (e) {
+                for (var i in window.sessionStorage) {
+                    window.sessionStorage.removeItem(i);
+                }
+            }
+        },
+
+        clear: function()
+        {
+            this._clearSession();
+            this._clearFallback();
+            return this;
+        }
+
+    };
+
+    $.session._init();
 function close_form(){
     location.href = '#close';
 }
@@ -133,6 +261,9 @@ function SaveResultProporition(contactid, lastID){
         var products = $('.need');
         var productsname = [];
         var needList = [];
+        window.onfocus = function(){
+            UpdateForm();
+        }
         for (var i = 0; i < products.length; i++) {
             productsname.push($('td#productname' + products[i].id.substr(4)).html());
             needList.push($('input#' + products[i].id).val());
@@ -252,11 +383,125 @@ function showProposed(id,contactid){
         }
     })
 }
-
+function ShowOffFilterBtn(){
+        if(window.filterdates != null)
+            $.each(window.filterdates, function(key, value){
+                var name;
+                switch (key){
+                    case 'futureaction':{
+                        name='FutureActionFilter';//по даті майбутньої дії
+                    }break;
+                    case 'lastaction':{
+                        name='LastActionFilter';//по даті останньої дії
+                    }break;
+                    case 'daterecord':{
+                        name='DateRecordFilter';//по даті внесення
+                    }break;
+                    case 'confirmdate':{//Фільтр по даті підтвердження
+                        name='ConfirmDateFilter';
+                    }break;
+                    case 'execdate':{//Фільтр по даті кінцевого виконання
+                        name='ExecDateFilter';
+                    }break;
+                    case 'prepareddate':{//по даті попереднього виконання
+                        name='PreparedDateFilter';
+                    }break;
+                    case 'groupoftaskID':{//по групі завдань
+                        name='GroupTaskFilter';
+                    }break;
+                    case 'performer':{//по імені виконавця
+                        name='PerformerFilter';
+                    }break;
+                    case 'p_subdiv_id':{//по підрозділу виконавця
+                        name='SubdivisionFilter';
+                    }break;
+                    case 'c_subdiv_id':{//по підрозділу замовника
+                        name='SubdivisionCFilter';
+                    }break;
+                    case 'customer':{//по імені замовника
+                        name='CustomerFilter';
+                    }break;
+                }
+                if(name.length > 0 && $('#Off' + name).empty()) {
+                    var html = $('#' + name).parent().html();
+                    html = html + '<a class="close datenowlink" id="Off' + name + '" onclick="OffFilter('+"'"+key+"'"+');" title="Зняти фільтр"></a>';
+                    //console.log(html);
+                    //return;
+                    $('#' + name).parent().html(html);
+                    //$('#OffGroupTaskFilter').position($('#GroupTaskFilter').position());
+                    $('#Off' + name).offset($('#' + name).offset());
+                    $('#Off' + name).offset({top: -20, left: 10})
+                    //$('#Off'+name).offset().left+=5;
+                    //console.log($('#Off'+name).offset().left);
+                    $('#Off' + name).show();
+                }
+            })
+    console.log(window.filterdates);
+    //if(getParameterByName('groupoftaskID')!=null){//Фільтр групи завдань
+    //
+    //}
+    //if(getParameterByName('performer')!=null){//Фільтр по імені виконавця
+    //    var html = $('#PerformerFilter').parent().html();
+    //    $('#PerformerFilter').parent().html(html+'<a class="close datenowlink" id="OffPerformerFilter" onclick="OffFilter($(this));" title="Зняти фільтр"></a>');
+    //    //$('#OffPerformerFilter').position($('#PerformerFilter').position());
+    //    $('#OffPerformerFilter').offset($('#PerformerFilter').offset());
+    //    console.log($('#OffPerformerFilter').offset({top:-20,left:10}));
+    //    $('#OffPerformerFilter').offset().left+=5;
+    //    console.log($('#OffPerformerFilter').offset().left);
+    //    $('#OffPerformerFilter').show();
+    //}
+    //if(getParameterByName('p_subdiv_id')!=null){//Фільтр по підрозділу виконавця
+    //    var html = $('#SubdivisionFilter').parent().html();
+    //    $('#SubdivisionFilter').parent().html(html+'<a class="close datenowlink" id="OffSubdivisionFilter" onclick="OffFilter($(this));" title="Зняти фільтр"></a>');
+    //    //$('#OffSubdivisionFilter').position($('#SubdivisionFilter').position());
+    //    $('#OffSubdivisionFilter').offset($('#SubdivisionFilter').offset());
+    //    console.log($('#OffSubdivisionFilter').offset({top:-20,left:10}));
+    //    $('#OffSubdivisionFilter').offset().left+=5;
+    //    console.log($('#OffSubdivisionFilter').offset().left);
+    //    $('#OffSubdivisionFilter').show();
+    //}
+    //if(getParameterByName('c_subdiv_id')!=null){//Фільтр по підрозділу замовника
+    //    var html = $('#SubdivisionCFilter').parent().html();
+    //    $('#SubdivisionCFilter').parent().html(html+'<a class="close datenowlink" id="OffSubdivisionCFilter" onclick="OffFilter($(this));" title="Зняти фільтр"></a>');
+    //    //$('#OffSubdivisionCFilter').position($('#SubdivisionCFilter').position());
+    //    $('#OffSubdivisionCFilter').offset($('#SubdivisionCFilter').offset());
+    //    console.log($('#OffSubdivisionCFilter').offset({top:-20,left:10}));
+    //    $('#OffSubdivisionCFilter').offset().left+=5;
+    //    console.log($('#OffSubdivisionCFilter').offset().left);
+    //    $('#OffSubdivisionCFilter').show();
+    //}
+    //if(getParameterByName('customer')!=null){//Фільтр по імені замовника
+    //    var html = $('#CustomerFilter').parent().html();
+    //    $('#CustomerFilter').parent().html(html+'<a class="close datenowlink" id="OffCustomerFilter" onclick="OffFilter($(this));" title="Зняти фільтр"></a>');
+    //    //$('#OffCustomerFilter').position($('#CustomerFilter').position());
+    //    $('#OffCustomerFilter').offset($('#CustomerFilter').offset());
+    //    console.log($('#OffCustomerFilter').offset({top:-20,left:10}));
+    //    $('#OffCustomerFilter').offset().left+=5;
+    //    console.log($('#OffCustomerFilter').offset().left);
+    //    $('#OffCustomerFilter').show();
+    //}
+}
+function OffFilter(datetype){
+    delete window.filterdates[datetype];
+    var JSONstring = JSON.stringify(window.filterdates);
+    var sendForm = '<form id="clearFilter" action="" method="post">'
+        sendForm+= '<input id="param" name="filterdates" value="" type="hidden"></form>';
+    $('div.fiche').html('Зачекайте будь ласка...'+sendForm);
+    $('#param').val(JSONstring);
+    $('#clearFilter').submit();
+}
+function SetRemarkOfMentor(action_id, rowid){
+    //console.log(rowid);
+    //return;
+    var link = '/dolibarr/htdocs/comm/action/result_action.php';
+    var backtopage = encodeURIComponent(location.pathname+location.search);
+    //window.open(link+'?action=SetRemarkOfMentor&backtopage='+backtopage);
+    location.href = link+'?action=SetRemarkOfMentor&action_id='+action_id+(rowid!==undefined?'&rowid='+rowid:'')+'&backtopage='+backtopage;
+}
 function GetExecDate(datetype){
-var param = {
+    var param = {
         typeaction: getParameterByName('mainmenu'),
-        action:'get_execdate',
+        action:'get_actiondate',
         datetype: datetype
     }
     $.ajax({
@@ -264,16 +509,64 @@ var param = {
         data: param,
         cache:false,
         success:function(html){
-            //console.log(html);
+            console.log(html);
             if($('#getDate').length == 0) {
                 createNewForm('popupmenu', 'getDate')
             }
             $('#getDate').empty().html(html);
             $('#getDate').width('auto');
-            $('#getDate').offset({
-                top: $('#ExecDateFilter').offset().top - 180,
-                left: $('#ExecDateFilter').offset().left - 180
-            });
+            switch (datetype) {
+                case 'confirmdate':{
+                    $('#getDate').offset({
+                        top: $('#ConfirmDateFilter').offset().top - 180,
+                        left: $('#ConfirmDateFilter').offset().left - 180
+                    });
+                }break;
+                case 'daterecord':
+                {
+                    $('#getDate').offset({
+                        top: $('#DateRecordFilter').offset().top - 180,
+                        left: $('#DateRecordFilter').offset().left - 180
+                    });
+                }break;
+                case 'futureaction':{
+                    $('#getDate').offset({
+                        top: $('#LastActionFilter').offset().top - 180,
+                        left: $('#LastActionFilter').offset().left - 120
+                    });
+                }break;
+                case 'futurevalid':{
+                    $('#getDate').offset({
+                        top: $('#FutureValidFilter').offset().top - 180,
+                        left: $('#FutureValidFilter').offset().left - 180
+                    });
+                }break;
+                case 'lastvalid':{
+                    $('#getDate').offset({
+                        top: $('#LastValidFilter').offset().top - 180,
+                        left: $('#LastValidFilter').offset().left - 180
+                    });
+                }break;
+                case 'lastaction':{
+                    $('#getDate').offset({
+                        top: $('#LastActionFilter').offset().top - 290,
+                        left: $('#LastActionFilter').offset().left - 820
+                    });
+                }
+                case 'prepareddate':{
+                    $('#getDate').offset({
+                        top: $('#PreparedDateFilter').offset().top - 180,
+                        left: $('#PreparedDateFilter').offset().left - 180
+                    });
+                }break;
+                case 'execdate':
+                {
+                    $('#getDate').offset({
+                        top: $('#ExecDateFilter').offset().top - 180,
+                        left: $('#ExecDateFilter').offset().left - 180
+                    });
+                }break;
+            }
             $('#getDate').show();
         }
     })
@@ -596,17 +889,17 @@ function CalcP2(id){
         if(postfix.length == 0)
             postfix = 'ap';
         var hour = parseInt(document.getElementById(postfix + "hour").value) + Math.floor($("#" + id).val() / 60);
-
+        console.log(hour, 'hour');
         //document.getElementById("p2hour").value = hour<10?("0"+hour):hour;
         var p2min = 0;
         if (parseInt($("#" + id).val()) % 60) {
             p2min = parseInt(document.getElementById(postfix + "min").value) + parseInt($("#" + id).val());
             hour = parseInt(document.getElementById(postfix + "hour").value) + Math.floor(p2min / 60);
         } else {
+            alert('1');
             p2min = parseInt(document.getElementById(postfix + "min").value);
-            hour = parseInt($("#" + id).val()) + parseInt(document.getElementById(postfix + "hour").value);
+            //hour = parseInt($("#" + id).val()) + parseInt(document.getElementById(postfix + "hour").value);
         }
-
         //document.getElementById("p2hour").value = hour < 10 ? ("0" + hour) : hour;
         $("#p2hour [value = '"+(hour < 10 ? ("0" + hour) : hour)+"']").attr('selected','selected');
         var min = "";
@@ -616,8 +909,8 @@ function CalcP2(id){
             min = (p2min % 60).toString();
 
 
-        //var sHour = hour<10?("0"+hour.toString()):(hour.toString());
-        //document.getElementById("p2hour").value = sHour;
+        var sHour = hour<10?("0"+hour.toString()):(hour.toString());
+        document.getElementById("p2hour").value = sHour;
         document.getElementById("p2min").value = min;
         console.log(hour+':'+min);
     }
@@ -630,14 +923,16 @@ function SpyMode(id_usr){
         id_usr: id_usr
     }
     $.ajax({
-        url:'/dolibarr/htdocs/responsibility/gen_dir/day_plan.php',
+        url:'http://'+location.hostname+'/dolibarr/htdocs/responsibility/gen_dir/day_plan.php',
         data:param,
         cahse:false,
         success:function(result){
             console.log(result);
             switch (result){
                 case '1':{
-                    window.open('/dolibarr/htdocs/index.php?mainmenu=home&leftmenu=&idmenu=5216&mainmenu=home&leftmenu=');
+                    window.open('http://'+location.hostname+'/dolibarr/htdocs/index.php?mainmenu=home&leftmenu=&idmenu=5216&mainmenu=home&leftmenu=');
+                    console.log(id_usr);
+                    console.log($.cookie('spy_id_usr'));
                 }break;
                 case '2':{
                     window.close();
@@ -904,9 +1199,11 @@ function sendMail(emails,text, confirmSend){
         send = 1;
     if(send == 1) {
         var param = {
+            username:$('#username').val(),
+            usermail:$('#usermail').val(),
             action:'sendmails',
             emails:emails,
-            text:text
+            message:text
         }
         $.ajax({
             url:'/dolibarr/htdocs/comm/mailing/card.php',
@@ -1311,8 +1608,9 @@ function EditAction(rowid, answer_id, actioncode){
         else if($('#action').length>0)
             $('#action').val('edit');
     }else {
-        $('#edit_action').val('updateonlyresult');
+        $('#edit_action').val('');
     }
+    console.log($('#redirect'));
     if($('#redirect').length>0) {
         $('#answer_id').val(answer_id);
         $('#redirect_actioncode').val(actioncode);
@@ -1633,21 +1931,34 @@ function GetStatusAction(){
     })
 }
 function setParam(name,value){
-    var searchString = location.search.substr(1).split('&');
-    var searchParam = {};
-    $.each(searchString, function(index, value){
-        searchParam[value.substr(0,strpos(value, '='))] = value.substr(strpos(value, '=')+1);
-    })
-    searchParam[name] = value;
-    searchString = '?';
-    $.each(searchParam, function(index, value) {
-        console.log(searchString.substr(searchString.length-1,1));
+    //var searchString = location.search.substr(1).split('&');
+    //var searchParam = {};
+    //$.each(searchString, function(index, value){
+    //    searchParam[value.substr(0,strpos(value, '='))] = value.substr(strpos(value, '=')+1);
+    //})
+    //searchParam[name] = value;
+    //searchString = '?';
+    //$.each(searchParam, function(index, value) {
+    //    console.log(searchString.substr(searchString.length-1,1));
+    //
+    //    if(searchString.substr(searchString.length-1,1)!='?')
+    //        searchString+='&';
+    //    searchString+=index+'='+value;
+    //})
+    //location = location.pathname+searchString;
+    var datas = {};
+    if(window.filterdates != null)
+        $.each(window.filterdates, function(index, value){
+            datas[index]=value;
+        });
+    datas[name]=value;
+    var sendForm = '<form id="setDateFilter" action="" method="post">'
+        sendForm+= '<input id="param" name="filterdates" value="" type="hidden">';
+    //console.log(sendForm);
+    $('#mainbody').html(sendForm);
+    $('#param').val(JSON.stringify(datas));
 
-        if(searchString.substr(searchString.length-1,1)!='?')
-            searchString+='&';
-        searchString+=index+'='+value;
-    })
-    location = location.pathname+searchString;
+    $('#setDateFilter').submit();
 }
 function GetPerformers(id_usr){
     var param = {
@@ -1677,28 +1988,28 @@ function GetPerformers(id_usr){
         }
     })
 }
-function setPerformerFilter(id_usr){
-    //if(id_usr!=0)
-    //    location.href='?mainmenu='+GetMainMenu()+'&performer='+id_usr;
-    //else
-    //    location.href='?mainmenu='+GetMainMenu();
-    var searchString = location.search.substr(1).split('&');
-    var searchParam = {};
-    $.each(searchString, function(index, value){
-        searchParam[value.substr(0,strpos(value, '='))] = value.substr(strpos(value, '=')+1);
-       //console.log(value.substr(strpos(value, '=')+1), strpos(value, '='));
-    })
-    searchParam['performer'] = id_usr;
-    searchString = '?';
-    $.each(searchParam, function(index, value) {
-        console.log(searchString.substr(searchString.length-1,1));
-
-        if(searchString.substr(searchString.length-1,1)!='?')
-            searchString+='&';
-        searchString+=index+'='+value;
-    })
-    location = location.pathname+searchString;
-}
+//function setPerformerFilter(id_usr){
+//    //if(id_usr!=0)
+//    //    location.href='?mainmenu='+GetMainMenu()+'&performer='+id_usr;
+//    //else
+//    //    location.href='?mainmenu='+GetMainMenu();
+//    var searchString = location.search.substr(1).split('&');
+//    var searchParam = {};
+//    $.each(searchString, function(index, value){
+//        searchParam[value.substr(0,strpos(value, '='))] = value.substr(strpos(value, '=')+1);
+//       //console.log(value.substr(strpos(value, '=')+1), strpos(value, '='));
+//    })
+//    searchParam['performer'] = id_usr;
+//    searchString = '?';
+//    $.each(searchParam, function(index, value) {
+//        console.log(searchString.substr(searchString.length-1,1));
+//
+//        if(searchString.substr(searchString.length-1,1)!='?')
+//            searchString+='&';
+//        searchString+=index+'='+value;
+//    })
+//    location = location.pathname+searchString;
+//}
 function setCustomerFilter(id_usr){
     //if(id_usr!=0)
     //    location.href='?mainmenu='+GetMainMenu()+'&performer='+id_usr;

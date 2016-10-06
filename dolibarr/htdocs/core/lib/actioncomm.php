@@ -31,7 +31,7 @@ if($_REQUEST['action'] == 'getStatusAction'){
 }
 if($_REQUEST['action'] == 'getSubdivision'){
     $out .= '<tr id="0">';
-    $out .= '<td class="middle_size" onclick="setSubdivision(0,'."'".$_REQUEST['prefix']."'".')" style="cursor:pointer" ><b>Всі підрозділи</b></td>';
+    $out .= '<td class="middle_size" onclick="setParam('."'".trim($_REQUEST['prefix'])."_subdiv_id'".',0)" style="cursor:pointer" ><b>Всі підрозділи</b></td>';
     $out .= '</tr>';
     $sql = "select distinct `subdivision`.`rowid`, `subdivision`.`name` from `llx_actioncomm`
         inner join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`\n";
@@ -42,7 +42,7 @@ if($_REQUEST['action'] == 'getSubdivision'){
     $sql.=" inner join `subdivision` on `subdivision`.`rowid` = `llx_user`.`subdiv_id`
         where 1
         and percent != 100
-        and code = 'AC_CURRENT'";
+        and code = '".$_REQUEST['code']."'";
     if($_REQUEST['prefix'] == 'p')
         $sql.=" and `llx_actioncomm`.`fk_user_author` = ".$_REQUEST['id_usr']."\n";
     else
@@ -58,7 +58,7 @@ if($_REQUEST['action'] == 'getSubdivision'){
 
     while($obj = $db->fetch_object($res)){
         $out .= '<tr id="'.$obj->rowid.'">';
-        $out .= '<td class="middle_size" onclick="setSubdivision('.$obj->rowid.', '."'".$_REQUEST['prefix']."'".')" style="cursor:pointer" >'.$obj->name.'</td>';
+        $out .= '<td class="middle_size" onclick="setParam('."'".trim($_REQUEST['prefix'])."_subdiv_id'".','.$obj->rowid.')" style="cursor:pointer" >'.$obj->name.'</td>';
         $out .= '</tr>';
     }
     echo $out;
@@ -67,7 +67,7 @@ if($_REQUEST['action'] == 'getGroupOfTask'){
     $out .= '<tr id="0">';
     $out .= '<td class="middle_size" onclick="setParam('."'groupoftaskID'".', 0)" style="cursor:pointer" ><b>Всі групи</b></td>';
     $out .= '</tr>';
-    $sql = "select `llx_c_groupoftask`.rowid, `llx_c_groupoftask`.`name` from llx_c_groupoftask
+    $sql = "select `llx_c_groupoftask`.rowid, `llx_c_groupoftask`.`name` as `name` from llx_c_groupoftask
         where fk_respon_id = 0
         and active = 1 ";
     $sql.= " union";
@@ -76,10 +76,6 @@ if($_REQUEST['action'] == 'getGroupOfTask'){
         where llx_user.rowid = ".$_REQUEST['id_usr']."
         and `llx_c_groupoftask`.`active` = 1
         order by `name`";
-//    echo '<pre>';
-//    var_dump($sql);
-//    echo '</pre>';
-//    die();
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
@@ -125,7 +121,7 @@ if($_REQUEST['action'] == 'getPerformance' || $_REQUEST['action'] == 'getCustome
 //    echo '</pre>';
 //    die();
     $out .= '<tr id="0">';
-    $out .= '<td class="middle_size" onclick="'.($_REQUEST['action'] == 'getPerformance'?'setPerformetFilter':'setCustomerFilter').'(0)" style="cursor:pointer" ><b>Всі завдання</b></td>';
+    $out .= '<td class="middle_size" onclick="setParam('."'".($_REQUEST['action'] == 'getPerformance'?'performer':'customer')."',0)".' style="cursor:pointer" ><b>Всі завдання</b></td>';
     $out .= '</tr>';
     if($_REQUEST['action'] == 'getPerformance' && in_array($user->respon_alias2, array('dir_depatment','senior_manager'))) {
             $out .= '<tr id="-1">';
@@ -134,7 +130,7 @@ if($_REQUEST['action'] == 'getPerformance' || $_REQUEST['action'] == 'getCustome
     }
     while($obj = $db->fetch_object($res)){
         $out .= '<tr id="'.$obj->rowid.'">';
-        $out .= '<td class="middle_size" onclick="'.($_REQUEST['action'] == 'getPerformance'?'setPerformerFilter':'setCustomerFilter').'('.$obj->rowid.')" style="cursor:pointer" >'.$obj->lastname.' '.mb_substr($obj->firstname, 0,1, 'UTF-8').'.</td>';
+        $out .= '<td class="middle_size" onclick="setParam('."'".($_REQUEST['action'] == 'getPerformance'?'performer':'customer')."',".$obj->rowid.')" style="cursor:pointer" >'.$obj->lastname.' '.mb_substr($obj->firstname, 0,1, 'UTF-8').'.</td>';
         $out .= '</tr>';
     }
     echo $out;

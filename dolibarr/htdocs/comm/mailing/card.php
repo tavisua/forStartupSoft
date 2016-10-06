@@ -1263,7 +1263,7 @@ else
 $db->close();
 exit();
 function sending(){
- global $db, $user;
+ global $db, $user,$conf;
     //GetLastMessageID
     $sqlMessID = "select rowid from llx_emailsending where id_usr = ".$user->id." and status = 0 order by rowid desc limit 1";
     $resMessID = $db->query($sqlMessID);
@@ -1286,18 +1286,68 @@ function sending(){
         if(!$res)
             dol_print_error($db);
     }
+
     //SaveContactList
     $out = '';
-    foreach($_REQUEST['contacts'] as $contact){
-        $phone = $contact['phone'];
-        $phone = str_replace('+','',$phone);
-        $phone = str_replace('(','',$phone);
-        $phone = str_replace(')','',$phone);
-        $phone = str_replace('-','',$phone);
-        $phone = str_replace(' ','',$phone);
-        $out.=$phone.';';
-        $sql = 'insert into llx_emailsending_target(fk_sending,fk_soc,fk_contact,phone)
-          values('.$MessID.','.$contact['socid'].','.$contact['contactID'].','."'".$phone."'".')';
+	require_once DOL_DOCUMENT_ROOT.'/core/class/CMailFile.class.php';
+
+    foreach($_REQUEST["emails"] as $contact){
+		$from = 'a.zosimov@t-i-t.com.ua';
+//		echo '<pre>';
+//		$conf->notification->email_from = $from;
+//		var_dump($conf->notification);
+//		var_dump($_REQUEST);
+//		echo '</pre>';
+//		die();
+
+        $email = 'Виктор Михайлов <tavis@shtorm.com>';
+		$socid = empty($contact['socid'])?0:$contact['socid'];
+		$contactID = empty($contact['contactID'])?0:$contact['contactID'];
+		$subject = 'testmail';
+		$mesg = 'test';
+		$msgishtml='';
+		$conf->global->MAIN_MAIL_EMAIL_FROM = 'tavis@shtorm.com';
+		// conf->notification->email_from = email pour envoi par Dolibarr des notifications
+//		$conf->mailing->email_from = 'tavis@shtorm.com';
+//		echo '<pre>';
+//		var_dump($conf->global->MAIN_MAIL_EMAIL_FROM);
+//		echo '</pre>';
+//		die();
+		$conf->notification->email_from=$conf->mailing->email_from;
+//		if (! empty($conf->global->NOTIFICATION_EMAIL_FROM)) $conf->notification->email_from=$conf->global->NOTIFICATION_EMAIL_FROM;
+
+		// conf->mailing->email_from = email pour envoi par Dolibarr des mailings
+//		$conf->mailing->email_from=$conf->email_from;
+//		var_dump($conf->mailing, $conf->notification);
+//		die();
+//		if (! empty($this->global->MAILING_EMAIL_FROM))	$this->mailing->email_from=$this->global->MAILING_EMAIL_FROM;
+		$mailfile = new CMailFile(
+				$subject,
+				$email,
+				$conf->notification->email_from,
+				$mesg,
+				array(),
+				array(),
+				array(),
+				'',
+				'',
+				0,
+				$msgishtml
+			);
+		var_dump($mailfile->sendfile());
+		var_dump($mailfile->error);
+//		echo '<pre>';
+//		var_dump($mail);
+//		echo '</pre>';
+//		die();
+//        $email = str_replace('+','',$email);
+//        $email = str_replace('(','',$email);
+//        $email = str_replace(')','',$email);
+//        $email = str_replace('-','',$email);
+//        $email = str_replace(' ','',$email);
+        $out.=$email.';';
+        $sql = 'insert into llx_emailsending_target(fk_sending,fk_soc,fk_contact,email)
+          values('.$MessID.','.$socid.','.$contactID.','."'".$email."'".')';
         $res = $db->query($sql);
         if(!$res)
             dol_print_error($db);

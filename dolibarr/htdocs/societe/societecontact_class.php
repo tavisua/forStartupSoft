@@ -398,7 +398,7 @@ class societecontact {
             foreach($row as $cell=>$value){
 
                 $proposed = false;
-                if($category_id == 5 && isset($row['post_id'])&&in_array($row['post_id'], array_keys($postArray))){
+                if(in_array($category_id, array(5,10)) && isset($row['post_id'])&&in_array($row['post_id'], array_keys($postArray))){
                     foreach($postArray[$row['post_id']] as $item){
 
                         if(count($saidArray) == 0 || (isset($saidArray[$row['rowid']])&&!in_array($item[1], $saidArray[$row['rowid']])) || !isset($saidArray[$row['rowid']])){
@@ -408,7 +408,7 @@ class societecontact {
                     }
                 }
 //                        echo '<pre>';
-//                        var_dump($proposed);
+//                        var_dump(count($saidArray), $proposed);
 //                        echo '</pre>';
 //                        die();
                 if(!in_array($fields[$num_col]->name, $notShowedFields)) {

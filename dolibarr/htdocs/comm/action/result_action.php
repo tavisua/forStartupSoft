@@ -6,44 +6,53 @@
  * Time: 13:45
  */
 require '../../main.inc.php';
+//llxHeader();
 //echo '<pre>';
 //var_dump($_REQUEST);
 //echo '</pre>';
 //die();
-
-if(isset($_POST['action']) && ($_POST['action'] == 'update' || $_POST['action'] == 'update_and_create'
-        || $_POST['action'] == 'addonlyresult' || $_POST['action'] == 'updateonlyresult'
-    || $_POST['action'] == 'addonlyresult_and_create' || $_POST['action'] == 'updateonlyresult_and_create')){
+if(isset($_REQUEST['action'])) {
+    if (in_array($_REQUEST['action'], array('update', 'update_and_create',  'updateonlyresult', 'saveonlyresult','addonlyresult_and_create', 'updateonlyresult_and_create'))) {
 //    var_dump((substr($_POST['action'],strlen($_POST['action'])-strlen('_and_create') )== '_and_create'));
 //    die();
 
-    saveaction($_POST['rowid'], (substr($_POST['action'],strlen($_POST['action'])-strlen('_and_create') )== '_and_create'));
-}elseif($_REQUEST["action"]=='get_freetime'){
+        saveaction($_REQUEST['rowid'], (substr($_REQUEST['action'], strlen($_REQUEST['action']) - strlen('_and_create')) == '_and_create'));
+    } elseif (in_array($_REQUEST["action"], array('savetaskmentor','savetaskmentor_and_create'))) {
+        savetaskmentor($_REQUEST['action'] == 'savetaskmentor_and_create');
+        exit();
+    } elseif ($_REQUEST["action"] == 'get_freetime') {
+        if(substr($_REQUEST["date"],0,strlen('undefined'))=='undefined') {
+            echo '';
+            exit();
+        }
+//        echo '<pre>';
+//        var_dump($_REQUEST);
+//        echo '</pre>';
+//	    die();
+        global $user;
+        require_once(DOL_DOCUMENT_ROOT . "/comm/action/class/actioncomm.class.php");
+        $Action = new ActionComm($db);
 
-//	die('test');
-	global $user;
-    require_once(DOL_DOCUMENT_ROOT."/comm/action/class/actioncomm.class.php");
-	$Action = new ActionComm($db);
-
-    if(isset($_GET['action_id']) && !empty($_GET['action_id'])){
-        $Action->fetch($_GET['action_id']);
-    }
-	$date = new DateTime();
-	$date->setTimestamp(time());
+        if (isset($_GET['action_id']) && !empty($_GET['action_id'])) {
+            $Action->fetch($_GET['action_id']);
+        }
+        $date = new DateTime();
+        $date->setTimestamp(time());
 //	echo '<pre>';
 //	var_dump($_GET['id_usr']);
 //	echo '</pre>';
 //	die();
-	$freetime = $Action->GetFreeTime($_GET['date'], $_GET['id_usr'], ($Action->datef-$Action->datep)/60, $Action->priority);
-    $out = array('freetime'=>$freetime,'minute'=>($Action->datef-$Action->datep)/60);
-	echo dol_json_encode($out);
-	exit();
-}elseif($_REQUEST["action"]=='getTypeNotification') {
-    echo getTypeNotification();
-    exit;
-}
-if($_POST['action'] == 'saveuseraction' || $_POST['action'] == 'saveuseraction_and_create'){//Зберігаю результати перемовин зі співробітником
-    saveuseraction($_POST['rowid'] );
+        $freetime = $Action->GetFreeTime($_GET['date'], $_GET['id_usr'], ($Action->datef - $Action->datep) / 60, $Action->priority);
+        $out = array('freetime' => $freetime, 'minute' => ($Action->datef - $Action->datep) / 60);
+        echo dol_json_encode($out);
+        exit();
+    } elseif ($_REQUEST["action"] == 'getTypeNotification') {
+        echo getTypeNotification();
+        exit();
+    }
+    if (in_array($_POST['action'],array('saveuseraction','saveuseraction_and_create'))) {//Зберігаю результати перемовин зі співробітником
+        saveuseraction($_POST['rowid']);
+    }
 }
 require_once DOL_DOCUMENT_ROOT.'/core/lib/agenda.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
@@ -53,6 +62,8 @@ if($_GET['action'] == 'addonlyresult' || $_GET['action'] == 'addonlyresult_and_c
     llxHeader('', $langs->trans("AddResultAction"), $help_url);
 }elseif(isset($_REQUEST["onlyresult"])&&$_REQUEST["onlyresult"]=='1' || $_GET['action'] == 'updateonlyresult'){
     llxHeader('', $langs->trans("EditResultAction"), $help_url);
+}elseif($_GET['action'] == 'SetRemarkOfMentor'){
+    llxHeader('', $langs->trans("SetRemarkOfMentor"), $help_url);
 }else
     llxHeader('',$langs->trans("EditAction"),$help_url);
 $action_id = 0;
@@ -78,8 +89,9 @@ if(!isset($_REQUEST["onlyresult"])||empty($_REQUEST["onlyresult"])) {
     $object = new ActionComm($db);
     $object->fetch($action_id);
     $socid = $object->socid;
-}elseif($_REQUEST["action"]=='edituseration'){
+//}elseif($_REQUEST["action"]=='SetRemarkOfMentor') {
 
+}elseif($_REQUEST["action"]=='edituseration'){
 
 }else{
     $object = $db->fetch_object($res);
@@ -90,7 +102,28 @@ if($_GET['action'] == 'addonlyresult' || $_GET['action'] == 'useraction')
     print_fiche_titre($langs->trans("AddResultAction"));
 elseif($_REQUEST["action"]=='edituseration')
     print_fiche_titre('Редагувати перемовини');
-elseif(isset($_REQUEST["onlyresult"])&&$_REQUEST["onlyresult"]=='1' || $_GET['action'] == 'updateonlyresult'){
+elseif($_REQUEST["action"]=='SetRemarkOfMentor') {
+//    echo '<pre>';
+//    var_dump($_REQUEST);
+//    echo '</pre>';
+//    die();
+    if(isset($_REQUEST['rowid'])){
+        $sql = "select work_before_the_next_action_mentor,dtMentorChange from llx_societe_action where rowid = ".$_REQUEST['rowid'];
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+        $obj = $db->fetch_object($res);
+        $task_mentor = $obj->work_before_the_next_action_mentor;
+        $date_mentor = $obj->dtMentorChange;
+    }
+    print_fiche_titre('Завдання наставника');
+    $form = new Form($db);
+    include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/dir_depatment/action/addmentoraction.html';
+    print '</div>';
+    llxPopupMenu();
+    //llxFooter();
+    exit();
+}elseif(isset($_REQUEST["onlyresult"])&&$_REQUEST["onlyresult"]=='1' || $_GET['action'] == 'updateonlyresult'){
     print_fiche_titre($langs->trans("EditResultAction"));
 }else
     print_fiche_titre($langs->trans("EditAction"));
@@ -153,7 +186,9 @@ if(!($_GET['action'] == 'addonlyresult' || (isset($_REQUEST["onlyresult"])&&$_RE
         $needlist = explode(',', $_REQUEST['need']);
         $object->resultaction['answer'] = '';
         $action_id = count($lastactiveaction) > 0 ? $lastactiveaction['actionid'] : 0;
-//        var_dump($productname);
+        if($action_id == 0 && !empty($_REQUEST['action_id']))
+            $action_id = $_REQUEST['action_id'];
+//        var_dump($action_id);
 //        die();
         if(count($productname)>0&&!empty($productname[0]))
             for ($i = 0; $i < count($productname); $i++) {
@@ -208,10 +243,63 @@ if(empty($_REQUEST["action_id"])&&!empty($_REQUEST["id"]))
 //die();
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/addaction.html';
 print '</div>';
+
+
+
 llxPopupMenu();
 //llxFooter();
 exit();
 
+function savetaskmentor($createaction){
+//    echo '<pre>';
+//    var_dump($_REQUEST);
+//    echo '</pre>';
+    global $db,$user;
+    $date_mentor = new DateTime($_POST['date_mentor']);
+    if(empty($_POST['rowid'])){
+        $sql = "insert into llx_societe_action(`action_id`,`work_before_the_next_action_mentor`,`id_mentor`,`dtMentorChange`)
+          values(".$_POST['actionid'].",'".$_POST['task_mentor']."',".$user->id.",'".$date_mentor->format('Y-m-d')."')";
+    }else{
+        $sql = "update llx_societe_action set `work_before_the_next_action_mentor`='".$db->escape($_POST['task_mentor'])."',
+        `id_mentor`=".$user->id.",`dtMentorChange`='".$date_mentor->format('Y-m-d')."' where rowid=".$_POST['rowid'];
+    }
+//    echo '<pre>';
+//    var_dump($createaction);
+//    echo '</pre>';
+//    die();
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $backtopage = $_REQUEST['backtopage'];
+    if(!$createaction)
+        header("Location: " . $backtopage);
+    else{
+                if(substr($_REQUEST['backtopage'], 0, 1) == "'" && substr($_REQUEST['backtopage'], strlen($_REQUEST['backtopage'])-1, 1) == "'")
+            $backtopage = substr($_REQUEST['backtopage'], 1, strlen($_REQUEST['backtopage']) - 2);
+        else
+            $backtopage = $_REQUEST['backtopage'];
+//      $backtopage = urlencode(htmlspecialchars(substr($_REQUEST['backtopage'], 1, strlen($_REQUEST['backtopage'])-2)));
+//      $backtopage = urlencode(substr($_REQUEST['backtopage'], 1, strlen($_REQUEST['backtopage'])-2));
+//        $backtopage = $_REQUEST['backtopage'];
+//        var_dump($backtopage);
+//        die();
+//        if(!strpos($_REQUEST['backtopage'], 'socid=')) {
+//            if(!strpos('php?', $backtopage))
+//                $backtopage .= "?mentor_action%3D1%26mainmenu%3D" . $_REQUEST['mainmenu'];
+//            else
+//                $backtopage .= "&mentor_action%3D1%26mainmenu%3D" . $_REQUEST['mainmenu'];
+//        }
+//        var_dump($backtopage);
+//        die();
+        $link = "http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/comm/action/card.php?mentor_action=1&mainmenu=".
+            $_REQUEST['mainmenu']."&actioncode=AC_CURRENT&groupoftask=10&action=create&parent_id=".
+            $_REQUEST["actionid"]."&backtopage=".urlencode($backtopage);
+
+        header("Location: ".$link);
+        exit();
+    }
+
+}
 function getUserName($id_usr){
     global $db;
     $sql = "select lastname from llx_user where rowid = ".$id_usr;
@@ -234,6 +322,8 @@ function getTypeNotification(){
     return json_encode($result);
 }
 function getLastContact(){
+    if(empty($_REQUEST['socid']))
+        return array();
     global $db;
 	$sql = "select id, `fk_contact` from llx_actioncomm
 	where fk_soc = ".$_REQUEST['socid']."
@@ -367,8 +457,14 @@ function saveaction($rowid, $createaction = false){
 //    die();
     if((substr($_REQUEST['action'], 0, strlen('addonlyresult')) == 'addonlyresult' || substr($_REQUEST['action'], 0, strlen('updateonlyresult')) == 'updateonlyresult'))
         $socid = $_REQUEST['socid'];
-    else
-        $socid = get_soc_id($_REQUEST['actionid']);
+    else {
+//        var_dump($_REQUEST['actionid'], $_REQUEST['socid']);
+//        die();
+        if(!empty($_REQUEST['actionid']))
+            $socid = get_soc_id($_REQUEST['actionid']);
+        elseif(!empty($_REQUEST['socid']))
+            $socid = $_REQUEST['socid'];
+    }
 //    echo '<pre>';
 //    var_dump($createaction);
 //    echo '</pre>';
@@ -565,7 +661,6 @@ function saveaction($rowid, $createaction = false){
 //        var_dump($backtopage);
 //        die();
         $link = "http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/comm/action/card.php?mainmenu=".$_REQUEST['mainmenu']."&actioncode=".$_REQUEST['actioncode']."&socid=".$socid."&action=create&parent_id=".$_REQUEST["actionid"]."&backtopage=".$backtopage;
-//        die($link);
         header("Location: ".$link);
     }
 }

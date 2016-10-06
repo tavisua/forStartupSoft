@@ -43,7 +43,7 @@ $userphone = str_replace('-','',$userphone);
 $userphone = str_replace(' ','',$userphone);
 //$userphone = "'".$userphone."'";
 //echo '<pre>';
-//var_dump($_REQUEST);
+//var_dump($user);
 //echo '<pre>';
 //die();
 include DOL_DOCUMENT_ROOT.'/theme/eldy/comm/sending.html';

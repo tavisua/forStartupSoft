@@ -17,22 +17,22 @@
         <tr class="multiple_header_table">
             <!--<th width="50px"  rowspan="2">№ п/п</th>-->
             <!--<th width="50px"  class="small_size" rowspan="2">№ п/п у замов. / викон.</th>-->
-            <th width="50px" class="small_size" rowspan="2">Дата запису</th>
-            <th width="100px" class="middle_size"rowspan="2">Структурний підрозділ "ХТО"</th>
-            <th width="100px" class="middle_size" rowspan="2">ПІБ "ХТО"</th>
-            <th width="100px" class="middle_size"rowspan="2">Структурний підрозділ "КОМУ"</th>
-            <th width="100px" class="middle_size" rowspan="2">ПІБ "КОМУ"&nbsp;&nbsp;<img  id="PerformerFilter" onclick="GetPerformers(<?=$id_usr?>);" title="Встановити фільтр по виконавцю" src="/dolibarr/htdocs/theme/eldy/img/btn_arrow_down.png"></th>
-            <th width="80px" class="middle_size" rowspan="2">Група завдань <br><img  id="GroupTaskFilter" onclick="GetGroupOfTask(<?=$id_usr?>);" title="Встановити фільтр групі звадань" src="/dolibarr/htdocs/theme/eldy/img/btn_arrow_down.png"></th>
+            <th width="50px" class="small_size" rowspan="2">Дата запису </br></br></br><img  id="DateRecordFilter" onclick="GetExecDate('daterecord');" title="Встановити фільтр по даті створення дії" src="/dolibarr/htdocs/theme/eldy/img/btn_arrow_down.png"></th>
+            <th width="100px" class="middle_size"rowspan="2">Структурний підрозділ "ХТО"<br><br><img  id="SubdivisionCFilter" onclick="GetSubdivision(<?=$id_usr?>, 'c');" title="Встановити фільтр по підрозділу" src="/dolibarr/htdocs/theme/eldy/img/btn_arrow_down.png"></th>
+            <th width="100px" class="middle_size" rowspan="2">ПІБ "ХТО"<br><br><br><img  id="CustomerFilter" onclick="GetCustomer(<?=$id_usr?>);" title="Встановити фільтр по замовнику" src="/dolibarr/htdocs/theme/eldy/img/btn_arrow_down.png"></th>
+            <th width="100px" class="middle_size"rowspan="2">Структурний підрозділ "КОМУ"<br><img  id="SubdivisionFilter" onclick="GetSubdivision(<?=$id_usr?>, 'p');" title="Встановити фільтр по підрозділу" src="/dolibarr/htdocs/theme/eldy/img/btn_arrow_down.png"></th>
+            <th width="100px" class="middle_size" rowspan="2">ПІБ "КОМУ"<br><br><br><img  id="PerformerFilter" onclick="GetPerformers(<?=$id_usr?>);" title="Встановити фільтр по виконавцю" src="/dolibarr/htdocs/theme/eldy/img/btn_arrow_down.png"></th>
+            <th width="80px" class="middle_size" rowspan="2">Група завдань <br><br><img  id="GroupTaskFilter" onclick="GetGroupOfTask(<?=$id_usr?>);" title="Встановити фільтр групі звадань" src="/dolibarr/htdocs/theme/eldy/img/btn_arrow_down.png"></th>
             <th width="100px" class="middle_size" rowspan="2">Задача</th>
             <th width="100px" class="small_size" rowspan="2">Примітка: Що зробить, кінцева мета, підтвердження</th>
             <th width="50px" class="small_size" rowspan="2">Виконати попередньо до </br></br><img  id="PreparedDateFilter" onclick="GetExecDate('prepareddate');" title="Встановити фільтр по даті попереднього виконання" src="/dolibarr/htdocs/theme/eldy/img/btn_arrow_down.png"></th>
             <th width="50px" class="small_size" rowspan="2">Виконати  кінцево до </br></br><img  id="ExecDateFilter" onclick="GetExecDate('execdate');" title="Встановити фільтр по даті виконання" src="/dolibarr/htdocs/theme/eldy/img/btn_arrow_down.png"></th>
-            <th width="50px" class="small_size" rowspan="2">Задачу отримано</th>
+            <th width="50px" class="small_size" rowspan="2">Задачу отримано</br></br></br><img  id="ConfirmDateFilter" onclick="GetExecDate('confirmdate');" title="Встановити фільтр по даті отримання завдання" src="/dolibarr/htdocs/theme/eldy/img/btn_arrow_down.png"></th>
 
             <th colspan="3" id="comerc_action">Дії відповідального</th>
             <th colspan="2" id="mentor_action">Перевірки наставником</th>
             <th width="50px" class="small_size" rowspan="2">Відмітка : особливе, важливе</th>
-            <th width="50px" class="small_size" rowspan="2">Статус завдання</th>
+            <th width="50px" class="small_size" rowspan="2">Статус завдання</br><br><br><img  id="StatusFilter" onclick="GetStatusAction();" title="Встановити фільтр статусу виконання" src="/dolibarr/htdocs/theme/eldy/img/btn_arrow_down.png"></th>
             <th width="50px" class="small_size" rowspan="2" title="Підтвердження про виконання">Підтв. про викон.</th>
             <th width="25px" class="small_size" rowspan="2"></th>
             <th width="25px" class="small_size" rowspan="2"></th>
@@ -105,6 +105,10 @@
         $('#reference_body').width(TotalWidth+30);
         if(getParameterByName('autorefresh') == '1'){
             $('#autorefresh').attr('checked','checked');
+            $('.tmenu').hide();
+            $('#lefttable').hide();
+            $('#comerc').hide();
+            $('#mentor').hide();
             setTimeout(AutoRefreshPage, 5000);
         }
     })

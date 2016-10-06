@@ -28,6 +28,7 @@ define('NOCSRFCHECK',1);	// This is login page. We must be able to go on it from
 //    $_COOKIE['required_pages'] = 1;
 //    $_COOKIE['required_pages'] = array('home','calculator','plan_of_days','hourly_plan','global_task','current_task');
 require 'main.inc.php';
+
 if($_GET['action']=='requeredpages'){
 
     $sql = 'select pages from llx_requestpages where id_usr='.$user->id.' and dtChange>"'.date('Y-m-d').'"';

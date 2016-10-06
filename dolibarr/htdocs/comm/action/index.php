@@ -30,9 +30,16 @@
 
 require '../../main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
-if($_REQUEST['action']=='get_execdate'){
+if($_REQUEST['action']=='get_actiondate'){
     $event = new ActionComm($db);
     echo $event->getFilterDate();
+    exit();
+}
+if($_REQUEST['action']=='clearFilter'){
+    echo '<pre>';
+    var_dump($_REQUEST);
+    echo '</pre>';
+    die();
     exit();
 }
 

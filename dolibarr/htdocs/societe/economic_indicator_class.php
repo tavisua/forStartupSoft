@@ -15,6 +15,8 @@ class EconomicIndicator {
     var $for_what;
     var $count;
     var $year;
+    var $tech_param;
+    var $productivity;
     var $container;
     var $time_purchase;
     var $rate;
@@ -31,16 +33,46 @@ class EconomicIndicator {
     {
         $this->socid = $socid;
     }
-
+    public function fetch_fixed_assets($rowid){
+        global $db;
+        $sql = "select socid,line_active,kindassets,trademark,model,for_what,count,fx_count_un_meas,year,tech_param,productivity,
+        container,fx_conteiner_un_meas,time_purchase,rate,time_purchase2,rate2,PositiveResponse,NegativeResponse,contact
+        from llx_societe_economic_indicator where rowid = ".$rowid;
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+        $obj = $db->fetch_object($res);
+        $this->rowid = $rowid;
+        $this->socid = $obj->socid;
+        $this->line_active = $obj->line_active;
+        $this->kindassets = $obj->kindassets;
+        $this->trademark = $obj->trademark;
+        $this->for_what = $obj->for_what;
+        $this->count = $obj->count;
+        $this->year = $obj->year;
+        $this->tech_param = $obj->tech_param;
+        $this->productivity = $obj->productivity;
+        $this->container = $obj->container;
+        $this->time_purchase = $obj->time_purchase;
+        $this->rate = $obj->rate;
+        $this->time_purchase2 = $obj->time_purchase2;
+        $this->rate2 = $obj->rate2;
+        $this->PositiveResponse = $obj->PositiveResponse;
+        $this->NegativeResponse = $obj->NegativeResponse;
+        $this->contact = $obj->contact;
+        $this->model = $obj->model;
+        $this->UnMeasurement = $obj->fx_count_un_meas;
+        $this->ContainerUnMeasurement = $obj->fx_conteiner_un_meas;
+    }
     public function fixed_assets(){
         global $langs, $db, $conf;
         $YearCount = 0;
-        $sql = 'select distinct DATE_FORMAT(`llx_societe_economic_indicator`.`dtChange`, "%Y") as "Date"
+        $sql = "select distinct DATE_FORMAT(`llx_societe_economic_indicator`.`dtChange`, '%Y') as Date
             from `llx_societe_economic_indicator`
             left join `llx_c_line_active` on `llx_c_line_active`.rowid=line_active
             where `llx_societe_economic_indicator`.`socid` = '.$this->socid.'
             and `llx_c_line_active`.fx_type_indicator = 1
-            and `llx_societe_economic_indicator`.`active`= 1 order by `Date`';
+            and `llx_societe_economic_indicator`.`active`= 1 order by `Date`";
         $res = $db->query($sql);
         if(!$res){
             var_dump($sql);
@@ -57,10 +89,10 @@ class EconomicIndicator {
         }else
             $TitleYears = '';
 
-        $sql = "select `llx_c_model`.rowid as id_model, `llx_c_line_active`.line, `llx_c_kind_assets`.kind_assets, `llx_c_trademark`.trademark, `llx_c_model`.model, `llx_c_model`.description,
+        $sql = "select `llx_societe_economic_indicator`.`rowid`, `llx_c_model`.rowid as id_model, `llx_c_line_active`.line, `llx_c_kind_assets`.kind_assets, `llx_c_trademark`.trademark, `llx_c_model`.model, `llx_c_model`.description,
          `llx_societe_economic_indicator`.`year`, '', '',  `llx_societe_economic_indicator`.`PositiveResponse`,  `llx_societe_economic_indicator`.`NegativeResponse`,
          `llx_societe_contact`.`lastname`, `llx_societe_contact`.`firstname`, DATE_FORMAT(`llx_societe_economic_indicator`.`dtChange`, '%Y') as `InsertedDate`,
-         round(`llx_societe_economic_indicator`.count, 0) count, `llx_societe_economic_indicator`.`dtChange`
+         round(`llx_societe_economic_indicator`.count, 0) count, `llx_societe_economic_indicator`.`dtChange`, `llx_societe_economic_indicator`.`tech_param`, `llx_societe_economic_indicator`.`productivity`
          from `llx_societe_economic_indicator`
         left join `llx_c_line_active` on `llx_c_line_active`.rowid=line_active
         left join `llx_c_kind_assets` on `llx_c_kind_assets`.rowid=kindassets
@@ -89,11 +121,14 @@ class EconomicIndicator {
                 if(!array_key_exists('id_model'.$row['id_model'], $table)) {
                     $item = array('id_model' => $row['id_model'],
                         'line' => $row['line'],
+                        'rowid' => $row['rowid'],
                         'kind_assets' => $row['kind_assets'],
                         'trademark' => $row['trademark'],
                         'model' => $row['model'],
                         'description' => $row['description'],
                         'year' => $row['year'],
+                        'tech_param' => $row['tech_param'],
+                        'productivity' => $row['productivity'],
                         'PositiveResponse' => $row['PositiveResponse'],
                         'NegativeResponse' => $row['NegativeResponse'],
                         'contact' => $row['lastname'].(!empty($row['firstname'])?(' '.mb_substr($row['firstname'], 0, 1, 'UTF-8').'.'):''),
@@ -115,8 +150,13 @@ class EconomicIndicator {
                 $fixed_assets.='<td class="small_size" style="width: 80px">'.$value['model'].'</td>';
                 $fixed_assets.='<td class="small_size" style="width: 80px">'.$value['description'].'</td>';
                 $fixed_assets.='<td class="small_size" style="width: 50px">'.$value['year'].'</td>';
-                $fixed_assets.='<td class="small_size" style="width: 50px"></td>';
-                $fixed_assets.='<td class="small_size" style="width: 61px"></td>';
+                $tech_param = $value['tech_param'];
+                $fixed_assets.='<td onclick="preview(tech_param'.$value['rowid'].');" id="tech_param'.$value['rowid'].'" class="small_size" style="width: 50px">'.(strlen(trim($tech_param))>3?mb_substr(trim($tech_param), 0, 3, 'UTF-8').'...':trim($tech_param)).'</td>';
+                $fixed_assets.='<td id="Ltech_param'.$value['rowid'].'" style="display:none">'.trim($tech_param).'</td>';
+                $productivity = $value['productivity'];
+                $fixed_assets.='<td onclick="preview(productivity'.$value['rowid'].');" id="productivity'.$value['rowid'].'" class="small_size" style="width: 60px">'.(strlen(trim($productivity))>3?mb_substr(trim($productivity), 0, 3, 'UTF-8').'...':trim($productivity)).'</td>';
+                $fixed_assets.='<td id="Lproductivity'.$value['rowid'].'" style="display:none">'.trim($productivity).'</td>';                
+//                $fixed_assets.='<td class="small_size" style="width: 61px">'.$value['productivity'].'</td>';
                 foreach($Years as $year){
                     if(array_key_exists($year, $value))
                         $fixed_assets.='<td class="small_size" style="width: 44px; text-align: center">'.$value[$year].'</td>';
@@ -139,7 +179,7 @@ class EconomicIndicator {
                 $fixed_assets.='<td class="small_size">'.$dtChange->format('d.m.y').'</td>';
                 $fixed_assets.='<td class="small_size" style="width: 71px"></td>';
                 $fixed_assets.='<td class="small_size" style="width: 71px"></td>';
-                $fixed_assets.='<td class="small_size" style="width: 20px"><img id="img_'.$value["id_model"].'" onclick="" style="vertical-align: middle" title="Редагувати" src="/dolibarr/htdocs/theme/eldy/img/edit.png"></td>';
+                $fixed_assets.='<td class="small_size" style="width: 20px"><img id="img_'.$value["id_model"].'" onclick="EditItem('.$value['rowid'].')" style="vertical-align: middle" title="Редагувати" src="/dolibarr/htdocs/theme/eldy/img/edit.png"></td>';
                 $fixed_assets.='</tr>';
                 $NumRow++;
             }
@@ -161,12 +201,14 @@ class EconomicIndicator {
 //        die();
         global $user, $db;
         if(empty($this->rowid)) {
-            $sql='insert into llx_societe_economic_indicator (socid,line_active,kindassets,trademark,for_what,`count`,`year`,
+            $sql='insert into llx_societe_economic_indicator (socid,line_active,kindassets,trademark,for_what,`count`,`year`,`tech_param`,productivity,
               container,time_purchase,rate,time_purchase2,rate2,PositiveResponse,NegativeResponse,contact,active,id_usr,model,fx_count_un_meas,fx_conteiner_un_meas)
               values('.$this->socid.', '.(empty($this->line_active)?"null":$this->line_active).', '.
                 (empty($this->kindassets)?"null":$this->kindassets).', '.
                 (empty($this->trademark)?"null":$this->trademark).',"'.trim($this->for_what).'", '.
                 (empty($this->count)?"null":$this->count).', '.(empty($this->year)?"null":$this->year).', '.
+                "'".(empty($this->tech_param)?"null":$this->tech_param)."'".', '.
+                "'".(empty($this->productivity)?"null":$this->productivity)."'".', '.
                 (empty($this->container)?"null":$this->container).','.(empty($this->time_purchase)?"null":$this->time_purchase).', '.
                 (empty($this->rate)?"null":$this->rate).', '.(empty($this->time_purchase2)?"null":$this->time_purchase2).', '.
                 (empty($this->rate2)?"null":$this->rate2).',
@@ -176,25 +218,32 @@ class EconomicIndicator {
             $sql='update llx_societe_economic_indicator set
             line_active = '.$this->line_active.',
             kindassets = '.(empty($this->kindassets)?"null":$this->kindassets).',
-            trademark = '.(empty($this->trademark)?"null":$this->trademark).',
-            for_what = "'.trim($this->for_what).'",
-            count = '.(empty($this->count)?"null":$this->count).',
-            year = '.(empty($this->year)?"null":$this->year).',
+            trademark = '.(empty($this->trademark)?"null":$this->trademark).",
+            for_what = '".trim($this->for_what)."',
+            `count` = ".(empty($this->count)?"null":$this->count).',
+            `year` = '.(empty($this->year)?"null":$this->year).',
+            `tech_param` = '.(empty($this->tech_param)?"null":"'".$this->tech_param."'").',
+            `productivity` = '.(empty($this->productivity)?"null":"'".$this->productivity."'").',
             container = '.(empty($this->container)?"null":$this->container).',
             time_purchase = '.(empty($this->time_purchase)?"null":$this->time_purchase).',
             rate = '.(empty($this->rate)?"null":$this->rate).',
             time_purchase2 = '.(empty($this->time_purchase2)?"null":$this->time_purchase2).',
-            rate2 = '.(empty($this->rate2)?"null":$this->rate2).',
-            PositiveResponse = "'.trim($this->PositiveResponse).'",
-            NegativeResponse = "'.trim($this->NegativeResponse).'",
-            contact = '.(empty($this->contact)?"null":$this->contact).',
+            rate2 = '.(empty($this->rate2)?"null":$this->rate2).",
+            PositiveResponse = '".trim($this->PositiveResponse)."',
+            NegativeResponse = '".trim($this->NegativeResponse)."',
+            contact = ".(empty($this->contact)?"null":$this->contact).',
             id_usr = '.$user->id.',
             model ='.(empty($this->model)?"null":$this->model).',
-            fx_count_un_meas='.(empty($this->UnMeasurement)?"null":$this->UnMeasurement).'
+            fx_count_un_meas='.(empty($this->UnMeasurement)?"null":$this->UnMeasurement).',
             fx_conteiner_un_meas='.(empty($this->ContainerUnMeasurement)?"null":$this->ContainerUnMeasurement).'  where rowid = '.$this->rowid;
         }
+//        echo '<pre>';
+//        var_dump($sql);
+//        echo '</pre>';
+//        die();
         $res = $db->query($sql);
         if(!$res){
+            llxHeader();
             var_dump($sql);
             dol_print_error($db);
         }

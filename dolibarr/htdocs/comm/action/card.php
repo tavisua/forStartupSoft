@@ -28,13 +28,13 @@
  */
 require '../../main.inc.php';
 
+require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
 //llxHeader('', $langs->trans("AddAction"), $help_url);
 //
 //echo '<pre>';
 //var_dump($_REQUEST);
 //echo '</pre>';
 //die();
-require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
 
 if(isset($_POST['action'])&&$_POST['action'] == 'create' && isset($_POST['parent_id'])&&!empty($_POST['parent_id'])){
 	if(getActionStatus($_POST['parent_id'])=='100'){
@@ -330,7 +330,6 @@ if($_GET['action']=='get_exectime'){
 //	var_dump($date);
 //	die();
 	$freetime = $Action->GetFreeTime($_GET['date'], $_GET['id_usr'], $_GET['minute'], $_GET['priority']);
-
 	echo $freetime;
 	exit();
 }
@@ -589,9 +588,7 @@ if ($action == 'add')
 	{
 		$object->type_code = GETPOST('actioncode');
 	}
-//	echo '<pre>';
-//	var_dump($error);
-//	echo '</pre>';
+
 	if (! $error)
 	{
 		// Initialisation objet actioncomm
@@ -706,7 +703,10 @@ if ($action == 'add')
 //		$action = 'create';
 //		setEventMessage($langs->trans("ErrorFieldRequired",$langs->transnoentitiesnoconv("Date")), 'errors');
 //	}
-
+//        echo '<pre>';
+//        var_dump($error);
+//        echo '</pre>';
+//        die();
 	// Fill array 'array_options' with data from add form
 	$ret = $extrafields->setOptionalsFromPost($extralabels,$object);
 	if ($ret < 0) $error++;
@@ -726,7 +726,12 @@ if ($action == 'add')
 			$object->percentage = 0;
 		}
 		$idaction=$object->add($user);
-		if(isset($_REQUEST["dateNextAction"])&&!empty($_REQUEST["dateNextAction"])&&in_array($object->type_code, array('AC_GLOBAL','AC_CURRENT'))){
+//		var_dump($idaction);
+//		die();
+		if(isset($_REQUEST["dateNextAction"])&&
+				!empty($_REQUEST["dateNextAction"])
+				&&in_array($object->type_code, array('AC_GLOBAL','AC_CURRENT'))
+				&&(!isset($_REQUEST["mentor_action"])||empty($_REQUEST["mentor_action"]))){
 			$subaction = new ActionComm($db);
 			$subaction->fetch($idaction);
 			$subaction->id=null;
@@ -740,7 +745,7 @@ if ($action == 'add')
 			$subaction->dateconfirm = $dateconfirm->format('Y-m-d H:i:s');
 			$subaction->add($user);
 		}
-//		var_dump($object->errors);
+//		var_dump($idaction);
 //		die();
 		if ($idaction > 0)
 		{
@@ -1149,6 +1154,7 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 	print '<input type="hidden" name="error" id="error" value="'.$_REQUEST['error'].'">';
 	print '<input type="hidden" id="mainmenu" name="mainmenu" value="'.$_REQUEST["mainmenu"].'">';
 	print '<input type="hidden" id="parent_id" name="parent_id" value="'.$_REQUEST["parent_id"].'">';
+	print '<input type="hidden" id="mentor_action" name="mentor_action" value="'.$_REQUEST["mentor_action"].'">';
 	print '<input type="hidden" name="donotclearsession" value="1">';
 	print '<input type="hidden" id = "backtopage" name="backtopage" value="'.($backtopage != '1' ? $backtopage : $_SERVER["HTTP_REFERER"]).'">';
 
@@ -1166,8 +1172,10 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 //    // Type of event
 //	if (! empty($conf->global->AGENDA_USE_EVENT_TYPE))
 //	{
+//	var_dump($_REQUEST["actioncode"]);
+//	die();
     print '<tr><td width="30%"><span class="fieldrequired">'.$langs->trans("ActionType").'</span></b></td><td>';
-    $formactions->select_type_actions(GETPOST("actioncode")?GETPOST("actioncode"):$object->type_code, "actioncode","systemauto");
+    $formactions->select_type_actions($_REQUEST["actioncode"]?$_REQUEST["actioncode"]:$object->type_code, "actioncode","systemauto");
     print '</td></tr>';
 //	}
 	// Assigned to
@@ -1311,7 +1319,10 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 				$minutes = $newAction->GetExecTime($obj->code);
 //				var_dump($datef->format('Y-m-d H:i:s'),$datep->format('Y-m-d H:i:s'));
 				$start = $newAction->GetFreeTime($datep->format('Y-m-d H:i:s'),$user->id, $minutes, 0);
-
+//				var_dump($start);
+//				die();
+				if(!count($start))
+					$start = '';
 				$datep = new DateTime($start);
 				$sec = mktime($datep->format('H'),$datep->format('i'),$datep->format('s'),$datep->format('m'),$datep->format('d'),$datep->format('Y'));
 				$sec += $minutes*60;
@@ -1345,10 +1356,10 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 	}
 	print '</td></tr>';
 //	echo '<pre>';
-//	var_dump($_REQUEST);
+//	var_dump(count(dol_json_decode($_SESSION['assignedtouser'], true)));
 //	echo '</pre>';
 //	die();
-	if(count($assignedtouser) <= 1 && $action == 'create' && (!isset($_REQUEST["typeaction"])||empty($_REQUEST["typeaction"]))) {//Якщо відбувається створення нової дії тільки для активного користувача
+	if(count(dol_json_decode($_SESSION['assignedtouser'], true)) <= 1 && $action == 'create' && (!isset($_REQUEST["typeaction"])||empty($_REQUEST["typeaction"]))) {//Якщо відбувається створення нової дії тільки для активного користувача
 		print '<script> var user_id='.$user->id.'</script>';
 		print '<tr class="global_current">';
 		print '<td width="30%" class="nowrap" >' . $langs->trans("DateNextActionStart") . '</td><td>';
@@ -2501,7 +2512,7 @@ function getActionStatus($action_id){
 	$obj = $db->fetch_object($res);
 	return $obj->percent;
 }
-function getUsersByRespon($respon, $addParam)
+function getUsersByRespon($respon, $addParam='')
 {
 	global $db;
 	$sql = "select `llx_user`.`rowid` from llx_user

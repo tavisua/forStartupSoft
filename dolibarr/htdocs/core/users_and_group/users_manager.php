@@ -10,8 +10,12 @@ require '../../main.inc.php';
 //var_dump($_SERVER["PHP_SELF"]);
 //die();
 
-global $hookmanager, $menumanager;
-
+global $user,$hookmanager, $menumanager;
+//echo '<pre>';
+//var_dump($user->rights->user->user->creer);
+//echo '</pre>';
+//die();
+if (! $user->rights->user->user->lire) accessforbidden();
 
 //$socstatic=new Societe($db);
 $Tools = $langs->trans("Tools");
@@ -110,7 +114,8 @@ $sql='select `'.$tablename.'`.rowid, `'.$tablename.'`.login, `'.$tablename.'`.la
 `subdivision`.`name` as s_subdivision_name, `llx_usergroup`.`nom` as s_llx_usergroup_nom, `'.$tablename.'`.active
 from `'.$tablename.'` left join `subdivision` on `'.$tablename.'`.`subdiv_id`= `subdivision`.rowid
 left join `llx_usergroup` on `'.$tablename.'`.`usergroup_id`=`llx_usergroup`.rowid
-where `'.$tablename.'`.active=1
+where 1
+
 order by login';
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
 $dbBuilder = new dbBuilder();

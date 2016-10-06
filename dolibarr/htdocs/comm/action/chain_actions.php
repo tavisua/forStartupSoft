@@ -4,6 +4,18 @@
 //echo '</pre>';
 //die();
 require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
+global $user,$db;
+$subdivUserID = array(0);
+if(in_array('dir_depatment',array($user->respon_alias,$user->respon_alias2))){
+    $sql = "select rowid from llx_user
+        inner join (select subdiv_id from llx_user
+        where rowid = ".$user->id.") subdiv on llx_user.subdiv_id = subdiv.subdiv_id
+        where llx_user.active = 1";
+    $res = $db->query($sql);
+    while($obj = $db->fetch_object($sql)){
+        $subdivUserID[]=$obj->rowid;
+    }
+}
 if($_POST['action'] == 'setMentorJob'){
     saveMentorJob();
     exit();
@@ -38,7 +50,6 @@ $Action = $langs->trans($Action);
 llxHeader("",$Action,"");
 print_fiche_titre($Action);
 $description = GetDescription($_GET['action_id']);
-
 if($actioncode == 'AC_CONVERSATION') {
     $actiontabe = ShowConversation();
 }else{
@@ -166,29 +177,10 @@ function ValidAsseccMentor(){
     global $db,$user;
     if($user->respon_alias == 'gen_dir')
         return true;
-    else{
-        $sql = "select `llx_actioncomm_resources`.`fk_element` from llx_actioncomm
-            inner join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.id
-            where llx_actioncomm.id = ".$_GET['action_id'];
-
-        $res = $db->query($sql);
-        if(!$res)
-            dol_print_error($db);
-        if($db->num_rows($res)==0){
-            return 0;
-        }
-        $obj = $db->fetch_object($res);
-        $sql = "select fk_user from llx_user where llx_user.rowid = ".$obj->fk_element;
-
-        $res = $db->query($sql);
-        if(!$res)
-            dol_print_error($db);
-        $obj = $db->fetch_object($res);
-        if($user->id == $obj->fk_user)
+    elseif(in_array('dir_depatment',array($user->respon_alias,$user->respon_alias2))){
             return true;
-        else
+    }else
             return 0;
-    }
 }
 function getAuthorID($action_id){
     global $db;
@@ -201,9 +193,27 @@ function getAuthorID($action_id){
 }
 function ShowConversation(){
     global $db, $langs, $conf;
-    
+//    $chain_actions = array();
+//    $chain_actions = GetChainActions($_GET['action_id']);
+//    //Завантажую результат дії
+//    $sql = 'select `llx_societe_action`.`action_id`, `llx_actioncomm`.percent, `llx_societe_action`.`rowid`, `llx_actioncomm`.`datep`,
+//        `llx_societe_action`.dtChange datec, create_user.`lastname`, create_user.rowid author_id, `llx_user`.`lastname` as contactname, `llx_user`.rowid as contactUserID,
+//                TypeCode.code kindaction, `llx_societe_action`.`said`, `llx_societe_action`.`answer`,`llx_societe_action`.`argument`,
+//                `llx_societe_action`.`said_important`, `llx_societe_action`.`result_of_action`,
+//                case when `llx_societe_action`.`rowid` is null then `llx_actioncomm`.`note` else `llx_societe_action`.`work_before_the_next_action` end work_before_the_next_action,`work_before_the_next_action_mentor` work_mentor,
+//                `llx_societe_action`.`date_next_action_mentor` date_mentor,`llx_societe_action`.`active`
+//        from `llx_societe_action`
+//        left join `llx_user` create_user on `llx_societe_action`.id_usr = create_user.rowid
+//        inner join `llx_actioncomm` on `llx_actioncomm`.id = `llx_societe_action`.`action_id`
+//        left join `llx_user` on `llx_actioncomm`.fk_user_author = `llx_user`.rowid
+//        inner join (select code, libelle label from `llx_c_actioncomm` where active = 1 and (type = "system" or type = "user")) TypeCode on TypeCode.code = `llx_actioncomm`.code
+//        where `llx_societe_action`.`action_id` in ('.implode(",", $chain_actions).')
+//        and `llx_societe_action`.active = 1
+//        order by `llx_societe_action`.dtChange desc, `llx_societe_action`.`rowid` desc;';
+   return ShowActionTable();
 }
 function ShowActionTable(){
+
     global $db, $langs, $conf,$user;
     $chain_actions = array();
     $chain_actions = GetChainActions($_GET['action_id']);
@@ -223,15 +233,20 @@ function ShowActionTable(){
                 TypeCode.code kindaction, `llx_societe_action`.`said`, `llx_societe_action`.`answer`,`llx_societe_action`.`argument`,
                 `llx_societe_action`.`said_important`, `llx_societe_action`.`result_of_action`,
                 case when `llx_societe_action`.`rowid` is null then `llx_actioncomm`.`note` else `llx_societe_action`.`work_before_the_next_action` end work_before_the_next_action,`work_before_the_next_action_mentor` work_mentor,
-                `llx_societe_action`.`date_next_action_mentor` date_mentor,`llx_societe_action`.`active`
+                `llx_societe_action`.`dtMentorChange` date_mentor,`llx_societe_action`.`active`,`llx_societe_action`.id_mentor
         from `llx_societe_action`
-        left join `llx_user` create_user on `llx_societe_action`.id_usr = create_user.rowid
+        left join `llx_user` create_user on case when `llx_societe_action`.id_mentor is null then `llx_societe_action`.id_usr else `llx_societe_action`.id_mentor end = create_user.rowid
         inner join `llx_actioncomm` on `llx_actioncomm`.id = `llx_societe_action`.`action_id`
-        left join `llx_user` on `llx_actioncomm`.fk_user_author = `llx_user`.rowid
+        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.id
+        left join `llx_user` on  case when `llx_societe_action`.id_mentor is not null then `llx_actioncomm_resources`.`fk_element` else `llx_actioncomm`.fk_user_author end = `llx_user`.rowid
         inner join (select code, libelle label from `llx_c_actioncomm` where active = 1 and (type = "system" or type = "user")) TypeCode on TypeCode.code = `llx_actioncomm`.code
         where `llx_societe_action`.`action_id` in ('.implode(",", $chain_actions).')
         and `llx_societe_action`.active = 1
         order by `llx_societe_action`.dtChange desc, `llx_societe_action`.`rowid` desc;';
+//echo '<pre>';
+//var_dump($sql);
+//echo '</pre>';
+//die();
     $res_result_action = $db->query($sql);
     $result_action = array();
     $result_actionID = array();
@@ -240,10 +255,7 @@ function ShowActionTable(){
         if(!in_array($array_item->action_id, $result_actionID))
             $result_actionID[]=$array_item->action_id;
     }
-//        echo '<pre>';
-//        var_dump($sql);
-//        echo '</pre>';
-//        die();
+
 //V 0
 //    $sql='select `llx_actioncomm`.id action_id, `llx_actioncomm`.percent, `llx_societe_action`.`rowid` as rowid, `llx_actioncomm`.`datep`,
 //       case when `llx_societe_action`.dtChange is null then `llx_actioncomm`.datec else `llx_societe_action`.dtChange end  as `datec`,
@@ -350,6 +362,10 @@ function ShowActionTable(){
                 $resUserID = $db->query($sql);
                     if(!$resUserID)
                         dol_print_error($db);
+//                    echo '<pre>';
+//                    var_dump($row);
+//                    echo '</pre>';
+//                    die();
                 if($db->num_rows($resUserID) == 0) {
 //                    var_dump($db->num_rows($res) == 0);
                     $row->contactUserID = $row->author_id;
@@ -398,7 +414,7 @@ function ShowActionTable(){
 
 }
 function CreateNewActionItem($row, $num, $result = false){
-    global $db, $conf,$user,$langs;
+    global $db, $conf,$user,$langs,$subdivUserID;
     $dtChange = new DateTime($row->datec);
     $dateaction = new DateTime($row->datep);
 //    $dtNextAction = new DateTime($row->date_next_action);
@@ -512,16 +528,25 @@ function CreateNewActionItem($row, $num, $result = false){
             $actioncode = "'AC_GLOBAL'";
         }
     }
+//    var_dump($row);
+//    die();
     if($row->author_id == $user->id) {
-        if($row->percent == 99 && !$result){
-            $out .= '<img id="confirm'.$row->action_id.'" title = "'.$langs->trans('Confirm').'" onclick="Confirmation('.$row->action_id.');" src="/dolibarr/htdocs/theme/eldy/img/uncheck.png">';
-        }elseif($row->percent < 99) {
-            if ($result)
-                $out .= '<img id="img_1"  onclick="EditOnlyResult(' . $row->action_id . ',' . (empty($row->rowid) ? 0 : $row->rowid) . ', ' . $actioncode . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Edit') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">';
-            else
-                $out .= '<img id="img_1"  onclick="EditAction(' . $row->action_id . ',' . (empty($row->rowid) ? 0 : $row->rowid) . ', ' . $actioncode . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Edit') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">';
-            $out .= '&nbsp;&nbsp;<img  onclick="DelAction(' . (empty($row->rowid) ? "'".$row->action_id : "'_".$row->rowid) . "'" . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Delete') . '" src="/dolibarr/htdocs/theme/eldy/img/delete.png">';
+        if(empty($row->id_mentor)) {
+            if ($row->percent == 99 && !$result) {
+                $out .= '<img id="confirm' . $row->action_id . '" title = "' . $langs->trans('Confirm') . '" onclick="Confirmation(' . $row->action_id . ');" src="/dolibarr/htdocs/theme/eldy/img/uncheck.png">';
+            } elseif ($row->percent < 99) {
+                if ($result)
+                    $out .= '<img id="img_1"  onclick="EditOnlyResult(' . $row->action_id . ',' . (empty($row->rowid) ? 0 : $row->rowid) . ', ' . $actioncode . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Edit') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">';
+                else
+                    $out .= '<img id="img_1"  onclick="EditAction(' . $row->action_id . ',' . (empty($row->rowid) ? 0 : $row->rowid) . ', ' . $actioncode . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Edit') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">';
+                $out .= '&nbsp;&nbsp;<img  onclick="DelAction(' . (empty($row->rowid) ? "'" . $row->action_id : "'_" . $row->rowid) . "'" . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Delete') . '" src="/dolibarr/htdocs/theme/eldy/img/delete.png">';
+            }
+        }elseif($user->id == $row->id_mentor){
+            $out .= '<img id="img_1"  onclick="SetRemarkOfMentor(' . $row->action_id . ','.$row->rowid.');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('SetRemarkOfMentor') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">';
+            $out .= '&nbsp;&nbsp;<img  onclick="DelAction(' . (empty($row->rowid) ? "'" . $row->action_id : "'_" . $row->rowid) . "'" . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Delete') . '" src="/dolibarr/htdocs/theme/eldy/img/delete.png">';
         }
+    }elseif(count($subdivUserID)>0&&in_array($row->contactUserID, $subdivUserID)&&$row->action_id!=0||(in_array('gen_dir', array($user->respon_alias,$user->respon_alias2)))){
+        $out .= '<img id="img_1"  onclick="SetRemarkOfMentor(' . $row->action_id . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('SetRemarkOfMentor') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">';
     }
 //    elseif($row->contactUserID== $user->id){
 //        $out .= '<img id="img_1"  onclick="EditOnlyResult(' . $row->action_id . ',' . (empty($row->rowid) ? 0 : $row->rowid) . ', ' . $actioncode . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Edit') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">';

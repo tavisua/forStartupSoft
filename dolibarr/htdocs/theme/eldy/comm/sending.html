@@ -31,11 +31,11 @@
     <table>
         <tr class="email" style="display: none">
             <td>Ім'я відправника </td>
-            <td colspan="4" style="width: 100%;"><input name="username" value="<?=$user->lastname.' '.mb_substr($user->firstname, 0,1, 'UTF-8').'.'?>"></td>
+            <td colspan="4" style="width: 100%;"><input id="username" name="username" value="<?=$user->lastname.' '.mb_substr($user->firstname, 0,1, 'UTF-8').'.'?>"></td>
         </tr>
         <tr class="email" style="display: none">
             <td>Адреса відправника </td>
-            <td colspan="4" style="width: 100%;"><input name="username" value="tavis@shtorm.com"></td>
+            <td colspan="4" style="width: 100%;"><input id="usermail" name="usermail" value="tavis@shtorm.com"></td>
         </tr>
         <tr class="secondpage" style="display: none">
             <td>Повідомлення </td>
@@ -61,9 +61,11 @@
 //        console.log(<?=$userphone?>, $('#message').val());
         if('<?=$_REQUEST["type"]?>' == 'sms') {
             sendSMS('<?=$userphone?>', $('#message').val(), true);
-        }else {
-            ('<?=$_REQUEST["type"]?>' == 'email')
-            sendMail('<?=(empty($user->email)?$user->login:$user->email)?>', $('#message').val(), true);
+        }else if ('<?=$_REQUEST["type"]?>' == 'email'){
+            var emails = [];
+            var email = {'contact':$('#username').val(), 'email':$('#usermail').val()};
+            emails.push(email);
+            sendMail(emails, $('#message').val(), true);
         }
     }
     function nextstep(){
@@ -161,7 +163,11 @@
                         socid: $('#' + trList[i].id).attr('socid'),
                         phone: td[td.length - 1].innerHTML
                     });
-                    target.push(td[td.length - 1].innerHTML);
+                    if('<?=$_REQUEST["type"]?>' == 'sms')
+                        target.push(td[td.length - 1].innerHTML);
+                    else if('<?=$_REQUEST["type"]?>' == 'email')
+                        target.push(td[3].innerHTML+'<'+td[td.length - 1].innerHTML+'>');
+
                 }
             }
 //            for (var i = 0; i < 400; i++) {

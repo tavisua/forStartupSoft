@@ -24,10 +24,12 @@
     <button onclick="RefreshData();">Оновити дані</button>
 
     <div>
-        <table cellspacing="1" class="WidthScroll">
+        <table class="WidthScroll">
             <thead>
                 <tr class="multiple_header_table">
-                    <th rowspan="4" style="width: 250px;">Напрямок</th>
+                    <th rowspan="4" style="width: 105px;">Область</th>
+                    <th rowspan="4" style="width: 175px;">Район</th>
+                    <th rowspan="4" style="width: 33px;">&nbsp;</th>
                     <th colspan="9">% виконання запланованого по факту</th>
                     <th colspan="9">минуле (факт)</th>
                     <th rowspan="4" class="small_size" style="width: 50px;writing-mode:tb-lr;">кільк. простроч.</th>
@@ -35,7 +37,7 @@
                 </tr>
                 <tr class="multiple_header_table">
                     <!--% виконання запланованого по факту-->
-                    <th class="small_size" style="width: 30px">за місяць</th>
+                    <th class="small_size" style="width: 35px">за місяць</th>
                     <th class="small_size" style="width: 30px">за 7 днів</th>
                     <th class="small_size" style="width: 30px">за 6 днів</th>
                     <th class="small_size" style="width: 30px">за 5 днів</th>
@@ -43,9 +45,9 @@
                     <th class="small_size" style="width: 30px">за 3 дня</th>
                     <th class="small_size" style="width: 30px">за 2 дня</th>
                     <th class="small_size" style="width: 30px">за 1 день</th>
-                    <th class="small_size" style="width: 30px">сього- дні</th>
+                    <th class="small_size" style="width: 35px">сього- дні</th>
                     <!--минуле (факт)-->
-                    <th class="small_size" style="width: 30px">за місяць</th>
+                    <th class="small_size" style="width: 35px">за місяць</th>
                     <th class="small_size" style="width: 30px">за 7 днів</th>
                     <th class="small_size" style="width: 30px">за 6 днів</th>
                     <th class="small_size" style="width: 30px">за 5 днів</th>
@@ -53,9 +55,9 @@
                     <th class="small_size" style="width: 30px">за 3 дня</th>
                     <th class="small_size" style="width: 30px">за 2 дня</th>
                     <th class="small_size" style="width: 30px">за 1 день</th>
-                    <th class="small_size" style="width: 30px">сього- дні</th>
+                    <th class="small_size" style="width: 35px">сього- дні</th>
                     <!--майбутнє (план)-->
-                    <th class="small_size" style="width: 30px">сього- дні</th>
+                    <th class="small_size" style="width: 35px">сього- дні</th>
                     <th class="small_size" style="width: 30px">за 1 день</th>
                     <th class="small_size" style="width: 30px">за 2 дня</th>
                     <th class="small_size" style="width: 30px">за 3 дня</th>
@@ -63,7 +65,7 @@
                     <th class="small_size" style="width: 30px">за 5 днів</th>
                     <th class="small_size" style="width: 30px">за 6 днів</th>
                     <th class="small_size" style="width: 30px">за 7 днів</th>
-                    <th class="small_size" style="width: 30px">за місяць</th>
+                    <th class="small_size" style="width: 35px">за місяць</th>
                 </tr>
                 <tr class="multiple_header_table">
                     <!--% виконання запланованого по факту-->
@@ -129,181 +131,6 @@
                     <th class="small_size"></th>
                     <th class="small_size"></th>
                 </tr>
-                <tr class="multiple_header_table whitetitle">
-                    <th>Всього задач</th>
-                    <!--% виконання запланованого по факту-->
-                    <th class="totalvalue" id="total_percent_month"><?=$total_percent["percent_month"]?></th>
-                    <th class="totalvalue" id="total_percent_day_m7"><?=$total_percent["percent_7"]?></th>
-                    <th class="totalvalue" id="total_percent_day_m6"><?=$total_percent["percent_6"]?></th>
-                    <th class="totalvalue" id="total_percent_day_m5"><?=$total_percent["percent_5"]?></th>
-                    <th class="totalvalue" id="total_percent_day_m4"><?=$total_percent["percent_4"]?></th>
-                    <th class="totalvalue" id="total_percent_day_m3"><?=$total_percent["percent_3"]?></th>
-                    <th class="totalvalue" id="total_percent_day_m2"><?=$total_percent["percent_2"]?></th>
-                    <th class="totalvalue" id="total_percent_day_m1"><?=$total_percent["percent_1"]?></th>
-                    <th class="totalvalue" id="total_exec_today"><?=$total_percent["percent_0"]?></th>
-                    <!--минуле (факт)-->
-                    <th class="totalvalue" id="total_fakt_month"><?=$global_task["fakt_month"]+$current_task["fakt_month"]+$lineaction["fakt_month"]?></th>
-                    <th class="totalvalue" id="total_fakt_day_m7"><?=$global_task["fakt_day_m7"]+$current_task["fakt_day_m7"]+$lineaction["fakt_day_m7"]?></th>
-                    <th class="totalvalue" id="total_fakt_day_m6"><?=$global_task["fakt_day_m6"]+$current_task["fakt_day_m6"]+$lineaction["fakt_day_m6"]?></th>
-                    <th class="totalvalue" id="total_fakt_day_m5"><?=$global_task["fakt_day_m5"]+$current_task["fakt_day_m5"]+$lineaction["fakt_day_m5"]?></th>
-                    <th class="totalvalue" id="total_fakt_day_m4"><?=$global_task["fakt_day_m4"]+$current_task["fakt_day_m4"]+$lineaction["fakt_day_m4"]?></th>
-                    <th class="totalvalue" id="total_fakt_day_m3"><?=$global_task["fakt_day_m3"]+$current_task["fakt_day_m3"]+$lineaction["fakt_day_m3"]?></th>
-                    <th class="totalvalue" id="total_fakt_day_m2"><?=$global_task["fakt_day_m2"]+$current_task["fakt_day_m2"]+$lineaction["fakt_day_m2"]?></th>
-                    <th class="totalvalue" id="total_fakt_day_m1"><?=$global_task["fakt_day_m1"]+$current_task["fakt_day_m1"]+$lineaction["fakt_day_m1"]?></th>
-                    <th class="totalvalue" id="total_fakt_today"><?=$global_task["fakt_today"]+$current_task["fakt_today"]+$lineaction["fakt_today"]?></th>
-                    <!--майбутнє (план)-->
-                    <th class="totalvalue" id="total_outstanding"><?=$global_task['outstanding']+$current_task["outstanding"]+$lineaction['outstanding']?></th>
-                    <th class="totalvalue" id="total_future_today"><?=$global_task["future_today"]+$current_task["future_today"]+$lineaction['future_today']?></th>
-                    <th class="totalvalue" id="total_future_day_pl1"><?=$global_task["future_day_pl1"]+$current_task["future_day_pl1"]+$lineaction['future_day_pl1']?></th>
-                    <th class="totalvalue" id="total_future_day_pl2"><?=$global_task["future_day_pl2"]+$current_task["future_day_pl2"]+$lineaction['future_day_pl2']?></th>
-                    <th class="totalvalue" id="total_future_day_pl3"><?=$global_task["future_day_pl3"]+$current_task["future_day_pl3"]+$lineaction['future_day_pl3']?></th>
-                    <th class="totalvalue" id="total_future_day_pl4"><?=$global_task["future_day_pl4"]+$current_task["future_day_pl4"]+$lineaction['future_day_pl4']?></th>
-                    <th class="totalvalue" id="total_future_day_pl5"><?=$global_task["future_day_pl5"]+$current_task["future_day_pl5"]+$lineaction['future_day_pl5']?></th>
-                    <th class="totalvalue" id="total_future_day_pl6"><?=$global_task["future_day_pl6"]+$current_task["future_day_pl6"]+$lineaction['future_day_pl6']?></th>
-                    <th class="totalvalue" id="total_future_day_pl7"><?=$global_task["future_day_pl7"]+$current_task["future_day_pl7"]+$lineaction['future_day_pl7']?></th>
-                    <!--ітого за місяць-->
-                    <th class="totalvalue" id="total_future_month"><?=$global_task['future_month']+$current_task['future_month']+$lineaction['future_month']?></th>
-                </tr>
-                <tr class="multiple_header_table whitetitle">
-                    <th>Глобальні задачі(ТОПЗ)</th>
-                    <!--% виконання запланованого по факту-->
-                    <th class="totalvalue" id="global_percent_month"><?=$global_task["percent_month"]?></th>
-                    <th class="totalvalue" id="global_percent_day_m7"><?=$global_task["percent_7"]?></th>
-                    <th class="totalvalue" id="global_percent_day_m6"><?=$global_task["percent_6"]?></th>
-                    <th class="totalvalue" id="global_percent_day_m5"><?=$global_task["percent_5"]?></th>
-                    <th class="totalvalue" id="global_percent_day_m4"><?=$global_task["percent_4"]?></th>
-                    <th class="totalvalue" id="global_percent_day_m3"><?=$global_task["percent_3"]?></th>
-                    <th class="totalvalue" id="global_percent_day_m2"><?=$global_task["percent_2"]?></th>
-                    <th class="totalvalue" id="global_percent_day_m1"><?=$global_task["percent_1"]?></th>
-                    <th class="totalvalue" id="global_percent_today"><?=$global_task["percent_0"]?></th>
-                    <!--минуле (факт)-->
-                    <th class="totalvalue" id="global_fakt_month"><?=$global_task["fakt_month"]?></th>
-                    <th class="totalvalue" id="global_fakt_day_m7"><?=$global_task["fakt_day_m7"]?></th>
-                    <th class="totalvalue" id="global_fakt_day_m6"><?=$global_task["fakt_day_m6"]?></th>
-                    <th class="totalvalue" id="global_fakt_day_m5"><?=$global_task["fakt_day_m5"]?></th>
-                    <th class="totalvalue" id="global_fakt_day_m4"><?=$global_task["fakt_day_m4"]?></th>
-                    <th class="totalvalue" id="global_fakt_day_m3"><?=$global_task["fakt_day_m3"]?></th>
-                    <th class="totalvalue" id="global_fakt_day_m2"><?=$global_task["fakt_day_m2"]?></th>
-                    <th class="totalvalue" id="global_fakt_day_m1"><?=$global_task["fakt_day_m1"]?></th>
-                    <th class="totalvalue" id="global_fakt_today"><?=$global_task["fakt_today"]?></th>
-                    <!--майбутнє (план)-->
-                    <th class="totalvalue" id="global_outstanding"><?=$global_task['outstanding']?></th>
-                    <th class="totalvalue" id="global_future_today"><?=$global_task['future_today']?></th>
-                    <th class="totalvalue" id="global_future_day_pl1"><?=$global_task['future_day_pl1']?></th>
-                    <th class="totalvalue" id="global_future_day_pl2"><?=$global_task['future_day_pl2']?></th>
-                    <th class="totalvalue" id="global_future_day_pl3"><?=$global_task['future_day_pl3']?></th>
-                    <th class="totalvalue" id="global_future_day_pl4"><?=$global_task['future_day_pl4']?></th>
-                    <th class="totalvalue" id="global_future_day_pl5"><?=$global_task['future_day_pl5']?></th>
-                    <th class="totalvalue" id="global_future_day_pl6"><?=$global_task['future_day_pl6']?></th>
-                    <th class="totalvalue" id="global_future_day_pl7"><?=$global_task['future_day_pl7']?></th>
-                    <!--ітого за місяць-->
-                    <th class="totalvalue" id="global_future_month"><?=$global_task['future_month']?></th>
-                </tr>
-                <tr class="multiple_header_table whitetitle">
-                    <th>Поточні задачі</th>
-                    <!--% виконання запланованого по факту-->
-                    <th class="totalvalue" id="current_percent_month"><?=$current_task["percent_month"]?></th>
-                    <th class="totalvalue" id="current_percent_day_m7"><?=$current_task["percent_7"]?></th>
-                    <th class="totalvalue" id="current_percent_day_m6"><?=$current_task["percent_6"]?></th>
-                    <th class="totalvalue" id="current_percent_day_m5"><?=$current_task["percent_5"]?></th>
-                    <th class="totalvalue" id="current_percent_day_m4"><?=$current_task["percent_4"]?></th>
-                    <th class="totalvalue" id="current_percent_day_m3"><?=$current_task["percent_3"]?></th>
-                    <th class="totalvalue" id="current_percent_day_m2"><?=$current_task["percent_2"]?></th>
-                    <th class="totalvalue" id="current_percent_day_m1"><?=$current_task["percent_1"]?></th>
-                    <th class="totalvalue" id="current_percent_today"><?=$current_task["percent_0"]?></th>
-                    <!--минуле (факт)-->
-                    <th class="totalvalue" id="current_fakt_month"><?=$current_task["fakt_month"]?></th>
-                    <th class="totalvalue" id="current_fakt_day_m7"><?=$current_task["fakt_day_m7"]?></th>
-                    <th class="totalvalue" id="current_fakt_day_m6"><?=$current_task["fakt_day_m6"]?></th>
-                    <th class="totalvalue" id="current_fakt_day_m5"><?=$current_task["fakt_day_m5"]?></th>
-                    <th class="totalvalue" id="current_fakt_day_m4"><?=$current_task["fakt_day_m4"]?></th>
-                    <th class="totalvalue" id="current_fakt_day_m3"><?=$current_task["fakt_day_m3"]?></th>
-                    <th class="totalvalue" id="current_fakt_day_m2"><?=$current_task["fakt_day_m2"]?></th>
-                    <th class="totalvalue" id="current_fakt_day_m1"><?=$current_task["fakt_day_m1"]?></th>
-                    <th class="totalvalue" id="current_fakt_today"><?=$current_task["fakt_today"]?></th>
-                    <!--майбутнє (план)-->
-                    <th class="totalvalue" id="current_outstanding"><?=$current_task['outstanding']?></th>
-                    <th class="totalvalue" id="current_future_today"><?=$current_task['future_today']?></th>
-                    <th class="totalvalue" id="current_future_day_pl1"><?=$current_task['future_day_pl1']?></th>
-                    <th class="totalvalue" id="current_future_day_pl2"><?=$current_task['future_day_pl2']?></th>
-                    <th class="totalvalue" id="current_future_day_pl3"><?=$current_task['future_day_pl3']?></th>
-                    <th class="totalvalue" id="current_future_day_pl4"><?=$current_task['future_day_pl4']?></th>
-                    <th class="totalvalue" id="current_future_day_pl5"><?=$current_task['future_day_pl5']?></th>
-                    <th class="totalvalue" id="current_future_day_pl6"><?=$current_task['future_day_pl6']?></th>
-                    <th class="totalvalue" id="current_future_day_pl7"><?=$current_task['future_day_pl7']?></th>
-                    <!--ітого за місяць-->
-                    <th class="totalvalue" id="current_future_month"><?=$current_task['future_month']?></th>
-                </tr>
-                <tr class="multiple_header_table whitetitle">
-                    <th class="bestvalue">Всього по найкращому</th>
-                    <!--% виконання запланованого по факту-->
-                    <th class="totalvalue bestvalue" id="bestvalue_percent_month"><?=$bestvalue["percent_month"]?></th>
-                    <th class="totalvalue bestvalue" id="bestvalue_percent_day_m7"><?=$bestvalue["percent_7"]?></th>
-                    <th class="totalvalue bestvalue" id="bestvalue_percent_day_m6"><?=$bestvalue["percent_6"]?></th>
-                    <th class="totalvalue bestvalue" id="bestvalue_percent_day_m5"><?=$bestvalue["percent_5"]?></th>
-                    <th class="totalvalue bestvalue" id="bestvalue_percent_day_m4"><?=$bestvalue["percent_4"]?></th>
-                    <th class="totalvalue bestvalue" id="bestvalue_percent_day_m3"><?=$bestvalue["percent_3"]?></th>
-                    <th class="totalvalue bestvalue" id="bestvalue_percent_day_m2"><?=$bestvalue["percent_2"]?></th>
-                    <th class="totalvalue bestvalue" id="bestvalue_percent_day_m1"><?=$bestvalue["percent_1"]?></th>
-                    <th class="totalvalue bestvalue" id="bestvalue_percent_today"><?=$bestvalue["percent_0"]?></th>
-                    <!--минуле (факт)-->
-                    <th class="totalvalue bestvalue" id="bestvalue_fakt_month"><?=$bestvalue["fakt_month"]?></th>
-                    <th class="totalvalue bestvalue" id="bestvalue_fakt_day_m7"><?=$bestvalue["fakt_day_m7"]?></th>
-                    <th class="totalvalue bestvalue" id="bestvalue_fakt_day_m6"><?=$bestvalue["fakt_day_m6"]?></th>
-                    <th class="totalvalue bestvalue" id="bestvalue_fakt_day_m5"><?=$bestvalue["fakt_day_m5"]?></th>
-                    <th class="totalvalue bestvalue" id="bestvalue_fakt_day_m4"><?=$bestvalue["fakt_day_m4"]?></th>
-                    <th class="totalvalue bestvalue" id="bestvalue_fakt_day_m3"><?=$bestvalue["fakt_day_m3"]?></th>
-                    <th class="totalvalue bestvalue" id="bestvalue_fakt_day_m2"><?=$bestvalue["fakt_day_m2"]?></th>
-                    <th class="totalvalue bestvalue" id="bestvalue_fakt_day_m1"><?=$bestvalue["fakt_day_m1"]?></th>
-                    <th class="totalvalue bestvalue" id="bestvalue_fakt_today"><?=$bestvalue["fakt_today"]?></th>
-                    <!--майбутнє (план)-->
-                    <th class="totalvalue bestvalue" id="bestvalue_outstanding"><?=$bestvalue['outstanding']?></th>
-                    <th class="totalvalue bestvalue" id="bestvalue_future_today"><?=$bestvalue['future_today']?></th>
-                    <th class="totalvalue bestvalue" id="bestvalue_future_day_pl1"><?=$bestvalue['future_day_pl1']?></th>
-                    <th class="totalvalue bestvalue" id="bestvalue_future_day_pl2"><?=$bestvalue['future_day_pl2']?></th>
-                    <th class="totalvalue bestvalue" id="bestvalue_future_day_pl3"><?=$bestvalue['future_day_pl3']?></th>
-                    <th class="totalvalue bestvalue" id="bestvalue_future_day_pl4"><?=$bestvalue['future_day_pl4']?></th>
-                    <th class="totalvalue bestvalue" id="bestvalue_future_day_pl5"><?=$bestvalue['future_day_pl5']?></th>
-                    <th class="totalvalue bestvalue" id="bestvalue_future_day_pl6"><?=$bestvalue['future_day_pl6']?></th>
-                    <th class="totalvalue bestvalue" id="bestvalue_future_day_pl7"><?=$bestvalue['future_day_pl7']?></th>
-                    <!--ітого за місяць-->
-                    <th class="totalvalue bestvalue" id="bestvalue_future_month"><?=$bestvalue['future_month']?></th>
-                </tr>
-                <tr class="multiple_header_table whitetitle">
-                    <th>Всього по направленнях/контрагентах</th>
-                    <!--% виконання запланованого по факту-->
-                    <th class="totalvalue" id="lineactive_percent_month"><?=$lineaction["percent_month"]?></th>
-                    <th class="totalvalue" id="lineactive_percent_day_m7"><?=$lineaction["percent_7"]?></th>
-                    <th class="totalvalue" id="lineactive_percent_day_m6"><?=$lineaction["percent_6"]?></th>
-                    <th class="totalvalue" id="lineactive_percent_day_m5"><?=$lineaction["percent_5"]?></th>
-                    <th class="totalvalue" id="lineactive_percent_day_m4"><?=$lineaction["percent_4"]?></th>
-                    <th class="totalvalue" id="lineactive_percent_day_m3"><?=$lineaction["percent_3"]?></th>
-                    <th class="totalvalue" id="lineactive_percent_day_m2"><?=$lineaction["percent_2"]?></th>
-                    <th class="totalvalue" id="lineactive_percent_day_m1"><?=$lineaction["percent_1"]?></th>
-                    <th class="totalvalue" id="lineactive_percent_today"><?=$lineaction["percent_0"]?></th>
-                    <!--минуле (факт)-->
-                    <th class="totalvalue" id="lineactive_fakt_month"><?=$lineaction["fakt_month"]?></th>
-                    <th class="totalvalue" id="lineactive_fakt_day_m7"><?=$lineaction["fakt_day_m7"]?></th>
-                    <th class="totalvalue" id="lineactive_fakt_day_m6"><?=$lineaction["fakt_day_m6"]?></th>
-                    <th class="totalvalue" id="lineactive_fakt_day_m5"><?=$lineaction["fakt_day_m5"]?></th>
-                    <th class="totalvalue" id="lineactive_fakt_day_m4"><?=$lineaction["fakt_day_m4"]?></th>
-                    <th class="totalvalue" id="lineactive_fakt_day_m3"><?=$lineaction["fakt_day_m3"]?></th>
-                    <th class="totalvalue" id="lineactive_fakt_day_m2"><?=$lineaction["fakt_day_m2"]?></th>
-                    <th class="totalvalue" id="lineactive_fakt_day_m1"><?=$lineaction["fakt_day_m1"]?></th>
-                    <th class="totalvalue" id="lineactive_fakt_today"><?=$lineaction["fakt_today"]?></th>
-                    <!--майбутнє (план)-->
-                    <th class="totalvalue" id="lineactive_outstanding"><?=$lineaction['outstanding']?></th>
-                    <th class="totalvalue" id="lineactive_future_today"><?=$lineaction['future_today']?></th>
-                    <th class="totalvalue" id="lineactive_future_day_pl1"><?=$lineaction['future_day_pl1']?></th>
-                    <th class="totalvalue" id="lineactive_future_day_pl2"><?=$lineaction['future_day_pl2']?></th>
-                    <th class="totalvalue" id="lineactive_future_day_pl3"><?=$lineaction['future_day_pl3']?></th>
-                    <th class="totalvalue" id="lineactive_future_day_pl4"><?=$lineaction['future_day_pl4']?></th>
-                    <th class="totalvalue" id="lineactive_future_day_pl5"><?=$lineaction['future_day_pl5']?></th>
-                    <th class="totalvalue" id="lineactive_future_day_pl6"><?=$lineaction['future_day_pl6']?></th>
-                    <th class="totalvalue" id="lineactive_future_day_pl7"><?=$lineaction['future_day_pl7']?></th>
-                    <!--ітого за місяць-->
-                    <th class="totalvalue" id="lineactive_future_month"><?=$lineaction['future_month']?></th>
-                </tr>
             </thead>
 
             <?=$table?>
@@ -313,16 +140,10 @@
 
 </div>
 
-
-<script>
-    $('th').click(function(e){
-        ShowTask(e);
-    })
-</script>
 <script>
     $(document).ready(function(){
         $('#reference_body').attr('height', window.innerHeight - 370);
-//        $('#reference_body').width(1260);
+        $('#reference_body').width($('#reference_body').width()+15);
         $('#popupmenu').offset({top:550, left:-250});
         var Width = $(".WidthScroll").width();
         var Top = $(".WidthScroll").height();
@@ -332,34 +153,39 @@
         <?unset($_SESSION['actions']);?>
         location.href=location.href;
     }
-//    function ShowTask(object){
-//        var td = $('#'+object.target.id);
-//        if(object.target.id.substr(0, 'current'.length)=='current'||
-//                object.target.id.substr(0, 'global'.length)=='global'||
-//                        object.target.id.substr(0, 'total'.length)=='total'
-//        ){}else
-//            return;
-//        $.ajax({
-//            url:'/dolibarr/htdocs/day_plan.php?action=getdateaction&type_action='+object.target.id,
-//            cache:false,
-//            success:function(html){
-//                if(td.text() == '1'){
-//                    location.href = 'http://'+location.hostname+'/dolibarr/htdocs/hourly_plan.php?idmenu=10420&mainmenu=hourly_plan&leftmenu=&date='+html;
-//                    console.log(html);
-//                }else {
-//                    var tbody = $('table.setdate').find('tbody');
-//                    tbody[0].innerHTML = html;
-//                    $("#popupmenu").attr('type_action', object.target.id);
-//                    $("#popupmenu").show();
-//                    $("#popupmenu").offset({
-//                        top: td.offset().top - 50,
-//                        left: td.offset().left - $('#reference_body').width()
-//                    });
-//                }
-//            }
-//        })
-//
-//
+    function RegionsByLineActive(id_usr, cat_id){
+        var btn = document.getElementById('btnLineActive'+cat_id);
+        var tr_item = btn.parentNode.parentNode;
+         var img = document.getElementById('imgLineActive'+cat_id);
+//        console.log($('#btnLineActive'+cat_id).find('img').attr('src') == '/dolibarr/htdocs/theme/eldy/img/1downarrow.png');
+        var show = img.src.substr(img.src.length-('1downarrow.png').length) == '1downarrow.png';
+        if(show)
+            img.src = img.src.substr(0, img.src.length-('1downarrow.png').length)+'1uparrow.png';
+        else
+            img.src = img.src.substr(0, img.src.length-('1uparrow.png').length)+'1downarrow.png';
+        if(show){
+            if($('.category'+cat_id).length == 0){
+                var param = {
+                    id_usr:id_usr,
+                    cat_id:cat_id,
+                    action:'getActionsByRegions'
+                }
+                $.ajax({
+                    url:'',
+                    data:param,
+                    cache:false,
+                    success:function(html){
+
+                        tr_item.insertAdjacentHTML('afterend', html);
+                    }
+                })
+            }else{
+                $('.category'+cat_id).show();
+            }
+        }else{
+            $('.category'+cat_id).hide();
+        }
+    }
 //    }
     function setdate(id){
 //        console.log($('#'+id).text());

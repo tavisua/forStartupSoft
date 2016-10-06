@@ -82,7 +82,7 @@ class proposedProducts
         $sql .="ProductName=".(empty($this->ProductName)?"null":("'".$this->db->escape(trim($this->ProductName))."'")).",";
         $sql .="articul=".(empty($this->articul)?"null":("'".$this->db->escape(trim($this->articul))."'")).",";
         $sql .="Number1C=".(empty($this->Number1C)?"null":("'".$this->db->escape(trim($this->Number1C))."'")).",";
-        $sql .="Nal=".(empty($this->Nal)?"null":$this->Nal).",";
+        $sql .="Nal=".(empty($this->Nal)?"null":("'".$this->Nal."'")).",";
         $sql .="ed_izm=".(empty($this->ed_izm)?"null":("'".$this->db->escape(trim($this->ed_izm))."'")).",";
         $sql .="shipTown=".(empty($this->shipTown)?"null":("'".$this->db->escape(trim($this->shipTown))."'")).",";
         $sql .="featureOffers=".(empty($this->featureOffers)?"null":("'".$this->db->escape(trim($this->featureOffers))."'")).",";
@@ -105,8 +105,10 @@ class proposedProducts
 //        echo '</pre>';
 //        die();
         $res = $this->db->query($sql);
-        if(!$res)
+        if(!$res) {
+            llxHeader();
             dol_print_error($this->db);
+        }
     }
     function fetch($rowid){
         $sql = 'select `begin`,`end`,`llx_c_lineactive_customer`.`name` as lineactive,`llx_post`.`postname`,`text` as title,`description`

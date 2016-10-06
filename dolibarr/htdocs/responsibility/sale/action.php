@@ -4,10 +4,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/modules/societe/modules_societe.class.php'
 require_once DOL_DOCUMENT_ROOT.'/societe/societecontact_class.php';
 
 
-//echo '<pre>';
-//var_dump($_REQUEST['state_filter']);
-//echo '</pre>';
-//die();
+
 if(isset($_REQUEST['action'])||isset($_POST['action'])){
     if($_REQUEST['action'] == 'loadcontactlist'){
         echo loadcontactlist($_REQUEST['contactid']);
@@ -249,8 +246,9 @@ function showProposition($proposed_id,$contactid=0){
     if(!$res)
         dol_print_error($db);
     $obj = $db->fetch_object($res);
+    $LastActionID = getLastNotExecAction($contactid, date('Y-m-d',time()));
     $out='<table class="scrolling-table" style="background: #ffffff; width: auto">
-            <input type="hidden" id="actionid" name="actionid" value="'.getLastNotExecAction($contactid).'">
+            <input type="hidden" id="actionid" name="actionid" value="'.$LastActionID.'">
             <thead><tr class="multiple_header_table"><th class="middle_size" colspan="9" style="width: 100%">Суть пропозиції для посади '.$obj->postname.'</th>
             <a class="close" style="margin-left: -160px" onclick="ClosePopupMenu($(this));" title="Закрити"></a>
                 </tr>
@@ -271,7 +269,7 @@ function showProposition($proposed_id,$contactid=0){
 //                <td colspan="9"><button onclick="SaveResultProporition('.$contactid.');">Зберегти результати перемовин</button></td>
 //            </tr>';
     $out .='</tbody></table>';
-    $out .='<div style="width: 100%; background-color: "><button id="savebutton" onclick="SaveResultProporition('.$contactid.');">Зберегти результати перемовин</button></div>';
+    $out .='<div style="width: 100%; background-color: "><button id="savebutton" onclick="SaveResultProporition('.$contactid.','.$LastActionID.');">Зберегти результати перемовин</button></div>';
     $out.='<style>
             div#BasicInformation, div#PriceOffers, div#OtherInformationOffers{
                 font-size: 12px;
@@ -443,12 +441,16 @@ function selectcontact($socid, $contactid=0){
     $out.='</select>';
     return $out;
 }
-function getLastNotExecAction($contactid){
+function getLastNotExecAction($contactid, $date = null){
     global $db;
     $sql = 'select id from `llx_actioncomm`
         where fk_contact = '.$contactid.'
         and percent <> 100
-        order by datep desc limit 1';
+        and active = 1';
+    if(empty($date))
+        $sql.=' order by datep desc limit 1';
+    else
+        $sql.=" and date(datep) = '".$date."'";
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
@@ -627,11 +629,12 @@ function ShowActionTable(){
                 }
                     break;
             }
+
             $dateaction = new DateTime($row->datep);
-            $out .= '<tr class="' . (fmod($num++, 2) == 0 ? 'impair' : 'pair') . '">
-            <td rowid="' . $row->rowid . '" id = "' . $row->rowid . 'dtAction" style="width: 80px" class="middle_size">' . (empty($row->datep) ? '' : ($dateaction->format('d.m.y') . '</br>' . $dateaction->format('H:i'))) .
-                (!empty($row->type) ? '<div style="float: right; margin-top: -15px" title="Час початку дії встановлено вручну"><img src="/dolibarr/htdocs/theme/eldy/img/object_task.png"></div>' : '') . '</td>
-            <td rowid="' . $row->rowid . '" id = "' . $row->rowid . 'dtChange" style="width: 80px" class="middle_size">' . (empty($row->datec) ? '' : $dtChange->format('d.m.y H:i:s')) . '</td>
+            $out .= '<tr class="' . (fmod($num++, 2) == 0 ? 'impair' : 'pair') . '">';
+            $out .= '<td rowid="' . $row->rowid . '" id = "' . $row->rowid . 'dtAction" style="width: 80px" class="middle_size">' . (empty($row->datep) ? '' : ($dateaction->format('d.m.y') . '</br>' . $dateaction->format('H:i'))) .
+                (!empty($row->type) ? '<div style="float: right; margin-top: -15px" title="Час початку дії встановлено вручну"><img src="/dolibarr/htdocs/theme/eldy/img/object_task.png"></div>' : '') . '</td>';
+            $out .= '<td rowid="' . $row->rowid . '" id = "' . $row->rowid . 'dtChange" style="width: 80px" class="middle_size">' . (empty($row->datec) ? '' : $dtChange->format('d.m.y ').'</br>'.$dtChange->format('H:i')) . '</td>
             <td rowid="' . $row->rowid . '" id = "' . $row->rowid . 'lastname" style="width: 100px" class="middle_size">' . $row->lastname . '</td>
             <td rowid="' . $row->rowid . '" id = "' . $row->rowid . 'contactname" style="width: 80px" class="middle_size">' . $row->contactname . '</td>
             <td rowid="' . $row->rowid . '" id = "' . $row->rowid . 'kindaction" style="width: 50px; text-align: center;" class="middle_size" ><img src="/dolibarr/htdocs/theme/' . $conf->theme . '/img/' . $iconitem . '" title="' . $title . '"></td>

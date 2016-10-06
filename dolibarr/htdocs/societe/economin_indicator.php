@@ -24,7 +24,7 @@ $object = new  Societe($db);
 
 $object->fetch($socid);
 //echo '<pre>';
-//var_dump($object);
+//var_dump($_REQUEST);
 //echo '</pre>';
 //die();
 $CategoryOfCustomer = $object->getCategoryOfCustomer();
@@ -56,6 +56,8 @@ if($_REQUEST['action'] == 'get_economic_indicators') {
     $EconomicIndicators->for_what       = GETPOST('for_what', 'alpha');
     $EconomicIndicators->count          = GETPOST('count', 'alpha');
     $EconomicIndicators->year           = GETPOST('year', 'int');
+    $EconomicIndicators->tech_param     = GETPOST('tech_param', 'alpha');
+    $EconomicIndicators->productivity   = GETPOST('productivity', 'alpha');
     if(empty($EconomicIndicators->year))$EconomicIndicators->year = 'null';
     $EconomicIndicators->container      = GETPOST('container', 'int');
     $EconomicIndicators->time_purchase  = GETPOST('time_purchase', 'int');
@@ -71,6 +73,11 @@ if($_REQUEST['action'] == 'get_economic_indicators') {
     if(empty($EconomicIndicators->UnMeasurement))$EconomicIndicators->UnMeasurement=0;
     $EconomicIndicators->ContainerUnMeasurement = GETPOST('ContainerUnMeasurement', 'int');
     if(empty($EconomicIndicators->ContainerUnMeasurement))$EconomicIndicators->ContainerUnMeasurement=0;
+//    llxHeader();
+//    echo '<pre>';
+//    var_dump($EconomicIndicators);
+//    echo '</pre>';
+//    die();
     $EconomicIndicators->saveitem();//Сохраняю изменения
 
     if( $action == 'save_and_add') {
@@ -85,10 +92,22 @@ if($_REQUEST['action'] == 'get_economic_indicators') {
         header('Location: '.DOL_URL_ROOT.'/societe/economin_indicator.php?mainmenu=area&idmenu=10425&action=edit&socid='.$socid);
     exit();
 }elseif($action == 'add'){
-
     $Title = $langs->trans("AddParameters");
     llxHeader('',$Title,$help_url);
     print_fiche_titre($Title);
+    $action_url = $_SERVER['PHP_SELF'];
+    include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/eldy/addparam.html';
+    exit();
+}elseif($action == 'editparam'){
+    $Title = $langs->trans("EditParameters");
+    llxHeader('',$Title,$help_url);
+    print_fiche_titre($Title);
+    $EconomicIndicators->fetch_fixed_assets($_REQUEST['rowid']);
+    $soc_contact = $EconomicIndicators;
+//    echo '<pre>';
+//    var_dump($EconomicIndicators);
+//    echo '</pre>';
+//    die();
     $action_url = $_SERVER['PHP_SELF'];
     include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/eldy/addparam.html';
     exit();

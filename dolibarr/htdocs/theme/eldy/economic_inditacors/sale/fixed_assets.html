@@ -1,4 +1,4 @@
-    <div>
+    <div style="margin-top: 80px">
         <table class="WidthScroll" cellspacing="1">
         <thead>
             <tr class="multiple_header_table">
@@ -34,4 +34,7 @@
         $(document).ready(function(){
             $('td#emptyrow_fixed_assets').width($('th#FixedAssets').width());
         })
+        function EditItem(rowid){
+            location = '/dolibarr/htdocs/societe/economin_indicator.php?action=editparam&rowid='+rowid;
+        }
     </script>

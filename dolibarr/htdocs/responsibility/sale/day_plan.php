@@ -154,7 +154,8 @@ function ShowTable(){
     $table = '<tbody id="reference_body">';
 //Всього задач
     $table.='<tr><td class="middle_size" style="width: 105px"><b>Всього задач</b></td>
-    <td style="width: 175px">&nbsp;</td>';
+    <td style="width: 175px">&nbsp;</td>
+    <td style="width: 33px">&nbsp;</td>';
     //% виконання запланованого по факту
     for($i=8; $i>=0; $i--){
         if($i < 8) {
@@ -347,6 +348,7 @@ function getRegionsList($id_usr){
             $out .= '<td>'. $obj->statename . '</td>';
             $out .= '<td>'. $obj->name . '</td>';
         }
+        $out .= '<td>&nbsp;</td>';
 //        $out.='<td></td>';
         //відсоток виконання
         if(isset($total[$obj->rowid]['month'])){

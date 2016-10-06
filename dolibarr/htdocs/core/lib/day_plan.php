@@ -79,7 +79,9 @@ function loadActions($id_usr){
         mysqli_data_seek($res,0);
         $time = time();
         while ($obj = $db->fetch_object($res)) {
-            $actions[] = array('id_usr' => $obj->id_usr, 'rowid'=>$obj->id, 'socid'=>$obj->socid, 'region_id' => $obj->categoryofcustomer_id, 'respon_alias' => $obj->alias, 'percent' => $obj->percent, 'datep' => $obj->datep, 'code' => $obj->code, 'callstatus'=>$obj->callstatus);
+            $actions[] = array('id_usr' => $obj->id_usr, 'rowid'=>$obj->id, 'socid'=>$obj->socid, 'region_id' => empty($obj->categoryofcustomer_id)?0:$obj->categoryofcustomer_id,
+                'respon_alias' => $obj->alias, 'percent' => $obj->percent, 'datep' => $obj->datep,
+                'code' => $obj->code, 'callstatus'=>$obj->callstatus);
         }
     }
 //    var_dump($actions);
@@ -158,7 +160,9 @@ function loadActions($id_usr){
                     }
                 }
             }
-            $actions[] = array('id_usr' => $obj->id_usr, 'rowid'=>$obj->id, 'socid'=>$obj->socid, 'region_id' => $lineactive_id, 'respon_alias' => $obj->alias, 'percent' => $obj->percent, 'datep' => $obj->datep, 'code' => $obj->code, 'callstatus'=>$obj->callstatus);
+            $actions[] = array('id_usr' => $obj->id_usr, 'rowid'=>$obj->id, 'socid'=>$obj->socid,
+                'region_id' => $lineactive_id, 'respon_alias' => $obj->alias, 'percent' => $obj->percent,
+                'datep' => $obj->datep, 'code' => $obj->code, 'callstatus'=>$obj->callstatus);
         }
     }
 
@@ -178,6 +182,8 @@ function ShowTasks($Code, $Title, $bestvalue = false){
 //        die();
 //    }
     $table='<tr '.($bestvalue?'class="bestvalue"':'').'><td colspan="2" class="middle_size" style="width: 105px;"><b>'.$Title.'</b></td>';
+    $table.='<td style="width: 33px">&nbsp;</td>';
+
     //% виконання запланованого по факту
     for($i=8; $i>=0; $i--){
         $percent = '';
@@ -271,6 +277,11 @@ function getLineActiveList($id_usr){
         if(!empty($obj->alias2))
             $respon_alias[]=$obj->alias2;
     }
+    if(in_array('sale', $respon_alias)){//Для продажу
+        $param_name='region_id';
+    }elseif(in_array('logistika', $respon_alias)){//Для логістики
+        $param_name='categoryofcustomer_id';
+    }
 //    echo '<pre>';
 //    var_dump($respon_alias);
 //    echo '</pre>';
@@ -282,8 +293,8 @@ function getLineActiveList($id_usr){
 //                var_dump($item);
 //                die();
 //            }
-            if(!in_array(empty($item["region_id"])?'null':$item["region_id"], $regions))
-                $regions[]=empty($item["region_id"])?'null':$item["region_id"];
+            if(!in_array(empty($item[$param_name])?'null':$item[$param_name], $regions))
+                $regions[]=empty($item[$param_name])?'null':$item[$param_name];
             $date = new DateTime($item["datep"]);
             $mkDate = dol_mktime(0, 0, 0, $date->format('m'), $date->format('d'), $date->format('Y'));
 //            echo $item["datep"].' '.var_dump($mkDate >= $mkToday).'</br>';
@@ -294,29 +305,29 @@ function getLineActiveList($id_usr){
             if ($mkDate == $mkToday)
                 $count++;
             if ($mkDate >= $mkToday) {
-                $future[$item["region_id"]][$item["datep"]]++;
+                $future[$item[$param_name]][$item["datep"]]++;
                 if ($mkDate - $mkToday <= 604800)//604800 sec by week
-                    $future[$item["region_id"]]['week']++;
+                    $future[$item[$param_name]]['week']++;
                 if ($mkDate - $mkToday <= 2678400)//2678400 sec by month
-                    $future[$item["region_id"]]['month']++;
+                    $future[$item[$param_name]]['month']++;
             }
 
             if($mkDate < $mkToday && $item['percent'] != 100){//Додав $mkDate < $mkToday. Вважається логічним, щоб кількість прострочених рахувати, коли завдання повинно вже було бути виконано
-                $outstanding[$item["region_id"]]++;
+                $outstanding[$item[$param_name]]++;
             }
             if($item['percent'] == 100 && (in_array($item['code'], $actioncode)||$item['callstatus']=='5')){
-                $fact[$item["region_id"]][$item["datep"]]++;
+                $fact[$item[$param_name]][$item["datep"]]++;
                 if($mkToday-$mkDate<=604800)//604800 sec by week
-                    $fact[$item["region_id"]]['week']++;
+                    $fact[$item[$param_name]]['week']++;
                 if($mkToday-$mkDate<=2678400)//2678400 sec by month
-                    $fact[$item["region_id"]]['month']++;
+                    $fact[$item[$param_name]]['month']++;
             }
 
-            $total[$item["region_id"]][$item["datep"]]++;
+            $total[$item[$param_name]][$item["datep"]]++;
             if($mkToday-$mkDate<=604800)//604800 sec by week
-                $total[$item["region_id"]]['week']++;
+                $total[$item[$param_name]]['week']++;
             if($mkToday-$mkDate<=2678400)//2678400 sec by month
-                $total[$item["region_id"]]['month']++;
+                $total[$item[$param_name]]['month']++;
         }
     }
 //    echo '<pre>';
@@ -324,10 +335,11 @@ function getLineActiveList($id_usr){
 //    echo '</pre>';
 //    die();
     $lineactive = getLineActive($id_usr);
-    $lineactive[0]=array("name"=> "Напрямок не вказано", "type"=>"");
+    if(in_array('sale', $respon_alias))//Для продажу
+        $lineactive[0]=array("name"=> "Напрямок не вказано", "type"=>"");
 //llxHeader();
 //    echo '<pre>';
-//    var_dump($lineactive);
+//    var_dump($respon_alias);
 //    echo '</pre>';
 //    die();
 //    $sql = "select `regions`.`rowid`,`states`.`name` statename, `regions`.`name` from `regions`
@@ -351,14 +363,20 @@ function getLineActiveList($id_usr){
 
     foreach(array_keys($lineactive) as $key){
         $out.='<tr id="reg'.$key.'" class="regions subtype middle_size '.$_REQUEST['class'].'">';
+//        var_dump($key);
+//        die();
         if(!empty($key)) {
-            $out .= '<td colspan="2"><a href="/dolibarr/htdocs/responsibility/purchase/area.php?idmenu=10425&filter=&mainmenu=area&leftmenu='.$userFilter.'&lineactive=' . $key . '" target="_blank">' . $lineactive[$key]['name'] . '</a></td>';
+            $out .= '<td colspan="2"><a href="/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/area.php?idmenu=10425&filter=&mainmenu=area&leftmenu='.$userFilter.'&lineactive=' . $key . '" target="_blank">' . $lineactive[$key]['name'] . '</a></td>';
             if($_SERVER["PHP_SELF"] == "/dolibarr/htdocs/responsibility/gen_dir/day_plan.php")
                 $out .= '<td></td>';
+            elseif($_SERVER["PHP_SELF"] == "/dolibarr/htdocs/responsibility/logistika/day_plan.php")
+                $out .= '<td><button id="btnLineActive'.$key.'" onclick="RegionsByLineActive('.$user->id.', '.$key.');"><img id="imgLineActive'.$key.'" src="/dolibarr/htdocs/theme/eldy/img/1downarrow.png"></button></td>';
         }else{
             $out .= '<td colspan="2">'. $lineactive[$key]['name'] . '</td>';
             if($_SERVER["PHP_SELF"] == "/dolibarr/htdocs/responsibility/gen_dir/day_plan.php")
                 $out .= '<td></td>';
+            elseif($_SERVER["PHP_SELF"] == "/dolibarr/htdocs/responsibility/logistika/day_plan.php")
+                $out .= '<td><button id="btnLineActive'.$key.'" onclick="RegionsByLineActive('.$user->id.', '.$key.');"><img id="imgLineActive'.$key.'" src="/dolibarr/htdocs/theme/eldy/img/1downarrow.png"></button></td>';
         }
 //        $out.='<td></td>';
         //відсоток виконання
@@ -534,11 +552,13 @@ function getLineActiveService($id_usr){
     $userFilter = '';
     if($id_usr != $user->id)
         $userFilter='&id_usr='.$id_usr;
-
+    $s_respon_alias = $respon_alias[0];
+    if(in_array($s_respon_alias, array('gen_dir', 'dir_depatment')))
+        $s_respon_alias = $respon_alias[1];
     foreach(array_keys($lineactive) as $key){
         $out.='<tr id="reg'.$key.'" class="regions subtype middle_size '.$_REQUEST['class'].'">';
         if(!empty($key)) {
-            $out .= '<td colspan="2"><a href="/dolibarr/htdocs/responsibility/purchase/area.php?idmenu=10425&filter=&mainmenu=area&leftmenu='.$userFilter.'&lineactive=' . $key . '" target="_blank">' . $lineactive[$key]['name'] . '</a></td>';
+            $out .= '<td colspan="2"><a href="/dolibarr/htdocs/responsibility/'.$s_respon_alias.'/area.php?idmenu=10425&filter=&mainmenu=area&leftmenu='.$userFilter.'&lineactive=' . $key . '" target="_blank">' . $lineactive[$key]['name'] . '</a></td>';
             if($_SERVER["PHP_SELF"] == "/dolibarr/htdocs/responsibility/gen_dir/day_plan.php")
                 $out .= '<td></td>';
         }else{
@@ -690,7 +710,8 @@ function getLineActive($id_usr){
 }
 function GetBestUserID(){
     global $CustActions,$user;
-
+//    var_dump($CustActions);
+//    die();
     $maxCount = 0;
     $id_usr = 0;
 

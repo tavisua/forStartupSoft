@@ -225,7 +225,7 @@ function getPropositionBody(){
         where 1 and `llx_c_proposition`.`active` = 1
         and llx_societe_action.active = 1
         and llx_societe_action.callstatus = 5
-        group by substring(`llx_c_proposition`.`text`,1,10);";
+        group by substring(`llx_c_proposition`.`text`,1,40);";
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
@@ -242,7 +242,7 @@ function getPropositionBody(){
         where 1 and `llx_c_proposition`.`active` = 1
         and llx_societe_action.active = 1
         and llx_societe_action.callstatus = 5
-        group by llx_societe.state_id, substring(`llx_c_proposition`.`text`,1,10);";
+        group by llx_societe.state_id, substring(`llx_c_proposition`.`text`,1,40);";
     $states = array();
     $res = $db->query($sql);
     if(!$res)
@@ -296,7 +296,7 @@ function getPropositionHead(){
         inner join `llx_c_proposition` on `llx_c_proposition`.`rowid` = llx_societe_action.proposed_id
         where 1 and `llx_c_proposition`.`active` = 1
         and llx_societe_action.active = 1
-        group by substring(`llx_c_proposition`.`text`,1,10);";
+        group by substring(`llx_c_proposition`.`text`,1,40);";
     $res = $db->query($sql);
 //    if(!$res)
 //        dol_print_error($db);
@@ -310,7 +310,7 @@ function getPropositionHead(){
         inner join `llx_c_proposition` on `llx_c_proposition`.`rowid` = llx_societe_action.proposed_id
         where 1 and `llx_c_proposition`.`active` = 1
         and llx_societe_action.active = 1
-        group by substring(`llx_c_proposition`.`text`,1,10);";
+        group by substring(`llx_c_proposition`.`text`,1,40);";
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);

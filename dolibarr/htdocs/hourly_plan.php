@@ -86,24 +86,29 @@ $sql = "select  `llx_actioncomm`.type, `llx_actioncomm`.id as rowid, `llx_action
         left join `llx_actioncomm_resources` on `llx_actioncomm`.`id` =  `llx_actioncomm_resources`.`fk_actioncomm`
         left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
         where 1
+        and date(datep) = '".$dateQuery->format('Y-m-d')."'
+        and `llx_actioncomm`.active = 1
+
+        and case when `llx_actioncomm_resources`.`fk_element` is null then `llx_actioncomm`.`fk_user_author` else `llx_actioncomm`.`fk_user_author` end  = ".$id_usr."
+
         and (`llx_actioncomm`.`entity` = 0 AND `llx_actioncomm`.`code` IN('AC_GLOBAL','AC_CURRENT') OR `llx_actioncomm`.`entity` = 1 AND `llx_actioncomm`.`code` NOT IN('AC_GLOBAL','AC_CURRENT'))
         and fk_action in
               (select id from `llx_c_actioncomm`
               where `type` in ('system', 'user'))
-        and (`llx_actioncomm`.fk_user_author = ".$id_usr." or `llx_actioncomm_resources`.`fk_element` = ".$id_usr.")
-        and date(datep) = '".$dateQuery->format('Y-m-d')."'
-        and `llx_actioncomm`.active = 1
         and (`llx_actioncomm`.hide is null or `llx_actioncomm`.hide <> 1)
         group by `llx_actioncomm`.id,  `llx_actioncomm`.datep, `llx_actioncomm`.datep2,
         `llx_actioncomm`.`code`, `llx_actioncomm`.fk_user_author, `llx_actioncomm`.label, `regions`.`name`, case when `llx_actioncomm`.fk_soc is null then `llx_user`.`lastname` else `llx_societe`.`nom` end,
         `llx_actioncomm`.`note`, `llx_actioncomm`.`percent`, `llx_c_actioncomm`.`libelle`, `llx_actioncomm`.confirmdoc,
         `llx_actioncomm`.priority
         order by priority,datep";
-$res = $db->query($sql);
+//
 //echo '<pre>';
 //var_dump($sql);
 //echo '</pre>';
 //die();
+
+$res = $db->query($sql);
+
 //die($sql);
 $task = '';
 
@@ -123,7 +128,7 @@ while($row = $db->fetch_object($res)) {
         if($row->priority != 0)
             $task .= '</tbody></table></div>';
 
-        $task .='<div id = "tasklist'.$row->priority.'" style="z-index: '.$row->priority.';"><table  class="tasklist">
+        $task .='<div id = "tasklist'.$row->priority.'"  style="z-index: '.$row->priority.';position: relative;"><table  class="tasklist">
             <tbody id="tbody'.$priority.'">';
     }
 //var_dump(htmlspecialchars($task));

@@ -127,9 +127,9 @@ function CategoriesContractors(){
                 $name = $obj->name;
             }
         }
-        $out .= '<option '.($obj->fk_categories == 'users'?'id="users"':'').' value="'.$obj->fk_categories.'" '.($selected?'selected="selected"':'').'>'.$name.'</option>\n';
+        $out .= '<option '.($obj->fk_categories == 'users'?'id="users"':'').' value="'.$obj->fk_categories.'" '.($selected?'selected="selected"':'').'>'.$name.'</option>';
     }
-    $out.='</selected>';
+    $out.='</select>';
 
     return $out;
 }
