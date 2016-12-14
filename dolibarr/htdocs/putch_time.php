@@ -7,10 +7,10 @@
  */
 require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
 global $db,$user;
-$sql = "SELECT `llx_actioncomm`.id, `llx_actioncomm`.priority, `llx_actioncomm`.datep, `llx_actioncomm`.datep2, `llx_actioncomm`.fk_user_author,
+$sql = "SELECT `llx_actioncomm`.id, `llx_actioncomm`.priority, `llx_actioncomm`.datep, `llx_actioncomm`.datep2, `llx_actioncomm`.fk_user_action,
 case
   when `llx_actioncomm_resources`.`fk_element` is null
-  then `llx_actioncomm`.fk_user_author
+  then `llx_actioncomm`.fk_user_action
   else `llx_actioncomm_resources`.`fk_element`
 end as fk_element , `llx_c_actioncomm`.`exec_time`, `llx_actioncomm`.`code` from `llx_actioncomm`
 inner join `llx_c_actioncomm` on `llx_c_actioncomm`.`code` = `llx_actioncomm`.`code`
@@ -20,13 +20,13 @@ if(!isset($_GET['datep'])||empty($_GET['datep']))
     $sql.=" and datep > '2016-09-01'";
 else {
     $sql .= " and date(datep) = '" . $_GET['datep'] . "'";
-    $sql .= " and (`llx_actioncomm`.fk_user_author = ".$_GET['id_usr']." or `llx_actioncomm_resources`.`fk_element` = ".$_GET['id_usr'].")";
+    $sql .= " and (`llx_actioncomm`.fk_user_action = ".$_GET['id_usr']." or `llx_actioncomm_resources`.`fk_element` = ".$_GET['id_usr'].")";
 }
 $sql .= " and `llx_actioncomm`.`code` not in ('AC_OTH_AUTO')
 and `llx_actioncomm`.active = 1
 and (`llx_actioncomm`.`entity` = 0 AND `llx_actioncomm`.`code` IN('AC_GLOBAL','AC_CURRENT') OR `llx_actioncomm`.`entity` = 1 AND `llx_actioncomm`.`code` NOT IN('AC_GLOBAL','AC_CURRENT'))
 and (`llx_actioncomm`.hide is null or `llx_actioncomm`.hide <> 1)
-order by case when `llx_actioncomm_resources`.`fk_element` is null then `llx_actioncomm`.fk_user_author else `llx_actioncomm_resources`.`fk_element` end, `llx_actioncomm`.priority, datep;";
+order by case when `llx_actioncomm_resources`.`fk_element` is null then `llx_actioncomm`.fk_user_action else `llx_actioncomm_resources`.`fk_element` end, `llx_actioncomm`.priority, datep;";
 //echo '<pre>';
 //var_dump($sql);
 //echo '</pre>';

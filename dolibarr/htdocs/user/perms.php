@@ -29,7 +29,62 @@ require '../main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/usergroups.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+//echo '<pre>';
+//var_dump($user->rights->user->user->mentor);
+//echo '</pre>';
+//die();
+if(!empty($_GET['action'])){
+	if($_GET['action'] == 'addallmentors'){
+		global $db,$user;
+		$sql = "select rowid from llx_user where respon_id = 8";
+		$res = $db->query($sql);
+		while($obj = $db->fetch_object($res)){
+			$sql = "insert into `llx_user_rights` (fk_user, fk_id) values (".$obj->rowid.", 257)";
+			$addres = $db->query($sql);
+			$sql = "select rowid, fk_id, active from llx_user_subdiv_mentor where fk_user = ".$obj->rowid;
+			$subress = $db->query($sql);
+			$edituser = new User($db);
+			$edituser->fetch($obj->rowid);
+//			echo '<pre>';
+//			var_dump($edituser);
+//			echo '</pre>';
+//			die();
+			print $edituser->id.' '.$edituser->login.' '.$edituser->subdiv_id.'</br>';
+			if($subress->num_rows>0) {
+				$update = false;
+				while ($obj = $db->fetch_object($subress)) {
+					if($obj->fk_id == $edituser->subdiv_id && $obj->active == 0) {
+						$sql = "update llx_user_subdiv_mentor set active = 1, dtChange=now(), id_usr=".$user->id." where rowid = " . $obj->rowid;
+						$update_res = $db->query($sql);
+						if($update_res)
+							$update = true;
+						print 'update 60'.$edituser->login.' '.$edituser->subdiv_id.'</br>';
+					}
+					if(!$update){
+						$sql = "insert into llx_user_subdiv_mentor(fk_user,fk_id,active,id_usr,dtChange)
+							values(".$edituser->id.",".$edituser->subdiv_id.",1,".$user->id.",now())";
+								$addres = $db->query($sql);
+						if($addres)
+							print 'insert 68 '.$edituser->login.' '.$edituser->subdiv_id.'</br>';
 
+					}
+				}
+			}else{
+
+				$sql = "insert into llx_user_subdiv_mentor(fk_user,fk_id,active,id_usr,dtChange)
+					values(".$obj->rowid.",".$edituser->subdiv_id.",1,".$user->id.",now())";
+//				die($sql);
+				$addres = $db->query($sql);
+				if($addres)
+					print 'insert 78 '.$edituser->login.' '.$edituser->subdiv_id.'</br>';
+
+			}
+//			if(!$addres)
+//				dol_print_error($db);
+		}
+		exit();
+	}
+}
 $langs->load("users");
 $langs->load("admin");
 

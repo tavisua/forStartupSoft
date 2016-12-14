@@ -26,6 +26,7 @@
 if (! defined('NOSTYLECHECK')) define('NOSTYLECHECK','1');
 
 require '../../main.inc.php';
+
 if($_GET['action'] == 'create_emaillist'){
 	header('Location: /dolibarr/htdocs/comm/smsSending/card.php?action=add&type=email');
 	exit();
@@ -1264,6 +1265,7 @@ $db->close();
 exit();
 function sending(){
  global $db, $user,$conf;
+
     //GetLastMessageID
     $sqlMessID = "select rowid from llx_emailsending where id_usr = ".$user->id." and status = 0 order by rowid desc limit 1";
     $resMessID = $db->query($sqlMessID);
@@ -1289,30 +1291,21 @@ function sending(){
 
     //SaveContactList
     $out = '';
-	require_once DOL_DOCUMENT_ROOT.'/core/class/CMailFile.class.php';
-
-    foreach($_REQUEST["emails"] as $contact){
-		$from = 'a.zosimov@t-i-t.com.ua';
 //		echo '<pre>';
-//		$conf->notification->email_from = $from;
-//		var_dump($conf->notification);
 //		var_dump($_REQUEST);
 //		echo '</pre>';
 //		die();
+	require_once DOL_DOCUMENT_ROOT.'/core/class/CMailFile.class.php';
+    foreach($_REQUEST["emails"] as $contact){
+//		$from = 'a.zosimov@t-i-t.com.ua';
 
-        $email = 'Виктор Михайлов <tavis@shtorm.com>';
+
+        $email = $contact["contact"]."<".$contact["email"].">";
 		$socid = empty($contact['socid'])?0:$contact['socid'];
 		$contactID = empty($contact['contactID'])?0:$contact['contactID'];
-		$subject = 'testmail';
-		$mesg = 'test';
+		$subject = $_REQUEST['subject'];
+		$mesg = $_REQUEST["message"];
 		$msgishtml='';
-		$conf->global->MAIN_MAIL_EMAIL_FROM = 'tavis@shtorm.com';
-		// conf->notification->email_from = email pour envoi par Dolibarr des notifications
-//		$conf->mailing->email_from = 'tavis@shtorm.com';
-//		echo '<pre>';
-//		var_dump($conf->global->MAIN_MAIL_EMAIL_FROM);
-//		echo '</pre>';
-//		die();
 		$conf->notification->email_from=$conf->mailing->email_from;
 //		if (! empty($conf->global->NOTIFICATION_EMAIL_FROM)) $conf->notification->email_from=$conf->global->NOTIFICATION_EMAIL_FROM;
 
@@ -1324,7 +1317,7 @@ function sending(){
 		$mailfile = new CMailFile(
 				$subject,
 				$email,
-				$conf->notification->email_from,
+				$user->lastname." ".mb_substr($user->firstname,0,1,'UTF-8').".<$user->login>",
 				$mesg,
 				array(),
 				array(),
@@ -1332,14 +1325,16 @@ function sending(){
 				'',
 				'',
 				0,
-				$msgishtml
+                $msgishtml
 			);
-		var_dump($mailfile->sendfile());
-		var_dump($mailfile->error);
-//		echo '<pre>';
-//		var_dump($mail);
+//       $mailfile->sendmail();
+//        echo '<pre>';
+//		var_dump($mailfile);
 //		echo '</pre>';
 //		die();
+		$mailfile->sendfile();
+//		var_dump($mailfile->error);
+
 //        $email = str_replace('+','',$email);
 //        $email = str_replace('(','',$email);
 //        $email = str_replace(')','',$email);

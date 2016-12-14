@@ -767,6 +767,7 @@ function showTitleProposed(post_id, lineactive, contactid, td, socid){
                 $('#popupmenu').empty().html(html);
 
                 $('#popupmenu').show();
+                console.log(td);
                 if(contactid != 0) {
                     $('#popupmenu').offset({
                         top: $('#' + td.id).offset().top - 30,
@@ -1201,6 +1202,7 @@ function sendMail(emails,text, confirmSend){
         var param = {
             username:$('#username').val(),
             usermail:$('#usermail').val(),
+            subject:$('#subject').val(),
             action:'sendmails',
             emails:emails,
             message:text
@@ -1258,8 +1260,8 @@ function closeForm(obj){
 }
 function sendSMS(number, text, confirmSend){
     number = ' [{"value": "'+number.replace(/\;/gi,'"}, {"value": "')+'"}]';
-    //console.log(number);
-    //return;
+    // console.log(number);
+    // return;
     if((number === undefined  && text === undefined)||(number.length == 0  && text.length == 0)) {
         number = $("#phone_number").val();
         text = $("#textsms").val();
@@ -2474,7 +2476,12 @@ function strpos( haystack, needle, offset){ // Find position of first occurrence
     return i >= 0 ? i : false;
 }
 function update_data(link){
-    var id_usr = document.getElementById('user_id').value;
+    var id_usr;
+    if(document.getElementById('user_id') != null)
+        id_usr = document.getElementById('user_id').value;
+    else
+        id_usr = 0;
+    console.log(id_usr);
     $.ajax({
         url: link+'&id_usr='+id_usr,
         cache: false,

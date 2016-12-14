@@ -9,8 +9,10 @@
 //var_dump(DOL_DOCUMENT_ROOT);
 
 
-include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
-$dbBuilder = new dbBuilder();
+//include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
+//$dbBuilder = new dbBuilder();
+require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
+global $db;
 //var_dump($_GET);
 //die();
 if($_GET['tablename'] == 'kindofcustomer')
@@ -28,9 +30,9 @@ elseif($_GET['tablename'] == 'llx_c_ziptown') {
     ' and trim(nom) like "'.trim($_GET["term"]).'%" and active = 1 order by llx_societe.nom';
 }
 
-//die($sql);
 
-$query = $db->mysqli->query($sql);
+
+$query = $db->query($sql);
 if($query->num_rows == 0)
     echo '';
 

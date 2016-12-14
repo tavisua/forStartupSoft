@@ -571,6 +571,19 @@ class User extends CommonObject
 	 *	@return	void
 	 *  @see	clearrights
 	 */
+	function getmentors($id){
+		$sql = "select fk_id as id from " . MAIN_DB_PREFIX . "user_subdiv_mentor as u where u.fk_user= ".$id." and active = 1";
+//        $sql = 'select rowid as id from regions limit 10';
+		dol_syslog(get_class($this) . '::getregions', LOG_DEBUG);
+		$resql = $this->db->query($sql);
+		$setting = array();
+		while($row = $this->db->fetch_array($resql)){
+			$setting[]=$row['id'];
+		}
+//        var_dump($sql);
+//        die();
+		return $setting;
+	}
     function getregions($id)
     {
         $sql = "select fk_id as id from " . MAIN_DB_PREFIX . "user_regions as ur where ur.fk_user= ".$id." and active = 1";
@@ -1201,7 +1214,7 @@ class User extends CommonObject
 			and llx_societe.`active` = 1
 			order by `responsibility`.`name`';
 		$res = $this->db->query($sql);
-		$out =  '<select name = "'.$htmlname.'" id="'.$htmlname.'" size="'.$size.'" '.($size>1?"multiple":"").' class="combobox" >';
+		$out =  '<select name = "'.$htmlname.'[]" id="'.$htmlname.'" size="'.$size.'" '.($size>1?"multiple":"").' class="combobox" >';
 		if($this->db->num_rows($res)>0) {
 			for ($i = 0; $i < $this->db->num_rows($res); $i++) {
 				$obj = $this->db->fetch_object($res);
@@ -1212,6 +1225,7 @@ class User extends CommonObject
 		return $out;
 	}
 	function getContactPostsList($htmlname='postlist', $size=10,$addParam){
+		
 //		echo '<pre>';
 //		var_dump($htmlname, $size,$addParam);
 //		echo '</pre>';
@@ -1234,7 +1248,7 @@ class User extends CommonObject
 //		die();
 		if(!$res)
 			dol_print_error($this->db);
-		$out =  '<select name = "'.$htmlname.'" id="'.$htmlname.'" size="'.$size.'" '.($size>1?"multiple":"").' class="combobox">';
+		$out =  '<select name = "'.$htmlname.'[]" id="'.$htmlname.'" size="'.$size.'" '.($size>1?"multiple":"").' class="combobox">';
 		if($this->db->num_rows($res)>0) {
 			for ($i = 0; $i < $this->db->num_rows($res); $i++) {
 				$obj = $this->db->fetch_object($res);
@@ -1568,7 +1582,18 @@ class User extends CommonObject
 	function update_last_login_date()
 	{
 		$now=dol_now();
-
+		$sql = "update ".MAIN_DB_PREFIX."user SET";
+		$sql.= " datefirsttodaylogin = '".$this->db->idate($now)."'";
+		$sql.= " WHERE rowid = ".$this->id;
+		$sql.= " AND (date(datefirsttodaylogin) <> date(now()) OR datefirsttodaylogin is null)";
+//		echo '<pre>';
+//		echo $sql;
+//		echo '</pre>';
+//		die();
+		$resql = $this->db->query($sql);
+		if(!$resql)
+			dol_print_error($this->db);
+		//------------
 		$sql = "UPDATE ".MAIN_DB_PREFIX."user SET";
 		$sql.= " datepreviouslogin = datelastlogin,";
 		$sql.= " datelastlogin = '".$this->db->idate($now)."',";

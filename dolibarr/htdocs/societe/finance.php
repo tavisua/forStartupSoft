@@ -7,13 +7,29 @@
  */
 require '../main.inc.php';
 global $user, $db;
-if(empty($socid))
-    $socid = $_REQUEST['socid'];
-$action = $_REQUEST['action'];
-//echo '<pre>';
-//var_dump($_SERVER);
-//echo '</pre>';
+
+//    echo '<pre>';
+//    var_dump($_REQUEST);
+//    echo '</pre>';
 //die();
+if(empty($socid)) {
+    $socid = $_REQUEST['socid'];
+    if(empty($socid)){
+        $search = explode('&', substr($_REQUEST["url"], strpos($_REQUEST["url"], '?')+1));
+        foreach ($search as $item) {
+            if(strpos($item, 'socid') !== false) {
+                $socid = substr($item, strpos($item, '=')+1);
+                $_REQUEST['socid'] = $socid;
+//                echo '<pre>';
+//                var_dump($socid, $item, strpos($item, 'socid'));
+//                echo '</pre>';
+            }
+        }
+//        die();
+    }
+}
+$action = $_REQUEST['action'];
+
 $object = new Societe($db);
 $object->fetch($socid);
 $form = new Form($db);
@@ -22,7 +38,7 @@ if($action == 'add') {
     $AddItem = $langs->trans('AddInform');
     llxHeader('', $AddItem, $help_url);
     print_fiche_titre($AddItem);
-    $sql = 'select "UAH" as fx_account_curr, "UAH" as fx_finance_curr, 7 as categoryofcustomer_id';
+    $sql = 'select "UAH" as fx_account_curr, "UAH" as fx_finance_curr, 7 as categoryofcustomer_id, '.$socid.' as fx_soc';
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
@@ -41,13 +57,13 @@ if($action == 'add') {
     llxHeader('', $EditInform, $help_url);
     print_fiche_titre($EditInform);
     global $db, $langs, $conf;
-    $sql='select llx_societe_finance.rowid, llx_user.lastname, llx_societe_finance.dtChange, llx_societe.categoryofcustomer_id,
+    $sql='select llx_societe_finance.rowid, llx_user.lastname, llx_societe_finance.fx_soc, llx_societe_finance.socid, llx_societe_finance.dtChange, llx_societe.categoryofcustomer_id,
     llx_societe.nom, llx_societe.address, llx_societe_finance.`account`, `fx_account_curr`,
     `mfo`,llx_societe_finance.fx_account_service,`account_width`,`fx_finance_curr`,`comment`,`comment_with_finservice`,
     `comment_about_reliability`,`comment_from_finservice`,`erdpou`,`inn`,`certificate_number`
     from llx_societe_finance
     left join llx_user on llx_user.rowid = llx_societe_finance.id_usr
-    left join llx_societe on llx_societe_finance.fx_soc = llx_societe.rowid
+    left join llx_societe on llx_societe_finance.socid = llx_societe.rowid
     left join `category_counterparty` on `category_counterparty`.rowid=llx_societe.`categoryofcustomer_id`
     where llx_societe_finance.rowid='.$_REQUEST['rowid'];
 //    die($sql);
@@ -73,18 +89,22 @@ if($action == 'add') {
         $_REQUEST['fx_soc']=$finance->id;
     }
     if(empty($_REQUEST['rowid'])){
+//        echo '<pre>';
+//        var_dump($_REQUEST);
+//        echo '</pre>';
+//        die();
         $sql = 'insert into llx_societe_finance(socid,fx_soc,account,fx_account_curr,mfo,fx_account_service,
         account_width,fx_finance_curr,comment,comment_with_finservice,comment_about_reliability,
         comment_from_finservice,erdpou,inn,certificate_number,id_usr) values('.
             $_REQUEST['socid'].', '.$_REQUEST['fx_soc'].', '.
-            (empty($_REQUEST['accountnumber'])?'null':$_REQUEST['accountnumber']).', "'.$_REQUEST['acount_curr'].'",
-            '.(empty($_REQUEST['mfo'])?'null':$_REQUEST['mfo']).', '.$_REQUEST['finance_service'].','.
-            (empty($_REQUEST['account_width'])?"null":$_REQUEST['account_width']).',"'
-            .$_REQUEST['finance_curr'].'", "'.$_REQUEST['comment'].'", "'.$_REQUEST['comment_with_finservice'].'", "'.
-            $_REQUEST['comment_about_reliability'].'", "'.$_REQUEST['comment_from_finservice'].'", '.
-            (empty($_REQUEST['erdpou'])?'null':empty($_REQUEST['erdpou'])).', '.
-            (empty($_REQUEST['inn'])?'null':$_REQUEST['inn']).', '.
-            (empty($_REQUEST['certificate_number'])?"null":$_REQUEST['certificate_number']).', '.$user->id.')';
+            (empty($_REQUEST['accountnumber'])?'null':("'".$db->escape($_REQUEST['accountnumber']))."'").', "'.$_REQUEST['acount_curr'].'",
+            '.(empty($_REQUEST['mfo'])?'null':("'".$db->escape($_REQUEST['mfo']))."'").', '.$db->escape($_REQUEST['finance_service']).','.
+            (empty($_REQUEST['account_width'])?"null":"'".$_REQUEST['account_width']."'").',"'
+            .$_REQUEST['finance_curr'].'", "'.$db->escape($_REQUEST['comment']).'", "'.$_REQUEST['comment_with_finservice'].'", "'.
+            $_REQUEST['comment_about_reliability'].'", "'.$db->escape($_REQUEST['comment_from_finservice']).'", '.
+            (empty($_REQUEST['erdpou'])?'null':"'".$_REQUEST['erdpou']."'").', '.
+            (empty($_REQUEST['inn'])?'null':"'".$_REQUEST['inn']."'").', '.
+            (empty($_REQUEST['certificate_number'])?"null":"'".$db->escape($_REQUEST['certificate_number'])."'").', '.$user->id.')';
     }else{
         $sql = "update llx_societe_finance set
         socid=".$_REQUEST['socid'].",fx_soc=".$_REQUEST['fx_soc'].",
@@ -103,6 +123,7 @@ if($action == 'add') {
         certificate_number=".(empty($_REQUEST['certificate_number'])?"null":$_REQUEST['certificate_number']).",
         id_usr=".$user->id." where rowid=".$_REQUEST['rowid'];
     }
+//    llxHeader();
 //    die($sql);
     $res = $db->query($sql);
     if(!$res)
@@ -189,10 +210,14 @@ function ShowTable(){
     `comment_about_reliability`,`comment_from_finservice`,`erdpou`,`inn`,`certificate_number`
     from llx_societe_finance
     left join llx_user on llx_user.rowid = llx_societe_finance.id_usr
-    left join llx_societe on llx_societe_finance.fx_soc = llx_societe.rowid
+    left join llx_societe on llx_societe_finance.socid = llx_societe.rowid
     left join `category_counterparty` on `category_counterparty`.rowid=llx_societe.`categoryofcustomer_id`
     left join `llx_c_finance_service` on `llx_c_finance_service`.rowid=llx_societe_finance.fx_account_service
-    where socid='.$_REQUEST['socid'];
+    where llx_societe_finance.fx_soc = '.$_REQUEST['socid'];
+//    echo '<pre>';
+//    var_dump($sql);
+//    echo '</pre>';
+//    die();
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);

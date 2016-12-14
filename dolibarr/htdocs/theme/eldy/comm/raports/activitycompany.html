@@ -1,0 +1,63 @@
+<table class="WidthScroll" cellspacing="1">
+    <thead>
+    <tr class="multiple_header_table">
+        <td id="subdivision">Підрозділ</td>
+        <td id="lastname">Прізвище</td>
+        <td id="firstname">Ім'я побатькові</td>
+        <td id="phone">Телефон</td>
+        <td id="lastlogin" rowspan="2">Сьогодні</br>почали</br>роботу</td>
+        <!--<td></td>-->
+    </tr>
+    <tr class="multiple_header_table">
+        <td><?=$form->select_control($obj->$fieldlist[$field], 'fk_subdivision', 0, 'subdivision', 'name', $object, false)?></td>
+        <td id="td1">&nbsp;</td>
+        <td id="td2">&nbsp;</td>
+        <td id="td3">&nbsp;</td>
+    </tr>
+    </thead>
+    <tbody id="userlist">
+        <?=$userlist?>
+    </tbody>
+</table>
+<script>
+    $(document).ready(function(){
+        setColWidth($('#fk_subdivision').val());
+        $('#userlist').height($(window).height() - 250);
+        $('#userlist').width($('#userlist').width()+15);
+
+    })
+    $('#fk_subdivision').change(function(e){
+        var tr;
+        if($('#fk_subdivision').val() == -1)
+            $('#userlist').find('tr').show();
+        else{
+            $('#userlist').find('tr').hide();
+            $('#userlist').find('.subdiv'+$('#fk_subdivision').val()).show();
+        }
+//        console.log();
+        setColWidth($('#fk_subdivision').val());
+    })
+    function setColWidth(val){
+        var tr = $('.WidthScroll').find('tbody').find('tr:visible')[0];
+        var td = $(tr).find('td');
+        tr = $('thead').find('tr')[0];
+        var thead_td = $(tr).find('td:visible');
+        if(val == 0) {
+            $('#fk_subdivision').width(td[0].offsetWidth - 10);
+            for (var i = 1; i < td.length; i++) {
+                thead_td[i].style.minWidth = td[i].offsetWidth - 2;
+            }
+        }else{
+            for(var i=0;i<thead_td.length;i++){
+                $('._'+thead_td[i].id).css({"min-width": thead_td[i].offsetWidth-1+"px"});
+//                console.log(thead_td[i].id);
+            }
+        }
+    }
+
+</script>
+<style>
+    .WidthScroll {
+        padding-top: 0 !important;
+    }
+</style>

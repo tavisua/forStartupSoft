@@ -50,38 +50,52 @@ if(isset($_REQUEST['switch_active'])){
         echo $sql;
     //Переподключаю задачи
     if($param[2] == 1) {
-        $sql = "select id,`fk_user_author` from llx_actioncomm
-            inner join (select rowid from llx_societe where region_id = " . $id_param . ") societe on societe.rowid = llx_actioncomm.fk_soc
-            inner join (select code from `llx_c_actioncomm` where active = 1 and (type = 'system' or type = 'user'))code_t on code_t.`code` = `llx_actioncomm`.`code`
-            where 1
-            and percent <> 100";
-        $resAction = $db->query($sql);
-        $actionsID = array();
-        while($obj = $db->fetch_object($resAction)){
-            $actionsID[] = $obj->id;
-        }
-        $sql = "update `llx_actioncomm_resources`
-            set fk_element = ".$param[0]."
-            where `llx_actioncomm_resources`.`fk_actioncomm` in (".implode(",",$actionsID).")";
-//        echo '<pre>';
-//        var_dump($sql);
-//        echo '</pre>';
-//        die();
-        $res = $db->query($sql);
-        if (!$res)
-            dol_print_error($db);
-        else
-            echo ' redirect llx_actioncomm_resources';
+            RedirectTask($param[0], $id_param);
+    }
+    exit();
+}
+if($_REQUEST['action'] == 'redirectAllTask'){
+    llxHeader();
+    global $db;
+//    $sql = "select count(*) iCount from llx_actioncomm where code = 'AC_TEL' and `fk_user_author` = 0";
+//    $res = $db->query($sql);
+
+    set_time_limit(0);
+    $start = $_GET['start'];
+    if($start == 0) {
         $sql = "update llx_actioncomm
-            set `fk_user_author` = " . $param[0] . "
-            where llx_actioncomm.id in (".implode(",",$actionsID).")";
-//    var_dump($sql);
-//    die();
-        $res = $db->query($sql);
-        if (!$res)
-            dol_print_error($db);
-        else
-            echo ' redirect_task';
+            set `fk_user_author` = 0
+            where 1 and code = 'AC_TEL'";
+        $resAction = $db->query($sql);
+        $iCount = $db->affected_rows($resAction);
+        echo 'Обнулено', ($iCount), 'записей';
+    }
+    $sql = 'select fk_user, fk_id from `llx_user_regions` where 1 and active = 1 limit '.$start.',50';
+    $res = $db->query($sql);
+    $usersID = array();
+    $num = 0;
+
+    print '<tbody>';
+    while($obj = $db->fetch_object($res)){
+
+            RedirectTask($obj->fk_user, $obj->fk_id);
+//            $usersID[] = $obj->fk_user;
+        $num++;
+        print date('H:i:s').'</br>';
+//        if(count($usersID)>10)
+//        exit();
+    }
+    print '</tbody>';
+    print 'ok';
+    if($num>0) {
+        $start+=50;
+        print '<script type="application/javascript">
+
+    $(document).ready(function() {
+        console.log("'.$start.'");
+        location.href="/dolibarr/htdocs/user/areas.php?action=redirectAllTask&mainmenu=home&start='.$start.'"
+    })
+    </script>';
     }
     exit();
 }
@@ -147,18 +161,21 @@ $ColParam['class']='';
 $TableParam[]=$ColParam;
 
 $tablename='regions';
-$sql='select `'.$tablename.'`.rowid, `'.$tablename.'`.name regions_name, states.name states_name, null, `'.$tablename.'`.active
-from `'.$tablename.'` left join states on `'.$tablename.'`.`state_id` = `states`.rowid';
+//$sql='select `'.$tablename.'`.rowid, `'.$tablename.'`.name regions_name, states.name states_name, null, `'.$tablename.'`.active
+//from `'.$tablename.'` left join states on `'.$tablename.'`.`state_id` = `states`.rowid';
+$sql = 'select `regions`.rowid, `regions`.name regions_name, states.name states_name, null, case when `usr_regions`.active is null then 0 else `usr_regions`.active end active
+from `regions` 
+left join (select fk_id, active from `llx_user_regions`
+  where fk_user = '.$_GET['id'].') usr_regions on usr_regions.fk_id = `regions`.rowid
+left join states on `regions`.`state_id` = `states`.rowid';
 
 if(GETPOST('state_filter') != 0){
     $sql.= ' where state_id = '. GETPOST('state_filter');
 }
 $sql.=' order by `'.$tablename.'`.name';
 
-//echo '<pre>';
-//var_dump($sql);
-//echo '</pre>';
-//die();
+//die($sql);
+
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
 $db_mysql = new dbBuilder();
 if(!isset($_REQUEST['sortfield']))
@@ -206,25 +223,31 @@ print'
         $("#reference_body").height($("#reference_body").height()-40);
         var switchList = document.getElementsByClassName("switch");
 
-        for(var i=0; i<switchList.length; i++){
+        /*for(var i=0; i<switchList.length; i++){
             var img = switchList[i].getElementsByTagName("img");
-            $("#"+img[0].id).click(switch_change);
-        }
-        console.log(location.href);
+            $("#"+img[0].id).off("click");
+        }*/
+        var html = $("#reference_body").html().replace(/change_switch/g, "switch_change");
+        $("#reference_body").html(html);
+//        console.log(html);
     });
-    function switch_change(){
-        var end = strpos($(this).attr("src"), "/img/");
+    function switch_change(rowid, tablename, active){
+        var img = $("#img"+rowid+"active")
+        var end = strpos(img.attr("src"), "/img/");
         var check = 0;
-        if($(this).attr("src") == $(this).attr("src").substr(0, end+4)+"/switch_on.png"){
-            $(this).attr("src", $(this).attr("src").substr(0, end+4)+"/switch_off.png");
+//        alert("test");
+
+        if(img.attr("src") == img.attr("src").substr(0, end+4)+"/switch_on.png"){
+            img.attr("src", img.attr("src").substr(0, end+4)+"/switch_off.png");
         }else{
-            $(this).attr("src", $(this).attr("src").substr(0, end+4)+"/switch_on.png");
+            img.attr("src", img.attr("src").substr(0, end+4)+"/switch_on.png");
             check = 1;
         }
-//        console.log(location.href+"&switch_active='.$id.',"+$(this).attr("id")+","+check);
+
+//        console.log(img.attr("src"));
 //        return;
         $.ajax({
-            url: location.href+"&switch_active='.$id.',"+$(this).attr("id")+","+check,
+            url: location.href+"&switch_active='.$id.',"+img.attr("id")+","+check,
             cache: false,
             success: function (html) {
                 console.log(html);
@@ -239,6 +262,47 @@ print'
 </script>
 ';
 echo ob_get_clean();
+
+exit();
+
+function RedirectTask($id_usr, $region_id, $reset = false){
+    global $db;
+
+    $sql = "select id,`fk_user_author` from llx_actioncomm
+            inner join (select rowid from llx_societe where region_id = " . $region_id . ") societe on societe.rowid = llx_actioncomm.fk_soc
+            inner join (select code from `llx_c_actioncomm` where active = 1 and (type = 'system' or type = 'user'))code_t on code_t.`code` = `llx_actioncomm`.`code`
+            where 1";
+    $resAction = $db->query($sql);
+    $actionsID = array(0);
+    while($obj = $db->fetch_object($resAction)){
+        $actionsID[] = $obj->id;
+    }
+//    $sql = "update `llx_actioncomm_resources`
+//            set fk_element = ".$id_usr."
+//            where `llx_actioncomm_resources`.`fk_actioncomm` in (".implode(",",$actionsID).")";
+//
+//    $res = $db->query($sql);
+//    if (!$res)
+//        dol_print_error($db);
+//    else
+//        echo ' redirect llx_actioncomm_resources</br>';
+
+
+    $sql = "update llx_actioncomm
+            set `fk_user_author` = " . $id_usr . "
+            where llx_actioncomm.id in (".implode(",",$actionsID).")";
+
+    $res = $db->query($sql);
+//    $iCount = $db->affected_rows($res);
+    echo 'Установлено ', $db->affected_rows($res), ' записей';
+//    var_dump(mysql_affected_rows(), $sql);
+//    die();
+    if (!$res)
+        dol_print_error($db);
+//    else
+//        echo ' redirect_task';
+    unset($actionsID);
+}
 
 //llxFooter();
 

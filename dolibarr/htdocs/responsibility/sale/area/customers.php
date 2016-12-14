@@ -39,10 +39,10 @@ while($obj = $db->fetch_object($res))
     $regions[] = $obj->fk_id;
 //var_dump($region_id , $_SESSION['state_filter']);
 //die();
-$sql = "select `llx_societe`.rowid, concat(case when `formofgavernment`.`name` is null then '' else `formofgavernment`.`name` end, ' ',`llx_societe`.`nom`) nom,
-`llx_societe`.`town`, round(`llx_societe_classificator`.`value`,0) as width, `llx_societe`.`remark`, ' ' deficit,
+$sql = "select `llx_societe`.rowid, concat(`llx_societe`.`nom`, ' ',case when `formofgavernment`.`name` is null then '' else `formofgavernment`.`name` end) nom,
+`llx_societe`.`town`, round(`llx_societe_classificator`.`value`,0) as width, `llx_societe`.`remark`, rtrim(`llx_societe`.`need`) deficit,
 ' ' task,' ' lastdate, ' ' lastdatecomerc, ' ' futuredatecomerc, ' ' exec_time, ' ' lastdateservice,
-' ' futuredateservice, ' ' lastdateaccounts, ' ' futuredateaccounts, ' ' lastdatementor, ' ' futuredatementor
+' ' futuredateservice, ' ' lastdateaccounts, ' ' futuredateaccounts, ' ' lastdatementor, ' ' futuredatementor, ' ' need
 from `llx_societe` left join `category_counterparty` on `llx_societe`.`categoryofcustomer_id` = `category_counterparty`.rowid
 left join `formofgavernment` on `llx_societe`.`formofgoverment_id` = `formofgavernment`.rowid
 left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`
@@ -392,6 +392,11 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
     }
 
     $futureaction = array();
+    $user_tmp = new User($db);
+    if(!empty($_REQUEST['id_usr']))
+        $user_tmp->fetch($_REQUEST['id_usr']);
+    else
+        $user_tmp->fetch($user->id);
 //    $sql = "select `llx_societe`.rowid, llx_actioncomm.datep, `responsibility`.`alias`
 //        from `llx_societe`
 //        left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`
@@ -428,11 +433,20 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
         }
         if ($db->num_rows($res) > 0) {
             while ($row = $db->fetch_object($res)) {
-                $rowalias = array($row->alias,$row->alias2);
-                $useralias = array($user->respon_alias,$user->respon_alias2);
-                $alias = $row->alias;
-                if($alias == $user->respon_alias && !empty($user->respon_alias2)) {
-                    $alias = $user->respon_alias2;
+//                if($row->rowid == 29379){
+//                    var_dump(array_intersect_assoc(array($row->alias,$row->alias2), array($user->respon_alias,$user->respon_alias2)));
+//                    die();
+//                }
+
+                $rowalias = array_intersect(array($row->alias,$row->alias2), array($user_tmp->respon_alias,$user_tmp->respon_alias2));
+//                $useralias = array($user_tmp->respon_alias,$user_tmp->respon_alias2);
+//                if($row->rowid == 16320){
+//                    var_dump(array($row->alias,$row->alias2), array_intersect(array($row->alias,$row->alias2), array('sale')));
+//                    die();
+//                }
+                $alias = $rowalias[0];
+                if(!empty($rowalias[1])) {
+                    $alias = $rowalias[1];
                 }
                 if (!isset($futureaction[$row->rowid . $alias])) {
                     $date = new DateTime($row->datep);
@@ -442,7 +456,9 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
         }
     }
     $fields = $result->fetch_fields();
-//        var_dump($showtitle);
+//    echo '<pre>';
+//        var_dump($futureaction);
+//    echo '</pre>';
 //        die();
     if($showtitle) {
         $table = '<table class="scrolling-table" >' . "\r\n";
@@ -456,6 +472,10 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
     $num_col = 0;
     $additionparam = false;
     $colindex = 0;
+//    echo '<pre>';
+//    var_dump($title);
+//    echo '</pre>';
+//    die();
     foreach ($title as $column) {
         if (!isset($column['hidden'])) {
             if($showtitle) {
@@ -577,10 +597,6 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
 //                    $edit_form.=$this->fBuildEditForm($title[$num_col-1], $fields[$num_col], $theme, $tablename);
                     var_dump($title[$num_col-1]['title'].' '.$cell.' '.!isset($title[$num_col-1]['hidden']).'</br>');
                 if(!isset($title[$num_col-1]['hidden'])) {
-//                        echo'<pre>';
-//                        var_dump($cell);
-//                        echo'</pre>';
-
                     if ($fields[$num_col]->type == 16) {
                         if(count($readonly)==0) {
                             if ($value == '1') {
@@ -598,16 +614,39 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
                     } else {
                         if (substr($fields[$num_col]->name, 0, 2) != 's_') {
                             $full_text='';
+
+//                            if($fields[$num_col]->name == 'deficit'){
+//                                echo '<pre>';
+//                                var_dump($fields[$num_col]->name);
+//                                echo '</pre>';
+//                                die();
+//                            }
                             if(mb_strlen(trim($value))>0) {
                                 $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:' . ($col_width[$num_col - 1] + 2) . 'px;">';
-                                if(!isset($title[$num_col - 1]['substr'])||mb_strlen(trim($value), 'UTF-8')<=$title[$num_col - 1]['substr'])
-                                    $table .= trim($langs->trans($value));
-                                else {
+                                switch($fields[$num_col]->name) {
+                                    default: {
+                                        if (!isset($title[$num_col - 1]['substr']) || mb_strlen(trim($value), 'UTF-8') <= $title[$num_col - 1]['substr']) {
+                                            $table .= trim($langs->trans($value));
+//                                            echo '<pre>';
+//                                            var_dump($fields[$num_col]->name, $langs->trans($value));
+//                                            echo '</pre>';
+//                                            die();
+                                        }else {
 
-                                    $obj="'".$row['rowid'] . $fields[$num_col]->name."'";
-                                    $table .= mb_substr(trim($value), 0, $title[$num_col - 1]['substr'], 'UTF-8') . '...';
-//                                    $table .= mb_strlen(trim($value), 'UTF-8').'%%%'.trim($value);
-                                    $table .='<img id="prev' . $row['rowid'] . $fields[$num_col]->name . '" onclick="preview(' . $obj . ');" style="vertical-align: middle" title="Передивитись" src="/dolibarr/htdocs/theme/eldy/img/object-more.png">';
+                                            $obj = "'" . $row['rowid'] . $fields[$num_col]->name . "'";
+                                            $table .= mb_substr(trim($value), 0, $title[$num_col - 1]['substr'], 'UTF-8') . '...';
+                                            //                                    $table .= mb_strlen(trim($value), 'UTF-8').'%%%'.trim($value);
+                                            $table .= '<img id="prev' . $row['rowid'] . $fields[$num_col]->name . '" onclick="preview(' . $obj . ');" style="vertical-align: middle" title="Передивитись" src="/dolibarr/htdocs/theme/eldy/img/object-more.png">';
+                                        }
+                                    }break;
+                                    case 'deficit':{
+                                        $count = 15;
+                                        if(mb_strlen(trim($value), 'UTF-8')>$count) {
+                                            $table .= mb_substr($value, 0, $count, 'UTF-8') . '...';
+                                            $table .= '<td id="full' . $row['rowid'] . $fields[$num_col]->name . '" style="display: none">'.$value.'</td>';
+                                        }else
+                                            $table .= trim($value);
+                                    }break;
                                 }
                                 $table .='</td>';
                                 $full_text = trim($value);
@@ -632,7 +671,7 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
                                         $state_filter='&state_filter='.$_REQUEST['state_filter'];
                                     if(isset($_SESSION['state_filter'])&&!empty($_SESSION['state_filter']))
                                         $state_filter='&state_filter='.$_SESSION['state_filter'];
-                                    $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '"   style="width:' . ($col_width[$num_col - 1] + 2) . 'px;  text-align: center;"><a href="../' . $actionfields[$fields[$num_col]->name] . '/action.php?socid=' . $row['rowid'] . '&idmenu=10425&mainmenu=area'.$state_filter.'">' . ($full_text) . '</a> </td>';
+                                    $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '"   style="width:' . ($col_width[$num_col - 1] + 2) . 'px;  text-align: center;"><a href="../' . $actionfields[$fields[$num_col]->name] . '/action.php?socid=' . $row['rowid'] . (!empty($_GET['id_usr'])?'&id_usr='.$_GET['id_usr']:'').'&idmenu=10425&mainmenu=area'.$state_filter.'">' . ($full_text) . '</a> </td>';
                                 }else{
                                     $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '"  style="width:' . ($col_width[$num_col - 1] + 2) . 'px; text-align: center;"> </td>';
                                 }

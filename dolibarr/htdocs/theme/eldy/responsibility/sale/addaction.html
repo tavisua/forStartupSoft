@@ -1,5 +1,6 @@
 
 <script type="text/javascript" src="/dolibarr/htdocs/societe/js/jquery.maskedinput-1.2.2.js"></script>
+
 <div class="address_header">
     <?if($_GET['action']=='useraction' || $_GET['action'] == 'edituseration'){?>
     </br>
@@ -109,6 +110,8 @@
         <input type="hidden" value="<?=$_GET['proposed_id']?>" name="proposed_id">
         <input type="hidden" value="" name="complete" id="complete">
         <input id="action" name="action" type="hidden" value="">
+        <input id="subaction" name="subaction" type="hidden" value="<?=$_GET['subaction']?>">
+        <input id="assignedusers" name="assignedusers" type="hidden" value="">
         <input id="changedContactID" name="changedContactID" type="hidden" value="">
         <input type="hidden" name="typeSetOfDate" id="type" value="<?=$_REQUEST['typeSetOfDate']?>">
         <input type="hidden" name="error" id="error" value="<?=$_REQUEST['error']?>">
@@ -137,23 +140,24 @@
             </tr>
             <tr>
                 <td>
-                    &nbsp;&nbsp;&nbsp;<?echo $langs->trans('SaidImportant')?>
+                    &nbsp;&nbsp;&nbsp;<?echo $langs->trans('SaidImportant')?></br>
                     <textarea id="said_important" class="edit_text" name="said_important" maxlength="255"><?=empty($object->resultaction['said_important'])?$object->said_important:$object->resultaction['said_important']?></textarea>
                 </td>
             </tr>
             <tr>
                 <td>
-                    &nbsp;&nbsp;&nbsp;<?echo $langs->trans('ResultAction')?>
-                    <textarea id="result_of_action" class="edit_text" name="result_of_action" maxlength="255"><?=empty($object->resultaction['result_of_action'])?$object->result_of_action:$object->resultaction['result_of_action']?></textarea>
+                    &nbsp;&nbsp;&nbsp;<?echo $langs->trans('ResultAction')?></br>
+                    <textarea placeholder="Для вводу даних про наявну потребу, необхідно виділити фрагмент тексту в цьому полі, який відповідає наявній потребі і вибрати команду 'Додати потребу'" id="result_of_action" class="edit_text" name="result_of_action" maxlength="255"><?=empty($object->resultaction['result_of_action'])?$object->result_of_action:$object->resultaction['result_of_action']?></textarea>
                 </td>
             </tr>
             <tr>
                 <td>
-                    &nbsp;&nbsp;&nbsp;<?echo $langs->trans('WorkBeforeAction')?>
+                    &nbsp;&nbsp;&nbsp;<?echo $langs->trans('WorkBeforeAction')?></br>
                     <textarea id="work_before_the_next_action" class="edit_text" name="work_before_the_next_action" maxlength="255"><?=empty($object->resultaction['work_before_the_next_action'])?$object->work_before_the_next_action:$object->resultaction['work_before_the_next_action']?></textarea>
                 </td>
             </tr>
         </table>
+        <textarea id = "need" name="need" style="display: none" maxlength="255"><?=empty($object->resultaction['need'])?$object->need:$object->resultaction['need']?></textarea>
     </form>
     <script>
         $('#addaction').submit(function(e){
@@ -164,11 +168,13 @@
         });
     </script>
     <div align="center">
-        <button onclick="save();">Зберегти</button>
-        <button onclick="saveandcreate();">Зберегти та запланувати наступну дію</button>
+        <button onclick="save();" id="savebtn">Зберегти</button>
+        <button onclick="saveandcreate();" id="saveandcreatbtn">Зберегти та запланувати наступну дію</button>
         <button onclick="back();">Відмінити</button>
     </div>
 </div>
+<input id="cursor_left" style="display: none">
+<input id="cursor_top" style="display: none">
 <style>
     #datepButtonNow{
         display: none;
@@ -176,6 +182,10 @@
 </style>
 <script>
     $('#contactid').change(function(e){
+        $('#changedContactID').val($(this).val());
+//        console.log();
+    })
+    $('#assignUser').change(function(e){
         $('#changedContactID').val($(this).val());
 //        console.log();
     })
@@ -260,6 +270,32 @@
 
 <script type="text/javascript">
     $(document).ready(function(){
+        console.log($('#subaction').val());
+        switch ($('#subaction').val()){
+            case 'sendmail':{
+                $('#saveandcreatbtn').hide();
+                $('#assignUser').val(1);
+            }break;
+            case 'validate':{
+                $('#savebtn').hide();
+                var param = {
+                    action:'sendmail',
+                    type:'prepared_sendmail',
+                    id: <?=$subactionID?>
+                }
+                $.ajax({
+                    url: '/dolibarr/htdocs/core/modules/mailings/index.php',
+                    data: param,
+                    cache:false,
+                    success:function(res){
+                        console.log(res);
+                        $('#assignedusers').val(res);
+                    }
+                })
+
+            }break;
+        }
+
         $('#said').focus();
         $("#ActionList").width(800);
         $("#addaction").width(800);
@@ -272,6 +308,48 @@
             var contactid = '<input type="hidden" name="contactid" value="'+getParameterByName('id_usr')+'">'
             $('#addaction').append(contactid);
         }
+        $('#result_of_action').select(function(e){//Подія, яка відбувається при виділенні текста в результаті перемовин
+//            console.log(e.target.selectionStart, e.target.selectionEnd);
+            if(e.target.selectionEnd != e.target.selectionStart) {
+                $('#setNeed').offset({top: $('#cursor_top').val(), left: $('#cursor_left').val()});
+                $('#setNeed').show();
+            }
+//            console.log($('#cursor_left').val(), $('#cursor_top').val());
+        })
+        $('#setNeed').click(function(){
+            var need = $('#result_of_action').val().substr($('#result_of_action')[0].selectionStart, $('#result_of_action')[0].selectionEnd-$('#result_of_action')[0].selectionStart);
+            $('#need').val(need)
+            $('#setNeed').offset({top: 0, left: 0});
+            $('#setNeed').hide();
+        })
+        var usersID = '<?=$AssignedUsersID?>'.split(',');
+        usersID = $.grep(usersID,function (value) {
+            return value != '<?=$user->id?>';
+        })
+        if(usersID.length == 1) {
+            $('#assignUser').val(usersID[0]);
+            $('#changedContactID').val(usersID[0]);
+        }
+
+        $(document).mousemove(function(e){
+//            console.log($(this));
+            $('#cursor_left').val(e.pageX);
+            $('#cursor_top').val(e.pageY);
+        })
+    })
+    $(document).click(function(){
+//        console.log('1');
+//        console.log(-1, $('#result_of_action').selectionEnd, $('#result_of_action').selectionStart);
+
+        if($('#result_of_action')[0].selectionStart == $('#result_of_action')[0].selectionEnd) {
+            $('#cursor_left').val(0);
+            $('#cursor_top').val(0);
+            $('#setNeed').offset({top: 0, left: 0});
+            $('#setNeed').hide();
+
+        }
+
+//        console.log(-1, $('#result_of_action')[0].selectionStart, $('#result_of_action')[0].selectionEnd, $('#result_of_action').end() === undefined);
     })
     function back(){
         var link = $('#backtopage').val();
@@ -284,12 +362,6 @@
     }
 
     function save(){
-//        console.log($('#proposed_id').val());
-//        return;
-//        if($('#newdate').val().length>0) {
-//            console.log($('#newdate').val());
-//            confirm('Увага! Було замінено дату виконання дії, тому після зберігання результатів перемовин не буде встановлено статус "Виконано"');
-//        }
         if($('#proposed_id').val() === undefined || confirm('Зберегти інформацію?')) {
             var valid = true;
             if('sale' == '<?=$user->respon_alias?>' || 'sale' == '<?=$user->respon_alias2?>')
@@ -303,8 +375,6 @@
                 item = item.split('=');
                 param[item[0]] = item[1];
             })
-//        console.log(param);
-//        return;
             $('#socid').val(param.socid);
             $("#addaction").attr('action', '/dolibarr/htdocs/comm/action/result_action.php');
             if (param.action == 'addonlyresult')
@@ -360,10 +430,10 @@
         for(var i=0; i<text.length; i++){
             if(text[i].value.length == 0){
                 text[i].style.borderColor =  'red';
-                if(valid == true) {
+                if(valid == true && text[i].style.display != 'none') {
                     text[i].focus();
                     valid = false;
-                    console.log(text[i], text[i].value);
+                    console.log(text[i].style.display, text[i].value);
                 }
             }else{
                 text[i].style.borderColor =  'rgba(0, 0, 0, 0.3) rgba(0, 0, 0, 0.3) rgba(0, 0, 0, 0.2)';

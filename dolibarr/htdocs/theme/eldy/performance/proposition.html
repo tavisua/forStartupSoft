@@ -2,27 +2,26 @@
     <div class="inline-block tabsElem tabsElemActive">
         <a id="user" class="tabactive tab inline-block" data-role="button" href="?page=proposition"><? echo $langs->trans('PropositionStatistic')?></a>
     </div>
+
     <!--<div  class="inline-block tabsElem" id="Calculator">-->
         <!--<a href="/dolibarr/htdocs/responsibility/sale/calculator.php?idmenu=10425&mainmenu=area<?= isset($_GET['page'])?('&page='.$_GET['page'].'&per_page='.$_GET['per_page']):''?>"class="tab inline-block" data-role="button"><b><? echo $langs->trans('CallStatistic')?></b></a>-->
     <!--</div>-->
 </div>
-<table id="proposition">
-    <thead>
-        <?=$thead?>
-    </thead>
-    <tbody>
-        <?=$tbody?>
-    </tbody>
-</table>
-</br>
-</br>
-<b>Перелік посад для яких на активні пропозиції</b>
-</br>
-<table id="propositionByPost">
+<table id="proposition"  class="WidthScroll">
     <thead>
         <tr class="multiple_header_table">
-            <th  width="180px">Посада</th>
-            <th width="30px"></th>
+            <th rowspan="2" class="regions verttext">Дата</br>пропозиції.</th>
+            <th rowspan="2" class="regions verttext">Діяла</br>роб.днів</th>
+            <th rowspan="2" class="regions verttext">Вид</th>
+            <th rowspan="2" width="180px">Кому</th>
+            <th rowspan="2">Назва пропозиції</th>
+            <th id="vsogo" rowspan="2" style="max-width:80px" class="regions verttext">Всього контрагентів, шт.</th>
+            <th rowspan="2" style="max-width:80px" class="regions verttext">Кільк.,що відповідають</br>критеріям,&nbsp;шт.(%)</th>
+            <th rowspan="2" class="regions verttext">Факт.&nbsp;виконано,</br>шт.(%)</th>
+            <th colspan="30">Регіони</th>
+        </tr>
+        <tr class="multiple_header_table">
+            <?=$regions?>
         </tr>
     </thead>
     <tbody>
@@ -36,33 +35,121 @@
 </br></br>
 </br></br>
 </br>
+<style>
+    .verttext{
+        -webkit-transform: rotate(-90deg);
+        transform: rotate(-90deg);
+    }
+    .regions{
+        height: 150px;
+        max-width: 30px;
+        position: relative;
+        top: 40px;
+    }
+    #vsogo{
+        line-height: 0.7em;
+    }
+    #proposition{
+        padding-top: 0px!important;
+    }
+</style>
 <script>
     $(document).ready(function(){
         var top = 0;
         if($("div#Proposition").length>0)
             top = $("div#Proposition").offset().top;
-        var height = $(window).height() - 200;
-        if(height<500)
-            height = 550;
-//        console.log(height);
-        $("tbody#bodyProposition").height('550px');
-        $("tbody#bodyProposition").width('650px');
+        $('#loading_img').css('left', $('#proposition').width()/2-100);
+        var param={
+            action:'getPropositionStatistic'
+        }
+        $.ajax({
+            url:'/dolibarr/htdocs/comm/raports/performance.php',
+            data:param,
+            cashe:false,
+            success:function (res) {
+                var tbody = $('#proposition').find('tbody').empty().html(res);
+//                tbody.html(res);
+                $('#loading_img').remove();
+                tbody.attr('height', window.innerHeight - 420);
+                var tdlist = $('#proposition').find('tbody').find('tr')[0].getElementsByTagName('td');
+//                var tdlist = tr.getElementsByTagName('td')
+//                console.log(tdlist);
+//                return;
 
+                var thlist = $('#proposition').find('thead').find('tr')[0].getElementsByTagName('th');
+                if($.browser.chrome){
+                    var index = tdlist.length;
+
+                    $.each(tdlist, function (key, td) {
+                        if (index == key && key <= 6) {
+                            $(thlist[key]).width(td.clientWidth+5);
+                            console.log($(thlist[key]).width(), td.clientWidth);
+
+//                            $(thlist[key]).style.minWidth = td.clientWidth - 2;
+                        }
+                        else if (key > 7) {
+                            if (key == 8)
+                                $(thlist = $('#proposition').find('thead').find('tr')[1]).getElementsByTagName('th');
+                            if ($(thlist[key - 8]) !== undefined)
+                                $(thlist[key - 8]).style.minWidth = td.clientWidth - 2;
+
+                        }
+                        if (key >= 3)
+                            index--;
+                    })                    
+                }else {
+                    thlist[0].style.minWidth = 47;
+                    thlist[1].style.maxWidth = 30;
+                    thlist[2].style.maxWidth = 22;
+                    var index = 3;
+                    $.each(tdlist, function (key, td) {
+                        if (index == key && key <= 6) {
+                            console.log(thlist[key].style.maxWidth, td.clientWidth);
+                            thlist[key].style.maxWidth = td.clientWidth - 2;
+                            thlist[key].style.minWidth = td.clientWidth - 2;
+                        }
+                        else if (key > 7) {
+                            if (key == 8)
+                                thlist = $('#proposition').find('thead').find('tr')[1].getElementsByTagName('th');
+                            if (thlist[key - 8] !== undefined)
+                                thlist[key - 8].style.minWidth = td.clientWidth - 2;
+
+                        }
+                        if (key >= 3)
+                            index++;
+                    })
+                }
+//                console.log(thList[0]);
+//                console.log(thList[0].clientWidth, thList[0].clientHeight);
+
+                return;
+                var tdindex = 0;
+                for(var i = 0; i<$('#proposition').find('thead').find('th').length; i++) {
+                    if(thlist[i].getAttribute('rowspan') != null){
+                        thlist[i].setAttribute('clientWidth', tdlist[tdindex].clientWidth);
+                        console.log(thlist[i],tdlist[tdindex].clientWidth);
+                        tdindex++;
+                    }else if(thlist[i].getAttribute('colspan') != null){
+
+                    }else{
+                        thlist[i].setAttribute('width', tdlist[tdindex].innerWidth);
+                        tdindex++;
+                    }
+                }
+            }
+        })
     })
 </script>';
 <script>
-    $('div').mouseout(function(e){
-        if(e.target.parentNode.id != 'fulltitle')
-            return;
-        $('#fulltitle').remove();
-    })
-    $('th').click(function(e){
-        if(e.target.id.length == 0)
+    $(document).click(function(e){
+//        console.log($('#'+e.target.id).attr('fulltitle'));
+//        return;
+        if($('#'+e.target.id).attr('fulltitle') === undefined)
             return;
         createNewForm('popupmenu','fulltitle');
         $('#fulltitle').css('width', '350px');
         $('#fulltitle').css('height', '150px');
-        var html = '<textarea id="fulltext" style="width: 100%;height: 100%">'+$('#title_'+e.target.id).val()+'</textarea>';
+        var html = '<textarea id="fulltext" style="width: 100%;height: 100%">'+$('#title_'+e.target.id).html()+'</textarea>';
         $('#fulltitle').empty().html(html);
         $('#fulltitle').attr('rowid', $('#' + e.target.id).attr('id'))
 
@@ -73,6 +160,12 @@
         });
         $('#fulltitle').attr('TitleProposed', 1);
     })
+    $('div').mouseout(function(e){
+        if(e.target.parentNode.id != 'fulltitle')
+            return;
+        $('#fulltitle').remove();
+    })
+
     function PropositionByRegions(state_id){
         var btn = document.getElementById('btnState'+state_id);
         var tr_item = btn.parentNode.parentNode;
@@ -89,7 +182,7 @@
         if(show) {
             if ($('.state_' + state_id).length == 0) {
                 $.ajax({
-                    url:'/dolibarr/htdocs/core/performance.php?action=getRegionsStatistic&state_id='+state_id,
+                    url:'/dolibarr/htdocs/comm/raports/performance.php?action=getRegionsStatistic&state_id='+state_id,
                     cache:false,
                     success:function(html){
 
@@ -121,7 +214,7 @@
         if(show) {
             if ($('.contact_' + region_id).length == 0) {
                 $.ajax({
-                    url:'/dolibarr/htdocs/core/performance.php?action=getContactsStatistic&region_id='+region_id,
+                    url:'/dolibarr/htdocs/comm/raports/performance.php?action=getContactsStatistic&region_id='+region_id,
                     cache:false,
                     success:function(html){
 

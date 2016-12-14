@@ -5,16 +5,35 @@
 //die();
 require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
 global $user,$db;
+
 $subdivUserID = array(0);
 if(in_array('dir_depatment',array($user->respon_alias,$user->respon_alias2))){
     $sql = "select rowid from llx_user
         inner join (select subdiv_id from llx_user
         where rowid = ".$user->id.") subdiv on llx_user.subdiv_id = subdiv.subdiv_id
-        where llx_user.active = 1";
+        where llx_user.active = 1
+        and rowid <> ".$user->id;
     $res = $db->query($sql);
     while($obj = $db->fetch_object($sql)){
         $subdivUserID[]=$obj->rowid;
     }
+}
+$subaction = getSubActionType();
+if($_REQUEST['action'] == 'get_subactiontype'){
+    switch ($subaction->subaction){
+        default:{
+            $out['subaction'] = $subaction->subaction;
+            $sql = "select titre,body from llx_mailing where rowid = ".$subaction->subaction_id;
+            $mess = $db->query($sql);
+            if(!$mess)
+                dol_print_error($db);
+            $obj = $db->fetch_object($mess);
+            $out['subject'] = $obj->titre;
+            $out['body'] = '<div style="z-index: 10; position: fixed;" id="closePrevDiv"><a class="close"  onclick="ClosePreviewMail();" title="Закрити"></a></div>'.$obj->body;
+            print json_encode($out);
+        }break;
+    }
+    exit();
 }
 if($_POST['action'] == 'setMentorJob'){
     saveMentorJob();
@@ -58,21 +77,26 @@ if($actioncode == 'AC_CONVERSATION') {
 $deadline = getDeadLine();
 
 $accessMentor = ValidAsseccMentor();
-//var_dump($author_id);
+//var_dump($subaction->subaction);
 //die();
 $contactdata = getContactData($author_id);
 $date = new DateTime();
-$addSubAction='<form method="post" action="/dolibarr/htdocs/comm/action/card.php">
-                    <input type="hidden" value="'.$_SERVER['REQUEST_URI'].'" name="backtopage">
+if(empty($subaction->subaction)) {
+    $addSubAction = '<form method="post" action="/dolibarr/htdocs/comm/action/card.php">
+                    <input type="hidden" value="' . $_SERVER['REQUEST_URI'] . '" name="backtopage">
                     <input id="action" type="hidden" value="create" name="action">
-                    <input id="parent_id" type="hidden" value="'.$_GET['action_id'].'" name="parent_id">
+                    <input id="parent_id" type="hidden" value="' . $_GET['action_id'] . '" name="parent_id">
                     <input type="hidden" value="hourly_plan" name="mainmenu">
                     <input type="hidden" name="actioncode" value="AC_CURRENT">
                     <input id="id" type="hidden" value="" name="id">
                     <input id="typeaction" type="hidden" value="subaction" name="typeaction">
-                    <!--<input type="hidden" value="'.$date->format('YmdHis').'" name="datep">-->
+                    <!--<input type="hidden" value="' . $date->format('YmdHis') . '" name="datep">-->
                     <button style="width: 100%" type="submit"> Додати піддію / Запланувати контакт</button>
                </form>';
+}
+//elseif ($subaction->subaction == 'validate'){
+//
+//}
 
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/action/chain_action.html';
 //include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/eldy/responsibility/sale/action/chain_action.html';
@@ -81,6 +105,36 @@ include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/respo
 
 llxPopupMenu();
 exit();
+function getSubActionType(){
+    global $db;
+    $sql = "select subaction, subaction_id from llx_actioncomm where id = ".$_REQUEST["action_id"];
+    $res = $db->query($sql);
+    if(!$res){
+        dol_print_error($db);
+    }
+    $obj = $db->fetch_object($res);
+    return $obj;
+//    echo '<pre>';
+//    var_dump($_REQUEST);
+//    echo '</pre>';
+//    die();
+//    switch ($obj->subaction){
+//        case '':{
+//            print '';
+//        }break;
+//        default:{
+//            $out['subaction'] = $obj->subaction;
+//            $sql = "select titre,body from llx_mailing where rowid = ".$obj->subaction_id;
+//            $mess = $db->query($sql);
+//            if(!$mess)
+//                dol_print_error($db);
+//            $obj = $db->fetch_object($mess);
+//            $out['subject'] = $obj->titre;
+//            $out['body'] = '<div style="z-index: 10; position: fixed;" id="closePrevDiv"><a class="close"  onclick="ClosePreviewMail();" title="Закрити"></a></div>'.$obj->body;
+//            print json_encode($out);
+//        }break;
+//    }
+}
 function getDeadLine(){
     global $db;
     $sql = "select entity from llx_actioncomm where id = ".$_GET['action_id'];
@@ -216,16 +270,41 @@ function ShowActionTable(){
 
     global $db, $langs, $conf,$user;
     $chain_actions = array();
-    $chain_actions = GetChainActions($_GET['action_id']);
-    $sql = 'select fk_parent, datep from `llx_actioncomm` where id in ('.implode(",", $chain_actions).') and fk_parent <> 0';
-    $res = $db->query($sql);
+    $Action = new ActionComm($db);
+    $chain_actions = $Action->GetChainActions($_GET['action_id']);
 //echo '<pre>';
-//var_dump((implode(",", $chain_actions)));
+//var_dump($chain_actions);
 //echo '</pre>';
 //die();
+//
+    $AssignedUsersID = $Action->getAssignedUser($_GET['action_id'], true);
+
+    $sql = 'select fk_parent, datep, subaction from `llx_actioncomm` where id in ('.implode(",", $chain_actions).') and fk_parent <> 0';
+    $res = $db->query($sql);
+
     $nextaction = array();
+
     while($row = $db->fetch_object($res)){
         $nextaction[$row->fk_parent] = $row->datep;
+        if(empty($subaction))
+            $subaction = $row->subaction;
+    }
+    if($subaction == 'sendmail'){//Якщо дія, пов'язана з відсиланням ємейлів, видаляю з $chain_actions дії інших користувачів
+        $sql = "select `llx_actioncomm_resources`.`fk_actioncomm`, `llx_actioncomm_resources`.`fk_element`, `llx_actioncomm_resources`.`transparency` from llx_actioncomm 
+            inner join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+            where llx_actioncomm.id in(".implode(',',$chain_actions).")";
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+        while($obj = $db->fetch_object($res)){
+            if($obj->transparency == 0 && $obj->fk_element != $user->id){
+                unset($chain_actions[array_search($obj->fk_actioncomm, $chain_actions)]);
+            }
+        }
+//        echo '<pre>';
+//        var_dump($chain_actions);
+//        echo '</pre>';
+//        die();
     }
     //Завантажую результат дії
     $sql = 'select `llx_societe_action`.`action_id`, `llx_actioncomm`.percent, `llx_societe_action`.`rowid`, `llx_actioncomm`.`datep`,
@@ -238,19 +317,22 @@ function ShowActionTable(){
         left join `llx_user` create_user on case when `llx_societe_action`.id_mentor is null then `llx_societe_action`.id_usr else `llx_societe_action`.id_mentor end = create_user.rowid
         inner join `llx_actioncomm` on `llx_actioncomm`.id = `llx_societe_action`.`action_id`
         left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.id
-        left join `llx_user` on  case when `llx_societe_action`.id_mentor is not null then `llx_actioncomm_resources`.`fk_element` else `llx_actioncomm`.fk_user_author end = `llx_user`.rowid
+        left join `llx_user` on  `llx_societe_action`.contactid = `llx_user`.rowid
         inner join (select code, libelle label from `llx_c_actioncomm` where active = 1 and (type = "system" or type = "user")) TypeCode on TypeCode.code = `llx_actioncomm`.code
         where `llx_societe_action`.`action_id` in ('.implode(",", $chain_actions).')
         and `llx_societe_action`.active = 1
         order by `llx_societe_action`.dtChange desc, `llx_societe_action`.`rowid` desc;';
-//echo '<pre>';
-//var_dump($sql);
-//echo '</pre>';
-//die();
+
+//    $sql = "select * from llx_societe_action where action_id in (".implode(",", $chain_actions).") and active = 1";
+
     $res_result_action = $db->query($sql);
     $result_action = array();
     $result_actionID = array();
     while($array_item = $db->fetch_object($res_result_action)){
+//echo '<pre>';
+//var_dump($array_item);
+//echo '</pre>';
+//die();
         $result_action[]=(array)$array_item;
         if(!in_array($array_item->action_id, $result_actionID))
             $result_actionID[]=$array_item->action_id;
@@ -357,8 +439,9 @@ function ShowActionTable(){
 //        die();
 
             if(empty($row->rowid)&&!empty($row->action_id)){
+
                 $sql = "select fk_element from `llx_actioncomm_resources` where `fk_actioncomm` = ".$row->action_id;
-//                if($row->action_id == 88753) {
+
                 $resUserID = $db->query($sql);
                     if(!$resUserID)
                         dol_print_error($db);
@@ -382,14 +465,33 @@ function ShowActionTable(){
                 }
 
             }
+
             //Перевіряю наявніть результатів перемовин
             if(in_array($row->action_id, $result_actionID)){
                 foreach($result_action as $item){
+                    if(empty($item["contactUserID"])&&count($AssignedUsersID) == 2) {//Якщо в діях задіяно два користувача, але не вказано в системі кому призначено повідомлення - вибираю контактом того, хто не є автором
+                        for($i=0;$i<2;$i++){
+                            if($AssignedUsersID[$i] != $item['author_id']){
+//                                var_dump();
+//                                die();
+                                $item["contactUserID"] =  $AssignedUsersID[$i];
+                                $sql = "select lastname from llx_user where rowid = ".$AssignedUsersID[$i];
+                                $res_contact = $db->query($sql);
+                                $obj_contact = $db->fetch_object($res_contact);
+                                $item["contactname"] = $obj_contact->lastname;
+                            }
+                        }
+//                        var_dump($row);
+//                        die();
+                    }
                     if($row->action_id == $item["action_id"]) {
+
+//                        if(){
+//
+//                        }
                         $item = (object)$item;
                         $out .=CreateNewActionItem($item, $num++, true);
-//                        var_dump($item);
-//                        die();
+
                     }
                 }
             }
@@ -528,7 +630,7 @@ function CreateNewActionItem($row, $num, $result = false){
             $actioncode = "'AC_GLOBAL'";
         }
     }
-//    var_dump($row);
+//    var_dump(empty($row->id_mentor));
 //    die();
     if($row->author_id == $user->id) {
         if(empty($row->id_mentor)) {
@@ -545,8 +647,8 @@ function CreateNewActionItem($row, $num, $result = false){
             $out .= '<img id="img_1"  onclick="SetRemarkOfMentor(' . $row->action_id . ','.$row->rowid.');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('SetRemarkOfMentor') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">';
             $out .= '&nbsp;&nbsp;<img  onclick="DelAction(' . (empty($row->rowid) ? "'" . $row->action_id : "'_" . $row->rowid) . "'" . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Delete') . '" src="/dolibarr/htdocs/theme/eldy/img/delete.png">';
         }
-    }elseif(count($subdivUserID)>0&&in_array($row->contactUserID, $subdivUserID)&&$row->action_id!=0||(in_array('gen_dir', array($user->respon_alias,$user->respon_alias2)))){
-        $out .= '<img id="img_1"  onclick="SetRemarkOfMentor(' . $row->action_id . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('SetRemarkOfMentor') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">';
+    }elseif(count($subdivUserID)>0&&in_array($row->contactUserID, $subdivUserID)&&$row->action_id!=0 || (in_array('gen_dir', array($user->respon_alias,$user->respon_alias2)))){
+        $out .= '<img id="img_1"  onclick="SetRemarkOfMentor(' . $row->action_id . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('SetRemarkOfMentor') . '" src="/dolibarr/htdocs/theme/eldy/img/filenew.png">';
     }
 //    elseif($row->contactUserID== $user->id){
 //        $out .= '<img id="img_1"  onclick="EditOnlyResult(' . $row->action_id . ',' . (empty($row->rowid) ? 0 : $row->rowid) . ', ' . $actioncode . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Edit') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">';

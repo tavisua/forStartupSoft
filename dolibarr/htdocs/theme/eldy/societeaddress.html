@@ -39,7 +39,7 @@
 
     <table>
         <thead>
-            <tr class="header_table">
+            <tr class="multiple_header_table">
                 <th>Кому/куди</th>
                 <th>Вид адреси</th>
                 <th>Індекс</th>
@@ -59,7 +59,7 @@
                 <th>&nbsp;</th>
                 <th><?echo $langs->trans('WorkerCount')?></th>
                 <th>&nbsp;</th>
-                <th><?echo $langs->trans('SendPost')?></th>
+                <th>Відправляти пошту</th>
                 <!--<th><?echo $langs->trans('SendEmail')?></th>-->
                 <th><?echo $langs->trans('Active')?></th>
             </tr>
@@ -77,10 +77,14 @@
                 width: 1250px;
             }
         </style>
+<input type="hidden" id="user_id" value="<?=$user->id;?>">
 <script type="text/javascript">
     $(document).ready(function(){
-        var tbody = document.getElementById('reference_body');
-        var trList = tbody.getElementsByTagName('tr');
+//        var tbody = document.getElementById('reference_body');
+        var tbody = document.getElementsByTagName('tbody')
+//        $('#'+tbody.id).attr('id','');
+//        console.log(tbody);
+        var trList = tbody[3].getElementsByTagName('tr');
         for(var index = 0; index<trList.length; index++){
             var tdList = trList[index].getElementsByTagName('td');
             for(var tdIndex = 0; tdIndex<tdList.length; tdIndex++){

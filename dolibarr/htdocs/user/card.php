@@ -30,8 +30,8 @@
  */
 
 require '../main.inc.php';
-if (! $user->rights->user->user->creer) accessforbidden();
 
+if (! $user->rights->user->user->creer) accessforbidden();
 require_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
 require_once DOL_DOCUMENT_ROOT.'/user/class/usergroup.class.php';
 require_once DOL_DOCUMENT_ROOT.'/contact/class/contact.class.php';
@@ -124,6 +124,7 @@ if ($action == 'confirm_disable' && $confirm == "yes" && $candisableuser)
         exit;
     }
 }
+
 if ($action == 'confirm_enable' && $confirm == "yes" && $candisableuser)
 {
 	$error = 0;
@@ -1103,10 +1104,7 @@ else
     if ($id > 0)
     {
         $object->fetch($id);
-//	echo '<pre>';
-//	var_dump($object);
-//	echo '</pre>';
-//	die('111');
+
         if ($res < 0) { dol_print_error($db,$object->error); exit; }
         $res=$object->fetch_optionals($object->id,$extralabels);
 
@@ -1154,7 +1152,11 @@ else
                 }
             }
         }
-
+        $object->getrights();
+//        echo '<pre>';
+//        var_dump($object->rights->user->user);
+//        echo '</pre>';
+//        die('111');
         // Show tabs
         $head = user_prepare_head($object);
 //        echo '<pre>';

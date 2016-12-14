@@ -3,7 +3,18 @@ require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/core/modules/societe/modules_societe.class.php';
 require_once DOL_DOCUMENT_ROOT.'/societe/societecontact_class.php';
 
-
+global $user,$db;
+$subdivUserID = array(0);
+if(in_array('dir_depatment',array($user->respon_alias,$user->respon_alias2))){
+    $sql = "select rowid from llx_user
+        inner join (select subdiv_id from llx_user
+        where rowid = ".$user->id.") subdiv on llx_user.subdiv_id = subdiv.subdiv_id
+        where llx_user.active = 1";
+    $res = $db->query($sql);
+    while($obj = $db->fetch_object($sql)){
+        $subdivUserID[]=$obj->rowid;
+    }
+}
 
 if(isset($_REQUEST['action'])||isset($_POST['action'])){
     if($_REQUEST['action'] == 'loadcontactlist'){
@@ -511,7 +522,18 @@ function showCallStatus(){
     return $out;
 }
 function ShowActionTable(){
-    global $db, $langs, $conf;
+    global $db, $langs, $conf,$subdivUserID,$user;
+    $sql = "select `region_id` from `llx_societe` where rowid = ".$_REQUEST['socid'];
+    $res_region = $db->query($sql);
+    $region_id = $db->fetch_object($res_region);
+    $sql = "select fk_id from `llx_user_regions` where fk_user = ".$user->id." and active = 1";
+    $res_user_regions = $db->query($sql);
+    $user_regions = array(0);
+    while($reg_id = $db->fetch_object($res_user_regions)){
+        $user_regions[] = $reg_id->fk_id;
+    }
+//    var_dump($user_regions);
+//    die($region_id->region_id);
     $sql = 'select fk_parent, datep from `llx_actioncomm` where fk_soc = '.(empty($_REQUEST['socid'])?0:$_REQUEST['socid']).' and fk_parent <> 0';
     $res = $db->query($sql);
     $nextaction = array();
@@ -522,7 +544,8 @@ function ShowActionTable(){
         concat(case when `llx_societe_contact`.lastname is null then '' else `llx_societe_contact`.lastname end,  ' ',
         case when `llx_societe_contact`.firstname is null then '' else `llx_societe_contact`.firstname end) as contactname,
         TypeCode.code kindaction, `llx_societe_action`.`said`, `llx_societe_action`.`answer`,`llx_societe_action`.`argument`,
-        `llx_societe_action`.`said_important`, `llx_societe_action`.`result_of_action`, `llx_societe_action`.`work_before_the_next_action`,`llx_actioncomm`.fk_contact
+        `llx_societe_action`.`said_important`, `llx_societe_action`.`result_of_action`, `llx_societe_action`.`work_before_the_next_action`,`llx_actioncomm`.fk_contact,
+        `llx_actioncomm`.fk_user_author author_id, `llx_societe_action`.work_before_the_next_action_mentor work_mentor, `llx_societe_action`.dtMentorChange date_mentor,`llx_societe_action`.id_usr
         from `llx_actioncomm`
         inner join (select code, libelle label from `llx_c_actioncomm` where active = 1 and (type = 'system' or type = 'user')) TypeCode on TypeCode.code = `llx_actioncomm`.code
         left join `llx_societe_contact` on `llx_societe_contact`.rowid=`llx_actioncomm`.fk_contact
@@ -533,7 +556,8 @@ function ShowActionTable(){
         select '', concat('_',`llx_societe_action`.`rowid`) rowid, `llx_societe_action`.`rowid`, `llx_societe_action`.dtChange datep, `llx_societe_action`.dtChange as `datec`, `llx_user`.lastname,
         concat(case when `llx_societe_contact`.lastname is null then '' else `llx_societe_contact`.lastname end, ' ',
         case when `llx_societe_contact`.firstname is null then '' else `llx_societe_contact`.firstname end) as contactname, null, `llx_societe_action`.`said`, `llx_societe_action`.`answer`,`llx_societe_action`.`argument`,
-        `llx_societe_action`.`said_important`, `llx_societe_action`.`result_of_action`, `llx_societe_action`.`work_before_the_next_action`,`llx_societe_action`.`contactid`
+        `llx_societe_action`.`said_important`, `llx_societe_action`.`result_of_action`, `llx_societe_action`.`work_before_the_next_action`,`llx_societe_action`.`contactid`,
+        `llx_societe_action`.id_usr author_id, `llx_societe_action`.work_before_the_next_action_mentor work_mentor, `llx_societe_action`.dtMentorChange date_mentor,`llx_societe_action`.id_usr
         from `llx_societe_action`
         left join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.rowid
         left join `llx_societe_contact` on `llx_societe_contact`.rowid=`llx_societe_action`.`contactid`
@@ -579,6 +603,17 @@ function ShowActionTable(){
 
 //    var_dump($contactname);
 //    die();
+    $mentor = false;
+    if(!empty($_REQUEST['id_usr'])) {
+        $subdivIDs = $user->getmentors($user->id);
+        $sql = "select subdiv_id from llx_user where rowid = ".$_REQUEST['id_usr'].' and active = 1';
+        $resSubdiv = $db->query($sql);
+        if(!$resSubdiv)
+            dol_print_error($db);
+        $obj = $db->fetch_object($resSubdiv);
+        $mentor = in_array($obj->subdiv_id, $subdivIDs);
+    }
+
     while($row = $db->fetch_object($res)){
         if(empty($_REQUEST['contactID']) || $_REQUEST['contactID'] == $row->fk_contact) {
             $dtChange = new DateTime($row->datec);
@@ -652,16 +687,33 @@ function ShowActionTable(){
             <td rowid="' . $row->rowid . '" id = "' . $row->rowid . 'work_before_the_next_action" style="width: 80px" class="middle_size">' . (strlen($row->work_before_the_next_action) > 20 ? mb_substr($row->work_before_the_next_action, 0, 20, 'UTF-8') . '...' .
                     '<input id="_' . $row->rowid . 'work_before_the_next_action" type="hidden" value="' . $row->work_before_the_next_action . '">' : $row->work_before_the_next_action) . '</td>
             <td rowid="' . $row->rowid . '" id = "' . $row->rowid . 'date_next_action" style="width: 80px" class="middle_size">' . (empty($row->date_next_action) ? '' : $dtNextAction->format('d.m.y H:i:s')) . '</td>
-            <td rowid="' . $row->rowid . '" id = "' . $row->rowid . 'work_before_the_next_action_mentor" style="width: 80px" class="middle_size">' . (strlen($row->work_mentor) > 20 ? mb_substr($row->work_mentor, 0, 20, 'UTF-8') . '...' .
+            <td rowid="' . $row->rowid . '" id = "' . $row->rowid . 'work_before_the_next_action_mentor" style="width: 80px" class="middle_size mentor">' . (strlen($row->work_mentor) > 20 ? mb_substr($row->work_mentor, 0, 20, 'UTF-8') . '...' .
                     '<input id="_' . $row->rowid . 'work_before_the_next_action_mentor" type="hidden" value="' . $row->work_mentor . '">' : $row->work_mentor) . '</td>
-            <td rowid="' . $row->rowid . '" id = "' . $row->rowid . 'date_next_action_mentor" style="width: 80px" class="middle_size">' . (empty($row->date_mentor) ? '' : $dtDateMentor->format('d.m.y H:i:s')) . '</td>
+            <td rowid="' . $row->rowid . '" id = "' . $row->rowid . 'date_next_action_mentor" style="width: 80px" class="middle_size mentor">' . (empty($row->date_mentor) ? '' : $dtDateMentor->format('d.m.y')) . '</td>
             <td rowid="' . $row->rowid . '" id = "' . $row->rowid . 'action" style="width: 35px" class="middle_size"><script>
                  var click_event = "/dolibarr/htdocs/societe/addcontact.php?action=edit&mainmenu=companies&rowid=1";
                 </script>';
 //        $out.='<img onclick="" style="vertical-align: middle" title="'.$langs->trans('AddSubAction').'" src="/dolibarr/htdocs/theme/eldy/img/Add.png">';
-            $out .= '<img onclick="EditAction(' . (substr($row->rowid, 0, 1) == '_' ? "'" . $row->rowid . "'" : $row->rowid) . ', ' . (empty($row->answer_id) ? '0' : $row->answer_id) . ', ' . "'" . (empty($row->kindaction) ? 'AC_TEL' : $row->kindaction) . "'" . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Edit') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">
-                <img onclick="DelAction(' . (substr($row->rowid, 0, 1) == '_' ? "'" . $row->rowid . "'" : $row->rowid) . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('delete') . '" src="/dolibarr/htdocs/theme/eldy/img/delete.png">
-            </td>
+//            echo '<pre>';
+//            var_dump($row->author_id!=$user->id,!in_array($region_id->region_id, $user_regions),$row->rowid!=0,(in_array('gen_dir', array($user->respon_alias,$user->respon_alias2))));
+//            echo '</pre>';
+//            die();
+//            echo '<pre>';
+//            var_dump($user->rights->user);
+//            echo '</pre>';
+//            die();
+            if($user->rights->user->user->mentor && $mentor ||(in_array('gen_dir', array($user->respon_alias,$user->respon_alias2)))){
+                if(empty($row->date_mentor))
+                    $out .= '<img id="img_1"  onclick="SetRemarkOfMentor(' . $row->rowid . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('SetRemarkOfMentor') . '" src="/dolibarr/htdocs/theme/eldy/img/filenew.png">';
+                else
+                    $out .= '<img onclick="EditMentorRemark(' . (substr($row->rowid, 0, 1) == '_' ? "'" . $row->rowid . "'" : $row->rowid) . ', ' . (empty($row->answer_id) ? '0' : $row->answer_id) . ', ' . "'" . (empty($row->kindaction) ? 'AC_TEL' : $row->kindaction) . "'" . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('edit_mentor') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">
+                    <img onclick="DelMentorRemark(' . (substr($row->rowid, 0, 1) == '_' ? "'" . $row->rowid . "'" : $row->rowid) . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('delete_mentor') . '" src="/dolibarr/htdocs/theme/eldy/img/delete.png">';
+
+            }else {
+                $out .= '<img onclick="EditAction(' . (substr($row->rowid, 0, 1) == '_' ? "'" . $row->rowid . "'" : $row->rowid) . ', ' . (empty($row->answer_id) ? '0' : $row->answer_id) . ', ' . "'" . (empty($row->kindaction) ? 'AC_TEL' : $row->kindaction) . "'" . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Edit') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">
+                <img onclick="DelAction(' . (substr($row->rowid, 0, 1) == '_' ? "'" . $row->rowid . "'" : $row->rowid) . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('delete') . '" src="/dolibarr/htdocs/theme/eldy/img/delete.png">';
+            }
+            $out .= '</td>
             </tr>';
         }
     }

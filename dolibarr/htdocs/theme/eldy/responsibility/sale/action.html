@@ -36,6 +36,7 @@
         <button id="addcontact" type="submit">    Додати контакт    </button>
     </form>
     <button id="showhide_contactlist" onclick="ShowHideContactList($('#showhide_contactlist'));">    Скрити контакти    </button>
+    <button id="showcontragentcard" onclick="ShowContragentCard($('#showcontragentcard'));" style="position: relative;">    Картка контрагента    </button>
     <table id="contactlist">
         <thead>
         <tr class="header_table">
@@ -143,6 +144,19 @@
 </style>
 <input type="hidden" id="starttimer" value="">
 <script>
+    function ShowContragentCard(elem) {
+        var search = location.search.substr(1).split('&');
+        $.each(search, function (key, value){
+            var pos = strpos(value, '=');
+            if(value.substr(0,pos) == 'socid'){
+                window.open('/dolibarr/htdocs/societe/soc.php?mainmenu=area&idmenu=10425&action=edit&socid='+value.substr(pos+1));
+            }
+            console.log(value.substr(0,pos), value.substr(pos+1));
+        })
+
+        return;
+        location.href='/dolibarr/htdocs/societe/soc.php?mainmenu=area&idmenu=10425&action=edit&socid=';
+    }
     function UpdateForm(){
         location.reload();
     }
@@ -192,6 +206,8 @@
         var top =
         $('#showhide_contactlist').offset({top:$('#addcontact').offset().top, left:$('#addcontact').offset().left+$('#addcontact').width()+15});
         $('#contactlist').offset({top:$('#contactlist').offset().top-20});
+        $('#showcontragentcard').offset({top:$('#showhide_contactlist').offset().top, left:$('#showhide_contactlist').offset().left+$('#showhide_contactlist').width()+15});
+
         var tr = document.getElementById('actions_table').getElementsByTagName('tr');
         for(var i = 0; i<tr.length; i++) {
             var td = tr[i].getElementsByTagName('td');

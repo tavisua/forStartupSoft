@@ -148,8 +148,6 @@ class dbBuilder{
     }
     public function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $sortorder='', $readonly = array(), $showtitle=true){
         global $user, $conf, $langs,$db;
-
-
         if(empty($sortorder))
             $result = $this->mysqli->query($sql);
         else{
@@ -330,7 +328,10 @@ class dbBuilder{
 //                echo'<pre>';
 //                var_dump($title["substr"]);
 //                echo'</pre>';
-
+//                echo '<pre>';
+//                var_dump($fields);
+//                echo '</pre>';
+//                die();
                 $col_name = "'".$fields[$num_col]->name."'";
                 if($cell != 'rowid') {
                     if(!$create_edit_form && count($readonly)==0)//Формирую форму для редактирования
@@ -344,21 +345,30 @@ class dbBuilder{
 //                            $width = ($title[$num_col-1]['width'])!=''?($title[$num_col-1]['width'].'px'):('auto');
 //                        else
 //                            $width = ($title[$num_col-1]['width'])!=''?($title[$num_col-1]['width']+(($num_col-1)).'px'):('auto');
+//                        if($row['rowid'] == 10) {
+//                            var_dump($row);
+//                            die();
+//                        }
 
-                        if ($fields[$num_col]->type == 16) {
-                            if(count($readonly)==0) {
+//                        if (in_array($fields[$num_col]->type, array(16,8,3))) {
+                        if ($fields[$num_col]->max_length == 1) {
+//                            if($row['rowid'] == 8){
+//                                var_dump($readonly);
+//                                die();
+//                            }
+//                            if(count($readonly)==0) {
                                 if ($value == '1') {
                                     $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:'.($col_width[$num_col-1]+2).'px" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');" > </td>';
                                 } else {
                                     $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:'.($col_width[$num_col-1]+2).'px" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_off.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');"> </td>';
                                 }
-                            }else{
-                                if(in_array($row['rowid'], $readonly)){
-                                    $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:'.($col_width[$num_col-1]+2).'px"><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png"> </td>';
-                                }else{
-                                    $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:'.($col_width[$num_col-1]+2).'px"><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_off.png"> </td>';
-                                }
-                            }
+//                            }else{
+//                                if(in_array($row['rowid'], $readonly)){
+//                                    $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:'.($col_width[$num_col-1]+2).'px"><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png"> </td>';
+//                                }else{
+//                                    $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:'.($col_width[$num_col-1]+2).'px"><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_off.png"> </td>';
+//                                }
+//                            }
                         } elseif (!empty($title[$num_col - 1]['action'])) {
                             $link = "'" . $title[$num_col - 1]["action"] . '&' . $title[$num_col - 1]["param"] . '=' . $row['rowid'] . "'";
                             $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . $title[$num_col - 1]["icon_src"] . '" onclick="goto_link(' . $link . ');" > </td>';

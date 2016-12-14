@@ -238,7 +238,7 @@ $tabsql[38]= "select rowid, name, active  from ".MAIN_DB_PREFIX."c_lineactive_cu
 $tabsql[39]= "select llx_c_proposition.rowid, `llx_c_proposition`.`prioritet`,`llx_c_proposition`.`square`, `llx_c_proposition`.`begin`,`llx_c_proposition`.`end`,`llx_c_proposition`.`text` proposition, `llx_c_proposition`.`description`, `llx_c_proposition`.`active`, 'test' as tests, 'products' as products, 'properties' as properties
 	from `llx_c_proposition`
 	left join `llx_c_lineactive_customer` on `llx_c_lineactive_customer`.rowid = `llx_c_proposition`.`fk_lineactive`
-	left join `llx_post` on `llx_post`.`rowid` = `llx_c_proposition`.`fk_post` where 1 #`llx_c_proposition`.`active` = 1";
+	left join `llx_post` on `llx_post`.`rowid` = `llx_c_proposition`.`fk_post` where 1 ";
 $tabsql[40]= "select rowid, issues, active  from ".MAIN_DB_PREFIX."c_groupoforgissues where 1 and active = 1";
 $tabsql[41]= "select `llx_c_actiontoaddress`.`rowid`,  `llx_c_groupoforgissues`.`issues` fk_groupissues, case when `llx_c_actiontoaddress`.`fk_subdivision` = -1 then 'Всі підрозділи' else `subdivision`.`name` end fk_subdivision, `llx_c_actiontoaddress`.`action`,
 	`llx_c_actiontoaddress`.`responsible`,`llx_c_actiontoaddress`.`directly_responsible`
@@ -291,7 +291,7 @@ $tabsqlsort[35]=MAIN_DB_PREFIX."c_tare.rowid ASC";
 $tabsqlsort[36]="rowid ASC";
 $tabsqlsort[37]="rowid ASC";
 $tabsqlsort[38]="name ASC";
-$tabsqlsort[39]="rowid ASC";
+$tabsqlsort[39]="`llx_c_proposition`.`active` desc";
 $tabsqlsort[40]="rowid ASC";
 $tabsqlsort[41]="rowid ASC";
 $tabsqlsort[42]="rowid ASC";
@@ -738,7 +738,7 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
 //            var_dump(($value == 'Trademark'&&!isset($_POST['Trademark'])));
 //            die();
 //        }
-        if ($id == 30 && ($value == 'LineActive' ||$value == 'Model' || $value == 'Description'||($value == 'Trademark'&&!isset($_POST['Trademark']))))continue;
+        if ($id == 30 && ($value == 'LineActive' ||$value == 'Model' || $value == 'basic_param'|| $value == 'productivity'|| $value == 'Description'||($value == 'Trademark'&&!isset($_POST['Trademark']))))continue;
 		if ($id == 34 && ($value == 'responsibility'))continue;
         if ($id == 35 && ($value == 'ed_name'))continue;
         if ( in_array($id, array(39,46)) && ($value == 'LineActiveCustomer'|| $value == 'prioritet'|| $value == 'square' || $value == 'postname'|| $value == 'end'|| $value == 'proposition' ||$value == 'description' || $value == 'tests' || $value == 'products'|| $value == 'properties')){
@@ -746,11 +746,12 @@ if (GETPOST('actionadd') || GETPOST('actionmodify'))
 //                unset($_POST['end']);
             continue;
         }
-//        if ($id == 46 && ($value == 'properties')){
-////            if($value == 'end')
-////                unset($_POST['end']);
-//            continue;
-//        }
+        if ($id == 46 && ($value == 'properties')){
+//            if($value == 'end')
+//                unset($_POST['end']);
+            continue;
+        }
+
         if ($id == 41 && ($value == 'fk_groupissues' || $value == 'fk_subdivision'))continue;
 
         if ((! isset($_POST[$value]) || $_POST[$value]=='')
@@ -1180,8 +1181,10 @@ if ($id)
     $sql.=$tabsqlsort[$id];
 
     $sql.=$db->plimit($listlimit+1,$offset);
-    //print $sql;
-//    die($sql);
+//    echo '<pre>';
+//    echo $sql;
+//    echo '</pre>';
+//    die();
 
     $fieldlist=explode(',',$tabfield[$id]);
 //var_dump($fieldlist);

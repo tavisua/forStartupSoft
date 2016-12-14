@@ -39,10 +39,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/class/menubase.class.php';
 function print_auguria_menu($db,$atarget,$type_user,&$tabMenu,&$menu,$noout=0)
 {
 	global $user,$conf,$langs,$dolibarr_main_db_name;
-//    echo '<pre>';
-//    var_dump($_REQUEST["state_filter"]);
-//    echo '</pre>';
-//    die();
+
 	$mainmenu=$_SESSION["mainmenu"];
 
 	$leftmenu=$_SESSION["leftmenu"];
@@ -53,6 +50,8 @@ function print_auguria_menu($db,$atarget,$type_user,&$tabMenu,&$menu,$noout=0)
 	// Show personalized menus
 	$menuArbo = new Menubase($db,'auguria');
 	$newTabMenu = $menuArbo->menuTopCharger('', '', $type_user, 'auguria',$tabMenu);
+
+
 //	echo '<pre>';
 //	var_dump($user->rights->societe);
 //	echo '</pre>';
@@ -72,10 +71,7 @@ function print_auguria_menu($db,$atarget,$type_user,&$tabMenu,&$menu,$noout=0)
             }
         }
     }
-//	echo '<pre>';
-//	var_dump($newTabMenu);
-//	echo '</pre>';
-//	die();
+
 	if (empty($noout)) print_start_menu_array_auguria();
 
 

@@ -594,6 +594,8 @@ class Societe extends CommonObject
         return $obj->name;
     }
     function setLineactive(){
+        if(empty($this->lineactive))
+            return;
         global $user;
 //        echo '<pre>';
 //        var_dump(empty($this->lineactive));

@@ -29,7 +29,7 @@
                     <?=$addSubAction?>
                 </td>
             <?}else{?>
-                <td style="font-size: small;"><button  style="width: 100%" onclick="AddResult();">Додати результат дії</button>
+                <td style="font-size: small;"><button  style="width: 100%" onclick="AddResult(<?="'".$subaction->subaction."'"?>);">Додати результат дії</button>
                 </br></br>
                     <?=$addSubAction?>
                 </td>
@@ -63,7 +63,6 @@
             <td style="height: 100px; font-size: small"><?=$description?></td>
             <?if(!empty($author_id) && $user->id == $author_id){?>
                 <td style="font-size: small;">
-
                 <button  style="width: 100%" onclick="AddResult();">Додати результат перемовин</button>
                 <button  style="width: 100%" onclick="DelAction(getParameterByName('action_id'));">Видалити дію</button>
 
@@ -127,6 +126,50 @@
     }
 </style>
 <script>
+    $(document).ready(function (e) {
+        var param = {
+            action: 'get_subactiontype',
+            action_id:'<?=$_REQUEST['action_id']?>'
+        }
+        $.ajax({
+            data:param,
+            cache:false,
+            type:'post',
+            success: function (json) {
+                if(json.length == 0)
+                    return;
+//                {
+//                    alert('Оновіть будь ласка сторінку');
+//                    return;
+//                }
+
+                var res = $.parseJSON(json);
+
+                switch (res['subaction']) {
+                    default:
+                    {
+                        createNewForm('popupmenu', 'previewmail');
+                        $('#previewmail').empty().html(res['body']);
+                        $('#previewmail').css('top', '150px');
+                        $('#previewmail').css('left', 'center');
+                        $('#previewmail').css('width', 'auto');
+                        $('#previewmail').css('height', 'auto');
+                        $('#previewmail').css('background', 'white');
+                        $('#previewmail').css('overflow-y', 'auto');
+                        $('#previewmail').css('max-width', $(window).width()*.7);
+                        $('#previewmail').css('max-height', $(window).height()*.7);
+                        $('#previewmail').show();
+//                        console.log($('#previewmail').width());
+                        $('#closePrevDiv').width($('#previewmail').width());
+                    }break;
+                }
+            }
+            
+        })
+    })
+    function ClosePreviewMail() {
+        $('#previewmail').remove();
+    }
     function DelAction(rowid){
         if(confirm('Видалити дію?')) {
             var link = '/dolibarr/htdocs/comm/action/card.php?action=delete_action&rowid=' + rowid;
@@ -318,11 +361,12 @@
 //            $('#' + field).remove();
         }
     }
-    function AddResult(){
+    function AddResult(subaction){
         $.ajax({
             url:'/dolibarr/htdocs/comm/action/card.php?action=getActionStatus&action_id='+getParameterByName('action_id'),
             cashe:false,
             success:function(result) {
+                console.log(result);
                 if (result == '100') {
                     alert('Вже встановлено статус дії "Прийнято"');
                     return;
@@ -339,7 +383,7 @@
                     actioncode='AC_GLOBAL';
                 else if(mainmenu == 'current_task')
                     actioncode='AC_CURRENT';
-                location.href = link+'?action=addonlyresult&backtopage='+backtopage+'&actioncode='+actioncode+'&action_id='+getParameterByName('action_id')+'&onlyresult=1';
+                location.href = link+'?action=addonlyresult&backtopage='+backtopage+'&actioncode='+actioncode+'&action_id='+getParameterByName('action_id')+'&onlyresult=1'+(subaction !== undefined && subaction.length == 0?'':'&subaction='+subaction);
             }
         })
     }

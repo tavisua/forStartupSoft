@@ -11,7 +11,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
 
 $action = $_REQUEST['action'];
 //echo '<pre>';
-//var_dump($_REQUEST);
+//var_dump($action);
 //echo '</pre>';
 //die();
 $proposedPoducts = new proposedProducts($db);
@@ -19,7 +19,9 @@ $form = new Form($db);
 if($action == 'create') {
     $title = $langs->trans('AddProposedProduct');
     llxHeader("", $title, "");
-    print_fiche_titre($title);
+
+    $linkback='<a href="'.$_SERVER["HTTP_REFERER"].'">Повернутись до порозицій</a>';
+    print_fiche_titre($titre,$linkback,'');
     $action = 'add';
     $grouparray = array();
     include DOL_DOCUMENT_ROOT . '/theme/eldy/admin/addProposedProducts.html';
@@ -38,7 +40,8 @@ if($action == 'create') {
     $grouparray = array($proposedPoducts->fx_category);
     $title = $langs->trans('EditProposedProduct');
     llxHeader("", $title, "");
-    print_fiche_titre($title);
+    $linkback='<a href="'.$_SERVER["HTTP_REFERER"].'">Повернутись до порозицій</a>';
+    print_fiche_titre($titre,$linkback,'');
     $action = 'update';
     include DOL_DOCUMENT_ROOT . '/theme/eldy/admin/addProposedProducts.html';
     exit();
@@ -99,7 +102,9 @@ if($action == 'create') {
 
 $title = $langs->trans('ProposedProducts');
 llxHeader("",$title,"");
-print_fiche_titre($title);
+//print_fiche_titre($title);
+$linkback='<a href="'.$_SERVER["HTTP_REFERER"].'">Повернутись до порозицій</a>';
+print_fiche_titre($titre,$linkback,'');
 
 $proposed = $proposedPoducts->fetch($_REQUEST['proposed_id']);
 $begin = new DateTime($proposed->begin);

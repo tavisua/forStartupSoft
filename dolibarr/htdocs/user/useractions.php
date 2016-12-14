@@ -120,9 +120,13 @@ function getActions(){
         left join `llx_c_actioncomm` on `llx_c_actioncomm`.`code` = `llx_actioncomm`.`code`
         where (`fk_user_author` = ".$user->id." and  `llx_actioncomm_resources`.`fk_element` = ".(empty($_GET['id_usr'])?"0":$_GET['id_usr'])."
         or `fk_user_author` = ".(empty($_GET['id_usr'])?"0":$_GET['id_usr'])." and `llx_actioncomm_resources`.`fk_element` = ".$user->id.")
-        and `llx_actioncomm`.`code` in (select `code` from `llx_c_actioncomm` where type in ('user', 'system'))
-        and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`
-        and `llx_actioncomm`.`active` = 1
+        and `llx_actioncomm`.`code` in (select `code` from `llx_c_actioncomm` where type in ('user', 'system'))";
+//    if($user->id != $_GET['id_usr'])
+//        $sql .= " and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`";
+//    else
+//        $sql .= " and `llx_actioncomm`.`fk_user_author`=`llx_actioncomm_resources`.`fk_element`";
+
+    $sql .= " and `llx_actioncomm`.`active` = 1
         union
         select concat('_', `llx_users_action`.`rowid`) as id, '', '', '', '', '', '', `llx_user`.rowid as id_usr, `llx_user`.`lastname`, 'Перемовини', 'AC_CONVERSATION',
         `llx_users_action`.`dtChange`, 100,

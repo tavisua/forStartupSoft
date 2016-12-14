@@ -5,11 +5,12 @@
  * Date: 15.11.2015
  * Time: 16:03
  */
-require '../main.inc.php';
+require_once $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/contact/class/contact.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
+global $db,$conf,$langs;
 
 $socid = GETPOST('socid', 'int');
 if(empty($socid))
@@ -100,13 +101,13 @@ unset($ColParam['sourcetable']);
 unset($ColParam['detailfield']);
 
 $ColParam['title']=$langs->trans('Zip');
-$ColParam['width']='200';
+//$ColParam['width']='200';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
 $ColParam['title']=$langs->trans('Country');
-$ColParam['width']='200';
+//$ColParam['width']='200';
 $ColParam['align']='';
 $ColParam['class']='';
 $ColParam['sourcetable']='countries';
@@ -114,7 +115,7 @@ $ColParam['detailfield']='country_id';
 $TableParam[]=$ColParam;
 
 $ColParam['title']=$langs->trans('Region');
-$ColParam['width']='200';
+//$ColParam['width']='200';
 $ColParam['align']='';
 $ColParam['class']='';
 $ColParam['sourcetable']='states';
@@ -122,7 +123,7 @@ $ColParam['detailfield']='state_id';
 $TableParam[]=$ColParam;
 
 $ColParam['title']=$langs->trans('Area');
-$ColParam['width']='200';
+//$ColParam['width']='200';
 $ColParam['align']='';
 $ColParam['class']='';
 $ColParam['sourcetable']='regions';
@@ -130,7 +131,7 @@ $ColParam['detailfield']='region_id';
 $TableParam[]=$ColParam;
 
 $ColParam['title']=$langs->trans('KindOfLocality');
-$ColParam['width']='200';
+//$ColParam['width']='200';
 $ColParam['align']='';
 $ColParam['class']='';
 $ColParam['sourcetable']='kindlocality';
@@ -141,13 +142,13 @@ unset($ColParam['sourcetable']);
 unset($ColParam['detailfield']);
 
 $ColParam['title']=$langs->trans('Location');
-$ColParam['width']='200';
+//$ColParam['width']='200';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
 $ColParam['title']=$langs->trans('KindOfStreet');
-$ColParam['width']='200';
+//$ColParam['width']='200';
 $ColParam['align']='';
 $ColParam['class']='';
 $ColParam['sourcetable']='kindstreet';
@@ -158,19 +159,19 @@ unset($ColParam['sourcetable']);
 unset($ColParam['detailfield']);
 
 $ColParam['title']=$langs->trans('Street');
-$ColParam['width']='200';
+//$ColParam['width']='200';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
 $ColParam['title']=$langs->trans('NumberOfHouse');
-$ColParam['width']='200';
+//$ColParam['width']='200';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
 $ColParam['title']= $langs->trans('KindOfOffice');
-$ColParam['width']='200';
+//$ColParam['width']='200';
 $ColParam['align']='';
 $ColParam['class']='';
 $ColParam['sourcetable']='kindoffice';
@@ -181,13 +182,13 @@ unset($ColParam['sourcetable']);
 unset($ColParam['detailfield']);
 
 $ColParam['title']=$langs->trans('NumberOfOffice');
-$ColParam['width']='200';
+//$ColParam['width']='200';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
 $ColParam['title']=$langs->trans('GPS');
-$ColParam['width']='200';
+//$ColParam['width']='200';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
@@ -199,7 +200,7 @@ $TableParam[]=$ColParam;
 //$TableParam[]=$ColParam;
 
 $ColParam['title']=$langs->trans('Active');
-$ColParam['width']='200';
+//$ColParam['width']='200';
 $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
@@ -226,12 +227,89 @@ where fk_soc = '.$socid.' and `llx_societe_address`.active=1';
 //echo '</pre>';
 //die();
 
-include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
-$dbBuilder = new dbBuilder();
+//include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
+//$dbBuilder = new dbBuilder();
 
-
-$table = $dbBuilder->fShowTable($TableParam, $sql, "'" . $tablename . "'", $conf->theme, '', '', $readonly = array(), false);
+$table = ShowTable($socid);
+//$table = $dbBuilder->fShowTable($TableParam, $sql, "'" . $tablename . "'", $conf->theme, '', '', $readonly = array(), false);
 
 include DOL_DOCUMENT_ROOT.'/theme/'.$conf->theme.'/societeaddress.html';
 
 llxFooter();
+exit();
+function ShowTable($socid){
+//    require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
+    global $db,$conf;
+//    $sql = "select * from llx_user";
+    $sql = 'select `llx_societe_address`.rowid, `llx_societe_address`.whom, `typeofaddress`.name as s_typeofaddress_name,
+        `llx_societe_address`.zip, `countries`.`label` as s_countries_label,
+        `states`.name as s_states_name, `regions`.name as s_regions_name, `kindlocality`.name as s_kindlocality_name,
+        `llx_societe_address`.location, `kindstreet`.name as s_kindstreet_name, `llx_societe_address`.street_name,
+        `llx_societe_address`.numberofhouse, `kindoffice`.name as s_kindoffice_name, `llx_societe_address`.numberofoffice,
+        `llx_societe_address`.gps, null,
+        `llx_societe_address`.workercount, "", `llx_societe_address`.sendpost, `llx_societe_address`.active
+        from `llx_societe_address`
+        left join typeofaddress on typeofaddress.`rowid` = `llx_societe_address`.kindaddress
+        left join `countries` on `countries`.`rowid` = `llx_societe_address`.country_id
+        left join `states` on `states`.`rowid` = `llx_societe_address`.state_id
+        left join `regions` on `regions`.`rowid` = `llx_societe_address`.region_id
+        left join `kindlocality` on `kindlocality`.`rowid` = `llx_societe_address`.kindlocality_id
+        left join `kindstreet` on `kindstreet`.`rowid` = `llx_societe_address`.kindofstreet_id
+        left join `kindoffice` on `kindoffice`.`rowid` = `llx_societe_address`.kindoffice_id
+        where fk_soc = '.$socid;
+    $res = $db->query($sql);
+//    $obj = $db->fetch_object($res);
+
+    if(!$res)
+        dol_print_error($db);
+
+
+
+    $out='<tbody>';
+    $num = 0;
+
+    while($row = $db->fetch_array($res)){
+        foreach (array_keys($row) as $key){
+            if(is_numeric($key)){
+                unset($row[$key]);
+            }
+        }
+        $obj = (object)$row;
+//        echo '<pre>';
+//        var_dump($obj->sendpost == 1);
+//        echo '</pre>';
+//        die();
+        $out.='<tr id="'.$obj->rowid.'" class = "'.(fmod($num++, 2)==0?'impair':'pair').' small_size">
+            <td>'.$obj->whom.'</td>
+            <td>'.$obj->s_typeofaddress_name.'</td>
+            <td>'.$obj->zip.'</td>
+            <td>'.$obj->s_countries_label.'</td>
+            <td>'.$obj->s_states_name.'</td>
+            <td>'.$obj->s_regions_name.'</td>
+            <td>'.$obj->s_kindlocality_name.'</td>
+            <td>'.$obj->location.'</td>
+            <td>'.$obj->s_kindstreet_name.'</td>
+            <td>'.$obj->street_name.'</td>
+            <td>'.$obj->numberofhouse.'</td>
+            <td>'.$obj->s_kindoffice_name.'</td>
+            <td>'.$obj->numberofoffice.'</td>
+            <td>'.$obj->s_kindoffice_name.'</td>
+            <td>'.$obj->numberofoffice.'</td>
+            <td>'.$obj->gps.'</td>
+            <td>'.$obj->workercount.'</td>';
+
+            if ($obj->sendpost == 1) {
+                $out .= '<td class = "switch" id="' . $obj->rowid . 'sendpost"> <img id="img' . $obj->rowid . 'sendpost" src="' . DOL_URL_ROOT . '/theme/' . $conf->theme . '/img/switch_on.png" onclick="change_switch(' . $obj->rowid . ', ' . "'llx_societe_address'" . ', ' . "'sendpost'" . ');" > </td>';
+            } else {
+                $out .= '<td class = "switch" id="' . $obj->rowid . 'sendpost"> <img id="img' . $obj->rowid . 'sendpost" src="' . DOL_URL_ROOT . '/theme/' . $conf->theme . '/img/switch_off.png" onclick="change_switch(' . $obj->rowid . ', ' . "'llx_societe_address'" . ', ' . "'sendpost'" . ');"> </td>';
+            }
+            if ($obj->active == 1) {
+                $out .= '<td class = "switch" id="' . $obj->rowid . 'sendpost"> <img id="img' . $obj->rowid . 'sendpost" src="' . DOL_URL_ROOT . '/theme/' . $conf->theme . '/img/switch_on.png" onclick="change_switch(' . $obj->rowid . ', ' . "'llx_societe_address'" . ', ' . "'active'" . ');" > </td>';
+            } else {
+                $out .= '<td class = "switch" id="' . $obj->rowid . 'sendpost"> <img id="img' . $obj->rowid . 'sendpost" src="' . DOL_URL_ROOT . '/theme/' . $conf->theme . '/img/switch_off.png" onclick="change_switch(' . $obj->rowid . ', ' . "'llx_societe_address'" . ', ' . "'active'" . ');"> </td>';
+            }
+            $out.='</tr>';
+    }
+    $out.='</tbody>';
+    return $out;
+}

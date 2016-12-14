@@ -14,15 +14,18 @@ foreach($search as $elem) {
 }
 $page = isset($_GET['page'])?$_GET['page']:1;
 $per_page = isset($_GET['per_page'])?$_GET['per_page']:30;
-
-$sql = "select fx_category_counterparty from `responsibility_param` where `fx_responsibility` = ".$respon_id;
+$sql = "select distinct case when `fx_category_counterparty` is null then other_category else fx_category_counterparty end fx_category_counterparty from `responsibility_param` where `fx_responsibility` =".$respon_id;
 $res = $db->query($sql);
 $category = array();
 if($db->num_rows($res)>0)
     while($obj = $db->fetch_object($res))
         $category[]=$obj->fx_category_counterparty;
+//echo '<pre>';
+//var_dump($sql);
+//echo '</pre>';
+//die();
 
-$sql = "select distinct `llx_societe`.rowid, concat(case when `formofgavernment`.`name` is null then '' else `formofgavernment`.`name` end,' ',`llx_societe`.`nom`) nom,
+$sql = "select distinct `llx_societe`.rowid, concat(`llx_societe`.`nom`,' ',case when `formofgavernment`.`name` is null then '' else `formofgavernment`.`name` end) nom,
 `llx_societe`.`town`, round(`llx_societe_classificator`.`value`,0) as width, `llx_societe`.`remark`, ' ' deficit,
 ' ' task,' ' lastdate, ' ' lastdatecomerc, ' ' futuredatecomerc, ' ' exec_time, ' ' lastdateservice,
 ' ' futuredateservice, ' ' lastdateaccounts, ' ' futuredateaccounts, ' ' lastdatementor, ' ' futuredatementor
@@ -461,7 +464,7 @@ if(count($rowidList)>0) {
         left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm`=`llx_actioncomm`.id
         inner join (select code, libelle label from `llx_c_actioncomm` where active = 1
         and (type = 'system' or type = 'user')) TypeCode on TypeCode.code = `llx_actioncomm`.code
-        inner join `llx_user` on `llx_actioncomm`.`fk_user_author` = `llx_user`.`rowid`
+        inner join `llx_user` on `llx_actioncomm`.`fk_user_action` = `llx_user`.`rowid`
         left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
         where 1
         and `llx_actioncomm`.`fk_soc` in (" . implode(',', $rowidList) . ")
@@ -481,7 +484,10 @@ if(count($rowidList)>0) {
             }
         }
     }
-
+//    echo '<pre>';
+//    var_dump($futureaction);
+//    echo '</pre>';
+//    die();
     $fields = $result->fetch_fields();
 //        var_dump($showtitle);
 //        die();

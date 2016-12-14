@@ -148,6 +148,7 @@ if (! defined('NOREQUIREUSER'))
  * Load object $conf
  * After this, all parameters conf->global->CONSTANTS are loaded
  */
+
 if (! defined('NOREQUIREDB'))
 {
 	// By default conf->entity is 1, but we change this if we ask another value.

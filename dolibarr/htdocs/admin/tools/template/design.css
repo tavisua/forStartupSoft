@@ -21,6 +21,9 @@ div.mainmenu.global_task {
 div.mainmenu.global_action {
     background-image: url("/dolibarr/htdocs/theme/eldy/img/menus/pointofsale.png");
 }
+div.mainmenu.mailing {
+    background-image: url("/dolibarr/htdocs/theme/eldy/img/menus/emailing.png");
+}
 div.mainmenu.current_task {
     background-image: url("/dolibarr/htdocs/theme/eldy/img/menus/current_task.png");
 }

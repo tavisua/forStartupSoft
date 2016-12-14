@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title><?=$action?></title>
+</head>
+<body>
+<?=print_fiche_titre($title);?>
+<form  action="/dolibarr/htdocs/core/modules/mailings/index.php" method="post">
+    <input id="action" name="action" type="hidden" value="<?=$action?>">
+    <input id="rowid" name="rowid" type="hidden" value="<?=$rowid?>">
+    <input id="backtopage" name="backtopage" type="hidden" value="<?=$backtopage?>">
+    Тема розсилки</br>
+    <input id="theme" name="theme" value="<?=$theme?>">
+    </br>
+    Текст розсилки</br>
+    <textarea id="body" placeholder="Поле для вставки html коду розсилки" name="body" style="min-width: 80%;min-height: 500px"><?=$html?></textarea>
+    </br>
+    <table>
+        <tr class="firstpage">
+            <td id="post">Посада</td>
+            <td id="or" rowspan="2">чи</td>
+            <td id="sphereOfResponsibility">Сфера відповідальності</td>
+        </tr>
+        <tr class="firstpage">
+            <td id="PostList"><?=$user->getContactPostsList('postlist',10,'all');?></td>
+            <td id="ResponsibilityList"><?=$user->getContactResponsibility('responsibility',10,'all');?></td>
+        </tr>
+        <tr class="firstpage">
+            <td>Кількість землі </td>
+            <td></td>
+            <td colspan="3">від&nbsp;&nbsp;<input type="text" id="from" name="from" size="4">&nbsp;&nbsp;до&nbsp;&nbsp;<input type="text" id="to" name="to" size="4">&nbsp;&nbsp;га.</td>
+        </tr>
+    </table>
+    </br>
+    <button type="submit">&nbsp;&nbsp;&nbsp;&nbsp;Зберегти зміни&nbsp;&nbsp;&nbsp;&nbsp;</button>
+</form>
+</body>
+<script>
+    $(document).ready(function(){
+        var postlist = '<?=$mail->postlist?>'.split(',');
+        $('select#postlist').val(postlist);
+        var responsibility = '<?=$mail->responsibility?>'.split(',');
+        $('select#responsibility').val(responsibility);
+    })
+</script>
+</html>

@@ -30,6 +30,13 @@ $ColParam['sourcetable']='states';
 $ColParam['detailfield']='state_id';
 $TableParam[]=$ColParam;
 
+
+$ColParam['title']='email';
+$ColParam['width']='150';
+$ColParam['align']='';
+$ColParam['class']='';
+$TableParam[]=$ColParam;
+
 unset($ColParam['sourcetable']);
 unset($ColParam['detailfield']);
 
@@ -39,7 +46,13 @@ $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 $tablename='subdivision';
-$sql='select subdivision.rowid, subdivision.name, states.name s_states_name, subdivision.active  from '.$tablename.' left join `states` on `'.$tablename.'`.`state_id` = `states`.rowid order by subdivision.name';
+$sql='select subdivision.rowid, subdivision.name, states.name s_states_name, subdivision.email, subdivision.active
+  from '.$tablename.' left join `states` on `'.$tablename.'`.`state_id` = `states`.rowid order by subdivision.name';
+//die($sql);
+//$sql = "select -1 rowid, null subdivision_name, null s_states_name, null `email`, null `active`
+//union
+//select subdivision.rowid, subdivision.name subdivision_name, states.name s_states_name, subdivision.email, subdivision.active
+//from subdivision left join `states` on `subdivision`.`state_id` = `states`.rowid order by subdivision_name";
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/DBManager/dbBuilder.php';
 $dbBuilder = new dbBuilder();
 if(!isset($_REQUEST['sortfield']))

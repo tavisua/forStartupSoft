@@ -143,17 +143,23 @@ function ShowTask(){
 //                            where `llx_actioncomm_resources`.`fk_element` = ".$filter[$key]."
 //                            and `llx_actioncomm`.percent <> 100
 //                            and `llx_actioncomm`.`active` = 1";
+
                         $sql_tmp = "select distinct `llx_actioncomm`.id from `llx_actioncomm`
                                     left join `llx_actioncomm_resources` on `llx_actioncomm`.id = `llx_actioncomm_resources`.`fk_actioncomm`
                                     where 1
-                                    and case when `llx_actioncomm_resources`.`fk_element` is null then `llx_actioncomm`.`fk_user_author` else `llx_actioncomm`.`fk_user_author` end  = ".$filter[$key]."
-                                    and case when `llx_actioncomm_resources`.`fk_element` is not null then `llx_actioncomm_resources`.`fk_element` = `llx_actioncomm`.`fk_user_author` end
+                                    and `llx_actioncomm_resources`.`fk_element` = ".$filter[$key]."                                    
                                     and `llx_actioncomm`.percent <> 100
                                     and `llx_actioncomm`.`active` = 1";
                     }break;
                 }
                 if(in_array($key,array('p_subdiv_id','c_subdiv_id','performer'))){//Фільтр по підрозділам замовника, виконавця та по виконавцю
                     $res_tmp = $db->query($sql_tmp);
+                    if(!$res_tmp)
+                        dol_print_error($db);
+//                    echo '<pre>';
+//                    var_dump($sql_tmp);
+//                    echo '</pre>';
+//                    die();
                     $ID = array(0);
                     while($obj = $db->fetch_object($res_tmp)){
                         $ID[]=$obj->id;
@@ -235,7 +241,7 @@ function ShowTask(){
 //        die('test');
     }
     //Завантажую завдання
-    $sql = "select id, note, confirmdoc, entity, datelastaction,datefutureaction, `datec`, datep2, round((UNIX_TIMESTAMP(datep2)-UNIX_TIMESTAMP(datep))/60,0) iMinute, `dateconfirm`, period, `percent`, `datepreperform`, `llx_c_groupoftask`.`name` groupoftask
+    $sql = "select id, note, confirmdoc, entity, datelastaction,datefutureaction,planed_cost, fact_cost, motivator, demotivator, `datec`, datep2, round((UNIX_TIMESTAMP(datep2)-UNIX_TIMESTAMP(datep))/60,0) iMinute, `dateconfirm`, period, `percent`, `datepreperform`, `llx_c_groupoftask`.`name` groupoftask
     from `llx_actioncomm`
     left join llx_c_groupoftask on `llx_c_groupoftask`.`rowid` = fk_groupoftask
     where id in (".implode(",", $taskID).")
@@ -298,9 +304,9 @@ function ShowTask(){
             $table.='<td style="width:100px">'.(empty($obj->confirmdoc)?'':$obj->confirmdoc).'</td>';
             if(!empty($obj->datepreperform)) {
                 $predate = new DateTime($obj->datepreperform);
-                $table .= '<td style="width:61px" class="small_size">'.$predate->format('d.m.y').'</td>';//попередньо виконати до
+                $table .= '<td class="small_size">'.$predate->format('d.m.y').'</td>';//попередньо виконати до
             }else{
-                $table .= '<td style="width:61px"></td>';
+                $table .= '<td ></td>';
             }
             $deadline = new DateTime($obj->datep2);
 
@@ -357,12 +363,30 @@ function ShowTask(){
                     $status = 'ActionDoneShort';
             }
             $table .= '<td '.$style.';text-align: center; width:51px" class="small_size">'.($obj->percent <= 98?($langs->trans($status)):'<img src="theme/eldy/img/BWarning.png" title="Задачу виконано" style=width: 50px;">').'</td>';
+
+
             if($taskAuthor[$obj->id] == $user->id)
                  $table .= '<td style="width:51px; text-align: center"><img src="/dolibarr/htdocs/theme/eldy/img/uncheck.png" onclick="ConfirmExec(' . $obj->id . ');" id="confirm' . $obj->id . '"></td>';
             else
                 $table .= '<td  style="width:51px">&nbsp;</td>';
 //            $table .= '<td  style="width:25px"><img id="img_"'.$obj->id.' onclick="EditAction('.$obj->id.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Edit').'" src="/dolibarr/htdocs/theme/eldy/img/edit.png"></td>';
 //            $table .= '<td  style="width:25px"><img id="imgManager_'.$obj->id.'" onclick="RedirectAction('.$obj->id.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Redirect').'" src="/dolibarr/htdocs/theme/eldy/img/redirect.png"></td>';
+            if(!empty($obj->planed_cost))
+                $table .= '<td style="width:51px; text-align: center">'.$obj->planed_cost.'</td>';
+            else
+                $table .= '<td  style="width:51px">&nbsp;</td>';
+            if(!empty($obj->fact_cost))
+                $table .= '<td style="width:51px; text-align: center">'.$obj->fact_cost.'</td>';
+            else
+                $table .= '<td  style="width:51px">&nbsp;</td>';            
+            if(!empty($obj->motivator))
+                $table .= '<td style="width:51px; text-align: center">'.$obj->motivator.'</td>';
+            else
+                $table .= '<td  style="width:51px">&nbsp;</td>';
+            if(!empty($obj->demotivator))
+                $table .= '<td style="width:51px; text-align: center">'.$obj->demotivator.'</td>';
+            else
+                $table .= '<td  style="width:51px">&nbsp;</td>';
             if($taskAuthor[$obj->id] == $user->id)
                 $table .= '<td  style="width:25px"><img title="Редагувати завдання" id="img_'.$obj->id.'" onclick="EditAction('.$obj->id.', null, '."'AC_GLOBAL'".');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Edit').'" src="/dolibarr/htdocs/theme/eldy/img/edit.png"></td>';
             else

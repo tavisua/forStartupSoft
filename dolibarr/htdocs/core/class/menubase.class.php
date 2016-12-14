@@ -392,10 +392,7 @@ class Menubase
         {
             if ($val['type']=='top') $newTabMenu[]=$val;
         }
-//        echo '<pre>';
-//        var_dump($newTabMenu);
-//        echo '</pre>';
-//        die();
+
         return $newTabMenu;
     }
 
@@ -548,9 +545,18 @@ class Menubase
                 	$perms = verifCond($tmpcond);
                     //print "verifCond rowid=".$menu['rowid']." ".$tmpcond.":".$perms."<br>\n";
                 }
-
+//                if(10428 == $menu['rowid']){
+//                    print '<head><meta charset="UTF-8"></head>';
+//                    echo '<pre>';
+//                    var_dump($menu['perms']);
+//                    echo '</pre>';
+//                    die();
+//                    if(empty($menu['perms']))$perms=false;
+//                }
                 // Define $enabled
-                $enabled = true;
+                $enabled = false;
+                //Скриваю з головного меню, якщо не дозволено використання
+                if(!$perms)$menu['enabled'] = 0;
                 if ($menu['enabled'])
                 {
                 	$tmpcond=$menu['enabled'];

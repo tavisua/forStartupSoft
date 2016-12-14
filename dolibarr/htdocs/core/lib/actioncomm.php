@@ -102,6 +102,10 @@ if($_REQUEST['action'] == 'getGroupOfTask'){
     echo $out;
 }
 if($_REQUEST['action'] == 'getPerformance' || $_REQUEST['action'] == 'getCustomer') {
+    $sql = "select id from `llx_c_actioncomm` where `code` = '".$_REQUEST['code']."'";
+    $res = $db->query($sql);
+    $fk_action = $db->fetch_object($res);
+
     $sql = "select distinct llx_user.rowid, llx_user.lastname, llx_user.firstname
         from `llx_actioncomm`
         inner join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.id";
@@ -110,6 +114,7 @@ if($_REQUEST['action'] == 'getPerformance' || $_REQUEST['action'] == 'getCustome
     elseif($_REQUEST['action'] == 'getCustomer')
         $sql.=" inner join llx_user on llx_user.rowid = `llx_actioncomm`.`fk_user_author`";
     $sql.=" where 1
+        and fk_action = ".$fk_action->id."
         and llx_actioncomm.`code` = '".$_REQUEST['code']."' and llx_actioncomm.percent != 100 and llx_actioncomm.active = 1
         and (`llx_actioncomm`.`fk_user_author` = ".$_REQUEST['id_usr']." or `llx_actioncomm_resources`.`fk_element` = ".$_REQUEST['id_usr'].")
         order by llx_user.lastname, llx_user.firstname";
@@ -125,7 +130,7 @@ if($_REQUEST['action'] == 'getPerformance' || $_REQUEST['action'] == 'getCustome
     $out .= '</tr>';
     if($_REQUEST['action'] == 'getPerformance' && in_array($user->respon_alias2, array('dir_depatment','senior_manager'))) {
             $out .= '<tr id="-1">';
-            $out .= '<td class="middle_size" onclick="setPerformerFilter(-1)" style="cursor:pointer" ><b>Всі завдання підрозділу</b></td>';
+            $out .= '<td class="middle_size" onclick="setParam('."'".($_REQUEST['action'] == 'getPerformance'?'performer':'customer')."'".',-1)" style="cursor:pointer" ><b>Всі завдання підрозділу</b></td>';
             $out .= '</tr>';
     }
     while($obj = $db->fetch_object($res)){

@@ -66,7 +66,7 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['lin
         }
         $sql_filter = "select llx_societe.rowid from llx_societe
             left join `llx_societe_contact` on `llx_societe_contact`.`socid`=`llx_societe`.`rowid`
-            where 1 and `llx_societe`.`categoryofcustomer_id` in (".implode(',', $cat_ID).") and `llx_societe`.`nom`  like '%" . $_REQUEST['filter'] . "%'
+            where 1 and llx_societe.active = 1 and `llx_societe`.`categoryofcustomer_id` in (".implode(',', $cat_ID).") and `llx_societe`.`nom`  like '%" . $_REQUEST['filter'] . "%'
             or `llx_societe_contact`.`lastname`  like '%" . $_REQUEST['filter'] . "%'
             or `llx_societe_contact`.`firstname`  like '%" . $_REQUEST['filter'] . "%'
             or `llx_societe_contact`.`subdivision`  like '%" . $_REQUEST['filter'] . "%'
@@ -115,29 +115,38 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['lin
         $lineactive = getSubLineActive(array_keys($catalog));
     }
 }
-if(empty($_REQUEST['lineactive'])){
+if(!(empty($_REQUEST['lineactive'])||$_REQUEST['lineactive'] == -1)){
     $catalog = getLineActive($id_usr);
     $lineactive = getSubLineActive(array_keys($catalog));
 }
-if(count($lineactive) == 0)
-    $lineactive[0][]=0;
-$sql_lineactive='';
-foreach($lineactive as $item){
 //    echo '<pre>';
-//    var_dump($item);
+//    var_dump($lineactive);
 //    echo '</pre>';
 //    die();
-    $sql_lineactive.= (!empty($sql_lineactive)?",":"").implode(',',$item);
-}
-if(empty($sql_lineactive))
-    $sql_lineactive = '0';
-$sql_filter = "select `llx_societe`.`rowid` from `llx_societe_lineactive`
+if((empty($_REQUEST['lineactive'])||$_REQUEST['lineactive'] == -1)) {
+    $sql_filter = "select `llx_societe`.`rowid` from `llx_societe` ";
+    $sql_filter.= "where 1    
+    and `llx_societe`.`categoryofcustomer_id` in
+        (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = 16)
+    and `llx_societe`.active = 1";
+}else {
+    if (count($lineactive) == 0)
+        $lineactive[0][] = 0;
+    $sql_lineactive = 'null';
+
+    foreach ($lineactive as $item) {
+        $sql_lineactive .= (!empty($sql_lineactive) ? "," : "") . implode(',', $item);
+    }
+    if (empty($sql_lineactive))
+        $sql_lineactive = '0';
+    $sql_filter = "select `llx_societe`.`rowid` from `llx_societe_lineactive`
     inner join `llx_societe` on `llx_societe_lineactive`.`fk_soc`=`llx_societe`.`rowid`
     where 1
     and `llx_societe`.`categoryofcustomer_id` in
         (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = 16)
-    and `llx_societe_lineactive`.`fk_lineactive` in (".$sql_lineactive.")
+    and `llx_societe_lineactive`.`fk_lineactive` in (" . $sql_lineactive . ")
     and `llx_societe_lineactive`.`active` = 1";
+}
 //        echo '<pre>';
 //        var_dump($sql_filter);
 //        echo '<pre>';

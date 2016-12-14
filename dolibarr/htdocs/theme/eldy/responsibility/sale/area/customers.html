@@ -9,7 +9,7 @@
             <!--</div>-->
         <!--</div>-->
 
-    <table  cellspacing="1" class="WidthScroll">
+    <table  cellspacing="1" class="WidthScroll" id="customers">
         <thead>
         <tr class="multiple_header_table">
             <!--<th class="header_table" width="130px">Категорія контрагента</th>-->
@@ -71,6 +71,35 @@
             function closefindmenu(){
                 $('#popupmenu').hide();
             }
+            $('td').mousedown(function(e){
+                var rowid = $('#'+e.target.id).parent().attr('id').substr(2);
+                var colname = e.target.id.substr(rowid.length);
+//            console.log(colname);
+//            return;
+                if(colname!='deficit')
+                    return;
+
+                var text = $('#'+e.target.id).text();
+                if(text.substr(text.length-3)=='...') {
+                    var id = e.target.id;
+                    var td = e.target;
+                    $('#popupmenu').css('width',350);
+                    $('#popupmenu').css('height',100);
+                    var fullText='';
+                    if($('#full'+rowid+colname).length>0)
+                        fullText = $('#full'+rowid+colname).html();
+                    $('#popupmenu').html('<div><textarea style="width: 100%;height: 100%">'+fullText+'</textarea></div>');
+                    $('#popupmenu').attr('TitleProposed',null);
+                    $('#popupmenu').show();
+                    $('#popupmenu').offset({top:e.target.offsetTop+$('#customers').offset().top+50,left:e.target.offsetLeft});
+//                console.log($('#'+e.target.id).offset());
+
+                }
+                $('#popupmenu').mouseout(function(e){
+                    if($('#popupmenu').attr('TitleProposed') === undefined)
+                        $('#popupmenu').hide();
+                })
+            })
             $(document).ready(function(){
                 $('#reference_body').attr('height', window.innerHeight - 420);
                 var th = document.getElementsByTagName('th');
@@ -152,10 +181,10 @@
                     var id = tdList[tdIndex].id.substr(0, (tdList[tdIndex].id.length - 'nom'.length));
                     if(tdList[tdIndex].id.substr(0,4)!='prev') {
                         if (!strpos(tdList[tdIndex].innerHTML, '<img'))
-                            tdList[tdIndex].innerHTML = '<a id = "login_' + id + '" href="/dolibarr/htdocs/societe/soc.php?mainmenu=area&idmenu=<?echo $_REQUEST["idmenu"]?>&action=edit&socid=' + id + '"> <img border="0"  alt="" src="/dolibarr/htdocs/theme/eldy/img/object_contact.png">' + (tdList[tdIndex].innerHTML) + '</a>';
+                            tdList[tdIndex].innerHTML = '<a id = "login_' + id + '" href="/dolibarr/htdocs/societe/soc.php?mainmenu=area&idmenu=<?echo $_REQUEST["idmenu"]?>&action=edit&socid=' + id + '<?echo !empty($_REQUEST["id_usr"])?("&id_usr=".$_REQUEST["id_usr"]):""?>"> <img border="0"  alt="" src="/dolibarr/htdocs/theme/eldy/img/object_contact.png">' + (tdList[tdIndex].innerHTML) + '</a>';
                         else {
                             var text = tdList[tdIndex].innerHTML.substr(0, strpos(tdList[tdIndex].innerHTML, '<img'));
-                            tdList[tdIndex].innerHTML = '<a id = "login_' + id + '" href="/dolibarr/htdocs/societe/soc.php?mainmenu=area&idmenu=<?echo $_REQUEST["idmenu"]?>&action=edit&socid=' + id + '"> <img border="0"  alt="" src="/dolibarr/htdocs/theme/eldy/img/object_contact.png">' + (text) + '</a>' +
+                            tdList[tdIndex].innerHTML = '<a id = "login_' + id + '" href="/dolibarr/htdocs/societe/soc.php?mainmenu=area&idmenu=<?echo $_REQUEST["idmenu"]?>&action=edit&socid=' + id + '<?echo !empty($_REQUEST["id_usr"])?("&id_usr=".$_REQUEST["id_usr"]):""?>"> <img border="0"  alt="" src="/dolibarr/htdocs/theme/eldy/img/object_contact.png">' + (text) + '</a>' +
                             tdList[tdIndex].innerHTML.substr(strpos(tdList[tdIndex].innerHTML, '<img'));
                         }
                     }

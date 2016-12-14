@@ -276,7 +276,7 @@ function CalcFutureActions($actioncode, $array, $id_usr){
             $sql.=" and llx_actioncomm.`code` in(".$actioncode.") ";
 
         if(in_array($actioncode, array('AC_GLOBAL','AC_CURRENT','AC_EDUCATION','AC_INITIATIV','AC_PROJECT')) || $user->login !="admin")
-            $sql .=" and fk_user_author = ".$id_usr;
+            $sql .=" and fk_user_action = ".$id_usr;
         if($i<8) {
             $query_date = date("Y-m-d", (time()+3600*24*$i));
             if($i!=7)

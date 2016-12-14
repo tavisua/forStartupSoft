@@ -373,15 +373,12 @@ if (! empty($_SESSION["disablemodules"]))
  * Phase authentication / login
  */
 $login='';
-
-if($_SERVER['PHP_SELF'] =='/dolibarr/htdocs/autocall/index.php') {
+$notloginpage = array('/dolibarr/htdocs/autocall/index.php',
+      '/dolibarr/htdocs/putch_time.php',
+      '/dolibarr/htdocs/reset_actions.php',
+      '/dolibarr/htdocs/comm/raports/activitycompany.php');
+if(in_array($_SERVER['PHP_SELF'], $notloginpage)){
     define("NOLOGIN",1);
-//    var_dump(defined('NOLOGIN'));
-//    die();
-}elseif($_SERVER['PHP_SELF'] =='/dolibarr/htdocs/putch_time.php') {
-        define("NOLOGIN",1);
-}elseif($_SERVER['PHP_SELF'] =='/dolibarr/htdocs/reset_actions.php') {
-        define("NOLOGIN",1);
 }
 //die($_SERVER['PHP_SELF']);
 if (! defined('NOLOGIN'))
@@ -937,8 +934,8 @@ if (! defined('NOREQUIREMENU'))
 	}
 	$menumanager = new MenuManager($db, empty($user->societe_id)?0:1);
 	$menumanager->loadMenu();
-}
 
+}
 
 
 // Functions
@@ -966,11 +963,12 @@ if (! function_exists("llxHeader"))
 	    global $conf, $user, $langs;
 	    // html header
 		top_htmlhead($head, $title, $disablejs, $disablehead, $arrayofjs, $arrayofcss);
-//echo '<pre>';
-//        var_dump(substr($_SERVER['PHP_SELF'], strlen($_SERVER['PHP_SELF'])-strlen('area.php')));
-//echo '</pre>';
-//        die();
 
+        if(strpos($_SERVER['SCRIPT_NAME'], 'result_action.php')){
+            print '<div id="setNeed">
+                Додати потребу
+            </div>';
+        }
 
         if(substr($_SERVER["SCRIPT_NAME"], strlen($_SERVER["SCRIPT_NAME"])-strlen('action.php')) && $_REQUEST['mainmenu'] == 'area') {//Ш
             print '<div id="bookmarkActionPanel" onclick="showHideActionPanel();">
@@ -1046,6 +1044,8 @@ if (! function_exists("llxHeader"))
 //                    </script>";
 //        print $loginphone_form;
 		// top menu and left menu area
+
+
 		if (empty($conf->dol_hide_topmenu))
 		{
 			top_menu($head, $title, $target, $disablejs, $disablehead, $arrayofjs, $arrayofcss, $morequerystring);
@@ -1096,8 +1096,9 @@ function llxLoadingForm(){
         <img src="/dolibarr/htdocs/theme/eldy/img/loading/loading7.png" style="position: absolute; top: 0px; left: 0px; opacity: 0; margin-top: 4px; margin-left: 4px; width: 192px; height: 192px;">
         <script>
             $(document).ready(function(){
-                console.log(window.innerWidth/2-100);
-                $("#loading_img").offset({top:115, left:$(".WidthScroll").width()/2-100});
+//                console.log();
+                if($(".WidthScroll").length)
+                    $("#loading_img").offset({top:115, left:$(".WidthScroll").width()/2-100});
                 $("#loading_img").css("opacity",1);
 
                 var img = $("#loading_img").find("img");
@@ -1677,6 +1678,7 @@ function top_menu($head, $title='', $target='', $disablejs=0, $disablehead=0, $a
 
 	    $menumanager->atarget=$target;
 	    $menumanager->showmenu('top');      // This contains a \n
+        
 
 	    print "</div>\n";
 

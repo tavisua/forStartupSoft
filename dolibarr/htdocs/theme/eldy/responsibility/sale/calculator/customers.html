@@ -64,10 +64,11 @@
                     var id = tdList[tdIndex].id.substr(0, (tdList[tdIndex].id.length - 'nom'.length));
                     if(tdList[tdIndex].id.substr(0,4)!='prev') {
                         if (!strpos(tdList[tdIndex].innerHTML, '<img'))
-                            tdList[tdIndex].innerHTML = '<a id = "login_' + id + '" href="/dolibarr/htdocs/societe/soc.php?mainmenu=area&idmenu=<?echo $_REQUEST["idmenu"]?>&action=edit&socid=' + id + '"> <img border="0"  alt="" src="/dolibarr/htdocs/theme/eldy/img/object_contact.png">' + (tdList[tdIndex].innerHTML) + '</a>';
+                            tdList[tdIndex].innerHTML = '<a id = "login_' + id +
+                                    '" href="/dolibarr/htdocs/societe/soc.php?mainmenu=area&idmenu=<?echo $_REQUEST["idmenu"]?>&action=edit&socid=' + id + '"> <img border="0"  alt="" src="/dolibarr/htdocs/theme/eldy/img/object_contact.png">' + (tdList[tdIndex].innerHTML) + '</a>';
                         else {
                             var text = tdList[tdIndex].innerHTML.substr(0, strpos(tdList[tdIndex].innerHTML, '<img'));
-                            tdList[tdIndex].innerHTML = '<a id = "login_' + id + '" href="/dolibarr/htdocs/societe/soc.php?mainmenu=area&idmenu=<?echo $_REQUEST["idmenu"]?>&action=edit&socid=' + id + '"> <img border="0"  alt="" src="/dolibarr/htdocs/theme/eldy/img/object_contact.png">' + (text) + '</a>' +
+                            tdList[tdIndex].innerHTML = '<a id = "login_' + id + '" href="/dolibarr/htdocs/societe/soc.php?mainmenu=area&idmenu=<?echo $_REQUEST["idmenu"]?>&action=edit&socid=' + id + '> <img border="0"  alt="" src="/dolibarr/htdocs/theme/eldy/img/object_contact.png">' + (text) + '</a>' +
                             tdList[tdIndex].innerHTML.substr(strpos(tdList[tdIndex].innerHTML, '<img'));
                         }
                     }

@@ -197,6 +197,7 @@ function getCustomers($type){
             }
         }
     }
+
 //    echo '<pre>';
 //    var_dump(htmlspecialchars($out));
 //    echo '</pre>';

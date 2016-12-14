@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title><?=$title?></title>
+</head>
+<body>
+    <form id="mailing" action="" method="post">
+        <input id="action" name="action" type="hidden" value="create">
+        <button type="submit">&nbsp;&nbsp;&nbsp;&nbsp;Створити розсилку&nbsp;&nbsp;&nbsp;&nbsp;</button>
+    </form>
+
+    <table  cellspacing="1" class="WidthScroll">
+        <thead>
+        <tr class="multiple_header_table">
+            <th style="min-width:180px">Тема</th>
+            <th style="min-width:120px">Дата створення</th>
+            <th style="min-width:120px">Дата перевірки</th>
+            <th style="min-width:120px">Дата відправки</th>
+            <th style="min-width:85px">Дії</th>
+        </tr>
+        </thead>
+
+        <?echo $table?>
+    </table>
+</body>
+<script>
+    $(document).ready(function (e) {
+        $('#loading_img').hide();
+    })
+    function ShowValidater(validaters, elem) {
+        var param = {
+            action:'showvalidaters',
+            validaters: validaters,
+            mail_id: elem.attr('rowid')
+        }
+        $.ajax({
+            data:param,
+            cache:false,
+            type:'post',
+            success:function (res) {
+                createNewForm('popupmenu', 'validators');
+                var td = elem;
+                $('#validators').html(res);
+                $('#validators').css('top', td.offset().top);
+                $('#validators').css('left', td.offset().left);
+                $('#validators').css('width', 'auto');
+                $('#validators').css('height', 'auto');
+                $('#validators').css('background', 'white');
+                $('#validators').show();
+            }
+        })
+    }
+    function SendToValider(elem){
+        switch ($.type(elem)) {
+            case 'array':
+            {
+                param = {
+                    author_id: <?=$user->id?>,
+                    valider_id: elem[0],
+                    mailid: elem[1],
+                    action: 'createtask'
+                }
+                $.ajax({
+                    data: param,
+                    cache: false,
+                    type: 'post',
+                    success: function (res) {
+                        if (res == '1') {
+                            $("#validators").remove();
+                            alert('Завдання на перевірку розсилки створено.\n\rВашим клієнтам буде відправлено електронну розсилку\n\rчерез дві години після підтвердження перевіряючим.');
+                        } else if (res == '0'){
+                            alert('Ця розсилка вже відіслана на затвердження');
+                        } else {
+                            alert("За якоюсь причиною, розсилку не було відправлено на перевірку.\n\rПропонуєто зв'язатись зі службою підтримки\n\rаби визначити проблему");
+                        }
+                    }
+                })
+
+            }
+                break;
+            case 'object':
+            {
+//                console.log(elem.attr('rowid'));
+//                return;
+                var mailid = elem.attr('rowid');
+                param = {
+                    action: 'sendtovalider',
+                    mailid: mailid
+                }
+                $.ajax({
+                    data: param,
+                    cache: false,
+                    type: 'post',
+                    success: function (res) {
+                        if (strpos(res, ']')) {
+                            ShowValidater(res.substr(1, res.length - 2).split(','), elem);
+                        } else {
+                            SendToValider([res, mailid]);
+                        }
+                    }
+                })
+            }
+        }
+    }
+    function ClosePreviewTask(){
+        $("#validators").remove();
+        $('#previewtask').remove();
+        $('#previewmail').remove();
+        $('#editmail').remove();
+    }
+    function Delete(elem) {
+        if(confirm('Видалити розсилку?')) {
+            var symbol = '?';
+            if (location.search)
+                symbol = '&';
+            location.href = location.href + symbol + 'action=delete&rowid=' + elem.attr('rowid');
+        }
+    }
+    function TestMail(elem) {
+        var param = {
+            id:elem.attr('rowid'),
+            action:'sendmail',
+            type: 'test'
+        }
+        $.ajax({
+            data:param,
+            cache:false,
+            type:'post',
+            success:function(html){
+                if(html == '1')
+                    alert("Повідомлення відправлено.\n\rПередивіться поштову скриньку.\n\rМожливо лист потрапив в папку 'Спам'");
+                else if(html == '0')
+                    alert('Повідомлення не було відправлено');
+            }
+        })
+    }
+    function Edit(elem){
+        var symbol = '?';
+        if(location.search)
+            symbol = '&';
+        location.href = location.href+symbol+'action=edit&rowid='+elem.attr('rowid');
+    }
+    function SendMail(elem) {
+//        console.log(location);
+//        return;
+        if(confirm('Відправити розсилку?')) {
+            $('#loading_img').show();
+            param = {
+                action: 'sendmail',
+                id: elem.attr('rowid'),
+                type:'prepared_sendmail'
+            }
+            var userlist;
+            $.ajax({
+                data: param,
+                cache: false,
+                type: 'post',
+                success: function (html) {
+                    html = html.replace(/"/g,'');
+                    html = html.substr(1, html.length-2);
+                    userlist = html.split(',');
+                    var assignedJSON = '';
+                    $.each(userlist, function (key, value) {
+                        var item = '"'+value+'":{"id":"'+value+'","transparency":"on","mandatory":1}';
+                        if(assignedJSON.length == 0)
+                            assignedJSON=item;
+                        else
+                            assignedJSON+=","+item;
+                    })
+//                    console.log(assignedJSON);
+                    var note = 'Вашим клієнтам буде відправлено електронну розсилку через дві години. Переглянте будь ласка її зміст';
+                    location.href = '/dolibarr/htdocs/comm/action/card.php?action=create&backtopage='+decodeURI(location.pathname+location.search)+'&subaction=sendmail&subaction_id='+elem.attr('rowid')+'&note='+note+'&actioncode=AC_CURRENT&groupoftask=13&assignedUser='+assignedJSON;
+                }
+            })
+        }
+    }
+    function Preview(elem){
+//        console.log(elem.parent());
+//        return;
+        var param = {
+            action:'htmlspecialchars_decode',
+            html:$('#body_'+elem.attr('rowid')).html()
+        }
+        $.ajax({
+            data: param,
+            cache:false,
+            type: 'post',
+            success:function(html){
+                createNewForm('popupmenu', 'previewmail');
+                var td = elem.parent();
+////                var rect = td.getClientRect();
+//                console.log(td.offset().top);
+//                return;
+
+                $('#previewmail').empty().html(html);
+                $('#previewmail').css('top', td.offset().top);
+                $('#previewmail').css('left', '15px');
+                $('#previewmail').css('width', '50%');
+                $('#previewmail').css('height', 300);
+                $('#previewmail').css('background', 'white');
+                $('#previewmail').css('overflow-y', 'auto');
+                $('#previewmail').show();
+            }
+        })
+    }
+</script>
+</html>

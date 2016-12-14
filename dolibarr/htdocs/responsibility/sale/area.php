@@ -5,7 +5,35 @@
  * Date: 04.11.2015
  * Time: 12:10
  */
-
+if($_GET['action']=='showdeleted'){
+    define('NOLOGIN',1);
+    require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
+    llxHeader();
+    global $db,$user;
+    $sql = "select llx_societe.rowid, llx_societe.nom, llx_societe.address, llx_user.lastname, regions.name, llx_societe.dtChange from llx_societe
+        left join llx_user on llx_user.rowid = llx_societe.id_usr
+        left join regions on regions.rowid = llx_societe.region_id
+        where llx_societe.active = 0
+        and llx_societe.state_id = 10
+        order by lastname, nom";
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $out = '<table><tbody>';
+    while($obj = $db->fetch_object($res)){
+        $out.='<tr>
+                <td><a href="http://uspex2015.com.ua/dolibarr/htdocs/responsibility/sale/action.php?socid='.$obj->rowid.'&idmenu=10425&mainmenu=area&idmenu=10425">'.$obj->nom.'</a></td>
+                <td>'.$obj->address.'</td>
+                <td>'.$obj->lastname.'</td>
+                <td>'.$obj->name.'</td>
+                <td>'.$obj->dtChange.'</td>
+                <td>http://uspex2015.com.ua/dolibarr/htdocs/responsibility/sale/action.php?socid='.$obj->rowid.'&idmenu=10425&mainmenu=area&idmenu=10425</td>
+            </tr>';
+    }
+    $out.='</tbody>';
+    print $out;
+    exit();
+}
 require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
 if(count($_POST)>0){
     if($_SESSION['state_filter'] != GETPOST('state_filter', 'int')){

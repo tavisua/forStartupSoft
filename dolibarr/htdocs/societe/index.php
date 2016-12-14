@@ -66,15 +66,16 @@ $filterid = array();
 if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])){
     $sql_filter = "select llx_societe.rowid from llx_societe
     left join `llx_societe_contact` on `llx_societe_contact`.`socid`=`llx_societe`.`rowid`
-    where `llx_societe`.`nom`  like '%".$_REQUEST['filter']."%'
-    or `llx_societe_contact`.`lastname`  like '%".$_REQUEST['filter']."%'
-    or `llx_societe_contact`.`firstname`  like '%".$_REQUEST['filter']."%'
-    or `llx_societe_contact`.`subdivision`  like '%".$_REQUEST['filter']."%'
-    or `llx_societe_contact`.`email1`  like '%".$_REQUEST['filter']."%'
-    or `llx_societe_contact`.`email2`  like '%".$_REQUEST['filter']."%'
-    or `llx_societe_contact`.`mobile_phone1`  like '%".$_REQUEST['filter']."%'
-    or `llx_societe_contact`.`mobile_phone2`  like '%".$_REQUEST['filter']."%'
-    or `llx_societe_contact`.`skype`  like '%".$_REQUEST['filter']."%'";
+    where `llx_societe`.`nom`  like '%".$db->escape($_REQUEST['filter'])."%'
+    or `llx_societe_contact`.`lastname`  like '%".$db->escape($_REQUEST['filter'])."%'
+    or `llx_societe_contact`.`firstname`  like '%".$db->escape($_REQUEST['filter'])."%'
+    or `llx_societe_contact`.`subdivision`  like '%".$db->escape($_REQUEST['filter'])."%'
+    or `llx_societe_contact`.`email1`  like '%".$db->escape($_REQUEST['filter'])."%'
+    or `llx_societe_contact`.`email2`  like '%".$db->escape($_REQUEST['filter'])."%'
+    or `llx_societe_contact`.`mobile_phone1`  like '%".$db->escape($_REQUEST['filter'])."%'
+    or `llx_societe_contact`.`mobile_phone2`  like '%".$db->escape($_REQUEST['filter'])."%'
+    or `llx_societe_contact`.`skype`  like '%".$db->escape($_REQUEST['filter'])."%'";
+
     $res = $db->query($sql_filter);
     if(!$res)
         dol_print_error($db);
@@ -86,6 +87,8 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])){
     if(count($filterid)) {
         $sql .= ' and `llx_societe`.`rowid` in (' . implode(',', $filterid) . ') ';
         $sql_count .= ' and `llx_societe`.`rowid` in (' . implode(',', $filterid) . ')';
+    }else{
+        print '<div style="font-size: large; color: red">Нажаль записів не знайдено. Якщо ви <b>абсолютно</b> впевнені в існуванні контрагента з даними параметрами, зверніться до адміністратора.</div>';
     }
 }
 

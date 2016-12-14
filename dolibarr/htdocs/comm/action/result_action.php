@@ -12,7 +12,8 @@ require '../../main.inc.php';
 //echo '</pre>';
 //die();
 if(isset($_REQUEST['action'])) {
-    if (in_array($_REQUEST['action'], array('update', 'update_and_create',  'updateonlyresult', 'saveonlyresult','addonlyresult_and_create', 'updateonlyresult_and_create'))) {
+    if (in_array($_REQUEST['action'], array('update', 'update_and_create', 'saveonlyresult','addonlyresult_and_create', 'updateonlyresult_and_create')) ||
+        in_array($_REQUEST['action'], array('updateonlyresult')) && $_REQUEST['mainmenu'] == 'area') {
 //    var_dump((substr($_POST['action'],strlen($_POST['action'])-strlen('_and_create') )== '_and_create'));
 //    die();
 
@@ -69,17 +70,14 @@ if($_GET['action'] == 'addonlyresult' || $_GET['action'] == 'addonlyresult_and_c
 $action_id = 0;
 $socid = 0;
 
-if (isset($_REQUEST["action_id"])) {
+if (isset($_REQUEST["action_id"])&&$_REQUEST["action"]!='addonlyresult') {
     $action_id = $_REQUEST["action_id"];
     $sql = "select * from llx_societe_action where 1 ";
     if((!isset($_REQUEST["onlyresult"]) || empty($_REQUEST['onlyresult'])) && isset($_REQUEST["answer_id"])&&!empty($_REQUEST["answer_id"]))
         $sql.="and rowid=" . $_REQUEST["answer_id"];
     else
         $sql.="and rowid=" . $_REQUEST["action_id"];
-//    echo '<pre>';
-//    var_dump($sql);
-//    echo '</pre>';
-//    die();
+
     $res = $db->query($sql);
     if (!$res) {
         dol_print_error($db);
@@ -94,7 +92,8 @@ if(!isset($_REQUEST["onlyresult"])||empty($_REQUEST["onlyresult"])) {
 }elseif($_REQUEST["action"]=='edituseration'){
 
 }else{
-    $object = $db->fetch_object($res);
+    if(!empty($res))
+        $object = $db->fetch_object($res);
     $socid = $object->socid;
 }
 $head=actions_prepare_head($object);
@@ -167,7 +166,10 @@ if (! empty($conf->use_javascript_ajax))
 //print '<input type="hidden" name="ref_ext" value="'.$object->ref_ext.'">';
 //print '<input type="hidden" name="backtopage" value="'.$_GET['backtopage'].'">';
 //if (empty($conf->global->AGENDA_USE_EVENT_TYPE)) print '<input type="hidden" name="actioncode" value="'.$object->type_code.'">';
-
+//echo '<pre>';
+//var_dump($object);
+//echo '</pre>';
+//die();
 if(!($_GET['action'] == 'addonlyresult' || (isset($_REQUEST["onlyresult"])&&$_REQUEST["onlyresult"]=='1'))) {
     if(!($_GET['action'] == 'useraction'||$_GET['action'] == 'edituseration'))
         dol_fiche_head($head, 'event_desc', $langs->trans("Action"), 0, 'action');
@@ -186,20 +188,20 @@ if(!($_GET['action'] == 'addonlyresult' || (isset($_REQUEST["onlyresult"])&&$_RE
         $needlist = explode(',', $_REQUEST['need']);
         $object->resultaction['answer'] = '';
         $action_id = count($lastactiveaction) > 0 ? $lastactiveaction['actionid'] : 0;
-        if($action_id == 0 && !empty($_REQUEST['action_id']))
-            $action_id = $_REQUEST['action_id'];
-//        var_dump($action_id);
-//        die();
         if(count($productname)>0&&!empty($productname[0]))
             for ($i = 0; $i < count($productname); $i++) {
                 $object->resultaction['answer'] .= $productname[$i] . ' ' . (empty($needlist[$i]) ? 'не потрібно' : $needlist[$i]) . '; ';
             }
     }
 }
+if($action_id == 0 && !empty($_REQUEST['action_id']))
+    $action_id = $_REQUEST['action_id'];
+//        var_dump($action_id);
+//die('test');
 $societe = new Societe($db);
 $societe->fetch(empty($object->socid)&&$_GET['action'] == 'addonlyresult'?$_GET['socid']:$object->socid);
 //echo '<pre>';
-//var_dump($object->answer);
+//var_dump($object);
 //echo '</pre>';
 //die();
 $formactions = new FormActions($db);
@@ -219,7 +221,9 @@ if($_GET['action'] == 'edituseration'){//Якщо редагуються рез�
         $said = $_REQUEST['said'];
 ////print '<div class="tabBar">';
 }
+require_once $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/comm/action/class/actioncomm.class.php';
 $Actions = new ActionComm($db);
+$AssignedUsersID = implode(',',$Actions->getAssignedUser($_GET['action_id'], true));
 if(isset($_GET['action_id'])&&!empty($_GET['action_id']))
     $Actions->fetch($_GET['action_id']);
 $style = "";
@@ -241,6 +245,11 @@ if(empty($_REQUEST["action_id"])&&!empty($_REQUEST["id"]))
 //var_dump($object->callstatus);
 //echo '</pre>';
 //die();
+$subactionID = '111';
+if(!empty($_REQUEST["action_id"]))
+    $subactionID = getSubactionID($_REQUEST["action_id"]);
+//var_dump($subactionID);
+//die();
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/addaction.html';
 print '</div>';
 
@@ -250,12 +259,30 @@ llxPopupMenu();
 //llxFooter();
 exit();
 
+function getSubactionID($actionid){
+    global $db;
+    $sql = "select subaction_id from llx_actioncomm where id = " . $actionid;
+    $res = $db->query($sql);
+    if (!$res)
+        dol_print_error($db);
+    $obj = $db->fetch_object($res);
+    return empty($obj->subaction_id) ? 0 : $obj->subaction_id;
+}
 function savetaskmentor($createaction){
 //    echo '<pre>';
-//    var_dump($_REQUEST);
+//    var_dump($_POST);
 //    echo '</pre>';
+//    die();
     global $db,$user;
-    $date_mentor = new DateTime($_POST['date_mentor']);
+
+    try
+    {
+        $date_mentor = new DateTime($_POST['date_mentor']);
+    }
+    catch(Exception $ex)
+    {
+        $date_mentor = new DateTime();
+    }
     if(empty($_POST['rowid'])){
         $sql = "insert into llx_societe_action(`action_id`,`work_before_the_next_action_mentor`,`id_mentor`,`dtMentorChange`)
           values(".$_POST['actionid'].",'".$_POST['task_mentor']."',".$user->id.",'".$date_mentor->format('Y-m-d')."')";
@@ -264,7 +291,7 @@ function savetaskmentor($createaction){
         `id_mentor`=".$user->id.",`dtMentorChange`='".$date_mentor->format('Y-m-d')."' where rowid=".$_POST['rowid'];
     }
 //    echo '<pre>';
-//    var_dump($createaction);
+//    var_dump($sql);
 //    echo '</pre>';
 //    die();
     $res = $db->query($sql);
@@ -451,10 +478,7 @@ function saveuseraction($rowid){
 }
 function saveaction($rowid, $createaction = false){
     global $user, $db;
-//    echo '<pre>';
-//    var_dump($_REQUEST['backtopage']);
-//    echo '</pre>';
-//    die();
+
     if((substr($_REQUEST['action'], 0, strlen('addonlyresult')) == 'addonlyresult' || substr($_REQUEST['action'], 0, strlen('updateonlyresult')) == 'updateonlyresult'))
         $socid = $_REQUEST['socid'];
     else {
@@ -466,7 +490,7 @@ function saveaction($rowid, $createaction = false){
             $socid = $_REQUEST['socid'];
     }
 //    echo '<pre>';
-//    var_dump($createaction);
+//    var_dump($_REQUEST);
 //    echo '</pre>';
 //    die();
     $newdate='';
@@ -485,14 +509,14 @@ function saveaction($rowid, $createaction = false){
     }
     if(empty($rowid)){
         $sql='insert into llx_societe_action(`action_id`,`proposed_id`, `socid`, `contactid`,`callstatus`, `said`,`answer`,
-          `argument`,`said_important`,`result_of_action`,`work_before_the_next_action`,`id_usr`) values(';
+          `argument`,`said_important`,`result_of_action`,`work_before_the_next_action`,`need`,`id_usr`) values(';
         if(empty($_REQUEST['actionid'])) $sql.='null,';
         else $sql.=$_REQUEST['actionid'].',';
         if(empty($_REQUEST['proposed_id'])) $sql.='null,';
         else $sql.=$_REQUEST['proposed_id'].',';
         if(empty($socid)) $sql.='null,';
         else $sql.=$socid.',';
-        $sql.=(empty($_REQUEST['contactid'])?"null":$_REQUEST['contactid']).', ';
+        $sql.=(empty($_REQUEST['contactid'])?(empty($_REQUEST['changedContactID'])?"null":$_REQUEST['changedContactID']):$_REQUEST['contactid']).', ';
         $sql.=(empty($newdate)?(empty($_REQUEST['callstatus'])?"null":$_REQUEST['callstatus']):"null").', ';
         if(empty($_REQUEST['said'])) $sql.='null,';
         else $sql.='"'.$db->escape($_REQUEST['said']).'",';
@@ -506,6 +530,8 @@ function saveaction($rowid, $createaction = false){
         else $sql.='"'.$db->escape($_REQUEST['result_of_action']).'",';
         if(empty($_REQUEST['work_before_the_next_action'])) $sql.='null,';
         else $sql.='"'.$db->escape($_REQUEST['work_before_the_next_action']).'",';
+        if(empty($_REQUEST['need'])) $sql.='null,';
+        else $sql.='"'.$db->escape($_REQUEST['need']).'",';
 //        if(empty($_REQUEST['date_next_action'])) $sql.='null,';
 //        else {
 //            $date = new DateTime($_REQUEST['date_next_action']);
@@ -523,6 +549,7 @@ function saveaction($rowid, $createaction = false){
         $sql.='`said_important`='.(empty($_REQUEST['said_important'])?'null':"'".$db->escape($_REQUEST['said_important'])."'").', ';
         $sql.='`result_of_action`='.(empty($_REQUEST['result_of_action'])?'null':"'".$db->escape($_REQUEST['result_of_action'])."'").', ';
         $sql.='`work_before_the_next_action`='.(empty($_REQUEST['work_before_the_next_action'])?'null':"'".$db->escape($_REQUEST['work_before_the_next_action'])."'").', ';
+        $sql.='`need`='.(empty($_REQUEST['need'])?'null':"'".$db->escape($_REQUEST['need'])."'").', ';
         $sql.='`id_usr`='.$user->id.' ';
 //        $sql.='`new`=1 ';
         $sql.='where rowid='.$rowid;
@@ -537,8 +564,36 @@ function saveaction($rowid, $createaction = false){
     if(!$res){
         dol_print_error($db);
     }
-//    var_dump($res);
+//    echo '<pre>';
+//    var_dump($socid);
+//    echo '</pre>';
 //    die();
+    $update_need_sql = '';
+    if(!empty($socid)){
+        $update_need_sql = "update llx_societe set llx_societe.need = " . (empty($_REQUEST['need']) ? ("null") : ("'" . $db->escape($_REQUEST['need'])) . "'") . "
+          where 1 and llx_societe.rowid =".$socid;
+    }elseif(!empty($_REQUEST['action_id'])||!empty($rowid)) {
+        $update_need_sql = "update llx_societe, llx_societe_action,llx_actioncomm
+          set llx_societe.need = " . (empty($_REQUEST['need']) ? ("null") : ("'" . $db->escape($_REQUEST['need'])) . "'") . "
+          where 1 ";
+        if (empty($_REQUEST['action_id'])) {
+            $update_need_sql .= " and llx_societe_action.rowid = " . $rowid;
+        } else {
+            $update_need_sql .= " and llx_actioncomm.id = " . $_REQUEST['action_id'];
+        }
+        $update_need_sql .= " and llx_actioncomm.id = llx_societe_action.action_id";
+        $update_need_sql .= " and llx_societe.rowid = llx_actioncomm.fk_soc";
+    }
+//    echo '<pre>';
+//    var_dump($update_need_sql);
+//    echo '</pre>';
+//    die();
+    if(!empty($update_need_sql)){
+        $res = $db->query($update_need_sql);
+        if (!$res) {
+            dol_print_error($db);
+        }
+    }
 //    if($_REQUEST['action'] == 'update'||!(substr($_REQUEST['action'], 0, strlen('addonlyresult')) == 'addonlyresult' || (substr($_REQUEST['action'], 0, strlen('updateonlyresult')) == 'updateonlyresult' && strlen($_REQUEST['action'])==strlen('updateonlyresult')))) {
 
     if(isset($_REQUEST['changedContactID'])&&!empty($_REQUEST['changedContactID'])){//Змінюю контактне лице, якщо його змінили під час внесення даних
@@ -548,17 +603,21 @@ function saveaction($rowid, $createaction = false){
             dol_print_error($db);
         }
     }
-    if($_REQUEST['action'] == 'update'||(substr($_REQUEST['action'], 0, strlen('addonlyresult')) == 'addonlyresult' || (substr($_REQUEST['action'], 0, strlen('updateonlyresult')) == 'updateonlyresult' && strlen($_REQUEST['action'])==strlen('updateonlyresult')))) {
+    if($_REQUEST['action'] == 'update'||(substr($_REQUEST['action'], 0, strlen('saveonlyresult')) == 'saveonlyresult' || substr($_REQUEST['action'], 0, strlen('addonlyresult')) == 'addonlyresult' || (substr($_REQUEST['action'], 0, strlen('updateonlyresult')) == 'updateonlyresult' && strlen($_REQUEST['action'])==strlen('updateonlyresult')))) {
         if (empty($rowid))
             $rowid = get_last_id();
         $TypeAction = array('AC_GLOBAL', 'AC_CURRENT');
-        $sql = 'SELECT `code`, `llx_actioncomm`.`id` from `llx_actioncomm` inner join llx_societe_action on llx_societe_action.`action_id` = `llx_actioncomm`.`id` where llx_societe_action.`rowid` = ' . $rowid;
+        $sql = 'SELECT `code`, `llx_actioncomm`.`id`, percent from `llx_actioncomm` inner join llx_societe_action on llx_societe_action.`action_id` = `llx_actioncomm`.`id` where llx_societe_action.`rowid` = ' . $rowid;
 //        die($sql);
         $res = $db->query($sql);
         $objCode = $db->fetch_object($res);
         $complete=$_REQUEST['complete'];
         $authorID = 0;
-        if($complete == '100'){
+        if($objCode->percent == '99' && $objCode->percent != $complete){
+            $sql = 'update llx_actioncomm set percent = '.$complete.', new = 0 where id = '.$_REQUEST['actionid'];
+            $db->query($sql);
+        }
+        if($complete == '100' && (empty($_REQUEST["subaction"]) || !in_array($_REQUEST["subaction"], array('validate')))){
             $sql = 'select fk_user_author from `llx_actioncomm` where id='.$_REQUEST['actionid'];
             $res = $db->query($sql);
             if(!$res)
@@ -568,7 +627,19 @@ function saveaction($rowid, $createaction = false){
             if($obj->fk_user_author != $user->id)
                 $complete = '99';
         }
+        if($complete == '100' && $_REQUEST["subaction"] == 'validate'){//Ставлю відмітку "Затвердження" на макет розсилки
+            $sql = "select subaction_id from llx_actioncomm where id = ".$_REQUEST["actionid"];
+            $res = $db->query($sql);
+            if(!$res)
+                dol_print_error($db);
+            $obj = $db->fetch_object($res);
 
+            $sql = "update llx_mailing set date_valid = now(), fk_user_valid = ".$user->id." where 1 and rowid=".$obj->subaction_id;
+//            die($sql);
+            $res = $db->query($sql);
+            if(!$res)
+                dol_print_error($db);
+        }
 
         $sql = "update llx_actioncomm set `new` = 1, ".
             (!empty($newdate)?("datep='".date('Y-m-d H:i:s',$mkNewDatep)."', datep2='".date('Y-m-d H:i:s',$mkNewDatef)."' ,"):"").
@@ -583,6 +654,7 @@ function saveaction($rowid, $createaction = false){
             dol_print_error($db);
         //Встановлюю мітку про виконання на первинній задачі, якщо значення статусу = виконано
         if($complete == '100') {
+
             $sql = 'update llx_actioncomm, llx_actioncomm sub_action set `llx_actioncomm`.`new` = 1,
             `llx_actioncomm`.dateconfirm = case when `llx_actioncomm`.dateconfirm is null then Now() else `llx_actioncomm`.dateconfirm end,
             `llx_actioncomm`.datea= case when `llx_actioncomm`.datea is null then Now() else `llx_actioncomm`.datea end, `llx_actioncomm`.percent = 99
@@ -590,6 +662,7 @@ function saveaction($rowid, $createaction = false){
             and sub_action.fk_parent = llx_actioncomm.id
             and llx_actioncomm.fk_parent = 0';
             $res = $db->query($sql);
+
         }
         if(!empty($_REQUEST["actionid"])) {
             require_once $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/comm/action/class/actioncomm.class.php';
@@ -660,7 +733,33 @@ function saveaction($rowid, $createaction = false){
         }
 //        var_dump($backtopage);
 //        die();
-        $link = "http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/comm/action/card.php?mainmenu=".$_REQUEST['mainmenu']."&actioncode=".$_REQUEST['actioncode']."&socid=".$socid."&action=create&parent_id=".$_REQUEST["actionid"]."&backtopage=".$backtopage;
+        $link = "http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/comm/action/card.php?mainmenu=".$_REQUEST['mainmenu']."&actioncode=".$_REQUEST['actioncode'].
+            "&socid=".$socid."&action=create&parent_id=".$_REQUEST["actionid"];
+        if(!empty($_REQUEST['assignedusers'])) {
+            $link .= '&addassignedtouser=1';
+            $json = '"'.$user->id.'":{"id":"'.$user->id.'","mandatory":0,"transparency":null}';
+
+
+            $userID = str_replace('"','',substr($_REQUEST["assignedusers"], 1, strlen($_REQUEST["assignedusers"])-2));
+            $userID = explode(',',$userID);
+            foreach ($userID as $value){
+                $json.= ','. '"'.$value.'":{"id":"'.$value.'","mandatory":0,"transparency":null}';
+            }
+//            $json.='}';
+            $note = 'Вашим клієнтам буде відправлено електронну розсилку через дві години. Переглянте будь ласка її зміст';
+//            echo '<pre>';
+//            var_dump($json);
+//            echo '</pre>';
+//            die();
+            $sql = "select subaction_id from llx_actioncomm where id = ".$_REQUEST["actionid"];
+            $res = $db->query($sql);
+            if(!$res)
+                dol_print_error($db);
+            $obj = $db->fetch_object($res);
+            $link.='&subaction=sendmail&subaction_id='.$obj->subaction_id.'&note='.$note.='&actioncode=AC_CURRENT&groupoftask=13&assignedUser='.$json;
+            $backtopage = '/dolibarr/htdocs/current_plan.php?idmenu=10423&mainmenu=current_task&leftmenu=';
+        }
+        $link.="&backtopage=".$backtopage;
         header("Location: ".$link);
     }
 }

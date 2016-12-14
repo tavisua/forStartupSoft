@@ -29,8 +29,7 @@
 require '../../main.inc.php';
 
 require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
-//llxHeader('', $langs->trans("AddAction"), $help_url);
-//
+//llxHeader();
 //echo '<pre>';
 //var_dump($_REQUEST);
 //echo '</pre>';
@@ -65,6 +64,16 @@ if(isset($_POST['action'])&&$_POST['action'] == 'create' && isset($_POST['parent
 //		die();
 	}
 }
+
+if(isset($_GET['action'])&&$_GET['action'] == 'create' && isset($_GET['assignedUser'])&&!empty($_GET['assignedUser'])){
+//	$json = '{"'.$user->id.'":{"id":"'.$user->id.'","mandatory":0,"transparency":null},"6":{"id":"6","transparency":"on","mandatory":1},"6":{"id":"6","transparency":"on","mandatory":1}}';
+	$json = '{"'.$user->id.'":{"id":"'.$user->id.'","mandatory":0,"transparency":null},'.$_GET['assignedUser'].'}';
+//		$_POST['assignedtouser']= $obj->fk_element;
+//	die($json);
+	$_POST['addassignedtouser'] = '1';
+	$_SESSION['assignedtouser']=$json;
+}
+
 if(isset($_REQUEST['id_usr'])&&!empty($_REQUEST['id_usr'])&&$_REQUEST['id_usr']!=$user->id){
 //$test = '{"6":{"id":"6","mandatory":0,"transparency":null},"7":{"id":"7","transparency":"on","mandatory":1}}';
 //var_dump(json_decode($test));
@@ -72,7 +81,7 @@ if(isset($_REQUEST['id_usr'])&&!empty($_REQUEST['id_usr'])&&$_REQUEST['id_usr']!
 	$json = '{"'.$user->id.'":{"id":"'.$user->id.'","mandatory":0,"transparency":null},"'.$_REQUEST['id_usr'].'":{"id":"'.$_REQUEST['id_usr'].'","transparency":"on","mandatory":1}}';
 	$_SESSION['assignedtouser']=$json;
 }
-//var_dump($_REQUEST);
+//var_dump($_SESSION['assignedtouser']);
 //die();
 if($_GET['action']=='get_exectime'){
 
@@ -603,6 +612,10 @@ if ($action == 'add')
 		$object->groupoftask= GETPOST("groupoftask");
 		$object->typenotification= GETPOST("typenotification");
 		$object->typeSetOfDate = GETPOST("typeSetOfDate");
+		$object->subaction = GETPOST("subaction");
+		$object->subaction_id = GETPOST("subaction_id");
+		$object->motivator = GETPOST("motivator");
+		$object->demotivator = GETPOST("demotivator");
 //        die($object->parent_id);
 		if (! GETPOST('label'))
 		{
@@ -624,7 +637,7 @@ if ($action == 'add')
 		$object->datep = $datep;
 		$object->datef = $datef;
 		$object->datepreperform = $dateprep;
-		if(isset($_REQUEST['typeaction']) && $_REQUEST['typeaction'] == 'subaction' )
+		if(isset($_REQUEST['typeaction']) && $_REQUEST['typeaction'] == 'subaction' || GETPOST("mentor_action") == 1)
 			$object->entity = 0;
 //		var_dump($object->entity);
 //		die();
@@ -857,7 +870,8 @@ if ($action == 'update')
 		$object->typenotification= GETPOST("typenotification");
 		$object->period 	 = GETPOST("selperiod");
 		$object->typeSetOfDate = GETPOST("typeSetOfDate");
-
+		$object->motivator = GETPOST("motivator");
+		$object->demotivator = GETPOST("demotivator");
 
         $object->contactid   = GETPOST("contactid",'int');
 
@@ -1144,7 +1158,20 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
                })';
         print '</script>'."\n";
     }
-
+	if(!empty($_REQUEST['mentor_action'])) {
+		$backtopage_tmp = $_REQUEST["backtopage"];
+		$search = substr($backtopage_tmp, strpos($backtopage_tmp, '?')+1);
+		$search_param = explode('&',$search);
+		foreach ($search_param as $item){
+			if(substr($item, 0, 5) == 'socid'){
+//				var_dump($item);
+				$_REQUEST['socid'] = substr($item, strpos($item, '=')+1);
+			}
+		}
+//		var_dump($_REQUEST['socid']);
+//		die();
+	}
+//	die('test');
 	print '<form id="formaction" name="formaction" action="'.$_SERVER['PHP_SELF'].'" method="POST">';
 	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
 	print '<input type="hidden" name="action" value="add">';
@@ -1154,6 +1181,8 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 	print '<input type="hidden" name="error" id="error" value="'.$_REQUEST['error'].'">';
 	print '<input type="hidden" id="mainmenu" name="mainmenu" value="'.$_REQUEST["mainmenu"].'">';
 	print '<input type="hidden" id="parent_id" name="parent_id" value="'.$_REQUEST["parent_id"].'">';
+	print '<input type="hidden" id="subaction" name="subaction" value="'.$_REQUEST["subaction"].'">';
+	print '<input type="hidden" id="subaction_id" name="subaction_id" value="'.$_REQUEST["subaction_id"].'">';
 	print '<input type="hidden" id="mentor_action" name="mentor_action" value="'.$_REQUEST["mentor_action"].'">';
 	print '<input type="hidden" name="donotclearsession" value="1">';
 	print '<input type="hidden" id = "backtopage" name="backtopage" value="'.($backtopage != '1' ? $backtopage : $_SERVER["HTTP_REFERER"]).'">';
@@ -1462,6 +1491,9 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 //		print '<tr id="period"><td>'.$langs->trans("Period").'</td><td colspan="3"></td></tr>';
 	print '<tr id="period"><td>'.$langs->trans("Period").'</td><td colspan="3">'.$form->select_period('selperiod', $object->period).'</td></tr>';
 
+	print '<tr id=""><td>Мотивація</td><td colspan="3"><input type="text" id="motivator" name="motivator"  class="param_item" value="'.(GETPOST('motivator')?GETPOST('motivator'):($object->motivator?$object->motivator:'')).'" size="5"></td></tr>';
+	print '<tr id=""><td>Демотивація</td><td colspan="3"><input type="text" id="demotivator" name="demotivator"  class="param_item" value="'.(GETPOST('demotivator')?GETPOST('demotivator'):($object->demotivator?$object->demotivator:'')).'" size="5"></td></tr>';
+
 
 	print '</table>';
 	print '<br>';
@@ -1470,12 +1502,12 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 
 	// Societe, contact
 	print '<tr><td width="30%" class="nowrap">'.$langs->trans("ActionOnCompany").'</td><td>';
-	if (GETPOST('socid','int') > 0)
+	if ($_REQUEST['socid'] > 0)
 	{
 		$societe = new Societe($db);
-		$societe->fetch(GETPOST('socid','int'));
+		$societe->fetch($_REQUEST['socid']);
 		print $societe->getNomUrl(1);
-		print '<input type="hidden" id="socid" name="socid" value="'.GETPOST('socid','int').'">';
+		print '<input type="hidden" id="socid" name="socid" value="'.$_REQUEST['socid'].'">';
 	}
 	else
 	{
@@ -1483,19 +1515,25 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 		$events=array();
 		$events[]=array('method' => 'getContacts', 'url' => dol_buildpath('/core/ajax/contacts.php',1), 'htmlname' => 'contactid', 'params' => array('add-customer-contact' => 'disabled'));
 		//For external user force the company to user company
-		if (!empty($user->societe_id)) {
-			$thirdparty_list = $form->select_thirdparty_list($user->societe_id,'socid','',1,1,0,'',0,0,$user->id);
-		} else {
-            $thirdparty_list = $form->select_thirdparty_list('','socid','',1,1,0,$events,'',0,0,$user->id);
+		$id_user = $user->id;
+		$societe_id = $user->societe_id;
+		if(!empty($_REQUEST['mentor_action'])) {
+			var_dump($_REQUEST);
+			die();
 		}
-        $thirdparty_list = substr($thirdparty_list, 0, strpos($thirdparty_list, 'name')).' onchange="SocIdChange();" '.substr($thirdparty_list, strpos($thirdparty_list, 'name'));
+		if (!empty($societe_id)) {
+			$thirdparty_list = $form->select_thirdparty_list($societe_id, 'socid', '', 1, 1, 0, '', 0, 0, $id_user);
+		} else {
+			$thirdparty_list = $form->select_thirdparty_list('', 'socid', '', 1, 1, 0, $events, '', 0, 0, $id_user);
+		}
+		$thirdparty_list = substr($thirdparty_list, 0, strpos($thirdparty_list, 'name')) . ' onchange="SocIdChange();" ' . substr($thirdparty_list, strpos($thirdparty_list, 'name'));
 
         print $thirdparty_list;
 	}
 	print '</td></tr>';
 
 	print '<tr><td class="nowrap">'.$langs->trans("ActionOnContact").'</td><td>';
-	$form->select_contacts(GETPOST('socid','int'),GETPOST('contactid'),'contactid',1);
+	$form->select_contacts($_REQUEST['socid'],GETPOST('contactid'),'contactid',1);
 	print '</td></tr>';
 
 
@@ -1700,6 +1738,8 @@ if ($id > 0)
 		print '<input type="hidden" name="ref_ext" value="'.$object->ref_ext.'">';
 		print '<input type="hidden" id="showform" value="0">';
 		print '<input type="hidden" id="id_usr" value="'.$user->id.'">';
+		print '<input type="hidden" id="subaction" name="subaction" value="'.$_REQUEST["subaction"].'">';
+		print '<input type="hidden" id="subaction_id" name="subaction_id" value="'.$_REQUEST["subaction_id"].'">';
 		if ($backtopage) print '<input type="hidden" name="backtopage" value="'.($backtopage != '1'? $backtopage : $_SERVER["HTTP_REFERER"]).'">';
 		if (empty($conf->global->AGENDA_USE_EVENT_TYPE)) print '<input type="hidden" id="actioncode" name="actioncode" value="'.$object->type_code.'">';
 
@@ -1854,6 +1894,9 @@ if ($id > 0)
 		print '<tr id="typenotification" style="display: none"><td width="10%">'.$langs->trans("TypeNotification").'</td>';
 		print '<td>';
 		print $formactions->getTypeNotification($object->typenotification);
+		print '<tr id=""><td>Мотивація</td><td colspan="3"><input type="text" id="motivator" name="motivator"  class="param_item" value="'.(GETPOST('motivator')?GETPOST('motivator'):($object->motivator?$object->motivator:'')).'" size="5"></td></tr>';
+		print '<tr id=""><td>Демотивація</td><td colspan="3"><input type="text" id="demotivator" name="demotivator"  class="param_item" value="'.(GETPOST('demotivator')?GETPOST('demotivator'):($object->demotivator?$object->demotivator:'')).'" size="5"></td></tr>';
+
 		print '</td></tr>';
 		print '</td></tr>';
 //		var_dump($datepreperform);

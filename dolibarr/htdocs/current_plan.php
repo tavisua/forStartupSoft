@@ -70,13 +70,13 @@ function ShowTask(){
         }
     }else
         $sql.=" and percent <> 100";
-    $sql.=" and (entity = 1)
+    $sql.=" 
               and active = 1";
 
 //and (entity = 1 and `llx_actioncomm`.`fk_user_author` = ".$user->id." or entity = 0 and `llx_actioncomm`.`fk_user_author` <> ".$user->id.")
     if(isset($_POST["filterdates"])&&!empty($_POST["filterdates"])){
         $filter = (array)json_decode($_REQUEST['filterdates']);
-//        var_dump(array_keys($filter), $_REQUEST['filterdates']);
+//        var_dump(array_keys($filter));
 //        die();
 //        switch($_POST["datetype"]){
 //            case 'execdate':{
@@ -152,13 +152,31 @@ function ShowTask(){
 //                            where `llx_actioncomm_resources`.`fk_element` = ".$filter[$key]."
 //                            and `llx_actioncomm`.percent <> 100
 //                            and `llx_actioncomm`.`active` = 1";
-                        $sql_tmp = "select distinct `llx_actioncomm`.id from `llx_actioncomm`
-                                    left join `llx_actioncomm_resources` on `llx_actioncomm`.id = `llx_actioncomm_resources`.`fk_actioncomm`
-                                    where 1
-                                    and case when `llx_actioncomm_resources`.`fk_element` is null then `llx_actioncomm`.`fk_user_author` else `llx_actioncomm`.`fk_user_author` end  = ".$filter[$key]."
-                                    and case when `llx_actioncomm_resources`.`fk_element` is not null then `llx_actioncomm_resources`.`fk_element` = `llx_actioncomm`.`fk_user_author` end
-                                    and `llx_actioncomm`.percent <> 100
-                                    and `llx_actioncomm`.`active` = 1";
+//                        var_dump($filter[$key]);
+//                        die();
+                        if($filter[$key] != -1)
+                            $sql_tmp = "select distinct `llx_actioncomm`.id from `llx_actioncomm`
+                                        left join `llx_actioncomm_resources` on `llx_actioncomm`.id = `llx_actioncomm_resources`.`fk_actioncomm`
+                                        where 1
+                                        and case when `llx_actioncomm_resources`.`fk_element` is null then `llx_actioncomm`.`fk_user_author` else `llx_actioncomm_resources`.`fk_element` end  = ".$filter[$key]."
+                                        and `llx_actioncomm`.percent <> 100
+                                        and `llx_actioncomm`.`active` = 1";
+                        else {
+                            $sql_tmp = "select rowid from llx_user
+                                            where subdiv_id = ".$user->subdiv_id."
+                                            and active = 1";
+                            $res = $db->query($sql_tmp);
+                            $users_id = array(0);
+                            while($obj = $db->fetch_object($res)){
+                                $users_id[]=$obj->rowid;
+                            }
+                            $sql_tmp = "select distinct `llx_actioncomm`.id from `llx_actioncomm`
+                                        left join `llx_actioncomm_resources` on `llx_actioncomm`.id = `llx_actioncomm_resources`.`fk_actioncomm`
+                                        where 1
+                                        and case when `llx_actioncomm_resources`.`fk_element` is null then `llx_actioncomm`.`fk_user_author` else `llx_actioncomm_resources`.`fk_element` end  in (".implode(',',$users_id).")
+                                        and `llx_actioncomm`.percent <> 100
+                                        and `llx_actioncomm`.`active` = 1";
+                        }
 
 //                        echo '<pre>';
 //                        var_dump($sql_tmp);
@@ -179,7 +197,7 @@ function ShowTask(){
                         inner join `llx_actioncomm` on `llx_actioncomm`.`id` = `llx_societe_action`.`action_id`
                         where 1
                         and dtChange in (".$filter[$key].")
-                        and `llx_actioncomm`.`code` = 'AC_GLOBAL'
+                        and `llx_actioncomm`.`code` = 'AC_CURRENT'
                         and `llx_actioncomm`.`active` = 1
                         and `llx_actioncomm`.`percent` <> 100";
                     $res_tmp = $db->query($sql_tmp);
@@ -195,6 +213,7 @@ function ShowTask(){
 //    echo '<pre>';
 //    var_dump($sql);
 //    echo '</pre>';
+//    die();
     $res = $db->query($sql);
     if(!$res){
         dol_print_error($db);
@@ -230,7 +249,7 @@ function ShowTask(){
         }
     }
 //    echo '<pre>';
-//    var_dump($assignedUser);
+//    var_dump($taskID);
 //    echo '</pre>';
 ////    var_dump($user->id, 'userid');
 //    die();
@@ -260,7 +279,7 @@ function ShowTask(){
 //    echo '</pre>';
 //    die();
     //Завантажую завдання
-    $sql = "select id, note, confirmdoc, entity, `datec`, datep2, datelastaction, datefutureaction, round((UNIX_TIMESTAMP(datep2)-UNIX_TIMESTAMP(datep))/60,0) iMinute, `dateconfirm`,`datepreperform`, fk_order_id, period, `percent`, `llx_c_groupoftask`.`name` groupoftask, fk_groupoftask
+    $sql = "select id, note, confirmdoc, entity, `datec`, datep2, datelastaction, planed_cost, fact_cost,motivator, demotivator, datefutureaction, round((UNIX_TIMESTAMP(datep2)-UNIX_TIMESTAMP(datep))/60,0) iMinute, `dateconfirm`,`datepreperform`, fk_order_id, period, `percent`, `llx_c_groupoftask`.`name` groupoftask, fk_groupoftask
     from `llx_actioncomm`
     left join llx_c_groupoftask on `llx_c_groupoftask`.`rowid` = fk_groupoftask
     where id in (".implode(",", $taskID).")
@@ -460,6 +479,22 @@ function ShowTask(){
 
             if($taskAuthor[$obj->id] == $user->id && $obj->percent <= 99)
                  $table .= '<td style="width:51px; text-align: center"><img src="/dolibarr/htdocs/theme/eldy/img/uncheck.png" onclick="ConfirmExec(' . $obj->id . ');" id="confirm' . $obj->id . '"></td>';
+            else
+                $table .= '<td  style="width:51px">&nbsp;</td>';
+            if(!empty($obj->planed_cost))
+                $table .= '<td style="width:51px; text-align: center">'.$obj->planed_cost.'</td>';
+            else
+                $table .= '<td  style="width:51px">&nbsp;</td>';
+            if(!empty($obj->fact_cost))
+                $table .= '<td style="width:51px; text-align: center">'.$obj->fact_cost.'</td>';
+            else
+                $table .= '<td  style="width:51px">&nbsp;</td>';
+            if(!empty($obj->motivator))
+                $table .= '<td style="width:51px; text-align: center">'.$obj->motivator.'</td>';
+            else
+                $table .= '<td  style="width:51px">&nbsp;</td>';
+            if(!empty($obj->demotivator))
+                $table .= '<td style="width:51px; text-align: center">'.$obj->demotivator.'</td>';
             else
                 $table .= '<td  style="width:51px">&nbsp;</td>';
             if($taskAuthor[$obj->id] == $user->id && $obj->percent <= 99)

@@ -11,7 +11,7 @@
         </div>
 
     <table  cellspacing="1" class="WidthScroll">
-        <thead>
+        <thead id="headtable">
         <tr class="multiple_header_table">
             <!--<th width="50px"  rowspan="2">№ п/п</th>-->
             <!--<th width="50px"  class="small_size" rowspan="2">№ п/п у замов. / викон.</th>-->
@@ -32,17 +32,23 @@
             <th width="50px" class="small_size" rowspan="2">Відмітка : особливе, важливе</th>
             <th width="50px" class="small_size" rowspan="2">Статус завдання</br><br><br><img  id="StatusFilter" onclick="GetStatusAction();" title="Встановити фільтр статусу виконання" src="/dolibarr/htdocs/theme/eldy/img/btn_arrow_down.png"></th>
             <th width="50px" class="small_size" rowspan="2" title="Підтвердження про виконання">Підтв. про викон.</th>
-            <th width="25px" class="small_size" rowspan="2"></th>
-            <th width="25px" class="small_size" rowspan="2"></th>
-            <th width="25px" class="small_size" rowspan="2"></th>
+            <th width="25px" class="small_size" colspan="2">Витрати</th>
+            <th width="25px" class="small_size" colspan="2">Мотивація</th>
+            <th width="50px" class="small_size" rowspan="2" id="edit_title"></th>
+            <th width="50px" class="small_size" rowspan="2" id="dublicate_title"></th>
+            <th width="50px" class="small_size" rowspan="2" id="del_title"></th>
 
         </tr>
         <tr class="multiple_header_table">
-            <th width="75px" class="middle_size">Останні</br><img  id="LastActionFilter" onclick="GetExecDate('lastaction');" title="Встановити фільтр по даті останньої дії" src="/dolibarr/htdocs/theme/eldy/img/btn_arrow_down.png"></th>
-            <th width="75px" class="middle_size">Майбутні</br><img  id="FutureActionFilter" onclick="GetExecDate('futureaction');" title="Встановити фільтр по даті майбутньої дії" src="/dolibarr/htdocs/theme/eldy/img/btn_arrow_down.png"></th>
-            <th width="40px" class="middle_size">Необх. часу, хв</th>
-            <th width="75px" class="middle_size">Останні</br><img  id="LastValidFilter" onclick="GetExecDate('lastvalid');" title="Встановити фільтр по даті останньої перевірки наставником" src="/dolibarr/htdocs/theme/eldy/img/btn_arrow_down.png"></th>
-            <th width="75px" class="middle_size">Майбутні</br><img  id="FutureValidFilter" onclick="GetExecDate('futurevalid');" title="Встановити фільтр по даті останньої перевірки наставником" src="/dolibarr/htdocs/theme/eldy/img/btn_arrow_down.png"></th>
+            <th width="75px" class="middle_size" level="2">Останні</br><img  id="LastActionFilter" onclick="GetExecDate('lastaction');" title="Встановити фільтр по даті останньої дії" src="/dolibarr/htdocs/theme/eldy/img/btn_arrow_down.png"></th>
+            <th width="75px" class="middle_size" level="2">Майбутні</br><img  id="FutureActionFilter" onclick="GetExecDate('futureaction');" title="Встановити фільтр по даті майбутньої дії" src="/dolibarr/htdocs/theme/eldy/img/btn_arrow_down.png"></th>
+            <th width="40px" class="middle_size" level="2">Необх. часу, хв</th>
+            <th width="75px" class="middle_size" level="2">Останні</br><img  id="LastValidFilter" onclick="GetExecDate('lastvalid');" title="Встановити фільтр по даті останньої перевірки наставником" src="/dolibarr/htdocs/theme/eldy/img/btn_arrow_down.png"></th>
+            <th width="75px" class="middle_size" level="2">Майбутні</br><img  id="FutureValidFilter" onclick="GetExecDate('futurevalid');" title="Встановити фільтр по даті останньої перевірки наставником" src="/dolibarr/htdocs/theme/eldy/img/btn_arrow_down.png"></th>
+            <th width="55px" class="small_size" level="2">План</th>
+            <th width="55px" class="small_size" level="2">Факт</th>
+            <th width="25px" class="small_size"  level="2">+</th>
+            <th width="25px" class="small_size"  level="2">-</th>
         </tr>
         </thead>
 
@@ -57,21 +63,33 @@
         window.filterdates = <?=empty($_POST['filterdates'])?'null':$_POST['filterdates']?>;
         ShowOffFilterBtn();
         $('#reference_body').attr('height', window.innerHeight - 360);
-        var th = document.getElementsByTagName('th');
-        var left = 30;
-        var widths = [];
-        var TotalWidth = 0;
-        for(var i=0; i<th.length; i++){
-            if(th[i].className == "middle_size" || th[i].id == '') {
-//                    console.log(th[i].offsetWidth);
-                var iWidth = th[i].offsetWidth;
-                if (th[i].className == 'header_table')
-                    left += parseInt(iWidth);
-                TotalWidth += iWidth;
-                widths.push(parseInt(iWidth));
+
+        var thList = $("#headtable").find("tr")
+        var resThList = [];
+        var secIndex = 0;
+        $.each($(thList[0]).find("th"), function(key, value){
+            if($(value).attr("colspan") == undefined)
+                resThList.push(value);
+            else{
+                for(var i = 1; i<=$(value).attr("colspan"); i++)
+                    resThList.push($(thList[1]).find("th")[secIndex++]);
+                key++;
+            }
+        });
+        var trList = document.getElementById("reference_body").getElementsByTagName("tr")[0];
+        var tdList = trList.getElementsByTagName("td");
+        for(var i = 0; i<$(tdList).length; i++){
+            if(tdList[i+1] !== undefined){
+                var width = $(tdList[i]).width();
+                $(tdList[i]).width($(tdList[i]).width() + ($(resThList[i+1]).offset().left - $(tdList[i+1]).offset().left));
+                if($(resThList[i+1]) !== undefined && ($(resThList[i+1]).offset().left - $(tdList[i+1]).offset().left) != 0){
+                    $(resThList[i]).width($(tdList[i]).width() - ($(resThList[i+1]).offset().left - $(tdList[i+1]).offset().left));
+                    console.log($(tdList[i]), $(resThList[i]),width," => ",$(tdList[i]).width(), ($(resThList[i+1]).offset().left - $(tdList[i+1]).offset().left));
+                }
             }
         }
 
+        var left = 30;
         $('.tabs').offset({top:215, left:left});
 //                console.log($('#comerc_action').width());
         $('#comerc').offset({top:110, left:$('#comerc_action').offset().left});
@@ -81,7 +99,7 @@
         $('#tabs_area').width(600);
         $('#reference_body').offset({left:22});
 ////console.log(TotalWidth, widths);
-        $('#reference_body').width(TotalWidth+30);
+//        $('#reference_body').width(TotalWidth+30);
     })
 
 </script>

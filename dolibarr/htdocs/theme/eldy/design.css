@@ -258,6 +258,10 @@ tr.subtype:hover {
 /** {*/
     /*box-sizing: border-box;*/
 /*}*/
+.mentor {
+    font-weight: 600;
+    color: red;
+}
 #modal_form {
     width: 300px;
     height: 300px; /* Рaзмеры дoлжны быть фиксирoвaны */
@@ -273,6 +277,20 @@ tr.subtype:hover {
     opacity: 0; /* пoлнoстью прoзрaчнo для aнимирoвaния */
     z-index: 5; /* oкнo дoлжнo быть нaибoлее бoльшем слoе */
     padding: 20px 10px;
+}
+#setNeed{
+    width: 60px;
+    height: 30px;
+    position: absolute;
+    background-color: darkseagreen;
+    border-radius: 5px;
+    border-color: #4d9200;
+    border: 2px solid #567b1b;
+    color: whitesmoke;
+    display: none;
+    z-index: 100;
+    cursor: pointer;
+    text-align:center;
 }
 /* Кнoпкa зaкрыть для тех ктo в тaнке) */
 #modal_form #modal_close {
@@ -369,7 +387,18 @@ a.vsmenu:link, a.vsmenu:visited, a.vsmenu:hover, a.vsmenu:active {
     color: #000;
     font-weight: bold;
 }
-
+#previewtask, #editmail,#validators{
+    border-color: #f6f6f6 #ccc #bbb;
+    border-style: solid;
+    border-width: 5px;
+    box-shadow: 3px 3px 4px #ddd;
+}
+#validators{
+     border-color: #f6f6f6 #ccc #bbb;
+     border-style: solid;
+     border-width: 3px;
+     box-shadow: 1px 1px 2px #ddd;
+ }
 .tabPage{
     background-image: -moz-linear-gradient(center bottom , rgba(110, 110, 110, 0.5) 25%, rgba(210, 210, 210, 0.5) 100%);
     border-color: #ccc #bbb #bbb;
@@ -449,7 +478,7 @@ body {
     font-size: 12px;
 }
 .middle_size{
-    font-size: 12px;
+    font-size: 12px !important;
 }
 .small_size{
     font-size: 10px;

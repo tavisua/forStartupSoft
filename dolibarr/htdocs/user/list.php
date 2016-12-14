@@ -90,22 +90,23 @@ function callStatistic(){
         `llx_societe_action`.`callstatus`, `llx_societe_action`.rowid as answer_id
 
         from
-        (select id, percent, datep,fk_soc,`code`,fk_user_author from llx_actioncomm
+        (select id, percent, datep,fk_soc,`code`, fk_user_action fk_user_author from llx_actioncomm
         where 1";
 
         if(empty($_REQUEST['month'])){
-            $sql.= " and datep between '2016-".($nowMonth)."-01' and '2016-".($nowMonth+1)."-01'";
+            $sql.= " and datep between '".date('Y')."-".($nowMonth)."-01' and ".(($nowMonth+1)==13?("'".(date('Y')+1)."-01-01'"):("'".(date('Y')."-".($nowMonth+1)."-01'")));
         }else {
             $selMonth = $_REQUEST['month'];
             if($selMonth<10)$selMonth='0'.$selMonth;
-            $sql .= " and datep between '2016-".$selMonth."-01' and '2016-".($selMonth+1)."-01'";
+            $sql .= " and datep between '".date('Y')."-".$selMonth."-01' and '2016-".($selMonth+1)."-01'";
         }
         $sql.=" and llx_actioncomm.active = 1
                   and `code` not in ('AC_GLOBAL', 'AC_CURRENT')) actioncomm
         left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = actioncomm.id
         left join `llx_societe` on `llx_societe`.`rowid` = `actioncomm`.`fk_soc`
         left join `llx_societe_action` on `llx_societe_action`.`action_id` = `actioncomm`.`id`
-        inner join (select `llx_user`.rowid, `responsibility`.`alias`, `llx_user`.subdiv_id from `llx_user` inner join `responsibility` on `responsibility`.`rowid` = `llx_user`.`respon_id` where 1 and `llx_user`.`active` = 1) sub_user on sub_user.rowid = case when llx_actioncomm_resources.fk_element is null then actioncomm.`fk_user_author` else llx_actioncomm_resources.fk_element end";
+        inner join (select `llx_user`.rowid, `responsibility`.`alias`, `llx_user`.subdiv_id from `llx_user` inner join `responsibility` on `responsibility`.`rowid` = `llx_user`.`respon_id`
+        where 1 and `llx_user`.`active` = 1) sub_user on sub_user.rowid = case when llx_actioncomm_resources.fk_element is null then actioncomm.`fk_user_author` else llx_actioncomm_resources.fk_element end";
 //        echo '<pre>';
 //        var_dump($sql);
 //        echo '</pre>';
@@ -215,7 +216,7 @@ function showUserList(){
         and `subdivision`.`name` is not null
         and `llx_user`.login not in ('test')";
 //echo '<pre>';
-//var_dump($_POST);
+//var_dump($sql);
 //echo '</pre>';
 //die();
     if(isset($_POST["subdiv_id"])&&!empty($_POST["subdiv_id"]))

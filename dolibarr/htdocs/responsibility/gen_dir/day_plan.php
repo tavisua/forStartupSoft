@@ -1458,7 +1458,8 @@ function getActionsBySub($class, $code){
     elseif(substr($code,0,1) == "'" && substr($code,strlen($code)-1,1)=="'")
         $code = substr($code, 1, strlen($code)-2);
 
-    global $db;
+    global $db,$user;
+    $user->getrights();
     $start = time();
 //Всього завдань та виконані
     $total = array();
@@ -1474,8 +1475,12 @@ function getActionsBySub($class, $code){
         $sql = "select llx_user.subdiv_id, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
             left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
             left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
-        if(!empty($subdiv_id))
+        if(!empty($subdiv_id)&&!is_array($subdiv_id))
             $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
+        elseif ($user->rights->user->user->mentor){
+            $subdiv_id = $user->getmentors($user->id);
+            $sql.=" where llx_user.subdiv_id in(".implode(',',$subdiv_id).")";
+        }
         else
             $sql.=" where 1";
 
@@ -1505,8 +1510,11 @@ function getActionsBySub($class, $code){
         $sql = "select llx_user.subdiv_id, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
             left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
             left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
-        if(!empty($subdiv_id))
+        if(!empty($subdiv_id)&&!is_array($subdiv_id))
             $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
+        elseif ($user->rights->user->user->mentor){
+            $sql.=" where llx_user.subdiv_id in(".implode(',',$subdiv_id).")";
+        }
         else
             $sql.=" where 1";
         $sql.=" and  date(datep) between  adddate(date(now()), interval -1 ".$period.") and date(now())";
@@ -1539,8 +1547,12 @@ function getActionsBySub($class, $code){
     $sql = "select llx_user.subdiv_id, date(datep) datep, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
     left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
     left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
-    if(!empty($subdiv_id))
+    if(!empty($subdiv_id)&&!is_array($subdiv_id))
         $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
+    elseif ($user->rights->user->user->mentor){
+        $subdiv_id = $user->getmentors($user->id);
+        $sql.=" where llx_user.subdiv_id in(".implode(',',$subdiv_id).")";
+    }
     else
         $sql.=" where 1";
     $sql.=" and date(datep) between  adddate(date(now()), interval -6 day) and date(now())";
@@ -1569,8 +1581,11 @@ function getActionsBySub($class, $code){
     $sql = "select llx_user.subdiv_id, date(datep) datep, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
         left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
         left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
-    if(!empty($subdiv_id))
+    if(!empty($subdiv_id)&&!is_array($subdiv_id))
         $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
+    elseif ($user->rights->user->user->mentor){
+        $sql.=" where llx_user.subdiv_id in(".implode(',',$subdiv_id).")";
+    }
     else
         $sql.=" where 1";
     $sql.=" and date(datep) between  adddate(date(now()), interval -6 day) and date(now())";
@@ -1605,6 +1620,9 @@ function getActionsBySub($class, $code){
     $sql.=" where 1";
     $sql.=" and date(datep) between adddate(date(now()), interval -1 month) and date(now())
         and llx_actioncomm.percent not in (100, -100) ";
+    if ($user->rights->user->user->mentor){
+        $sql.=" and llx_user.subdiv_id in(".implode(',',$subdiv_id).")";
+    }
     if(empty($code))
         $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
     else{
@@ -1636,11 +1654,14 @@ function getActionsBySub($class, $code){
     $sql = "select llx_user.subdiv_id, date(datep) datep, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
         left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
         left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
-    if(!empty($subdiv_id))
+    if(!empty($subdiv_id)&&!is_array($subdiv_id))
         $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
     else
         $sql.=" where 1";
     $sql.=" and date(datep) between  date(now()) and adddate(date(now()), interval +1 week)";
+    if ($user->rights->user->user->mentor){
+        $sql.=" and llx_user.subdiv_id in(".implode(',',$subdiv_id).")";
+    }
     if(empty($code))
         $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
     else{
@@ -1673,6 +1694,11 @@ function getActionsBySub($class, $code){
         left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
         $sql .= " where 1";
         $sql .= " and date(datep) between date(now()) and adddate(date(now()), interval 1 ".$period.")";
+        if ($user->rights->user->user->mentor){
+            $sql.=" and llx_user.subdiv_id in(".implode(',',$subdiv_id).")";
+        }else{
+            $sql.=" and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)";
+        }
         if(empty($code))
             $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
         else{
@@ -1685,7 +1711,7 @@ function getActionsBySub($class, $code){
                         and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
         }
         $sql .= " and llx_actioncomm.active = 1
-        and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)
+        
         group by llx_user.subdiv_id;";
         $res = $db->query($sql);
         if(!$res)
@@ -1699,8 +1725,15 @@ function getActionsBySub($class, $code){
 //    echo '</pre>';
 //    die();
     $sql = "select rowid, `name` from subdivision
-        where active = 1
-        order by `name`";
+        where 1";
+
+    if ($user->rights->user->user->mentor)
+        $sql.=" and rowid in(".implode(',',$subdiv_id).")";
+    $sql.=" and active = 1 order by `name`";
+//    echo '<pre>';
+//    var_dump($outstanding, time()-$start);
+//    echo '</pre>';
+//    die();
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);

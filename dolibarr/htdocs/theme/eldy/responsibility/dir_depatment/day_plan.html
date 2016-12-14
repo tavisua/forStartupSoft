@@ -161,9 +161,311 @@
         $("#sent_task").offset({top:Top+180, left:-Width+5});
         SetTheadColumnWidth();
     })
-    function ShowActionsByUsers(typeaction, lineactive){
-        console.log(typeaction);
+    function ShowActionsByUsersAll(id, typeaction, alias){
+//        console.log('imgLnAC_CUSTsale1',typeaction,alias,id);
+//        var btn = document.getElementById('btnSub'+typeaction+id);
+//
+////        return;
+//        var img = document.getElementById('imgSub'+typeaction+id);
+        var img;
+        var btn;
+        if(alias === undefined || alias.length == 0) {
+            img = $('#imgSub'+typeaction+id);
+            btn = $('#btnSub'+typeaction+id);
+        }else {
+            img = $('#imgLn' + typeaction + alias + id);
+            btn = $('#btnLn' + typeaction + alias + id);
+        }
+        var tr_item = btn.parent().parent();
+        img = document.getElementById(img.attr('id'));
+        tr_item = document.getElementById(tr_item.attr('id'));
+//        console.log(tr_item, img, btn);
+//        return;
+//        var img = btn.getElementsByTagName('img')[0];
+        var show = img.src.substr(img.src.length-('1downarrow.png').length) == '1downarrow.png';
+        if(show)
+            img.src = img.src.substr(0, img.src.length-('1downarrow.png').length)+'1uparrow.png';
+        else
+            img.src = img.src.substr(0, img.src.length-('1uparrow.png').length)+'1downarrow.png';
+        var code = '';
+        var responding = '';
+        var subdiv_id = '';
+        switch(typeaction){
+            case 'AllTask':{
+                code = 'AllTask';
+                responding='';
+            }break;
+            case 'AC_GLOBAL':{
+                code = "'AC_GLOBAL'";
+                responding='';
+            }break;
+            case 'AC_CURRENT':{
+                code = "'AC_CURRENT'";
+                responding='';
+            }break;
+            case 'AC_CUST':{
+                code = "'AC_CUST'";
+                responding='';
+            }break;
+            case 'DirecorsAllTask':{
+                code = 'all';
+                responding=10;
+            }break;
 
+        }
+        if(show) {
+            console.log($('.'+typeaction+'_'+id).length);
+
+            if($('.'+typeaction+'_'+id).length == 0) {
+//                var tr_item = btn.parentNode.parentNode;
+                var className = tr_item.className;
+                className = className.replace('impair ', '');
+                className = className.replace('pair ', '');
+                className = className.replace('userlist ', '');
+                className = $.trim(className);
+                var link = '/dolibarr/htdocs/responsibility/gen_dir/day_plan.php?action=getUsersTask&code='+code+'&classname='+className+' '+ id+'&responding='+alias+'&subdiv_id='+id;
+
+//                console.log(link);
+//                return;
+                $('#loading_img').show();
+                $.ajax({
+                    url: link,
+                    cache: false,
+                    success: function (html) {
+//                        console.log(html);
+                        tr_item.insertAdjacentHTML('afterend', html);
+                        $('#loading_img').hide();
+
+//                        soundPlay();
+                    }
+                })
+            }else{
+//                var tr_item = document.getElementsByClassName(id);
+//                for(var i=0; i<tr_item.length; i++) {
+//                    console.log(tr_item[i].className.substr(tr_item[i].className.length-id.length), id);
+//                    if(tr_item[i].className.substr(tr_item[i].className.length-id.length) == id || tr_item[i].className.substr(tr_item[i].className.length-(id+' userlist').length) == id+' userlist')
+//                        $('#' + tr_item[i].id).show();
+//                }
+                $('.'+typeaction+'_'+id).show();
+            }
+        }else{
+            $('.'+typeaction+'_'+id).hide();
+            img.src = '/dolibarr/htdocs/theme/eldy/img/1downarrow.png';
+            var tr_item = document.getElementsByClassName(id);
+            for(var i=0; i<tr_item.length; i++) {
+                var img = tr_item[i].getElementsByTagName('img');
+//                console.log(img.length);
+                if(img.length>0)
+                    img[0].src = '/dolibarr/htdocs/theme/eldy/img/1downarrow.png';
+//                if(tr_item[i].className.substr(tr_item[i].className.length-id.length) != id) {
+//                    console.log(tr_item[i].id);
+//                    $('#' + tr_item[i].id).hide();
+//                }
+            }
+        }
+    }
+    function ShowAllTask(id){
+        var btn = document.getElementById('btn'+id);
+        var img = document.getElementById('img'+id);
+        var show = img.src.substr(img.src.length-('1downarrow.png').length) == '1downarrow.png';
+        if(show)
+            img.src = img.src.substr(0, img.src.length-('1downarrow.png').length)+'1uparrow.png';
+        else
+            img.src = img.src.substr(0, img.src.length-('1uparrow.png').length)+'1downarrow.png';
+        var code = '';
+        var responding = '';
+        var subdiv_id = '';
+        switch(id){
+            case 'AllTask':{
+                code = 'all';
+                responding='';
+            }break;
+            case 'AC_GLOBAL':{
+                code = "'AC_GLOBAL'";
+                responding='';
+            }break;
+            case 'AC_CURRENT':{
+                code = "'AC_CURRENT'";
+                responding='';
+            }break;
+            case 'AC_CUST':{
+                code = "'AC_CUST'";
+                responding='';
+            }break;
+            case 'DirecorsAllTask':{
+                code = 'all';
+                responding=10;
+            }break;
+            default:{
+                console.log(id, strpos(id, 'subdiv_'));
+                if(id.substr(0, 'subdiv_'.length) == 'subdiv_'){
+                    var subdiv_id = 0;
+                    var kindtask = '';
+                    for(var i = 'subdiv_'.length; i<=id.length; i++){
+                        if(!$.isNumeric(id.substr(i,1))){
+                            subdiv_id = id.substr('subdiv_'.length, i-'subdiv_'.length);
+                            kindtask = id.substr(i);
+                            console.log(subdiv_id, kindtask);
+                            break;
+                        }
+                    }
+                    console.log(kindtask);
+                    switch(kindtask){
+                        case 'AllTask':{
+                            code = 'all';
+                        }break;
+                        case 'GlobalTask':{
+                            code = "'AC_GLOBAL'";
+                        }break;
+                        case 'CurrentTask':{
+                            code = "'AC_CURRENT'";
+                        }break;
+                        case 'LineActiveTask':{
+                            code = "'AC_TEL','AC_FAX','AC_EMAIL','AC_RDV','AC_INT','AC_OTH','AC_DEP'";
+                        }break;
+                    }
+                    console.log(code);
+                }
+            }
+        }
+        if(show) {
+            console.log(id);
+            if($('.'+id).length == 0) {
+//                createNewForm('popupmenu','waitForm');
+//                $('#waitForm').show();
+                var tr_item = btn.parentNode.parentNode;
+                var className = tr_item.className;
+                className = className.replace('impair ', '');
+                className = className.replace('pair ', '');
+                className = $.trim(className);
+                var link = '/dolibarr/htdocs/responsibility/gen_dir/day_plan.php?action=gettask&code='+code+'&classname='+className+' '+ id+'&responding='+responding+'&subdiv_id='+subdiv_id;
+//                console.log(link);
+//                return;
+                $('#loading_img').show();
+                $.ajax({
+                    url: link,
+                    cache: false,
+                    success: function (html) {
+//                        console.log(html);
+                        tr_item.insertAdjacentHTML('afterend', html);
+                        $('#loading_img').hide();
+                    }
+                })
+            }else{
+//                var tr_item = document.getElementsByClassName(id);
+//                for(var i=0; i<tr_item.length; i++) {
+//                    console.log(tr_item[i].className.substr(tr_item[i].className.length-id.length), id);
+//                    if(tr_item[i].className.substr(tr_item[i].className.length-id.length) == id || tr_item[i].className.substr(tr_item[i].className.length-(id+' userlist').length) == id+' userlist')
+//                        $('#' + tr_item[i].id).show();
+//                }
+                $('.'+id).show();
+            }
+        }else{
+            $('.'+id).hide();
+            var tr_item = document.getElementsByClassName(id);
+            for(var i=0; i<tr_item.length; i++) {
+                $('#'+tr_item[i].id).removeClass('AC_CUST');
+                var img = tr_item[i].getElementsByTagName('img');
+//                console.log(img.length);
+                if(img.length>0)
+                    img[0].src = '/dolibarr/htdocs/theme/eldy/img/1downarrow.png';
+//                if(tr_item[i].className.substr(tr_item[i].className.length-id.length) != id) {
+//                    console.log(tr_item[i].id);
+//                    $('#' + tr_item[i].id).hide();
+//                }
+            }
+
+        }
+    }
+    function ShowLinectiveTaskAll(id, typeaction){
+//        console.log(typeaction);
+//        return;
+
+        var btn = document.getElementById('btnSub'+typeaction+id);
+        var img = document.getElementById('imgSub'+typeaction+id);
+        var show = img.src.substr(img.src.length-('1downarrow.png').length) == '1downarrow.png';
+        if(show)
+            img.src = img.src.substr(0, img.src.length-('1downarrow.png').length)+'1uparrow.png';
+        else
+            img.src = img.src.substr(0, img.src.length-('1uparrow.png').length)+'1downarrow.png';
+        var code = '';
+        var responding = '';
+        var subdiv_id = '';
+        switch(typeaction){
+            case 'AllTask':{
+                code = 'all';
+                responding='';
+            }break;
+            case 'AC_GLOBAL':{
+                code = "'AC_GLOBAL'";
+                responding='';
+            }break;
+            case 'AC_CURRENT':{
+                code = "'AC_CURRENT'";
+                responding='';
+            }break;
+            case 'AC_CUST':{
+                code = "'AC_CUST'";
+                responding='';
+            }break;
+            case 'DirecorsAllTask':{
+                code = 'all';
+                responding=10;
+            }break;
+
+        }
+        if(show) {
+            console.log(id);
+            if($('.lineactive_'+id).length == 0) {
+                var tr_item = btn.parentNode.parentNode;
+                var className = tr_item.className;
+                className = className.replace('impair ', '');
+                className = className.replace('pair ', '');
+                className = $.trim(className);
+                var link = '/dolibarr/htdocs/responsibility/gen_dir/day_plan.php?action=getLineActiveTask&code='+code+'&classname='+className+' '+ id+'&responding='+responding+'&subdiv_id='+id;
+//                console.log(link);
+//                return;
+                $('#loading_img').show();
+                $.ajax({
+                    url: link,
+                    cache: false,
+                    success: function (html) {
+//                        console.log(html);
+                        tr_item.insertAdjacentHTML('afterend', html);
+                        $('#loading_img').hide();
+                    }
+                })
+            }else{
+//                var tr_item = document.getElementsByClassName(id);
+//                for(var i=0; i<tr_item.length; i++) {
+//                    console.log(tr_item[i].className.substr(tr_item[i].className.length-id.length), id);
+//                    if(tr_item[i].className.substr(tr_item[i].className.length-id.length) == id || tr_item[i].className.substr(tr_item[i].className.length-(id+' userlist').length) == id+' userlist')
+//                        $('#' + tr_item[i].id).show();
+//                }
+                $('.'+id).show();
+            }
+        }else{
+            $('.lineactive_'+id).hide();
+            var tr_item = document.getElementsByClassName(id);
+            for(var i=0; i<tr_item.length; i++) {
+                var img = tr_item[i].getElementsByTagName('img');
+//                console.log(img.length);
+                if(img.length>0)
+                    img[0].src = '/dolibarr/htdocs/theme/eldy/img/1downarrow.png';
+//                if(tr_item[i].className.substr(tr_item[i].className.length-id.length) != id) {
+//                    console.log(tr_item[i].id);
+//                    $('#' + tr_item[i].id).hide();
+//                }
+            }
+
+        }
+    }
+    function ShowActionsByUsers(typeaction, lineactive, alias){
+        if(alias !== undefined){
+//            console.log(typeaction, lineactive, alias);
+            ShowActionsByUsersAll(typeaction, lineactive, alias);
+            return;
+        }
 
         var img;
         var btn;
@@ -257,8 +559,11 @@
     }
 
     function ShowLinectiveTask(typeaction){
-//        console.log(typeaction);
-//        return;
+//        console.log();
+        if($.isNumeric(typeaction)) {
+            ShowLinectiveTaskAll(typeaction, 'AC_CUST');
+            return;
+        }
         var btn = document.getElementById('btn'+typeaction);
         var img = document.getElementById('img'+typeaction);
         var show = img.src.substr(img.src.length-('1downarrow.png').length) == '1downarrow.png';

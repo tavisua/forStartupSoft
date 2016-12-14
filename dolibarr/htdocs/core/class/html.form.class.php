@@ -4463,6 +4463,7 @@ class Form
         global $conf, $langs;
         $sql='select rowid, name from `llx_c_finance_service` where active=1';
         $out = '<select id="'.$htmlname.'" class="combobox" name="'.$htmlname.'" size=1>';
+        $out .= '<option value="0"></option>';
         $res = $this->db->query($sql);
         while($row = $this->db->fetch_object($res)){
             $out .= '<option value="'.$row->rowid.'">'.$langs->trans($row->name).'</option>';

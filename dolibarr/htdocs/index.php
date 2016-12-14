@@ -87,11 +87,33 @@ if (! empty($conf->global->MAIN_APPLICATION_TITLE)) $title=$langs->trans("HomeAr
 
 llxHeader('',$title);
 //echo '<pre>';
-//var_dump($user);
+//var_dump($user->respon_alias,$user->respon_alias2, count(array_intersect(array(6,8),array($user->respon_id,$user->respon_id2))));
 //echo '</pre>';
-if($user->respon_id == 8 || $user->respon_id2 == 8 || $user->respon_alias == 'purchase') {
+//die();
+
+if(count(array_intersect(array(6,8),array($user->respon_id,$user->respon_id2)))){
     print_fiche_titre($langs->trans("Performance"));
-    include DOL_DOCUMENT_ROOT . '/core/performance.php';
+
+
+    print '<div class="tabs" data-role="controlgroup" data-type="horizontal">
+        <div class="inline-block tabsElem tabsElemActive"><a id="user" class="'.(empty($_GET["page"])||$_GET["page"]=="activitycompany"?"tabactive":"").' tab inline-block" data-role="button" href="?page=">Активність компанії</a></div>
+        <div class="inline-block tabsElem" title="Пропозиції товарів і послуг (клубнічки)"><a id="user" class="'.($_GET["page"]=="proposition"?"tabactive":"").' tab inline-block" data-role="button" href="?page=proposition">Пропозиції</a></div>
+        </div>';
+
+    switch(trim($_GET["page"])) {
+        case 'proposition':{
+//            die(DOL_DOCUMENT_ROOT . '/comm/raports/performance.php');
+
+            include DOL_DOCUMENT_ROOT .'/comm/raports/performance.php';
+//            include DOL_DOCUMENT_ROOT . '/comm/raports/performance.php';
+        }break;
+        default:{
+            include DOL_DOCUMENT_ROOT .'/comm/raports/activitycompany.php';
+        }break;
+    }
+}elseif(count(array_intersect(array('purchase','marketing'),array($user->respon_alias,$user->respon_alias2)))){
+    print_fiche_titre($langs->trans("Performance"));
+    include DOL_DOCUMENT_ROOT .'/comm/raports/performance.php';
 }elseif($user->respon_id == 10 || $user->respon_id2 == 10 || $user->respon_alias == 'gen_dir'){
     print_fiche_titre($langs->trans("Performance"));
     include DOL_DOCUMENT_ROOT . '/core/gen_performance.php';
@@ -99,7 +121,6 @@ if($user->respon_id == 8 || $user->respon_id2 == 8 || $user->respon_alias == 'pu
     print_fiche_titre($langs->trans("HomeArea"));
     include DOL_DOCUMENT_ROOT . '/core/homepage.php';
 }
-
 
 exit();
 

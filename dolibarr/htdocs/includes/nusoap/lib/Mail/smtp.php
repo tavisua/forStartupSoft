@@ -68,7 +68,7 @@ class Mail_smtp extends Mail {
      *
      * @var string
      */
-    var $127.0.0.1 = '127.0.0.1';
+    var $IP = '127.0.0.1';
 
     /**
      * SMTP connection timeout value.  NULL indicates no timeout.
@@ -121,7 +121,7 @@ class Mail_smtp extends Mail {
         if (isset($params['auth'])) $this->auth = $params['auth'];
         if (isset($params['username'])) $this->username = $params['username'];
         if (isset($params['password'])) $this->password = $params['password'];
-        if (isset($params['127.0.0.1'])) $this->127.0.0.1 = $params['127.0.0.1'];
+        if (isset($params['127.0.0.1'])) $this->IP = $params['127.0.0.1'];
         if (isset($params['timeout'])) $this->timeout = $params['timeout'];
         if (isset($params['verp'])) $this->verp = $params['verp'];
         if (isset($params['debug'])) $this->debug = (boolean)$params['debug'];
@@ -155,7 +155,7 @@ class Mail_smtp extends Mail {
     {
         include_once 'Net/SMTP.php';
 
-        if (!($smtp = &new Net_SMTP($this->host, $this->port, $this->127.0.0.1))) {
+        if (!($smtp = &new Net_SMTP($this->host, $this->port, $this->IP))) {
             return PEAR::raiseError('unable to instantiate Net_SMTP object');
         }
 

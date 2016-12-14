@@ -24,8 +24,8 @@
         <input id="action" name="action" type="hidden" value="<?echo $action?>">
         <input id="mainmenu" name="mainmenu" type="hidden" value="<?echo GETPOST('mainmenu', 'alpha')?>">
         <input id="idmenu" name="idmenu" type="hidden" value="<?echo GETPOST('idmenu', 'alpha')?>">
-        <input id="socid" name="socid" type="hidden" value="<?echo $socid?>">
-        <input id="fx_soc" name="fx_soc" type="hidden" value="<?echo $socid?>">
+        <input id="socid" name="socid" type="hidden" value="<?=$item->socid?>">
+        <input id="fx_soc" name="fx_soc" type="hidden" value="<?=$item->fx_soc?>">
         <table class="border" width="100%">
             <tr>
                 <td><span id="CategoryCustomer" class="fieldrequired" span=""><label for="status"><?=$langs->trans('CategoryCustomer')?></label></span></td>
@@ -35,7 +35,7 @@
             </tr>
             <tr><td width="25%"><?=$langs->trans('ThirdPartyName')?></td>
             <td colspan="3">
-                <input type="text" size="60" maxlength="128" name="nom" id="contragent" value="<?=$item->lastname?>" autofocus="autofocus"></td>
+                <input type="text" size="60" maxlength="128" name="nom" id="contragent" value="<?=$item->nom?>" autofocus="autofocus"></td>
                 </td>
             </tr>
             <tr><td width="25%">№ розр.рах</td>
@@ -168,8 +168,8 @@
             $("#contragent").value = ui.item.value;
             for(var i = 0; i<contactlist.length; i++){
                 if(contactlist[i].name == ui.item.value){
-                    $("#fx_soc").val(contactlist[i].rowid);
-                    console.log($("#fx_soc").val());
+                    $("#socid").val(contactlist[i].rowid);
+                    console.log($("#socid").val());
                     break;
                 }
             }

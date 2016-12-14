@@ -60,7 +60,12 @@ function user_prepare_head($object)
         $head[$h][2] = 'areas';
         $h++;
     }
-
+	if($object->rights->user->user->mentor){
+		$head[$h][0] = DOL_URL_ROOT.'/user/mentor.php?id='.$object->id.'&mainmenu=tools&idmenu=5223';
+		$head[$h][1] = $langs->trans("SubdivisionsMentor");
+		$head[$h][2] = 'SubdivisionsMentor';
+		$h++;
+	}
 	if(count(array_intersect(array($object->respon_alias,$object->respon_alias2), array('service','purchase','wholesale_purchase'))) > 0){
         $head[$h][0] = DOL_URL_ROOT.'/user/lineactive.php?id='.$object->id.'&mainmenu=tools&idmenu=5223';
         $head[$h][1] = $langs->trans("PropLineActive");

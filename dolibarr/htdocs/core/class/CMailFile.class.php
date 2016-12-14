@@ -358,19 +358,67 @@ class CMailFile
 	 *
 	 * @return    boolean     True if mail sent, false otherwise
 	 */
+    function sendmail2(){
+        /* получатели */
+        $to= "Виктор Михайлов <veravikt@ukr.net>";
+
+        /* тема/subject */
+        $subject = "testmessage";
+
+        /* сообщение */
+        $message = '
+                <html>
+                <head>
+                 <title>Birthday Reminders for August</title>
+                </head>
+                <body>
+                <p>Here are the birthdays upcoming in August!</p>
+                <table>
+                 <tr>
+                <th>Person</th><th>Day</th><th>Month</th><th>Year</th>
+                 </tr>
+                 <tr>
+                <td>Joe</td><td>3rd</td><td>August</td><td>1970</td>
+                 </tr>
+                 <tr>
+                <td>Sally</td><td>17th</td><td>August</td><td>1973</td>
+                 </tr>
+                </table>
+                </body>
+                </html>
+                ';
+
+        /* Для отправки HTML-почты вы можете установить шапку Content-type. */
+        $headers= "MIME-Version: 1.0\r\n";
+        $headers .= "Content-type: text/html; charset=iso-8859-1\r\n";
+
+        /* дополнительные шапки */
+        global $user;
+        $headers .= "From: Birthday Reminder <$user->email>\r\n";
+//        $headers .= "Cc: birthdayarchive@example.com\r\n";
+//        $headers .= "Bcc: birthdaycheck@example.com\r\n";
+
+        /* и теперь отправим из */
+        $res = mail($to, $subject, $message, $headers);
+        return $res;
+    }
 	function sendfile()
 	{
-//        echo '<pre>';
-//        var_dump($this);
-//        echo '</pre>';
-//        die();
+
 		global $conf;
+
+//        if (!preg_match('/^[\s\t]*<html/i',$this->message))
+//            $this->html = $this->checkIfHTML($this->message);
 
 		$errorlevel=error_reporting();
 		error_reporting($errorlevel ^ E_WARNING);   // Desactive warnings
 
 		$res=false;
-
+//        echo '<pre>';
+//        var_dump($conf->global->MAIN_MAIL_SMTP_PORT);
+//        echo '</pre>';
+//        die();
+//        $conf->global->MAIN_MAIL_SENDMODE = 'mail';
 		if (empty($conf->global->MAIN_DISABLE_ALL_MAILS))
 		{
 			// Action according to choosed sending method
@@ -422,7 +470,8 @@ class CMailFile
 
 					if (! empty($bounce)) $res = mail($dest,$this->encodetorfc2822($this->subject),$this->message,$this->headers, $bounce);
 					else $res = mail($dest,$this->encodetorfc2822($this->subject),$this->message,$this->headers);
-
+//                    var_dump($res);
+//                    die();
 					if (! $res)
 					{
 						$this->error="Failed to send mail with php mail to HOST=".ini_get('SMTP').", PORT=".ini_get('smtp_port')."<br>Check your server logs and your firewalls setup";
@@ -453,6 +502,7 @@ class CMailFile
 				// Forcage parametres
 				if (empty($conf->global->MAIN_MAIL_SMTP_SERVER)) $conf->global->MAIN_MAIL_SMTP_SERVER=ini_get('SMTP');
 				if (empty($conf->global->MAIN_MAIL_SMTP_PORT))   $conf->global->MAIN_MAIL_SMTP_PORT=ini_get('smtp_port');
+
 
 				// If we use SSL/TLS
 				$server=$conf->global->MAIN_MAIL_SMTP_SERVER;
@@ -485,8 +535,8 @@ class CMailFile
 				{
 					if (! empty($conf->global->MAIN_MAIL_DEBUG)) $this->smtps->setDebug(true);
 					$result=$this->smtps->sendMsg();
-					//print $result;
-
+//					print $result;
+//die();
 					if (! empty($conf->global->MAIN_MAIL_DEBUG)) $this->dump_mail();
 
 					$result=$this->smtps->getErrors();

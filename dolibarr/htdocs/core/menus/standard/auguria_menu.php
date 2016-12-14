@@ -108,10 +108,6 @@ class MenuManager
 
     	$menuArbo = new Menubase($this->db,'auguria');
     	$menuArbo->menuLoad($mainmenu, $leftmenu, $this->type_user, 'auguria', $tabMenu);
-//        echo '<pre>';
-//        var_dump($tabMenu);
-//        echo '</pre>';
-//        die();
     	// Modules system tools
     	// TODO Find a way to add parent menu only if child menu exists. For the moment, no other method than hard coded methods.
     	if (! empty($conf->product->enabled) || ! empty($conf->service->enabled) || ! empty($conf->barcode->enabled)		// TODO We should enabled module system tools entry without hardcoded test, but when at least one modules bringing such entries are on
@@ -169,7 +165,7 @@ class MenuManager
 
     	global $conf, $langs, $user;
 //        echo '<pre>';
-//        var_dump($this->type_user);
+//        var_dump($this->tabMenu);
 //        echo '</pre>';
 //        die();
         require_once DOL_DOCUMENT_ROOT.'/core/menus/standard/auguria.lib.php';
@@ -182,13 +178,13 @@ class MenuManager
 
 		require_once DOL_DOCUMENT_ROOT.'/core/class/menu.class.php';
         $this->menu=new Menu();
-
-        if ($mode == 'top')  print_auguria_menu($this->db,$this->atarget,$this->type_user,$this->tabMenu,$this->menu,0);
-        if ($mode == 'left') print_left_auguria_menu($this->db,$this->menu_array,$this->menu_array_after,$this->tabMenu,$this->menu,0);
 //        echo '<pre>';
 //        var_dump($mode);
 //        echo '</pre>';
 //        die();
+        if ($mode == 'top')  print_auguria_menu($this->db,$this->atarget,$this->type_user,$this->tabMenu,$this->menu,0);
+        if ($mode == 'left') print_left_auguria_menu($this->db,$this->menu_array,$this->menu_array_after,$this->tabMenu,$this->menu,0);
+
         if ($mode == 'jmobile')
         {
         	print_auguria_menu($this->db,$this->atarget,$this->type_user,$this->tabMenu,$this->menu,1);
