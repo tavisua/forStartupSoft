@@ -28,10 +28,14 @@
  */
 require '../../main.inc.php';
 
+if($_GET['action']=='getActionsCount'){
+	echo getActionCount($_GET['date']);
+	exit();
+}
 require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
 //llxHeader();
 //echo '<pre>';
-//var_dump($_REQUEST);
+//var_dump($_GET['assignedUser']);
 //echo '</pre>';
 //die();
 
@@ -1383,6 +1387,9 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 		print '<span id="ShowFreeTime" onclick="ShowFreeTime(' . "'ap'" . ');" title="Переглянути наявність вільного часу" style="vertical-align: middle"><img src="/dolibarr/htdocs/theme/eldy/img/calendar.png"></span>  ';
 		print '<span style="font-size: 12px">Необхідно часу  </span><input type="text" class="param exec_time" size="2" value="1" id = "exec_time_ap" name="exec_time_ap"><span style="font-size: 12px"> хвилин.</span>';
 	}
+	// На вибрану дату заплановано
+	if($_REQUEST['actioncode'] == 'AC_TEL')
+		print '<div style="padding-top: 10px"><span style="font-size: 12px">На вибрану дату заплановано <span id="ActionsCount">0</span> дзвінків</span></div>';
 	print '</td></tr>';
 //	echo '<pre>';
 //	var_dump(count(dol_json_decode($_SESSION['assignedtouser'], true)));
@@ -2546,6 +2553,34 @@ print '
 llxPopupMenu();
 $db->close();
 exit();
+function getActionCount($datep){
+	global $db,$user;
+	if(empty($datep))
+		$datep = date('Y-m-d');
+	$sql = "select count(*) iCount from llx_actioncomm
+		where 1 and date(datep) = '$datep'
+		and `fk_user_author` = $user->id
+		and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+							where active = 1
+							and `type` in ('system','user'))";
+	
+	$res = $db->query($sql);
+	if(!$res)
+		dol_print_error($db);
+	$obj = $db->fetch_object($res);
+	if($obj->iCount<55) {
+		$color = "green";
+		$font_size = "12px";
+	}elseif ($obj->iCount>=55&&$obj->iCount<=60) {
+		$color = "orange";
+		$font_size = "14px";
+	}else {
+		$color = "red";
+		$font_size = "16px";
+	}
+
+	return '<span id="ActionsCount" style="color: '.$color.'; font-size:'.$font_size.'; font-weight: bold">'.$obj->iCount.'</span>';
+}
 function getActionStatus($action_id){
 	global $db;
 	$sql = "select percent from llx_actioncomm where id = ".$action_id;

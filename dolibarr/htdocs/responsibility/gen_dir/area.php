@@ -18,7 +18,7 @@ $Area = $langs->trans('Area');
 llxHeader("",$Area,"");
 print_fiche_titre($Area);
 //print '<div>';
-
+die("test");
 //Шапка сторінки
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/gen_dir/area/header.php';
 //Перелік контрагентів

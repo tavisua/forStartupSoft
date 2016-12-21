@@ -252,6 +252,10 @@ $tablename = "`llx_societe`";
 $table = fShowTable($TableParam, $sql, "'" . $tablename . "'", $conf->theme, $_REQUEST['sortfield'], $_REQUEST['sortorder'], $readonly = array(-1), false);
 
 //$row = $db_mysql->fShowTable($TableParam, $sql, "'" . $tablename . "'", $conf->theme, $_REQUEST['sortfield'], $_REQUEST['sortorder'], $readonly = array(-1), false);
+if(empty($_GET['viewname']))
+    $kind_view = '</br><span style="padding-top: 30px"><button onclick="ChangeViewNameOption();">Назва <img src="/dolibarr/htdocs/theme/eldy/img/replace.png">&nbsp;&nbsp;&nbsp;ФП&nbsp;&nbsp;&nbsp;</button></span>';
+elseif ($_GET['viewname'] == 'reverse')
+    $kind_view = '</br><span style="padding-top: 30px"><button onclick="ChangeViewNameOption();">&nbsp;&nbsp;&nbsp;ФП&nbsp;&nbsp;&nbsp; <img src="/dolibarr/htdocs/theme/eldy/img/replace.png"> Назва</button></span>';
 
 include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/counter/area/customers.html');
 $prev_form = "<a href='#x' class='overlay' id='peview_form'></a>

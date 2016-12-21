@@ -6,7 +6,8 @@
  * Time: 5:56
  */
 
-//define("NOLOGIN",1);// This means this output page does not require to be logged.
+if(!empty($_REQUEST['action']) && in_array($_REQUEST['action'], array('check', 'sendmail')))
+    define("NOLOGIN",1);// This means this output page does not require to be logged.
 require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
 global $db,$user;
 //echo '<pre>';
@@ -16,7 +17,7 @@ global $db,$user;
 $action = $_REQUEST['action'];
 
 if($action == 'check'){
-
+//    define("NOLOGIN",1);		// This means this output page does not require to be logged.
     $sql = "select rowid
     from llx_mailing where 1 
     and date_valid is not null    
@@ -38,6 +39,7 @@ if($action == 'check'){
     die('1');
 }
 if($action == 'sendmail'){
+    set_time_limit(0);
     $out = array();
     $sql = "select titre,body,postlist, responsibility from llx_mailing where rowid = ".$_REQUEST['id'];
     $res = $db->query($sql);
@@ -110,7 +112,7 @@ if($action == 'sendmail'){
 ////            $smtp->send();
         }break;
         case 'sendmails':{
-
+            AutoSendMail($_REQUEST['id']);
         }break;
         case 'prepared_sendmail':{
             define("NOLOGIN",1);// This means this output page does not require to be logged.
@@ -124,12 +126,14 @@ if($action == 'sendmail'){
                 die(0);
             //Роблю виборку регіонів, для яких буде розіслана розсилка
             $sql = "select `region_id`, `state_id` from `llx_societe` where rowid in(".implode(',',$societelist["societelist"]).") and active = 1";
+//            die($sql);
+
             $res = $db->query($sql);
             if(!$res)
                 dol_print_error($db);
             $regions = array();
             while($obj = $db->fetch_object($res)){
-                if(!empty($obj->region_id)&&!in_array($obj->region_id, $regions) && $obj->state_id == 16)
+                if(!empty($obj->region_id)&&!in_array($obj->region_id, $regions) /*&& $obj->state_id == 16*/)
                     $regions[] = $obj->region_id;
             }
             //Роблю виборку торгівельних агентів, для регіонів яких буде виконана розсилка
@@ -138,6 +142,7 @@ if($action == 'sendmail'){
                 and `llx_user_regions`.active = 1
                 and `llx_user_regions`.fk_user = `llx_user`.rowid
                 and `llx_user`.active = 1";
+//            die($sql);
             $res = $db->query($sql);
             if(!$res)
                 dol_print_error($db);
@@ -344,6 +349,7 @@ function PreparedEmailList($mess, $states_id = array()){
         $sql .= " and respon_id in (".$responsibility.")";
     $sql.=" and ((email1 like '%@%' and send_email1 = 1) or (email2 like '%@%' and send_email2 = 1))
                     and active = 1";
+
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
@@ -387,7 +393,7 @@ function AutoSendMail($rowid){
     if(!$res)
         dol_print_error($db);
     while($obj = $db->fetch_object($res)){
-        $postedlist[]=$obj->email;
+        $postedlist[]=trim($obj->email);
     }
     $sql = "select llx_societe.state_id, socid, email1, email2 from `llx_societe_contact`
             left join llx_societe on llx_societe.rowid = `llx_societe_contact`.socid
@@ -400,10 +406,10 @@ function AutoSendMail($rowid){
         $sql .= " and respon_id in (".$responsibility.")";
     $sql.=" and ((email1 like '%@%' and send_email1 = 1) or (email2 like '%@%' and send_email2 = 1))
             and `llx_societe_contact`.active = 1 and `llx_societe`.active = 1";
-    $sql.=" and llx_societe.state_id in (11,17)";
+//    $sql.=" and llx_societe.state_id in (11,17)";
 //    $sql.=" order by llx_societe.state_id";
 //    echo '<pre>';
-//    var_dump($sended);
+//    var_dump($sql);
 //    echo '</pre>';
 //    die();
 
@@ -450,25 +456,32 @@ function AutoSendMail($rowid){
 //var_dump($postedlist);
 //echo '</pre>';
 //die();
+    $num = 0;
     foreach ($emaillist as $key=>$value){
         foreach ($value as $item) {
 //            $item = 'ahrozahidrv@gmail.com';
             if(!in_array($item, $postedlist)) {
-                $result = $mailSMTP->send($item, $subject, $mesg, $headers); // отправляем письмо
-// $result =  $mailSMTP->send('Кому письмо', 'Тема письма', 'Текст письма', 'Заголовки письма');
-//            var_dump($result, $result === true);
-//            die($item);
-
-                if ($result) {
-                    $sql = "insert into `llx_mailing_cibles`(fk_mailing,email,date_envoi) values(" . $rowid . ",'" . $item . "',now())";
-                    $res = $db->query($sql);
-                    if (!$res)
-                        dol_print_error($db);
-//                echo "Отправил ".$item.'</br>';
-                } else {
-                    echo "Письмо не отправлено. Ошибка: " . $result;
+                $sql = "insert into `llx_mailing_cibles`(fk_mailing,email,date_envoi) values(" . $rowid . ",'" . $item . "',now())";
+                $res = $db->query($sql);
+                if (!$res) {
+                    dol_print_error($db);
+                }else {
+                    $result = $mailSMTP->send($item, $subject, $mesg, $headers); // отправляем письмо
+//                    $result = false;
+                    if (!$result) {
+                        $sql = "update llx_mailing_cibles set statut = -1 where rowid = " . $db->last_insert_id(MAIN_DB_PREFIX . "mailing_cibles");
+                        $res = $db->query($sql);
+                        if (!$res) {
+                            dol_print_error($db);
+                        }
+                    }else{
+                        $num++;
+                        if($num == 50){
+                            $num=0;
+                            sleep(6);
+                        }
+                    }
                 }
-                sleep(6);
             }
         }
     }

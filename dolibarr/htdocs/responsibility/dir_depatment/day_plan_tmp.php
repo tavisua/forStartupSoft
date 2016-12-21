@@ -867,69 +867,7 @@ function ShowTable(){
     global $db,$user;
     $out = '<tbody id="reference_body">';
     $start = time();
-//    var_dump(array_intersect(array($user->respon_id, $user->respon_id2),array(8,20,28)) == 0);
-//    die();
-//    //Найкращий користувач системи
-//    $sql="select count(id) iCount, case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end user_id  from llx_actioncomm
-//        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
-//        where date(datep) between adddate(date(now()), interval -1 week) and date(now())
-//        and (llx_actioncomm.`code`in ('AC_GLOBAL','AC_CURRENT') or llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))
-//        and active = 1
-//        group by user_id
-//        order by iCount desc limit 1;";
-//    $res = $db->query($sql);
-////    die($sql);
-//    if(!$res)
-//        dol_print_error($db);
-////    echo (time()-$start).'</br>';
-//    $obj = $db->fetch_object($res);
-//    $bestuserID = $obj->user_id;
-//    $out.=getTotalUserAction($bestuserID, 'bestvalue', 'Найкр.співр.сист.');
-////    echo (time()-$start).'Найкр.співр.сист.'.'</br>';
-//
-//    //Найкращий директор дипартам. системи
-//    $sql="select count(id) iCount, case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end user_id
-//        from llx_actioncomm
-//        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
-//        where date(datep) between adddate(date(now()), interval -1 week) and date(now())
-//        and (llx_actioncomm.`code`in ('AC_GLOBAL','AC_CURRENT') or llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))
-//        and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end in (select rowid from llx_user where respon_id = 8)
-//        and active = 1 group by user_id order by iCount desc limit 1;";
-//    $res = $db->query($sql);
-//    if(!$res)
-//        dol_print_error($db);
-//    $obj = $db->fetch_object($res);
-//    $bestDDID = $obj->user_id;
-//    $out.=getTotalUserAction($bestDDID, 'bestvalue', 'Найкр.ДД.сист.');
-////    echo (time()-$start).'Найкр.ДД.сист.'.'</br>';
-//
-//    //Найкращий департамент системи
-//    $sql="select llx_user.subdiv_id, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
-//            left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
-//            left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end
-//            where 1
-//            and  date(datep) between  adddate(date(now()), interval -1 week) and date(now())
-//            and (llx_actioncomm.`code`in ('AC_GLOBAL','AC_CURRENT') or llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))
-//            and llx_actioncomm.percent = 100
-//            and llx_actioncomm.active = 1
-//            and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)
-//            group by llx_user.subdiv_id
-//            order by iCount desc limit 1";
-////    echo '<pre>';
-////    var_dump($sql);
-////    echo '</pre>';
-////    die();
-//    $res = $db->query($sql);
-//    if(!$res)
-//        dol_print_error($db);
-//    $obj = $db->fetch_object($res);
-//    $bestDepID = $obj->subdiv_id;
-//    $out.= getTotalSubdivAction('bestvalue','Найкр.деп.сист.',$bestDepID, '',false);
-////    echo (time()-$start).'Найкр.деп.сист.'.'</br>';
 
-    //Всього по департаменту
-//    var_dump($user->rights->user->user->mentor);
-//    die();
 
     if($user->rights->user->user->mentor) {
         $subdiv = $user->getmentors($user->id);

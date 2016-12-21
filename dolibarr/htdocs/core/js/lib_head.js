@@ -189,7 +189,6 @@ function dpClickDay(year,month,day,format)
         thefieldyear.value = year;
         if (thefieldyear.onchange) thefieldyear.onchange.call(thefieldyear);
     }else{
-        //console.log(format);
         $('#'+showDP.datefieldID).val(formatDate(dt, format));
         $('#'+showDP.datefieldID).change();
     }

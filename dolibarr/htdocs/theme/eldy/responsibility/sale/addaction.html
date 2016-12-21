@@ -191,31 +191,18 @@
     })
     function dpChangeDay(id, format){
 //        	return;
-        console.log(id);
         if(id == "datep"){
             $("#apday").val($("#ap").val().substr(0,2));
             $("#apmonth").val($("#ap").val().substr(3,2));
             $("#apyear").val($("#ap").val().substr(6,4));
 
             if($("#showform").val()!=0){
-            var date = new Date($("#ap").val().substr(6,4), $("#ap").val().substr(3,2), $("#ap").val().substr(0,2));
-            var today = new Date();
-            if(date>today){
-                $("select#aphour").val("00");
-                $("select#apmin").val("00");
-            }
-
-//                	var Date2 = new Date($("#p2year").val(),
-//                						($("#p2month").val().substr(0,1)=="0"?$("#p2month").val().substr(1):$("#p2month").val()),
-//                						($("#p2day").val().substr(0,1)=="0"?$("#p2day").val().substr(1):$("#p2day").val()),
-//                						($("#p2hour").val().substr(0,1)=="0"?$("#p2hour").val().substr(1):$("#p2hour").val()),
-//                						($("#p2min").val().substr(0,1)=="0"?$("#p2min").val().substr(1):$("#p2min").val()),
-//                						0);
-//					var minute = (Date2.getTime()-Date1.getTime())/ (1000*60);
-//					console.log($("#exec_time").val());
-//					return;
-//                	var link = "http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=get_freetime&minute="+$("#exec_time").val()+"&date="+$("#apyear").val()+"-"+$("#apmonth").val()+"-"+$("#apday").val()+"&id_usr='.$user->id.'&actioncode="+$("select#actioncode").val();
-//            		setTime(link);
+                var date = new Date($("#ap").val().substr(6,4), $("#ap").val().substr(3,2), $("#ap").val().substr(0,2));
+                var today = new Date();
+                if(date>today){
+                    $("select#aphour").val("00");
+                    $("select#apmin").val("00");
+                }
             }else{
                 $("#showform").val(1);
             }

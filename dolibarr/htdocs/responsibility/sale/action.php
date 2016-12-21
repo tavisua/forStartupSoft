@@ -15,7 +15,14 @@ if(in_array('dir_depatment',array($user->respon_alias,$user->respon_alias2))){
         $subdivUserID[]=$obj->rowid;
     }
 }
-
+if(empty($_REQUEST['socid'])&&!empty($_REQUEST['action_id'])){
+    $sql = "select fk_soc from llx_actioncomm where id = ".$_REQUEST['action_id'];
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $obj = $db->fetch_object($res);
+    $_REQUEST['socid'] = $obj->fk_soc;
+}
 if(isset($_REQUEST['action'])||isset($_POST['action'])){
     if($_REQUEST['action'] == 'loadcontactlist'){
         echo loadcontactlist($_REQUEST['contactid']);
@@ -666,7 +673,7 @@ function ShowActionTable(){
             }
 
             $dateaction = new DateTime($row->datep);
-            $out .= '<tr class="' . (fmod($num++, 2) == 0 ? 'impair' : 'pair') . '">';
+            $out .= '<tr class="' . (fmod($num++, 2) == 0 ? 'impair' : 'pair') . '" name="'.$row->rowid.'">';
             $out .= '<td rowid="' . $row->rowid . '" id = "' . $row->rowid . 'dtAction" style="width: 80px" class="middle_size">' . (empty($row->datep) ? '' : ($dateaction->format('d.m.y') . '</br>' . $dateaction->format('H:i'))) .
                 (!empty($row->type) ? '<div style="float: right; margin-top: -15px" title="Час початку дії встановлено вручну"><img src="/dolibarr/htdocs/theme/eldy/img/object_task.png"></div>' : '') . '</td>';
             $out .= '<td rowid="' . $row->rowid . '" id = "' . $row->rowid . 'dtChange" style="width: 80px" class="middle_size">' . (empty($row->datec) ? '' : $dtChange->format('d.m.y ').'</br>'.$dtChange->format('H:i')) . '</td>

@@ -224,6 +224,10 @@ if($_GET['action'] == 'edituseration'){//Якщо редагуються рез�
 require_once $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/comm/action/class/actioncomm.class.php';
 $Actions = new ActionComm($db);
 $AssignedUsersID = implode(',',$Actions->getAssignedUser($_GET['action_id'], true));
+//echo '<pre>';
+//var_dump($AssignedUsersID);
+//echo '</pre>';
+//die();
 if(isset($_GET['action_id'])&&!empty($_GET['action_id']))
     $Actions->fetch($_GET['action_id']);
 $style = "";
@@ -242,12 +246,14 @@ if(isset($_REQUEST["callstatus"])&&!empty($_REQUEST["callstatus"])){
 if(empty($_REQUEST["action_id"])&&!empty($_REQUEST["id"]))
     $_REQUEST["action_id"] = $_REQUEST["id"];
 //echo '<pre>';
-//var_dump($object->callstatus);
+//var_dump($AssignedUsersID);
 //echo '</pre>';
 //die();
-$subactionID = '111';
+//$subactionID = '111';
 if(!empty($_REQUEST["action_id"]))
     $subactionID = getSubactionID($_REQUEST["action_id"]);
+if(empty($subactionID))
+    $subactionID = -1;
 //var_dump($subactionID);
 //die();
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/addaction.html';
@@ -284,10 +290,10 @@ function savetaskmentor($createaction){
         $date_mentor = new DateTime();
     }
     if(empty($_POST['rowid'])){
-        $sql = "insert into llx_societe_action(`action_id`,`work_before_the_next_action_mentor`,`id_mentor`,`dtMentorChange`)
-          values(".$_POST['actionid'].",'".$_POST['task_mentor']."',".$user->id.",'".$date_mentor->format('Y-m-d')."')";
+        $sql = "insert into llx_societe_action(`action_id`,`work_before_the_next_action_mentor`,`id_mentor`,`dtMentorChange`,`new`)
+          values(".$_POST['actionid'].",'".$_POST['task_mentor']."',".$user->id.",'".$date_mentor->format('Y-m-d')."',1)";
     }else{
-        $sql = "update llx_societe_action set `work_before_the_next_action_mentor`='".$db->escape($_POST['task_mentor'])."',
+        $sql = "update llx_societe_action set `new`=1,`work_before_the_next_action_mentor`='".$db->escape($_POST['task_mentor'])."',
         `id_mentor`=".$user->id.",`dtMentorChange`='".$date_mentor->format('Y-m-d')."' where rowid=".$_POST['rowid'];
     }
 //    echo '<pre>';
@@ -731,7 +737,7 @@ function saveaction($rowid, $createaction = false){
             else
                 $backtopage .= "&socid%3D" . $socid . "%26mainmenu%3D" . $_REQUEST['mainmenu'];
         }
-//        var_dump($backtopage);
+//        var_dump($_REQUEST['assignedusers']);
 //        die();
         $link = "http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/comm/action/card.php?mainmenu=".$_REQUEST['mainmenu']."&actioncode=".$_REQUEST['actioncode'].
             "&socid=".$socid."&action=create&parent_id=".$_REQUEST["actionid"];

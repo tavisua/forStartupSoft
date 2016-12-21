@@ -236,10 +236,17 @@
 
 
 //                        return;
-                        if('<?=($conf->browser->name)?>' == 'chrome')
-                            location.href = link;
-                        else
-                            window.open(link);
+//                        if('<?=($conf->browser->name)?>' == 'chrome') {
+////                            if(!strpos($('head').html(),"base target=")){
+////                                $('head').html(strpos($('head').html()+'<base target="_blank">'));
+////                            }
+////                            location.href = link;
+//                            window.open(link, '_blank', 'toolbar=yes, location=yes, status=yes, menubar=yes, scrollbars=yes');
+//                        }else {
+//                            window.open(link);
+//                        }
+                        window.open(link, '_blank', 'toolbar=yes, location=yes, status=yes, menubar=yes, scrollbars=yes');
+
                     }
                 })
             })

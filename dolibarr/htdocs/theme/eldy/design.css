@@ -625,7 +625,8 @@ div.header_page, th.header_page, tr.header_table_sel, form.header_page, form.hea
     border-color: #396b9e;
     z-index: 1;
     cursor: pointer;
-}.global_taskitem{
+}
+.global_taskitem{
     height: 100%;
     position: relative;
     padding: 0 0 0!important;

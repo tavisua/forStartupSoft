@@ -834,15 +834,53 @@ function ShowUserTasks(id, respon_alias){
         })
     }
 }
+function getURLParameters(url, sParam) {
+    var sPageURL = decodeURIComponent(url.search.substring(1)),
+        sURLVariables = sPageURL.split('&'),
+        sParameterName,
+        i;
+
+    for (i = 0; i < sURLVariables.length; i++) {
+        sParameterName = sURLVariables[i].split('=');
+
+        if (sParameterName[0] === sParam) {
+            return sParameterName[1] === undefined ? true : sParameterName[1];
+        }
+    }
+}
+function ChangeViewNameOption(){
+    var Param = getURLParameters(window.location, 'viewname');
+    if(Param === undefined || Param.length == 0)
+        location.href=location.href+'&viewname=reverse';
+    else{
+        location.href= location.href.replace('&viewname=reverse','');
+    }
+}
+
 function CalcP(date, minute, id_usr, prefix){
-    //alert(date);
-    //console.log(date, minute, id_usr)
+    // alert(date,date.substr(6,2));
+    // alert($("#ActionsCount").length);
     //return;
     if(minute === undefined || minute.length == 0)
         return;
+    // alert($("#ActionsCount").length>0);
+    if($("#ActionsCount").length>0) {
+        var date_tmp = date;
+        if($.isNumeric(date.substr(0, 4)) && Math.floor(date.substr(0, 4)) == date.substr(0, 4))
+            date_tmp =  date.substr(0, 4) + '-' + date.substr(5, 2) + '-' + date.substr(8, 2);
+        else
+            date_tmp =  date.substr(6, 4) + '-' + date.substr(3, 2) + '-' + date.substr(0, 2);
+        console.log('date '+date_tmp, date);
 
-    //if(date.substr(0,1)!="'")
-    //    date = "'"+date+"'";
+        $.ajax({
+            url: '/dolibarr/htdocs/comm/action/card.php?action=getActionsCount&date=' +date_tmp,
+            cache: false,
+            success: (function (result) {
+                console.log(result);
+                $("#ActionsCount").html(result);
+            })
+        })
+    }
     $.ajax({
         url:'/dolibarr/htdocs/comm/action/card.php?date='+date+'&minute='+minute+'&id_usr='+id_usr+'&action=get_freetime',
         cache:false,
@@ -897,7 +935,7 @@ function CalcP2(id){
             p2min = parseInt(document.getElementById(postfix + "min").value) + parseInt($("#" + id).val());
             hour = parseInt(document.getElementById(postfix + "hour").value) + Math.floor(p2min / 60);
         } else {
-            alert('1');
+            // alert('1');
             p2min = parseInt(document.getElementById(postfix + "min").value);
             //hour = parseInt($("#" + id).val()) + parseInt(document.getElementById(postfix + "hour").value);
         }
@@ -1047,12 +1085,36 @@ function getMessage(){
                     var key = Object.keys(actions)[i];
                     //console.log(actions[key]['id'], actions[key]['code']=='AC_CURRENT', actions[key]['code']=='AC_CURRENT'?'Поточне':'Глобальне');
                     var code = "'"+actions[key]['code']+"'";
-                    html = '<div onclick="RedirectToTask('+actions[key]['id']+', '+code+')" id="mes'+i+'" title="'+(actions[key]['code']=='AC_CURRENT'?'Поточне':'Глобальне')+'" class="message '+(actions[key]['code']=='AC_CURRENT'?'current':'global')+'_taskitem" style="position: absolute; height: auto;">' +
+                    var title = '';
+                    var class_name = '';
+                    var icon_name = '';
+                    switch (code){
+                        case "'AC_CURRENT'":{
+                            title = 'Поточне';
+                            class_name = 'current';
+                            icon_name = 'current';
+                        }break;
+                        case "'AC_GLOBAL'":{
+                            title = 'Глобальне';
+                            class_name = 'global';
+                            icon_name = 'global';
+                        }break;
+                        case "'AC_TEL'":{
+                            title = 'Робота з контрагентами';
+                            class_name = 'office_callphone';
+                            icon_name = 'cust';
+                        }break;
+                    }
+                    if(actions[key]['mentor'] == 1){
+                        // class_name = 'mentor';
+                        icon_name = 'mentor';
+                    }
+                    html = '<div onclick="RedirectToTask('+actions[key]['id']+', '+code+')" id="mes'+i+'" title="'+title+'" class="message '+class_name+'_taskitem" style="position: absolute; height: auto;">' +
                         ' <div style="width: 150px;height: 40px;">    ' +
                         '<table style="width: 150px;height: 40px">' +
                         '    <tr>';
                         if(actions[key]['percent'] != '99')
-                            html +='        <td><img class="task_icon" src="/dolibarr/htdocs/theme/eldy/img/menus/'+(actions[key]['code']=='AC_CURRENT'?'current':'global')+'_task.png"></td>';
+                            html +='        <td><img class="task_icon" src="/dolibarr/htdocs/theme/eldy/img/menus/'+icon_name+'_task.png"></td>';
                         else
                             html +='        <td><img class="task_icon" src="/dolibarr/htdocs/theme/eldy/img/BWarning.png"></td>';
                     html +=
@@ -1082,7 +1144,7 @@ function RedirectToTask(id, code){
         url: link,
         cache: false,
         success: function(html){
-
+            console.log(html);
             var mainmenu = '';
             var idmenu = '';
             if(code=='AC_GLOBAL') {
@@ -1092,7 +1154,10 @@ function RedirectToTask(id, code){
                 mainmenu = 'current_task';
                 idmenu = 10423;
             }
-            location.href = '/dolibarr/htdocs/comm/action/chain_actions.php?action_id='+id+'&mainmenu='+mainmenu+'&idmenu='+idmenu;
+            if(code=='AC_CURRENT' || code == 'AC_GLOBAL')
+                location.href = '/dolibarr/htdocs/comm/action/chain_actions.php?action_id='+id+'&mainmenu='+mainmenu+'&idmenu='+idmenu;
+            else
+                location.href = '/dolibarr/htdocs/responsibility/sale/action.php?action_id='+id+'&mainmenu='+mainmenu+'&idmenu='+idmenu+'#'+id;
         }
     })
 }

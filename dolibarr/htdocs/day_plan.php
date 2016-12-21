@@ -236,16 +236,58 @@ function getNewAcctions($id_usr){
 //    die();
     if(!$res)
         dol_print_error($db);
-    if($db->num_rows($res) == 0)
-        return 0;
-    else{
-        $actions = array();
+    $actions = array();
+    if($db->num_rows($res) > 0){
         while($obj = $db->fetch_object($res)){
             $date = new DateTime($obj->datec);
-            $actions[$obj->id] = array('id'=>$obj->id, 'code'=>$obj->code, 'datec'=>$date->format('d.m H:i'), 'lastname'=>$obj->lastname, 'percent'=>$obj->percent);
+            $actions[$obj->id] = array('id'=>$obj->id, 'code'=>$obj->code, 'mentor'=>0,'datec'=>$date->format('d.m H:i'), 'lastname'=>$obj->lastname, 'percent'=>$obj->percent);
         }
-        return json_encode($actions);
     }
+    //Завантажую коментарі наставника
+    $sql="select `llx_actioncomm`.`id` , `llx_actioncomm`.`code`, `llx_societe_action`.`dtChange`, `llx_actioncomm`.`fk_user_action`, `llx_actioncomm_resources`.`fk_element`, `llx_actioncomm`.fk_soc, `llx_user`.`lastname`  
+        from `llx_societe_action`
+        inner join `llx_user` on `llx_user`.`rowid` = `llx_societe_action`.`id_mentor`
+        inner join `llx_actioncomm` on `llx_societe_action`.`action_id`= `llx_actioncomm`.`id` 
+        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm`= `llx_actioncomm`.`id` 
+        where 1
+        and `llx_societe_action`.`new` = 1
+        and `llx_societe_action`.`active` = 1";
+
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $societelist = array(0);
+    if($db->num_rows($res) > 0){
+        while($obj = $db->fetch_object($res)){
+            if($obj->fk_user_action == $id_usr || $obj->fk_element == $id_usr || in_societelist($id_usr, $obj->fk_soc)) {
+                $date = new DateTime($obj->dtChange);
+                $actions[$obj->id] = array('id' => $obj->id, 'code' => $obj->code, 'mentor' => 1, 'datec' => $date->format('d.m H:i'), 'lastname' => $obj->lastname, 'percent' => $obj->percent);
+            }
+        }
+    }
+
+    if(count($actions)>0)
+        return json_encode($actions);
+    else
+        return 0;
+
+}
+function in_societelist($id_usr, $socid){
+    if(empty($_SESSION['societelist'][$id_usr])){
+        global $db;
+        $sql = "select llx_societe.rowid from `llx_user_regions`
+            inner join llx_societe on region_id = `llx_user_regions`.fk_id
+            where `llx_user_regions`.`fk_user` = $id_usr
+            and `llx_user_regions`.`active`=1
+            and llx_societe.active = 1";
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+        while($obj = $db->fetch_object($res)){
+            $_SESSION['societelist'][$id_usr][]=$obj->rowid;
+        }
+    }
+    return in_array($socid, $_SESSION['societelist'][$id_usr]);
 }
 function GetDateOutStandingActions($actioncode, $id_usr){
     global $db, $user;
