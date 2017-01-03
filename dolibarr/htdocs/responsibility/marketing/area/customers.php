@@ -302,15 +302,9 @@ function fPrepPhoneFilter($phonenumber){
 function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $sortorder='', $readonly = array(), $showtitle=true){
     global $user, $conf, $langs, $db;
 
-
     if(empty($sortorder))
         $result = $db->query($sql);
     else{
-//            echo '<pre>';
-//            var_dump($sql);
-//            echo '</pre>';
-//            die();
-
         $result = $db->query($sql.' limit 1');
 
         $fields = $result->fetch_fields();
@@ -545,158 +539,161 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
                         </div>";
         }
     }
-
+    $insertedItem = array();
     while($row = $result->fetch_assoc()) {
-        $count++;
-        $class = fmod($count,2)==1?("impair"):("pair");
-        $table .= "<tr id = tr".$row['rowid']." class='".$class."'>\r\n";
+        if (!in_array($row['rowid'], $insertedItem)) {
+            $insertedItem[]=$row['rowid'];
+            $count++;
+            $class = fmod($count, 2) == 1 ? ("impair") : ("pair");
+            $table .= "<tr id = tr" . $row['rowid'] . " class='" . $class . "'>\r\n";
 //            $table .= "<tr id = tr".$row['rowid']." class='".$class."'>\r\n";
 //            $table .= "<tr id = $count class=".fmod($count,2)==1?('impair'):('pair').">\r\n";
-        $id = $row['rowid'];
+            $id = $row['rowid'];
 //            $table .= '<td >'.$class.'</td>';
 //            echo '<pre>';
 //            var_dump($fields);
 //            echo '</pre>';
 //            die();
 //            echo '</br>';
-        $num_col = 0;
-        $prev_col=array('nom','town','remark');
-        foreach($row as $cell=>$value){
-            $col_name = "'".$fields[$num_col]->name."'";
-            if($cell != 'rowid') {
-                if(!$create_edit_form && count($readonly)==0)//Формирую форму для редактирования
+            $num_col = 0;
+            $prev_col = array('nom', 'town', 'remark');
+            foreach ($row as $cell => $value) {
+                $col_name = "'" . $fields[$num_col]->name . "'";
+                if ($cell != 'rowid') {
+                    if (!$create_edit_form && count($readonly) == 0)//Формирую форму для редактирования
 //                    $edit_form.=$this->fBuildEditForm($title[$num_col-1], $fields[$num_col], $theme, $tablename);
-                    var_dump($title[$num_col-1]['title'].' '.$cell.' '.!isset($title[$num_col-1]['hidden']).'</br>');
-                if(!isset($title[$num_col-1]['hidden'])) {
+                        var_dump($title[$num_col - 1]['title'] . ' ' . $cell . ' ' . !isset($title[$num_col - 1]['hidden']) . '</br>');
+                    if (!isset($title[$num_col - 1]['hidden'])) {
 //                        echo'<pre>';
 //                        var_dump($cell);
 //                        echo'</pre>';
 
-                    if ($fields[$num_col]->type == 16) {
-                        if(count($readonly)==0) {
-                            if ($value == '1') {
-                                $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:'.($col_width[$num_col-1]+2).'px" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');" > </td>';
+                        if ($fields[$num_col]->type == 16) {
+                            if (count($readonly) == 0) {
+                                if ($value == '1') {
+                                    $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:' . ($col_width[$num_col - 1] + 2) . 'px" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');" > </td>';
+                                } else {
+                                    $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:' . ($col_width[$num_col - 1] + 2) . 'px" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_off.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');"> </td>';
+                                }
                             } else {
-                                $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:'.($col_width[$num_col-1]+2).'px" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_off.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');"> </td>';
+                                if (in_array($row['rowid'], $readonly)) {
+                                    $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:' . ($col_width[$num_col - 1] + 2) . 'px"><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png"> </td>';
+                                } else {
+                                    $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:' . ($col_width[$num_col - 1] + 2) . 'px"><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_off.png"> </td>';
+                                }
                             }
-                        }else{
-                            if(in_array($row['rowid'], $readonly)){
-                                $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:'.($col_width[$num_col-1]+2).'px"><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png"> </td>';
-                            }else{
-                                $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:'.($col_width[$num_col-1]+2).'px"><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_off.png"> </td>';
-                            }
-                        }
-                    } else {
-                        if (substr($fields[$num_col]->name, 0, 2) != 's_') {
-                            $full_text='';
-                            if(mb_strlen(trim($value))>0) {
-                                $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:' . ($col_width[$num_col - 1] + 2) . 'px;">';
-                                if(!isset($title[$num_col - 1]['substr'])||mb_strlen(trim($value), 'UTF-8')<=$title[$num_col - 1]['substr'])
-                                    $table .= trim($langs->trans($value));
-                                else {
+                        } else {
+                            if (substr($fields[$num_col]->name, 0, 2) != 's_') {
+                                $full_text = '';
+                                if (mb_strlen(trim($value)) > 0) {
+                                    $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:' . ($col_width[$num_col - 1] + 2) . 'px;">';
+                                    if (!isset($title[$num_col - 1]['substr']) || mb_strlen(trim($value), 'UTF-8') <= $title[$num_col - 1]['substr'])
+                                        $table .= trim($langs->trans($value));
+                                    else {
 
-                                    $obj="'".$row['rowid'] . $fields[$num_col]->name."'";
-                                    $table .= mb_substr(trim($value), 0, $title[$num_col - 1]['substr'], 'UTF-8') . '...';
+                                        $obj = "'" . $row['rowid'] . $fields[$num_col]->name . "'";
+                                        $table .= mb_substr(trim($value), 0, $title[$num_col - 1]['substr'], 'UTF-8') . '...';
 //                                    $table .= mb_strlen(trim($value), 'UTF-8').'%%%'.trim($value);
-                                    $table .='<img id="prev' . $row['rowid'] . $fields[$num_col]->name . '" onclick="preview(' . $obj . ');" style="vertical-align: middle" title="Передивитись" src="/dolibarr/htdocs/theme/eldy/img/object-more.png">';
-                                }
-                                $table .='</td>';
-                                $full_text = trim($value);
-                            }else {
-                                if(isset($actionfields[$fields[$num_col]->name])){
-                                    $alias = $actionfields[$fields[$num_col]->name];
-                                    $full_text = '';
-                                    switch($fields[$num_col]->name){
-                                        case 'lastdatecomerc':{
-                                            $full_text = !isset($lastaction[$row['rowid'].$alias]) ?
-                                                '<img src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/object_action.png">' : $lastaction[$row['rowid'].$alias];
-                                        }break;
-                                        case 'futuredatecomerc':{
-                                            $full_text = !isset($futureaction[$row['rowid'].$alias]) ?
-                                                '<img src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/object_action.png">' : $futureaction[$row['rowid'].$alias];
-                                        }
+                                        $table .= '<img id="prev' . $row['rowid'] . $fields[$num_col]->name . '" onclick="preview(' . $obj . ');" style="vertical-align: middle" title="Передивитись" src="/dolibarr/htdocs/theme/eldy/img/object-more.png">';
                                     }
+                                    $table .= '</td>';
+                                    $full_text = trim($value);
+                                } else {
+                                    if (isset($actionfields[$fields[$num_col]->name])) {
+                                        $alias = $actionfields[$fields[$num_col]->name];
+                                        $full_text = '';
+                                        switch ($fields[$num_col]->name) {
+                                            case 'lastdatecomerc': {
+                                                $full_text = !isset($lastaction[$row['rowid'] . $alias]) ?
+                                                    '<img src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/object_action.png">' : $lastaction[$row['rowid'] . $alias];
+                                            }
+                                                break;
+                                            case 'futuredatecomerc': {
+                                                $full_text = !isset($futureaction[$row['rowid'] . $alias]) ?
+                                                    '<img src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/object_action.png">' : $futureaction[$row['rowid'] . $alias];
+                                            }
+                                        }
 
-                                    $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '"  style="width:' . ($col_width[$num_col - 1] + 2) . 'px; text-align: center;"><a href="../' . $actionfields[$fields[$num_col]->name] . '/action.php?socid=' . $row['rowid'] . '&idmenu=10425&mainmenu=area">' . ($full_text) . '</a> </td>';
-                                }else{
-                                    $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '"  style="width:' . ($col_width[$num_col - 1] + 2) . 'px; text-align: center;"> </td>';
+                                        $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '"  style="width:' . ($col_width[$num_col - 1] + 2) . 'px; text-align: center;"><a href="../' . $actionfields[$fields[$num_col]->name] . '/action.php?socid=' . $row['rowid'] . '&idmenu=10425&mainmenu=area">' . ($full_text) . '</a> </td>';
+                                    } else {
+                                        $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '"  style="width:' . ($col_width[$num_col - 1] + 2) . 'px; text-align: center;"> </td>';
+                                    }
                                 }
-                            }
 
-                            if(in_array(trim($fields[$num_col]->name), $prev_col))
-                                $table .='<td style="display: none" id="full'.$row['rowid'] . $fields[$num_col]->name.'">'.$full_text.'</td>';
-                        }
-                        else {
+                                if (in_array(trim($fields[$num_col]->name), $prev_col))
+                                    $table .= '<td style="display: none" id="full' . $row['rowid'] . $fields[$num_col]->name . '">' . $full_text . '</td>';
+                            } else {
 
-                            if (substr($fields[$num_col]->name, 0, 6) == 's_llx_') {
-                                $stpos = 7;
-                            } else
-                                $stpos = 3;
-                            $s_table = substr($fields[$num_col]->name, 2, strpos($fields[$num_col]->name, '_', $stpos) - 2);
-                            $s_fieldname = substr($fields[$num_col]->name, strpos($fields[$num_col]->name, '_', $stpos) + 1);
+                                if (substr($fields[$num_col]->name, 0, 6) == 's_llx_') {
+                                    $stpos = 7;
+                                } else
+                                    $stpos = 3;
+                                $s_table = substr($fields[$num_col]->name, 2, strpos($fields[$num_col]->name, '_', $stpos) - 2);
+                                $s_fieldname = substr($fields[$num_col]->name, strpos($fields[$num_col]->name, '_', $stpos) + 1);
 
-                            $selectlist = substr($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], 0, strpos($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], $value) - 1) . ' selected = "selected" ' . substr($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], strpos($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], $value) - 1);
+                                $selectlist = substr($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], 0, strpos($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], $value) - 1) . ' selected = "selected" ' . substr($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], strpos($this->selectlist['edit_' . $s_table . '_' . $s_fieldname], $value) - 1);
 
-                            $selectlist = str_replace('class="edit_' . substr($fields[$num_col]->name, 2) . '"', '', $selectlist);
+                                $selectlist = str_replace('class="edit_' . substr($fields[$num_col]->name, 2) . '"', '', $selectlist);
 
-                            if (isset($title[$num_col - 1]["detailfield"])) {
-                                $selectlist = str_replace('id="edit_' . substr($fields[$num_col]->name, 2) . '"', 'id="select' . $row['rowid'] . $title[$num_col - 1]["detailfield"] . '"', $selectlist);
-                                $detailfield = "'" . $title[$num_col - 1]["detailfield"] . "'";
-                                $selectlist = str_replace('<select', '<select onChange="change_select(' . $row['rowid'] . ', ' . $tablename . ', ' . $detailfield . ');"', $selectlist);
-                            }
+                                if (isset($title[$num_col - 1]["detailfield"])) {
+                                    $selectlist = str_replace('id="edit_' . substr($fields[$num_col]->name, 2) . '"', 'id="select' . $row['rowid'] . $title[$num_col - 1]["detailfield"] . '"', $selectlist);
+                                    $detailfield = "'" . $title[$num_col - 1]["detailfield"] . "'";
+                                    $selectlist = str_replace('<select', '<select onChange="change_select(' . $row['rowid'] . ', ' . $tablename . ', ' . $detailfield . ');"', $selectlist);
+                                }
 //                            echo '<pre>';
 //                            var_dump(htmlspecialchars($selectlist));
 //                            echo '</pre>';
 //                            die();
-                            $table .= '<td  id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:'.($col_width[$num_col-1]+2).'px" >' . $selectlist . '</td>';
+                                $table .= '<td  id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:' . ($col_width[$num_col - 1] + 2) . 'px" >' . $selectlist . '</td>';
 //                            $table .= '<td class = "combobox" id="' . $row['rowid'] . $fields[$num_col]->name . '">' . $value . '</td>';
+                            }
                         }
                     }
                 }
+                $num_col++;
             }
-            $num_col++;
-        }
-        if(!$create_edit_form && count($readonly)==0) {
-            $create_edit_form = true;
-            $save_item ="save_item(".$tablename.",'".$hiddenfield;
+            if (!$create_edit_form && count($readonly) == 0) {
+                $create_edit_form = true;
+                $save_item = "save_item(" . $tablename . ",'" . $hiddenfield;
 //                var_dump();
 //                die();
-            $edit_form .='    </table>
+                $edit_form .= '    </table>
                                </form>
                             <a class="close" title="Закрыть" href="#close"></a>
                             </br>';
-            if($additionparam) {
-                $edit_form .= "<script>
+                if ($additionparam) {
+                    $edit_form .= "<script>
                                 var tablename = " . $tablename . ";
                                 var fieldname = '" . $hiddenfield . "';
                                 var sendtable = '" . $sendtable . "';
                             </script>";
 
-            }else{
-                $edit_form .= "<script>
+                } else {
+                    $edit_form .= "<script>
                                 var tablename = " . $tablename . ";
                                 var fieldname = '';
                                 var sendtable = '';
                             </script>";
-            }
-            $edit_form .= '<button onclick="save_item(tablename, fieldname, sendtable)">Сохранить</button>
+                }
+                $edit_form .= '<button onclick="save_item(tablename, fieldname, sendtable)">Сохранить</button>
                             <button onclick="close_form();">Закрыть</button>
                             </div>';
-        }
+            }
 //
 //            var_dump(count($readonly)==0);
 //            die();
-        $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:'.($col_width[$num_col-1]+2).'px" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png" onclick="change_switch(' . $row['rowid'] . ');" > </td>';
-        if(count($readonly)==0 && $showtitle) {
-            $table .= '<td style="width: 20px" align="left">
+            $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:' . ($col_width[$num_col - 1] + 2) . 'px" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png" onclick="change_switch(' . $row['rowid'] . ');" > </td>';
+            if (count($readonly) == 0 && $showtitle) {
+                $table .= '<td style="width: 20px" align="left">
 
-                <img  id="img_'. $row['rowid'].'" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/edit.png" title="'.$langs->trans('Edit').'" style="vertical-align: middle" onclick="edit_item(' . $row['rowid'] . ');">
+                <img  id="img_' . $row['rowid'] . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/edit.png" title="' . $langs->trans('Edit') . '" style="vertical-align: middle" onclick="edit_item(' . $row['rowid'] . ');">
 
 
                        </td>';
-        }
+            }
 
-        $table .= '</tr>';
+            $table .= '</tr>';
+        }
     }
     $table .= '</tbody>'."\r\n";
     $table .= '</table>'."\r\n";

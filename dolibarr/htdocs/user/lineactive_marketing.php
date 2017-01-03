@@ -26,7 +26,7 @@ if(isset($_REQUEST['action']) && $_REQUEST['action'] == 'update'){
 //    select_lineaction
     $lineactive = $_REQUEST["select_lineaction"];
 
-    $sql = 'select fk_lineactive, rowid, active from llx_user_lineactive where fk_user='.$update_user->id.' and page='.$page;
+    $sql = 'select fk_lineactive, rowid, active from llx_user_lineactive where fk_user='.$update_user->id.' and (page='.$page.($page == 1? ' or page is null':'').')';
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
@@ -35,10 +35,14 @@ if(isset($_REQUEST['action']) && $_REQUEST['action'] == 'update'){
         $user_lineactive[$obj->fk_lineactive] = array($obj->rowid, $obj->active);
     }
     $inserted_values = array_keys($user_lineactive);
+//    echo '<pre>';
+//    var_dump($lineactive);
+//    echo '</pre>';
+//    die();
     foreach($inserted_values as $item){//Помічаю на видалення
         if(!in_array($item, $lineactive)){
             $sql = 'update llx_user_lineactive set active = 0, id_usr='.$user->id.
-                ' where fk_user='.$update_user->id.' and fk_lineactive='.$item.' limit 1';
+                ' where fk_user='.$update_user->id.' and active = 1 and fk_lineactive='.$item.' limit 1';
 //            die($sql);
             $res = $db->query($sql);
             if(!$res)

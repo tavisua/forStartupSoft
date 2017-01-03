@@ -223,9 +223,10 @@ if($_GET['action'] == 'edituseration'){//Якщо редагуються рез�
 }
 require_once $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/comm/action/class/actioncomm.class.php';
 $Actions = new ActionComm($db);
-$AssignedUsersID = implode(',',$Actions->getAssignedUser($_GET['action_id'], true));
+if(empty($_REQUEST["socid"]))//Якщо не стосується зовнішніх контрагентів
+    $AssignedUsersID = implode(',',$Actions->getAssignedUser($_GET['action_id'], true));
 //echo '<pre>';
-//var_dump($AssignedUsersID);
+//var_dump($_REQUEST);
 //echo '</pre>';
 //die();
 if(isset($_GET['action_id'])&&!empty($_GET['action_id']))

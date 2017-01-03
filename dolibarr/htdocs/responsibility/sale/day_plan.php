@@ -9,19 +9,21 @@ $outstanding = array();
 $CustActions = array();
 $userActions = array();
 $actioncode = array('AC_GLOBAL','AC_CURRENT','AC_EDUCATION','AC_INITIATIV','AC_PROJECT');
-
+global $db;
+$user_tmp=new User($db);
 if(isset($_GET['id_usr'])&&!empty($_GET['id_usr'])){
-    global $db;
     $sql = 'select lastname from llx_user where rowid = '.$_GET['id_usr'];
     $res = $db->query($sql);
     $obj = $db->fetch_object($res);
     $username = $obj->lastname;
     $id_usr = $_GET['id_usr'];
+    $result=$user_tmp->fetch($id_usr);
 }else {
     $id_usr = $user->id;
     $username = $user->lastname;
+    $user_tmp = $user;
 }
-$sql = 'select name from subdivision where rowid = '.(empty($user->subdiv_id)?0:$user->subdiv_id);
+$sql = 'select name from subdivision where rowid = '.(empty($user_tmp->subdiv_id)?0:$user_tmp->subdiv_id);
 $res = $db->query($sql);
 if(!$res)
     dol_print_error($db);
@@ -35,7 +37,7 @@ $subdivision = $obj->name;
     left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = llx_actioncomm.id
     left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
     left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
-    inner join (select `llx_user`.rowid, `responsibility`.`alias` from `llx_user` inner join `responsibility` on `responsibility`.`rowid` = `llx_user`.`respon_id` where `llx_user`.`subdiv_id` = ".$user->subdiv_id." and `llx_user`.`active` = 1) sub_user on sub_user.rowid = case when llx_actioncomm_resources.fk_element is null then llx_actioncomm.`fk_user_action` else llx_actioncomm_resources.fk_element end
+    inner join (select `llx_user`.rowid, `responsibility`.`alias` from `llx_user` inner join `responsibility` on `responsibility`.`rowid` = `llx_user`.`respon_id` where `llx_user`.`subdiv_id` = ".$user_tmp->subdiv_id." and `llx_user`.`active` = 1) sub_user on sub_user.rowid = case when llx_actioncomm_resources.fk_element is null then llx_actioncomm.`fk_user_action` else llx_actioncomm_resources.fk_element end
     where 1
     and llx_actioncomm.active = 1
     and datep2 between adddate(date(now()), interval -1 month) and adddate(date(now()), interval 1 month)";
@@ -92,7 +94,7 @@ exit();
 //}
 
 function ShowTable(){
-    global $actions,$user,$CustActions,$userActions,$actioncode,$id_usr;
+    global $actions,$user,$CustActions,$userActions,$actioncode,$id_usr,$user_tmp;
     $today = new DateTime();
     $mkToday = dol_mktime(0,0,0,$today->format('m'),$today->format('d'),$today->format('Y'));
 
@@ -105,7 +107,7 @@ function ShowTable(){
         $obj = (object)$action;
         $date = new DateTime($obj->datep);
         $mkDate = dol_mktime(0,0,0,$date->format('m'),$date->format('d'),$date->format('Y'));
-        if($action['id_usr']==$user->id){
+        if($action['id_usr']==$user_tmp->id){
 
             $userActions[$obj->datep][$obj->code]++;
 

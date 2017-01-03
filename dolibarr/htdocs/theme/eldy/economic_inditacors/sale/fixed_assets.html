@@ -13,8 +13,8 @@
                 <th rowspan="2" class="middle_size" style="width: 49px">Рік випуску</th>
                 <th colspan="2">Технічні параметри</th>
                 <th colspan="<?echo $YearCount?>"<?if($YearCount==0) echo 'style= display:none';?> >Кільк. / рік</th>
-                <th rowspan="2" class="middle_size" style="width: 79px">Позитивні відгуки</th>
-                <th rowspan="2" class="middle_size" style="width: 79px">Негативні відгуки</th>
+                <th rowspan="2" class="middle_size" style="width: 158px">Відгуки</th>
+                <!--<th rowspan="2" class="middle_size" style="width: 79px">Негативні відгуки</th>-->
                 <th rowspan="2" class="middle_size" style="width: 69px">Хто дав</th>
                 <th rowspan="2" class="middle_size" style="width: 41px">Дата</th>
                 <th rowspan="2" class="middle_size" width="70px">Вартість на сьогодні</th>
@@ -37,4 +37,40 @@
         function EditItem(rowid){
             location = '/dolibarr/htdocs/societe/economin_indicator.php?action=editparam&rowid='+rowid;
         }
+        $(document).ready(function () {
+            var thead = $('thead')[0];
+            var thlist=[];
+            $.each($($(thead).find('tr')[1]).find('th'), function (key, value) {
+                if($(value).attr("colspan") === undefined) {
+                    thlist.push(value);
+                }else if($(value).attr("colspan") != 0){
+                        $.each($($(thead).find('tr')[2]).find('th'), function (key, down_value) {
+//                            console.log(value, down_value);
+                            thlist.push(down_value);
+                        })
+
+//                    }
+                }
+            })
+            var economic = $("tbody.economic_indicators")[0];
+            var tdlist = $($(economic).find('tr')[0]).find('td');
+
+//            console.log(thlist);
+            var hidecount = 0;
+            $.each(tdlist, function (key, td) {
+                if(td.style.display == 'none'){
+                    hidecount++;
+                }else {
+                    if (thlist[key - hidecount] !== undefined) {
+//                    if(key == 7){
+//                        console.log(td, td.style.display, thlist[key - hidecount]);
+//                    }
+                        if (td.offsetWidth > thlist[key - hidecount].offsetWidth)
+                            thlist[key - hidecount].style.minWidth = td.offsetWidth - 2;
+                        else
+                            td.style.minWidth = thlist[key - hidecount].offsetWidth - 2;
+                    }
+                }
+            })
+        })
     </script>

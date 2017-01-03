@@ -219,7 +219,7 @@ from `llx_c_line_active`,`llx_c_kind_assets`
 where `llx_c_line_active`.`rowid`=`llx_c_kind_assets`.`fx_line_active`";
 $tabsql[29]= "select rowid,trademark as Trademark,active from ".MAIN_DB_PREFIX."c_trademark";
 $tabsql[30]= "select `llx_c_model`.rowid, llx_c_line_active.line LineActive, llx_c_kind_assets.kind_assets KindAssets, `llx_c_model`.model as Model,
-`llx_c_model`.`Description`, `llx_c_trademark`.trademark as Trademark, `llx_c_model`.`basic_param`,`llx_c_model`.`productivity`, `llx_c_model`.active
+`llx_c_model`.`Description`,`llx_c_model`.`Description_1`,`llx_c_model`.`Description_2`, `llx_c_trademark`.trademark as Trademark, `llx_c_model`.`basic_param`,`llx_c_model`.`productivity`, `llx_c_model`.active
 from `llx_c_model`
 left join `llx_c_trademark` on `llx_c_trademark`.`rowid`=`llx_c_model`.`fx_trademark`
 left join llx_c_kind_assets on `llx_c_model`.fx_kind_assets = `llx_c_kind_assets`.`rowid`
@@ -331,7 +331,7 @@ $tabfield[26]= "label";
 $tabfield[27]= "TypeEconomicIndicators,LineActive";
 $tabfield[28]= "LineActive,KindAssets";
 $tabfield[29]= "Trademark";
-$tabfield[30]= "LineActive,KindAssets,Trademark,Model,basic_param,productivity,Description";
+$tabfield[30]= "LineActive,KindAssets,Trademark,Model,basic_param,productivity,Description,Description_1,Description_2";
 $tabfield[31]= "name";
 $tabfield[32]= "name";
 $tabfield[33]= "name,position";
@@ -380,7 +380,7 @@ $tabfieldvalue[26]= "label";
 $tabfieldvalue[27]= "TypeEconomicIndicators,LineActive";
 $tabfieldvalue[28]= "LineActive,KindAssets";
 $tabfieldvalue[29]= "Trademark";
-$tabfieldvalue[30]= "LineActive,KindAssets,Trademark,Model,basic_param,productivity,Description";
+$tabfieldvalue[30]= "LineActive,KindAssets,Trademark,Model,basic_param,productivity,Description,Description_1,Description_2";
 $tabfieldvalue[31]= "name";
 $tabfieldvalue[32]= "name";
 $tabfieldvalue[33]= "name,position";
@@ -431,7 +431,7 @@ $tabfieldinsert[26]= "type";
 $tabfieldinsert[27]= "fx_type_indicator,line";
 $tabfieldinsert[28]= "fx_line_active,kind_assets";
 $tabfieldinsert[29]= "trademark";
-$tabfieldinsert[30]= ",fx_kind_assets,fx_trademark,Model,basic_param,productivity,Description";
+$tabfieldinsert[30]= ",fx_kind_assets,fx_trademark,Model,basic_param,productivity,Description,Description_1,Description_2";
 $tabfieldinsert[31]= "name";
 $tabfieldinsert[32]= "name";
 $tabfieldinsert[33]= "name,position";

@@ -4422,8 +4422,10 @@ class Form
     }
     function selectlineactive($htmlname, $id=''){
         global $conf, $langs;
-        $sql='select rowid, line from `llx_c_line_active` where active=1';
+        $sql='select rowid, line from `llx_c_line_active` where active=1 order by line collate utf8_unicode_ci';
         $out = '<select id="'.$htmlname.'" class="combobox" name="'.$htmlname.'" size=1 onchange="loadkind_assets($(this));">';
+        $out .= '<option '.(empty($id)?('selected = "selected" disabled="disabled" value="0"'):'').' value="0">Вкажіть напрямок</option>';
+
         $res = $this->db->query($sql);
         while($row = $this->db->fetch_object($res)){
             $out .= '<option '.($id == $row->rowid?('selected = "selected"'):'').' value="'.$row->rowid.'">'.$langs->trans($row->line).'</option>';
@@ -4449,7 +4451,9 @@ class Form
             $out.='</select>';
             return $out;
         }
-        $sql='select rowid, kind_assets from `llx_c_kind_assets` where fx_line_active = '.$fx_lineactive.' and active=1';
+        $sql='select rowid, kind_assets from `llx_c_kind_assets` where fx_line_active = '.$fx_lineactive.' and active=1 order by kind_assets collate utf8_unicode_ci';
+//        print $sql;
+//        die();
         $res = $this->db->query($sql);
         if(!$res)
             dol_print_error($db);

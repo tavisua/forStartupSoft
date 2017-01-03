@@ -7,98 +7,60 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 //var_dump($user->rights->user->user->mentor);
 //echo '</pre>';
 //die();
+if(!count($_SESSION['actions'])) {
 
-$actions = array();
-$future = array();
-$fact = array();
-$outstanding = array();
-$userActions = array();
-$subdivTaskID = array();
-$actcode = array('AC_GLOBAL', 'AC_CURRENT');
-$user_respon = array();
-$DepActions = array();
-if(isset($_GET['id_usr'])&&!empty($_GET['id_usr'])){
-    global $db;
-    $sql = 'select lastname from llx_user where rowid = '.$_GET['id_usr'];
+
+    $actions = array();
+    $future = array();
+    $fact = array();
+    $outstanding = array();
+    $userActions = array();
+    $subdivTaskID = array();
+    $actcode = array('AC_GLOBAL', 'AC_CURRENT');
+    $user_respon = array();
+    $DepActions = array();
+    if (isset($_GET['id_usr']) && !empty($_GET['id_usr'])) {
+        global $db;
+        $sql = 'select lastname from llx_user where rowid = ' . $_GET['id_usr'];
+        $res = $db->query($sql);
+        $obj = $db->fetch_object($res);
+        $username = $obj->lastname;
+        $id_usr = $_GET['id_usr'];
+    } else {
+        $id_usr = $user->id;
+        $username = $user->lastname;
+    }
+
+    $sql = "select rowid, lastname, firstname, subdiv_id from llx_user where active = 1 and subdiv_id is not null and lastname <> 'test'";
     $res = $db->query($sql);
-    $obj = $db->fetch_object($res);
-    $username = $obj->lastname;
-    $id_usr = $_GET['id_usr'];
-}else {
-    $id_usr = $user->id;
-    $username = $user->lastname;
-}
-
-$sql = "select rowid, lastname, firstname, subdiv_id from llx_user where active = 1 and subdiv_id is not null and lastname <> 'test'";
-$res = $db->query($sql);
-if(!$res)
-    dol_print_error($db);
-$users = array();
-while($obj = $db->fetch_object($res))
-    $users[$obj->rowid] = array('lastname'=>$obj->lastname.' '.mb_substr($obj->firstname, 0,1,'UTF-8').'.', 'subdiv_id'=>$obj->subdiv_id);
-$sql = "select llx_user.rowid, r1.alias a1, r2.alias a2 from llx_user
+    if (!$res)
+        dol_print_error($db);
+    $users = array();
+    while ($obj = $db->fetch_object($res))
+        $users[$obj->rowid] = array('lastname' => $obj->lastname . ' ' . mb_substr($obj->firstname, 0, 1, 'UTF-8') . '.', 'subdiv_id' => $obj->subdiv_id);
+    $sql = "select llx_user.rowid, r1.alias a1, r2.alias a2 from llx_user
 left join `responsibility` r1 on r1.rowid = llx_user.respon_id
 left join `responsibility` r2 on r2.rowid = llx_user.respon_id2
 where llx_user.active = 1";
-$res = $db->query($sql);
-if(!$res)
-    dol_print_error($db);
-while($obj = $db->fetch_object($res)){
-    $user_respon[$obj->rowid] = array($obj->a1,$obj->a2);
-}
-
-//echo '<pre>';
-//var_dump($_SESSION['actions']);
-//echo '<pre>';
-//die();
-//echo date('Y-m-d', time()-604800);
-//die();
-//var_dump(isset($_SESSION['actions']));
-//unset($_SESSION['actions']);
-
-//if(!isset($_SESSION['actions'])) {
-//    $sql = "select llx_actioncomm.id, sub_user.rowid  id_usr, sub_user.alias, `llx_societe`.`region_id`, sub_user.subdiv_id, llx_actioncomm.percent, date(llx_actioncomm.datep) datep,
-//    llx_actioncomm.percent, case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT','AC_EDUCATION', 'AC_INITIATIV', 'AC_PROJECT') then llx_actioncomm.`code` else 'AC_CUST' end `code`, `llx_societe_action`.`callstatus`
-//    from llx_actioncomm
-//    inner join (select id from `llx_c_actioncomm` where type in('user','system') and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
-//    left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = llx_actioncomm.id
-//    left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
-//    left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
-//    inner join (select `llx_user`.rowid, `responsibility`.`alias`, `llx_user`.subdiv_id from `llx_user` inner join `responsibility` on `responsibility`.`rowid` = `llx_user`.`respon_id` where 1 and `llx_user`.`active` = 1) sub_user on sub_user.rowid = case when llx_actioncomm_resources.fk_element is null then llx_actioncomm.`fk_user_author` else llx_actioncomm_resources.fk_element end
-//    where 1
-//    and llx_actioncomm.active = 1
-//    and datep2 between adddate(date(now()), interval -1 month) and adddate(date(now()), interval 1 month)";
-////echo '<pre>';
-////var_dump($sql);
-////echo '</pre>';
-////die();
-//    $res = $db->query($sql);
-//    if (!$res)
-//        dol_print_error($db);
-//    $actions = array();
-//    $time = time();
-//    while ($obj = $db->fetch_object($res)) {
-//        $actions[] = array('id'=>$obj->id, 'id_usr' => $obj->id_usr, 'region_id' => $obj->region_id, 'subdiv_id'=>$obj->subdiv_id,
-//            'respon_alias' => $obj->alias, 'percent' => $obj->percent, 'datep' => $obj->datep, 'code' => $obj->code,
-//            'callstatus'=> $obj->callstatus);
-//    }
-//    $_SESSION['actions'] = $actions;
-//
-//}else {
-//    $actions = $_SESSION['actions'];
-//}
-
-if(isset($_REQUEST['action']))
-    if($_REQUEST['action'] == 'ac_cust'){
-        echo getResponAliasActions();
-        exit();
-    }elseif($_REQUEST['action'] == 'get_userlist'){
-        echo getUserList();
-        exit();
-    }elseif($_REQUEST['action'] == 'get_regionlist'){
-        echo getRegionsList($_REQUEST["id_usr"]);
-        exit();
+    $res = $db->query($sql);
+    if (!$res)
+        dol_print_error($db);
+    while ($obj = $db->fetch_object($res)) {
+        $user_respon[$obj->rowid] = array($obj->a1, $obj->a2);
     }
+
+    if (isset($_REQUEST['action']))
+        if ($_REQUEST['action'] == 'ac_cust') {
+            echo getResponAliasActions();
+            exit();
+        } elseif ($_REQUEST['action'] == 'get_userlist') {
+            echo getUserList();
+            exit();
+        } elseif ($_REQUEST['action'] == 'get_regionlist') {
+            echo getRegionsList($_REQUEST["id_usr"]);
+            exit();
+        }
+}
 //$outstanding = CalcOutStandingActions($actions);
 //$_SESSION['outstanding'] = $outstanding;
 //if(!isset($_SESSION['future'])) {
@@ -122,78 +84,89 @@ print_fiche_titre($langs->trans('PlanOfDays'));
 //$sql.=" where 1
 //    and llx_actioncomm.active = 1
 //    and datep2 between adddate(date(now()), interval -1 month) and adddate(date(now()), interval 1 month)";
-$sql = "select llx_actioncomm.id, llx_actioncomm.`fk_user_author`, llx_actioncomm.percent, date(llx_actioncomm.datep) datep, llx_actioncomm.percent,
+$time = time();
+
+if(!count($_SESSION['actions'])) {
+    $sql = "select llx_actioncomm.id, llx_actioncomm.`fk_user_author`, llx_actioncomm.percent, date(llx_actioncomm.datep) datep, llx_actioncomm.percent,
     case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT','AC_EDUCATION', 'AC_INITIATIV', 'AC_PROJECT') then llx_actioncomm.`code` else 'AC_CUST' end `code`, llx_actioncomm.fk_soc
     from llx_actioncomm
     where 1
     and llx_actioncomm.active = 1
     and datep2 between adddate(date(now()), interval -1 month) and adddate(date(now()), interval 1 month);";
-$time = time();
 
-$res = $db->query($sql);
-if (!$res)
-    dol_print_error($db);
+    $res = $db->query($sql);
+    if (!$res)
+        dol_print_error($db);
 //print_r(time()-$time).'</br>';
 //die();
 //    $actions = array();
-$count = 0;
-$actionsID = array();//ИД действий/звонков
-$AllactionsID = array();//Все ИД за период
-$socID = array();//ИД контрагентов
-while ($obj = $db->fetch_object($res)) {
-    if($obj->code == 'AC_CUST') {
-        $actionsID[]=$obj->id;
+    $count = 0;
+    $actionsID = array();//ИД действий/звонков
+    $AllactionsID = array();//Все ИД за период
+    $socID = array();//ИД контрагентов
+    while ($obj = $db->fetch_object($res)) {
+        if ($obj->code == 'AC_CUST') {
+            $actionsID[] = $obj->id;
+        }
+        $AllactionsID[] = $obj->id;
+        if (!empty($obj->fk_soc)) {
+            $socID[] = $obj->fk_soc;
+        }
+        $actions[] = array('id_usr' => $obj->id_usr, 'fk_user_author' => $obj->fk_user_author, 'rowid' => $obj->id, 'fx_soc' => $obj->fk_soc, 'region_id' => $obj->region_id, 'respon_alias' => $obj->alias, 'percent' => $obj->percent, 'datep' => $obj->datep, 'code' => $obj->code, 'callstatus' => $obj->callstatus);
     }
-    $AllactionsID[]=$obj->id;
-    if(!empty($obj->fk_soc)){
-        $socID[]=$obj->fk_soc;
+    $usersID = array();//ИД исполнителя
+    $sql = "select fk_actioncomm, llx_actioncomm_resources.fk_element from llx_actioncomm_resources
+where fk_actioncomm in (" . implode(',', $AllactionsID) . ")";
+    $res = $db->query($sql);
+    while ($obj = $db->fetch_object($res)) {
+        $usersID[$obj->fk_actioncomm] = $obj->fk_element;
     }
-    $actions[] = array('id_usr' => $obj->id_usr, 'fk_user_author' => $obj->fk_user_author, 'rowid'=>$obj->id, 'fx_soc'=>$obj->fk_soc, 'region_id' => $obj->region_id, 'respon_alias' => $obj->alias, 'percent' => $obj->percent, 'datep' => $obj->datep, 'code' => $obj->code, 'callstatus'=>$obj->callstatus);
-}
-$usersID = array();//ИД исполнителя
-$sql = "select fk_actioncomm, llx_actioncomm_resources.fk_element from llx_actioncomm_resources
-where fk_actioncomm in (".implode(',',$AllactionsID).")";
-$res = $db->query($sql);
-while($obj = $db->fetch_object($res)){
-    $usersID[$obj->fk_actioncomm] = $obj->fk_element;
-}
 
-$sql = "select action_id, `llx_societe_action`.`callstatus` from llx_societe_action 
-  where action_id in (".implode(',',$actionsID).")";
-$res = $db->query($sql);
-$callstatus = array();
-while($obj = $db->fetch_object($res)){
-    $callstatus[$obj->action_id] = $obj->callstatus;
-}
+    $sql = "select action_id, `llx_societe_action`.`callstatus` from llx_societe_action 
+  where action_id in (" . implode(',', $actionsID) . ")";
+    $res = $db->query($sql);
+    $callstatus = array();
+    while ($obj = $db->fetch_object($res)) {
+        $callstatus[$obj->action_id] = $obj->callstatus;
+    }
 
-$sql = "select rowid, region_id from llx_societe where rowid in (".implode(',', $socID).")";
-$res = $db->query($sql);
-$societe = array();
-while($obj = $db->fetch_object($res)){
-    $societe[$obj->rowid] = $obj->region_id;
-}
+    $sql = "select rowid, region_id from llx_societe where rowid in (" . implode(',', $socID) . ")";
+    $res = $db->query($sql);
+    $societe = array();
+    while ($obj = $db->fetch_object($res)) {
+        $societe[$obj->rowid] = $obj->region_id;
+    }
 //Визначаю підрозділ виконавців
-$sql = "select rowid, subdiv_id from llx_user where 1";
-$res = $db->query($sql);
-$usersSubdiv = array();
-while($obj = $db->fetch_object($res)){
-    $usersSubdiv[$obj->rowid] = $obj->subdiv_id;
-}
-foreach ($actions as $index=>$action){
-    $action['callstatus'] = $callstatus[$action['rowid']];
-    $action['region_id'] = $societe[$action['fx_soc']];
-    if(empty($usersID[$action['rowid']]))
-        $action['id_usr'] = $action['fk_user_author'];
-    else
-        $action['id_usr'] = $usersID[$action['rowid']];
-    $action['subdiv_id'] = $usersSubdiv[$action['id_usr']];
-    $actions[$index]=$action;
+    $sql = "select rowid, subdiv_id from llx_user where 1";
+    $res = $db->query($sql);
+    $usersSubdiv = array();
+    while ($obj = $db->fetch_object($res)) {
+        $usersSubdiv[$obj->rowid] = $obj->subdiv_id;
+    }
+    foreach ($actions as $index => $action) {
+        $action['callstatus'] = $callstatus[$action['rowid']];
+        $action['region_id'] = $societe[$action['fx_soc']];
+        if (empty($usersID[$action['rowid']]))
+            $action['id_usr'] = $action['fk_user_author'];
+        else
+            $action['id_usr'] = $usersID[$action['rowid']];
+        $action['subdiv_id'] = $usersSubdiv[$action['id_usr']];
+        $actions[$index] = $action;
 //    var_dump($index, $action);
+    }
+    $_SESSION['actions'] = $actions;
+}else
+    $actions = $_SESSION['actions'];
+
+$count = 0;
+foreach ($actions as $item){
+    if($item["region_id"] == 299 && $item["datep"] == "2016-12-28"){
+        $count++;
+    }
 }
-$_SESSION['actions'] = $actions;
 //echo '<pre>';
 //print_r(time()-$time).'</br>';
-//var_dump($actions);
+//var_dump($count);
 //echo '</pre>';
 //die();
 
@@ -880,13 +853,14 @@ function ShowTable(){
         $subdiv = $user->subdiv_id;
 
     }
+//    var_dump($subdiv);
+//    die();
+//    $out .= _getTotalSubdivAction('', 'Всього', $subdiv);
+//    $out .= _getTotalSubdivAction('', 'Всього "Глобальні"', $subdiv, 'AC_GLOBAL');
+//    $out .= _getTotalSubdivAction('', 'Всього "Поточні"', $subdiv, 'AC_CURRENT');
+//    return $out;
 
-    $out .= _getTotalSubdivAction('', 'Всього', $subdiv);
-    $out .= _getTotalSubdivAction('', 'Всього "Глобальні"', $subdiv, 'AC_GLOBAL');
-    $out .= _getTotalSubdivAction('', 'Всього "Поточні"', $subdiv, 'AC_CURRENT');
-    return $out;
-
-    $out .= _getTotalSubdivAction('','Всього "По напрямках"',$subdiv,'AC_CUST');
+//    $out .= _getTotalSubdivAction('','Всього "По напрямках"',$subdiv,'AC_CUST');
 
     //Глобальні і поточні директора
 //    echo (time()-$start).'</br>';

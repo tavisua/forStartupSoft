@@ -11,7 +11,7 @@ if(!empty($_REQUEST['action']) && in_array($_REQUEST['action'], array('check', '
 require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
 global $db,$user;
 //echo '<pre>';
-//var_dump($user->rights->mailing);
+//var_dump($user);
 //echo '</pre>';
 //die();
 $action = $_REQUEST['action'];
@@ -55,6 +55,13 @@ if($action == 'sendmail'){
     $conf->notification->email_from=$conf->mailing->email_from;
     switch ($_REQUEST['type']){
         case 'test':{
+            if(!$user->id) {
+                $user->fetch($_REQUEST['id_usr']);
+//                echo '<pre>';
+//                var_dump($_REQUEST);
+//                echo '</pre>';
+//                die($user->email);
+            }
             require_once DOL_DOCUMENT_ROOT.'/core/class/SendMailSmtpClass.php';
             $mailSMTP = new SendMailSmtpClass('shop@t-i-t.com.ua', '777722345', 'ssl://smtp.yandex.ua', 'Техніка і технології', 465);
 // $mailSMTP = new SendMailSmtpClass('логин', 'пароль', 'хост', 'имя отправителя');

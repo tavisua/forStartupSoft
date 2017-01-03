@@ -144,18 +144,18 @@
             </tr>
             <tr>
                 <td>
-                    Позитивні відгуки
+                    Категорія відгуку
                 </td>
                 <td>
-                    <textarea maxlength="250" id="PositiveResponse" name="PositiveResponse"></textarea>
+                    <?echo $EconomicIndicators->select_category($EconomicIndicators->CategoryResponse)?>;
                 </td>
             </tr>
             <tr>
                 <td>
-                    Негативні відгуки
+                    Відгук
                 </td>
                 <td>
-                    <textarea maxlength="250" id="NegativeResponse" name="NegativeResponse"></textarea>
+                    <textarea maxlength="250" id="Response" name="Response"><?=$EconomicIndicators->Response?></textarea>
                 </td>
             </tr>
             <tr>
@@ -190,7 +190,18 @@
 </script>
 <script type="text/javascript">
     $(".param").keypress(function( b ){        var C = /[0-9\x25\x27\x24\x23]/;        var a = b.which;        var c = String.fromCharCode(a);        return !!(a==0||a==8||a==9||a==13||c.match(C));    });
-
+    $("select#lineactive").change(function () {
+        var param = {action:'get_model_from_lineactive',
+                     line_active: $('#lineactive').val()}
+        $.ajax({
+            url:'/dolibarr/htdocs/societe/economin_indicator.php',
+            data: param,
+            cache:false,
+            success:function (result) {
+                $('#model').html(result);
+            }
+        })
+    })
     function back(){
         $('#action').val('cancel');
         $('#addaddress').attr('action', $('#url').val());

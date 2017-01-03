@@ -28,6 +28,8 @@ class EconomicIndicator {
     var $model;
     var $UnMeasurement;
     var $ContainerUnMeasurement;
+    var $CategoryResponse;
+    var $Response;
 
     public function __construct($socid=0)
     {
@@ -35,9 +37,17 @@ class EconomicIndicator {
     }
     public function fetch_fixed_assets($rowid){
         global $db;
+//        echo '<pre>';
+//        var_dump($_REQUEST);
+//        echo '</pre>';
+//        die();
         $sql = "select socid,line_active,kindassets,trademark,model,for_what,count,fx_count_un_meas,year,tech_param,productivity,
-        container,fx_conteiner_un_meas,time_purchase,rate,time_purchase2,rate2,PositiveResponse,NegativeResponse,contact
+        container,fx_conteiner_un_meas,time_purchase,rate,time_purchase2,rate2,CategoryResponse,Response,PositiveResponse,NegativeResponse,contact
         from llx_societe_economic_indicator where rowid = ".$rowid;
+//        echo '<pre>';
+//        var_dump($sql);
+//        echo '</pre>';
+//        die();
         $res = $db->query($sql);
         if(!$res)
             dol_print_error($db);
@@ -59,6 +69,8 @@ class EconomicIndicator {
         $this->rate2 = $obj->rate2;
         $this->PositiveResponse = $obj->PositiveResponse;
         $this->NegativeResponse = $obj->NegativeResponse;
+        $this->Response = $obj->Response;
+        $this->CategoryResponse = $obj->CategoryResponse;
         $this->contact = $obj->contact;
         $this->model = $obj->model;
         $this->UnMeasurement = $obj->fx_count_un_meas;
@@ -66,6 +78,9 @@ class EconomicIndicator {
     }
     public function fixed_assets(){
         global $langs, $db, $conf;
+        if(empty($this->socid)){
+            $this->fetch_fixed_assets($_REQUEST['socid']);
+        }
         $YearCount = 0;
         $sql = "select distinct DATE_FORMAT(`llx_societe_economic_indicator`.`dtChange`, '%Y') as Date
             from `llx_societe_economic_indicator`
@@ -90,9 +105,11 @@ class EconomicIndicator {
             $TitleYears = '';
 
         $sql = "select `llx_societe_economic_indicator`.`rowid`, `llx_c_model`.rowid as id_model, `llx_c_line_active`.line, `llx_c_kind_assets`.kind_assets, `llx_c_trademark`.trademark, `llx_c_model`.model, `llx_c_model`.description,
-         `llx_societe_economic_indicator`.`year`, '', '',  `llx_societe_economic_indicator`.`PositiveResponse`,  `llx_societe_economic_indicator`.`NegativeResponse`,
+         `llx_societe_economic_indicator`.`year`, `llx_societe_economic_indicator`.`PositiveResponse`, `llx_societe_economic_indicator`.`Response`, `llx_societe_economic_indicator`.`CategoryResponse`,`llx_societe_economic_indicator`.`NegativeResponse`,
          `llx_societe_contact`.`lastname`, `llx_societe_contact`.`firstname`, DATE_FORMAT(`llx_societe_economic_indicator`.`dtChange`, '%Y') as `InsertedDate`,
-         round(`llx_societe_economic_indicator`.count, 0) count, `llx_societe_economic_indicator`.`dtChange`, `llx_societe_economic_indicator`.`tech_param`, `llx_societe_economic_indicator`.`productivity`
+         round(`llx_societe_economic_indicator`.count, 0) count, `llx_societe_economic_indicator`.`dtChange`, 
+         case when `llx_societe_economic_indicator`.`tech_param` = 'null' then `llx_c_model`.`basic_param` else `llx_societe_economic_indicator`.`tech_param` end as tech_param, 
+         case when `llx_societe_economic_indicator`.`productivity` = 'null' then `llx_c_model`.`productivity` else `llx_societe_economic_indicator`.`productivity` end as productivity
          from `llx_societe_economic_indicator`
         left join `llx_c_line_active` on `llx_c_line_active`.rowid=line_active
         left join `llx_c_kind_assets` on `llx_c_kind_assets`.rowid=kindassets
@@ -116,8 +133,12 @@ class EconomicIndicator {
             $fixed_assets.='<tbody class="economic_indicators">';
             $table = array();
             while($row = $db->fetch_array($restable)){
-//                var_dump($row);
-//                die();
+//                if($row['rowid'] == 95) {
+//                    echo '<pre>';
+//                    var_dump($row);
+//                    echo '</pre>';
+//                    die();
+//                }
                 if(!array_key_exists('id_model'.$row['id_model'], $table)) {
                     $item = array('id_model' => $row['id_model'],
                         'line' => $row['line'],
@@ -130,6 +151,7 @@ class EconomicIndicator {
                         'tech_param' => $row['tech_param'],
                         'productivity' => $row['productivity'],
                         'PositiveResponse' => $row['PositiveResponse'],
+                        'Response' => $row['Response'],
                         'NegativeResponse' => $row['NegativeResponse'],
                         'contact' => $row['lastname'].(!empty($row['firstname'])?(' '.mb_substr($row['firstname'], 0, 1, 'UTF-8').'.'):''),
                         'dtChange' => $row['dtChange'],
@@ -164,15 +186,30 @@ class EconomicIndicator {
                         $fixed_assets.='<td class="small_size"></td>';
                 }
 //                $fixed_assets.='<td class="small_size" style="width: 80px">'.$value['PositiveResponse'].'</td>';
-                $positive = $value['PositiveResponse'];
-                $fixed_assets.='<td id="pos_resp'.$value['id_model'].'" class="small_size" style="width: 80px">'.(strlen(trim($positive))>10?(mb_substr(trim($positive), 0, 10).'...
-                <img id="pos_resp'.$value['id_model'].'" onclick="preview(pos_resp'.$value['id_model'].');" style="vertical-align: middle" title="Передивитись" src="/dolibarr/htdocs/theme/eldy/img/object-more.png">'):trim($positive)).'</td>';
+//                echo '<pre>';
+//                var_dump($value);
+//                echo '</pre>';
+//                die();
+                $positive = $value['Response'];
+                switch ($value['Response']){
+                    case -1:{
+                        $color = "red";
+                    }break;
+                    case 0:{
+                        $color = "yellow";
+                    }break;
+                    case 1:{
+                        $color = "green";
+                    }break;
+                }
+                $fixed_assets.='<td id="resp'.$value['id_model'].'" class="small_size" style="width: 160px;background-color:'.$color.';">'.(mb_strlen(trim($positive))>10?(mb_substr(trim($positive), 0, 22, 'UTF-8').'...
+                <img id="resp'.$value['id_model'].'" onclick="preview(resp'.$value['id_model'].');" style="vertical-align: middle" title="Передивитись" src="/dolibarr/htdocs/theme/eldy/img/object-more.png">'):trim($positive)).'</td>';
                 $fixed_assets.='<td id="Lpos_resp'.$value['id_model'].'" style="display:none">'.trim($positive).'</td>';
-                $negative = $value['NegativeResponse'];
+//                $negative = $value['NegativeResponse'];
 //                $fixed_assets.='<td class="small_size" style="width: 80px">'.$value['NegativeResponse'].'</td>';
-                $fixed_assets.='<td id="negative_resp'.$value['id_model'].'" class="small_size" style="width: 80px">'.(strlen(trim($negative))>10?(mb_substr(trim($negative), 0, 10).'...
-                <img id="negative_resp'.$value['id_model'].'" onclick="preview(negative_resp'.$value['id_model'].');" style="vertical-align: middle" title="Передивитись" src="/dolibarr/htdocs/theme/eldy/img/object-more.png">'):trim($negative)).'</td>';
-                $fixed_assets.='<td id="Lnegative_resp'.$value['id_model'].'" style="display:none">'.trim($negative).'</td>';
+//                $fixed_assets.='<td id="negative_resp'.$value['id_model'].'" class="small_size" style="width: 80px">'.(strlen(trim($negative))>10?(mb_substr(trim($negative), 0, 10).'...
+//                <img id="negative_resp'.$value['id_model'].'" onclick="preview(negative_resp'.$value['id_model'].');" style="vertical-align: middle" title="Передивитись" src="/dolibarr/htdocs/theme/eldy/img/object-more.png">'):trim($negative)).'</td>';
+//                $fixed_assets.='<td id="Lnegative_resp'.$value['id_model'].'" style="display:none">'.trim($negative).'</td>';
 
                 $fixed_assets.='<td class="small_size" style="width: 70px">'.$value['contact'].'</td>';
                 $dtChange =  new DateTime($value['dtChange']);
@@ -202,7 +239,7 @@ class EconomicIndicator {
         global $user, $db;
         if(empty($this->rowid)) {
             $sql='insert into llx_societe_economic_indicator (socid,line_active,kindassets,trademark,for_what,`count`,`year`,`tech_param`,productivity,
-              container,time_purchase,rate,time_purchase2,rate2,PositiveResponse,NegativeResponse,contact,active,id_usr,model,fx_count_un_meas,fx_conteiner_un_meas)
+              container,time_purchase,rate,time_purchase2,rate2,PositiveResponse,NegativeResponse,CategoryResponse,Response,contact,active,id_usr,model,fx_count_un_meas,fx_conteiner_un_meas)
               values('.$this->socid.', '.(empty($this->line_active)?"null":$this->line_active).', '.
                 (empty($this->kindassets)?"null":$this->kindassets).', '.
                 (empty($this->trademark)?"null":$this->trademark).',"'.trim($this->for_what).'", '.
@@ -212,7 +249,7 @@ class EconomicIndicator {
                 (empty($this->container)?"null":$this->container).','.(empty($this->time_purchase)?"null":$this->time_purchase).', '.
                 (empty($this->rate)?"null":$this->rate).', '.(empty($this->time_purchase2)?"null":$this->time_purchase2).', '.
                 (empty($this->rate2)?"null":$this->rate2).',
-              "'.trim($this->PositiveResponse).'", "'.trim($this->NegativeResponse).'", '.(empty($this->contact)?"null":$this->contact).', 1, '.$user->id.', '.
+              "'.trim($this->PositiveResponse).'", "'.trim($this->NegativeResponse).'",'.$this->CategoryResponse.', "'.trim($this->Response).'", '.(empty($this->contact)?"null":$this->contact).', 1, '.$user->id.', '.
                 (empty($this->model)?"null":$this->model).', '.(empty($this->UnMeasurement)?"null":$this->UnMeasurement).', '.(empty($this->ContainerUnMeasurement)?"null":$this->ContainerUnMeasurement).')';
         }else{
             $sql='update llx_societe_economic_indicator set
@@ -231,6 +268,8 @@ class EconomicIndicator {
             rate2 = '.(empty($this->rate2)?"null":$this->rate2).",
             PositiveResponse = '".trim($this->PositiveResponse)."',
             NegativeResponse = '".trim($this->NegativeResponse)."',
+            CategoryResponse = '".trim($this->CategoryResponse)."',
+            Response = '".trim($this->Response)."',
             contact = ".(empty($this->contact)?"null":$this->contact).',
             id_usr = '.$user->id.',
             model ='.(empty($this->model)?"null":$this->model).',
@@ -327,7 +366,7 @@ class EconomicIndicator {
         global $db;
         $out = '<select id="lineactive" name="lineactive" class="combobox" size="1">';
         $out .='<option value="0" disabled="disabled" selected="selected">Виберіть напрямок</option>';
-        $sql = 'select rowid, LCASE (line)line from llx_c_line_active where active = 1 order by line';
+        $sql = 'select rowid, LCASE (line)line from llx_c_line_active where active = 1 order by line collate utf8_unicode_ci';
         $res = $db->query($sql);
         while($row = $db->fetch_object($res)){
             $out .='<option value = '.$row->rowid.' '.($rowid == $row->rowid?('selected="selected"'):'').'>'.$row->line.'</option>';
@@ -346,7 +385,7 @@ class EconomicIndicator {
             $out .= '</select>';
             return $out;
         }
-        $sql = 'select rowid, kind_assets from llx_c_kind_assets where fx_line_active='.$lineactive.' and active = 1';
+        $sql = 'select rowid, kind_assets from llx_c_kind_assets where fx_line_active='.$lineactive.' and active = 1 order by kind_assets collate utf8_unicode_ci';
 //        die($sql);
         $res = $db->query($sql);
         while($row = $db->fetch_object($res)){
@@ -396,26 +435,53 @@ class EconomicIndicator {
         $out .= '</select>';
         return $out;
     }
-    public function selectmodel($trademark = 0, $kind_assets = 0, $rowid = 0){
+    //
+    public function selectmodel($trademark = 0, $kind_assets = 0, $rowid = 0, $lineactive = ''){
 
         if($kind_assets == "null")$kind_assets=0;
         global $db, $langs;
         $out = '<select id="model" name="model" class="combobox" size="1">';
         $out .='<option value="0" disabled="disabled" selected="selected">'.$langs->trans("Model").'</option>';
-        if(empty($trademark) && empty($kind_assets)){
+        if(empty($trademark) && empty($kind_assets) && empty($lineactive)){
             $out .= '</select>';
             return $out;
         }
-        $sql = 'select rowid, model from `llx_c_model` where 1';
+        $sql = 'select rowid, model, basic_param, description, description_1, description_2 from `llx_c_model` where 1';
         if(!empty($trademark))
             $sql .= ' and fx_trademark = '.$trademark;
-        if(!empty($kind_assets))
+        if(!empty($lineactive) && empty($kind_assets)) {
+            $tmp = "select rowid from llx_c_kind_assets where fx_line_active = ".$lineactive." and active = 1";
+            $res_tmp = $db->query($tmp);
+            if(!$res_tmp)
+                dol_print_error($db);
+            $kind_assets = array();
+            while($kind_asset = $db->fetch_array($res_tmp)){
+                $kind_assets[] = $kind_asset['rowid'];
+            }
+            $sql .= ' and fx_kind_assets in (' . implode(',',$kind_assets).')';
+        }
+        if(!empty($kind_assets)&&!is_array($kind_assets))
             $sql .= ' and fx_kind_assets = '.$kind_assets;
         $sql .= ' and active = 1';
+        $sql .= ' order by model collate utf8_unicode_ci';
         $res = $db->query($sql);
+//        die($sql);
+        if(!$res)
+            dol_print_error($db);
         while($row = $db->fetch_object($res)){
-            $out .='<option value = '.$row->rowid.' '.($rowid == $row->rowid?('selected="selected"'):'').'>'.$row->model.'</option>';
+            $tmp = $row->model.$row->basic_param.$row->description;
+            if(!empty($tmp))
+                $out .='<option value = '.$row->rowid.' '.($rowid == $row->rowid?('selected="selected"'):'').'>'.$row->model.' ('.$row->basic_param.' '.$row->description.(empty($row->description_1)?'':' '.$row->description_1).(empty($row->description_2)?'':' '.$row->description_2).')</option>';
         }
+        $out .= '</select>';
+        return $out;
+    }
+    public function select_category($id = 0){
+//        return $id;
+        $out = '<select size="1" id="CategoryResponse" name="CategoryResponse" class="combobox">';
+        $out .= '<option value="0" '.($id == 0?'selected="selected"':'').'>Нейтральні</option>';
+        $out .= '<option value="-1" '.($id == -1?'selected="selected"':'').' >Негативні</option>';
+        $out .= '<option value="1" '.($id == 1?'selected="selected"':'').' >Позитивні</option>';
         $out .= '</select>';
         return $out;
     }

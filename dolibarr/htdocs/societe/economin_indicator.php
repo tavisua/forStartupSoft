@@ -35,6 +35,9 @@ $action = GETPOST('action', 'alpha');
 if($_REQUEST['action'] == 'get_economic_indicators') {
     print $EconomicIndicators->get_economic_indicators($_REQUEST['line_active']);
     exit();
+}elseif($_REQUEST['action'] == 'get_model_from_lineactive'){
+    print $EconomicIndicators->selectmodel('','',0,$_REQUEST['line_active']);
+    exit();
 }elseif($_REQUEST['action'] == 'get_kind_assets'){
     print $EconomicIndicators->selectkind_assets($_REQUEST['line_active']);
     exit();
@@ -68,6 +71,8 @@ if($_REQUEST['action'] == 'get_economic_indicators') {
     $EconomicIndicators->rate2          = GETPOST('rate2', 'int');
     $EconomicIndicators->PositiveResponse   = GETPOST('PositiveResponse', 'alpha');
     $EconomicIndicators->NegativeResponse   = GETPOST('NegativeResponse', 'alpha');
+    $EconomicIndicators->Response   = GETPOST('Response', 'alpha');
+    $EconomicIndicators->CategoryResponse   = GETPOST('CategoryResponse', 'alpha');
     $EconomicIndicators->model          = GETPOST('model', 'int');
     $EconomicIndicators->UnMeasurement  = GETPOST('UnMeasurement', 'int');
     if(empty($EconomicIndicators->UnMeasurement))$EconomicIndicators->UnMeasurement=0;
@@ -166,6 +171,7 @@ print '
                                 <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/lineactive.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('LineActive').'</a>
                             </div>';
             }
+//
 print '<div class="inline-block tabsElem">
                 <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/finance.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&socid='.$object->id.'">'.$langs->trans('FinanceAndDetails').'</a>
             </div>

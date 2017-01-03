@@ -121,7 +121,8 @@
         var param = {
             id:elem.attr('rowid'),
             action:'sendmail',
-            type: 'test'
+            type: 'test',
+            id_usr: <?=$user->id?>
         }
         $.ajax({
             data:param,
