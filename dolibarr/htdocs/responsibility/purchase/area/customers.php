@@ -123,11 +123,17 @@ if(!(empty($_REQUEST['lineactive'])||$_REQUEST['lineactive'] == -1)){
 //    var_dump($lineactive);
 //    echo '</pre>';
 //    die();
+    $sql_respon = 'select rowid from `responsibility` where alias = "purchase" and active = 1';
+    $res_respon = $db->query($sql_respon);
+    $respon_list = [];
+    while($obj = $db->fetch_object($res_respon)){
+        $respon_list[]=$obj->rowid;
+    }
 if((empty($_REQUEST['lineactive'])||$_REQUEST['lineactive'] == -1)) {
     $sql_filter = "select `llx_societe`.`rowid` from `llx_societe` ";
     $sql_filter.= "where 1    
     and `llx_societe`.`categoryofcustomer_id` in
-        (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = 16)
+        (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility in (".implode(',',$respon_list)."))
     and `llx_societe`.active = 1";
 }else {
     if (count($lineactive) == 0)
@@ -143,7 +149,7 @@ if((empty($_REQUEST['lineactive'])||$_REQUEST['lineactive'] == -1)) {
     inner join `llx_societe` on `llx_societe_lineactive`.`fk_soc`=`llx_societe`.`rowid`
     where 1
     and `llx_societe`.`categoryofcustomer_id` in
-        (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = 16)
+        (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility in (".implode(',',$respon_list)."))
     and `llx_societe_lineactive`.`fk_lineactive` in (" . $sql_lineactive . ")
     and `llx_societe_lineactive`.`active` = 1";
 }

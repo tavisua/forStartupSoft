@@ -55,7 +55,8 @@
             var economic = $("tbody.economic_indicators")[0];
             var tdlist = $($(economic).find('tr')[0]).find('td');
 
-//            console.log(thlist);
+            if(tdlist.length == 1)
+                    return;
             var hidecount = 0;
             $.each(tdlist, function (key, td) {
                 if(td.style.display == 'none'){

@@ -14,6 +14,17 @@ foreach($search as $elem) {
 }
 $page = isset($_GET['page'])?$_GET['page']:1;
 $per_page = isset($_GET['per_page'])?$_GET['per_page']:30;
+$sql_respon = 'select rowid from `responsibility` where alias = "purchase" and active = 1';
+$res_respon = $db->query($sql_respon);
+$respon_list = [];
+while($obj = $db->fetch_object($res_respon)){
+    if(!empty($obj->rowid))
+        $respon_list[]=$obj->rowid;
+}
+if($resp_obj->respon_id != 8 && !empty($resp_obj->respon_id))
+    $respon_list[]= $resp_obj->respon_id;
+if($resp_obj->respon_id2 != 8&& !empty($resp_obj->respon_id2))
+    $respon_list[]= $resp_obj->respon_id2;
 
 if(empty($_GET['viewname']))     $name = "concat(`llx_societe`.`nom`,' ',case when `formofgavernment`.`name` is null then '' else `formofgavernment`.`name` end)"; elseif ($_GET['viewname'] == "reverse")     $name = "concat(case when `formofgavernment`.`name` is null then '' else `formofgavernment`.`name` end,' ',`llx_societe`.`nom`)";  $sql = "select `llx_societe`.rowid, $name nom,
 `llx_societe`.`town`, round(`llx_societe_classificator`.`value`,0) as width, `llx_societe`.`remark`, ' ' deficit,
@@ -22,7 +33,7 @@ if(empty($_GET['viewname']))     $name = "concat(`llx_societe`.`nom`,' ',case wh
 from `llx_societe` left join `category_counterparty` on `llx_societe`.`categoryofcustomer_id` = `category_counterparty`.rowid
 left join `formofgavernment` on `llx_societe`.`formofgoverment_id` = `formofgavernment`.rowid
 left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`
-left join `llx_societe_lineactive` on `llx_societe_lineactive`.fk_soc = `llx_societe`.rowid
+
 where 1 ";
 $sql_count = 'select count(*) iCount from
 (select distinct `llx_societe`.*  from `llx_societe`
@@ -37,7 +48,7 @@ $resp_obj = $db->fetch_object($res_respon);
 //var_dump($id_usr);
 //die();
     $tmp = 'and `llx_societe`.`categoryofcustomer_id` in
-(select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility in('.$resp_obj->respon_id.', '.(empty($resp_obj->respon_id2)?'0':$resp_obj->respon_id2).'))';
+(select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility in('.implode(',',$respon_list).'))';
     $sql.=$tmp;
     $sql_count.=$tmp;
 
@@ -45,7 +56,7 @@ $resp_obj = $db->fetch_object($res_respon);
     $sql_count.=' and `llx_societe`.active = 1 ';
 
 //echo '<pre>';
-//var_dump(empty($_REQUEST['lineactive']));
+//var_dump($respon_list);
 //echo '</pre>';
 //die();
 
@@ -66,7 +77,7 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['lin
         }
         $sql_filter = "select llx_societe.rowid from llx_societe
             left join `llx_societe_contact` on `llx_societe_contact`.`socid`=`llx_societe`.`rowid`
-            where 1 and `llx_societe`.`categoryofcustomer_id` in (".implode(',', $cat_ID).") and `llx_societe`.`nom`  like '%" . $_REQUEST['filter'] . "%'
+            where 1 and llx_societe.active = 1 and `llx_societe`.`categoryofcustomer_id` in (".implode(',', $cat_ID).") and `llx_societe`.`nom`  like '%" . $_REQUEST['filter'] . "%'
             or `llx_societe_contact`.`lastname`  like '%" . $_REQUEST['filter'] . "%'
             or `llx_societe_contact`.`firstname`  like '%" . $_REQUEST['filter'] . "%'
             or `llx_societe_contact`.`subdivision`  like '%" . $_REQUEST['filter'] . "%'
@@ -115,31 +126,40 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['lin
         $lineactive = getSubLineActive(array_keys($catalog));
     }
 }
-if(empty($_REQUEST['lineactive'])){
+if(!(empty($_REQUEST['lineactive'])||$_REQUEST['lineactive'] == -1)){
     $catalog = getLineActive($id_usr);
     $lineactive = getSubLineActive(array_keys($catalog));
 }
-if(count($lineactive) == 0)
-    $lineactive[0][]=0;
-$sql_lineactive='';
-foreach($lineactive as $item){
 //    echo '<pre>';
-//    var_dump($item);
+//    var_dump($sql);
 //    echo '</pre>';
 //    die();
-    $sql_lineactive.= (!empty($sql_lineactive)?",":"").implode(',',$item);
-}
-if(empty($sql_lineactive))
-    $sql_lineactive = '0';
-$sql_filter = "select `llx_societe`.`rowid` from `llx_societe_lineactive`
+if((empty($_REQUEST['lineactive'])||$_REQUEST['lineactive'] == -1)) {
+    $sql_filter = "select `llx_societe`.`rowid` from `llx_societe` ";
+    $sql_filter.= "where 1    
+    and `llx_societe`.`categoryofcustomer_id` in
+        (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = 16)
+    and `llx_societe`.active = 1";
+}else {
+    if (count($lineactive) == 0)
+        $lineactive[0][] = 0;
+    $sql_lineactive = 'null';
+
+    foreach ($lineactive as $item) {
+        $sql_lineactive .= (!empty($sql_lineactive) ? "," : "") . implode(',', $item);
+    }
+    if (empty($sql_lineactive))
+        $sql_lineactive = '0';
+    $sql_filter = "select `llx_societe`.`rowid` from `llx_societe_lineactive`
     inner join `llx_societe` on `llx_societe_lineactive`.`fk_soc`=`llx_societe`.`rowid`
     where 1
     and `llx_societe`.`categoryofcustomer_id` in
         (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = 16)
-    and `llx_societe_lineactive`.`fk_lineactive` in (".$sql_lineactive.")
+    and `llx_societe_lineactive`.`fk_lineactive` in (" . $sql_lineactive . ")
     and `llx_societe_lineactive`.`active` = 1";
+}
 //        echo '<pre>';
-//        var_dump($sql_filter);
+//        var_dump($sql);
 //        echo '<pre>';
 //        die();
 $res = $db->query($sql_filter);
@@ -307,7 +327,7 @@ if(empty($_GET['viewname']))
 elseif ($_GET['viewname'] == 'reverse')
     $kind_view = '</br><span style="padding-top: 30px"><button onclick="ChangeViewNameOption();">&nbsp;&nbsp;&nbsp;ФП&nbsp;&nbsp;&nbsp; <img src="/dolibarr/htdocs/theme/eldy/img/replace.png"> Назва</button></span>';
 
-include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/service/area/customers.html');
+include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/purchase/area/customers.html');
 $prev_form = "<a href='#x' class='overlay' id='peview_form'></a>
                      <div class='popup' style='width: 300px;height: 150px'>
                      <textarea readonly id='prev_form' style='width: 100%;height: 100%;resize: none'></textarea>
@@ -400,7 +420,7 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
     if($db->num_rows($result)==0)
         ClearFilterMessage();
     mysqli_data_seek($result, 0);
-    $actionfields = array('futuredatecomerc'=>'service', 'lastdatecomerc'=>'service',  'lastdateservice'=>'service', 'lastdateaccounts'=>'accounts',  'lastdatementor'=>'mentor');
+    $actionfields = array('futuredatecomerc'=>'purchase', 'lastdatecomerc'=>'purchase',  'lastdateservice'=>'service', 'lastdateaccounts'=>'accounts',  'lastdatementor'=>'mentor');
     if(!$result)return;
     $page = isset($_GET['page'])?$_GET['page']:1;
     $per_page = isset($_GET['per_page'])?$_GET['per_page']:30;

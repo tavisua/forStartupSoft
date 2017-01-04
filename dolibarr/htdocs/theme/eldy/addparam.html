@@ -190,6 +190,11 @@
 </script>
 <script type="text/javascript">
     $(".param").keypress(function( b ){        var C = /[0-9\x25\x27\x24\x23]/;        var a = b.which;        var c = String.fromCharCode(a);        return !!(a==0||a==8||a==9||a==13||c.match(C));    });
+    $("#model").change(function (e) {
+        $("#trademark").val($("option:selected",this).attr("trademark"));
+        $("#KindAssets").val($("option:selected",this).attr("kind_assets"));
+        console.log($("option:selected",this).attr("trademark"));
+    })
     $("select#lineactive").change(function () {
         var param = {action:'get_model_from_lineactive',
                      line_active: $('#lineactive').val()}

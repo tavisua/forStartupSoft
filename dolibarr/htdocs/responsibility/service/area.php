@@ -7,7 +7,7 @@
  */
 
 require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
-require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/service/lib/function.php';
+require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/purchase/lib/function.php';
 if(count($_POST)>0){
     $_SESSION['region_id'] = GETPOST('lineacitve', 'int');
 //    echo '<pre>';

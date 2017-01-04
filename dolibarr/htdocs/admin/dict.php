@@ -1320,7 +1320,13 @@ if ($id)
     }
 
     print '</form>';
-
+    print '<script>
+        $(".flat").keydown(function(e) {
+            if(e.keyCode == 9 && $(this).val() == "")
+                $(this).val("-");
+//            console.log($(this).val() == "");  
+        })
+    </script>';
     // List of available values in database
     dol_syslog("htdocs/admin/dict", LOG_DEBUG);
     $resql=$db->query($sql);

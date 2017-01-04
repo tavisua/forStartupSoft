@@ -446,7 +446,7 @@ class EconomicIndicator {
             $out .= '</select>';
             return $out;
         }
-        $sql = 'select rowid, model, basic_param, description, description_1, description_2 from `llx_c_model` where 1';
+        $sql = 'select rowid, model,fx_trademark,fx_kind_assets,basic_param, description, description_1, description_2 from `llx_c_model` where 1';
         if(!empty($trademark))
             $sql .= ' and fx_trademark = '.$trademark;
         if(!empty($lineactive) && empty($kind_assets)) {
@@ -471,7 +471,7 @@ class EconomicIndicator {
         while($row = $db->fetch_object($res)){
             $tmp = $row->model.$row->basic_param.$row->description;
             if(!empty($tmp))
-                $out .='<option value = '.$row->rowid.' '.($rowid == $row->rowid?('selected="selected"'):'').'>'.$row->model.' ('.$row->basic_param.' '.$row->description.(empty($row->description_1)?'':' '.$row->description_1).(empty($row->description_2)?'':' '.$row->description_2).')</option>';
+                $out .='<option trademark = "'.$row->fx_trademark.'" kind_assets = "'.$row->fx_kind_assets.'" value = '.$row->rowid.' '.($rowid == $row->rowid?('selected="selected"'):'').'>'.$row->model.' ('.$row->basic_param.' '.$row->description.(empty($row->description_1)?'':' '.$row->description_1).(empty($row->description_2)?'':' '.$row->description_2).')</option>';
         }
         $out .= '</select>';
         return $out;

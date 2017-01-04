@@ -99,11 +99,12 @@ if($db->num_rows($res) > 0) {
 }
 $CreateCompany = $langs->trans('CreateCompany');
 
-include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/service/area/header.html');
+include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/purchase/area/header.html');
 return;
 
 
 function LineActive(){
+
     global $db, $user, $id_usr;
 //    $sql = 'select `oc_category_description`.category_id, `oc_category_description`.name from `oc_category_description`
 //            inner join
@@ -133,8 +134,10 @@ function LineActive(){
 //        $out.='<option '.($obj->category_id == 'users'?'id="users"':'').' value="'.$obj->category_id.'" '.(is_numeric($category_id) == is_numeric($obj->category_id) && $category_id == $obj->category_id?'selected="selected"':'').'>'.$obj->name.'</option>';
 //    }
     foreach(array_keys($lineactive) as $key){
-        $out.='<option '.($key == 'users'?'id="users"':'').' value="'.$key.'" '.(is_numeric($category_id) == is_numeric($key) && $category_id == $key?'selected="selected"':'').'>'.$lineactive[$key]['name'].' ['.$lineactive[$key]['type'].']</option>';
+        $out.='<option '.($key == 'users'?'id="users"':'').' kind="'.$lineactive[$key]['kind'].'" value="'.$key.'" '.(is_numeric($category_id) == is_numeric($key) && $category_id == $key?'selected="selected"':'').'>'.$lineactive[$key]['name'].' '.(!empty($lineactive[$key]['type'])?'['.$lineactive[$key]['type'].']':'').'</option>';
     }
+
+
     $out.='</select>';
     return $out;
 }

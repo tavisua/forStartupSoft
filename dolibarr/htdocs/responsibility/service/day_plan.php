@@ -2,7 +2,7 @@
 
 require $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
-require_once DOL_DOCUMENT_ROOT.'/responsibility/service/lib/function.php';
+
 
 $actions = array();
 $future = array();
@@ -22,7 +22,6 @@ if(isset($_GET['id_usr'])&&!empty($_GET['id_usr'])){
     $id_usr = $user->id;
     $username = $user->lastname;
 }
-
 $sql = 'select name from subdivision where rowid = '.(empty($user->subdiv_id)?0:$user->subdiv_id);
 $res = $db->query($sql);
 if(!$res)
@@ -85,6 +84,10 @@ $subdivision = $obj->name;
         if(!in_array($obj->fk_lineactive, $lineactive))
             $lineactive[] = $obj->fk_lineactive;
     }
+//echo '<pre>';
+//var_dump($outLineactive);
+//echo '</pre>';
+//die();
     if(count($lineactive) == 0)
         $lineactive[]=-1;
 //Визначаю напрямки діяльності постачальника
@@ -92,8 +95,6 @@ $subdivision = $obj->name;
     $sql = "select distinct fk_lineactive from llx_user_lineactive
       where fk_user = ".$id_usr." and active = 1";
     $resUserLineActive = $db->query($sql);
-    if(!$resUserLineActive)
-        dol_print_error($db);
     $outUserLineActive = array();
     while($obj = $db->fetch_object($resUserLineActive)){
         if(!in_array($obj->fk_lineactive, $lineactive))
@@ -157,7 +158,7 @@ llxPopupMenu();
 exit();
 
 function ShowTable(){
-    global $actions,$user,$CustActions,$userActions,$actioncode;
+    global $actions,$user,$CustActions,$userActions,$actioncode,$id_usr;
     $today = new DateTime();
     $mkToday = dol_mktime(0,0,0,$today->format('m'),$today->format('d'),$today->format('Y'));
 
@@ -312,12 +313,12 @@ function ShowTable(){
 //        echo '</pre>';
 //        die();
     $table.= ShowTasks('AC_CUST', 'Найкращі показники по підрозділу', true);
-    global $id_usr;
+
     $table.= getLineActiveList($id_usr);
+
     $table.= ShowTasks('AC_PROJECT', 'Проекти', true);
     $table.= ShowTasks('AC_EDUCATION, ', 'Навчання', true);
     $table.= ShowTasks('AC_INITIATIV, , ', 'Ініціативи', true);
-
     $table .= '</tbody>';
     return $table;
 }
