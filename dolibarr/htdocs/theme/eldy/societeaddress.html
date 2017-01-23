@@ -62,6 +62,7 @@
                 <th>Відправляти пошту</th>
                 <!--<th><?echo $langs->trans('SendEmail')?></th>-->
                 <th><?echo $langs->trans('Active')?></th>
+                <th>&nbsp;</th>
             </tr>
         </thead>
         <!--<tbody id="reference_body">-->
@@ -98,4 +99,7 @@
             }
         }
     })
+    function edit(rowid){
+        location.href = '/dolibarr/htdocs/societe/addaddress.php?action=edit&rowid='+rowid;
+    }
 </script>

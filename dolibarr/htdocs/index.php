@@ -91,7 +91,7 @@ llxHeader('',$title);
 //echo '</pre>';
 //die();
 
-if(count(array_intersect(array(6,8),array($user->respon_id,$user->respon_id2)))){
+if(count(array_intersect(array(6,8),array($user->respon_id,$user->respon_id2))) || count(array_intersect(array('purchase'),array($user->respon_alias,$user->respon_alias2)))){
     print_fiche_titre($langs->trans("Performance"));
 
 

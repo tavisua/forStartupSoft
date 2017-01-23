@@ -16,7 +16,7 @@ foreach($search as $elem) {
     $search_array[$tmp[0]]=$tmp[1];
 }
 $page = isset($_GET['page'])?$_GET['page']:1;
-$per_page = isset($_GET['per_page'])?$_GET['per_page']:30;
+$per_page = isset($_GET['per_page'])?$_GET['per_page']:100;
 
 //var_dump($user->subdiv_id);
 //die();

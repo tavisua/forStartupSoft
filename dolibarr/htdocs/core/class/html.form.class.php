@@ -4447,6 +4447,7 @@ class Form
     function selectkindassets($htmlname, $fx_lineactive = 0, $id=''){
         global $conf, $langs,$db;
         $out = '<select '.(empty($fx_lineactive)?'style="width:150px"':'').' id="'.$htmlname.'" class="combobox" name="'.$htmlname.'" size=1" >';
+        $out .= '<option '.(empty($id)?('selected = "selected" disabled="disabled" value="0"'):'').' value="0">Вкажіть вид засобів/матеріалів</option>';
         if($fx_lineactive == 0){
             $out.='</select>';
             return $out;

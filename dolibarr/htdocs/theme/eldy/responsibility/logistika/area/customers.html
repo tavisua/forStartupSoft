@@ -51,6 +51,54 @@
 <!--<div id="popupmenu" style="display: none; position: absolute; width: auto; height: auto" class="pair popupmenu" >-->
     <!---->
 <!--</div>-->
+<div id="htmlsetfilter" class="pair popupmenu" style="width: 270px;display: none">
+    <form id="setfilter" action="" method="get">
+     <table style="border-collapse: collapse">
+         <tr>
+             <td style="width: 200px">
+                 <input type="hidden" name="mainmenu" value="<?=$_REQUEST[mainmenu]?>">
+                 <input type="hidden" name="idmenu" value="<?=$_REQUEST[idmenu]?>">
+                 <input type="hidden" id = "lineactiveFilter" name="contractors" value="<?=$_REQUEST[contractors]?>">
+                 <span class="middle_size">Назва</span> <input type="text" name="filter" value="" id="filter" size="45">
+                 </td>
+             </tr>
+         <tr>
+             <td>
+                <?=fShowKindAssets()?>
+                 </td>
+             </tr>
+         <tr>
+             <td>
+                <?=fShowModel_empty()?>
+                 </td>
+             </tr>
+         <tr>
+             <td>
+                 <input type="submit" value="Пошук">
+                 <input type="button" onclick="closefindmenu()" value="Відміна">
+                 </td>
+             </tr>
+         </table>
+     </form>
+    <style> select{width: 100% !important}</style>
+    <script>
+        $('#KindAssets').change(function (e) {
+//            alert($('#KindAssets').val());
+            var data = {action:'showmodel', kind_assets: $('#KindAssets').val()};
+            $.ajax({
+                url:'/dolibarr/htdocs/responsibility/logistika/area.php',
+
+                data:data,
+                cache:false,
+                success:function (html) {
+                    console.log(html);
+                    $('#model').html(html);
+                }
+            })
+
+        })
+    </script>
+</div>
         <script>
             function GetStates(){
                 var param = {
@@ -193,29 +241,8 @@
                 $('#setfilter').submit();
             }
             function showfilter(){
-                var html = '<div class="pair popupmenu" style="width: 270px"><form id="setfilter" action="" method="get">';
-                html+=' <table style="border-collapse: collapse">';
-                html+=' <tr>';
-                html+=' <td style="width: 200px">';
-                html+=' <input type="hidden" name="mainmenu" value="<?=$_REQUEST['mainmenu']?>">';
-                html+=' <input type="hidden" name="idmenu" value="<?=$_REQUEST['idmenu']?>">';
-                html+=' <input type="hidden" id = "lineactiveFilter" name="contractors" value="<?=$_REQUEST['contractors']?>">';
-                html+=' <input type="text" name="filter" value="" id="filter" size="45">';
-                html+=' </td>';
-                html+=' </tr>';
-                html+=' <tr>';
-                html+=' <td>';
-                html+=' <input type="submit" value="Пошук">';
-                html+=' <input type="button" onclick="closefindmenu();" value="Відміна">';
-                html+=' </td>';
-                html+=' </tr>';
-                html+=' </table>';
-                html+=' </form></div>';
-                createNewForm('popupmenu','filterform');
-//                console.log($('#filterform').html());
-                $('#filterform').html(html);
-                $('#filterform').offset({top:50,left:-100});
-                $('#filterform').show();
+                $('div#htmlsetfilter').show();
+                $('div#htmlsetfilter').offset({top:200,left:50});
                 $('#filter').focus();
             }
             $(window).keydown(function(event){ //ловим событие нажатия клавиши
@@ -223,10 +250,11 @@
                    console.log(event.target.id);
                 }
             });
+
         </script>
 <script type="text/javascript">
-    $(document).ready(function(){
 
+    $(document).ready(function(){
         var tbody = document.getElementById('reference_body');
         if(tbody == null)return;
         var trList = tbody.getElementsByTagName('tr');

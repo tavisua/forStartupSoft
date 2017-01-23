@@ -54,6 +54,21 @@ if(isset($_REQUEST['action'])) {
     if (in_array($_POST['action'],array('saveuseraction','saveuseraction_and_create'))) {//Зберігаю результати перемовин зі співробітником
         saveuseraction($_POST['rowid']);
     }
+    if($_REQUEST['action'] == 'incoming_call'){//Реєстрація вхідного дзвінка
+        global $db;
+        $sql = "insert into llx_incomingcall(incoming_number,number,active)
+                values(".$_REQUEST["incoming_number"].",".$_REQUEST["number"].",1)";
+        $res = $db->query($sql);
+        exit();
+    }
+    if($_REQUEST['action'] == 'completed_call'){//Реєстрація вхідного дзвінка
+        global $db;
+        $sql = "update llx_incomingcall set time = ".$_REQUEST['time'].", active = 0
+            where incoming_number = ".$_REQUEST["incoming_number"].
+            " and number = ".$_REQUEST["number"]." and active = 1 top 1";
+        $res = $db->query($sql);
+        exit();
+    }
 }
 require_once DOL_DOCUMENT_ROOT.'/core/lib/agenda.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';

@@ -1125,7 +1125,7 @@ function getMessage(){
                         '</div>';
                     $('#mainbody').append(html);
                     $('#mes'+i).offset({left:$(window).width()-160});
-                    document.getElementById('mes'+i).style.bottom = $('.message').length*50+'px';
+                    document.getElementById('mes'+i).style.top = $('.message').length*50+10+'px';
                 }
                 //soundPlay();
             }

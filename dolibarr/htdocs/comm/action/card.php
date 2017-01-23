@@ -35,7 +35,7 @@ if($_GET['action']=='getActionsCount'){
 require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
 //llxHeader();
 //echo '<pre>';
-//var_dump($_GET['assignedUser']);
+//var_dump($_REQUEST);
 //echo '</pre>';
 //die();
 
@@ -2600,7 +2600,8 @@ function getUsersByRespon($respon, $addParam='')
 		and `responsibility`.active = 1
 		and `llx_user`.`active`= 1
 		and `llx_user`.`statut`= 1
-		and (`responsibility`.`alias`='" .$respon . "' or res2.`alias`='" .$respon . "')";
+		and (`responsibility`.`alias`='" .$respon . "' or res2.`alias`='" .$respon . "')
+		order by lastname, firstname";
 	switch($addParam){
 		case 'regions':{
 			$sql.=" and subdiv_id in (2,3,4,5,6,7,8,9,10,11,12,13,14,15)";

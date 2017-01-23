@@ -308,6 +308,7 @@ function ShowTable($socid){
             } else {
                 $out .= '<td class = "switch" id="' . $obj->rowid . 'sendpost"> <img id="img' . $obj->rowid . 'sendpost" src="' . DOL_URL_ROOT . '/theme/' . $conf->theme . '/img/switch_off.png" onclick="change_switch(' . $obj->rowid . ', ' . "'llx_societe_address'" . ', ' . "'active'" . ');"> </td>';
             }
+            $out .= '<td class = "switch" id="' . $obj->rowid . 'edit"> <img id="img' . $obj->rowid . 'sendpost" src="' . DOL_URL_ROOT . '/theme/' . $conf->theme . '/img/edit.png" onclick="edit(' . $obj->rowid . ');"> </td>';
             $out.='</tr>';
     }
     $out.='</tbody>';

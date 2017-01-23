@@ -14,6 +14,10 @@ if(count($_POST)>0){
     echo '</pre>';
     die();
 }
+if($_REQUEST['action'] == 'showmodel'){
+    echo fShowModel($_GET['kind_assets']);
+    exit();
+}
 //echo '<pre>';
 //var_dump($_REQUEST);
 //echo '</pre>';
@@ -57,3 +61,27 @@ llxPopupMenu();
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/static_content/layout/pagination.phtml';
 //print '</div>';
 //llxFooter();
+exit();
+function fShowModel($fx_kind_assets = 0, $id = 0){
+    global $db;
+    $out = '<select '.(empty($fx_kind_assets)?'style="width:150px"':'').' id="model" class="combobox" name="model" size=1" >';
+    $out .= '<option '.(empty($id)?('selected = "selected" disabled="disabled" value="0"'):'').' value="0">Вкажіть модель</option>';
+    if($fx_kind_assets == 0){
+        $out.='</select>';
+        return $out;
+    }
+    $sql = "select rowid, model, description, description_1, description_2, basic_param from llx_c_model
+        where fx_kind_assets = $fx_kind_assets
+        and active = 1
+        order by model";
+//        print $sql;
+//        die();
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    while($row = $db->fetch_object($res)){
+        $out .= '<option '.($id == $row->rowid?('selected = "selected"'):'').' value="'.$row->rowid.'">'."$row->model $row->basic_param $row->description $row->description_1 $row->description_2".'</option>';
+    }
+    $out.='</select>';
+    return $out;
+}

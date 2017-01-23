@@ -25,9 +25,11 @@
             <form id="filter" action="" method="post">
             <td><?=$form->GroupOfIssues($obj->$fieldlist[$field], 'fk_groupissues')?></td>
             <td><?=$form->select_control($obj->$fieldlist[$field], 'fk_subdivision', 0, 'subdivision', 'name', $object, false)?></td>
-            <td><input id="action" type="text" name="action" style="width: 100%"></td>
-            <td><input id="responsible" type="text" name="responsible" style="width: 100%"></td>
-            <td><input id="directly_responsible" type="text" name="directly_responsible" style="width: 100%"></td>
+            <td><input id="action" class="ui-autocomplete-input" autocomplete="off" type="text" name="action" style="width: 100%"></td>
+            <!--<td><input id="responsible" type="text" name="responsible" style="width: 100%"></td>-->
+            <td><?=showResponsible()?></td>
+            <!--<td><input id="directly_responsible" type="text" name="directly_responsible" style="width: 100%"></td>-->
+            <td><?=showDirectlyResponsible()?></td>
             </form>
             <td><button onclick="setFilter();">Встановити фільтр</button></br><button style="width: 100%" onclick="ClearFilter();">Очистити фільтр</button></td>
         </tr>
@@ -42,6 +44,59 @@
     $('#action').val("<?=$_POST['action']?>");
     $('#responsible').val("<?=$_POST['responsible']?>");
     $('#directly_responsible').val("<?=$_POST['directly_responsible']?>");
+    function ShowAutocomplete(){
+
+    }
+    $(function () {
+//        var test = ['1','12','13','14','15','16','17'];
+        $('#action').autocomplete({
+            source: function(req, add){
+                var param = {
+                    action:'getAction',
+                    find:req
+                };
+                $.ajax({
+                    url:'/dolibarr/htdocs/user/list.php',
+                    data:param,
+                    cache:false,
+                    success:function (result) {
+                        add($.parseJSON(result));
+                    }
+                })
+            }
+        });
+    })
+
+    $(document).ready(function () {
+        var thList = $("thead").find("tr")
+        var resThList = [];
+        var secIndex = 0;
+        console.log($(thList[0]).find("td"));
+
+        $.each($(thList[0]).find("td"), function(key, value){
+            if($(value).attr("colspan") == undefined)
+                resThList.push(value);
+//            else{
+//                for(var i = 1; i<=$(value).attr("colspan"); i++)
+//                    resThList.push($(thList[1]).find("th")[secIndex++]);
+//                key++;
+//            }
+        });
+        console.log(resThList);
+        var trList = document.getElementById("dict").getElementsByTagName("tr")[0];
+        var tdList = trList.getElementsByTagName("td")
+        for(var i = 0; i<$(tdList).length; i++){
+            if(tdList[i+1] !== undefined){
+                var width = $(tdList[i]).width();
+                $(tdList[i]).width($(tdList[i]).width() + ($(resThList[i+1]).offset().left - $(tdList[i+1]).offset().left));
+                if($(resThList[i+1]) !== undefined && ($(resThList[i+1]).offset().left - $(tdList[i+1]).offset().left) != 0){
+                    $(resThList[i]).width($(tdList[i]).width() - ($(resThList[i+1]).offset().left - $(tdList[i+1]).offset().left));
+                    console.log(resThList, $(resThList[i+1]).offset());
+                    console.log($(tdList[i]), $(resThList[i]),width," => ",$(tdList[i]).width(), ($(resThList[i+1]).offset().left - $(tdList[i+1]).offset().left));
+                }
+            }
+        }
+    })
     function setFilter(){
         $('form#filter').submit();
     }

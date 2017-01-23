@@ -9,7 +9,23 @@ require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
 $form = new Form($db);
 $object = new User($db);
-
+if(isset($_REQUEST['action'])&&$_REQUEST['action']=='getAction'){
+    $sql = "select distinct action from llx_c_actiontoaddress
+      where action like '%".trim($_REQUEST['find']['term'])."%' and active = 1";
+//    echo '<pre>';
+//    var_dump($_REQUEST);
+//    echo '</pre>';
+//    die($sql);
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $out = [];
+    while($obj = $db->fetch_object($res)){
+        $out[]=$obj->action;
+    }
+    print json_encode($out);
+    exit();
+}
 global $user;
 //var_dump($_REQUEST['list']=='callstatistic');
 //die();
@@ -28,8 +44,16 @@ if($_REQUEST['list']=='contactlist') {
     }else
         $month = $_REQUEST['month'];
     $months = '<select id="months" name="months" onchange="SetMonthFilter();">';
+    $today = new DateTime();
+    $today->setDate(date('Y'),date('m'),date('d'));
     for($i=1;$i<=12;$i++){
-        $months.='<option id="Month'.$i.'" '.($month==$i?('selected = "selected"'):'').' value="'.$i.'">'.$langs->trans('Month'.($i<10?('0'.$i):$i)).'</option>';
+        $date = new DateTime();
+        $date->setDate(date('Y'),$i,1);
+        if($date>$today)
+            $year = date('Y')-1;
+        else
+            $year = date('Y');
+        $months.='<option id="Month'.$i.'" '.($month==$i?('selected = "selected"'):'').' value="'.$i.'">'.$langs->trans('Month'.($i<10?('0'.$i):$i)).' ('.$year.'р.)</option>';
     }
     $months.='</select>';
     $tbody = callStatistic();
@@ -97,8 +121,30 @@ function callStatistic(){
             $sql.= " and datep between '".date('Y')."-".($nowMonth)."-01' and ".(($nowMonth+1)==13?("'".(date('Y')+1)."-01-01'"):("'".(date('Y')."-".($nowMonth+1)."-01'")));
         }else {
             $selMonth = $_REQUEST['month'];
+            $Year = date('Y');
             if($selMonth<10)$selMonth='0'.$selMonth;
-            $sql .= " and datep between '".date('Y')."-".$selMonth."-01' and '2016-".($selMonth+1)."-01'";
+            if ($selMonth+1 == 13)
+            {
+                $Year--;
+            }
+            $date = new DateTime();
+            $date->setDate($Year,$selMonth,1);
+            $date_to = new DateTime();
+            $date_to->setDate($Year,$selMonth+1,1);
+            $today = new DateTime();
+            $today->setDate(date('Y'),date('m'),date('d'));
+
+            if($date>$today) {
+                if($date->format('m')<=12){
+                    $date->setDate($date->format('Y')-1,$selMonth,1);
+                }
+                if($date_to->format('m')<=12){
+                    $date_to->setDate($date_to->format('Y')-1,$selMonth+1,1);
+                }
+            }
+//            var_dump($date>$today);
+//            die();
+            $sql .= " and datep between '".$date->format('Y-m-d')."' and '".$date_to->format('Y-m-d')."'";
         }
         $sql.=" and llx_actioncomm.active = 1
                   and `code` not in ('AC_GLOBAL', 'AC_CURRENT')) actioncomm
@@ -267,6 +313,34 @@ function showUserList(){
 
     }
     $out.='</tbody>';
+    return $out;
+}
+function showResponsible(){
+    global $db;
+    $sql = "select distinct responsible from llx_c_actiontoaddress where active = 1 order by responsible";
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $out = '<select id = "responsible" class="combobox" name="responsible" style="width: 100%">';
+    $out .= '<option></option>';
+    while($obj = $db->fetch_object($res)) {
+        $out .= '<option>'.$obj->responsible.'</option>';
+    }
+    $out.='</select>';
+    return $out;
+}
+function showDirectlyResponsible(){
+    global $db;
+    $sql = "select distinct directly_responsible from llx_c_actiontoaddress where active = 1 order by responsible";
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $out = '<select id = "directly_responsible" class="combobox" name="directly_responsible" style="width: 100%">';
+    $out .= '<option></option>';
+    while($obj = $db->fetch_object($res)) {
+        $out .= '<option>'.$obj->directly_responsible.'</option>';
+    }
+    $out.='</select>';
     return $out;
 }
 function showDictActionToAddress(){

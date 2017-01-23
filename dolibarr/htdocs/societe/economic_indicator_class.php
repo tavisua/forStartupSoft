@@ -105,6 +105,7 @@ class EconomicIndicator {
             $TitleYears = '';
 
         $sql = "select `llx_societe_economic_indicator`.`rowid`, `llx_c_model`.rowid as id_model, `llx_c_line_active`.line, `llx_c_kind_assets`.kind_assets, `llx_c_trademark`.trademark, `llx_c_model`.model, `llx_c_model`.description,
+        `llx_c_model`.description_1,`llx_c_model`.description_2,
          `llx_societe_economic_indicator`.`year`, `llx_societe_economic_indicator`.`PositiveResponse`, `llx_societe_economic_indicator`.`Response`, `llx_societe_economic_indicator`.`CategoryResponse`,`llx_societe_economic_indicator`.`NegativeResponse`,
          `llx_societe_contact`.`lastname`, `llx_societe_contact`.`firstname`, DATE_FORMAT(`llx_societe_economic_indicator`.`dtChange`, '%Y') as `InsertedDate`,
          round(`llx_societe_economic_indicator`.count, 0) count, `llx_societe_economic_indicator`.`dtChange`, 
@@ -120,7 +121,10 @@ class EconomicIndicator {
         and `llx_societe_economic_indicator`.`active`= 1
         and `llx_c_line_active`.fx_type_indicator = 1
         order by line, kind_assets, trademark, `llx_c_model`.rowid, `llx_societe_economic_indicator`.`dtChange` desc";
-//        die($sql);
+//        echo '<pre>';
+//        var_dump($sql);
+//        echo '</pre>';
+//        die();
 
         $restable = $db->query($sql);
         if(!$restable){
@@ -139,7 +143,8 @@ class EconomicIndicator {
 //                    echo '</pre>';
 //                    die();
 //                }
-                if(!array_key_exists('id_model'.$row['id_model'], $table)) {
+//                if(!in_array('rowid'.$row['rowid'], $table)) {
+
                     $item = array('id_model' => $row['id_model'],
                         'line' => $row['line'],
                         'rowid' => $row['rowid'],
@@ -147,19 +152,23 @@ class EconomicIndicator {
                         'trademark' => $row['trademark'],
                         'model' => $row['model'],
                         'description' => $row['description'],
+                        'description_1' => $row['description_1'],
+                        'description_2' => $row['description_2'],
                         'year' => $row['year'],
                         'tech_param' => $row['tech_param'],
                         'productivity' => $row['productivity'],
                         'PositiveResponse' => $row['PositiveResponse'],
                         'Response' => $row['Response'],
                         'NegativeResponse' => $row['NegativeResponse'],
+                        'count' => $row['count'],
                         'contact' => $row['lastname'].(!empty($row['firstname'])?(' '.mb_substr($row['firstname'], 0, 1, 'UTF-8').'.'):''),
                         'dtChange' => $row['dtChange'],
                     );
-                    $table['id_model'.$row['id_model']]=$item;
-                }
-                $table['id_model'.$row['id_model']][$row['InsertedDate']]=$row['count'];
+                    $table[]=$item;
+//                }
+//                $table['id_model'.$row['id_model']][$row['InsertedDate']]=$row['count'];
             }
+
             $NumRow = 1;
             foreach($table as $row=>$value){
 //                var_dump($value);
@@ -170,7 +179,8 @@ class EconomicIndicator {
                 $fixed_assets.='<td class="small_size" style="width: 60px">'.$value['kind_assets'].'</td>';
                 $fixed_assets.='<td class="small_size" style="width: 60px">'.$value['trademark'].'</td>';
                 $fixed_assets.='<td class="small_size" style="width: 80px">'.$value['model'].'</td>';
-                $fixed_assets.='<td class="small_size" style="width: 80px">'.$value['description'].'</td>';
+                $fixed_assets.='<td class="small_size" style="width: 80px">'.($value['description']!='-'?' '.$value['description']:'').($value['description_1']!='-'?' '.$value['description_1']:'').
+                    ($value['description_2']!='-'?' '.$value['description_2']:'').'</td>';
                 $fixed_assets.='<td class="small_size" style="width: 50px">'.$value['year'].'</td>';
                 $tech_param = $value['tech_param'];
                 $fixed_assets.='<td onclick="preview(tech_param'.$value['rowid'].');" id="tech_param'.$value['rowid'].'" class="small_size" style="width: 50px">'.(strlen(trim($tech_param))>3?mb_substr(trim($tech_param), 0, 3, 'UTF-8').'...':trim($tech_param)).'</td>';
@@ -244,8 +254,8 @@ class EconomicIndicator {
                 (empty($this->kindassets)?"null":$this->kindassets).', '.
                 (empty($this->trademark)?"null":$this->trademark).',"'.trim($this->for_what).'", '.
                 (empty($this->count)?"null":$this->count).', '.(empty($this->year)?"null":$this->year).', '.
-                "'".(empty($this->tech_param)?"null":$this->tech_param)."'".', '.
-                "'".(empty($this->productivity)?"null":$this->productivity)."'".', '.
+                (empty($this->tech_param)?"null":"'".$db->escape($this->tech_param)."'").', '.
+                (empty($this->productivity)?"null":$this->productivity).', '.
                 (empty($this->container)?"null":$this->container).','.(empty($this->time_purchase)?"null":$this->time_purchase).', '.
                 (empty($this->rate)?"null":$this->rate).', '.(empty($this->time_purchase2)?"null":$this->time_purchase2).', '.
                 (empty($this->rate2)?"null":$this->rate2).',
@@ -259,7 +269,7 @@ class EconomicIndicator {
             for_what = '".trim($this->for_what)."',
             `count` = ".(empty($this->count)?"null":$this->count).',
             `year` = '.(empty($this->year)?"null":$this->year).',
-            `tech_param` = '.(empty($this->tech_param)?"null":"'".$this->tech_param."'").',
+            `tech_param` = '.(empty($this->tech_param)?"null":"'".$db->escape($this->tech_param)."'").',
             `productivity` = '.(empty($this->productivity)?"null":"'".$this->productivity."'").',
             container = '.(empty($this->container)?"null":$this->container).',
             time_purchase = '.(empty($this->time_purchase)?"null":$this->time_purchase).',

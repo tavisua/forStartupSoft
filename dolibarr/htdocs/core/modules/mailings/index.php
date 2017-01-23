@@ -473,6 +473,7 @@ function AutoSendMail($rowid){
                 if (!$res) {
                     dol_print_error($db);
                 }else {
+                    $postedlist[]=$item;
                     $result = $mailSMTP->send($item, $subject, $mesg, $headers); // отправляем письмо
 //                    $result = false;
                     if (!$result) {

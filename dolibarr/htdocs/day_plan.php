@@ -18,6 +18,8 @@ if(isset($_REQUEST['action'])){
             exit();
         }
         case 'getnewactions':{
+            if(isset($_SESSION['spy_id_usr'])&&!empty($_SESSION['spy_id_usr']))
+                return 0;
             $id_user = $user->id;
 //            echo '<pre>';
 //            var_dump($_SESSION['dol_login']);
@@ -177,9 +179,13 @@ if(isset($_REQUEST['action'])){
     exit();
 }
 //echo 'pleace wait...';
-
+//echo '<pre>';
+//var_dump($user);
+//echo '</pre>';
+//die();
+$dir_depatment = ['dir_depatment','corp_manager'];
 //die("Location: http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/responsibility/".$user->respon_alias."/day_plan.php?idmenu=10419&mainmenu=plan_of_days&leftmenu=");
-header("Location: http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/responsibility/".$user->respon_alias."/day_plan.php?idmenu=10419&mainmenu=plan_of_days&leftmenu=");
+header("Location: http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/responsibility/".(count(array_intersect([$user->respon_alias,$user->respon_alias2],$dir_depatment))>0?'dir_depatment':'')."/day_plan.php?idmenu=10419&mainmenu=plan_of_days&leftmenu=");
 
 exit();
 

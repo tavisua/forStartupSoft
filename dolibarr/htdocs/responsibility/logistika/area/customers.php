@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Created by PhpStorm.
  * User: -tavis-
@@ -7,7 +8,6 @@
  */
 if(!empty($_REQUEST['category']) && $_REQUEST['category'] == 'users')
     die('</br></br></br></br></br>Вибачте, співробітники поки не відображаються');
-
  $region_id = $_SESSION['region_id'];
 $search = explode(',',$_GET['search']);
 $search_array = array();
@@ -17,7 +17,9 @@ foreach($search as $elem) {
 }
 $page = isset($_GET['page'])?$_GET['page']:1;
 $per_page = isset($_GET['per_page'])?$_GET['per_page']:30;
-if(empty($_GET['viewname']))     $name = "concat(`llx_societe`.`nom`,' ',case when `formofgavernment`.`name` is null then '' else `formofgavernment`.`name` end)"; elseif ($_GET['viewname'] == "reverse")     $name = "concat(case when `formofgavernment`.`name` is null then '' else `formofgavernment`.`name` end,' ',`llx_societe`.`nom`)";  $sql = "select `llx_societe`.rowid, $name nom,
+if(empty($_GET['viewname']))     $name = "concat(`llx_societe`.`nom`,' ',case when `formofgavernment`.`name` is null then '' else `formofgavernment`.`name` end)"; elseif ($_GET['viewname'] == "reverse")     $name = "concat(case when `formofgavernment`.`name` is null then '' else `formofgavernment`.`name` end,' ',`llx_societe`.`nom`)";
+
+$sql = "select `llx_societe`.rowid, $name nom,
 `llx_societe`.`town`, round(`llx_societe_classificator`.`value`,0) as width, `llx_societe`.`remark`, ' ' deficit,
 ' ' task,' ' lastdate, ' ' lastdatecomerc, ' ' futuredatecomerc, ' ' exec_time, ' ' lastdateservice,
 ' ' futuredateservice, ' ' lastdateaccounts, ' ' futuredateaccounts, ' ' lastdatementor, ' ' futuredatementor
@@ -31,26 +33,49 @@ $sql_count = 'select count(*) iCount from
 left join `llx_societe_lineactive` on `llx_societe_lineactive`.fk_soc = `llx_societe`.rowid
 where 1  ';
 
-    if(isset($_REQUEST['stateID'])&&!empty($_REQUEST['stateID']) || isset($_REQUEST['regionID'])&&!empty($_REQUEST['regionID'])){
+    if(isset($_REQUEST['stateID'])&&!empty($_REQUEST['stateID'])
+        || isset($_REQUEST['regionID'])&&!empty($_REQUEST['regionID'])
+        || isset($_REQUEST['KindAssets'])&&!empty($_REQUEST['KindAssets'])
+        || isset($_REQUEST['model'])&&!empty($_REQUEST['model'])
+    ){
         $category = implode(',', $user->getCategoriesContractor($id_usr));
-        $sqlRegionFilter = "select `llx_societe`.rowid
+        if(isset($_REQUEST['stateID'])&&!empty($_REQUEST['stateID'])
+            || isset($_REQUEST['regionID'])&&!empty($_REQUEST['regionID'])) {
+            $sqlRegionFilter = "select `llx_societe`.rowid
             from `llx_societe`
             left join `llx_societe_address` on `llx_societe_address`.`fk_soc` = `llx_societe`.`rowid`
-            where 1 and `llx_societe`.`categoryofcustomer_id` in (".$category.") and `llx_societe`.active = 1
+            where 1 and `llx_societe`.`categoryofcustomer_id` in (" . $category . ") and `llx_societe`.active = 1
             and (";
-        if(isset($_REQUEST['stateID'])&&!empty($_REQUEST['stateID']))
-            $sqlRegionFilter.="case when `llx_societe_address`.state_id is null then `llx_societe`.state_id else `llx_societe_address`.state_id end in(".$_REQUEST['stateID'].")";
-        if(isset($_REQUEST['stateID'])&&!empty($_REQUEST['stateID']) && isset($_REQUEST['regionID'])&&!empty($_REQUEST['regionID']))
-            $sqlRegionFilter.=" or ";
-        if(isset($_REQUEST['regionID'])&&!empty($_REQUEST['regionID']))
-            $sqlRegionFilter.="case when `llx_societe_address`.region_id is null then `llx_societe`.region_id else `llx_societe_address`.region_id end in (".$_REQUEST['regionID'].")";
-        $sqlRegionFilter.=")";
-        $resFilter = $db->query($sqlRegionFilter);
-        if(!$res)
-            dol_print_error($resFilter);
-        $socID = array();
-        while($obj = $db->fetch_object($resFilter)){
-            $socID[]= $obj->rowid;
+            if (isset($_REQUEST['stateID']) && !empty($_REQUEST['stateID']))
+                $sqlRegionFilter .= "case when `llx_societe_address`.state_id is null then `llx_societe`.state_id else `llx_societe_address`.state_id end in(" . $_REQUEST['stateID'] . ")";
+            if (isset($_REQUEST['stateID']) && !empty($_REQUEST['stateID']) && isset($_REQUEST['regionID']) && !empty($_REQUEST['regionID']))
+                $sqlRegionFilter .= " or ";
+            if (isset($_REQUEST['regionID']) && !empty($_REQUEST['regionID']))
+                $sqlRegionFilter .= "case when `llx_societe_address`.region_id is null then `llx_societe`.region_id else `llx_societe_address`.region_id end in (" . $_REQUEST['regionID'] . ")";
+            $sqlRegionFilter .= ")";
+            $resFilter = $db->query($sqlRegionFilter);
+
+            if (!$res)
+                dol_print_error($resFilter);
+            $socID = array();
+            while ($obj = $db->fetch_object($resFilter)) {
+                $socID[] = $obj->rowid;
+            }
+        }
+        if(isset($_REQUEST['KindAssets'])&&!empty($_REQUEST['KindAssets'])
+            || isset($_REQUEST['model'])&&!empty($_REQUEST['model'])){
+            $sqlModelFilter = "select socid from llx_societe_economic_indicator
+                where 1";
+                if(isset($_REQUEST['KindAssets'])&&!empty($_REQUEST['KindAssets']))
+                    $sqlModelFilter.= " and kindassets = ".$_REQUEST["KindAssets"];
+                if(isset($_REQUEST['model'])&&!empty($_REQUEST['model']))
+                    $sqlModelFilter.=" and model = ".$_REQUEST['model'];
+            $sqlModelFilter.=" and active = 1";
+            $resModelFilter = $db->query($sqlModelFilter);
+            $socID[] = 0;
+            while($obj = $db->fetch_object($resModelFilter)){
+                $socID[]= $obj->socid;
+            }
         }
         if(count($socID)>0) {
             $sql .= " and `llx_societe`.rowid in (" . implode(',', $socID) . ")";
@@ -321,7 +346,25 @@ function fPrepPhoneFilter($phonenumber){
 
     return $phonenumber;
 }
+function fShowLineActive(){
+//    include_once '/dolibarr/htdocs/core/class/html.form.class.php';
+    global $db;
+    $form = new Form($db);
+    return $form->selectlineactive('LineActive',0);
+}
 
+function fShowKindAssets(){
+    global $db;
+    $form = new Form($db);
+    return $form->selectkindassets('KindAssets',2);
+}
+function fShowModel_empty($fx_kind_assets = 0, $id = 0){
+    
+    $out = '<select '.(empty($fx_kind_assets)?'style="width:150px"':'').' id="model" class="combobox" name="model" size=1" >';
+    $out .= '<option '.(empty($id)?('selected = "selected" disabled="disabled" value="0"'):'').' value="0">Вкажіть модель</option>';
+    $out.='</select>';
+    return $out;
+}
 function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $sortorder='', $readonly = array(), $showtitle=true){
     global $user, $conf, $langs, $db;
 
