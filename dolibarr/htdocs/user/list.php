@@ -26,6 +26,29 @@ if(isset($_REQUEST['action'])&&$_REQUEST['action']=='getAction'){
     print json_encode($out);
     exit();
 }
+if(isset($_REQUEST['action'])&&$_REQUEST['action']=='getusercontact'){
+    $object->fetch($_REQUEST['id_usr']);
+    $phone = str_replace(array('+','(',')',' ','-'),'',$object->office_phone);
+//    $out = array('office_phone'=>$object->office_phone,'email'=>$object->email,'skype'=>$object->skype);
+//    print json_encode($out);
+    $out = '<table id="callfunction"><tr>';
+    $out.='
+    <td><a onclick="Call('.$phone.', '."'users'".', '.trim($_REQUEST['id_usr']).')"><img src="/dolibarr/htdocs/theme/eldy/img/object_call2.png" title="Телефонний дзвінок"></a></td>
+    <td><a onclick="showSMSform('.$phone.');"><img src="/dolibarr/htdocs/theme/eldy/img/object_sms.png" title="Відправити смс"></a></td>
+    <td><a href="mailto:' . $object->email . '"><img src="/dolibarr/htdocs/theme/eldy/img/email_delivery.png" title="Відправити email"></a></td>
+    <td width="30px"><a href="skype:' . $object->skype . '?call"><img src="/dolibarr/htdocs/theme/eldy/img/object_skype.png" title="Скайп"></a></td>
+    ';
+    $out .= '</tr></table>';
+    $out.='<a class="close" title="Закрити" onclick="CloseMenu();" ></a>
+    <script>
+        function CloseMenu(){
+            $("#contactform").remove();
+        }
+    </script>';
+    print $out;
+    exit();
+}
+
 global $user;
 //var_dump($_REQUEST['list']=='callstatistic');
 //die();
@@ -37,13 +60,14 @@ print_fiche_titre($langs->trans('Coworkers'));
 if($_REQUEST['list']=='contactlist') {
     $tbody = showDictActionToAddress();
     include $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/theme/eldy/users/contactlist.html';
+    print '<div id="popupmenu" style="display: none; position: absolute; width: auto; height: auto" class="pair popupmenu" >';
 }elseif($_REQUEST['list']=='callstatistic'){
     if(empty($_REQUEST['month'])) {
         $date = new DateTime();
         $month = $date->format('m');
     }else
         $month = $_REQUEST['month'];
-    $months = '<select id="months" name="months" onchange="SetMonthFilter();">';
+//    $months = '<select id="months" name="months" onchange="SetMonthFilter();">';
     $today = new DateTime();
     $today->setDate(date('Y'),date('m'),date('d'));
     for($i=1;$i<=12;$i++){
@@ -56,59 +80,30 @@ if($_REQUEST['list']=='contactlist') {
         $months.='<option id="Month'.$i.'" '.($month==$i?('selected = "selected"'):'').' value="'.$i.'">'.$langs->trans('Month'.($i<10?('0'.$i):$i)).' ('.$year.'р.)</option>';
     }
     $months.='</select>';
-    $tbody = callStatistic();
+    if(!isset($_REQUEST['begin'])||empty($_REQUEST['begin']))
+        $begin = date('Y-m').'-01';
+    else{
+        $begin = $_REQUEST['beginyear'].'-'.$_REQUEST['beginmonth'].'-'.$_REQUEST['beginday'];
+    }
+    if(!isset($_REQUEST['end'])||empty($_REQUEST['end'])){
+        $unixtime = time();
+        $end = date('Y-m').'-'.date('t',$unixtime);
+    }else{
+        $end = $_REQUEST['endyear'].'-'.$_REQUEST['endmonth'].'-'.$_REQUEST['endday'];
+    }
+    $tbody = callStatistic($begin,$end);
     include $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/theme/eldy/users/callstatistic.html';
 }else {
     $tbody = showUserList();
     include $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/theme/eldy/users/userlist.html';
 }
 exit();
-function callStatistic(){
+function callStatistic($begin,$end){
 //    phpinfo();
     global $db,$langs;
 
         $now = new DateTime();
         $nowMonth = $now->format('m');
-
-//          $sql = "select sub_user.rowid  id_usr, sub_user.alias, `llx_societe`.`region_id`, sub_user.subdiv_id, llx_actioncomm.percent, date(llx_actioncomm.datep) datep,
-//        llx_actioncomm.percent, case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT','AC_EDUCATION', 'AC_INITIATIV', 'AC_PROJECT') then llx_actioncomm.`code` else 'AC_CUST' end `code`, `llx_societe_action`.`callstatus`, `llx_societe_action`.rowid as answer_id
-//        from llx_actioncomm
-//        inner join (select id from `llx_c_actioncomm` where type in('user','system') and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
-//        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = llx_actioncomm.id
-//        left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
-//        left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
-//        inner join (select `llx_user`.rowid, `responsibility`.`alias`, `llx_user`.subdiv_id from `llx_user` inner join `responsibility` on `responsibility`.`rowid` = `llx_user`.`respon_id` where 1 and `llx_user`.`active` = 1) sub_user on sub_user.rowid = case when llx_actioncomm_resources.fk_element is null then llx_actioncomm.`fk_user_author` else llx_actioncomm_resources.fk_element end
-//        where 1";
-//
-//        if(empty($_REQUEST['month'])){
-//            $sql.= " and datep2 between '2016-".($nowMonth)."-01' and '2016-".($nowMonth+1)."-01'";
-//        }else {
-//            $selMonth = $_REQUEST['month'];
-//            if($selMonth<10)$selMonth.='0'.$selMonth;
-//            $sql .= " and datep2 between '2016-".$selMonth."-01' and '2016-".($nowMonth+1)."-01'";
-//        }
-//        $sql .= " and llx_actioncomm.active = 1
-//                  and llx_actioncomm.`code` not in ('AC_GLOBAL', 'AC_CURRENT')";
-//        $sql.= " order by subdiv_id, id_usr;";
-
-//        $sql = "select id, percent, datep,fk_soc,`code`,fk_user_author from llx_actioncomm
-//        where 1 and datep2 between ";
-//        if(empty($_REQUEST['month'])){
-//            $sql.= " and datep between '2016-".($nowMonth)."-01' and '2016-".($nowMonth+1)."-01'";
-//        }else {
-//            $selMonth = $_REQUEST['month'];
-//            if($selMonth<10)$selMonth='0'.$selMonth;
-////            echo '<pre>';
-////            var_dump($selMonth);
-////            echo '</pre>';
-////            die();
-//            $sql .= " and datep between '2016-".$selMonth."-01' and '2016-".($nowMonth+1)."-01'";
-//        }
-//        $sql.= " and llx_actioncomm.active = 1
-//                  and `code` not in ('AC_GLOBAL', 'AC_CURRENT')";
-
-
-
         $sql = "select sub_user.rowid  id_usr, sub_user.alias, `llx_societe`.`region_id`, sub_user.subdiv_id, actioncomm.percent, date(actioncomm.datep) datep,
         case when actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT','AC_EDUCATION', 'AC_INITIATIV', 'AC_PROJECT') then actioncomm.`code` else 'AC_CUST' end `code`,
         `llx_societe_action`.`callstatus`, `llx_societe_action`.rowid as answer_id
@@ -118,7 +113,7 @@ function callStatistic(){
         where 1";
 
         if(empty($_REQUEST['month'])){
-            $sql.= " and datep between '".date('Y')."-".($nowMonth)."-01' and ".(($nowMonth+1)==13?("'".(date('Y')+1)."-01-01'"):("'".(date('Y')."-".($nowMonth+1)."-01'")));
+            $sql.= " and datep between '".$begin."' and '".$end."'";
         }else {
             $selMonth = $_REQUEST['month'];
             $Year = date('Y');

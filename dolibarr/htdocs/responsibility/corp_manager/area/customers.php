@@ -30,6 +30,8 @@ $sql_count = 'select count(*) iCount from
 (select distinct `llx_societe`.*  from `llx_societe`
 left join `llx_societe_lineactive` on `llx_societe_lineactive`.fk_soc = `llx_societe`.rowid
 where 1  ';
+$sql_count = 'select count(*) iCount from `llx_societe` where 1 ';
+
     if(empty($_REQUEST['category']) || $_REQUEST['category'] == -1) {
         $category = implode(',', $user->getCategoriesContractor($id_usr));
         $tmp = 'and `llx_societe`.`categoryofcustomer_id` in (' .(empty($category)?'0':$category). ')';
@@ -121,20 +123,19 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['cat
         }
     }
 }
-$sql_count.=') societe';
+//$sql_count.=') societe';
 $sql .= ' order by width desc, nom';
 $sql .= ' limit '.($page-1)*$per_page.','.$per_page;
-//echo '<pre>';
-//var_dump($sql);
-//echo '</pre>';
-//die();
 $res = $db->query($sql_count);
 if(!$res)
     dol_print_error($db);
 $count = $db->fetch_object($res);
 
 $total = ceil($count->iCount/$per_page);
-
+//echo '<pre>';
+//var_dump($count->iCount);
+//echo '</pre>';
+//die();
 $TableParam = array();
 $ColParam['title']='';
 $ColParam['width']='178';

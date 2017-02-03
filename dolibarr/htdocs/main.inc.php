@@ -1073,7 +1073,7 @@ if (! function_exists("llxHeader"))
 
 function llxSendSmsEmail($addParam=''){
     print'
-        <div id=sendSmsEmail style="position: absolute;  z-index: 10; left: 400px; top: 200px; width: 90px">
+        <div id=sendSmsEmail style="position: absolute;  z-index: 10; left: 400px; top: 230px; width: 90px">
             <table>
                 <tr>
                     <td><a href="/dolibarr/htdocs/comm/smsSending/card.php?action=add&type=sms&addParam='.$addParam.'"><img title="СМС розсилка" src="/dolibarr/htdocs/theme/eldy/img/sms.png"></a></td>

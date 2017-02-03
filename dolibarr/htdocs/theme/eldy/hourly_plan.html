@@ -121,6 +121,12 @@
         })
 
         $(document).ready(function(){
+            var tr = $(document).find('tr');
+            $.each(tr, function (key, value) {
+                if($(value).attr('id')!=undefined) {
+                    console.log(value, $(value).height());
+                }
+            })
             $('#loading_img').hide();
 
 //            console.log($('#tasklist0').height(), 'px');

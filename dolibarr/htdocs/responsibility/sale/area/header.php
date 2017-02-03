@@ -14,10 +14,13 @@ $Area = $langs->trans('Area');
 $AsOfTheDate = $langs->trans('AsOfTheOfDate');
 //die($TitleToday);
 //echo '<pre>';
-//var_dump($_SERVER["REQUEST_URI"]);
+//var_dump($_GET['id_usr']);
 //echo '</pre>';
+//exit();
+if(isset($_GET['id_usr'])&&!empty($_GET['id_usr'])) {
+    $user->fetch($_GET['id_usr']);
+}
 $region_id = 0;
-
 if(isset($_REQUEST['state_filter'])) {//Если изменялся регион
     $region_id = $_REQUEST['state_filter'];
 //    var_dump(GETPOST('state_filter'), 'all');
@@ -34,7 +37,6 @@ if($region_id != 0)
 else
     $sql .=" where 1) b on `classifycation`.rowid = b.`classifycation_id`";
 $sql .=" where `classifycation`.calc=0 and `classifycation`.active = 1 group by `classifycation`.name order by classifycation.rowid";
-
 $res = $db->query($sql);
 if(!$res){
     var_dump($sql);
@@ -73,6 +75,7 @@ if($db->num_rows($res) > 0) {
         }
     }
     $Classifycation .= '<tr><td>Пах. зем. клиентов к районной, %</td><td class="autoinsert">'.$CalcValue.'</td></tr>';
+    $Classifycation .= '<tr><td>Кількість контр-тів</td><td class="autoinsert" id="iCount"></td></tr>';
     $Classifycation .='</table>';
 }
 $CreateCompany = $langs->trans('CreateCompany');

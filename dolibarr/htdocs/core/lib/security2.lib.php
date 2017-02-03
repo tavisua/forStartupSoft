@@ -49,6 +49,21 @@ function dol_getwebuser($mode)
  *	@param		array	$authmode			Array list of selected authentication mode array('http', 'dolibarr', 'xxx'...)
  *  @return		string						Login or ''
  */
+function checkSIMNumber($usertotest,$passwordtotest){
+	global $db;
+	$sql = "select office_phone from llx_user where login = '$usertotest' and pass='$passwordtotest' and active = 1";
+	$res = $db->query($sql);
+	if(!$res)
+		return - 1;
+	$obj = $db->fetch_object($res);
+	if(empty($obj->office_phone))
+		return 0;
+	$find = array('(',')','+','-',' ');
+	$office_phone = str_replace($find,'',$obj->office_phone);
+	if(substr($office_phone,0,1)=='0')
+		$office_phone='38'.$office_phone;
+	return $office_phone;
+}
 function checkLoginPassEntity($usertotest,$passwordtotest,$entitytotest,$authmode)
 {
 	global $conf,$langs;

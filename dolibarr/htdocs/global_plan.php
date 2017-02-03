@@ -15,7 +15,7 @@ unset($_SESSION['assignedtouser']);
 //echo '</pre>';
 //die();
 //echo '<pre>';
-//var_dump(json_decode($_REQUEST["filterdates"]));
+//var_dump(json_decode($_REQUEST["filterdatas"]));
 //echo '</pre>';
 //die();
 $table = ShowTask();
@@ -72,9 +72,9 @@ function ShowTask(){
               and active = 1";
 
 //and (entity = 1 and `llx_actioncomm`.`fk_user_author` = ".$user->id." or entity = 0 and `llx_actioncomm`.`fk_user_author` <> ".$user->id.")
-    if(isset($_POST["filterdates"])&&!empty($_POST["filterdates"])){
-        $filter = (array)json_decode($_REQUEST['filterdates']);
-//        var_dump(array_keys($filter), $_REQUEST['filterdates']);
+    if(isset($_POST["filterdatas"])&&!empty($_POST["filterdatas"])){
+        $filter = (array)json_decode($_REQUEST['filterdatas']);
+//        var_dump(array_keys($filter), $_REQUEST['filterdatas']);
 //        die();
 //        switch($_POST["datetype"]){
 //            case 'execdate':{
@@ -90,7 +90,7 @@ function ShowTask(){
 //                $sql.=" and date(dateconfirm) ";
 //            }
 //        }
-//        $sql.=' in('.$_POST['filterdates'].')';
+//        $sql.=' in('.$_POST['filterdatas'].')';
         foreach(array_keys($filter) as $key){
             if(in_array($key, array('execdate','prepareddate','daterecord','confirmdate'))) {//Фільтр дат
                 switch ($key) {

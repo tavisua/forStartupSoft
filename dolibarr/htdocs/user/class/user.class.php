@@ -2069,7 +2069,7 @@ class User extends CommonObject
 			$result.=($lien.img_object($langs->trans("ShowUser"),'user').$lienfin);
 			if ($withpicto != 2) $result.=' ';
 		}
-		$result.=$lien.$this->getFullName($langs,'',-1,24).$lienfin;
+		$result.=$lien.$this->getFullName($langs,'',0,24).$lienfin;
 		return $result;
 	}
 

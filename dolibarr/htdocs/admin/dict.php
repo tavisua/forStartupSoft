@@ -1915,7 +1915,7 @@ function fieldList($fieldlist,$obj='',$tabname='', $show=0)//Відображе�
 			print '<input type="text" class="flat" value="'.(isset($obj->$fieldlist[$field])?$obj->$fieldlist[$field]:'').'" size="3" name="'.$fieldlist[$field].'">';
 			print '</td>';
 		}
-		elseif (in_array($fieldlist[$field], array('libelle_facture','content'))) {
+		elseif (in_array($fieldlist[$field], array('libelle_facture','content','responsible','directly_responsible'))) {
 			print '<td><textarea cols="30" rows="'.ROWS_2.'" class="flat" name="'.$fieldlist[$field].'">'.(! empty($obj->$fieldlist[$field])?$obj->$fieldlist[$field]:'').'</textarea></td>';
 		}
 		elseif ($fieldlist[$field] == 'price' || preg_match('/^amount/i',$fieldlist[$field])) {

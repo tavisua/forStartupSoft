@@ -94,7 +94,7 @@ if($db->num_rows($res) > 0) {
             $CalcValue = ceil(($obj->value/$CalcValue)*100);
         }
     }
-    $Classifycation .= '<tr><td>Пах. зем. клиентов к районной, %</td><td class="autoinsert">'.$CalcValue.'</td></tr>';
+    $Classifycation .= '<tr><td>Кол-во контрагентов</td><td class="autoinsert" id="iCount"></td></tr>';
     $Classifycation .='</table>';
 }
 $CreateCompany = $langs->trans('CreateCompany');

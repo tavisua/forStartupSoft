@@ -14,7 +14,10 @@
 <table cellspacing="1" class="WidthScroll" >
     <thead >
         <tr  class="multiple_header_table">
-            <td colspan="9">Звіт за <?=$months?></td>
+            <td colspan="9">Звіт за період <form>з<?=$form->select_date($begin, 'begin', 0, 0, 0, "action", 1, 0, 0, 0, 'fulldaystart')?> по
+                <?=$form->select_date($end, 'end', 0, 0, 0, "action", 1, 0, 0, 0, 'fulldaystart')?>
+                <input name="list" value="callstatistic" type="hidden">
+                <input type="submit" class="button" value="Порахувати" name="submit"></form></td>
         </tr>
         <tr  class="multiple_header_table">
             <td rowspan="2" style="width: 150px">Підрозділ</td>

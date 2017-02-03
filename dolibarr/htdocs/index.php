@@ -41,7 +41,6 @@ exit();
 
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
 
-
 //echo '<pre>';
 //var_dump($_REQUEST);
 //echo '</pre>';

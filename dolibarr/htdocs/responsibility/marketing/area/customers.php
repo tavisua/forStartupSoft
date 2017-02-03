@@ -78,6 +78,10 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['lin
             or `llx_societe_contact`.`subdivision`  like '%" . $_REQUEST['filter'] . "%'
             or `llx_societe_contact`.`email1`  like '%" . $_REQUEST['filter'] . "%'
             or `llx_societe_contact`.`email2`  like '%" . $_REQUEST['filter'] . "%'";
+//echo '<pre>';
+//var_dump($sql_filter);
+//echo '</pre>';
+//die();
         if (strlen($phone_number) > 0) {
             $sql_filter .= " or `llx_societe_contact` . `mobile_phone1`  like '%" . $phone_number . "%'
         or `llx_societe_contact` . `mobile_phone2`  like '%" . $phone_number . "%' ";

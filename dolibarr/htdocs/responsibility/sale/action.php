@@ -203,6 +203,25 @@ if(!empty($_REQUEST['contactID'])){
     $societe = new Societe($db);
     $contactname = $societe->getContactname($_REQUEST['contactID']);
 }
+//Перевірка на потребу корегування id_usr
+$sql = "select count(*)iCount from llx_societe_action
+    left join llx_user on llx_user.rowid = llx_societe_action.id_usr
+    where socid = $socid
+    and subdiv_id is null";
+$res = $db->query($sql);
+if(!$res)
+    dol_print_error($db);
+$obj = $db->fetch_object($res);
+if($obj->iCount>0){
+    $sql = "update llx_societe_action 
+        left join llx_actioncomm 
+        on llx_societe_action.action_id = `llx_actioncomm`.id
+        set llx_societe_action.id_usr = `llx_actioncomm`.fk_user_author
+        where llx_societe_action.socid = $socid
+        and (llx_societe_action.id_usr is null or llx_societe_action.id_usr = 0)";
+    if(!$res)
+        dol_print_error($db);
+}
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/action.html';
 //llxFooter();
 llxPopupMenu();
@@ -557,7 +576,7 @@ function ShowActionTable(){
         inner join (select code, libelle label from `llx_c_actioncomm` where active = 1 and (type = 'system' or type = 'user')) TypeCode on TypeCode.code = `llx_actioncomm`.code
         left join `llx_societe_contact` on `llx_societe_contact`.rowid=`llx_actioncomm`.fk_contact
         left join `llx_societe_action` on `llx_actioncomm`.id = `llx_societe_action`.`action_id`
-        left join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.rowid
+        left join `llx_user` on case when `llx_societe_action`.id_usr is null or `llx_societe_action`.id_usr = 0  then `llx_actioncomm`.fk_user_author else `llx_societe_action`.id_usr end  = `llx_user`.rowid
         where fk_soc = ".(empty($_REQUEST["socid"])?0:$_REQUEST["socid"])." and `llx_actioncomm`.`active` = 1
         union
         select '', concat('_',`llx_societe_action`.`rowid`) rowid, `llx_societe_action`.`rowid`, `llx_societe_action`.dtChange datep, `llx_societe_action`.dtChange as `datec`, `llx_user`.lastname,

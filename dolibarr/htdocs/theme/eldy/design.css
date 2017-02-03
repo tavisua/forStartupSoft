@@ -542,6 +542,10 @@ div.header_page, th.header_page, tr.header_table_sel, form.header_page, form.hea
     /*height:1px; clear:both;*/
     /*padding-top: -50px;*/
 }
+a.user{
+    color: #0B63A2;
+    font-weight: bold;
+}
 .page_reference{
     padding-left: 150px;
     width: 80%;
@@ -615,7 +619,11 @@ div.header_page, th.header_page, tr.header_table_sel, form.header_page, form.hea
 #taskfield{
     padding: 0!important;
 }
-
+a.calluser, a.calluser:hover{
+    text-decoration: none!important;
+    color: #396b9e;
+    font-weight: bold;
+}
 .current_taskitem{
     height: 100%;
     position: relative;

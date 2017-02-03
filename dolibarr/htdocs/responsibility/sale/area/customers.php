@@ -15,7 +15,7 @@ foreach($search as $elem) {
     $search_array[$tmp[0]]=$tmp[1];
 }
 $page = isset($_GET['page'])?$_GET['page']:1;
-$per_page = isset($_GET['per_page'])?$_GET['per_page']:100;
+$per_page = isset($_GET['per_page'])?$_GET['per_page']:30;
 
 $regions = array(0);
 
@@ -135,6 +135,7 @@ $count = $db->fetch_object($res);
 //var_dump(ceil($count->iCount/$per_page));
 //die();
 $total = ceil($count->iCount/$per_page);
+//$_COOKIE['iCount'] = $count->iCount;
 
 //echo '<pre>';
 //var_dump(count($filterid), $filterid);

@@ -185,7 +185,7 @@ if(isset($_REQUEST['action'])){
 //die();
 $dir_depatment = ['dir_depatment','corp_manager'];
 //die("Location: http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/responsibility/".$user->respon_alias."/day_plan.php?idmenu=10419&mainmenu=plan_of_days&leftmenu=");
-header("Location: http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/responsibility/".(count(array_intersect([$user->respon_alias,$user->respon_alias2],$dir_depatment))>0?'dir_depatment':'')."/day_plan.php?idmenu=10419&mainmenu=plan_of_days&leftmenu=");
+header("Location: http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/responsibility/".(count(array_intersect([$user->respon_alias,$user->respon_alias2],$dir_depatment))>0&&$user->respon_alias!='gen_dir'?'dir_depatment':$user->respon_alias)."/day_plan.php?idmenu=10419&mainmenu=plan_of_days&leftmenu=");
 
 exit();
 

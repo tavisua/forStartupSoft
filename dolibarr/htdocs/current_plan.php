@@ -53,29 +53,46 @@ function ShowTask(){
         where fk_action in
               (select id from `llx_c_actioncomm`
               where `code` in ('AC_CURRENT'))";
-        if(isset($_REQUEST['status'])&&!empty($_REQUEST['status'])) {
-        switch($_REQUEST['status']){
-            case 'ActionNotRunning':{
-                $sql.=" and percent = -1";
-            }break;
-            case 'ActionRunningNotStarted':{
-                $sql.=" and percent = 0";
-            }break;
-            case 'ActionRunningShort':{
-                $sql.=" and (percent between 1 and 99)";
-            }break;
-            case 'ActionDoneShort':{
-                $sql.=" and percent = 100";
-            }break;
-        }
+        if(isset($_REQUEST['filterdatas'])&&!empty($_REQUEST['filterdatas'])){
+            if(strpos($_REQUEST['filterdatas'],'status')){
+                $status = substr($_REQUEST['filterdatas'], strpos($_REQUEST['filterdatas'], ':"')+2);
+                $status = substr($status,0, strlen($status)-2);
+//                var_dump($status);
+//                die();
+                switch($status) {
+                    case 'ActionNotRunning': {
+                        $sql .= " and percent = -1";
+                    }
+                        break;
+                    case 'ActionRunningNotStarted': {
+                        $sql .= " and percent = 0";
+                    }
+                        break;
+                    case 'ActionRunningShort': {
+                        $sql .= " and (percent between 1 and 99)";
+                    }
+                        break;
+                    case 'ActionDoneShort': {
+                        $sql .= " and percent = 100";
+                    }
+                        break;
+                }
+            }
     }else
         $sql.=" and percent <> 100";
     $sql.=" 
               and active = 1";
 
-//and (entity = 1 and `llx_actioncomm`.`fk_user_author` = ".$user->id." or entity = 0 and `llx_actioncomm`.`fk_user_author` <> ".$user->id.")
-    if(isset($_POST["filterdates"])&&!empty($_POST["filterdates"])){
-        $filter = (array)json_decode($_REQUEST['filterdates']);
+//echo '<pre>';
+//var_dump($_REQUEST['filterdatas']);
+//var_dump($sql);
+//echo '</pre>';
+//die();
+
+
+    if(isset($_POST["filterdatas"])&&!empty($_POST["filterdatas"])){
+        if(!empty($_POST["filterdatas"]))
+            $filter = (array)json_decode($_REQUEST['filterdatas']);
 //        var_dump(array_keys($filter));
 //        die();
 //        switch($_POST["datetype"]){
@@ -92,7 +109,7 @@ function ShowTask(){
 //                $sql.=" and date(dateconfirm) ";
 //            }
 //        }
-//        $sql.=' in('.$_POST['filterdates'].')';
+//        $sql.=' in('.$_POST['filterdatas'].')';
         foreach(array_keys($filter) as $key){
             if(in_array($key, array('execdate','prepareddate','daterecord','confirmdate'))) {//Фільтр дат
                 switch ($key) {
@@ -211,7 +228,7 @@ function ShowTask(){
         }
     }
 //    echo '<pre>';
-//    var_dump($sql);
+//    var_dump($filter);
 //    echo '</pre>';
 //    die();
     $res = $db->query($sql);

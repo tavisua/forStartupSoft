@@ -2020,7 +2020,7 @@ function setParam(name,value){
         });
     datas[name]=value;
     var sendForm = '<form id="setDateFilter" action="" method="post">'
-        sendForm+= '<input id="param" name="filterdates" value="" type="hidden">';
+        sendForm+= '<input id="param" name="filterdatas" value="" type="hidden">';
     //console.log(sendForm);
     $('#mainbody').html(sendForm);
     $('#param').val(JSON.stringify(datas));

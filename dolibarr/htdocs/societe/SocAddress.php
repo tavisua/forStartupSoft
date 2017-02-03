@@ -54,7 +54,7 @@ class SocAddress {
         ".(!empty($this->kindlocality_id)?$this->kindlocality_id:"null").",
         ".(!empty($this->location)?"'".$db->escape($this->location)."'":"null").",
         ".(!empty($this->kindofstreet_id)?$this->kindofstreet_id:"null").",
-        ".(!empty($this->street_name)?"'".$this->street_name."'":"null").",
+        ".(!empty($this->street_name)?"'".$db->escape($this->street_name)."'":"null").",
         ".(!empty($this->NumberOfHouse)?"'".$this->NumberOfHouse."'":"null").",
         ".(!empty($this->kindoffice_id)?$this->kindoffice_id:"null").",
         ".(!empty($this->NumberOfOffice)?"'".$this->NumberOfOffice."'":"null").",

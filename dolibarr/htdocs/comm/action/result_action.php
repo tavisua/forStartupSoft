@@ -5,6 +5,7 @@
  * Date: 14.01.2016
  * Time: 13:45
  */
+define("NOLOGIN",1);		// This means this output page does not require to be logged.
 require '../../main.inc.php';
 //llxHeader();
 //echo '<pre>';
@@ -21,6 +22,42 @@ if(isset($_REQUEST['action'])) {
     } elseif (in_array($_REQUEST["action"], array('savetaskmentor','savetaskmentor_and_create'))) {
         savetaskmentor($_REQUEST['action'] == 'savetaskmentor_and_create');
         exit();
+    } elseif ($_REQUEST["action"] == 'patch_societe_action') {
+        global $db;
+        $sql = "select rowid, socid from llx_societe_action
+                where (id_usr is null or id_usr = 0)
+                and socid is not null";
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+        while($obj = $db->fetch_object($res)){
+            $sql = "select llx_user_regions.fk_user from llx_societe
+                inner join `llx_user_regions` on `fk_id` = llx_societe.region_id
+                where llx_societe.rowid = $obj->socid
+                and region_id is not null
+                and `llx_user_regions`.`active` = 1
+                order by `llx_user_regions`.`dtChange` desc
+                limit 1";
+            $res_usr = $db->query($sql);
+            if(!$res_usr) {
+                print $sql;
+                dol_print_error($db);
+            }
+            $obj_usr=$db->fetch_object($res_usr);
+            if(!empty($obj_usr->fk_user)){
+                $sql = "update llx_societe_action set id_usr = $obj_usr->fk_user where rowid = ".$obj->rowid;
+                $res_update = $db->query($sql);
+                if(!$res_update) {
+                    print $sql;
+                    dol_print_error($db);
+                }else
+                    print $sql.'</br>';
+            }
+//            llxHeader();
+//            var_dump($sql);
+        }
+        exit();
+
     } elseif ($_REQUEST["action"] == 'get_freetime') {
         if(substr($_REQUEST["date"],0,strlen('undefined'))=='undefined') {
             echo '';
@@ -54,19 +91,47 @@ if(isset($_REQUEST['action'])) {
     if (in_array($_POST['action'],array('saveuseraction','saveuseraction_and_create'))) {//Зберігаю результати перемовин зі співробітником
         saveuseraction($_POST['rowid']);
     }
+    if($_REQUEST['action'] == 'view_call') {//Реєстрація вхідного дзвінка
+        global $db;
+        $sql = "select incoming_number,number,time,dtChange from llx_incomingcall order by dtChange desc";
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+        $out = '<table><thead>
+<th>incoming_number</th>
+<th>number</th>
+<th>time</th>
+<th>time_in</th>
+</thead><tbody>';
+        while($obj = $db->fetch_object($res)){
+            $out.='<tr>';
+            $out.='<td>'.$obj->incoming_number.'</td>';
+            $out.='<td>'.$obj->number.'</td>';
+            $out.='<td>'.$obj->time.'</td>';
+            $out.='<td>'.$obj->dtChange.'</td>';
+            $out.='</tr>';
+        }
+        $out.='</tbody></table>';
+
+        print $out;
+        exit();
+    }
     if($_REQUEST['action'] == 'incoming_call'){//Реєстрація вхідного дзвінка
         global $db;
         $sql = "insert into llx_incomingcall(incoming_number,number,active)
-                values(".$_REQUEST["incoming_number"].",".$_REQUEST["number"].",1)";
+                values('".substr($_REQUEST["incoming_number"],1)."','".substr($_REQUEST["number"],1)."',1)";
         $res = $db->query($sql);
+        print '{"result": "ok", “error”:””}';
         exit();
     }
     if($_REQUEST['action'] == 'completed_call'){//Реєстрація вхідного дзвінка
+        define("NOLOGIN",1);		// This means this output page does not require to be logged.
         global $db;
         $sql = "update llx_incomingcall set time = ".$_REQUEST['time'].", active = 0
-            where incoming_number = ".$_REQUEST["incoming_number"].
-            " and number = ".$_REQUEST["number"]." and active = 1 top 1";
+            where incoming_number = '".substr($_REQUEST["incoming_number"],1).
+            "' and number = '".substr($_REQUEST["number"],1)."' and active = 1 top 1";
         $res = $db->query($sql);
+        print '{"result": "ok", “error”:””}';
         exit();
     }
 }
@@ -529,6 +594,9 @@ function saveaction($rowid, $createaction = false){
         $mkNewDatep = $datep=dol_mktime($newdate->format('H'), $newdate->format('i'), $newdate->format('s'), $newdate->format('m'), $newdate->format('d'), $newdate->format('Y'));
         $mkNewDatef = $mkNewDatep + ($mkDatef-$mkDatep);
     }
+    if(empty($user->id)){
+        $user->fetch('',$_SESSION["dol_login"]);
+    }
     if(empty($rowid)){
         $sql='insert into llx_societe_action(`action_id`,`proposed_id`, `socid`, `contactid`,`callstatus`, `said`,`answer`,
           `argument`,`said_important`,`result_of_action`,`work_before_the_next_action`,`need`,`id_usr`) values(';
@@ -578,7 +646,7 @@ function saveaction($rowid, $createaction = false){
     }
 //    llxHeader('','test',null);
 //echo '<pre>';
-//var_dump($sql);
+//var_dump($user->id);
 //echo '</pre>';
 //die();
 

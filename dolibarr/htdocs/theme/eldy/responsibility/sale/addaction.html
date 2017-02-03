@@ -123,41 +123,41 @@
             <tr>
                 <td>
                     &nbsp;&nbsp;&nbsp;<?echo $langs->trans('WhatSaidHim')?></br>
-                    <textarea id="said" class="edit_text" name="said" maxlength="255"><?=$said?></textarea>
+                    <textarea id="said" class="edit_text" name="said"><?=$said?></textarea>
                 </td>
             </tr>
             <tr>
                 <td>
                     &nbsp;&nbsp;&nbsp;<?echo $langs->trans('WhatAnswer')?></br>
-                    <textarea id="answer" class="edit_text" name="answer" maxlength="255"><?=empty($object->resultaction['answer'])?$object->answer:$object->resultaction['answer']?></textarea>
+                    <textarea id="answer" class="edit_text" name="answer"><?=empty($object->resultaction['answer'])?$object->answer:$object->resultaction['answer']?></textarea>
                 </td>
             </tr>
             <tr>
                 <td>
                     &nbsp;&nbsp;&nbsp;<?echo $langs->trans('HerArgument')?></br>
-                    <textarea id="argument" class="edit_text" name="argument" maxlength="255"><?=empty($object->resultaction['argument'])?$object->argument:$object->resultaction['argument']?></textarea>
+                    <textarea id="argument" class="edit_text" name="argument"><?=empty($object->resultaction['argument'])?$object->argument:$object->resultaction['argument']?></textarea>
                 </td>
             </tr>
             <tr>
                 <td>
                     &nbsp;&nbsp;&nbsp;<?echo $langs->trans('SaidImportant')?></br>
-                    <textarea id="said_important" class="edit_text" name="said_important" maxlength="255"><?=empty($object->resultaction['said_important'])?$object->said_important:$object->resultaction['said_important']?></textarea>
+                    <textarea id="said_important" class="edit_text" name="said_important"><?=empty($object->resultaction['said_important'])?$object->said_important:$object->resultaction['said_important']?></textarea>
                 </td>
             </tr>
             <tr>
                 <td>
                     &nbsp;&nbsp;&nbsp;<?echo $langs->trans('ResultAction')?></br>
-                    <textarea placeholder="Для вводу даних про наявну потребу, необхідно виділити фрагмент тексту в цьому полі, який відповідає наявній потребі і вибрати команду 'Додати потребу'" id="result_of_action" class="edit_text" name="result_of_action" maxlength="255"><?=empty($object->resultaction['result_of_action'])?$object->result_of_action:$object->resultaction['result_of_action']?></textarea>
+                    <textarea placeholder="Для вводу даних про наявну потребу, необхідно виділити фрагмент тексту в цьому полі, який відповідає наявній потребі і вибрати команду 'Додати потребу'" id="result_of_action" class="edit_text" name="result_of_action"><?=empty($object->resultaction['result_of_action'])?$object->result_of_action:$object->resultaction['result_of_action']?></textarea>
                 </td>
             </tr>
             <tr>
                 <td>
                     &nbsp;&nbsp;&nbsp;<?echo $langs->trans('WorkBeforeAction')?></br>
-                    <textarea id="work_before_the_next_action" class="edit_text" name="work_before_the_next_action" maxlength="255"><?=empty($object->resultaction['work_before_the_next_action'])?$object->work_before_the_next_action:$object->resultaction['work_before_the_next_action']?></textarea>
+                    <textarea id="work_before_the_next_action" class="edit_text" name="work_before_the_next_action"><?=empty($object->resultaction['work_before_the_next_action'])?$object->work_before_the_next_action:$object->resultaction['work_before_the_next_action']?></textarea>
                 </td>
             </tr>
         </table>
-        <textarea id = "need" name="need" style="display: none" maxlength="255"><?=empty($object->resultaction['need'])?$object->need:$object->resultaction['need']?></textarea>
+        <textarea id = "need" name="need" style="display: none"><?=empty($object->resultaction['need'])?$object->need:$object->resultaction['need']?></textarea>
     </form>
     <script>
         $('#addaction').submit(function(e){

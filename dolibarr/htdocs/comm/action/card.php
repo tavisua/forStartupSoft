@@ -85,8 +85,7 @@ if(isset($_REQUEST['id_usr'])&&!empty($_REQUEST['id_usr'])&&$_REQUEST['id_usr']!
 	$json = '{"'.$user->id.'":{"id":"'.$user->id.'","mandatory":0,"transparency":null},"'.$_REQUEST['id_usr'].'":{"id":"'.$_REQUEST['id_usr'].'","transparency":"on","mandatory":1}}';
 	$_SESSION['assignedtouser']=$json;
 }
-//var_dump($_SESSION['assignedtouser']);
-//die();
+
 if($_GET['action']=='get_exectime'){
 
 	$Action = new ActionComm($db);
@@ -621,6 +620,7 @@ if ($action == 'add')
 		$object->motivator = GETPOST("motivator");
 		$object->demotivator = GETPOST("demotivator");
 //        die($object->parent_id);
+
 		if (! GETPOST('label'))
 		{
 			if (GETPOST('actioncode') == 'AC_RDV' && $contact->getFullName($langs))
@@ -763,7 +763,8 @@ if ($action == 'add')
 			$subaction->add($user);
 		}
 //		var_dump($idaction);
-//		die();
+//
+
 		if ($idaction > 0)
 		{
 			if (! $object->error)
@@ -1162,6 +1163,7 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
                })';
         print '</script>'."\n";
     }
+
 	if(!empty($_REQUEST['mentor_action'])) {
 		$backtopage_tmp = $_REQUEST["backtopage"];
 		$search = substr($backtopage_tmp, strpos($backtopage_tmp, '?')+1);
@@ -1227,7 +1229,6 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 		$listofuserid=dol_json_decode($_SESSION['assignedtouser'], true);
 	}
 
-
 	if(isset($_REQUEST["duplicate_action"])) {//if duplicate action, change author action
 		$listofuserid[$user->id] = $listofuserid[array_keys($listofuserid)[0]];
 		$listofuserid[$user->id]['id']=$user->id;
@@ -1244,7 +1245,6 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 			$_SESSION['assignedtouser'] = '{"' . $user->id . '":{"id":"' . $user->id . '","mandatory":0,"transparency":null}}';
 		}
 	}
-
 	print $form->select_dolusers_forevent(($action=='create'?'add':'update'), 'assignedtouser', 1, '', 0, '', '', 0, 0, 0, 'AND u.statut != 0', 0, 1, 1);
 
 //	if (in_array($user->id,array_keys($listofuserid))) print $langs->trans("MyAvailability").': <input id="transparency" type="checkbox" name="transparency"'.(((! isset($_GET['transparency']) && ! isset($_POST['transparency'])) || GETPOST('transparency'))?' checked="checked"':'').'> '.$langs->trans("Busy");
@@ -2458,6 +2458,7 @@ print '
 							$("#exec_time_dateNextAction").val(html);
 						var hour = '.date('H').';
 						var min = '.date('i').';
+						console.log('.date().');						
 						if(hour<10)
 							hour = "0"+hour;
 						if(min<10)
@@ -2517,8 +2518,8 @@ print '
             $("#redirect_actioncode").val($("input#actioncode").val());
 //            console.log("showperiod", $("select#actioncode").val() == "AC_CURRENT");
             if($.inArray($("select#actioncode").val(), ["AC_GLOBAL","AC_CURRENT"]) >=0 && $("#parent_id").val().length == 0){
-            	$("#apmin").hide();
-            	$("#aphour").hide();
+//            	$("#apmin").hide();
+//            	$("#aphour").hide();
 //                $("#period").show();
                 $("#typenotification").show();
                 $(".global_current").show();

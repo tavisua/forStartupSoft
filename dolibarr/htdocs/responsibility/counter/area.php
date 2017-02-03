@@ -37,6 +37,7 @@ if(isset($_GET['id_usr'])&&!empty($_GET['id_usr'])){
 }
 //Шапка сторінки
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/counter/area/header.php';
+
 //Перелік контрагентів
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/counter/area/customers.php';
 if(strpos($_SERVER['QUERY_STRING'],'&page='))

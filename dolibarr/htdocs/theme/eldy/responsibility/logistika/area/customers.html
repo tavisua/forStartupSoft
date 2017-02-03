@@ -255,6 +255,7 @@
 <script type="text/javascript">
 
     $(document).ready(function(){
+        $('#iCount').html(<?=$count->iCount?>);
         var tbody = document.getElementById('reference_body');
         if(tbody == null)return;
         var trList = tbody.getElementsByTagName('tr');

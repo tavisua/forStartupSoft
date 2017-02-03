@@ -47,7 +47,6 @@ if(isset($_REQUEST['action'])&&$_REQUEST['action']=='getpass'){
     exit();
 }
 
-
 if (! empty($conf->ldap->enabled)) require_once DOL_DOCUMENT_ROOT.'/core/class/ldap.class.php';
 if (! empty($conf->adherent->enabled)) require_once DOL_DOCUMENT_ROOT.'/adherents/class/adherent.class.php';
 if (! empty($conf->multicompany->enabled)) dol_include_once('/multicompany/class/actions_multicompany.class.php');
@@ -634,6 +633,7 @@ $form = new Form($db);
 $formother=new FormOther($db);
 
 llxHeader('',$langs->trans("UserCard"));
+
 if (($action == 'create') || ($action == 'adduserldap'))
 {
     /* ************************************************************************** */
@@ -1160,7 +1160,7 @@ else
         // Show tabs
         $head = user_prepare_head($object);
 //        echo '<pre>';
-//        var_dump($head);
+//        var_dump($object);
 //        echo '</pre>';
 //        die();
         $title = $langs->trans("User");

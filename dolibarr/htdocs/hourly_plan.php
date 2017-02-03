@@ -89,9 +89,8 @@ $sql = "select  `llx_actioncomm`.type, `llx_actioncomm`.id as rowid, `llx_action
         and date(datep) = '".$dateQuery->format('Y-m-d')."'
         and `llx_actioncomm`.active = 1
 
-        and case when `llx_actioncomm_resources`.`fk_element` is null then `llx_actioncomm`.`fk_user_action` else `llx_actioncomm`.`fk_user_action` end  = ".$id_usr."
-
-        and (`llx_actioncomm`.`entity` = 0 AND `llx_actioncomm`.`code` IN('AC_GLOBAL','AC_CURRENT') OR `llx_actioncomm`.`entity` = 1 AND `llx_actioncomm`.`code` NOT IN('AC_GLOBAL','AC_CURRENT'))
+        and (case when `llx_actioncomm_resources`.`fk_element` is null then `llx_actioncomm`.fk_user_action else `llx_actioncomm_resources`.`fk_element` end) = ".$id_usr."
+        and (`llx_actioncomm`.`entity` = 1 AND `llx_actioncomm_resources`.`fk_element` is null AND `llx_actioncomm`.`code` IN('AC_GLOBAL','AC_CURRENT') OR `llx_actioncomm`.`entity` = 0 AND `llx_actioncomm`.`code` IN('AC_GLOBAL','AC_CURRENT') OR `llx_actioncomm`.`entity` = 1 AND `llx_actioncomm`.`code` NOT IN('AC_GLOBAL','AC_CURRENT'))
         and fk_action in
               (select id from `llx_c_actioncomm`
               where `type` in ('system', 'user'))

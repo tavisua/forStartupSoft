@@ -16,7 +16,7 @@
         <tr  class="multiple_header_table">
             <td style="width: 205px">Група організаційних питань</td>
             <td style="width: 141px">Підрозділ/місто</td>
-            <td style="width: 205px">Дія</td>
+            <td style="width: 205px">Дія-ключове слово</td>
             <td style="width: 200px">Відповідальний</td>
             <td style="width: 231px">Безпосередній відповідальний</td>
             <td></td>
@@ -68,10 +68,35 @@
     })
 
     $(document).ready(function () {
+        //Вставляю іконку зв'язатись на сторінку
+        $.each($("#dict").find("a"), function (key, value) {
+            $(value).addClass("calluser");
+            var html = $(value).html();
+            html+='<img src="/dolibarr/htdocs/theme/eldy/img/call.png">';
+            $(value).html(html);
+            }
+        )
+        function CloseMenu(){
+            $("contactform").remove();
+        }
+        $("a").click(function(e){
+//            console.log(e.target.id != '');
+            if(e.target.id != '') {
+                $.ajax({
+                    url: '?action=getusercontact&id_usr=' + e.target.id,
+                    success: function (result) {
+                        createNewForm('popupmenu', 'contactform');
+                        $('#contactform').html(result);
+                        $('#contactform').show();
+                        $('#contactform').offset({top: $(e.target).offset().top, left: $(e.target).offset().left});
+                        console.log(result);
+                    }
+                })
+            }
+        })
         var thList = $("thead").find("tr")
         var resThList = [];
         var secIndex = 0;
-        console.log($(thList[0]).find("td"));
 
         $.each($(thList[0]).find("td"), function(key, value){
             if($(value).attr("colspan") == undefined)
@@ -82,7 +107,7 @@
 //                key++;
 //            }
         });
-        console.log(resThList);
+//        console.log(resThList);
         var trList = document.getElementById("dict").getElementsByTagName("tr")[0];
         var tdList = trList.getElementsByTagName("td")
         for(var i = 0; i<$(tdList).length; i++){
@@ -91,12 +116,18 @@
                 $(tdList[i]).width($(tdList[i]).width() + ($(resThList[i+1]).offset().left - $(tdList[i+1]).offset().left));
                 if($(resThList[i+1]) !== undefined && ($(resThList[i+1]).offset().left - $(tdList[i+1]).offset().left) != 0){
                     $(resThList[i]).width($(tdList[i]).width() - ($(resThList[i+1]).offset().left - $(tdList[i+1]).offset().left));
-                    console.log(resThList, $(resThList[i+1]).offset());
-                    console.log($(tdList[i]), $(resThList[i]),width," => ",$(tdList[i]).width(), ($(resThList[i+1]).offset().left - $(tdList[i+1]).offset().left));
+//                    console.log(resThList, $(resThList[i+1]).offset());
+//                    console.log($(tdList[i]), $(resThList[i]),width," => ",$(tdList[i]).width(), ($(resThList[i+1]).offset().left - $(tdList[i+1]).offset().left));
                 }
             }
         }
     })
+    function showSMSform(phonenumber){
+        $('input#phone_number').val(phonenumber);
+        $('b#phone_numbertitle').text(phonenumber);
+        location.href = '#sendSMS';
+        $('#sendSMSform').show();
+    }
     function setFilter(){
         $('form#filter').submit();
     }

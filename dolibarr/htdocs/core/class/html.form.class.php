@@ -1634,6 +1634,7 @@ class Form
 		}
 
 		//$out.='</form>';
+
         return $out;
     }
 
