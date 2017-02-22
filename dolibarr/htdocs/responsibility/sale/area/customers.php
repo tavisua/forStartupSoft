@@ -46,8 +46,8 @@ elseif ($_GET['viewname'] == "reverse")
 
 $sql = "select `llx_societe`.rowid, $name nom,
 `llx_societe`.`town`, round(`llx_societe_classificator`.`value`,0) as width, `llx_societe`.`remark`, rtrim(`llx_societe`.`need`) deficit,
-' ' task,' ' lastdate, ' ' lastdatecomerc, ' ' futuredatecomerc, ' ' exec_time, ' ' lastdateservice,
-' ' futuredateservice, ' ' lastdateaccounts, ' ' futuredateaccounts, ' ' lastdatementor, ' ' futuredatementor, ' ' need
+' ' task, lastdate,  lastdatecomerc,  futuredatecomerc, ' ' exec_time,  lastdateservice,
+ futuredateservice,  lastdateaccounts,  futuredateaccounts,  lastdatementor,  futuredatementor, ' ' need
 from `llx_societe` left join `category_counterparty` on `llx_societe`.`categoryofcustomer_id` = `category_counterparty`.rowid
 left join `formofgavernment` on `llx_societe`.`formofgoverment_id` = `formofgavernment`.rowid
 left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`
@@ -316,34 +316,37 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
 //            var_dump($sql);
 //            echo '</pre>';
 //            die();
-    if(empty($sortorder))
-        $result = $db->query($sql);
-    else{
-        $result = $db->query($sql.' limit 1');
 
-        $fields = $result->fetch_fields();
-        $num_col=0;
-        for($i=1;$i<count($fields);$i++){
-            if($fields[$i]->name != 'rowid' && !isset($title[$num_col]['hidden'])){
+    if(empty($sortorder)) {
+        $result = $db->query($sql);
+    }else {
+        $result = $db->query($sql . ' limit 1');
+        if ($result) {
+            $fields = $result->fetch_fields();
+            $num_col = 0;
+            for ($i = 1; $i < count($fields); $i++) {
+                if ($fields[$i]->name != 'rowid' && !isset($title[$num_col]['hidden'])) {
 //                var_dump($num_col.' '.$fields[$i]->name.'</br>');
-                if($num_col == $sortfield) {
-                    if (substr($fields[$i]->name, 0, 2) != 's_') {
-                        $t_name = str_replace("'", '', $tablename);
-                        $fieldname = $fields[$i]->name;
-                    } elseif (substr($fields[$i]->name, 0, 2) == 's_') {
-                        $t_name = substr($fields[$i]->name, 2, strpos($fields[$i]->name, '_', 3)-2);//
-                        $fieldname = substr($fields[$i]->name, strpos($fields[$i]->name, '_', 3)+1);
+                    if ($num_col == $sortfield) {
+                        if (substr($fields[$i]->name, 0, 2) != 's_') {
+                            $t_name = str_replace("'", '', $tablename);
+                            $fieldname = $fields[$i]->name;
+                        } elseif (substr($fields[$i]->name, 0, 2) == 's_') {
+                            $t_name = substr($fields[$i]->name, 2, strpos($fields[$i]->name, '_', 3) - 2);//
+                            $fieldname = substr($fields[$i]->name, strpos($fields[$i]->name, '_', 3) + 1);
+                        }
+                        if (count($readonly) == 0)
+                            $result = $db->query(substr($sql, 0, strpos($sql, 'order by')) . ' order by trim(`' . $t_name . '`.`' . $fieldname . '`) ' . $sortorder);
+                        else {
+                            $result = $db->query(substr($sql, 0, strpos($sql, 'order by')) . ' order by trim(`' . $fieldname . '`) ' . $sortorder);
+                        }
+                        break;
                     }
-                    if(count($readonly) == 0)
-                        $result = $db->query(substr($sql, 0, strpos($sql, 'order by')).' order by trim(`'.$t_name.'`.`'.$fieldname.'`) '.$sortorder);
-                    else {
-                        $result = $db->query(substr($sql, 0, strpos($sql, 'order by')) . ' order by trim(`' . $fieldname . '`) ' . $sortorder);
-                    }
-                    break;
                 }
+                $num_col++;
             }
-            $num_col++;
-        }
+        }else
+            dol_print_error($result);
     }
     if($db->num_rows($result)==0)
         ClearFilterMessage();
@@ -354,7 +357,7 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
     mysqli_data_seek($result, 0);
 //    var_dump(implode(',',$rowidList));
 //    die();
-    $actionfields = array('futuredatecomerc'=>'sale', 'lastdatecomerc'=>'sale',  'lastdateservice'=>'service', 'lastdateaccounts'=>'accounts',  'lastdatementor'=>'mentor');
+    $actionfields = array('lastdate'=>'sale','futuredatecomerc'=>'sale', 'lastdatecomerc'=>'sale',  'lastdateservice'=>'service', 'lastdateaccounts'=>'accounts',  'lastdatementor'=>'mentor');
     if(!$result)return;
     $page = isset($_GET['page'])?$_GET['page']:1;
     $per_page = isset($_GET['per_page'])?$_GET['per_page']:30;
@@ -373,33 +376,33 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
 //    if(count($rowidList)>0)
 //        $sql .=" and `llx_societe`.rowid in (".implode(',', $rowidList).")";
 //    $sql .= " group by `llx_societe`.rowid, `responsibility`.`alias` ";
-    if(count($rowidList)>0) {
-
-        $sql = "select `llx_societe_action`.`socid` as rowid, max(`llx_societe_action`.`dtChange`) dtChange, `responsibility`.`alias`  from `llx_societe_action`
-        left join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.`rowid`
-        left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
-        where 1 ";
-        $sql .= " and `llx_societe_action`.`socid` in (" . implode(',', $rowidList) . ")";
-        $sql .= "    and `llx_societe_action`.active = 1
-        group by `llx_societe_action`.`socid`, `responsibility`.`alias`;";
-//  die($sql);
-        $res = $db->query($sql);
-        if (!$res) {
-            dol_print_error($db);
-        }
-        if ($db->num_rows($res) > 0) {
-            while ($row = $db->fetch_object($res)) {
-                $alias = $row->alias;
-                if($alias == $user->respon_alias && !empty($user->respon_alias2)) {
-                    $alias = $user->respon_alias2;
-                }
-                if (!isset($lastaction[$row->rowid . $alias])) {
-                    $date = new DateTime($row->dtChange);
-                    $lastaction[$row->rowid . $alias] = $date->format('d.m.y');
-                }
-            }
-        }
-    }
+//    if(count($rowidList)>0) {
+//
+//        $sql = "select `llx_societe_action`.`socid` as rowid, max(`llx_societe_action`.`dtChange`) dtChange, `responsibility`.`alias`  from `llx_societe_action`
+//        left join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.`rowid`
+//        left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
+//        where 1 ";
+//        $sql .= " and `llx_societe_action`.`socid` in (" . implode(',', $rowidList) . ")";
+//        $sql .= "    and `llx_societe_action`.active = 1
+//        group by `llx_societe_action`.`socid`, `responsibility`.`alias`;";
+////  die($sql);
+//        $res = $db->query($sql);
+//        if (!$res) {
+//            dol_print_error($db);
+//        }
+//        if ($db->num_rows($res) > 0) {
+//            while ($row = $db->fetch_object($res)) {
+//                $alias = $row->alias;
+//                if($alias == $user->respon_alias && !empty($user->respon_alias2)) {
+//                    $alias = $user->respon_alias2;
+//                }
+//                if (!isset($lastaction[$row->rowid . $alias])) {
+//                    $date = new DateTime($row->dtChange);
+//                    $lastaction[$row->rowid . $alias] = $date->format('d.m.y');
+//                }
+//            }
+//        }
+//    }
 
     $futureaction = array();
     $user_tmp = new User($db);
@@ -420,51 +423,54 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
 //        $sql .=" and `llx_societe`.rowid in (".implode(',', $rowidList).")";
 //     $sql .= " and `llx_actioncomm`.`id` not in (select `llx_societe_action`.`action_id` from llx_societe_action where action_id is not null)
 //        and `llx_actioncomm`.active = 1";
-    if(count($rowidList)>0) {
-        $sql = "select `llx_actioncomm`.`fk_soc` rowid, llx_actioncomm.datep, `llx_user`.login, `responsibility`.`alias`,`resp2`.`alias` alias2 from `llx_actioncomm`
-        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm`=`llx_actioncomm`.id
-        inner join (select code, libelle label from `llx_c_actioncomm` where active = 1
-        and (type = 'system' or type = 'user')) TypeCode on TypeCode.code = `llx_actioncomm`.code
-        inner join `llx_user` on `llx_actioncomm`.`fk_user_author` = `llx_user`.`rowid`
-        left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
-        left join `responsibility` `resp2` on `resp2`.`rowid`=`llx_user`.`respon_id2`
-        where 1
-        and `llx_actioncomm`.`fk_soc` in (" . implode(',', $rowidList) . ")
-        and `llx_actioncomm`.`active` = 1
-        and `llx_actioncomm`.`id` not in (select `llx_societe_action`.`action_id` from llx_societe_action where action_id is not null)
-        order by `llx_actioncomm`.`fk_soc`, llx_actioncomm.datep desc";
-//        echo '<pre>';
-//        var_dump($sql);
-//        echo '</pre>';
-//        die();
-        $res = $db->query($sql);
-        if (!$res) {
-            dol_print_error($db);
-        }
-        if ($db->num_rows($res) > 0) {
-            while ($row = $db->fetch_object($res)) {
-//                if($row->rowid == 29379){
-//                    var_dump(array_intersect_assoc(array($row->alias,$row->alias2), array($user->respon_alias,$user->respon_alias2)));
-//                    die();
-//                }
+//    var_dump(count($rowidList));
+//    die();
 
-                $rowalias = array_intersect(array($row->alias,$row->alias2), array($user_tmp->respon_alias,$user_tmp->respon_alias2));
-//                $useralias = array($user_tmp->respon_alias,$user_tmp->respon_alias2);
-//                if($row->rowid == 16320){
-//                    var_dump(array($row->alias,$row->alias2), array_intersect(array($row->alias,$row->alias2), array('sale')));
-//                    die();
+//    if(count($rowidList)>0) {
+//        $sql = "select `llx_actioncomm`.`fk_soc` rowid, llx_actioncomm.datep, `llx_user`.login, `responsibility`.`alias`,`resp2`.`alias` alias2 from `llx_actioncomm`
+//        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm`=`llx_actioncomm`.id
+//        inner join (select code, libelle label from `llx_c_actioncomm` where active = 1
+//        and (type = 'system' or type = 'user')) TypeCode on TypeCode.code = `llx_actioncomm`.code
+//        inner join `llx_user` on `llx_actioncomm`.`fk_user_author` = `llx_user`.`rowid`
+//        left join `responsibility` on `responsibility`.`rowid`=`llx_user`.`respon_id`
+//        left join `responsibility` `resp2` on `resp2`.`rowid`=`llx_user`.`respon_id2`
+//        where 1
+//        and `llx_actioncomm`.`fk_soc` in (" . implode(',', $rowidList) . ")
+//        and `llx_actioncomm`.`active` = 1
+//        and `llx_actioncomm`.`id` not in (select `llx_societe_action`.`action_id` from llx_societe_action where action_id is not null)
+//        order by `llx_actioncomm`.`fk_soc`, llx_actioncomm.datep desc";
+////        echo '<pre>';
+////        var_dump($rowidList);
+////        echo '</pre>';
+////        die();
+//        $res = $db->query($sql);
+//        if (!$res) {
+//            dol_print_error($db);
+//        }
+//        if ($db->num_rows($res) > 0) {
+//            while ($row = $db->fetch_object($res)) {
+////                if($row->rowid == 29379){
+////                    var_dump(array_intersect_assoc(array($row->alias,$row->alias2), array($user->respon_alias,$user->respon_alias2)));
+////                    die();
+////                }
+//
+//                $rowalias = array_intersect(array($row->alias,$row->alias2), array($user_tmp->respon_alias,$user_tmp->respon_alias2));
+////                $useralias = array($user_tmp->respon_alias,$user_tmp->respon_alias2);
+////                if($row->rowid == 16320){
+////                    var_dump(array($row->alias,$row->alias2), array_intersect(array($row->alias,$row->alias2), array('sale')));
+////                    die();
+////                }
+//                $alias = $rowalias[0];
+//                if(!empty($rowalias[1])) {
+//                    $alias = $rowalias[1];
 //                }
-                $alias = $rowalias[0];
-                if(!empty($rowalias[1])) {
-                    $alias = $rowalias[1];
-                }
-                if (!isset($futureaction[$row->rowid . $alias])) {
-                    $date = new DateTime($row->datep);
-                    $futureaction[$row->rowid . $alias] = $date->format('d.m.y');
-                }
-            }
-        }
-    }
+//                if (!isset($futureaction[$row->rowid . $alias])) {
+//                    $date = new DateTime($row->datep);
+//                    $futureaction[$row->rowid . $alias] = $date->format('d.m.y');
+//                }
+//            }
+//        }
+//    }
     $fields = $result->fetch_fields();
 //    echo '<pre>';
 //        var_dump($futureaction);
@@ -540,10 +546,6 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
     }
 
     $table .= '<tbody id="reference_body" style="width: '.(count($readonly)==0?$widthtable:$widthtable-40).'">'."\r\n";
-
-
-
-
     $count = 0;
     if(count($readonly)==0) {
         $create_edit_form = false;
@@ -586,17 +588,19 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
         }
     }
     while($row = $result->fetch_assoc()) {
+//        var_dump($row);
+//        die();
         $count++;
         $class = fmod($count,2)==1?("impair"):("pair");
         $table .= "<tr id = tr".$row['rowid']." class='".$class."'>\r\n";
 //            $table .= "<tr id = tr".$row['rowid']." class='".$class."'>\r\n";
 //            $table .= "<tr id = $count class=".fmod($count,2)==1?('impair'):('pair').">\r\n";
-        $id = $row['rowid'];
+
 //            $table .= '<td >'.$class.'</td>';
 //            echo '<pre>';
-//            var_dump($fields);
+//            var_dump($row);
 //            echo '</pre>';
-//            die();
+//            die('test');
 //            echo '</br>';
         $num_col = 0;
         $prev_col=array('nom','town','remark');
@@ -631,7 +635,7 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
 //                                echo '</pre>';
 //                                die();
 //                            }
-                            if(mb_strlen(trim($value))>0) {
+                            if(mb_strlen(trim($value))>0 && !in_array($fields[$num_col]->name, array('lastdate','lastdatecomerc','futuredatecomerc','lastdateservice','futuredateservice','lastdateaccounts','futuredateaccounts','lastdatementor','futuredatementor'))) {
                                 $table .= '<td id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width:' . ($col_width[$num_col - 1] + 2) . 'px;">';
                                 switch($fields[$num_col]->name) {
                                     default: {
@@ -660,21 +664,29 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
                                 }
                                 $table .='</td>';
                                 $full_text = trim($value);
-                            }else {
+                            }
+                            else {
                                 if(isset($actionfields[$fields[$num_col]->name])){
+
                                     $alias = $actionfields[$fields[$num_col]->name];
                                     $full_text = '';
                                     $showicon = !isset($lastaction[$row['rowid'].$alias]);
-                                    switch($fields[$num_col]->name){
-                                        case 'lastdatecomerc':{
-                                            $full_text = !isset($lastaction[$row['rowid'].$alias]) ?
-                                                '<img src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/object_action.png">' : $lastaction[$row['rowid'].$alias];
-                                        }break;
-                                        case 'futuredatecomerc':{
-                                            $full_text = !isset($futureaction[$row['rowid'].$alias]) ?
-                                                '<img src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/object_action.png">' : $futureaction[$row['rowid'].$alias];
-                                        }
+                                    if(empty($value))
+                                        $full_text = '<img src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/object_action.png">';
+                                    else{
+                                        $date = new DateTime($value);
+                                        $full_text = $date->format('d.m.y');
                                     }
+//                                    switch($fields[$num_col]->name){
+//                                        case 'lastdatecomerc':{
+//                                            $full_text = !isset($lastaction[$row['rowid'].$alias]) ?
+//                                                '<img src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/object_action.png">' : $lastaction[$row['rowid'].$alias];
+//                                        }break;
+//                                        case 'futuredatecomerc':{
+//                                            $full_text = !isset($futureaction[$row['rowid'].$alias]) ?
+//                                                '<img src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/object_action.png">' : $futureaction[$row['rowid'].$alias];
+//                                        }
+//                                    }
                                     $state_filter = '';
 
                                     if(isset($_REQUEST['state_filter'])&&!empty($_REQUEST['state_filter']))

@@ -22,15 +22,17 @@ $subaction = getSubActionType();
 if($_REQUEST['action'] == 'get_subactiontype'){
     switch ($subaction->subaction){
         default:{
-            $out['subaction'] = $subaction->subaction;
-            $sql = "select titre,body from llx_mailing where rowid = ".$subaction->subaction_id;
-            $mess = $db->query($sql);
-            if(!$mess)
-                dol_print_error($db);
-            $obj = $db->fetch_object($mess);
-            $out['subject'] = $obj->titre;
-            $out['body'] = '<div style="z-index: 10; position: fixed;" id="closePrevDiv"><a class="close"  onclick="ClosePreviewMail();" title="Закрити"></a></div>'.$obj->body;
-            print json_encode($out);
+            if(!empty($subaction->subaction_id)) {
+                $out['subaction'] = $subaction->subaction;
+                $sql = "select titre,body from llx_mailing where rowid = " . $subaction->subaction_id;
+                $mess = $db->query($sql);
+                if (!$mess)
+                    dol_print_error($db);
+                $obj = $db->fetch_object($mess);
+                $out['subject'] = $obj->titre;
+                $out['body'] = '<div style="z-index: 10; position: fixed;" id="closePrevDiv"><a class="close"  onclick="ClosePreviewMail();" title="Закрити"></a></div>' . $obj->body;
+                print json_encode($out);
+            }
         }break;
     }
     exit();

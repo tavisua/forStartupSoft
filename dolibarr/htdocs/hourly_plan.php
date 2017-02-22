@@ -107,7 +107,8 @@ $sql = "select  `llx_actioncomm`.type, `llx_actioncomm`.id as rowid, `llx_action
 //die();
 
 $res = $db->query($sql);
-
+//var_dump($res);
+//die();
 //die($sql);
 $task = '';
 

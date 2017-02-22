@@ -5,7 +5,7 @@
  * Date: 04.11.2015
  * Time: 12:10
  */
-if($_GET['action']=='showdeleted'){
+if(isset($_GET['action'])&&$_GET['action']=='showdeleted'){
     define('NOLOGIN',1);
     require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
     llxHeader();

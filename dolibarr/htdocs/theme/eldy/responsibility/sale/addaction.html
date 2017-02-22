@@ -116,7 +116,8 @@
         <input type="hidden" name="typeSetOfDate" id="type" value="<?=$_REQUEST['typeSetOfDate']?>">
         <input type="hidden" name="error" id="error" value="<?=$_REQUEST['error']?>">
         <input id="callstatus" name="callstatus" type="hidden" value="<?=empty($object->callstatus)?2:$object->callstatus?>">
-
+        <?if($_REQUEST['actioncode']!='AC_TEL'){?><br class="forAllGroup"><br class="forAllGroup">
+        <label><input id="forAllGroup" name="forAllGroup" type="checkbox" value="" > Застосувати до групи завдань</label><?}?>
         </br>
         <table class="border" style="margin-top: 20px" width="100%">
             <?=$contactlist?>
@@ -381,6 +382,10 @@
     function submitResultAction(){
             var actioncode = getParameterByName('actioncode');
             var validcode = ['AC_CURRENT', 'AC_GLOBAL'];
+            if($("#forAllGroup") !== null){
+                $("#forAllGroup").val($("#forAllGroup").attr('checked') == 'checked');
+            }
+
 //            console.log($.inArray(actioncode, validcode) != '-1');
 //        return;
             if(actioncode!=null && actioncode.length>0 && $.inArray(actioncode, validcode) != '-1') {

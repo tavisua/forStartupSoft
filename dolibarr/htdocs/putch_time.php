@@ -7,6 +7,50 @@
  */
 require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
 global $db,$user;
+if($_REQUEST['action'] == 'update_societe') {
+    $sql = "select rowid from llx_societe where active = 1";
+    $res = $db->query($sql);
+    if (!$res)
+        dol_print_error($db);
+    set_time_limit(0);
+    while ($obj = $db->fetch_object($res)) {
+        //Остання дата співпраці
+        $sql = "select max(dtChange) dtDate from llx_societe_action where socid = " . $obj->rowid;
+        $up_res = $db->query($sql);
+        $up_obj = $db->fetch_object($up_res);
+        if (!empty($up_obj->dtDate)) {
+            $date = new DateTime($up_obj->dtDate);
+            $sql = "update llx_societe set lastdate = '" . $date->format('Y-m-d') . "' where rowid = " . $obj->rowid;
+            $up_res = $db->query($sql);
+            if (!$up_res)
+                dol_print_error($db);
+        }
+        //Остання і майбутня дата взаємодії
+        $sql = "select `llx_societe_action`.active, `llx_actioncomm`.`percent`, `llx_actioncomm`.datep from llx_actioncomm
+        left join `llx_societe_action` on `action_id` = llx_actioncomm.id
+        where fk_soc = $obj->rowid
+        and code <> 'AC_OTH_AUTO'
+        and llx_actioncomm.active = 1
+        order by `llx_actioncomm`.datep desc
+        limit 2";
+        $up_res = $db->query($sql);
+        if ($up_res->num_rows) {
+            while ($up_obj = $db->fetch_object($up_res)) {
+                if (empty($up_obj->active) && $up_obj->percent <= 0) {
+                    $date = new DateTime($up_obj->datep);
+                    $sql = "update llx_societe set futuredatecomerc = '" . $date->format('Y-m-d') . "' where rowid = " . $obj->rowid;
+                    $db->query($sql);
+                } elseif (!empty($up_obj->active) && $up_obj->percent == 100) {
+                    $date = new DateTime($up_obj->datep);
+                    $sql = "update llx_societe set lastdatecomerc = '" . $date->format('Y-m-d') . "' where rowid = " . $obj->rowid;
+                    $db->query($sql);
+                }
+            }
+        }
+        echo $obj->rowid . '<br>';
+    }
+    exit();
+}
 $sql = "SELECT `llx_actioncomm`.id, `llx_actioncomm`.priority, `llx_actioncomm`.datep, `llx_actioncomm`.datep2, `llx_actioncomm`.fk_user_action,
 case
   when `llx_actioncomm_resources`.`fk_element` is null
@@ -20,7 +64,7 @@ if(!isset($_GET['datep'])||empty($_GET['datep']))
     $sql.=" and datep > '2016-09-01'";
 else {
     $sql .= " and date(datep) = '" . $_GET['datep'] . "'";
-    $sql .= " and (case when `llx_actioncomm_resources`.`fk_element` is null then `llx_actioncomm`.fk_user_action else `llx_actioncomm_resources`.`fk_element` end) = ".$_GET['id_usr'];
+    $sql .= " and (`llx_actioncomm`.fk_user_action = ".$_GET['id_usr']." or `llx_actioncomm_resources`.`fk_element` = ".$_GET['id_usr'].")";
 }
 $sql .= " and `llx_actioncomm`.`code` not in ('AC_OTH_AUTO')
 and `llx_actioncomm`.active = 1

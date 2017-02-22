@@ -37,7 +37,6 @@ if(!$res)
 $obj = $db->fetch_object($res);
 $username = $obj->lastname;
 //var_dump(in_array('purchase', array($user->respon_alias, $user->respon_alias2))?'purchase':'sale');
-//die();
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/sale/current/header.php';
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/sale/current/task.php';
 //llxFooter();
@@ -90,10 +89,10 @@ function ShowTask(){
 //die();
 
 
-    if(isset($_POST["filterdatas"])&&!empty($_POST["filterdatas"])){
-        if(!empty($_POST["filterdatas"]))
+    if(isset($_REQUEST["filterdatas"])&&!empty($_REQUEST["filterdatas"])){
+        if(!empty($_REQUEST["filterdatas"]))
             $filter = (array)json_decode($_REQUEST['filterdatas']);
-//        var_dump(array_keys($filter));
+//        var_dump($filter);
 //        die();
 //        switch($_POST["datetype"]){
 //            case 'execdate':{
@@ -162,6 +161,8 @@ function ShowTask(){
                     }break;
                     case 'groupoftaskID': {
                         $sql .= " and fk_groupoftask = ".$filter[$key];
+                        $sql .= " and `llx_actioncomm`.`active` = 1
+                                  and `llx_actioncomm`.`percent` <> 100";
                     }break;
                     case 'performer':{
 //                        $sql_tmp = "select `llx_actioncomm`.id from `llx_actioncomm_resources`
@@ -171,6 +172,7 @@ function ShowTask(){
 //                            and `llx_actioncomm`.`active` = 1";
 //                        var_dump($filter[$key]);
 //                        die();
+
                         if($filter[$key] != -1)
                             $sql_tmp = "select distinct `llx_actioncomm`.id from `llx_actioncomm`
                                         left join `llx_actioncomm_resources` on `llx_actioncomm`.id = `llx_actioncomm_resources`.`fk_actioncomm`
@@ -198,10 +200,11 @@ function ShowTask(){
 //                        echo '<pre>';
 //                        var_dump($sql_tmp);
 //                        echo '</pre>';
-//                        die();
+//                        die('');
                     }break;
                 }
                 if(in_array($key,array('p_subdiv_id','c_subdiv_id','performer'))){//Фільтр по підрозділам замовника, виконавця та по виконавцю
+//                    die($key);
                     $res_tmp = $db->query($sql_tmp);
                     $ID = array(0);
                     while($obj = $db->fetch_object($res_tmp)){
@@ -227,10 +230,9 @@ function ShowTask(){
             }
         }
     }
-//    echo '<pre>';
-//    var_dump($filter);
-//    echo '</pre>';
-//    die();
+    if(isset($_REQUEST['autorefresh'])&&$_REQUEST['autorefresh'] == '1'){
+        $sql.=' and `llx_actioncomm`.percent not in (99,100)';
+    }
     $res = $db->query($sql);
     if(!$res){
         dol_print_error($db);
@@ -243,6 +245,10 @@ function ShowTask(){
         $taskID[]=$obj->id;
         $taskAuthor[$obj->id] = $obj->fk_user_author;
     }
+//    echo '<pre>';
+//    var_dump($taskID);
+//    echo '</pre>';
+//    die();
 
     //завантажую ІД пов'язаних з задачами користувачів
     $sql = "select fk_actioncomm, fk_element from llx_actioncomm_resources where fk_actioncomm in (".implode(",", $taskID).")";
@@ -257,16 +263,17 @@ function ShowTask(){
         $assignedUser[$obj->fk_actioncomm]=$obj->fk_element;
     }else {
         while($obj = $db->fetch_object($res)) {
-            if($taskAuthor[$obj->fk_actioncomm] != $obj->fk_element){
+            //Закоментував строку, тому-що при фільтрації по виконавцю не відображаються завдання, що поставлені собі
+//            if($taskAuthor[$obj->fk_actioncomm] != $obj->fk_element){
                 if(empty($assignedUser[$obj->fk_actioncomm]))
                     $assignedUser[$obj->fk_actioncomm] = $obj->fk_element;
                 else
                     $assignedUser[$obj->fk_actioncomm] .= ','.$obj->fk_element;
-            }
+//            }
         }
     }
 //    echo '<pre>';
-//    var_dump($taskID);
+//    var_dump($assignedUser);
 //    echo '</pre>';
 ////    var_dump($user->id, 'userid');
 //    die();
@@ -299,8 +306,13 @@ function ShowTask(){
     $sql = "select id, note, confirmdoc, entity, `datec`, datep2, datelastaction, planed_cost, fact_cost,motivator, demotivator, datefutureaction, round((UNIX_TIMESTAMP(datep2)-UNIX_TIMESTAMP(datep))/60,0) iMinute, `dateconfirm`,`datepreperform`, fk_order_id, period, `percent`, `llx_c_groupoftask`.`name` groupoftask, fk_groupoftask
     from `llx_actioncomm`
     left join llx_c_groupoftask on `llx_c_groupoftask`.`rowid` = fk_groupoftask
-    where id in (".implode(",", $taskID).")
-    order by datep asc";
+    where id in (".implode(",", $taskID).")";
+    if(isset($_REQUEST['autorefresh'])&&$_REQUEST['autorefresh'] == '1') {
+        $sql .= " order by datep desc";
+    }else{
+        $sql.=" order by datep asc";
+    }
+
 //    echo '<pre>';
 //    var_dump($sql);
 //    echo '</pre>';
@@ -319,8 +331,8 @@ function ShowTask(){
     else
         $user_id = $_GET['id_usr'];
     $performersID = array();
-    if(isset($_GET['performer']) && !empty($_GET['performer'])) {//If set performer filter
-        if($_GET['performer'] == '-1'){
+    if(isset($_GET['performer']) && !empty($_GET['performer']) || isset($filter['performer'])) {//If set performer filter
+        if($_GET['performer'] == '-1'||$filter['performer'] == '-1'){
             $sql = "select rowid from llx_user
                 inner join (select subdiv_id from llx_user where rowid = ".$user_id.") subdiv on subdiv.subdiv_id = llx_user.subdiv_id
                 where 1
@@ -374,10 +386,12 @@ function ShowTask(){
                 $add = !(empty($assignedUser[$obj->id]) && $obj->entity == 0);
             } else {
                 $users = explode(',', $assignedUser[$obj->id]);
-                $add = in_array($user_id, $users);
+                if(count($performersID) == 0)
+                    $add = in_array($user_id, $users);
+                else
+                    $add = count(array_intersect($performersID, $users))>0;
             }
         }
-
         //Перевірка на фільтр по підрозділу-замовнику
         if(isset($_GET['c_subdiv_id']) && !empty($_GET['c_subdiv_id'])&&$add) {//If set performer filter
             $add = isset($c_subdivID[$obj->id])&&$c_subdivID[$obj->id] == $_GET['c_subdiv_id'];
@@ -387,16 +401,31 @@ function ShowTask(){
 //            $users = explode(',', $assignedUser[$obj->id]);
             $add =  $_GET['customer'] == $taskAuthor[$obj->id];
         }
+
         //Перевірка на фільтр по підрозділу-виконавцю
         if(isset($_GET['p_subdiv_id']) && !empty($_GET['p_subdiv_id'])&&$add) {//If set performer filter
             $add = isset($p_subdivID[$obj->id])&&$p_subdivID[$obj->id] == $_GET['p_subdiv_id'];
         }
         //Перевірка на фільтр по виконавцю
-        if(isset($_GET['performer']) && !empty($_GET['performer'])&&$add) {//If set performer filter
+        if(isset($_GET['performer']) && !empty($_GET['performer']) || isset($filter['performer']) && !empty($filter['performer'])&&$add) {//If set performer filter
+//            if(378719 == $obj->id){
+//                var_dump($filter['performer']);
+//                die();
+//            }
             $users = explode(',', $assignedUser[$obj->id]);
-            $exist = in_array($_GET['performer'], $users);
-            if($_GET['performer'] == '-1')
+            if(isset($_GET['performer']) && !empty($_GET['performer'])){
+                $exist = in_array($_GET['performer'], $users);
+                if($_GET['performer'] == '-1' )
+                    $exist = count(array_intersect($users, $performersID)) > 0;
+            }else if($filter['performer'] == '-1'){
                 $exist = count(array_intersect($users, $performersID)) > 0;
+            }else if(isset($filter['performer'])&&!empty($filter['performer'])) {
+                $exist = in_array($filter['performer'], $users);
+            }
+//            if($obj->id == 75243){
+//                var_dump($assignedUser);
+//                die();
+//            }
             $add =  $exist || (empty($assignedUser[$obj->id])&&$user_id == $_GET['performer'] && $user_id == $taskAuthor[$obj->id]);
         }
 
@@ -457,14 +486,14 @@ function ShowTask(){
                 $date = new DateTime($obj->datelastaction);
                 $lastaction_value = $date->format('d.m.y').'</br>'.$date->format('H:i');
             }
-            $table .= '<td style="width:76px;text-align: center"><a href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu='.$_REQUEST['mainmenu'].'">'.$lastaction_value.'</a></td>';
+            $table .= '<td style="width:76px;text-align: center"><a target="_blank" href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu='.$_REQUEST['mainmenu'].'">'.$lastaction_value.'</a></td>';
             if(empty($obj->datefutureaction)){
                 $value = '<img src="/dolibarr/htdocs/theme/eldy/img/object_action.png">';
             }else{
                 $date = new DateTime($obj->datefutureaction);
                 $value = $date->format('d.m.y').'</br>'.$date->format('H:i');
             }
-            $table .= '<td style="width:76px;text-align: center"><a href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu='.$_REQUEST['mainmenu'].'">'.$value.'</a></td>';
+            $table .= '<td style="width:76px;text-align: center"><a target="_blank" href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu='.$_REQUEST['mainmenu'].'">'.$value.'</a></td>';
             $table .= '<td style="width:41px">'.$obj->iMinute.'</td>';
             //Дії наставника
             $table .= '<td style="width:76px;text-align: center"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td>

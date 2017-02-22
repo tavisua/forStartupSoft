@@ -687,6 +687,7 @@ Permission254=Create/modify external users only
 Permission255=Modify other users password
 Permission256=Delete or disable other users
 Permission257=Функції наставника
+Permission258=План програмування
 Permission262=Extend access to all third parties (not only those linked to user). Not effective for external users (always limited to themselves).
 Permission271=Read CA
 Permission272=Read invoices

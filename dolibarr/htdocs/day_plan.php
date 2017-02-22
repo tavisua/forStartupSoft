@@ -204,7 +204,7 @@ function getNewAcctions($id_usr){
         and `llx_actioncomm`.`percent` = -1
         and `llx_actioncomm`.`active` = 1";
     $sql.=" union
-        select `llx_actioncomm`.`id`, `llx_actioncomm`.`percent`, `llx_actioncomm`.`code`, `llx_actioncomm`.`datec`, `llx_user`.`lastname` from llx_actioncomm
+        select `llx_actioncomm`.`id`, `llx_actioncomm`.`percent`, `llx_actioncomm`.`code`, `llx_societe_action`.`dtChange`, `llx_user`.`lastname` from llx_actioncomm
         left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
         left join `llx_user` on `llx_user`.`rowid` = `llx_actioncomm_resources`.`fk_element`
         left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
@@ -212,18 +212,31 @@ function getNewAcctions($id_usr){
         and `llx_actioncomm`.`active` = 1
         and `llx_actioncomm`.`fk_user_author` = ".$id_usr."
         and `llx_societe_action`.`id_usr` <> ".$id_usr."
+        and `llx_societe_action`.`new` is null
         and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`
         and `llx_actioncomm`.`percent` >=0 and `llx_actioncomm`.`percent`<99";
     $sql.=" union
-        select `llx_actioncomm`.`id`, `llx_actioncomm`.`percent`, `llx_actioncomm`.`code`, `llx_actioncomm`.`datec`, `llx_user`.`lastname` from llx_actioncomm
+        select `llx_actioncomm`.`id`, `llx_actioncomm`.`percent`, `llx_actioncomm`.`code`, `llx_societe_action`.`dtChange`, `llx_user`.`lastname` from llx_actioncomm
         left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
         left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
         left join `llx_user` on `llx_user`.`rowid` = `llx_societe_action`.`id_mentor`
         where 1
         and `llx_actioncomm_resources`.`fk_element` = ".$id_usr."
-        and `llx_societe_action`.`new` = 1
+        and `llx_societe_action`.`new` in(1,null)
         and `llx_actioncomm`.`active` = 1
         and `llx_societe_action`.`id_usr` <> ".$id_usr."
+        and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`
+        and `llx_actioncomm`.`percent` >=0 and `llx_actioncomm`.`percent`<99";
+    $sql.=" union
+        select `llx_actioncomm`.`id`, `llx_actioncomm`.`percent`, `llx_actioncomm`.`code`, `llx_societe_action`.`dtChange`, `llx_user`.`lastname` from llx_actioncomm
+        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
+        left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`        
+        left join `llx_user` on `llx_user`.`rowid` = `llx_societe_action`.`id_usr`
+        where `llx_actioncomm`.new = 1
+        and `llx_actioncomm`.`active` = 1
+        and `llx_actioncomm_resources`.`fk_element` = ".$id_usr."
+        and `llx_societe_action`.`id_usr` <> ".$id_usr."
+        and `llx_societe_action`.`new` is null
         and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`
         and `llx_actioncomm`.`percent` >=0 and `llx_actioncomm`.`percent`<99";
     $sql.=" union
@@ -249,25 +262,28 @@ function getNewAcctions($id_usr){
             $actions[$obj->id] = array('id'=>$obj->id, 'code'=>$obj->code, 'mentor'=>0,'datec'=>$date->format('d.m H:i'), 'lastname'=>$obj->lastname, 'percent'=>$obj->percent);
         }
     }
-    //Завантажую коментарі наставника
-    $sql="select `llx_actioncomm`.`id` , `llx_actioncomm`.`code`, `llx_societe_action`.`dtChange`, `llx_actioncomm`.`fk_user_action`, `llx_actioncomm_resources`.`fk_element`, `llx_actioncomm`.fk_soc, `llx_user`.`lastname`  
+    if(count($actions)>0) {
+        //Завантажую коментарі наставника
+        $sql = "select `llx_actioncomm`.`id`, `llx_actioncomm`.`code`, `llx_societe_action`.`dtChange`, `llx_actioncomm`.`fk_user_action`, `llx_actioncomm_resources`.`fk_element`, `llx_actioncomm`.fk_soc, `llx_user`.`lastname`  
         from `llx_societe_action`
         inner join `llx_user` on `llx_user`.`rowid` = `llx_societe_action`.`id_mentor`
         inner join `llx_actioncomm` on `llx_societe_action`.`action_id`= `llx_actioncomm`.`id` 
         left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm`= `llx_actioncomm`.`id` 
         where 1
+        and `llx_actioncomm`.`id` in (".implode(',', array_keys($actions)).")
         and `llx_societe_action`.`new` = 1
         and `llx_societe_action`.`active` = 1";
 
-    $res = $db->query($sql);
-    if(!$res)
-        dol_print_error($db);
-    $societelist = array(0);
-    if($db->num_rows($res) > 0){
-        while($obj = $db->fetch_object($res)){
-            if($obj->fk_user_action == $id_usr || $obj->fk_element == $id_usr || in_societelist($id_usr, $obj->fk_soc)) {
-                $date = new DateTime($obj->dtChange);
-                $actions[$obj->id] = array('id' => $obj->id, 'code' => $obj->code, 'mentor' => 1, 'datec' => $date->format('d.m H:i'), 'lastname' => $obj->lastname, 'percent' => $obj->percent);
+        $res = $db->query($sql);
+        if (!$res)
+            dol_print_error($db);
+        $societelist = array(0);
+        if ($db->num_rows($res) > 0) {
+            while ($obj = $db->fetch_object($res)) {
+                if ($obj->fk_user_action == $id_usr || $obj->fk_element == $id_usr || in_societelist($id_usr, $obj->fk_soc)) {
+                    $date = new DateTime($obj->dtChange);
+                    $actions[$obj->id] = array('id' => $obj->id, 'code' => $obj->code, 'mentor' => 1, 'datec' => $date->format('d.m H:i'), 'lastname' => $obj->lastname, 'percent' => $obj->percent);
+                }
             }
         }
     }

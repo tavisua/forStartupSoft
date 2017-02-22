@@ -38,16 +38,32 @@ require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
 //var_dump($_REQUEST);
 //echo '</pre>';
 //die();
-
-if(isset($_POST['action'])&&$_POST['action'] == 'create' && isset($_POST['parent_id'])&&!empty($_POST['parent_id'])){
-	if(getActionStatus($_POST['parent_id'])=='100'){
-		llxHeader('', 'Помилка', '');
-		print_fiche_titre('Вже встановлено статус "Прийнято" для дії');
-		die('тому неможна створювати додаткову піддію чи планувати контакт');
+if(isset($_REQUEST['action'])&&$_REQUEST['action'] == 'edit'&&isset($_REQUEST['action_id'])&&in_array($_REQUEST['actioncode'], array('AC_GLOBAL','AC_GLOBAL'))) {//Редагування з дії глобальне/поточне
+	$_POST["backtopage"] = $_REQUEST["backtopage"];
+	$_POST["action"] = $_REQUEST["action"];
+	$_POST["mainmenu"] = $_REQUEST["mainmenu"];
+	$_POST["actioncode"] = $_REQUEST["actioncode"];
+	$_POST['id'] = $_REQUEST['action_id'];
+}
+if(isset($_REQUEST['action'])&&$_REQUEST['action'] == 'create' && isset($_REQUEST['parent_id'])&&!empty($_REQUEST['parent_id'])){
+	$chain_actions = array();
+	if(getActionStatus($_REQUEST['parent_id'])=='100' && in_array($_REQUEST["actioncode"], array('AC_GLOBAL','AC_CURRENT')) ){
+		//Перевіряю чи виконана первинна дія
+		$Action = new ActionComm($db);
+		$chain_actions = $Action->GetChainActions($_REQUEST['parent_id']);
+		if(count($chain_actions) && getActionStatus($chain_actions[0])=='100') {
+			llxHeader('', 'Помилка', '');
+			print_fiche_titre('Вже встановлено статус "Прийнято" для дії');
+			die('тому неможна створювати додаткову піддію чи планувати контакт');
+		}else{
+			$_REQUEST['parent_id'] = $chain_actions[0];
+		}
 	}
 	//Якщо активний користувач є замовником первинної дії - автоматично під'єдную виконавця дії
-	$Action = new ActionComm($db);
-	$chain_actions = $Action->GetChainActions($_POST['parent_id']);
+	if(!count($chain_actions)) {
+		$Action = new ActionComm($db);
+		$chain_actions = $Action->GetChainActions($_REQUEST['parent_id']);
+	}
 	$firstID = 0;
 	foreach($chain_actions as $item){
 		if($firstID == 0 || $firstID>$item)
@@ -61,10 +77,10 @@ if(isset($_POST['action'])&&$_POST['action'] == 'create' && isset($_POST['parent
 	if($db->num_rows($res)>0) {
 		$obj = $db->fetch_object($res);
 		$json = '{"'.$user->id.'":{"id":"'.$user->id.'","mandatory":0,"transparency":null},"'.$obj->fk_element.'":{"id":"'.$obj->fk_element.'","transparency":"on","mandatory":1}}';
-//		$_POST['assignedtouser']= $obj->fk_element;
-		$_POST['addassignedtouser'] = '1';
+//		$_REQUEST['assignedtouser']= $obj->fk_element;
+		$_REQUEST['addassignedtouser'] = '1';
 		$_SESSION['assignedtouser']=$json;
-//		var_dump($_POST['addassignedtouser']);
+//		var_dump($_REQUEST['addassignedtouser']);
 //		die();
 	}
 }
@@ -72,9 +88,9 @@ if(isset($_POST['action'])&&$_POST['action'] == 'create' && isset($_POST['parent
 if(isset($_GET['action'])&&$_GET['action'] == 'create' && isset($_GET['assignedUser'])&&!empty($_GET['assignedUser'])){
 //	$json = '{"'.$user->id.'":{"id":"'.$user->id.'","mandatory":0,"transparency":null},"6":{"id":"6","transparency":"on","mandatory":1},"6":{"id":"6","transparency":"on","mandatory":1}}';
 	$json = '{"'.$user->id.'":{"id":"'.$user->id.'","mandatory":0,"transparency":null},'.$_GET['assignedUser'].'}';
-//		$_POST['assignedtouser']= $obj->fk_element;
+//		$_REQUEST['assignedtouser']= $obj->fk_element;
 //	die($json);
-	$_POST['addassignedtouser'] = '1';
+	$_REQUEST['addassignedtouser'] = '1';
 	$_SESSION['assignedtouser']=$json;
 }
 
@@ -94,7 +110,10 @@ if($_GET['action']=='get_exectime'){
     exit();
 
 }elseif($_GET['action']=='getActionStatus'){
-	echo getActionStatus($_GET['action_id']);
+	if(!isset($_REQUEST['forAllGroup'])||$_REQUEST['forAllGroup'] == 'false')
+		echo getActionStatus($_GET['action_id']);
+	else
+		echo getGroupActionsStatus($_GET['action_id']);
 	exit();
 }elseif($_GET['action']=='validateDataAction'){
 	$Action = new ActionComm($db);
@@ -207,55 +226,67 @@ if($_GET['action']=='get_exectime'){
 	exit();
 
 }elseif($_GET['action']=='confirm_exec'){
-
-	$sql = 'select period, datep, datepreperform from `llx_actioncomm` where id='.$_GET['rowid'];
-	$res = $db->query($sql);
-	if(!$res){
-        dol_print_error($db);
-    }
-	$obj = $db->fetch_object($res);
-	if(!empty($obj->period)){//Створюю таке саме завдання через вказаний інтервал часу
-		$date = new DateTime($obj->datep);
-		$datepreperform = new DateTime($obj->datepreperform);
-		$mkDate = mktime('0','0','0',$date->format('m'),$date->format('d'),$date->format('Y'));
+	$actions = array($_REQUEST['rowid']);
+	if(isset($_REQUEST['forAllGroup'])&&$_REQUEST['forAllGroup']==true) {//Можливість підтверждення одночасно групи завдань
+		$Action = new ActionComm($db);
+		$actions = $Action->getGroupActions($_REQUEST['rowid']);
+	}
+//	die(implode(',',$actions));
+	foreach ($actions as $action_id) {
+		$sql = 'select period, datep, datepreperform from `llx_actioncomm` where id=' . $action_id;
+		$res = $db->query($sql);
+		if (!$res) {
+			dol_print_error($db);
+		}
+		$obj = $db->fetch_object($res);
+		if (!empty($obj->period)) {//Створюю таке саме завдання через вказаний інтервал часу
+			$date = new DateTime($obj->datep);
+			$datepreperform = new DateTime($obj->datepreperform);
+			$mkDate = mktime('0', '0', '0', $date->format('m'), $date->format('d'), $date->format('Y'));
 //		var_dump(date('d.m.Y',$mkDate));
-		switch($obj->period){
-			case 'EveryHalfYear':{
-				$newDate=mktime('0','0','0',6+(int)$date->format('m'),$date->format('d'),$date->format('Y'));
-				$newPreperform = mktime('0','0','0',6+(int)$datepreperform->format('m'),$datepreperform->format('d'),$datepreperform->format('Y'));
-			}break;
-			case 'EveryDay':{
-				$newDate=mktime('0','0','0',$date->format('m'),1+(int)$date->format('d'),$date->format('Y'));
-				$newPreperform = mktime('0','0','0',$datepreperform->format('m'),1+(int)$datepreperform->format('d'),$datepreperform->format('Y'));
+			switch ($obj->period) {
+				case 'EveryHalfYear': {
+					$newDate = mktime('0', '0', '0', 6 + (int)$date->format('m'), $date->format('d'), $date->format('Y'));
+					$newPreperform = mktime('0', '0', '0', 6 + (int)$datepreperform->format('m'), $datepreperform->format('d'), $datepreperform->format('Y'));
+				}
+					break;
+				case 'EveryDay': {
+					$newDate = mktime('0', '0', '0', $date->format('m'), 1 + (int)$date->format('d'), $date->format('Y'));
+					$newPreperform = mktime('0', '0', '0', $datepreperform->format('m'), 1 + (int)$datepreperform->format('d'), $datepreperform->format('Y'));
 //				var_dump(date('Y-m-d',$newDate));
 //				die();
-			}break;
-			case 'EveryWeek':{
-				$newDate=mktime('0','0','0',$date->format('m'),7+(int)$date->format('d'),$date->format('Y'));
-				$newPreperform = mktime('0','0','0',$datepreperform->format('m'),7+(int)$datepreperform->format('d'),$datepreperform->format('Y'));
-			}break;
-			case 'EveryMonth':{
-				$newDate=mktime('0','0','0',1+(int)$date->format('m'),$date->format('d'),$date->format('Y'));
-				$newPreperform = mktime('0','0','0',1+(int)$datepreperform->format('m'),$datepreperform->format('d'),$datepreperform->format('Y'));
-			}break;
-			case 'Quarterly':{
-				$newDate=mktime('0','0','0',3+(int)$date->format('m'),$date->format('d'),$date->format('Y'));
-				$newPreperform = mktime('0','0','0',3+(int)$datepreperform->format('m'),$datepreperform->format('d'),$datepreperform->format('Y'));
-			}break;
-			case 'Annually':{
-				$newDate=mktime('0','0','0',$date->format('m'),$date->format('d'),1+(int)$date->format('Y'));
-				$newPreperform = mktime('0','0','0',$datepreperform->format('m'),$datepreperform->format('d'),1+(int)$datepreperform->format('Y'));
-			}break;
-		}
-		$newAction = new ActionComm($db);
-		$newAction->fetch($_GET['rowid']);
-		$lengthOfTime = $newAction->datef-$newAction->datep;
-		$newAction->datep = $newDate;
-		$newAction->datef = $newDate+$lengthOfTime;
-		$newAction->datepreperform = $newPreperform;
-		$newAction->percentage = -1;
-		$newAction->datec = time();
-		$newAction->datem = null;
+				}
+					break;
+				case 'EveryWeek': {
+					$newDate = mktime('0', '0', '0', $date->format('m'), 7 + (int)$date->format('d'), $date->format('Y'));
+					$newPreperform = mktime('0', '0', '0', $datepreperform->format('m'), 7 + (int)$datepreperform->format('d'), $datepreperform->format('Y'));
+				}
+					break;
+				case 'EveryMonth': {
+					$newDate = mktime('0', '0', '0', 1 + (int)$date->format('m'), $date->format('d'), $date->format('Y'));
+					$newPreperform = mktime('0', '0', '0', 1 + (int)$datepreperform->format('m'), $datepreperform->format('d'), $datepreperform->format('Y'));
+				}
+					break;
+				case 'Quarterly': {
+					$newDate = mktime('0', '0', '0', 3 + (int)$date->format('m'), $date->format('d'), $date->format('Y'));
+					$newPreperform = mktime('0', '0', '0', 3 + (int)$datepreperform->format('m'), $datepreperform->format('d'), $datepreperform->format('Y'));
+				}
+					break;
+				case 'Annually': {
+					$newDate = mktime('0', '0', '0', $date->format('m'), $date->format('d'), 1 + (int)$date->format('Y'));
+					$newPreperform = mktime('0', '0', '0', $datepreperform->format('m'), $datepreperform->format('d'), 1 + (int)$datepreperform->format('Y'));
+				}
+					break;
+			}
+			$newAction = new ActionComm($db);
+			$newAction->fetch($action_id);
+			$lengthOfTime = $newAction->datef - $newAction->datep;
+			$newAction->datep = $newDate;
+			$newAction->datef = $newDate + $lengthOfTime;
+			$newAction->datepreperform = $newPreperform;
+			$newAction->percentage = -1;
+			$newAction->datec = time();
+			$newAction->datem = null;
 //		echo '<pre>';
 //		var_dump(date('Y-m-d H:i:s',$newDate));
 //		echo '</pre>';
@@ -265,42 +296,51 @@ if($_GET['action']=='get_exectime'){
 //		$date2->setTimestamp($newAction->datef);
 //		var_dump($date1->format('Y-m-d'), $date2->format('Y-m-d'));
 //		die();
-		$newAction->add($user);
-	}
-	//Завантажую всі наступні ІД
-	$newAction = new ActionComm($db);
-	$chain_actions = array($_GET['rowid']);
-	while($tmp_ID = $newAction->GetNextAction($chain_actions, 'id')){
-		$added = false;
-		foreach($tmp_ID as $item) {
-			if(!in_array($item, $chain_actions)) {
-				$added = true;
-				$chain_actions[] = $item;
-			}
+			$newAction->add($user);
 		}
-		if(!$added)
-			break;
+		//Завантажую всі піддії
+		$newAction = new ActionComm($db);
+		$chain_actions = array($action_id);
+		while ($tmp_ID = $newAction->GetNextAction($chain_actions, 'id')) {
+			$added = false;
+			foreach ($tmp_ID as $item) {
+				if (!in_array($item, $chain_actions)) {
+					$added = true;
+					$chain_actions[] = $item;
+				}
+			}
+			if (!$added)
+				break;
+		}
+		//Встановлення статусу виконано піддіям
+		$sql = 'update llx_actioncomm set dateSetExec = Now(), percent=100 where id in (' . implode(',', $chain_actions) . ')';
+//	die($sql);
+		$res = $db->query($sql);
+		if (!$res) {
+			dol_print_error($db);
+		}
+		//Встановлення статусу виконано дії
+		$sql = 'update llx_actioncomm set dateSetExec = Now(), percent=100 where id ='.$action_id;
+//	die($sql);
+//		print $sql .'<br>';
+		$res = $db->query($sql);
+		if (!$res) {
+			dol_print_error($db);
+		}
+		$sql = 'update llx_actioncomm, llx_actioncomm sub_action  set llx_actioncomm.dateSetExec = Now(), llx_actioncomm.percent=99, llx_actioncomm.new = 1 where sub_action.id=' . $action_id .
+			" and sub_action.fk_parent = llx_actioncomm.id and llx_actioncomm.fk_parent = 0";
+//	die($sql);
+		$res = $db->query($sql);
+		if (!$res) {
+			dol_print_error($db);
+		}
+		$sql = 'update `llx_orders` set status = 4
+			where rowid in (select fk_order_id from `llx_actioncomm` where `llx_actioncomm`.id=' . $action_id . ')';
+		$res = $db->query($sql);
+		if (!$res) {
+			dol_print_error($db);
+		}
 	}
-
-    $sql = 'update llx_actioncomm set dateSetExec = Now(), percent=100 where id in ('.implode(',', $chain_actions).')';
-//	die($sql);
-    $res = $db->query($sql);
-    if(!$res){
-        dol_print_error($db);
-    }
-	$sql = 'update llx_actioncomm, llx_actioncomm sub_action  set llx_actioncomm.dateSetExec = Now(), llx_actioncomm.percent=99, llx_actioncomm.new = 1 where sub_action.id='.$_GET['rowid'].
-	" and sub_action.fk_parent = llx_actioncomm.id and llx_actioncomm.fk_parent = 0";
-//	die($sql);
-    $res = $db->query($sql);
-    if(!$res){
-        dol_print_error($db);
-    }
-	$sql = 'update `llx_orders` set status = 4
-			where rowid in (select fk_order_id from `llx_actioncomm` where `llx_actioncomm`.id='.$_GET['rowid'].')';
-    $res = $db->query($sql);
-    if(!$res){
-        dol_print_error($db);
-    }
     exit();
 }elseif($_GET['action']=='showFreeTime'){
 	$Action = new ActionComm($db);
@@ -335,11 +375,12 @@ if($_GET['action']=='get_exectime'){
 //	var_dump($_GET);
 //	echo '</pre>';
 //	die('test');
+	date_default_timezone_set('Europe/Kiev');
 	global $user;
 	$Action = new ActionComm($db);
 	$date = new DateTime();
 	$date->setTimestamp(time());
-//	var_dump($date);
+//	var_dump($_GET['date']);
 //	die();
 	$freetime = $Action->GetFreeTime($_GET['date'], $_GET['id_usr'], $_GET['minute'], $_GET['priority']);
 	echo $freetime;
@@ -482,7 +523,7 @@ if (GETPOST('removedassigned') || GETPOST('removedassigned') == '0')
 	{
 		if ($val['id'] == $idtoremove || $val['id'] == -1) unset($tmpassigneduserids[$key]);
 	}
-	//var_dump($_POST['removedassigned']);exit;
+	//var_dump($_REQUEST['removedassigned']);exit;
 	$_SESSION['assignedtouser']=dol_json_encode($tmpassigneduserids);
 	$donotclearsession=1;
 	if ($action == 'add') $action = 'create';
@@ -550,7 +591,7 @@ if ($action == 'add')
 //        else $backtopage=DOL_URL_ROOT.'/comm/action/index.php';
 //    }
 //	echo '<pre>';
-//	var_dump($_POST);
+//	var_dump($_REQUEST);
 //	echo '</pre>';
 //	die();
     if ($contactid)
@@ -637,7 +678,7 @@ if ($action == 'add')
 			}
 		}
 
-		$object->fk_project = isset($_POST["projectid"])?$_POST["projectid"]:0;
+		$object->fk_project = isset($_REQUEST["projectid"])?$_REQUEST["projectid"]:0;
 		$object->datep = $datep;
 		$object->datef = $datef;
 		$object->datepreperform = $dateprep;
@@ -674,21 +715,21 @@ if ($action == 'add')
 		if (GETPOST("doneby") > 0) $object->userdoneid = GETPOST("doneby","int");
 	}
 
-	$object->note = trim($_POST["note"]);
-	$object->confirmdoc = trim($_POST["confirmdoc"]);
-	if(isset($_POST["typeaction"]) && $_POST["typeaction"] == 'subaction')
+	$object->note = trim($_REQUEST["note"]);
+	$object->confirmdoc = trim($_REQUEST["confirmdoc"]);
+	if(isset($_REQUEST["typeaction"]) && $_REQUEST["typeaction"] == 'subaction')
 		$object->entity = 0;
-	if (isset($_POST["contactid"])) $object->contact = $contact;
+	if (isset($_REQUEST["contactid"])) $object->contact = $contact;
 
 	if (GETPOST('socid','int') > 0)
 	{
 		$object->socid=GETPOST('socid','int');
 		$object->fetch_thirdparty();
         $object->contactid = GETPOST("contactid", 'int');
-//        if(count($_POST)) {
+//        if(count($_REQUEST)) {
 //            echo '<pre>';
 //            var_dump(GETPOST("contactid", 'int'));
-//            var_dump($_POST);
+//            var_dump($_REQUEST);
 //            echo '</pre>';
 //            die('test');
 //        }
@@ -754,10 +795,10 @@ if ($action == 'add')
 			$subaction->id=null;
 			$subaction->parent_id = $idaction;
 			$subaction->percentage = 0;
-			$subaction->datep=dol_mktime($_POST["dateNextActionhour"], $_POST["dateNextActionmin"], 0, $_POST["dateNextActionmonth"], $_POST["dateNextActionday"], $_POST["dateNextActionyear"]);
-			$subaction->datef=$subaction->datep+$_POST["exec_time_dateNextAction"]*60;
+			$subaction->datep=dol_mktime($_REQUEST["dateNextActionhour"], $_REQUEST["dateNextActionmin"], 0, $_REQUEST["dateNextActionmonth"], $_REQUEST["dateNextActionday"], $_REQUEST["dateNextActionyear"]);
+			$subaction->datef=$subaction->datep+$_REQUEST["exec_time_dateNextAction"]*60;
 			$subaction->entity = 0;
-			$subaction->note = $_POST["work_before_the_next_action"];
+			$subaction->note = $_REQUEST["work_before_the_next_action"];
 			$dateconfirm = new DateTime();
 			$subaction->dateconfirm = $dateconfirm->format('Y-m-d H:i:s');
 			$subaction->add($user);
@@ -770,7 +811,7 @@ if ($action == 'add')
 			if (! $object->error)
 			{
 				unset($_SESSION['assignedtouser']);
-				unset($_POST['assignedJSON']);
+				unset($_REQUEST['assignedJSON']);
 				unset($_REQUEST['assignedJSON']);
 				$moreparam='';
 				if ($user->id != $object->ownerid) $moreparam="usertodo=-1";	// We force to remove filter so created record is visible when going back to per user view.
@@ -857,9 +898,9 @@ if ($action == 'update')
 		$object->fetch($id);
 		$object->fetch_userassigned();
 
-		$datep=dol_mktime($fulldayevent?'00':$aphour, $fulldayevent?'00':$apmin, 0, $_POST["apmonth"], $_POST["apday"], $_POST["apyear"]);
-		$datef=dol_mktime($fulldayevent?'23':$p2hour, $fulldayevent?'59':$p2min, $fulldayevent?'59':'0', $_POST["apmonth"], $_POST["apday"], $_POST["apyear"]);
-//		$datef=dol_mktime($fulldayevent?'23':$p2hour, $fulldayevent?'59':$p2min, $fulldayevent?'59':'0', $_POST["p2month"], $_POST["p2day"], $_POST["p2year"]);
+		$datep=dol_mktime($fulldayevent?'00':$aphour, $fulldayevent?'00':$apmin, 0, $_REQUEST["apmonth"], $_REQUEST["apday"], $_REQUEST["apyear"]);
+		$datef=dol_mktime($fulldayevent?'23':$p2hour, $fulldayevent?'59':$p2min, $fulldayevent?'59':'0', $_REQUEST["apmonth"], $_REQUEST["apday"], $_REQUEST["apyear"]);
+//		$datef=dol_mktime($fulldayevent?'23':$p2hour, $fulldayevent?'59':$p2min, $fulldayevent?'59':'0', $_REQUEST["p2month"], $_REQUEST["p2day"], $_REQUEST["p2year"]);
 
 		$object->fk_action   = dol_getIdFromCode($db, GETPOST("actioncode"), 'c_actioncomm');
 		$object->label       = GETPOST("label");
@@ -880,8 +921,8 @@ if ($action == 'update')
 
         $object->contactid   = GETPOST("contactid",'int');
 
-		//$object->societe->id = $_POST["socid"];			// deprecated
-		//$object->contact->id = $_POST["contactid"];		// deprecated
+		//$object->societe->id = $_REQUEST["socid"];			// deprecated
+		//$object->contact->id = $_REQUEST["contactid"];		// deprecated
 		$object->fk_project  = GETPOST("projectid",'int');
 		$object->note        = GETPOST("note");
 		$object->pnote       = GETPOST("note");
@@ -1247,7 +1288,7 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 	}
 	print $form->select_dolusers_forevent(($action=='create'?'add':'update'), 'assignedtouser', 1, '', 0, '', '', 0, 0, 0, 'AND u.statut != 0', 0, 1, 1);
 
-//	if (in_array($user->id,array_keys($listofuserid))) print $langs->trans("MyAvailability").': <input id="transparency" type="checkbox" name="transparency"'.(((! isset($_GET['transparency']) && ! isset($_POST['transparency'])) || GETPOST('transparency'))?' checked="checked"':'').'> '.$langs->trans("Busy");
+//	if (in_array($user->id,array_keys($listofuserid))) print $langs->trans("MyAvailability").': <input id="transparency" type="checkbox" name="transparency"'.(((! isset($_GET['transparency']) && ! isset($_REQUEST['transparency'])) || GETPOST('transparency'))?' checked="checked"':'').'> '.$langs->trans("Busy");
 	print '</td></tr>';
     // Full day
     print '<tr style="display: none"><td>'.$langs->trans("EventOnFullDay").'</td><td><input type="checkbox" id="fullday" name="fullday" '.(GETPOST('fullday')?' checked="checked"':'').'></td></tr>';
@@ -1306,7 +1347,7 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 			dol_print_error($db);
 		$obj = $db->fetch_object($res);
 //		echo '<pre>';
-//		var_dump($_POST);
+//		var_dump($_REQUEST);
 //		echo '</pre>';
 //		die();
 
@@ -1315,7 +1356,7 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 		$datepreperform = new DateTime($obj->datepreperform);
 		$newAction = new ActionComm($db);
 		$period = '';
-		if(!isset($_POST['typeaction'])||$_POST['typeaction']!='subaction')
+		if(!isset($_REQUEST['typeaction'])||$_REQUEST['typeaction']!='subaction')
         	$period = $obj->period;
 //var_dump($period);
 //		die();
@@ -1471,8 +1512,8 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 	print '<tr style="display: none"><td width="10%">'.$langs->trans("Status").'</td>';
 	print '<td>';
 	$percent=-1;
-	if (isset($_GET['status']) || isset($_POST['status'])) $percent=GETPOST('status');
-	else if (isset($_GET['percentage']) || isset($_POST['percentage'])) $percent=GETPOST('percentage');
+	if (isset($_GET['status']) || isset($_REQUEST['status'])) $percent=GETPOST('status');
+	else if (isset($_GET['percentage']) || isset($_REQUEST['percentage'])) $percent=GETPOST('percentage');
 	else
 	{
 		if (GETPOST('complete') == '0' || GETPOST("afaire") == 1) $percent='0';
@@ -2170,7 +2211,7 @@ if ($id > 0)
 //			print '<br><br><table class="border" width="100%">';
 //			foreach($extrafields->attribute_label as $key=>$label)
 //			{
-//				$value=(isset($_POST["options_".$key])?$_POST["options_".$key]:(isset($object->array_options['options_'.$key])?$object->array_options['options_'.$key]:''));
+//				$value=(isset($_REQUEST["options_".$key])?$_REQUEST["options_".$key]:(isset($object->array_options['options_'.$key])?$object->array_options['options_'.$key]:''));
 //				print '<tr><td width="30%">'.$label.'</td><td>';
 //				print $extrafields->showOutputField($key,$value);
 //				print "</td></tr>\n";
@@ -2458,7 +2499,6 @@ print '
 							$("#exec_time_dateNextAction").val(html);
 						var hour = '.date('H').';
 						var min = '.date('i').';
-						console.log('.date().');						
 						if(hour<10)
 							hour = "0"+hour;
 						if(min<10)
@@ -2582,6 +2622,17 @@ function getActionCount($datep){
 
 	return '<span id="ActionsCount" style="color: '.$color.'; font-size:'.$font_size.'; font-weight: bold">'.$obj->iCount.'</span>';
 }
+
+function getGroupActionsStatus($action_id){
+	$actions = getGroupActions($action_id);
+	global $db;
+	$sql = "select min(percent) as percent from llx_actioncomm where id in(".implode(',',$actions).")";
+	$res = $db->query($sql);
+	if(!$res)
+		dol_print_error($db);
+	$obj = $db->fetch_object($res);
+	return $obj->percent;	
+}
 function getActionStatus($action_id){
 	global $db;
 	$sql = "select percent from llx_actioncomm where id = ".$action_id;
@@ -2601,17 +2652,19 @@ function getUsersByRespon($respon, $addParam='')
 		and `responsibility`.active = 1
 		and `llx_user`.`active`= 1
 		and `llx_user`.`statut`= 1
-		and (`responsibility`.`alias`='" .$respon . "' or res2.`alias`='" .$respon . "')
-		order by lastname, firstname";
+		and (`responsibility`.`alias`='" .$respon . "' or res2.`alias`='" .$respon . "')";
 	switch($addParam){
 		case 'regions':{
 			$sql.=" and subdiv_id in (2,3,4,5,6,7,8,9,10,11,12,13,14,15)";
 		}break;
 	}
-//	echo '<pre>';
-//	var_dump($sql);
-//	echo '</pre>';
-//	die();
+	$sql.=" order by lastname, firstname";
+//	if($addParam =='regions') {
+//		echo '<pre>';
+//		var_dump($sql);
+//		echo '</pre>';
+//		die();
+//	}
 	$res = $db->query($sql);
 	$rowidList = array();
 	while ($obj = $db->fetch_object($res)) {

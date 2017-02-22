@@ -116,6 +116,13 @@
     <input type="hidden" value="<?=$actioncode?>" id="redirect_actioncode" name="actioncode">
     <input type="hidden" name="action" value="edit" id="edit_action">
 </form>
+<div id="confirm-container" style="display: none; position: absolute; left: 150px; top: 150px; z-index: 10;">
+    <div id="question" style="font-weight: bold"></div>
+    <label><input id="forAllGroup" type="checkbox" value="false">  Застосувати до всієї групи завдань</label>
+    <br>
+    <input type="submit" value="&nbsp;&nbsp;&nbsp;Ок&nbsp;&nbsp;&nbsp;" onclick="setConfirm();">
+    <input type="button" name="cancel" onclick="CloseConfirmForm();" value="Відмина">
+</div>
 <style>
     #reference_body td{
         font-size: 12px;
@@ -124,9 +131,61 @@
         width: 65%;
         height: 90px;
     }
+    #confirm-container {
+        display: inline-block;
+        padding: 5px 5px 5px 5px;
+        border: 1px solid black;
+        background: white;
+        vertical-align: middle;
+        border-radius: 5px;
+    }
 </style>
 <script>
+    function setConfirm() {
+        $('#confirm-container').hide();
+        var param = {
+            "action":"getActionStatus",
+            "action_id":getParameterByName('action_id'),
+            "forAllGroup":$('#forAllGroup').attr('checked')=='checked'
+            }
+        $.ajax({
+            url:'/dolibarr/htdocs/comm/action/card.php',
+            data:param,
+            cashe:false,
+            success:function(result) {
+                if (result == '100') {
+                    alert('Вже встановлено статус дії "Прийнято"');
+                    window.close();
+                    return;
+                }
+                var link = "http://" + location.hostname + "/dolibarr/htdocs/comm/action/card.php?action=confirm_exec&rowid="+ getParameterByName('action_id')+'&forAllGroup='+($('#forAllGroup').attr('checked')=='checked'?'true':'false');
+//                console.log(link);
+//                return;
+                $.ajax({
+                    url: link,
+                    cache: false,
+                    success: function (html) {
+//                        window.close();
+                        console.log(html, 'confirm_exec');
+                        var mainmenu = getParameterByName('mainmenu');
+                        return;
+                        if (mainmenu == 'global_task')
+                            location.href = '/dolibarr/htdocs/global_plan.php?idmenu=10421&mainmenu=global_task&leftmenu=';
+                        else if (mainmenu == 'current_task')
+                            location.href = '/dolibarr/htdocs/current_plan.php?idmenu=10423&mainmenu=current_task&leftmenu=';
+                    }
+                })
+            }
+        })
+        $('#forAllGroup').val(false);
+    }
+    function CloseConfirmForm() {
+        $('#confirm-container').hide();
+        $('#forAllGroup').val(false);
+        return {"result":"false"};
+    }
     $(document).ready(function (e) {
+        $('#confirm-container').hide();
         var param = {
             action: 'get_subactiontype',
             action_id:'<?=$_REQUEST['action_id']?>'
@@ -142,7 +201,7 @@
 //                    alert('Оновіть будь ласка сторінку');
 //                    return;
 //                }
-
+                console.log(json);
                 var res = $.parseJSON(json);
 
                 switch (res['subaction']) {
@@ -390,33 +449,7 @@
     function setExecutedAction(id){
 //        ConfirmExec(id);
 //        return;
-        $.ajax({
-            url:'/dolibarr/htdocs/comm/action/card.php?action=getActionStatus&action_id='+getParameterByName('action_id'),
-            cashe:false,
-            success:function(result) {
-                if (result == '100') {
-                    alert('Вже встановлено статус дії "Прийнято"');
-                    return;
-                }
-                if(confirm('Установити відмітку про виконання роботи?')) {
-                    var link = "http://" + location.hostname + "/dolibarr/htdocs/comm/action/card.php?action=confirm_exec&rowid=" + id;
-                    $.ajax({
-                        url: link,
-                        cache: false,
-                        success: function (html) {
-                            console.log(html, 'confirm_exec');
-                            var mainmenu = getParameterByName('mainmenu');
-                            if (mainmenu == 'global_task')
-                                location.href = '/dolibarr/htdocs/global_plan.php?idmenu=10421&mainmenu=global_task&leftmenu=';
-                            else if (mainmenu == 'current_task')
-                                location.href = '/dolibarr/htdocs/current_plan.php?idmenu=10423&mainmenu=current_task&leftmenu=';
-                        }
-                    })
-
-                }
-            }
-        })
-
+        ConfirmForm('Установити відмітку про виконання роботи?');
     }
     function DelResultAction(rowid){
         if(confirm('Видалити запис?')) {

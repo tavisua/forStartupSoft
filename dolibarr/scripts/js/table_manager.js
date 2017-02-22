@@ -1641,6 +1641,12 @@ function EditOnlyResult(rowid, answer_id, actioncode){
         $('#redirect').submit();
     }
 }
+function ConfirmForm(question){
+    $('#confirm-container').style = $('#popupmenu').style;
+    $('#question').html(question);
+    $('#confirm-container').position(50,100);
+    $('#confirm-container').show();
+}
 function EditAction(rowid, answer_id, actioncode){
     //console.log(rowid, actioncode == 'AC_GLOBAL' || actioncode == 'AC_CURRENT');
     //alert(rowid, actioncode);
@@ -1669,11 +1675,13 @@ function EditAction(rowid, answer_id, actioncode){
             $('#id').val(rowid);
     }
 
-    if(actioncode == 'AC_GLOBAL' || actioncode == 'AC_CURRENT') {
+    if(actioncode == 'AC_GLOBAL' || actioncode == 'AC_GLOBAL') {
         if($('#edit_action').length>0)
             $('#edit_action').val('edit');
         else if($('#action').length>0)
             $('#action').val('edit');
+        $('#redirect').attr('action', '/dolibarr/htdocs/comm/action/card.php');
+        $('input#action_id').attr('id', 'id');
     }else {
         $('#edit_action').val('');
     }
@@ -1848,19 +1856,33 @@ function GetGroupOfTask(id_usr){
     })
 }
 function AutoRefreshPage(){
-    console.log('checked', $('#autorefresh').attr('checked') == 'checked');
-    //alert('test');
+    // console.log('window.filterdatas', window.filterdatas);
+    // alert('test');
     if($('#autorefresh').attr('checked') == 'checked') {
-
+        var filterdatas = '';
         //console.log('test');
-
-        var searchString = location.search.substr(1).split('&');
+        if(window.filterdatas != null){
+            filterdatas = '{ ';
+            $.each(window.filterdatas, function (key, value) {
+                if(filterdatas.trim().length > 1)
+                    filterdatas+=', ';
+                filterdatas+='"'+key+'": '+value;
+            })
+            filterdatas+='}';
+            // alert(filterdatas);
+        }
+        var searchString = location.search;
+        searchString = searchString.substr(1).split('&');
         var searchParam = {};
         $.each(searchString, function (index, value) {
             searchParam[value.substr(0, strpos(value, '='))] = value.substr(strpos(value, '=') + 1);
             //console.log(value.substr(strpos(value, '=')+1), strpos(value, '='));
         })
-        //console.log($('#autorefresh').attr('checked'));
+        if(filterdatas.trim().length > 1){
+            searchParam['filterdatas'] =  filterdatas;
+        }
+        // console.log(searchParam);
+        // alert('searchParam');
         if($('#autorefresh').attr('checked') === 'checked')
             searchParam['autorefresh'] = 1;
         else
@@ -2014,8 +2036,8 @@ function setParam(name,value){
     //})
     //location = location.pathname+searchString;
     var datas = {};
-    if(window.filterdates != null)
-        $.each(window.filterdates, function(index, value){
+    if(window.filterdatas != null)
+        $.each(window.filterdatas, function(index, value){
             datas[index]=value;
         });
     datas[name]=value;

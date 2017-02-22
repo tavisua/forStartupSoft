@@ -41,16 +41,18 @@ if($action == 'check'){
 if($action == 'sendmail'){
     set_time_limit(0);
     $out = array();
-    $sql = "select titre,body,postlist, responsibility from llx_mailing where rowid = ".$_REQUEST['id'];
-    $res = $db->query($sql);
-    if(!$res)
-        dol_print_error($db);
-    $mess = $db->fetch_object($res);
-    $subject =  $mess->titre;
-    $msgishtml = $mess->body;
+    if(isset($_REQUEST['id'])&&!empty($_REQUEST['id'])) {
+        $sql = "select titre,body,postlist, responsibility from llx_mailing where rowid = " . $_REQUEST['id'];
+        $res = $db->query($sql);
+        if (!$res)
+            dol_print_error($db);
+        $mess = $db->fetch_object($res);
+        $subject = $mess->titre;
+        $msgishtml = $mess->body;
 //    $out['subject'] = $subject;
 //    $out['mesg'] = $msgishtml;
-    $mesg = $mess->body;
+        $mesg = $mess->body;
+    }
 //    $msgishtml='';
     $conf->notification->email_from=$conf->mailing->email_from;
     switch ($_REQUEST['type']){
@@ -119,7 +121,24 @@ if($action == 'sendmail'){
 ////            $smtp->send();
         }break;
         case 'sendmails':{
-            AutoSendMail($_REQUEST['id']);
+            $mail_id = array();
+            if(isset($_REQUEST['id'])&&!empty($_REQUEST['id']))
+                $mail_id[]=$_REQUEST['id'];
+            else{
+                global $db;
+                $sql = "select rowid from llx_mailing where 1 and statut=1 and date_send is null and date_valid is not null";
+                $res = $db->query($sql);
+                if(!$res)
+                    return 0;
+                else{
+                    while($obj = $db->fetch_object($res)){
+                        $mail_id[] = $obj->rowid;
+                    }
+                }
+            }
+            foreach ($mail_id as $rowid) {
+                AutoSendMail($rowid);
+            }
         }break;
         case 'prepared_sendmail':{
             define("NOLOGIN",1);// This means this output page does not require to be logged.
@@ -378,10 +397,11 @@ function PreparedEmailList($mess, $states_id = array()){
     return array('societelist'=>$societelist, 'emaillist'=>$emaillist);
 }
 function AutoSendMail($rowid){
-
 //    $string = array('name'=>"%C2%B3%EA%F2%EE%F0");
 //
 //    die(http_build_url($string, 'flags_'));
+    if($rowid == 0)
+        return 1;
     global $db,$langs,$user,$conf;
     $sql = "select titre,body, postlist, responsibility from llx_mailing where rowid = ".$rowid;
     $res = $db->query($sql);
@@ -400,7 +420,7 @@ function AutoSendMail($rowid){
     if(!$res)
         dol_print_error($db);
     while($obj = $db->fetch_object($res)){
-        $postedlist[]=trim($obj->email);
+        $postedlist[]=strtolower(trim($obj->email));
     }
     $sql = "select llx_societe.state_id, socid, email1, email2 from `llx_societe_contact`
             left join llx_societe on llx_societe.rowid = `llx_societe_contact`.socid
@@ -467,7 +487,7 @@ function AutoSendMail($rowid){
     foreach ($emaillist as $key=>$value){
         foreach ($value as $item) {
 //            $item = 'ahrozahidrv@gmail.com';
-            if(!in_array($item, $postedlist)) {
+            if(!in_array(strtolower(trim($item)), $postedlist)) {
                 $sql = "insert into `llx_mailing_cibles`(fk_mailing,email,date_envoi) values(" . $rowid . ",'" . $item . "',now())";
                 $res = $db->query($sql);
                 if (!$res) {
@@ -485,6 +505,7 @@ function AutoSendMail($rowid){
                     }else{
                         $num++;
                         if($num == 50){
+                            set_time_limit(0);
                             $num=0;
                             sleep(6);
                         }
@@ -523,11 +544,11 @@ function MailingList(){
         $out.='<td id="titre_'.$obj->rowid.'" style="min-width:180px" class="middle_size">'.mb_substr($obj->titre,0,25,'UTF-8').(mb_strlen($obj->titre, 'UTF-8')>25?'...':'').'</td>';
         $out.='<td id="fulltitre_'.$obj->rowid.'" style="display:none">'.(mb_strlen($obj->titre, 'UTF-8')>25?$obj->titre:'').'</td>';
         $out.='<td id="body_'.$obj->rowid.'" style="display: none"  class="middle_size">'.htmlspecialchars($obj->body).'</td>';
-        $out.='<td style="min-width:121px" class="middle_size">'.$date_creat->format('d.m.y h:i').'</td>';
+        $out.='<td style="min-width:121px" class="middle_size">'.$date_creat->format('d.m.y H:i').'</td>';
         $date_valid = new DateTime($obj->date_valid);
-        $out.='<td style="min-width:121px" class="middle_size">'.(!empty($obj->date_valid)?$date_valid->format('d.m.y h:i'):'&nbsp;&nbsp;&nbsp;').'</td>';
+        $out.='<td style="min-width:121px" class="middle_size">'.(!empty($obj->date_valid)?$date_valid->format('d.m.y H:i'):'&nbsp;&nbsp;&nbsp;').'</td>';
         $date_send = new DateTime($obj->date_send);
-        $out.='<td style="min-width:121px" class="middle_size">'.(!empty($obj->date_send)?$date_send->format('d.m.y h:i'):'&nbsp;&nbsp;&nbsp;').'</td>';
+        $out.='<td style="min-width:121px" class="middle_size">'.(!empty($obj->date_send)?$date_send->format('d.m.y H:i'):'&nbsp;&nbsp;&nbsp;').'</td>';
         //Action
         $out.='<td style="min-width:51px">
                 <img onclick="Preview($(this))" rowid="'.$obj->rowid.'" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Preview') . '" src="/dolibarr/htdocs/theme/eldy/img/preview.png">';

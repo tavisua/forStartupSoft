@@ -31,6 +31,47 @@ require '../main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/usergroups.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+if(isset($_REQUEST['action']) && $_REQUEST['action']=='resetexecuter'){
+    global $db;
+    $sql = "select rowid from llx_societe
+        where region_id in
+          (select fk_id from llx_user_regions
+            where fk_user = ".$_REQUEST['id_usr']."
+            and active = 1)
+        and active = 1";
+    $res = $db->query($sql);
+    if(!$res) {
+        print '{result:"error", info:"'.$db->lasterror().'"}';
+        exit();
+    }
+    $societe_id = array();
+    while ($obj = $db->fetch_object($res)){
+        $societe_id[]=$obj->rowid;
+    }
+    $sql = "select `llx_actioncomm`.id, `llx_actioncomm`.fk_user_action, `llx_actioncomm`.fk_user_author, `llx_actioncomm_resources`.rowid, `llx_actioncomm_resources`.`fk_element`
+        from llx_actioncomm 
+        left join `llx_actioncomm_resources` on `llx_actioncomm`.`id` =  `llx_actioncomm_resources`.`fk_actioncomm`
+        where fk_soc in (".implode(',', $societe_id).") and active = 1 and percent <> 100
+        and code <> 'AC_OTH_AUTO'";
+    $res = $db->query($sql);
+    if(!$res) {
+        print '{"result":"error", info:"'.$db->lasterror().'"}';
+        exit();
+    }
+    while($obj = $db->fetch_object($res)){
+        if(empty($obj->fk_element))
+            $sql = "update llx_actioncomm set fk_user_action = ".$_REQUEST['id_usr']." where id = ".$obj->id;
+        else
+            $sql = "update llx_actioncomm_resources set fk_element = ".$_REQUEST['id_usr']." where rowid = ".$obj->rowid;
+        $up_res = $db->query($sql);
+        if(!$up_res) {
+            print '{"result":"error", info:"'.$db->lasterror().'"}';
+            exit();
+        }
+    }
+    print '{"result":"ok"}';
+    exit();
+}
 if(isset($_REQUEST['switch_active'])){
     global $user;
 
@@ -202,7 +243,7 @@ for($i=0; $i<$db->num_rows($res); $i++){
 $filter_selector .='</select></form>';
 
 print '<div>&nbsp;</div>';
-print '<div class="liste_titre"><table><td id="filtercol0" style="color: #ffffff">Фильтр</td><td id="filtercol1">'.$filter_selector.'</td><td id="filtercol2">&nbsp;</td></table></div>';
+print '<div class="liste_titre"><table><td id="filtercol0" style="color: #ffffff">Фильтр</td><td id="filtercol1">'.$filter_selector.'</td><td id="filtercol2"><button onclick = "ReSetExecuter('.$_REQUEST['id'].');" title="Перезакріпити завдання, що пов&#39;язані з прикріпленими районами">Перезакріпити завдання</button></td></table></div>';
 print '<div class="reference_without_control">
     '.$table.'
 </div>';
@@ -231,6 +272,23 @@ print'
         $("#reference_body").html(html);
 //        console.log(html);
     });
+    function ReSetExecuter(id_usr){
+        if(confirm("Перезакріпити завдання?")){
+            var param = {id_usr:id_usr, action:"resetexecuter"}
+            $.ajax({
+                data:param,
+                cache:false,
+                success:function(result){
+                    var result = JSON.parse(result);
+                    if(result["result"] == "ok")
+                        alert("Виконано успішно");
+                    else
+                        alert("Перезакріплення не виконано. Зверніться до адміністратора");                    
+//                    console.log(result["result"]);
+                }
+            })
+        }
+    }    
     function switch_change(rowid, tablename, active){
         var img = $("#img"+rowid+"active")
         var end = strpos(img.attr("src"), "/img/");

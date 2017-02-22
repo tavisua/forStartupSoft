@@ -210,10 +210,52 @@ class ActionComm extends CommonObject
 //        die();
         return $result[$name];
     }
+function getGroupActions($action_id){
+    $actions = array($action_id);
+    global $db;
+    $sql = "select fk_user_author,note from llx_actioncomm where id = ".$action_id;
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $obj = $db->fetch_object($res);
+    $id_usr = $obj->fk_user_author;
+    $task = $obj->note;
+    $direction = array(-1,1);
+    foreach ($direction as $item) {
+        $tmp_id = $action_id+$item;
+        $result = true;
+        while ($result) {
+            $sql = "select fk_user_author,note from llx_actioncomm where id = " . $tmp_id.' and active = 1';
+            $res = $db->query($sql);
+            if (!$res)
+                dol_print_error($db);
+            $obj = $db->fetch_object($res);
+            $result = ($id_usr == $obj->fk_user_author && $task == $obj->note);
+            if ($result) {
+                $actions[] = $tmp_id;
+                $tmp_id=$tmp_id+$item;
+            }
+        }
+    }
+    return $actions;
+}    
+    function GetFutureActionDate($action_id){
+        $last_actionID = max($this->GetChainActions($action_id));
+        global $db;
+        $sql = "select datep2 from llx_actioncomm where id = ".$last_actionID;
+        $res = $db->query($sql);
+        if(!$res)
+            $db->lasterror();
+        $obj = $db->fetch_object($res);
+        if(!empty($obj->datep2)) {
+            $date = new DateTime($obj->datep2);
+            return $date->format('Y.m.d H:i:s');
+        }else
+            return 'null';
+    }
     function GetChainActions($action_id){
         if(empty($action_id))
             return array(0);
-        global $db;
         $chain_actions = array();
         $chain_actions[]=$action_id;
         //Завантажую всі батьківські ІД
@@ -352,11 +394,10 @@ class ActionComm extends CommonObject
             $starttime = $inputdate.":00";
         $date = new DateTime($inputdate);
 
-
         $PlanTime = 0;
         while(!$PlanTime) {
             if($date->format('w')>0 && $date->format('w')<6)
-                $PlanTime = $this->GetFirstFreeTime($date->format('Y-m-d'), $id_usr, $minutes, $prioritet, $starttime);
+                $PlanTime = $this->GetFirstFreeTime($date->format('Y-m-d H:i'), $id_usr, $minutes, $prioritet, $starttime);
             $date = new DateTime(date('Y-m-d', mktime(8,0,0,$date->format('m'),$date->format('d'),$date->format('Y'))+ 86400));
         }
 //        var_dump($PlanTime);
@@ -367,7 +408,7 @@ class ActionComm extends CommonObject
         $freetime = $this->GetFreeTimePeriod($date, $id_usr, $prioritet);
         $date = new DateTime($date);
 //        echo '<pre>';
-//        var_dump($freetime, $id_usr);
+//        var_dump($freetime);
 //        echo '</pre>';
 //        die();
         if(empty($starttime))
@@ -384,10 +425,6 @@ class ActionComm extends CommonObject
         $num = 0;
         foreach($freetime as $period){
 
-//        echo '<pre>';
-//        var_dump($period);
-//        echo '</pre>';
-//        die();
             $num++;
             $nexttime = 0;
             if(isset($freetime[$num])){
@@ -426,8 +463,20 @@ class ActionComm extends CommonObject
 //                    die($period[2] . ' 14:00:00');
                     return $period[2] . ' 14:00:00';
                 }
-            }
-            elseif($dtDate->format('H')>=14){
+            }elseif($minutes<=$period[1]) {
+                $tmp_date = new DateTime($period[2].' '.$period[0]);
+
+                $mk_tmp_date = dol_mktime($tmp_date->format('H'),$tmp_date->format('i'),$tmp_date->format('s'),$tmp_date->format('m'),$tmp_date->format('d'),$tmp_date->format('Y'));
+                $mk_endperiod = $mk_tmp_date+$period[1]*60;
+
+                //Час початку наступного вільного періоду
+                $next_period = $freetime[$num];
+                $next_date = new DateTime($next_period[2].' '.$next_period[0]);
+                $mk_next_date = dol_mktime($next_date->format('H'),$next_date->format('i'),$next_date->format('s'),$next_date->format('m'),$next_date->format('d'),$next_date->format('Y'));
+                if($mk_tmp_date<=$starttime&&$mk_next_date>$starttime&&($starttime+$minutes*60)<=$mk_endperiod){
+                    return date('Y-m-d H:i:s', $starttime);
+                }
+            }elseif($dtDate->format('H')>=14){
                 $tmp_date = new DateTime($period[2].' '.$period[0]);
                 $mk_tmp_date = dol_mktime($tmp_date->format('H'),$tmp_date->format('i'),$tmp_date->format('s'),$tmp_date->format('m'),$tmp_date->format('d'),$tmp_date->format('Y'));
 //                var_dump(date('Y-m-d H:i:s', $mk_tmp_date));
@@ -462,7 +511,7 @@ class ActionComm extends CommonObject
         }
 //        var_dump($itemDate, $dtDate, $date);
 //        die();
-        if($minutes<=$period[1] && $itemDate < $starttime && $dtDate->format('H')>=8 && $dtDate->format('H')<=18 && $dtDate->format('Y-m-d') == $date->format('Y-m-d')) {
+        if($minutes<=$period[1] && $itemDate < $starttime &&!empty($dtDate)&&$dtDate->format('H')>=8 && $dtDate->format('H')<=18 && $dtDate->format('Y-m-d') == $date->format('Y-m-d')) {
 //            var_dump(date('Y-m-d H:i:s', $starttime));
 //            die('test');
             return date('Y-m-d H:i:s', $starttime);
@@ -900,6 +949,18 @@ class ActionComm extends CommonObject
 //                    }
                 }
                 //var_dump($error);exit;
+                if((isset($this->socid) && $this->socid > 0)){
+                    $postfix = '';
+                    if(in_array('sale', array($user->respon_alias,$user->respon_alias2)))
+                        $postfix = 'comerc';
+                    else if(in_array('purchase', array($user->respon_alias,$user->respon_alias2)))
+                        $postfix = 'service';
+                    $date = new DateTime($this->db->idate($this->datep));
+                    $sql = "update llx_societe set futuredate".$postfix."='".$date->format('Y-m-d')."' where rowid = ".$this->socid;
+                    $res = $this->db->query($sql);
+                    if(!$res)
+                        dol_print_error($this->db);
+                }
 
             }
             else

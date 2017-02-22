@@ -54,6 +54,7 @@
 </div>
 <script type="text/javascript">
     function AutoRefreshClick(){
+        console.log(window.filterdatas);
         console.log($('#autorefresh').attr('checked'));
         if($('#autorefresh').attr('checked') == 'checked')
             AutoRefreshPage();
@@ -117,6 +118,8 @@
 </script>
 <script type="text/javascript">
     $(document).ready(function(){
+        window.filterdatas = <?=empty($_POST['filterdatas'])?'null':$_POST['filterdatas']?>;
+        console.log(window.filterdatas);
         var tbody = document.getElementById('reference_body');
         var trList = tbody.getElementsByTagName('tr');
         for(var index = 0; index<trList.length; index++){

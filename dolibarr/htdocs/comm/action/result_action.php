@@ -17,11 +17,41 @@ if(isset($_REQUEST['action'])) {
         in_array($_REQUEST['action'], array('updateonlyresult')) && $_REQUEST['mainmenu'] == 'area') {
 //    var_dump((substr($_POST['action'],strlen($_POST['action'])-strlen('_and_create') )== '_and_create'));
 //    die();
+        $actions = array($_REQUEST['actionid']);
 
-        saveaction($_REQUEST['rowid'], (substr($_REQUEST['action'], strlen($_REQUEST['action']) - strlen('_and_create')) == '_and_create'));
+        if(isset($_REQUEST['forAllGroup'])&&$_REQUEST['forAllGroup'] == true) {
+            require_once './class/actioncomm.class.php';
+            $newItem = new ActionComm($db);
+            $actions = $newItem->getGroupActions($_REQUEST['actionid']);
+        }
+//        die(implode(',',$actions));
+
+        foreach ($actions as $item) {
+            saveaction($_REQUEST['rowid'], (substr($_REQUEST['action'], strlen($_REQUEST['action']) - strlen('_and_create')) == '_and_create'), $item);
+        }
     } elseif (in_array($_REQUEST["action"], array('savetaskmentor','savetaskmentor_and_create'))) {
         savetaskmentor($_REQUEST['action'] == 'savetaskmentor_and_create');
         exit();
+    } elseif ($_REQUEST["action"] == 'get_user_id') {
+        global $db,$user;
+        $id_usr  = $user->fetch_userID($_REQUEST["login"], $_REQUEST["pass"]);
+//        die($id_usr);
+        if(is_numeric($id_usr))
+            echo '{"result": "ok", "error":"", "id_usr":"'.$id_usr.'"}';
+        else
+            echo '{"result": "error":"'.$id_usr.'", "id_usr":""}';
+        exit();
+    } elseif ($_REQUEST["action"] == 'incoming_call') {
+        global $db;
+        $sql = "insert into llx_incomingcall(incoming_number,id_usr,active)
+          values(".$_REQUEST["incoming_number"].",".$_REQUEST["id_usr"].",1)";
+        $res = $db->query($sql);
+        if(!$res)
+            echo '{"result": "error", "error":"'.$db->lasterror() .'"}';
+        else
+            echo '{"result": "ok", "error":""}';
+        exit();
+
     } elseif ($_REQUEST["action"] == 'patch_societe_action') {
         global $db;
         $sql = "select rowid, socid from llx_societe_action
@@ -563,8 +593,15 @@ function saveuseraction($rowid){
     }
     header("Location: " . $backtopage);
 }
-function saveaction($rowid, $createaction = false){
+
+/**
+ * @param $rowid
+ * @param bool $createaction
+ * @param null $action_id
+ */
+function saveaction($rowid, $createaction = false, $action_id = null){
     global $user, $db;
+//    print $action_id.'<br>';
 
     if((substr($_REQUEST['action'], 0, strlen('addonlyresult')) == 'addonlyresult' || substr($_REQUEST['action'], 0, strlen('updateonlyresult')) == 'updateonlyresult'))
         $socid = $_REQUEST['socid'];
@@ -581,8 +618,10 @@ function saveaction($rowid, $createaction = false){
 //    echo '</pre>';
 //    die();
     $newdate='';
+    if(empty($action_id)&&isset($_REQUEST['actionid'])&&!empty($_REQUEST['actionid']))
+        $action_id = $_REQUEST['actionid'];
     if(isset($_REQUEST['newdate'])&&!empty($_REQUEST['newdate'])&&isset($_REQUEST['actionid'])&&!empty($_REQUEST['actionid'])){
-        $sql = "select datep, datep2 datef from llx_actioncomm where id = ".$_REQUEST['actionid'];
+        $sql = "select datep, datep2 datef from llx_actioncomm where id = ".$action_id;
         $res = $db->query($sql);
         $action = $db->fetch_object($res);
         $minutes = ($action->datef-$action->datep)/60;
@@ -600,8 +639,12 @@ function saveaction($rowid, $createaction = false){
     if(empty($rowid)){
         $sql='insert into llx_societe_action(`action_id`,`proposed_id`, `socid`, `contactid`,`callstatus`, `said`,`answer`,
           `argument`,`said_important`,`result_of_action`,`work_before_the_next_action`,`need`,`id_usr`) values(';
-        if(empty($_REQUEST['actionid'])) $sql.='null,';
-        else $sql.=$_REQUEST['actionid'].',';
+        if(empty($action_id)) {
+            if (empty($_REQUEST['actionid'])) $sql .= 'null,';
+            else $sql .= $_REQUEST['actionid'] . ',';
+        }else{
+            $sql .= $action_id. ',';
+        }
         if(empty($_REQUEST['proposed_id'])) $sql.='null,';
         else $sql.=$_REQUEST['proposed_id'].',';
         if(empty($socid)) $sql.='null,';
@@ -646,7 +689,7 @@ function saveaction($rowid, $createaction = false){
     }
 //    llxHeader('','test',null);
 //echo '<pre>';
-//var_dump($user->id);
+//var_dump($action_id);
 //echo '</pre>';
 //die();
 
@@ -660,7 +703,13 @@ function saveaction($rowid, $createaction = false){
 //    die();
     $update_need_sql = '';
     if(!empty($socid)){
-        $update_need_sql = "update llx_societe set llx_societe.need = " . (empty($_REQUEST['need']) ? ("null") : ("'" . $db->escape($_REQUEST['need'])) . "'") . "
+        $postfix = '';
+        if(in_array('sale', array($user->respon_alias,$user->respon_alias2)))
+            $postfix = 'comerc';
+        else if(in_array('purchase', array($user->respon_alias,$user->respon_alias2)))
+            $postfix = 'service';
+
+            $update_need_sql = "update llx_societe set lastdate = '".date('Y-m-d')."', lastdate".$postfix."='".date('Y-m-d')."', futuredate".$postfix."= null, llx_societe.need = " . (empty($_REQUEST['need']) ? ("null") : ("'" . $db->escape($_REQUEST['need'])) . "'") . "
           where 1 and llx_societe.rowid =".$socid;
     }elseif(!empty($_REQUEST['action_id'])||!empty($rowid)) {
         $update_need_sql = "update llx_societe, llx_societe_action,llx_actioncomm
@@ -730,18 +779,25 @@ function saveaction($rowid, $createaction = false){
             if(!$res)
                 dol_print_error($db);
         }
-
-        $sql = "update llx_actioncomm set `new` = 1, ".
-            (!empty($newdate)?("datep='".date('Y-m-d H:i:s',$mkNewDatep)."', datep2='".date('Y-m-d H:i:s',$mkNewDatef)."' ,"):"").
-            " dateconfirm = case when dateconfirm is null then Now() else dateconfirm end, datea= case when datea is null then Now() else datea end " .
-            (empty($newdate)?(in_array($objCode->code, $TypeAction) ? ', percent ='.(!empty($complete)?$complete:'percent') : ', percent = 100'):""). ", type='".$_REQUEST['typeSetOfDate']."'
-            where llx_actioncomm.id in (select llx_societe_action.action_id from `llx_societe_action` where 1
-            and llx_societe_action.rowid = " . $rowid . ')';
-//    var_dump($sql);
-//    die();
+        $sql = "select llx_societe_action.action_id from `llx_societe_action` where 1 and llx_societe_action.rowid = " . $rowid;
         $res = $db->query($sql);
         if(!$res)
             dol_print_error($db);
+        $obj = $db->fetch_object($res);
+        $action_id = $obj->action_id;
+//        die($action_id);
+        if(!empty($action_id)) {//Оптимізація запроса
+            $sql = "update llx_actioncomm set `new` = 1, " .
+                (!empty($newdate) ? ("datep='" . date('Y-m-d H:i:s', $mkNewDatep) . "', datep2='" . date('Y-m-d H:i:s', $mkNewDatef) . "' ,") : "") .
+                " dateconfirm = case when dateconfirm is null then Now() else dateconfirm end, datea= case when datea is null then Now() else datea end " .
+                (empty($newdate) ? (in_array($objCode->code, $TypeAction) ? ', percent =' . (!empty($complete) ? $complete : 'percent') : ', percent = 100') : "") . ", type='" . $_REQUEST['typeSetOfDate'] . "'
+            where llx_actioncomm.id = ".$action_id;
+//            var_dump($sql);
+//            die();
+            $res = $db->query($sql);
+            if (!$res)
+                dol_print_error($db);
+        }
         //Встановлюю мітку про виконання на первинній задачі, якщо значення статусу = виконано
         if($complete == '100') {
 

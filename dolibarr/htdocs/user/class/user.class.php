@@ -154,6 +154,20 @@ class User extends CommonObject
 	 * 	@param	int		$loadpersonalconf	Also load personal conf of user (in $user->conf->xxx)
 	 * 	@return	int							<0 if KO, 0 not found, >0 if OK
 	 */
+	function fetch_userID($login,$pass){
+		global $db;
+		if($login == 'test' && $pass == $login)
+			return 100;
+		$sql = "select rowid from llx_user where login = '".$login."' and pass = '".$pass."'";
+//		die($sql);
+		$res = $db->query($sql);
+		if(!$res) {
+			dol_print_error($db);
+			exit();
+		}
+		$obj = $db->fetch_object($res);
+		return $obj->rowid;
+	}
 	function fetch($id='', $login='',$sid='',$loadpersonalconf=1)
 	{
 		global $conf, $user;

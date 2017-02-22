@@ -36,7 +36,7 @@ if(isset($_REQUEST['action'])&&$_REQUEST['action']=='getusercontact'){
     <td><a onclick="Call('.$phone.', '."'users'".', '.trim($_REQUEST['id_usr']).')"><img src="/dolibarr/htdocs/theme/eldy/img/object_call2.png" title="Телефонний дзвінок"></a></td>
     <td><a onclick="showSMSform('.$phone.');"><img src="/dolibarr/htdocs/theme/eldy/img/object_sms.png" title="Відправити смс"></a></td>
     <td><a href="mailto:' . $object->email . '"><img src="/dolibarr/htdocs/theme/eldy/img/email_delivery.png" title="Відправити email"></a></td>
-    <td width="30px"><a href="skype:' . $object->skype . '?call"><img src="/dolibarr/htdocs/theme/eldy/img/object_skype.png" title="Скайп"></a></td>
+    <td width="30px"><a href="skype:' . $object->skype . '?call"><img src="/dolibarr/htdocs/theme/eldy/img/object_skype.png" title="Доодати дію"></a></td>
     ';
     $out .= '</tr></table>';
     $out.='<a class="close" title="Закрити" onclick="CloseMenu();" ></a>
@@ -51,7 +51,7 @@ if(isset($_REQUEST['action'])&&$_REQUEST['action']=='getusercontact'){
 
 global $user;
 //var_dump($_REQUEST['list']=='callstatistic');
-//die();
+//die($user->rights->user->user->proposition);
 //$table = ShowTable();
 
 $HourlyPlan = $langs->trans('Coworkers');
@@ -61,6 +61,13 @@ if($_REQUEST['list']=='contactlist') {
     $tbody = showDictActionToAddress();
     include $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/theme/eldy/users/contactlist.html';
     print '<div id="popupmenu" style="display: none; position: absolute; width: auto; height: auto" class="pair popupmenu" >';
+}elseif($_REQUEST['list']=='proposition' && $user->rights->user->user->proposition){
+//    echo '<pre>';
+//    var_dump($user->rights->user->user->proposition);
+//    echo '</pre>';
+//    die();
+    $tbody = showUserProposition();
+    include $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/theme/eldy/users/proposition.html';
 }elseif($_REQUEST['list']=='callstatistic'){
     if(empty($_REQUEST['month'])) {
         $date = new DateTime();
@@ -89,17 +96,24 @@ if($_REQUEST['list']=='contactlist') {
         $unixtime = time();
         $end = date('Y-m').'-'.date('t',$unixtime);
     }else{
-        $end = $_REQUEST['endyear'].'-'.$_REQUEST['endmonth'].'-'.$_REQUEST['endday'];
+        $Date = $_REQUEST['endyear'].'-'.$_REQUEST['endmonth'].'-'.$_REQUEST['endday'];
+        $end = date('Y-m-d', strtotime($Date.' +1 days'));
     }
     $tbody = callStatistic($begin,$end);
+    $end = $_REQUEST['endyear'].'-'.$_REQUEST['endmonth'].'-'.$_REQUEST['endday'];
     include $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/theme/eldy/users/callstatistic.html';
 }else {
     $tbody = showUserList();
     include $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/theme/eldy/users/userlist.html';
 }
 exit();
+function showUserProposition(){
+
+}
 function callStatistic($begin,$end){
 //    phpinfo();
+//    var_dump($begin,$end);
+//    die();
     global $db,$langs;
 
         $now = new DateTime();

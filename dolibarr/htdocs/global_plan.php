@@ -9,7 +9,13 @@ require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 require_once $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/comm/action/class/actioncomm.class.php';
 unset($_SESSION['assignedtouser']);
-
+//if(isset($_REQUEST['action']) && $_REQUEST['action'] == 'getlastdate'){
+//    $Actions = new ActionComm($db);
+//    echo '<pre>';
+//    var_dump($Actions->GetFutureActionDate($_REQUEST['action_id']));
+//    echo '</pre>';
+//    die();
+//}
 //echo '<pre>';
 //var_dump($_REQUEST);
 //echo '</pre>';
@@ -210,12 +216,12 @@ function ShowTask(){
         $assignedUser[$obj->fk_actioncomm]=$obj->fk_element;
     }else {
         while($obj = $db->fetch_object($res)) {
-            if($taskAuthor[$obj->fk_actioncomm] != $obj->fk_element){
+//            if($taskAuthor[$obj->fk_actioncomm] != $obj->fk_element){
                 if(empty($assignedUser[$obj->fk_actioncomm]))
                     $assignedUser[$obj->fk_actioncomm] = $obj->fk_element;
                 else
                     $assignedUser[$obj->fk_actioncomm] .= ','.$obj->fk_element;
-            }
+//            }
         }
     }
     if(count($taskID)>0) {
@@ -250,7 +256,7 @@ function ShowTask(){
     if(!$res){
         dol_print_error($db);
     }
-//    var_dump($taskID);
+//    var_dump($sql);
 //    die();
     $table = '<tbody id="reference_body">';
     $tmp_user = new User($db);
@@ -279,6 +285,12 @@ function ShowTask(){
 //            }
         }
         if($add){
+//            if(408515 == $obj->id){
+//                echo '<pre>';
+//                var_dump($obj);
+//                echo '</pre>';
+//                die();
+//            }
             $class = fmod($numrow++,2)==0?'impair':'pair';
             $datec = new DateTime($obj->datec);
             $table.='<tr id="tr'.$obj->id.'" class="'.$class.'">';
@@ -331,14 +343,14 @@ function ShowTask(){
                 $date = new DateTime($obj->datelastaction);
                 $lastaction_val = $date->format('d.m.y').'</br>'.$date->format('H:i');
             }
-            $table .= '<td style="width:76px;text-align: center;"><a href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu=global_task">'.$lastaction_val.'</a></td>';
+            $table .= '<td style="width:76px;text-align: center;"><a target="_blank" href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu=global_task">'.$lastaction_val.'</a></td>';
             if(empty($obj->datefutureaction)){
                 $futureaction_val = '<img src="/dolibarr/htdocs/theme/eldy/img/object_action.png">';
             }else{
                 $date = new DateTime($obj->datefutureaction);
                 $futureaction_val = $date->format('d.m.y').'</br>'.$date->format('H:i');
             }            
-            $table .= '<td style="width:76px;text-align: center;"><a href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu=global_task">'.$futureaction_val.'</a></td>';
+            $table .= '<td style="width:76px;text-align: center;"><a target="_blank" href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu=global_task">'.$futureaction_val.'</a></td>';
             $table .= '<td style="width:43px;text-align: center;">'.$obj->iMinute.'</td>';
             //Дії наставника
             $table .= '<td style="width:76px;text-align: center"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td><td style="width:76px;text-align: center"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td>';
