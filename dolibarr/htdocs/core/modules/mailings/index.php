@@ -415,12 +415,12 @@ function AutoSendMail($rowid){
     $postlist = $mess->postlist;
     $responsibility = $mess->responsibility;
 
-    $sql = "select email from llx_mailing_cibles where fk_mailing = ".$rowid;
+    $sql = "select rtrim(email) email from llx_mailing_cibles where fk_mailing = ".$rowid;
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
     while($obj = $db->fetch_object($res)){
-        $postedlist[]=strtolower(trim($obj->email));
+        $postedlist[]=mb_strtolower($obj->email,'utf-8');
     }
     $sql = "select llx_societe.state_id, socid, email1, email2 from `llx_societe_contact`
             left join llx_societe on llx_societe.rowid = `llx_societe_contact`.socid
@@ -436,7 +436,7 @@ function AutoSendMail($rowid){
 //    $sql.=" and llx_societe.state_id in (11,17)";
 //    $sql.=" order by llx_societe.state_id";
 //    echo '<pre>';
-//    var_dump($sql);
+//    var_dump(empty($postedlist));
 //    echo '</pre>';
 //    die();
 
@@ -449,10 +449,12 @@ function AutoSendMail($rowid){
         $add = false;
         if(empty($emaillist[$obj->state_id]))
             $emaillist[$obj->state_id] = array();
-        if(!empty($obj->email1)&&strpos($obj->email1, '@') && !in_array($obj->email1,$postedlist)&&!in_array($obj->email1, $emaillist[$obj->state_id])) {
+        if(!empty($obj->email1)&&strpos($obj->email1, '@') && (!empty($postedlist)?!in_array($obj->email1,$postedlist):true)&&
+            (!empty($emaillist[$obj->state_id])?!in_array($obj->email1, $emaillist[$obj->state_id]):true)) {
             $emaillist[$obj->state_id][] = $obj->email1;
             $add = true;
-        }elseif (!empty($obj->email2)&&strpos($obj->email2, '@')&& !in_array($obj->email2,$postedlist) && !in_array($obj->email2, $emaillist[$obj->state_id])) {
+        }elseif (!empty($obj->email2)&&strpos($obj->email2, '@')&& (!empty($postedlist)?!in_array($obj->email2,$postedlist):true) &&
+                (!empty($emaillist[$obj->state_id])?!in_array($obj->email2, $emaillist[$obj->state_id]):true)) {
             $emaillist[$obj->state_id][] = $obj->email2;
             $add = true;
         }
@@ -480,7 +482,7 @@ function AutoSendMail($rowid){
 
 
 //echo '<pre>';
-//var_dump($postedlist);
+//var_dump($emaillist);
 //echo '</pre>';
 //die();
     $num = 0;
@@ -494,6 +496,7 @@ function AutoSendMail($rowid){
                     dol_print_error($db);
                 }else {
                     $postedlist[]=$item;
+                    $result = true;
                     $result = $mailSMTP->send($item, $subject, $mesg, $headers); // отправляем письмо
 //                    $result = false;
                     if (!$result) {

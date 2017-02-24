@@ -24,7 +24,7 @@
                 <td style="font-size: small;">
                 <button style="width: 100%" onclick="setExecutedAction(<?=$_REQUEST['action_id']?>);">&nbspРезультат влаштовує</button>
                 </br></br>
-                <button  style="width: 100%" onclick="AddResult();">Результат <b>НЕ</b> влаштовує</button>
+                <button  style="width: 100%" onclick="AddResult();">Результат <b>НЕ</b> влаштовує /<br>Додати запис</button>
                 </br></br>
                     <?=$addSubAction?>
                 </td>
@@ -118,10 +118,10 @@
 </form>
 <div id="confirm-container" style="display: none; position: absolute; left: 150px; top: 150px; z-index: 10;">
     <div id="question" style="font-weight: bold"></div>
-    <label><input id="forAllGroup" type="checkbox" value="false">  Застосувати до всієї групи завдань</label>
+    <label><input id="forAllGroup" type="checkbox" value="false">  Застосувати до завдання,<br>поставленого групі людей</label>
     <br>
     <input type="submit" value="&nbsp;&nbsp;&nbsp;Ок&nbsp;&nbsp;&nbsp;" onclick="setConfirm();">
-    <input type="button" name="cancel" onclick="CloseConfirmForm();" value="Відмина">
+    <input type="button" name="cancel" onclick="CloseConfirmForm();" value="Відміна">
 </div>
 <style>
     #reference_body td{
@@ -165,7 +165,7 @@
                     url: link,
                     cache: false,
                     success: function (html) {
-//                        window.close();
+                        window.close();
                         console.log(html, 'confirm_exec');
                         var mainmenu = getParameterByName('mainmenu');
                         return;

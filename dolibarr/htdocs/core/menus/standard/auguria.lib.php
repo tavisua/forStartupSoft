@@ -53,9 +53,10 @@ function print_auguria_menu($db,$atarget,$type_user,&$tabMenu,&$menu,$noout=0)
 
 
 //	echo '<pre>';
-//	var_dump($user->rights->societe);
+//	var_dump($user->rights->societe->client->viewall);
 //	echo '</pre>';
-    if(!$user->admin){
+//	die();
+    if(!$user->admin && !$user->rights->societe->client->viewall){
 //		if(in_array($user->id, array(42)))
 //			$hidemenu=array("0");
 //		else

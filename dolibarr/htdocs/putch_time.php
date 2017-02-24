@@ -7,6 +7,23 @@
  */
 require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
 global $db,$user;
+if($_REQUEST['action'] == 'update_socid_in_action') {
+    $sql = "select `llx_actioncomm`.id, fk_soc, socid
+        from `llx_actioncomm`
+        left join `llx_societe_contact` on `llx_societe_contact`.rowid=`llx_actioncomm`.fk_contact
+        where llx_actioncomm.fk_soc <> `llx_societe_contact`.`socid`";
+    $res = $db->query($sql);
+    if (!$res)
+        dol_print_error($db);
+    set_time_limit(0);
+    while ($obj = $db->fetch_object($res)) {
+        $sql = "update llx_actioncomm set fk_soc = ".$obj->socid." where id = ".$obj->id;
+        $up_res = $db->query($sql);
+        if(!$up_res)
+            dol_print_error($db);
+    }
+    exit();
+}
 if($_REQUEST['action'] == 'update_societe') {
     $sql = "select rowid from llx_societe where active = 1";
     $res = $db->query($sql);

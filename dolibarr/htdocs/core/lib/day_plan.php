@@ -360,23 +360,25 @@ function getLineActiveList($id_usr){
     $userFilter = '';
     if($id_usr != $user->id)
         $userFilter='&id_usr='.$id_usr;
-
+//        var_dump($user->respon_alias2);
+//        die();
+    $user_respon = $respon_alias[0];
+    if($user_respon == 'dir_depatment'&&count($respon_alias)>1)
+        $user_respon = $respon_alias[1];
     foreach(array_keys($lineactive) as $key){
         $out.='<tr id="reg'.$key.'" class="regions subtype middle_size '.$_REQUEST['class'].'">';
-//        var_dump($key);
-//        die();
         if(!empty($key)) {
-            $out .= '<td colspan="2"><a href="/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/area.php?idmenu=10425&filter=&mainmenu=area&leftmenu='.$userFilter.'&lineactive=' . $key . '" target="_blank">' . $lineactive[$key]['name'] . '</a></td>';
+            $out .= '<td colspan="2"><a href="/dolibarr/htdocs/responsibility/'.$user_respon.'/area.php?idmenu=10425&filter=&mainmenu=area&leftmenu='.$userFilter.'&lineactive=' . $key . '" target="_blank">' . $lineactive[$key]['name'] . '</a></td>';
             if($_SERVER["PHP_SELF"] == "/dolibarr/htdocs/responsibility/gen_dir/day_plan.php")
                 $out .= '<td></td>';
             elseif($_SERVER["PHP_SELF"] == "/dolibarr/htdocs/responsibility/logistika/day_plan.php")
-                $out .= '<td><button id="btnLineActive'.$key.'" onclick="RegionsByLineActive('.$user->id.', '.$key.');"><img id="imgLineActive'.$key.'" src="/dolibarr/htdocs/theme/eldy/img/1downarrow.png"></button></td>';
+                $out .= '<td><button id="btnLineActive'.$key.'" onclick="RegionsByLineActive('.$id_usr.', '.$key.');"><img id="imgLineActive'.$key.'" src="/dolibarr/htdocs/theme/eldy/img/1downarrow.png"></button></td>';
         }else{
             $out .= '<td colspan="2">'. $lineactive[$key]['name'] . '</td>';
             if($_SERVER["PHP_SELF"] == "/dolibarr/htdocs/responsibility/gen_dir/day_plan.php")
                 $out .= '<td></td>';
             elseif($_SERVER["PHP_SELF"] == "/dolibarr/htdocs/responsibility/logistika/day_plan.php")
-                $out .= '<td><button id="btnLineActive'.$key.'" onclick="RegionsByLineActive('.$user->id.', '.$key.');"><img id="imgLineActive'.$key.'" src="/dolibarr/htdocs/theme/eldy/img/1downarrow.png"></button></td>';
+                $out .= '<td><button id="btnLineActive'.$key.'" onclick="RegionsByLineActive('.$id_usr.', '.$key.');"><img id="imgLineActive'.$key.'" src="/dolibarr/htdocs/theme/eldy/img/1downarrow.png"></button></td>';
         }
 //        $out.='<td></td>';
         //відсоток виконання

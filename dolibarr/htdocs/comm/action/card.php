@@ -38,6 +38,7 @@ require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
 //var_dump($_REQUEST);
 //echo '</pre>';
 //die();
+
 if(isset($_REQUEST['action'])&&$_REQUEST['action'] == 'edit'&&isset($_REQUEST['action_id'])&&in_array($_REQUEST['actioncode'], array('AC_GLOBAL','AC_GLOBAL'))) {//Редагування з дії глобальне/поточне
 	$_POST["backtopage"] = $_REQUEST["backtopage"];
 	$_POST["action"] = $_REQUEST["action"];
@@ -227,10 +228,15 @@ if($_GET['action']=='get_exectime'){
 
 }elseif($_GET['action']=='confirm_exec'){
 	$actions = array($_REQUEST['rowid']);
-	if(isset($_REQUEST['forAllGroup'])&&$_REQUEST['forAllGroup']==true) {//Можливість підтверждення одночасно групи завдань
+	if(isset($_REQUEST['forAllGroup'])&&$_REQUEST['forAllGroup']=='true') {//Можливість підтверждення одночасно групи завдань
 		$Action = new ActionComm($db);
 		$actions = $Action->getGroupActions($_REQUEST['rowid']);
 	}
+//        echo '<pre>';
+//        var_dump(implode(',',$actions));
+//        echo '</pre>';
+//        die();
+
 //	die(implode(',',$actions));
 	foreach ($actions as $action_id) {
 		$sql = 'select period, datep, datepreperform from `llx_actioncomm` where id=' . $action_id;
@@ -453,6 +459,7 @@ if ($cancel)
     header($Location);
     exit;
 }
+
 $fulldayevent=GETPOST('fullday');
 $datep=dol_mktime($fulldayevent?'00':GETPOST("aphour"), $fulldayevent?'00':GETPOST("apmin"), 0, GETPOST("apmonth"), GETPOST("apday"), GETPOST("apyear"));
 //$datef=dol_mktime($fulldayevent?'23':GETPOST("p2hour"), $fulldayevent?'59':GETPOST("p2min"), $fulldayevent?'59':'0', GETPOST("p2month"), GETPOST("p2day"), GETPOST("p2year"));
@@ -556,7 +563,8 @@ if(GETPOST('assignedJSON')){
 //	die();
 }
 //	var_dump(GETPOST('assignedtouser'), GETPOST('assignedtouser') > 0);
-//	die();
+//die('1');
+
 if (GETPOST('addassignedtouser') || GETPOST('updateassignedtouser') || GETPOST('duplicate_action'))
 {
 //	llxHeader();
@@ -872,7 +880,6 @@ if ($action == 'add')
 /*
  * Action update event
  */
-
 if ($action == 'update')
 {
 

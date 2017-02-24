@@ -117,7 +117,7 @@
         <input type="hidden" name="error" id="error" value="<?=$_REQUEST['error']?>">
         <input id="callstatus" name="callstatus" type="hidden" value="<?=empty($object->callstatus)?2:$object->callstatus?>">
         <?if($_REQUEST['actioncode']!='AC_TEL'){?><br class="forAllGroup"><br class="forAllGroup">
-        <label><input id="forAllGroup" name="forAllGroup" type="checkbox" value="" > Застосувати до групи завдань</label><?}?>
+        <label><input id="forAllGroup" name="forAllGroup" type="checkbox" value="" > Застосувати до завдання,<br>поставленого групі людей</label><?}?>
         </br>
         <table class="border" style="margin-top: 20px" width="100%">
             <?=$contactlist?>
