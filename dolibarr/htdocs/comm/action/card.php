@@ -39,7 +39,7 @@ require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
 //echo '</pre>';
 //die();
 
-if(isset($_REQUEST['action'])&&$_REQUEST['action'] == 'edit'&&isset($_REQUEST['action_id'])&&in_array($_REQUEST['actioncode'], array('AC_GLOBAL','AC_GLOBAL'))) {//Редагування з дії глобальне/поточне
+if(isset($_REQUEST['action'])&&$_REQUEST['action'] == 'edit'&&isset($_REQUEST['action_id'])&&in_array($_REQUEST['actioncode'], array('AC_GLOBAL','AC_CURRENT'))) {//Редагування з дії глобальне/поточне
 	$_POST["backtopage"] = $_REQUEST["backtopage"];
 	$_POST["action"] = $_REQUEST["action"];
 	$_POST["mainmenu"] = $_REQUEST["mainmenu"];
@@ -791,9 +791,11 @@ if ($action == 'add')
 			$object->dateconfirm = $dateconfirm->format('Y-m-d H:i:s');
 			$object->percentage = 0;
 		}
-		$idaction=$object->add($user);
-//		var_dump($idaction);
+//		echo '<pre>';
+//		var_dump($_REQUEST);
+//		echo '</pre>';
 //		die();
+		$idaction=$object->add($user);
 		if(isset($_REQUEST["dateNextAction"])&&
 				!empty($_REQUEST["dateNextAction"])
 				&&in_array($object->type_code, array('AC_GLOBAL','AC_CURRENT'))
@@ -925,6 +927,7 @@ if ($action == 'update')
 		$object->typeSetOfDate = GETPOST("typeSetOfDate");
 		$object->motivator = GETPOST("motivator");
 		$object->demotivator = GETPOST("demotivator");
+		$object->planed_cost = GETPOST("planed_cost");
 
         $object->contactid   = GETPOST("contactid",'int');
 
@@ -1546,8 +1549,9 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 //		print '<tr id="period"><td>'.$langs->trans("Period").'</td><td colspan="3"></td></tr>';
 	print '<tr id="period"><td>'.$langs->trans("Period").'</td><td colspan="3">'.$form->select_period('selperiod', $object->period).'</td></tr>';
 
-	print '<tr id=""><td>Мотивація</td><td colspan="3"><input type="text" id="motivator" name="motivator"  class="param_item" value="'.(GETPOST('motivator')?GETPOST('motivator'):($object->motivator?$object->motivator:'')).'" size="5"></td></tr>';
-	print '<tr id=""><td>Демотивація</td><td colspan="3"><input type="text" id="demotivator" name="demotivator"  class="param_item" value="'.(GETPOST('demotivator')?GETPOST('demotivator'):($object->demotivator?$object->demotivator:'')).'" size="5"></td></tr>';
+	print '<tr id=""><td>Мотивація, грн</td><td colspan="3"><input type="text" id="motivator" name="motivator"  class="param_item" value="'.(GETPOST('motivator')?GETPOST('motivator'):($object->motivator?$object->motivator:'')).'" size="5"></td></tr>';
+	print '<tr id=""><td>Демотивація, грн</td><td colspan="3"><input type="text" id="demotivator" name="demotivator"  class="param_item" value="'.(GETPOST('demotivator')?GETPOST('demotivator'):($object->demotivator?$object->demotivator:'')).'" size="5"></td></tr>';
+	print '<tr id=""><td>Заплановані витрати, грн</td><td colspan="3"><input type="text" id="planed_cost" name="planed_cost"  class="param_item" value="'.(GETPOST('planed_cost')?GETPOST('planed_cost'):($object->planed_cost?$object->planed_cost:'')).'" size="5"></td></tr>';
 
 
 	print '</table>';
@@ -1949,8 +1953,9 @@ if ($id > 0)
 		print '<tr id="typenotification" style="display: none"><td width="10%">'.$langs->trans("TypeNotification").'</td>';
 		print '<td>';
 		print $formactions->getTypeNotification($object->typenotification);
-		print '<tr id=""><td>Мотивація</td><td colspan="3"><input type="text" id="motivator" name="motivator"  class="param_item" value="'.(GETPOST('motivator')?GETPOST('motivator'):($object->motivator?$object->motivator:'')).'" size="5"></td></tr>';
-		print '<tr id=""><td>Демотивація</td><td colspan="3"><input type="text" id="demotivator" name="demotivator"  class="param_item" value="'.(GETPOST('demotivator')?GETPOST('demotivator'):($object->demotivator?$object->demotivator:'')).'" size="5"></td></tr>';
+		print '<tr id=""><td>Мотивація, грн</td><td colspan="3"><input type="text" id="motivator" name="motivator"  class="param_item" value="'.(GETPOST('motivator')?GETPOST('motivator'):($object->motivator?$object->motivator:'')).'" size="5"></td></tr>';
+		print '<tr id=""><td>Демотивація, грн</td><td colspan="3"><input type="text" id="demotivator" name="demotivator"  class="param_item" value="'.(GETPOST('demotivator')?GETPOST('demotivator'):($object->demotivator?$object->demotivator:'')).'" size="5"></td></tr>';
+		print '<tr id=""><td>Заплановані витрати, грн</td><td colspan="3"><input type="text" id="planed_cost" name="planed_cost"  class="param_item" value="'.(GETPOST('planed_cost')?GETPOST('planed_cost'):($object->planed_cost?$object->planed_cost:'')).'" size="5"></td></tr>';
 
 		print '</td></tr>';
 		print '</td></tr>';
@@ -2342,6 +2347,18 @@ print "<script>
         $('#preperform').mask('99.99.9999');
     });
 </script>";
+print '<script type="text/javascript"> 
+	$("#formaction").submit(function(e) {	
+		var parent = $("#dateNextAction").parent();
+		var tr = parent.parent();
+		if($(tr).css("display") == "none"){
+			$("#dateNextAction").val("");
+		}
+//		console.log(tr, $(tr).css("display"));
+//		alert(parent);
+//		alert("test");
+	})
+</script>'."\n";
 print '
  <script type="text/javascript">
         $(document).ready(function(){
@@ -2631,7 +2648,9 @@ function getActionCount($datep){
 }
 
 function getGroupActionsStatus($action_id){
-	$actions = getGroupActions($action_id);
+	global $db;
+	$Action = new ActionComm($db);
+	$actions = $Action->getGroupActions($action_id);
 	global $db;
 	$sql = "select min(percent) as percent from llx_actioncomm where id in(".implode(',',$actions).")";
 	$res = $db->query($sql);

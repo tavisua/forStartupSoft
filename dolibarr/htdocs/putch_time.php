@@ -24,46 +24,50 @@ if($_REQUEST['action'] == 'update_socid_in_action') {
     }
     exit();
 }
+
+if($_REQUEST['action'] == 'fix_answer') {
+    $sql = "select id from llx_actioncomm
+        where code in ('AC_CURRENT','AC_GLOBAL')
+        and datec>='2017-02-01'
+        and percent <> 100";
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    while($obj = $db->fetch_object($res)){
+        $sql = "select count(*) iCount from `llx_societe_action` where `action_id` =".$obj->id;
+        $res_action = $db->query($sql);
+        $obj_action = $db->fetch_object($res_action);
+        if($obj_action->iCount > 0){
+            $sql = "select fk_element from `llx_actioncomm_resources` where `fk_actioncomm` = ".$obj->id;
+            $res_action = $db->query($sql);
+            if(!$res_action)
+                dol_print_error($db);
+            $users = array();
+            while($obj_action = $db->fetch_object($res_action)){
+                $users[]=$obj_action->fk_element;
+            }
+            if(count($users)) {
+                $sql = "update `llx_societe_action` set active = 0, new = 0 where `action_id` = " . $obj->id . ' and id_usr not in (' . implode(',', $users) . ')';
+//            if(441634 == $obj->id)
+//                die($sql);
+                $res_action = $db->query($sql);
+                if (!$res_action)
+                    dol_print_error($db);
+            }
+        }
+    }
+
+}
 if($_REQUEST['action'] == 'update_societe') {
+    require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
+    $action = new ActionComm($db);
     $sql = "select rowid from llx_societe where active = 1";
     $res = $db->query($sql);
     if (!$res)
         dol_print_error($db);
     set_time_limit(0);
     while ($obj = $db->fetch_object($res)) {
-        //Остання дата співпраці
-        $sql = "select max(dtChange) dtDate from llx_societe_action where socid = " . $obj->rowid;
-        $up_res = $db->query($sql);
-        $up_obj = $db->fetch_object($up_res);
-        if (!empty($up_obj->dtDate)) {
-            $date = new DateTime($up_obj->dtDate);
-            $sql = "update llx_societe set lastdate = '" . $date->format('Y-m-d') . "' where rowid = " . $obj->rowid;
-            $up_res = $db->query($sql);
-            if (!$up_res)
-                dol_print_error($db);
-        }
-        //Остання і майбутня дата взаємодії
-        $sql = "select `llx_societe_action`.active, `llx_actioncomm`.`percent`, `llx_actioncomm`.datep from llx_actioncomm
-        left join `llx_societe_action` on `action_id` = llx_actioncomm.id
-        where fk_soc = $obj->rowid
-        and code <> 'AC_OTH_AUTO'
-        and llx_actioncomm.active = 1
-        order by `llx_actioncomm`.datep desc
-        limit 2";
-        $up_res = $db->query($sql);
-        if ($up_res->num_rows) {
-            while ($up_obj = $db->fetch_object($up_res)) {
-                if (empty($up_obj->active) && $up_obj->percent <= 0) {
-                    $date = new DateTime($up_obj->datep);
-                    $sql = "update llx_societe set futuredatecomerc = '" . $date->format('Y-m-d') . "' where rowid = " . $obj->rowid;
-                    $db->query($sql);
-                } elseif (!empty($up_obj->active) && $up_obj->percent == 100) {
-                    $date = new DateTime($up_obj->datep);
-                    $sql = "update llx_societe set lastdatecomerc = '" . $date->format('Y-m-d') . "' where rowid = " . $obj->rowid;
-                    $db->query($sql);
-                }
-            }
-        }
+        $action->setDateAction($obj->rowid);
         echo $obj->rowid . '<br>';
     }
     exit();

@@ -1136,6 +1136,24 @@ function getMessage(){
     //    console.log(task[c]);
     //}
 }
+function show_overdue_actions(code, object){
+    var param = {
+        action:'getOverdueActions',
+        code:code
+    };
+    $.ajax({
+        url:'/dolibarr/htdocs/day_plan.php',
+        data:param,
+        cache:false,
+        success:function (html) {
+            $('#popupmenu').find('table').html(html);
+            var form = document.getElementById('popupmenu');
+            form.style.left = $(object).offset().left;
+            form.style.top = $(object).offset().top;
+            $('#popupmenu').show();
+        }
+    })
+}
 function RedirectToTask(id, code){
         //console.log(code, code=='AC_GLOBAL');
         //    return;
@@ -1155,9 +1173,9 @@ function RedirectToTask(id, code){
                 idmenu = 10423;
             }
             if(code=='AC_CURRENT' || code == 'AC_GLOBAL')
-                location.href = '/dolibarr/htdocs/comm/action/chain_actions.php?action_id='+id+'&mainmenu='+mainmenu+'&idmenu='+idmenu;
+                location.href = '/dolibarr/htdocs/comm/action/chain_actions.php?action_id='+id+'&mainmenu='+mainmenu+'&idmenu='+idmenu+'&_backtopage=true';
             else
-                location.href = '/dolibarr/htdocs/responsibility/sale/action.php?action_id='+id+'&mainmenu='+mainmenu+'&idmenu='+idmenu+'#'+id;
+                location.href = '/dolibarr/htdocs/responsibility/sale/action.php?action_id='+id+'&mainmenu='+mainmenu+'&idmenu='+idmenu+'#'+id+'&_backtopage=true';
         }
     })
 }
@@ -1647,6 +1665,9 @@ function ConfirmForm(question){
     $('#confirm-container').position(50,100);
     $('#confirm-container').show();
 }
+function ResultAction(rowid){
+    location.href = '/dolibarr/htdocs/comm/action/result_action.php?action=addonlyresult&backtopage='+location.href+'&actioncode=&action_id='+rowid+'&onlyresult=1';
+}
 function EditAction(rowid, answer_id, actioncode){
     //console.log(rowid, actioncode == 'AC_GLOBAL' || actioncode == 'AC_CURRENT');
     //alert(rowid, actioncode);
@@ -1675,7 +1696,7 @@ function EditAction(rowid, answer_id, actioncode){
             $('#id').val(rowid);
     }
 
-    if(actioncode == 'AC_GLOBAL' || actioncode == 'AC_GLOBAL') {
+    if(actioncode == 'AC_GLOBAL' || actioncode == 'AC_CURRENT') {
         if($('#edit_action').length>0)
             $('#edit_action').val('edit');
         else if($('#action').length>0)

@@ -1466,6 +1466,7 @@ function getActionsBySub($class, $code){
     $fact = array();
     $outstanding = array();
     $future = array();
+    $subdiv_id = array(0);
     for($i=0; $i<=1; $i++) {
         if($i<1)
             $period = 'month';

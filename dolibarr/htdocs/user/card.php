@@ -112,7 +112,6 @@ $hookmanager->initHooks(array('usercard','globalcard'));
  * Actions
  */
 
-
 if ($action == 'confirm_disable' && $confirm == "yes" && $candisableuser)
 {
     if ($id <> $user->id)
@@ -1160,9 +1159,10 @@ else
         // Show tabs
         $head = user_prepare_head($object);
 //        echo '<pre>';
-//        var_dump($object);
+//        var_dump($head);
 //        echo '</pre>';
 //        die();
+
         $title = $langs->trans("User");
         dol_fiche_head($head, 'user', $title, 0, 'user');
 

@@ -413,21 +413,21 @@ function actions_prepare_head($object)
 {
 	global $langs, $conf, $user;
 
-	$h = 0;
-	$head = array();
-	$backtopage = $_REQUEST['backtopage'];
-	if(substr($backtopage, 0, 1) == "'" && substr($backtopage, strlen($backtopage)-1, 1) == "'")
-		$backtopage = substr($backtopage, 1, strlen($backtopage)-2);
-	$head[$h][0] = DOL_URL_ROOT.'/comm/action/card.php?id='.$object->id.'&mainmenu='.$_REQUEST['mainmenu'].'&action=edit&backtopage='.$backtopage;
-	$head[$h][1] = $langs->trans("CardAction");
-	$head[$h][2] = 'card';
-	$h++;
-
-    $head[$h][0] = '#';
-//    $head[$h][0] = DOL_URL_ROOT.'/comm/action/result_action.php?id='.$object->id.'&mainmenu='.$_REQUEST['mainmenu'].'&action=edit';
-    $head[$h][1] = $langs->trans("EventDescription");
-    $head[$h][2] = 'event_desc';
-    $h++;
+//	$h = 0;
+//	$head = array();
+//	$backtopage = $_REQUEST['backtopage'];
+//	if(substr($backtopage, 0, 1) == "'" && substr($backtopage, strlen($backtopage)-1, 1) == "'")
+//		$backtopage = substr($backtopage, 1, strlen($backtopage)-2);
+//	$head[$h][0] = DOL_URL_ROOT.'/comm/action/card.php?id='.$object->id.'&mainmenu='.$_REQUEST['mainmenu'].'&action=edit&backtopage='.$backtopage;
+//	$head[$h][1] = $langs->trans("CardAction");
+//	$head[$h][2] = 'card';
+//	$h++;
+//
+//    $head[$h][0] = '#';
+////    $head[$h][0] = DOL_URL_ROOT.'/comm/action/result_action.php?id='.$object->id.'&mainmenu='.$_REQUEST['mainmenu'].'&action=edit';
+//    $head[$h][1] = $langs->trans("EventDescription");
+//    $head[$h][2] = 'event_desc';
+//    $h++;
 
 //    // Attached files
 //    require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';

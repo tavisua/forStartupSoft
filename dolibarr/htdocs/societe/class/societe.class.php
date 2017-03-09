@@ -2248,7 +2248,7 @@ class Societe extends CommonObject
         $bac->fetch(0,$this->id);
         return $bac->getRibLabel(true);
     }
-
+    
     /**
      * Return Array of RIB
      *

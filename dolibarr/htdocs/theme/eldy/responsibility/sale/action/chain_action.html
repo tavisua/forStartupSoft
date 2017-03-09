@@ -142,6 +142,8 @@
 </style>
 <script>
     function setConfirm() {
+
+        var winclose = getParameterByName('_backtopage')!='true';
         $('#confirm-container').hide();
         var param = {
             "action":"getActionStatus",
@@ -155,7 +157,10 @@
             success:function(result) {
                 if (result == '100') {
                     alert('Вже встановлено статус дії "Прийнято"');
-                    window.close();
+                    if(winclose)
+                        window.close();
+                    else
+                        history.back();
                     return;
                 }
                 var link = "http://" + location.hostname + "/dolibarr/htdocs/comm/action/card.php?action=confirm_exec&rowid="+ getParameterByName('action_id')+'&forAllGroup='+($('#forAllGroup').attr('checked')=='checked'?'true':'false');
@@ -165,14 +170,16 @@
                     url: link,
                     cache: false,
                     success: function (html) {
-                        window.close();
+                        if(winclose)
+                            window.close();
                         console.log(html, 'confirm_exec');
                         var mainmenu = getParameterByName('mainmenu');
-                        return;
                         if (mainmenu == 'global_task')
                             location.href = '/dolibarr/htdocs/global_plan.php?idmenu=10421&mainmenu=global_task&leftmenu=';
                         else if (mainmenu == 'current_task')
                             location.href = '/dolibarr/htdocs/current_plan.php?idmenu=10423&mainmenu=current_task&leftmenu=';
+                        else
+                            location.href = location.href;
                     }
                 })
             }

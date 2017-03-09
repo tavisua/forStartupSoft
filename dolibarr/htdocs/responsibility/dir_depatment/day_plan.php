@@ -100,6 +100,7 @@ if(isset($_REQUEST['action']))
         exit();
     }
 $outstanding = CalcOutStandingActions($actions);
+
 //$_SESSION['outstanding'] = $outstanding;
 //if(!isset($_SESSION['future'])) {
     $future = CalcFutureActions($actions);
@@ -1785,6 +1786,8 @@ function getTotalUserAction($user_id, $class, $title, $code = '')
             $sql .= " and llx_actioncomm.`code` in (".implode(',',$actioncode).")";
     }
     $sql.=" and active = 1;";
+//    print $sql;
+//    die();
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
@@ -1792,7 +1795,7 @@ function getTotalUserAction($user_id, $class, $title, $code = '')
     if (empty($obj->iCount))
         $outstanding = '<td></td>';
     else
-        $outstanding = '<td  style="text-align: center">' . $obj->iCount . '</td>';
+        $outstanding = '<td  style="text-align: center; cursor: pointer" onclick="show_overdue_actions('."'".$code."'".', $(this));">' . $obj->iCount . '</td>';
 
     //майбутнє
     $future = '';

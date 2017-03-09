@@ -36,6 +36,9 @@ Responsibility=Сфера відповідальності
 RedirectToOrder=Перейти на заявку
 AddResultAction=Додати результат перемовин
 EditResultAction=Редагувати результат перемовин
+AC_CURRENT = Поточні
+AC_GLOBAL = Глобальні
+States = Області
 
 
 ErrorFieldRequired=Поле '%s' є обов'язковим

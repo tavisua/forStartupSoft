@@ -16,7 +16,77 @@ if(isset($_REQUEST['action'])){
     switch($_REQUEST['action']) {
         case 'createStatisticPage':{
             exit();
-        }
+        }break;
+        case 'getOverdueActions':{
+            $sql = "select llx_actioncomm.id, datep2, llx_actioncomm.`code` from llx_actioncomm 
+                left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id 
+                where date(datep) between adddate(date(now()), interval -1 month) and date(now()) 
+                and llx_actioncomm.percent not in (100, -100) 
+                and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end = 7 ";
+            switch ($_REQUEST['code']){
+                case 'AC_TEL':{
+                    $sql.="and llx_actioncomm.`code` = 'AC_TEL' ";
+                }break;
+                case 'AC_GLOBAL':{
+                    $sql.="and llx_actioncomm.`code` = 'AC_GLOBAL' ";
+                }break;
+                case 'AC_CURRENT':{
+                    $sql.="and llx_actioncomm.`code` = 'AC_CURRENT' ";
+                }break;
+                default :{
+                    $sql.="and llx_actioncomm.`code` <> 'AC_OTH_AUTO' ";
+                }
+            }
+            $sql.="and active = 1
+                order by datep2;";
+            $res = $db->query($sql);
+            if(!$res)
+                dol_print_error($db);
+            $out = '<table><tbody>';
+            while($obj = $db->fetch_object($res)){
+                $date = new DateTime($obj->datep2);
+                $item='<td>'.$date->format('d.m.y').'</td>';
+                switch ($obj->code) {
+                    case 'AC_GLOBAL': {
+                        $classitem = 'global_task';
+                        $iconitem = 'object_global_task.png';
+                        $title = $langs->trans('ActionGlobalTask');
+                    }
+                        break;
+                    case 'AC_CURRENT': {
+                        $classitem = 'current_task';
+                        $iconitem = 'object_current_task.png';
+                        $title = $langs->trans('ActionCurrentTask');
+                    }
+                        break;
+                    case 'AC_RDV': {
+                        $classitem = 'office_meetting_task';
+                        $iconitem = 'object_office_meetting_task.png';
+                        $title = $langs->trans('ActionAC_RDV');
+                    }
+                        break;
+                    case 'AC_TEL': {
+                        $classitem = 'office_callphone_task';
+                        $iconitem = 'object_call2.png';
+                        $title = $langs->trans('ActionAC_TEL');
+                    }
+                        break;
+                    case 'AC_DEP': {
+                        $classitem = 'departure_task';
+                        $iconitem = 'object_departure_task.png';
+                        $title = $langs->trans('ActionDepartureMeeteng');
+                    }
+                        break;
+                }
+                $item.='<td><img src="/dolibarr/htdocs/theme/eldy/img/'.$iconitem.'"></td>';
+                $out.='<tr class="middle_size" style="cursor:pointer" onclick=('.'location.href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu='.$classitem.'")>';
+                $out.=$item;
+                $out.='</tr>';
+            }
+            $out.='</tbody>';
+            print $out;
+            exit();
+        }break;
         case 'getnewactions':{
             if(isset($_SESSION['spy_id_usr'])&&!empty($_SESSION['spy_id_usr']))
                 return 0;

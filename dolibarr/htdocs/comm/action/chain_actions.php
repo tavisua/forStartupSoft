@@ -309,7 +309,7 @@ function ShowActionTable(){
 //        die();
     }
     //Завантажую результат дії
-    $sql = 'select `llx_societe_action`.`action_id`, `llx_actioncomm`.percent, `llx_societe_action`.`rowid`, `llx_actioncomm`.`datep`,
+    $sql = 'select distinct `llx_societe_action`.`action_id`, `llx_actioncomm`.percent, `llx_societe_action`.`rowid`, `llx_actioncomm`.`datep`,
         `llx_societe_action`.dtChange datec, create_user.`lastname`, create_user.rowid author_id, `llx_user`.`lastname` as contactname, `llx_user`.rowid as contactUserID,
                 TypeCode.code kindaction, `llx_societe_action`.`said`, `llx_societe_action`.`answer`,`llx_societe_action`.`argument`,
                 `llx_societe_action`.`said_important`, `llx_societe_action`.`result_of_action`,
@@ -332,7 +332,7 @@ function ShowActionTable(){
     $result_actionID = array();
     while($array_item = $db->fetch_object($res_result_action)){
 //echo '<pre>';
-//var_dump($array_item);
+//var_dump($sql);
 //echo '</pre>';
 //die();
         $result_action[]=(array)$array_item;
@@ -456,14 +456,19 @@ function ShowActionTable(){
                     $row->contactUserID = $row->author_id;
                     $row->contactname = $row->lastname;
                 }else{
-                    $obj = $db->fetch_object($resUserID);
-                    $sql = "select rowid, lastname, firstname from llx_user where rowid = ".$obj->fk_element;
-                    $row->contactUserID = $obj->fk_element;
-                    $resUserID = $db->query($sql);
-                        if(!$resUserID)
-                            dol_print_error($db);
-                    $obj = $db->fetch_object($resUserID);
-                    $row->contactname =  $obj->lastname.' '.mb_substr($obj->firstname,0,1,'UTF-8').'.';
+                    while($obj = $db->fetch_object($resUserID)) {
+                        if($db->num_rows($resUserID) == 1 || $obj->fk_element != $row->author_id) {
+//                            var_dump($row->author_id, $obj->fk_element);
+//                            die();
+                            $sql = "select rowid, lastname, firstname from llx_user where rowid = " . $obj->fk_element;
+                            $row->contactUserID = $obj->fk_element;
+                            $resUserID = $db->query($sql);
+                            if (!$resUserID)
+                                dol_print_error($db);
+                            $obj = $db->fetch_object($resUserID);
+                            $row->contactname = $obj->lastname . ' ' . mb_substr($obj->firstname, 0, 1, 'UTF-8') . '.';
+                        }
+                    }
                 }
 
             }
@@ -522,6 +527,10 @@ function CreateNewActionItem($row, $num, $result = false){
     $dtChange = new DateTime($row->datec);
     $dateaction = new DateTime($row->datep);
 //    $dtNextAction = new DateTime($row->date_next_action);
+//    if($row->rowid ==319758){
+//        var_dump($row);
+//        die();
+//    }
     $dtDateMentor = new DateTime($row->date_mentor);
     $iconitem = '';
     $title = '';
@@ -617,7 +626,7 @@ function CreateNewActionItem($row, $num, $result = false){
         $status = '';
     $out.='<td '.$style.';widtd: 50px; text-align: center;" class="middle_size" >' . $langs->trans($status) . '</td>';
 
-    $out.='<td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'action" style="width: 35px; text-align: center;" class="middle_size"><script>
+    $out.='<td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'action" style="width: 75px; text-align: center;" class="middle_size"><script>
          var click_event = "/dolibarr/htdocs/societe/addcontact.php?action=edit&mainmenu=companies&rowid=1";
         </script>';
 //<td rowid="' . $row->rowid . '" id = "' . $row->rowid . 'date_next_action" style="widtd: 80px" class="middle_size">' . (empty($row->date_next_action) ? '' : $dtNextAction->format('d.m.Y H:i:s')) . '</td>
@@ -640,9 +649,9 @@ function CreateNewActionItem($row, $num, $result = false){
                 $out .= '<img id="confirm' . $row->action_id . '" title = "' . $langs->trans('Confirm') . '" onclick="Confirmation(' . $row->action_id . ');" src="/dolibarr/htdocs/theme/eldy/img/uncheck.png">';
             } elseif ($row->percent < 99) {
                 if ($result)
-                    $out .= '<img id="img_1"  onclick="EditOnlyResult(' . $row->action_id . ',' . (empty($row->rowid) ? 0 : $row->rowid) . ', ' . $actioncode . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Edit') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">';
+                    $out .= '<img id="img_1"  onclick="EditOnlyResult(' . $row->action_id . ',' . (empty($row->rowid) ? 0 : $row->rowid) . ', ' ."'". $row->kindaction."'" . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Edit') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">';
                 else
-                    $out .= '<img id="img_1"  onclick="EditAction(' . $row->action_id . ',' . (empty($row->rowid) ? 0 : $row->rowid) . ', ' . $actioncode . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Edit') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">';
+                    $out .= '<img id="img_1"  onclick="EditAction(' . $row->action_id . ',' . (empty($row->rowid) ? 0 : $row->rowid) . ', ' . "'".$row->kindaction."'" . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Edit') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">';
                 $out .= '&nbsp;&nbsp;<img  onclick="DelAction(' . (empty($row->rowid) ? "'" . $row->action_id : "'_" . $row->rowid) . "'" . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Delete') . '" src="/dolibarr/htdocs/theme/eldy/img/delete.png">';
             }
         }elseif($user->id == $row->id_mentor){
@@ -655,6 +664,9 @@ function CreateNewActionItem($row, $num, $result = false){
 //    elseif($row->contactUserID== $user->id){
 //        $out .= '<img id="img_1"  onclick="EditOnlyResult(' . $row->action_id . ',' . (empty($row->rowid) ? 0 : $row->rowid) . ', ' . $actioncode . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Edit') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">';
 //    }
+    if(!$result)
+        $out .= '&nbsp;&nbsp;<img  onclick="ResultAction(' . (empty($row->rowid) ? "'" . $row->action_id : "'_" . $row->rowid) . "'" . ');" style="vertical-align: middle; cursor: pointer;" title="Дії ' . $langs->trans($row->kindaction) . '" src="/dolibarr/htdocs/theme/eldy/img/'.(empty($row->rowid)||(!empty($row->rowid)&&$row->author_id == $user->id) ? "object_result_action"  : "edit").'.png">';
+
     $out .= '</td>
     </tr>';
     return $out;

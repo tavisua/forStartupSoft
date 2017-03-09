@@ -435,6 +435,7 @@ function ShowTask(){
         }
 
         if($add){
+
             $class = fmod($numrow++,2)==0?'impair':'pair';
             $datec = new DateTime($obj->datec);
             $table.='<tr id="tr'.$obj->id.'" class="'.$class.'">';
@@ -451,7 +452,16 @@ function ShowTask(){
                 <td style="width:101px" id="id_usr'.$tmp_user->id.'" id_usr="'.$tmp_user->id.'" class="performer">'.$tmp_user->lastname.'</td>';
             }else{
                 $users = explode(',',$assignedUser[$obj->id]);
-                $tmp_user->fetch($users[0]);
+                if(count($users) == 1)
+                    $tmp_user->fetch($users[0]);
+                else{
+                    foreach ($users as $item){
+                        if($item != $taskAuthor[$obj->id]) {
+                            $tmp_user->fetch($item);
+                            break;
+                        }
+                    }
+                }
                 $table.='<td style="width:101px">'.mb_strtolower($langs->trans(ucfirst($tmp_user->respon_alias)), 'UTF-8').'</td>
                 <td style="width:101px" id="id_usr'.$tmp_user->id.'" id_usr="'.$tmp_user->id.'" class="performer">'.$tmp_user->lastname.'</td>';
             }
@@ -465,10 +475,18 @@ function ShowTask(){
                 $table .= '<td style="width:61px"></td>';
             }
             $deadline = new DateTime($obj->datep2);
+            $now = new DateTime(date('Y-m-d H:i:s'));
+//            $mk_deadline = mktime($deadline->format('H'),$deadline->format('i'),$deadline->format('s'),$deadline->format('d'),$deadline->format('m'),$deadline->format('Y'));
+            $dedline_class =  ($deadline>$now||$user->id != $tmp_user->id)?"":"overdue";
+//            if(441539 == $obj->id){
+//                var_dump($deadline>$now, $user->id , $tmp_user->id);
+//
+//                die();
+//            }
             if(!$obj->entity)
-                $table.='<td style="width:53px" class="small_size">'.$deadline->format('d.m.y').'</br>'.$deadline->format('H:i').'</td>';
+                $table.='<td style="width:53px" class="small_size '.$dedline_class.'">'.$deadline->format('d.m.y').'</br>'.$deadline->format('H:i').'</td>';
             else
-                $table.='<td style="width:53px" class="small_size">'.$deadline->format('d.m.y').'</td>';
+                $table.='<td style="width:53px" class="small_size '.$dedline_class.'">'.$deadline->format('d.m.y').'</td>';
             if(!empty($obj->dateconfirm)) {
                 $dateconfirm = new DateTime($obj->dateconfirm);
                 $table .= '<td style="width:51px" class="small_size">' . $dateconfirm->format('d.m.y') . '</br>' . $dateconfirm->format('H:i') . '</td>';

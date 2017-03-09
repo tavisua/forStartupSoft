@@ -489,7 +489,7 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
     $additionparam = false;
     $colindex = 0;
 //    echo '<pre>';
-//    var_dump($title);
+//    var_dump($actionfields);
 //    echo '</pre>';
 //    die();
     foreach ($title as $column) {
@@ -597,10 +597,12 @@ function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $
 //            $table .= "<tr id = $count class=".fmod($count,2)==1?('impair'):('pair').">\r\n";
 
 //            $table .= '<td >'.$class.'</td>';
+//        if($row['rowid'] == 10165) {
 //            echo '<pre>';
 //            var_dump($row);
 //            echo '</pre>';
 //            die('test');
+//        }
 //            echo '</br>';
         $num_col = 0;
         $prev_col=array('nom','town','remark');

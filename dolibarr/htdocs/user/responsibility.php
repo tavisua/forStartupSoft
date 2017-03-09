@@ -36,7 +36,8 @@ if(isset($_REQUEST['switch_active'])){
 
     $param = explode(',', $_REQUEST['switch_active']);
     $id_param = substr($param[1], 3, strpos($param[1], 'active')-3);
-    $sql = "select count(*) iCount from ".MAIN_DB_PREFIX."user_responsibility where fk_user=".$param[0]." and fk_id=".$id_param." limit 1";
+    $sql = "select count(*) iCount from ".MAIN_DB_PREFIX."user_responsibility where fk_user=".$param[0]." and fk_respon=".$id_param;
+
     $res = $db->query($sql);
     $row = $db->fetch_object($res);
     if($row->iCount == 0)
@@ -119,7 +120,7 @@ $TableParam[]=$ColParam;
 $tablename='responsibility';
 $sql = "select `responsibility`.`rowid`,`responsibility`.`name`, case when respon.active is null then 0 else respon.active end active
 from `responsibility` 
-left join (select * from llx_user_responsibility where fk_user = ".$_GET['id'].") respon on `respon`.`fk_respon` = `responsibility`.`rowid`
+left join (select * from llx_user_responsibility where fk_user = ".$_GET['id']." and active = 1) respon on `respon`.`fk_respon` = `responsibility`.`rowid`
 where `responsibility`.active = 1";
 
 

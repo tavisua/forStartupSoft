@@ -119,7 +119,10 @@ if (! defined('NOREQUIRETRAN'))
 /*
  * Object $db
  */
-//var_dump(! defined('NOREQUIREDB'));
+//echo '<pre>';
+//var_dump($conf);
+//echo '</pre>';
+//
 //die();
 if (! defined('NOREQUIREDB'))
 {

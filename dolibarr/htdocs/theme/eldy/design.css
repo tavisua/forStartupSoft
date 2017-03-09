@@ -107,6 +107,9 @@ overflow-y: auto; /* прокрутка по вертикали */
     background-color: #00adee;
     color: #ffffff!important;
 }
+.overdue{
+    background-color: red;
+}
 #groupproducts_title p{
     border-bottom: 1px solid #e9eaea;
     color: #d10310;

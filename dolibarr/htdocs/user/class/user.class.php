@@ -590,7 +590,7 @@ class User extends CommonObject
 //        $sql = 'select rowid as id from regions limit 10';
 		dol_syslog(get_class($this) . '::getregions', LOG_DEBUG);
 		$resql = $this->db->query($sql);
-		$setting = array();
+		$setting = array(0);
 		while($row = $this->db->fetch_array($resql)){
 			$setting[]=$row['id'];
 		}

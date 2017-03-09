@@ -88,8 +88,8 @@
             <td <?=$style?> id="PlanTimeTitle"></td>
             <td <?=$style?> id="PlanTimeResult"></td>
             <?if(!empty($style)){?>
-                <td></td>
-                <td></td>
+                <td><b>Фактичні витрати, грн</b></td>
+                <td><input name="fact_cost_v" id="fact_cost_v" value="<?=empty($object->resultaction['fact_cost'])?0:$object->resultaction['fact_cost']?>" onkeyup="fast_costchange();"></td>
             <?}?>
         </tr>
 
@@ -104,6 +104,7 @@
         <input id="rowid" name="rowid" type="hidden" value="<?=empty($object->resultaction['rowid'])?$object->rowid:$object->resultaction['rowid']?>">
         <input id="actionid" name="actionid" type="hidden" value="<?=$action_id?>">
         <input id="newdate" name="newdate" type="hidden" value="">
+        <input id="fact_cost" name="fact_cost" type="hidden" value="<?=empty($object->resultaction['fact_cost'])?0:$object->resultaction['fact_cost']?>">
         <input id="socid" name="socid" type="hidden" value="<?=isset($_REQUEST['onlyresult'])&&!empty($_REQUEST['onlyresult'])?$object->socid:$_REQUEST['socid']?>">
         <input id="mainmenu" name="mainmenu" type="hidden" value="<?=$_GET['mainmenu']?>">
         <input type="hidden" value="<?=$_GET['actioncode']?>" name="actioncode">
@@ -116,7 +117,7 @@
         <input type="hidden" name="typeSetOfDate" id="type" value="<?=$_REQUEST['typeSetOfDate']?>">
         <input type="hidden" name="error" id="error" value="<?=$_REQUEST['error']?>">
         <input id="callstatus" name="callstatus" type="hidden" value="<?=empty($object->callstatus)?2:$object->callstatus?>">
-        <?if($_REQUEST['actioncode']!='AC_TEL'){?><br class="forAllGroup"><br class="forAllGroup">
+        <?if($_REQUEST['actioncode']!='AC_TEL' && $user->id == $Actions->getAuthorID($_REQUEST['action_id'])){?><br class="forAllGroup"><br class="forAllGroup">
         <label><input id="forAllGroup" name="forAllGroup" type="checkbox" value="" > Застосувати до завдання,<br>поставленого групі людей</label><?}?>
         </br>
         <table class="border" style="margin-top: 20px" width="100%">
@@ -161,6 +162,13 @@
         <textarea id = "need" name="need" style="display: none"><?=empty($object->resultaction['need'])?$object->need:$object->resultaction['need']?></textarea>
     </form>
     <script>
+        function fast_costchange() {
+            var rep = /[-\.;":'a-zA-Zа-яА-Я]/;
+            var tmp = $('#fact_cost_v').val().replace(rep, '');
+            $('#fact_cost_v').val(tmp)
+            $("#fact_cost").val(tmp);
+            console.log($('#fact_cost').val(), tmp);
+        }
         $('#addaction').submit(function(e){
             if($('#error').length>0&&$('#error').val()==1){
                 alert('Дані на формі містять помилки.');

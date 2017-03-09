@@ -7,9 +7,13 @@
  */
 define("NOLOGIN",1);		// This means this output page does not require to be logged.
 require '../../main.inc.php';
+global $db,$user;
+if(!$user->id){
+    $user->fetch('',$_SESSION["dol_login"]);
+}
 //llxHeader();
 //echo '<pre>';
-//var_dump($_REQUEST);
+//var_dump($user);
 //echo '</pre>';
 //die();
 if(isset($_REQUEST['action'])) {
@@ -165,6 +169,7 @@ if(isset($_REQUEST['action'])) {
         exit();
     }
 }
+
 require_once DOL_DOCUMENT_ROOT.'/core/lib/agenda.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formactions.class.php';
@@ -316,7 +321,7 @@ $societe->fetch(empty($object->socid)&&$_GET['action'] == 'addonlyresult'?$_GET[
 //die();
 $formactions = new FormActions($db);
 if($_GET['action'] == 'edituseration'){//Якщо редагуються результати перемовин зі співробітниками
-    $sql = "select rowid,said,answer,argument,said_important,result_of_action,work_before_the_next_action,date_next_action,work_before_the_next_action_mentor,date_next_action_mentor
+    $sql = "select rowid,said,answer,argument,said_important,result_of_action,fact_cost,work_before_the_next_action,date_next_action,work_before_the_next_action_mentor,date_next_action_mentor
         from llx_users_action
         where rowid = ".$_REQUEST['rowid'];
     $res=$db->query($sql);
@@ -367,6 +372,7 @@ if(empty($subactionID))
     $subactionID = -1;
 //var_dump($subactionID);
 //die();
+global $user;
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/addaction.html';
 print '</div>';
 
@@ -638,7 +644,7 @@ function saveaction($rowid, $createaction = false, $action_id = null){
     }
     if(empty($rowid)){
         $sql='insert into llx_societe_action(`action_id`,`proposed_id`, `socid`, `contactid`,`callstatus`, `said`,`answer`,
-          `argument`,`said_important`,`result_of_action`,`work_before_the_next_action`,`need`,`id_usr`) values(';
+          `argument`,`said_important`,`result_of_action`,`work_before_the_next_action`,`need`,`fact_cost`,`id_usr`) values(';
         if(empty($action_id)) {
             if (empty($_REQUEST['actionid'])) $sql .= 'null,';
             else $sql .= $_REQUEST['actionid'] . ',';
@@ -665,6 +671,8 @@ function saveaction($rowid, $createaction = false, $action_id = null){
         else $sql.='"'.$db->escape($_REQUEST['work_before_the_next_action']).'",';
         if(empty($_REQUEST['need'])) $sql.='null,';
         else $sql.='"'.$db->escape($_REQUEST['need']).'",';
+        if(empty($_REQUEST['fact_cost'])) $sql.='null,';
+        else $sql.=$db->escape($_REQUEST['fact_cost']).',';
 //        if(empty($_REQUEST['date_next_action'])) $sql.='null,';
 //        else {
 //            $date = new DateTime($_REQUEST['date_next_action']);
@@ -683,19 +691,38 @@ function saveaction($rowid, $createaction = false, $action_id = null){
         $sql.='`result_of_action`='.(empty($_REQUEST['result_of_action'])?'null':"'".$db->escape($_REQUEST['result_of_action'])."'").', ';
         $sql.='`work_before_the_next_action`='.(empty($_REQUEST['work_before_the_next_action'])?'null':"'".$db->escape($_REQUEST['work_before_the_next_action'])."'").', ';
         $sql.='`need`='.(empty($_REQUEST['need'])?'null':"'".$db->escape($_REQUEST['need'])."'").', ';
+        $sql.='`fact_cost`='.(empty($_REQUEST['fact_cost'])?'null':$db->escape($_REQUEST['fact_cost'])).', ';
         $sql.='`id_usr`='.$user->id.' ';
 //        $sql.='`new`=1 ';
         $sql.='where rowid='.$rowid;
     }
 //    llxHeader('','test',null);
 //echo '<pre>';
-//var_dump($action_id);
+//var_dump($sql);
 //echo '</pre>';
 //die();
 
     $res = $db->query($sql);
     if(!$res){
         dol_print_error($db);
+    }
+    if((!isset($_REQUEST['actionid'])||empty($_REQUEST['actionid'])) && !empty($rowid)) {
+        $sql = "select action_id from llx_societe_action where rowid = ".$rowid;
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+        $obj = $db->fetch_object($res);
+        $_REQUEST['actionid'] = $obj->action_id;
+    }
+    if(isset($_REQUEST['actionid'])&&!empty($_REQUEST['actionid'])) {
+
+        $sql = "update llx_actioncomm set fact_cost = 
+            (select sum(case when fact_cost is null then 0 else fact_cost end) from llx_societe_action
+        where action_id = " . $_REQUEST['actionid'] . ")
+        where id = " . $_REQUEST['actionid'];
+        $res = $db->query($sql);
+        if (!$res)
+            dol_print_error($db);
     }
 //    echo '<pre>';
 //    var_dump($socid);

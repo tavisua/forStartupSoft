@@ -210,7 +210,16 @@ class ActionComm extends CommonObject
 //        die();
         return $result[$name];
     }
-function getGroupActions($action_id){
+    function getAuthorID($action_id){
+        global $db;
+        $sql = "select fk_user_author,note from llx_actioncomm where id = ".$action_id;
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+        $obj = $db->fetch_object($res);
+        return $obj->fk_user_author;
+    }
+    function getGroupActions($action_id){
     $actions = array($action_id);
     global $db;
     $sql = "select fk_user_author,note from llx_actioncomm where id = ".$action_id;
@@ -258,8 +267,8 @@ function getGroupActions($action_id){
             return array(0);
         $chain_actions = array();
         $chain_actions[]=$action_id;
+        
         //Завантажую всі батьківські ІД
-
         while($action_id = $this->GetLastAction($action_id, 'id')){
             array_unshift($chain_actions, $action_id);
         }
@@ -960,6 +969,7 @@ function getGroupActions($action_id){
                     $res = $this->db->query($sql);
                     if(!$res)
                         dol_print_error($this->db);
+                    $this->setDateAction($this->socid);//Оновлення інформації про останні і майбутні контакти
                 }
 
             }
@@ -1261,7 +1271,7 @@ function getGroupActions($action_id){
             $this->error=$this->db->lasterror();
             return -1;
         }
-        $sql = 'select `rowid`,`callstatus`, `said`,`answer`, `argument`,`said_important`,`result_of_action`,`work_before_the_next_action`
+        $sql = 'select `rowid`,`callstatus`, `said`,`answer`, `argument`,`said_important`,`fact_cost`,`result_of_action`,`work_before_the_next_action`
         from llx_societe_action where 1 and '.(empty($_REQUEST['answer_id'])?('action_id='.$id):('rowid='.$_REQUEST['answer_id'])). ' limit 1';
 //        var_dump($sql);
 //        die();
@@ -1277,6 +1287,7 @@ function getGroupActions($action_id){
                 $this->resultaction['said_important']                = $obj->said_important;
                 $this->resultaction['result_of_action']              = $obj->result_of_action;
                 $this->resultaction['work_before_the_next_action']   = $obj->work_before_the_next_action;
+                $this->resultaction['fact_cost']                     = $obj->fact_cost;
                 if($this->code	== 'AC_TEL'){
                     $this->callstatus = $obj->callstatus;
                 }
@@ -1288,7 +1299,42 @@ function getGroupActions($action_id){
     }
 
 
-    /**
+    function setDateAction($socid){
+        global $db;
+        //Остання дата співпраці
+        $sql = "select max(dtChange) dtDate from llx_societe_action where socid = " . $socid;
+        $up_res = $db->query($sql);
+        $up_obj = $db->fetch_object($up_res);
+        if (!empty($up_obj->dtDate)) {
+            $date = new DateTime($up_obj->dtDate);
+            $sql = "update llx_societe set lastdate = '" . $date->format('Y-m-d') . "' where rowid = " . $socid;
+            $up_res = $db->query($sql);
+            if (!$up_res)
+                dol_print_error($db);
+        }
+        //Остання і майбутня дата взаємодії
+        $sql = "select `llx_societe_action`.active, `llx_actioncomm`.`percent`, `llx_actioncomm`.datep from llx_actioncomm
+        left join `llx_societe_action` on `action_id` = llx_actioncomm.id
+        where fk_soc = $socid
+        and code <> 'AC_OTH_AUTO'
+        and llx_actioncomm.active = 1
+        order by `llx_actioncomm`.datep desc
+        limit 2";
+        $up_res = $db->query($sql);
+        if ($up_res->num_rows) {
+            while ($up_obj = $db->fetch_object($up_res)) {
+                if (empty($up_obj->active) && $up_obj->percent <= 0) {
+                    $date = new DateTime($up_obj->datep);
+                    $sql = "update llx_societe set futuredatecomerc = '" . $date->format('Y-m-d') . "' where rowid = " . $socid;
+                    $db->query($sql);
+                } elseif (!empty($up_obj->active) && $up_obj->percent == 100) {
+                    $date = new DateTime($up_obj->datep);
+                    $sql = "update llx_societe set lastdatecomerc = '" . $date->format('Y-m-d') . "' where rowid = " . $socid;
+                    $db->query($sql);
+                }
+            }
+        }
+    }/**
      *    Initialize this->userassigned array with list of id of user assigned to event
      *
      *    @return	int				<0 if KO, >0 if OK
@@ -1430,7 +1476,7 @@ function getGroupActions($action_id){
         $sql = "UPDATE ".MAIN_DB_PREFIX."actioncomm ";
         $sql.= " SET `new`= 1, label = ".($this->label ? "'".$this->db->escape($this->label)."'":"null");
         if ($this->fk_action > 0) $sql.= ", fk_action = '".$this->fk_action."'";
-//        var_dump($this->authorid, $user->id);
+//        var_dump($this->planed_cost);
 //        die();
         if($this->authorid == $user->id && $this->percentage == 100 || $this->percentage != 100)
             $sql.= ", percent = '".$this->percentage."'";
