@@ -47,7 +47,7 @@ return;
 function ShowTask(){
     global $db, $user;
     //завантажую ІД задач
-   $sql = "select `llx_actioncomm`.`id`, `llx_actioncomm`.`fk_user_author`
+   $sql = "select `llx_actioncomm`.`id`, `llx_actioncomm`.`new`, `llx_actioncomm`.`fk_user_author`, `llx_actioncomm`.`fk_groupoftask`
         from `llx_actioncomm`
         where fk_action in
               (select id from `llx_c_actioncomm`
@@ -76,7 +76,8 @@ function ShowTask(){
                     }
                         break;
                 }
-            }
+            }else
+                $sql.=" and percent <> 100";
     }else
         $sql.=" and percent <> 100";
     $sql.=" 
@@ -84,7 +85,7 @@ function ShowTask(){
 
 //echo '<pre>';
 //var_dump($_REQUEST['filterdatas']);
-//var_dump($sql);
+////var_dump($sql);
 //echo '</pre>';
 //die();
 
@@ -172,29 +173,31 @@ function ShowTask(){
 //                            and `llx_actioncomm`.`active` = 1";
 //                        var_dump($filter[$key]);
 //                        die();
-
-                        if($filter[$key] != -1)
-                            $sql_tmp = "select distinct `llx_actioncomm`.id from `llx_actioncomm`
+                        if(!empty($filter[$key])) {
+                            $sql_tmp = "";
+                            if ($filter[$key] != -1)
+                                $sql_tmp = "select distinct `llx_actioncomm`.id from `llx_actioncomm`
                                         left join `llx_actioncomm_resources` on `llx_actioncomm`.id = `llx_actioncomm_resources`.`fk_actioncomm`
                                         where 1
-                                        and case when `llx_actioncomm_resources`.`fk_element` is null then `llx_actioncomm`.`fk_user_author` else `llx_actioncomm_resources`.`fk_element` end  = ".$filter[$key]."
+                                        and case when `llx_actioncomm_resources`.`fk_element` is null then `llx_actioncomm`.`fk_user_author` else `llx_actioncomm_resources`.`fk_element` end  = " . $filter[$key] . "
                                         and `llx_actioncomm`.percent <> 100
                                         and `llx_actioncomm`.`active` = 1";
-                        else {
-                            $sql_tmp = "select rowid from llx_user
-                                            where subdiv_id = ".$user->subdiv_id."
+                            else {
+                                $sql_tmp = "select rowid from llx_user
+                                            where subdiv_id = " . $user->subdiv_id . "
                                             and active = 1";
-                            $res = $db->query($sql_tmp);
-                            $users_id = array(0);
-                            while($obj = $db->fetch_object($res)){
-                                $users_id[]=$obj->rowid;
-                            }
-                            $sql_tmp = "select distinct `llx_actioncomm`.id from `llx_actioncomm`
+                                $res = $db->query($sql_tmp);
+                                $users_id = array(0);
+                                while ($obj = $db->fetch_object($res)) {
+                                    $users_id[] = $obj->rowid;
+                                }
+                                $sql_tmp = "select distinct `llx_actioncomm`.id from `llx_actioncomm`
                                         left join `llx_actioncomm_resources` on `llx_actioncomm`.id = `llx_actioncomm_resources`.`fk_actioncomm`
                                         where 1
-                                        and case when `llx_actioncomm_resources`.`fk_element` is null then `llx_actioncomm`.`fk_user_author` else `llx_actioncomm_resources`.`fk_element` end  in (".implode(',',$users_id).")
+                                        and case when `llx_actioncomm_resources`.`fk_element` is null then `llx_actioncomm`.`fk_user_author` else `llx_actioncomm_resources`.`fk_element` end  in (" . implode(',', $users_id) . ")
                                         and `llx_actioncomm`.percent <> 100
                                         and `llx_actioncomm`.`active` = 1";
+                            }
                         }
 
 //                        echo '<pre>';
@@ -203,7 +206,7 @@ function ShowTask(){
 //                        die('');
                     }break;
                 }
-                if(in_array($key,array('p_subdiv_id','c_subdiv_id','performer'))){//Фільтр по підрозділам замовника, виконавця та по виконавцю
+                if(in_array($key,array('p_subdiv_id','c_subdiv_id','performer'))&&!empty($filter[$key])){//Фільтр по підрозділам замовника, виконавця та по виконавцю
 //                    die($key);
                     $res_tmp = $db->query($sql_tmp);
                     $ID = array(0);
@@ -233,6 +236,8 @@ function ShowTask(){
     if(isset($_REQUEST['autorefresh'])&&$_REQUEST['autorefresh'] == '1'){
         $sql.=' and `llx_actioncomm`.percent not in (99,100)';
     }
+    $sql.=' and `llx_actioncomm`.percent <> -100';
+
     $res = $db->query($sql);
     if(!$res){
         dol_print_error($db);
@@ -240,13 +245,30 @@ function ShowTask(){
 //    die($sql);
     unset($taskID);
     unset($taskAuthor);
+    unset($taskSociete);
     $taskID[] = 0;
+    $Actions = new ActionComm($db);
     while($obj = $db->fetch_object($res)){
         $taskID[]=$obj->id;
         $taskAuthor[$obj->id] = $obj->fk_user_author;
+        if($obj->fk_groupoftask == 10) {
+            $chainaction = implode(',',$Actions->GetChainActions($obj->id));
+            $sql = "select fk_soc from llx_actioncomm where id in ($chainaction) and active = 1 and fk_soc is not null";
+            $res_tmp = $db->query($sql);
+            if(!$res_tmp)
+                dol_print_error($db);
+
+            if($res_tmp->num_rows) {
+                $obj_tmp = $db->fetch_object($res_tmp);
+                $taskSociete[$obj->id] = $obj_tmp->fk_soc;
+//                if($obj->id == 316659){
+//                    die($chainaction);
+//                }
+            }
+        }
     }
 //    echo '<pre>';
-//    var_dump($taskID);
+//    var_dump($sql);
 //    echo '</pre>';
 //    die();
 
@@ -303,7 +325,7 @@ function ShowTask(){
 //    echo '</pre>';
 //    die();
     //Завантажую завдання
-    $sql = "select id, note, confirmdoc, entity, `datec`, datep2, datelastaction, planed_cost, fact_cost,motivator, demotivator, datefutureaction, round((UNIX_TIMESTAMP(datep2)-UNIX_TIMESTAMP(datep))/60,0) iMinute, `dateconfirm`,`datepreperform`, fk_order_id, period, `percent`, `llx_c_groupoftask`.`name` groupoftask, fk_groupoftask
+    $sql = "select id, note, new, confirmdoc, entity, `datec`, datep2, datelastaction, planed_cost, fact_cost,motivator, demotivator, datefutureaction, round((UNIX_TIMESTAMP(datep2)-UNIX_TIMESTAMP(datep))/60,0) iMinute, `dateconfirm`,`datepreperform`, fk_order_id, period, `percent`, `llx_c_groupoftask`.`name` groupoftask, fk_groupoftask
     from `llx_actioncomm`
     left join llx_c_groupoftask on `llx_c_groupoftask`.`rowid` = fk_groupoftask
     where id in (".implode(",", $taskID).")";
@@ -331,6 +353,8 @@ function ShowTask(){
     else
         $user_id = $_GET['id_usr'];
     $performersID = array();
+//    var_dump($_GET['performer']);
+//    die();
     if(isset($_GET['performer']) && !empty($_GET['performer']) || isset($filter['performer'])) {//If set performer filter
         if($_GET['performer'] == '-1'||$filter['performer'] == '-1'){
             $sql = "select rowid from llx_user
@@ -380,18 +404,29 @@ function ShowTask(){
 
     while($obj = $db->fetch_object($res)) {
         $add = true;
-        if(!isset($_GET['performer'])||isset($_GET['performer']) && (empty($_GET['performer']))) {
-            if ($taskAuthor[$obj->id] == $user_id) {
-//            $add = true;
-                $add = !(empty($assignedUser[$obj->id]) && $obj->entity == 0);
-            } else {
-                $users = explode(',', $assignedUser[$obj->id]);
-                if(count($performersID) == 0)
-                    $add = in_array($user_id, $users);
-                else
-                    $add = count(array_intersect($performersID, $users))>0;
-            }
-        }
+//        if(!isset($_GET['performer'])&&count($performersID)<=1||isset($_GET['performer']) && (empty($_GET['performer']))) {
+//            if ($taskAuthor[$obj->id] == $user_id) {
+////            $add = true;
+//                $add = !(empty($assignedUser[$obj->id]) && $obj->entity == 0);
+//            } else {
+//                $users = explode(',', $assignedUser[$obj->id]);
+//                if(count($performersID) == 0)
+//                    $add = in_array($user_id, $users);
+//                else
+//                    $add = count(array_intersect($performersID, $users))>0;
+//            }
+//        }elseif (count($performersID)>1){
+//            $users = explode(',', $assignedUser[$obj->id]);
+//            $add = count(array_intersect($performersID, $users))>0;
+//
+////            $add = in_array($user_id, $performersID);
+////            if(458793 == $obj->id){
+////                var_dump($performersID);
+////                die();
+////            }
+//        }
+
+
         //Перевірка на фільтр по підрозділу-замовнику
         if(isset($_GET['c_subdiv_id']) && !empty($_GET['c_subdiv_id'])&&$add) {//If set performer filter
             $add = isset($c_subdivID[$obj->id])&&$c_subdivID[$obj->id] == $_GET['c_subdiv_id'];
@@ -406,33 +441,57 @@ function ShowTask(){
         if(isset($_GET['p_subdiv_id']) && !empty($_GET['p_subdiv_id'])&&$add) {//If set performer filter
             $add = isset($p_subdivID[$obj->id])&&$p_subdivID[$obj->id] == $_GET['p_subdiv_id'];
         }
+
         //Перевірка на фільтр по виконавцю
-        if(isset($_GET['performer']) && !empty($_GET['performer']) || isset($filter['performer']) && !empty($filter['performer'])&&$add) {//If set performer filter
-//            if(378719 == $obj->id){
-//                var_dump($filter['performer']);
-//                die();
-//            }
-            $users = explode(',', $assignedUser[$obj->id]);
-            if(isset($_GET['performer']) && !empty($_GET['performer'])){
-                $exist = in_array($_GET['performer'], $users);
-                if($_GET['performer'] == '-1' )
-                    $exist = count(array_intersect($users, $performersID)) > 0;
-            }else if($filter['performer'] == '-1'){
-                $exist = count(array_intersect($users, $performersID)) > 0;
-            }else if(isset($filter['performer'])&&!empty($filter['performer'])) {
-                $exist = in_array($filter['performer'], $users);
+        $executers = array_keys($Actions->getExecuters($obj->id));
+        if(count($performersID)){//Додаю виконавців
+            foreach ($performersID as $item=>$value){
+                if(!in_array($value, $executers))
+                    $executers[]=$value;
             }
-//            if($obj->id == 75243){
-//                var_dump($assignedUser);
+
+        }
+
+        if(isset($_GET['performer']) && !empty($_GET['performer']) || isset($filter['performer']) && !empty($filter['performer'])&&$add) {//If set performer filter
+
+            foreach ($executers as $key=>$value){
+                if($value == $taskAuthor[$obj->id]) {
+                    unset($executers[$key]);
+                }
+            }
+//            if($obj->id == 455011){
+//                echo '<pre>';
+//                var_dump($taskAuthor[$obj->id] == $user_id && (array_search($user_id, $executers, true)!= false || $executers[0] == $user_id    || count($executers) == 0 || count(array_intersect($executers, $performersID))>0 ||
+//                        count($performersID)==0 && $taskAuthor[$obj->id] == $user_id && in_array($filter['performer'], $executers)));
+//                echo '</pre>';
 //                die();
 //            }
-            $add =  $exist || (empty($assignedUser[$obj->id])&&$user_id == $_GET['performer'] && $user_id == $taskAuthor[$obj->id]);
-        }
+            $executers = array_values($executers);
+
+//            if($filter['performer'] == $user_id){
+//
+//            }
+            $add =  (array_search($user_id, $executers, true)!= false || count($executers) == 0 && $taskAuthor[$obj->id] == $user_id || count(array_intersect($executers, $performersID))>0 ||
+                         in_array($filter['performer'], $executers) && (in_array($user_id, array($taskAuthor[$obj->id], $filter['performer'] ))));
+//            $add = true;
+//            echo '<pre>';
+//            var_dump($filter['performer']);
+//            echo '</pre>';
+//            die();
+
+//            if(115596 == $obj->id){
+//                var_dump(array_search($user_id, $executers, true)!= false , count($executers) == 0 && $taskAuthor[$obj->id] == $user_id , count(array_intersect($executers, $performersID))>0 ,
+//                    in_array($filter['performer'], $executers));
+//                die();
+//            }
+        }else
+            $add = in_array($user_id, $executers) || $user_id == $taskAuthor[$obj->id];
 
         //Перевірка на фільтр по групі завдань
         if($add && isset($_GET['groupoftaskID']) && !empty($_GET['groupoftaskID'])){
             $add = $_GET['groupoftaskID'] == $obj->fk_groupoftask;
         }
+//        if($add && )
 
         if($add){
 
@@ -504,14 +563,18 @@ function ShowTask(){
                 $date = new DateTime($obj->datelastaction);
                 $lastaction_value = $date->format('d.m.y').'</br>'.$date->format('H:i');
             }
-            $table .= '<td style="width:76px;text-align: center"><a target="_blank" href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu='.$_REQUEST['mainmenu'].'">'.$lastaction_value.'</a></td>';
+            $link = '/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu='.$_REQUEST['mainmenu'];
+            if(isset($taskSociete[$obj->id])&&!empty($taskSociete[$obj->id])){
+                $link = "/dolibarr/htdocs/responsibility/sale/action.php?socid=".$taskSociete[$obj->id]."&idmenu=10425&mainmenu=area";
+            }
+            $table .= '<td style="width:76px;text-align: center"><a target="_blank" href="'.$link.'">'.$lastaction_value.'</a></td>';
             if(empty($obj->datefutureaction)){
                 $value = '<img src="/dolibarr/htdocs/theme/eldy/img/object_action.png">';
             }else{
                 $date = new DateTime($obj->datefutureaction);
                 $value = $date->format('d.m.y').'</br>'.$date->format('H:i');
             }
-            $table .= '<td style="width:76px;text-align: center"><a target="_blank" href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu='.$_REQUEST['mainmenu'].'">'.$value.'</a></td>';
+            $table .= '<td style="width:76px;text-align: center"><a target="_blank" href="'.$link.'">'.$value.'</a></td>';
             $table .= '<td style="width:41px">'.$obj->iMinute.'</td>';
             //Дії наставника
             $table .= '<td style="width:76px;text-align: center"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td>
@@ -546,22 +609,24 @@ function ShowTask(){
             else
                 $table .= '<td  style="width:51px">&nbsp;</td>';
             if(!empty($obj->planed_cost))
-                $table .= '<td style="width:51px; text-align: center">'.$obj->planed_cost.'</td>';
+                $table .= '<td style="width:51px; text-align: center" class="planed_cost">'.$obj->planed_cost.'</td>';
             else
                 $table .= '<td  style="width:51px">&nbsp;</td>';
             if(!empty($obj->fact_cost))
-                $table .= '<td style="width:51px; text-align: center">'.$obj->fact_cost.'</td>';
+                $table .= '<td style="width:51px; text-align: center" class="fact_cost">'.$obj->fact_cost.'</td>';
             else
                 $table .= '<td  style="width:51px">&nbsp;</td>';
             if(!empty($obj->motivator))
-                $table .= '<td style="width:51px; text-align: center">'.$obj->motivator.'</td>';
+                $table .= '<td style="width:51px; text-align: center" class="motivator">'.$obj->motivator.'</td>';
             else
                 $table .= '<td  style="width:51px">&nbsp;</td>';
             if(!empty($obj->demotivator))
-                $table .= '<td style="width:51px; text-align: center">'.$obj->demotivator.'</td>';
+                $table .= '<td style="width:51px; text-align: center" class="demotivator">'.$obj->demotivator.'</td>';
             else
                 $table .= '<td  style="width:51px">&nbsp;</td>';
-            if($taskAuthor[$obj->id] == $user->id && $obj->percent <= 99)
+//            var_dump($obj->new);
+//            die();
+            if($taskAuthor[$obj->id] == $user->id && $obj->percent <= 99 && !empty($obj->new))
                 $table .= '<td  style="width:25px"><img id="img_"'.$obj->id.' onclick="EditAction('.$obj->id.', null, '."'AC_CURRENT'".');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Edit').'" src="/dolibarr/htdocs/theme/eldy/img/edit.png"></td>';
             else
                 $table .= '<td  style="width:25px">&nbsp;</td>';
@@ -575,7 +640,7 @@ function ShowTask(){
                     $table .= '<td  style="width:25px;text-align: center"><img id="imgManager_' . $obj->id . '" onclick="DuplicateAction(' . $obj->id . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Duplicate') . '" src="/dolibarr/htdocs/theme/eldy/img/object_duplicate.png"></td>';
             }else
                 $table .= '<td  style="width:25px">&nbsp;</td>';
-            if($taskAuthor[$obj->id] == $user->id && $obj->percent <= 99)
+            if($taskAuthor[$obj->id] == $user->id && $obj->percent <= 99 && !empty($obj->new))
                 $table .= '<td  style="width:25px"><img title="Видалити завдання" src="/dolibarr/htdocs/theme/eldy/img/delete.png" onclick="ConfirmDelTask(' . $obj->id . ');" id="confirmdel' . $obj->id . '"></td>';
             else
                 $table .= '<td  style="width:25px">&nbsp;</td>';

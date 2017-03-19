@@ -705,6 +705,61 @@ class ActionComm extends CommonObject
 
         return $out;
     }
+    function getExecuters($action_id){
+        global $db;
+        $sql = "select fk_element from `llx_actioncomm_resources` where `fk_actioncomm` = " . $action_id;
+        $res = $db->query($sql);
+        $out = '{ ';
+        if ($db->num_rows($res) == 0) {
+            $sql = "select llx_user.rowid, llx_user.lastname, llx_user.firstname  from llx_actioncomm inner join llx_user on llx_user.rowid = fk_user_author where id = " . $action_id;
+            $res = $db->query($sql);
+            $obj = $db->fetch_object($res);
+            $out .= '"'.$obj->rowid . '" : "' . $obj->lastname . ' ' . mb_substr($obj->firstname, 0, 1, 'UTF-8').'"' ;
+        } else {
+            while ($obj = $db->fetch_object($res)){
+                $sql = "select llx_user.rowid, llx_user.lastname, llx_user.firstname from llx_user where llx_user.rowid = " . $obj->fk_element;
+                $res_tmp = $db->query($sql);
+                $obj_tmp = $db->fetch_object($res_tmp);
+                if(strlen($out)>2)
+                    $out.=',';
+                $out .= '"'.$obj_tmp->rowid . '" : "' . $obj_tmp->lastname . ' ' . mb_substr($obj_tmp->firstname, 0, 1, 'UTF-8').'"' ;
+            }
+        }
+        $out .= ' }';
+        $out = json_decode($out, true);
+        return $out;
+    }
+    function setActionStatusNotActual($action_id, $including_sel_id = false, $subaction = false){
+        global $db, $user;
+        $actions = $this->GetChainActions($action_id);
+        if(!$including_sel_id) {
+            unset($actions[array_search($action_id, $actions)]);
+        }
+        //Откримую всіх авторів дій
+        $sql = "select id, fk_user_author from llx_actioncomm where id in (".implode(',', $actions).")";
+        $res = $db->query($sql);
+        $authors = array();
+        while($obj = $db->fetch_object($res)){
+            $authors[$obj->id] = $obj->fk_user_author;
+        }
+//        var_dump($actions);
+//        die();
+        foreach ($actions as $action){
+            if($authors[$action] == $user->id) {
+                $executers = $this->getExecuters($action);
+                if (count($executers))
+                    $id_usrs = array_keys($executers);
+                else
+                    $id_usrs = array();
+                if (!count($id_usrs) || $id_usrs[0] == $user->id && count($id_usrs) == 1 || $subaction) {
+                    $sql = "update llx_actioncomm set percent = -100 where id = " . $action . " and percent != 100 and active = 1";
+                    $res = $db->query($sql);
+                    if (!$res)
+                        dol_print_error($db);
+                }
+            }
+        }
+    }
     function add($user,$notrigger=0)
     {
 //        echo '<pre>';
@@ -872,8 +927,8 @@ class ActionComm extends CommonObject
             $sql .= " " . (!empty($this->order_id) ? "'" . $this->order_id . "'" : "null"). ",";
             $sql .= "1," . (!empty($this->subaction) ? "'" . $this->subaction . "'" : "null"). ","
                 .(!empty($this->subaction_id)?$this->subaction_id: "null"). ", ".
-                (!empty($this->motivator)?"'".$this->planed_cost."'": "null"). ", ".
-                (!empty($this->demotivator)?"'".$this->fact_cost."'": "null"). ", ".
+                (!empty($this->planed_cost)?"'".$this->planed_cost."'": "null"). ", ".
+                (!empty($this->fact_cost)?"'".$this->fact_cost."'": "null"). ", ".
                 (!empty($this->motivator)?"'".$this->motivator."'": "null"). ", ".
                 (!empty($this->demotivator)?"'".$this->demotivator."'": "null"). ", '".
                 $this->typenotification . "'";
@@ -937,6 +992,10 @@ class ActionComm extends CommonObject
                                 $this->errors[] = $this->db->lasterror();
                         }break;
                     }
+                    //Встановлюю відмітку "не актуальне" для підій, в яких автор і замовник одне лице
+//                    $this->setActionStatusNotActual($this->id);
+
+
 //                    foreach($this->userassigned as $key => $val)
 //                    {
 //                        if (! is_array($val))	// For backward compatibility when val=id

@@ -120,7 +120,7 @@ if($action == 'sendmail'){
 ////            $smtp = new Mail_smtp($params);
 ////            $smtp->send();
         }break;
-        case 'sendmails':{
+        default:{
             $mail_id = array();
             if(isset($_REQUEST['id'])&&!empty($_REQUEST['id']))
                 $mail_id[]=$_REQUEST['id'];
@@ -439,7 +439,7 @@ function AutoSendMail($rowid){
 //    var_dump(empty($postedlist));
 //    echo '</pre>';
 //    die();
-
+    set_time_limit(0);
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
@@ -490,14 +490,18 @@ function AutoSendMail($rowid){
         foreach ($value as $item) {
 //            $item = 'ahrozahidrv@gmail.com';
             if(!in_array(strtolower(trim($item)), $postedlist)) {
+
                 $sql = "insert into `llx_mailing_cibles`(fk_mailing,email,date_envoi) values(" . $rowid . ",'" . $item . "',now())";
                 $res = $db->query($sql);
                 if (!$res) {
                     dol_print_error($db);
                 }else {
-                    $postedlist[]=$item;
+                    $postedlist[]=mb_strtolower(trim($item),'utf-8');
                     $result = true;
-                    $result = $mailSMTP->send($item, $subject, $mesg, $headers); // отправляем письмо
+//                    die($_REQUEST['type']);
+                    if($_REQUEST['type'] == 'sendmails') {
+                        $result = $mailSMTP->send($item, $subject, $mesg, $headers); // отправляем письмо
+                    }
 //                    $result = false;
                     if (!$result) {
                         $sql = "update llx_mailing_cibles set statut = -1 where rowid = " . $db->last_insert_id(MAIN_DB_PREFIX . "mailing_cibles");

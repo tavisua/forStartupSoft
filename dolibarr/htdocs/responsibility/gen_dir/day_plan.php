@@ -388,7 +388,7 @@ function getTotalUserAction($user_id, $class, $title, $code = '')
     if (empty($obj->iCount))
         $outstanding = '<td></td>';
     else
-        $outstanding = '<td  style="text-align: center">' . $obj->iCount . '</td>';
+        $outstanding = '<td  style="text-align: center; cursor: pointer" onclick="show_overdue_actions('."'".$code."'".', $(this));">' . $obj->iCount . '</td>';
 
     //майбутнє
     $future = '';

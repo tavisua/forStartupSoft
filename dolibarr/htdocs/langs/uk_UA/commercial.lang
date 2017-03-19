@@ -87,6 +87,7 @@ ActionAC_RDV=Зустріч в офісі
 ActionDepartureMeeteng=Виїзд
 ActionGlobalTask=Глобальні задачі
 ActionCurrentTask=Поточні задачі
+ActionNotActual=Не актуально
 ActionAC_INT=Intervention on site
 ActionAC_FAC=Send customer invoice by mail
 ActionAC_REL=Send customer invoice by mail (reminder)

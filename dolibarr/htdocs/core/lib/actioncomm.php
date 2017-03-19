@@ -126,7 +126,7 @@ if($_REQUEST['action'] == 'getPerformance' || $_REQUEST['action'] == 'getCustome
 //    echo '</pre>';
 //    die();
     $out .= '<tr id="0">';
-    $out .= '<td class="middle_size" onclick="setParam('."'".($_REQUEST['action'] == 'getPerformance'?'performer':'customer')."',0)".' style="cursor:pointer" ><b>Всі завдання</b></td>';
+    $out .= '<td class="middle_size" onclick="setParam('."'".($_REQUEST['action'] == 'getPerformance'?'performer':'customer')."',0)".'" style="cursor:pointer" ><b>Всі завдання</b></td>';
     $out .= '</tr>';
     if($_REQUEST['action'] == 'getPerformance' && in_array($user->respon_alias2, array('dir_depatment','senior_manager'))) {
             $out .= '<tr id="-1">';

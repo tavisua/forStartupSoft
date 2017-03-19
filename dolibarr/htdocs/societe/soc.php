@@ -3021,9 +3021,9 @@ print '
     $(function($) {
         $.mask.definitions["~"]="[+-]";
         $("#BirthdayDate").mask("99.99.9999");
-        $("#phone").mask("+'.$countrycode.'(099) 999-9999");
-        $("#mobile_phone1").mask("'.$countrycode.'(099) 999-9999");
-        $("#mobile_phone2").mask("'.$countrycode.'(099) 999-9999");
+//        $("#phone").mask("+'.$countrycode.'(099) 999-9999");
+//        $("#mobile_phone1").mask("'.$countrycode.'(099) 999-9999");
+//        $("#mobile_phone2").mask("'.$countrycode.'(099) 999-9999");
 //        $("#phoneext").mask("(999) 999-9999? x99999");
 //        $("#tin").mask("99-9999999");
 //        $("#ssn").mask("999-99-9999");

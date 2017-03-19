@@ -7,12 +7,12 @@
     </div>
     <?if(in_array($user->id,array(1,5,6,7,43))){?>
         <div  class="inline-block tabsElem tabsElemActive" id="Raport">
-            <a href="?idmenu=10427&mainmenu=coworkers&leftmenu=&list=callstatistic"class="tabactive tab inline-block" data-role="button"><b>Звіт по дзвінкам</b></a>
+            <a href="?idmenu=10427&mainmenu=coworkers&leftmenu=&list=callstatistic"class="tab inline-block" data-role="button"><b>Звіт по дзвінкам</b></a>
         </div>
     <?}?>
     <?if($user->rights->user->user->proposition){?>
     <div  class="inline-block tabsElem" id="Proposition">
-        <a href="?idmenu=10427&mainmenu=coworkers&leftmenu=&list=proposition"class="tab inline-block" data-role="button"><b>План програмування</b></a>
+        <a href="?idmenu=10427&mainmenu=coworkers&leftmenu=&list=proposition"class="tabactive tab inline-block" data-role="button"><b>План програмування</b></a>
     </div>
     <?}?>
 </div>
@@ -22,7 +22,7 @@
         <tr  class="multiple_header_table">
             <td>№п/п</td>
             <td>Створено</td>
-            <td width="200px">Пропозиція</td>
+            <td width="200px">Пропозиція <button onclick="CreateNewPropositionForm();" title="Створити нову пропозицію">Додати...</button></td>
             <td style="min-width: 170px">ПІБ</td>
             <td>Голосування</td>
             <td>Потрібно часу</td>
@@ -32,7 +32,29 @@
     </thead>
     <?=$tbody;?>
 </table>
+<div id="addpropositionform" style="display: none">
+    <form id="newproposition">
+        <textarea id="note"></textarea>
+        <br>
+        <input type="button" id="ok" onclick="CreateNewProposition()" title="Зберегти" value="Зберегти">
+        <input type="button" id="Cansel" onclick="CloseForm();" title="Відмінити" value="Відмінити">
+    </form>
+</div>
 <script>
+    function CreateNewPropositionForm() {
+        $('#popupmenu').html($('div#addpropositionform').html());
+        $('#popupmenu').attr('TitleProposed',null);
+        $('#popupmenu').show();
+        console.log($('#popupmenu'));
+    }
+    function CreateNewProposition() {
+        if(confirm('Додати пропозицію на обговорення?')){
+
+        }
+    }
+    function CloseForm() {
+        $('#popupmenu').hide();
+    }
     function SetMonthFilter(){
         var selMonth = getParameterByName('month');
         var searchString = location.search;

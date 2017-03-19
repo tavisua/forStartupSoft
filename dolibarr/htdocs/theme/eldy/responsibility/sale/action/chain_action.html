@@ -24,6 +24,8 @@
                 <td style="font-size: small;">
                 <button style="width: 100%" onclick="setExecutedAction(<?=$_REQUEST['action_id']?>);">&nbspРезультат влаштовує</button>
                 </br></br>
+                <button  style="width: 100%" onclick="SetNotActualStatus(<?=$_REQUEST['action_id']?>, true);">Не актуально</button>
+                </br></br>
                 <button  style="width: 100%" onclick="AddResult();">Результат <b>НЕ</b> влаштовує /<br>Додати запис</button>
                 </br></br>
                     <?=$addSubAction?>
@@ -142,7 +144,6 @@
 </style>
 <script>
     function setConfirm() {
-
         var winclose = getParameterByName('_backtopage')!='true';
         $('#confirm-container').hide();
         var param = {

@@ -47,10 +47,10 @@
             <th width="40px" class="middle_size" level="2">Необх. часу, хв</th>
             <th width="75px" class="middle_size" level="2">Останні<!--</br><img  id="LastValidFilter" onclick="GetExecDate('lastvalid');" title="Встановити фільтр по даті останньої перевірки наставником" src="/dolibarr/htdocs/theme/eldy/img/btn_arrow_down.png">--></th>
             <th width="75px" class="middle_size" level="2">Майбутні<!--</br><img  id="FutureValidFilter" onclick="GetExecDate('futurevalid');" title="Встановити фільтр по даті останньої перевірки наставником" src="/dolibarr/htdocs/theme/eldy/img/btn_arrow_down.png">--></th>
-            <th width="55px" class="small_size" level="2">План</th>
-            <th width="55px" class="small_size" level="2">Факт</th>
-            <th width="55px" class="small_size" level="2">+</th>
-            <th width="55px" class="small_size" level="2">-</th>
+            <th width="55px" class="small_size" level="2" id="plan_cost">План</th>
+            <th width="55px" class="small_size" level="2" id="fact_cost">Факт</th>
+            <th width="55px" class="small_size" level="2" id="motivator">+</th>
+            <th width="55px" class="small_size" level="2" id="demotivator">-</th>
         </tr>
         </thead>
 
@@ -90,6 +90,8 @@
     $(document).ready(function(){
         window.filterdatas = <?=empty($_POST['filterdatas'])?'null':$_POST['filterdatas']?>;
         ShowOffFilterBtn();
+        CalcCost();
+        CalcMotivation()
         $('#reference_body').attr('height', window.innerHeight - 360);
 
         var thList = $("#headtable").find("tr")

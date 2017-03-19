@@ -200,17 +200,6 @@ function previewNote(id){
         }
     })
 }
-function DuplicateAction(id){
-    if(confirm('Продублювати завдання?')){
-        var input_html = '<input type="hidden" value="1" name="duplicate_action">';
-        $('#addaction').html($('#addaction').html()+input_html);
-        $('#action_id').val(id);
-        $('#action_item').val('edit');
-        //console.log(document.getElementById('addaction'));
-        //return;
-        $('#addaction').submit();
-    }
-}
 function ConfirmReceived(id) {
     var src = $('img#confirm' + id).attr('src');
     //console.log(src);
@@ -495,8 +484,8 @@ function SetRemarkOfMentor(action_id, rowid){
     //return;
     var link = '/dolibarr/htdocs/comm/action/result_action.php';
     var backtopage = encodeURIComponent(location.pathname+location.search);
-    //window.open(link+'?action=SetRemarkOfMentor&backtopage='+backtopage);
-    location.href = link+'?action=SetRemarkOfMentor&action_id='+action_id+(rowid!==undefined?'&rowid='+rowid:'')+'&backtopage='+backtopage;
+    window.open(link+'?action=SetRemarkOfMentor&action_id='+action_id+(rowid!==undefined?'&rowid='+rowid:'')+'&backtopage='+backtopage, '_blank');
+    // location.href = link+'?action=SetRemarkOfMentor&action_id='+action_id+(rowid!==undefined?'&rowid='+rowid:'')+'&backtopage='+backtopage;
 }
 function GetExecDate(datetype){
     var param = {
@@ -861,16 +850,19 @@ function CalcP(date, minute, id_usr, prefix){
     // alert(date,date.substr(6,2));
     // alert($("#ActionsCount").length);
     //return;
+    date = date.replace('.','-');
     if(minute === undefined || minute.length == 0)
         return;
-    // alert($("#ActionsCount").length>0);
     if($("#ActionsCount").length>0) {
         var date_tmp = date;
-        if($.isNumeric(date.substr(0, 4)) && Math.floor(date.substr(0, 4)) == date.substr(0, 4))
-            date_tmp =  date.substr(0, 4) + '-' + date.substr(5, 2) + '-' + date.substr(8, 2);
-        else
-            date_tmp =  date.substr(6, 4) + '-' + date.substr(3, 2) + '-' + date.substr(0, 2);
-        console.log('date '+date_tmp, date);
+        if($.isNumeric(date.substr(0, 4)) && Math.floor(date.substr(0, 4)) == date.substr(0, 4)) {
+            date_tmp = date.substr(0, 4) + '-' + date.substr(5, 2) + '-' + date.substr(8, 2);
+        }else {
+            date_tmp = date.substr(6, 4) + '-' + date.substr(3, 2) + '-' + date.substr(0, 2);
+        }
+            // date_tmp =  date.substr(6, 4) + '-' + date.substr(3, 2) + '-' + date.substr(0, 2);
+
+        console.log('date1 '+date.substr(3, 2), date);
 
         $.ajax({
             url: '/dolibarr/htdocs/comm/action/card.php?action=getActionsCount&date=' +date_tmp,
@@ -1153,6 +1145,40 @@ function show_overdue_actions(code, object){
             $('#popupmenu').show();
         }
     })
+}
+function CalcCost(){
+    var td_list = $.find('td.planed_cost');
+    var total = 0;
+    $.each(td_list , function (key, item) {
+        // console.log('item = '+item.innerHTML);
+        total+=Number(item.innerHTML);
+    })
+    $('th#plan_cost').html('План<br>('+total+')');
+    td_list = $.find('td.fact_cost');
+    total = 0;
+    $.each(td_list , function (key, item) {
+        // console.log('item = '+item.innerHTML);
+        total+=Number(item.innerHTML);
+    })
+    $('th#fact_cost').html('План<br>('+total+')');
+
+}
+function CalcMotivation(){
+    var td_list = $.find('td.motivator');
+    var total = 0;
+    $.each(td_list , function (key, item) {
+        // console.log('item = '+item.innerHTML);
+        total+=Number(item.innerHTML);
+    })
+    $('th#motivator').html('+<br>('+total+')');
+    td_list = $.find('td.demotivator');
+    total = 0;
+    $.each(td_list , function (key, item) {
+        // console.log('item = '+item.innerHTML);
+        total+=Number(item.innerHTML);
+    })
+    $('th#demotivator').html('-<br>('+total+')');
+
 }
 function RedirectToTask(id, code){
         //console.log(code, code=='AC_GLOBAL');
@@ -1714,6 +1740,27 @@ function EditAction(rowid, answer_id, actioncode){
     }
     else if($('#addaction').length>0)
         $('#addaction').submit();
+}
+function SetNotActualStatus(action_id, refresh) {
+    refresh = refresh || false;
+    var param = {
+        "action":"setNotActualStatus",
+        "action_id":action_id
+    }
+    $.ajax({
+        url:'/dolibarr/htdocs/comm/action/chain_actions.php',
+        data:param,
+        cashe:false,
+        success:function (result) {
+            if(refresh)
+                location.href=location.href;
+        }
+    })
+}
+function DuplicateAction(id, actioncode){
+    if(confirm('Продублювати завдання?')){
+        EditAction(-id, null, actioncode)
+    }
 }
 function loading(){
     var img = $("#loading_img").find("img");

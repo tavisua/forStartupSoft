@@ -277,12 +277,14 @@ function ShowTask(){
 
         }
         if(isset($_GET['performer']) && !empty($_GET['performer'])&&$add) {//If set performer filter
-            $users = explode(',', $assignedUser[$obj->id]);
-            $add =  in_array($_GET['performer'], $users) || (empty($assignedUser[$obj->id])&&$id_usr == $_GET['performer'] && $id_usr == $taskAuthor[$obj->id]);
-//            if(20971 == $obj->id){
-//                var_dump(count($users), $assignedUser[$obj->id], $_GET['performer']);
-//                die();
-//            }
+            $executers = array_keys($Actions->getExecuters($obj->id));
+            foreach ($executers as $key=>$value){
+                if($value == $taskAuthor[$obj->id]) {
+                    unset($executers[$key]);
+                }
+            }
+            $executers = array_values($executers);
+            $add =  array_search($id_usr, $executers, true)!= false || $executers[0] == $id_usr  || count($executers) == 0;
         }
         if($add){
 //            if(408515 == $obj->id){

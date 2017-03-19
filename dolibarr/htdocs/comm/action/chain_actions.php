@@ -19,6 +19,12 @@ if(in_array('dir_depatment',array($user->respon_alias,$user->respon_alias2))){
     }
 }
 $subaction = getSubActionType();
+if($_REQUEST['action'] == 'setNotActualStatus'){
+    require_once(DOL_DOCUMENT_ROOT . "/comm/action/class/actioncomm.class.php");
+    $Action = new ActionComm($db);
+    $Action->setActionStatusNotActual($_REQUEST['action_id'], true, true);
+    return 1;
+}
 if($_REQUEST['action'] == 'get_subactiontype'){
     switch ($subaction->subaction){
         default:{
@@ -379,7 +385,7 @@ function ShowActionTable(){
 //        where id in ('.implode(",", $chain_actions).') and llx_actioncomm.active = 1  order by datep desc, datec desc';
 
 //V 2
-    $sql = "select `llx_actioncomm`.id action_id, `llx_actioncomm`.percent, 0 rowid, `llx_actioncomm`.`datep`,
+    $sql = "select `llx_actioncomm`.id action_id, `llx_actioncomm`.`new`, `llx_actioncomm`.percent, 0 rowid, `llx_actioncomm`.`datep`,
        `llx_actioncomm`.datec,
        `create_user`.`lastname` lastname,
        `create_user`.`rowid` author_id,
@@ -441,7 +447,8 @@ function ShowActionTable(){
 //        die();
 
             if(empty($row->rowid)&&!empty($row->action_id)){
-
+//                var_dump(array_keys($Action->getExecuters($row->action_id)));
+//                die();
                 $sql = "select fk_element from `llx_actioncomm_resources` where `fk_actioncomm` = ".$row->action_id;
 
                 $resUserID = $db->query($sql);
@@ -604,7 +611,7 @@ function CreateNewActionItem($row, $num, $result = false){
     $style = 'style="';
     if($row->percent < 98) {
         if (!$result) {
-            if ($dateaction < $date) {
+            if ($dateaction < $date && $row->percent != -100) {
                 $style = 'style="background:rgb(255, 0, 0)';
             } elseif ($dateaction == $date) {
                 $style = 'style="background:rgb(0, 255, 0)';
@@ -612,6 +619,8 @@ function CreateNewActionItem($row, $num, $result = false){
         }
         if ($row->percent == "-1")
             $status = 'ActionNotRunning';
+        elseif ($row->percent == "-100")
+            $status = 'ActionNotActual';
         elseif ($row->percent == 0)
             $status = 'ActionRunningNotStarted';
         elseif ($row->percent > 0 && $row->percent < 98)
@@ -643,28 +652,34 @@ function CreateNewActionItem($row, $num, $result = false){
     }
 //    var_dump(empty($row->id_mentor));
 //    die();
-    if($row->author_id == $user->id) {
-        if(empty($row->id_mentor)) {
-            if ($row->percent == 99 && !$result) {
-                $out .= '<img id="confirm' . $row->action_id . '" title = "' . $langs->trans('Confirm') . '" onclick="Confirmation(' . $row->action_id . ');" src="/dolibarr/htdocs/theme/eldy/img/uncheck.png">';
-            } elseif ($row->percent < 99) {
-                if ($result)
-                    $out .= '<img id="img_1"  onclick="EditOnlyResult(' . $row->action_id . ',' . (empty($row->rowid) ? 0 : $row->rowid) . ', ' ."'". $row->kindaction."'" . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Edit') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">';
-                else
-                    $out .= '<img id="img_1"  onclick="EditAction(' . $row->action_id . ',' . (empty($row->rowid) ? 0 : $row->rowid) . ', ' . "'".$row->kindaction."'" . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Edit') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">';
+    if($row->percent != -100) {
+        if ($row->author_id == $user->id) {
+            if (empty($row->id_mentor)) {
+                if ($row->percent == 99 && !$result) {
+                    $out .= '<img id="confirm' . $row->action_id . '" title = "' . $langs->trans('Confirm') . '" onclick="Confirmation(' . $row->action_id . ');" src="/dolibarr/htdocs/theme/eldy/img/uncheck.png">';
+                } elseif ($row->percent < 99) {
+                    if(!empty($row->new)) {
+                        if ($result)
+                            $out .= '<img id="img_1"  onclick="EditOnlyResult(' . $row->action_id . ',' . (empty($row->rowid) ? 0 : $row->rowid) . ', ' . "'" . $row->kindaction . "'" . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Edit') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">';
+                        else
+                            $out .= '<img id="img_1"  onclick="EditAction(' . $row->action_id . ',' . (empty($row->rowid) ? 0 : $row->rowid) . ', ' . "'" . $row->kindaction . "'" . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Edit') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">';
+                        $out .= '&nbsp;&nbsp;<img  onclick="DelAction(' . (empty($row->rowid) ? "'" . $row->action_id : "'_" . $row->rowid) . "'" . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Delete') . '" src="/dolibarr/htdocs/theme/eldy/img/delete.png">';
+                    }else{
+                        $out.= '<img id="imgManager_' . $row->rowid . '" onclick="PostponeAction(' . $row->action_id . ', '.$actioncode.');" style="vertical-align: middle; cursor: pointer;" title="Перенести дію" src="/dolibarr/htdocs/theme/eldy/img/object_postpone.png">';
+                    }
+                }
+            } elseif ($user->id == $row->id_mentor) {
+                $out .= '<img id="img_1"  onclick="SetRemarkOfMentor(' . $row->action_id . ',' . $row->rowid . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('SetRemarkOfMentor') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">';
                 $out .= '&nbsp;&nbsp;<img  onclick="DelAction(' . (empty($row->rowid) ? "'" . $row->action_id : "'_" . $row->rowid) . "'" . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Delete') . '" src="/dolibarr/htdocs/theme/eldy/img/delete.png">';
             }
-        }elseif($user->id == $row->id_mentor){
-            $out .= '<img id="img_1"  onclick="SetRemarkOfMentor(' . $row->action_id . ','.$row->rowid.');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('SetRemarkOfMentor') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">';
-            $out .= '&nbsp;&nbsp;<img  onclick="DelAction(' . (empty($row->rowid) ? "'" . $row->action_id : "'_" . $row->rowid) . "'" . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Delete') . '" src="/dolibarr/htdocs/theme/eldy/img/delete.png">';
+        } elseif (count($subdivUserID) > 0 && in_array($row->contactUserID, $subdivUserID) && $row->action_id != 0 || (in_array('gen_dir', array($user->respon_alias, $user->respon_alias2)))) {
+            $out .= '<img id="img_1"  onclick="SetRemarkOfMentor(' . $row->action_id . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('SetRemarkOfMentor') . '" src="/dolibarr/htdocs/theme/eldy/img/filenew.png">';
         }
-    }elseif(count($subdivUserID)>0&&in_array($row->contactUserID, $subdivUserID)&&$row->action_id!=0 || (in_array('gen_dir', array($user->respon_alias,$user->respon_alias2)))){
-        $out .= '<img id="img_1"  onclick="SetRemarkOfMentor(' . $row->action_id . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('SetRemarkOfMentor') . '" src="/dolibarr/htdocs/theme/eldy/img/filenew.png">';
     }
 //    elseif($row->contactUserID== $user->id){
 //        $out .= '<img id="img_1"  onclick="EditOnlyResult(' . $row->action_id . ',' . (empty($row->rowid) ? 0 : $row->rowid) . ', ' . $actioncode . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Edit') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">';
 //    }
-    if(!$result)
+    if(!$result && !in_array($row->percent, array(100,-100)))
         $out .= '&nbsp;&nbsp;<img  onclick="ResultAction(' . (empty($row->rowid) ? "'" . $row->action_id : "'_" . $row->rowid) . "'" . ');" style="vertical-align: middle; cursor: pointer;" title="Дії ' . $langs->trans($row->kindaction) . '" src="/dolibarr/htdocs/theme/eldy/img/'.(empty($row->rowid)||(!empty($row->rowid)&&$row->author_id == $user->id) ? "object_result_action"  : "edit").'.png">';
 
     $out .= '</td>

@@ -214,7 +214,7 @@ function ShowTasks($Code, $Title, $bestvalue = false){
     $value = '';
     if(!empty($userActions['outstanding'][$Code]))
         $value = $userActions['outstanding'][$Code];
-    $table .= '<td class="middle_size" style="text-align: center; width: 51px">' . $value . '</td>';
+    $table .= '<td class="middle_size" style="text-align: center; width: 51px; cursor: pointer" onclick="show_overdue_actions('."'$Code'".', $(this));">' . $value . '</td>';
     //майбутнє заплановано
     for($i=0; $i<9; $i++){
         $value = '';

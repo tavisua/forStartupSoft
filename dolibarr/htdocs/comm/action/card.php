@@ -724,6 +724,7 @@ if ($action == 'add')
 	}
 
 	$object->note = trim($_REQUEST["note"]);
+	$object->planed_cost = GETPOST("planed_cost");
 	$object->confirmdoc = trim($_REQUEST["confirmdoc"]);
 	if(isset($_REQUEST["typeaction"]) && $_REQUEST["typeaction"] == 'subaction')
 		$object->entity = 0;
@@ -792,10 +793,14 @@ if ($action == 'add')
 			$object->percentage = 0;
 		}
 //		echo '<pre>';
-//		var_dump($_REQUEST);
+//		var_dump($object);
 //		echo '</pre>';
 //		die();
 		$idaction=$object->add($user);
+//		echo '<pre>';
+//		var_dump($idaction);
+//		echo '</pre>';
+//		die();
 		if(isset($_REQUEST["dateNextAction"])&&
 				!empty($_REQUEST["dateNextAction"])
 				&&in_array($object->type_code, array('AC_GLOBAL','AC_CURRENT'))
@@ -835,6 +840,8 @@ if ($action == 'add')
 					dol_syslog("Back to ".$backtopage.($moreparam?(preg_match('/\?/',$backtopage)?'&'.$moreparam:'?'.$moreparam):''));
 //					header("Location: ".$backtopage.($moreparam?(preg_match('/\?/',$backtopage)?'&'.$moreparam:'?'.$moreparam):''));
                     $Location = "Location: ".str_replace("'",'', $backtopage);
+//					var_dump($backtopage);
+//					die($backtopage);
                     header($Location);
 				}
 				elseif(!empty($object->socid)){
@@ -1140,7 +1147,7 @@ if ($action == 'create') {
 
 }
 elseif($action == 'edit') {
-	if(!isset($_REQUEST["duplicate_action"]))
+	if(!isset($_REQUEST["duplicate_action"]) && $_REQUEST['action_id'] > 0)
 		llxHeader('', $langs->trans("EditAction"), $help_url);
 	else
 		llxHeader('', $langs->trans("DuplicateAction"), $help_url);
@@ -1319,6 +1326,16 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 				$assigneduser->fetch($id_usr['id']);
 				if(!in_array($assigneduser->respon_id,$respon))
 					$respon[]=$assigneduser->respon_id;
+				if(!in_array($assigneduser->respon_id2,$respon))
+					$respon[]=$assigneduser->respon_id2;
+				$sql = "select fk_respon from `llx_user_responsibility` where fk_user = ".$id_usr['id']." and active = 1";
+				$res = $db->query($sql);
+				if(!$res)
+					dol_print_error($db);
+				while($obj = $db->fetch_object($res)){
+					if(!in_array($obj->fk_respon,$respon))
+						$respon[]=$obj->fk_respon;
+				}
 			}
 		}
 //		var_dump($respon);
@@ -1676,7 +1693,14 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 }
 //var_dump($id);
 //die();
-
+if($id < 0){
+	$id = -$id;
+	$_REQUEST["duplicate_action"] = 1;//Дублювання дії
+//	echo '<pre>';
+//	var_dump($id);
+//	echo '</pre>';
+//	die();
+}
 // View or edit
 if ($id > 0)
 {
@@ -2531,11 +2555,13 @@ print '
 						$("select#apmin").val(min);
 
 						$("select#aphour").bind("change", ApHourChanged);
-						$("select#apmin").bind("change", ApHourChanged);
+						$("select#apmin").bind("change", ApHourChanged);						
 						$("#p2").val($("#ap").val())
 						$("#apday").val($("#ap").val().substr(0,2));
 						$("#apmonth").val($("#ap").val().substr(3,2));
 						$("#apyear").val($("#ap").val().substr(6,4));
+//						console.log($("#apyear").val(),$("#apmonth").val(),$("#apday").val());
+//						alert("test");
 						CalcP($("#apyear").val()+"-"+$("#apmonth").val()+"-"+$("#apday").val()+" "+$("#aphour").val()+":"+$("#apmin").val(), $("#exec_time_ap").val(), '.$user->id.', "ap");
 						$("#p2day").val($("#apday").val());
 						$("#p2month").val($("#apmonth").val());
@@ -2628,7 +2654,7 @@ function getActionCount($datep){
 		and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
 							where active = 1
 							and `type` in ('system','user'))";
-	
+//	die($sql);
 	$res = $db->query($sql);
 	if(!$res)
 		dol_print_error($db);

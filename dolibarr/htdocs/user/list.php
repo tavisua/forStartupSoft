@@ -9,13 +9,14 @@ require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.form.class.php';
 $form = new Form($db);
 $object = new User($db);
+//echo '<pre>';
+//var_dump($user->rights->user->user->proposition);
+//echo '</pre>';
+//die($sql);
+
 if(isset($_REQUEST['action'])&&$_REQUEST['action']=='getAction'){
     $sql = "select distinct action from llx_c_actiontoaddress
       where action like '%".trim($_REQUEST['find']['term'])."%' and active = 1";
-//    echo '<pre>';
-//    var_dump($_REQUEST);
-//    echo '</pre>';
-//    die($sql);
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
@@ -60,7 +61,6 @@ print_fiche_titre($langs->trans('Coworkers'));
 if($_REQUEST['list']=='contactlist') {
     $tbody = showDictActionToAddress();
     include $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/theme/eldy/users/contactlist.html';
-    print '<div id="popupmenu" style="display: none; position: absolute; width: auto; height: auto" class="pair popupmenu" >';
 }elseif($_REQUEST['list']=='proposition' && $user->rights->user->user->proposition){
 //    echo '<pre>';
 //    var_dump($user->rights->user->user->proposition);
@@ -99,16 +99,43 @@ if($_REQUEST['list']=='contactlist') {
         $Date = $_REQUEST['endyear'].'-'.$_REQUEST['endmonth'].'-'.$_REQUEST['endday'];
         $end = date('Y-m-d', strtotime($Date.' +1 days'));
     }
+//    var_dump($begin,$end);
+//    die();
+    if(isset($_REQUEST['endyear'])&&isset($_REQUEST['endmonth'])&&isset($_REQUEST['endday']))
+        $end = $_REQUEST['endyear'].'-'.$_REQUEST['endmonth'].'-'.$_REQUEST['endday'];
     $tbody = callStatistic($begin,$end);
-    $end = $_REQUEST['endyear'].'-'.$_REQUEST['endmonth'].'-'.$_REQUEST['endday'];
     include $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/theme/eldy/users/callstatistic.html';
 }else {
     $tbody = showUserList();
     include $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/theme/eldy/users/userlist.html';
 }
+print '<div id="popupmenu" style="display: none; position: absolute; width: auto; height: auto" class="pair popupmenu" >';
 exit();
 function showUserProposition(){
-
+    global $db;
+    $sql = "select datec, note, id_usr, dtChange from llx_userproposition where active = 1 order by dtChange desc";
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $out='<tbody id="mainbody">';
+    if(!$res->num_rows)
+        $out.='<tr class="impair">
+            <td style="width: 37px">&nbsp;</td>
+            <td style="width: 70px">&nbsp;</td>
+            <td style="width: 201px">&nbsp;</td>
+            <td style="width: 171px">&nbsp;</td>
+            <td style="width: 91px">&nbsp;</td>
+            <td style="width: 100px">&nbsp;</td>
+            <td style="width: 110px">&nbsp;</td>
+            <td style="width: 101px">&nbsp;</td>
+            </tr>';
+    $num = 1;
+    
+//    var_dump($res);
+//    die();
+//    $out = '';
+    $out.='</tbody>';
+    return $out;
 }
 function callStatistic($begin,$end){
 //    phpinfo();

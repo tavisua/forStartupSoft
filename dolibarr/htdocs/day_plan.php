@@ -22,7 +22,7 @@ if(isset($_REQUEST['action'])){
                 left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id 
                 where date(datep) between adddate(date(now()), interval -1 month) and date(now()) 
                 and llx_actioncomm.percent not in (100, -100) 
-                and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end = 7 ";
+                and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end = $user->id ";
             switch ($_REQUEST['code']){
                 case 'AC_TEL':{
                     $sql.="and llx_actioncomm.`code` = 'AC_TEL' ";
@@ -79,11 +79,29 @@ if(isset($_REQUEST['action'])){
                         break;
                 }
                 $item.='<td><img src="/dolibarr/htdocs/theme/eldy/img/'.$iconitem.'"></td>';
-                $out.='<tr class="middle_size" style="cursor:pointer" onclick=('.'location.href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu='.$classitem.'")>';
+                global $conf;
+                $link = "/dolibarr/htdocs/comm/action/chain_actions.php?mainmenu=$classitem&action_id=$obj->id";
+//                die($link);
+                if($conf->browser->name == 'chrome')
+                    $action = "window.open($link, '_blank', 'toolbar=yes, location=yes, status=yes, menubar=yes, scrollbars=yes');";
+                else
+                    $action = "window.open($link);";
+                $out.="<tr class='middle_size' style='cursor:pointer' onclick='ShowAction($obj->id)'>";
                 $out.=$item;
                 $out.='</tr>';
             }
-            $out.='</tbody>';
+            $out.='</tbody>
+            <script>
+                function ShowAction(actionid) {
+                var link = "/dolibarr/htdocs/comm/action/chain_actions.php?mainmenu='.$classitem.'&action_id="+actionid
+                    if(\'<?=($conf->browser->name)?>\' == \'chrome\') {
+
+                        window.open(link, \'_blank\', \'toolbar=yes, location=yes, status=yes, menubar=yes, scrollbars=yes\');
+                    }else {
+                        window.open(link);
+                    }                  
+                }
+            </script>';
             print $out;
             exit();
         }break;
