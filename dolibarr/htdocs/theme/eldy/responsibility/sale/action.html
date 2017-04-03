@@ -349,21 +349,21 @@
             $('#contactlist').show();
         }
     }
-    function DelAction(rowid){
-        if(confirm('Видалити дію?')) {
-            var link = '/dolibarr/htdocs/comm/action/card.php?action=delete_action&rowid=' + rowid;
-            $.ajax({
-                url: link,
-                cache: false,
-                success: function (html) {
-                    if (html == 1)
-                        location.href = location.href+'&lastaction=delaction';
-                    else
-                        console.log('помилка ', html, link);
-                }
-            })
-        }
-    }
+//    function DelAction(rowid){
+//        if(confirm('Видалити дію?')) {
+//            var link = '/dolibarr/htdocs/comm/action/card.php?action=delete_action&rowid=' + rowid;
+//            $.ajax({
+//                url: link,
+//                cache: false,
+//                success: function (html) {
+//                    if (html == 1)
+//                        location.href = location.href+'&lastaction=delaction';
+//                    else
+//                        console.log('помилка ', html, link);
+//                }
+//            })
+//        }
+//    }
     function AddAction(){
 //        alert("test");
         $("#actionbuttons").attr('action', '/dolibarr/htdocs/comm/action/card.php?actioncode=AC_TEL');

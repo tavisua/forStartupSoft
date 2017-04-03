@@ -187,7 +187,7 @@
                     <th class="totalvalue" id="global_fakt_day_m1"><?=$global_task["fakt_day_m1"]?></th>
                     <th class="totalvalue" id="global_fakt_today"><?=$global_task["fakt_today"]?></th>
                     <!--майбутнє (план)-->
-                    <th class="totalvalue" id="global_outstanding"><?=$global_task['outstanding']?></th>
+                    <th class="totalvalue" id="global_outstanding" <?=$global_task['outstanding']>0?'style="cursor: pointer;"':''?> onclick="show_overdue_actions('AC_GLOBAL', $(this));"><?=$global_task['outstanding']?></th>
                     <th class="totalvalue" id="global_future_today"><?=$global_task['future_today']?></th>
                     <th class="totalvalue" id="global_future_day_pl1"><?=$global_task['future_day_pl1']?></th>
                     <th class="totalvalue" id="global_future_day_pl2"><?=$global_task['future_day_pl2']?></th>
@@ -222,7 +222,7 @@
                     <th class="totalvalue" id="current_fakt_day_m1"><?=$current_task["fakt_day_m1"]?></th>
                     <th class="totalvalue" id="current_fakt_today"><?=$current_task["fakt_today"]?></th>
                     <!--майбутнє (план)-->
-                    <th class="totalvalue" id="current_outstanding"><?=$current_task['outstanding']?></th>
+                    <th class="totalvalue" id="current_outstanding" <?=$current_task['outstanding']>0?'style="cursor: pointer;"':''?> onclick="show_overdue_actions('AC_CURRENT', $(this));"><?=$current_task['outstanding']?></th>
                     <th class="totalvalue" id="current_future_today"><?=$current_task['future_today']?></th>
                     <th class="totalvalue" id="current_future_day_pl1"><?=$current_task['future_day_pl1']?></th>
                     <th class="totalvalue" id="current_future_day_pl2"><?=$current_task['future_day_pl2']?></th>
@@ -292,7 +292,7 @@
                     <th class="totalvalue" id="lineactive_fakt_day_m1"><?=$lineaction["fakt_day_m1"]?></th>
                     <th class="totalvalue" id="lineactive_fakt_today"><?=$lineaction["fakt_today"]?></th>
                     <!--майбутнє (план)-->
-                    <th class="totalvalue" id="lineactive_outstanding"><?=$lineaction['outstanding']?></th>
+                    <th class="totalvalue" id="lineactive_outstanding" <?=$lineaction['outstanding']>0?'style="cursor: pointer;"':''?> onclick="show_overdue_actions('<?=$lineactionCode?>', $(this));"><?=$lineaction['outstanding']?></th>
                     <th class="totalvalue" id="lineactive_future_today"><?=$lineaction['future_today']?></th>
                     <th class="totalvalue" id="lineactive_future_day_pl1"><?=$lineaction['future_day_pl1']?></th>
                     <th class="totalvalue" id="lineactive_future_day_pl2"><?=$lineaction['future_day_pl2']?></th>

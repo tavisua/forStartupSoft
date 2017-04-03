@@ -100,7 +100,6 @@
 </br></br>
 <div  id="ActionList">
     <form id="addaction" action="" method="post">
-        <input id="backtopage" type="hidden" value="<?=$_GET['backtopage']?>" name="backtopage">
         <input id="rowid" name="rowid" type="hidden" value="<?=empty($object->resultaction['rowid'])?$object->rowid:$object->resultaction['rowid']?>">
         <input id="actionid" name="actionid" type="hidden" value="<?=$action_id?>">
         <input id="newdate" name="newdate" type="hidden" value="">
@@ -117,6 +116,7 @@
         <input type="hidden" name="typeSetOfDate" id="type" value="<?=$_REQUEST['typeSetOfDate']?>">
         <input type="hidden" name="error" id="error" value="<?=$_REQUEST['error']?>">
         <input id="callstatus" name="callstatus" type="hidden" value="<?=empty($object->callstatus)?2:$object->callstatus?>">
+        <input id="backtopage" type="hidden" value="<?=$_GET['backtopage']?>" name="backtopage">
         <?if($_REQUEST['actioncode']!='AC_TEL' && $user->id == $Actions->getAuthorID($_REQUEST['action_id'])){?><br class="forAllGroup"><br class="forAllGroup">
         <label><input id="forAllGroup" name="forAllGroup" type="checkbox" value="" > Застосувати до завдання,<br>поставленого групі людей</label><?}?>
         </br>
@@ -359,6 +359,11 @@
 
     function save(){
         if($('#proposed_id').val() === undefined || confirm('Зберегти інформацію?')) {
+            if($('#assignUser').val() == '-1'){
+                alert('Необхідно вказати "Контакт"');
+                return;
+            }
+
             var valid = true;
             if('sale' == '<?=$user->respon_alias?>' || 'sale' == '<?=$user->respon_alias2?>')
                 valid=validData();
@@ -445,6 +450,10 @@
 //        if($('#newdate').val().length>0) {
 //            confirm('Увага! Було замінено дату виконання дії, тому після зберігання результатів перемовин не буде встановлено статус "Виконано"');
 //        }
+        if($('#assignUser').val() == '-1'){
+            alert('Необхідно вказати "Контакт"');
+            return;
+        }
         var valid = true;
         if('sale' == '<?=$user->respon_alias?>' || 'sale' == '<?=$user->respon_alias2?>')
             valid=validData();

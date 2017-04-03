@@ -15,14 +15,61 @@ if(isset($_REQUEST['action'])){
     global $db,$user;
     switch($_REQUEST['action']) {
         case 'createStatisticPage':{
+            createStaticDayPlanPage();
             exit();
+        }break;
+        case 'resetFutureActions':{
+            set_time_limit(0);
+            require_once $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/comm/action/class/actioncomm.class.php';
+            $Action = new ActionComm($db);
+            $sql = "select id from llx_actioncomm
+                where code in ('AC_GLOBAL','AC_CURRENT')
+                and fk_user_author = 5 and active = 1";
+            $res = $db->query($sql);
+            while($obj = $db->fetch_object($res)){
+                $Action->setFutureDataAction($obj->id);
+            }
+        }
+        case 'setOverdue_Actions_GlobalItem':{
+            echo date('H:m', time());
+            set_time_limit(0);
+            require_once $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/comm/action/class/actioncomm.class.php';
+            $Action = new ActionComm($db);
+            $time = time();
+            if(empty($_REQUEST['action_id'])){
+                $sql = "update llx_actioncomm set overdue = null where 1 and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+                $res = $db->query($sql);
+                if (!$res)
+                    dol_print_error($db);
+                $sql = "select llx_actioncomm.id from llx_actioncomm where date(datep) < date(now()) and llx_actioncomm.`code` <> 'AC_OTH_AUTO' and llx_actioncomm.percent not in (100, -100, 99)";
+                $res = $db->query($sql);
+                if (!$res)
+                    dol_print_error($db);
+                $actionsID = array();
+//                $num = 0;
+
+                while ($obj = $db->fetch_object($res)) {
+//                    if($num++ > 10)
+//                        break;
+//                    if(!in_array($obj->id,$actionsID))
+                    $Action->setOuterdueStatus($obj->id);
+//                        $actionsID = array_merge($actionsID, $Action->setOuterdueStatus($obj->id));
+//                        var_dump($actionsID);
+                }
+
+
+//                echo time()-$time;
+                echo date('H:m', time());
+
+            }else{
+                $Action->setOuterdueStatus($_REQUEST['action_id']);
+            }
         }break;
         case 'getOverdueActions':{
             $sql = "select llx_actioncomm.id, datep2, llx_actioncomm.`code` from llx_actioncomm 
                 left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id 
-                where date(datep) between adddate(date(now()), interval -1 month) and date(now()) 
-                and llx_actioncomm.percent not in (100, -100) 
-                and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end = $user->id ";
+                where 1 and overdue = 1 and llx_actioncomm.percent not in (100, -100, 99)                  
+                and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end = $user->id ";
             switch ($_REQUEST['code']){
                 case 'AC_TEL':{
                     $sql.="and llx_actioncomm.`code` = 'AC_TEL' ";
@@ -34,11 +81,16 @@ if(isset($_REQUEST['action'])){
                     $sql.="and llx_actioncomm.`code` = 'AC_CURRENT' ";
                 }break;
                 default :{
-                    $sql.="and llx_actioncomm.`code` <> 'AC_OTH_AUTO' ";
+                    if(strpos(',',$_REQUEST['code']))
+                        $sql.="and llx_actioncomm.`code` <> 'AC_OTH_AUTO' ";
+                    else {
+                        $sql .= "and llx_actioncomm.`code` in ('" . str_replace(',', "','", $_REQUEST['code']) . "')";
+                    }
                 }
             }
             $sql.="and active = 1
                 order by datep2;";
+//            die($sql);
             $res = $db->query($sql);
             if(!$res)
                 dol_print_error($db);
@@ -277,6 +329,47 @@ header("Location: http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/responsibil
 
 exit();
 
+function createStaticDayPlanPage(){
+    global $db, $user;
+    $sql = "select distinct sub_user.rowid  id_usr, sub_user.alias, `llx_societe`.`region_id`, llx_actioncomm.id, llx_actioncomm.percent, date(llx_actioncomm.datep) datep, llx_actioncomm.percent,
+    case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT','AC_EDUCATION', 'AC_INITIATIV', 'AC_PROJECT') then llx_actioncomm.`code` else 'AC_CUST' end `code`, `llx_societe_action`.`callstatus`,
+    `llx_societe`.`categoryofcustomer_id`
+    from llx_actioncomm
+    inner join (select id from `llx_c_actioncomm` where type in('user','system') and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
+    left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = llx_actioncomm.id
+    left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
+    left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
+    inner join (select `llx_user`.rowid, `responsibility`.`alias` from `llx_user` inner join `responsibility` on `responsibility`.`rowid` = `llx_user`.`respon_id` where 1 and `llx_user`.`active` = 1) sub_user on sub_user.rowid = case when llx_actioncomm_resources.fk_element is null then llx_actioncomm.`fk_user_author` else llx_actioncomm_resources.fk_element end
+    where 1
+    and llx_actioncomm.active = 1
+    and datep2 between adddate(date(now()), interval -1 month) and adddate(date(now()), interval 1 month)";
+    $res = $db->query($sql);
+    global $actions;
+    $actions = array();
+    while ($obj = $db->fetch_object($res)) {
+        $actions[] = array('overdue'=>$obj->overdue, 'id_usr' => $obj->id_usr, 'rowid'=>$obj->id, 'region_id' => $obj->region_id, 'respon_alias' => $obj->alias, 'percent' => $obj->percent, 'datep' => $obj->datep, 'code' => $obj->code, 'callstatus'=>$obj->callstatus);
+    }
+    echo '<pre>';
+    var_dump($actions);
+    echo '</pre>';
+    die();
+    while($obj = $db->fetch_object($res)){
+
+        $respon = $user->getResponding($obj->rowid, true);
+        $raport = '';
+        if(!array_intersect(array('gen_dir', 'dir_depatment'),$respon)){
+            if(in_array('sale', $respon)){//sale
+                die('1');
+                require_once $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/sale/day_plan.php';
+                $raport = ShowTable();
+            }
+        }
+        if(!empty($raport)) {
+            print $raport;
+            die($obj->rowid);
+        }
+    }
+}
 function getNewAcctions($id_usr){
 //    echo '<pre>';
 //    var_dump($id_usr);
@@ -300,14 +393,14 @@ function getNewAcctions($id_usr){
         and `llx_actioncomm`.`active` = 1
         and `llx_actioncomm`.`fk_user_author` = ".$id_usr."
         and `llx_societe_action`.`id_usr` <> ".$id_usr."
-        and `llx_societe_action`.`new` is null
+        and (`llx_societe_action`.`new` is null or `llx_societe_action`.`new` = 1)
         and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`
         and `llx_actioncomm`.`percent` >=0 and `llx_actioncomm`.`percent`<99";
     $sql.=" union
         select `llx_actioncomm`.`id`, `llx_actioncomm`.`percent`, `llx_actioncomm`.`code`, `llx_societe_action`.`dtChange`, `llx_user`.`lastname` from llx_actioncomm
         left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
         left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
-        left join `llx_user` on `llx_user`.`rowid` = `llx_societe_action`.`id_mentor`
+        left join `llx_user` on `llx_user`.`rowid` = case when `llx_societe_action`.`id_mentor` is null then `llx_societe_action`.`id_usr` else `llx_societe_action`.`id_mentor` end
         where 1
         and `llx_actioncomm_resources`.`fk_element` = ".$id_usr."
         and `llx_societe_action`.`new` in(1,null)

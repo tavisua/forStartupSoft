@@ -903,7 +903,7 @@ function getTotalSubdivAction($class,$title,$subdiv_id=0,$code=''){
         //Всього завдань
         $sql = "select count(distinct llx_actioncomm.id) iCount from llx_actioncomm
             left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
-            left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+            left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
 
         $sql.=" where 1";
         $sql.=" and date(datep) between  adddate(date(now()), interval -1 ".$period.") and date(now())";
@@ -941,7 +941,7 @@ function getTotalSubdivAction($class,$title,$subdiv_id=0,$code=''){
         //Фактично виконаних
         $sql = "select  count(distinct llx_actioncomm.id) iCount from llx_actioncomm
             left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
-            left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+            left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
 
         $sql.=" where 1";
         $sql.=" and date(datep) between  adddate(date(now()), interval -1 ".$period.") and date(now())";
@@ -972,7 +972,7 @@ function getTotalSubdivAction($class,$title,$subdiv_id=0,$code=''){
     }
     $sql = "select date(datep) datep, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
     left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
-    left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+    left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
 
     $sql.=" where 1";
     $sql.=" and date(datep) between  adddate(date(now()), interval -6 day) and date(now())";
@@ -1006,7 +1006,7 @@ function getTotalSubdivAction($class,$title,$subdiv_id=0,$code=''){
 
     $sql = "select date(datep) datep, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
         left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
-        left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+        left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
 
     $sql.=" where 1";
     $sql.=" and date(datep) between  adddate(date(now()), interval -6 day) and date(now())";
@@ -1094,7 +1094,7 @@ function getTotalSubdivAction($class,$title,$subdiv_id=0,$code=''){
     //Прострочені
     $sql = "select count(distinct llx_actioncomm.id) iCount from llx_actioncomm
         left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
-        left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+        left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
 
     $sql.=" where 1";
     $sql.=" and date(datep) between adddate(date(now()), interval -1 month) and date(now())
@@ -1132,7 +1132,7 @@ function getTotalSubdivAction($class,$title,$subdiv_id=0,$code=''){
     //майбутнє
     $sql = "select date(datep) datep, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
         left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
-        left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+        left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
 
     $sql.=" where 1";
     $sql.=" and date(datep) between  date(now()) and adddate(date(now()), interval +1 week)";
@@ -1177,7 +1177,7 @@ function getTotalSubdivAction($class,$title,$subdiv_id=0,$code=''){
         }else {
             $sql = "select count(id) iCount  from llx_actioncomm
             left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
-            left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+            left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
             $sql.=" where 1";
             if ($i == 7)
                 $sql .= " and date(datep) between date(now()) and adddate(date(now()), interval 1 week)";
@@ -1276,7 +1276,7 @@ function _getTotalSubdivAction($class,$title,$subdiv_id=0,$code='',$showbtn=true
         //Всього завдань
 //        $sql = "select count(distinct llx_actioncomm.id) iCount from llx_actioncomm
 //            left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
-//            left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+//            left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
 //        $sql .= " where 1";
 //        $sql.=" and date(datep) between  adddate(date(now()), interval -1 ".$period.") and date(now())";
 //
@@ -1381,7 +1381,7 @@ function _getTotalSubdivAction($class,$title,$subdiv_id=0,$code='',$showbtn=true
         //Фактично виконаних
 //        $sql = "select  count(distinct llx_actioncomm.id) iCount from llx_actioncomm
 //            left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
-//            left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+//            left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
 //        $sql .= " where 1";
 //        $sql.=" and date(datep) between  adddate(date(now()), interval -1 ".$period.") and date(now())";
 //
@@ -1418,7 +1418,7 @@ function _getTotalSubdivAction($class,$title,$subdiv_id=0,$code='',$showbtn=true
 //    die();
 //    $sql = "select date(datep) datep, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
 //    left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
-//    left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+//    left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
 //
 //    $sql .= " where 1";
 //    $sql.=" and date(datep) between  adddate(date(now()), interval -6 day) and date(now())";
@@ -1450,7 +1450,7 @@ function _getTotalSubdivAction($class,$title,$subdiv_id=0,$code='',$showbtn=true
 
 //    $sql = "select date(datep) datep, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
 //        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
-//        left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+//        left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
 //
 //    $sql .= " where 1";
 //    $sql.=" and date(datep) between  adddate(date(now()), interval -6 day) and date(now())";
@@ -1536,7 +1536,7 @@ $percent_block = '';
     //Прострочені
 //    $sql = "select count(distinct llx_actioncomm.id) iCount from llx_actioncomm
 //        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
-//        left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+//        left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
 //
 //    $sql .= " where 1";
 //    $sql.=" and date(datep) between adddate(date(now()), interval -1 month) and date(now())
@@ -1572,7 +1572,7 @@ $percent_block = '';
     //майбутнє
 //    $sql = "select date(datep) datep, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
 //        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
-//        left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+//        left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
 //    $sql .= " where 1";
 //    $sql.=" and date(datep) between  date(now()) and adddate(date(now()), interval +1 week)";
 //
@@ -1616,7 +1616,7 @@ $percent_block = '';
         }else {
 //            $sql = "select count(id) iCount  from llx_actioncomm
 //            left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
-//            left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+//            left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
 //            $sql .= " where 1";
 //
 //            if(!empty($subdiv_id)&&!is_array($subdiv_id))
@@ -1716,7 +1716,7 @@ function getTotalUserAction($user_id, $class, $title, $code = '')
         $sql = "select count(*) iCount from llx_actioncomm
             left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
             where date(datep) between  adddate(date(now()), interval -1 ".$period.") and date(now())
-            and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end = " . $user_id;
+            and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end = " . $user_id;
         if(empty($code))
             $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
         else{
@@ -1741,7 +1741,7 @@ function getTotalUserAction($user_id, $class, $title, $code = '')
         $sql = "select  count(*) iCount from llx_actioncomm
             left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
             where date(datep) between  adddate(date(now()), interval -1 ".$period.") and date(now())
-            and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end = " . $user_id;
+            and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end = " . $user_id;
         if(empty($code))
             $sql.= " and (llx_actioncomm.`code`in ('AC_GLOBAL','AC_CURRENT') or llx_actioncomm.id in (".implode(',',$execdID)."))";
         else
@@ -1764,7 +1764,7 @@ function getTotalUserAction($user_id, $class, $title, $code = '')
     $sql = "select date(datep) datep, count(*) iCount from llx_actioncomm
     left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
     where date(datep) between  adddate(date(now()), interval -6 day) and date(now())
-    and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end = " . $user_id;
+    and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end = " . $user_id;
     if(empty($code))
             $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
         else{
@@ -1785,7 +1785,7 @@ function getTotalUserAction($user_id, $class, $title, $code = '')
     $sql = "select date(datep) datep, count(*) iCount from llx_actioncomm
     left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
             where date(datep) between  adddate(date(now()), interval -6 day) and date(now())
-            and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end = " . $user_id;
+            and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end = " . $user_id;
     if(empty($code))
         $sql.=" and (llx_actioncomm.`code`in ('AC_GLOBAL','AC_CURRENT') or llx_actioncomm.id in (".implode(',',$execdID)."))";
     else{
@@ -1850,7 +1850,7 @@ function getTotalUserAction($user_id, $class, $title, $code = '')
         left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
         where date(datep) between adddate(date(now()), interval -1 month) and date(now())
         and llx_actioncomm.percent not in (100, -100)
-        and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end = ".$user_id;
+        and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end = ".$user_id;
     if(empty($code))
         $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
     else{
@@ -1874,7 +1874,7 @@ function getTotalUserAction($user_id, $class, $title, $code = '')
     $sql = "select date(datep) datep, count(*) iCount from llx_actioncomm
         left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
         where date(datep) between  date(now()) and adddate(date(now()), interval +1 week)
-        and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end = ".$user_id;
+        and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end = ".$user_id;
     if(empty($code))
         $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
     else{
@@ -1908,7 +1908,7 @@ function getTotalUserAction($user_id, $class, $title, $code = '')
             else
                 $sql .= " where date(datep) between date(now()) and adddate(date(now()), interval 1 month)";
 
-            $sql .= " and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end = " . $user_id . "
+            $sql .= " and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end = " . $user_id . "
             and llx_actioncomm.`code` " . (empty($code) ? "<> 'AC_OTH_AUTO'" : "= '" . $code . "'") . "
             and active = 1;";
 //        if($i == 7){
@@ -1973,7 +1973,7 @@ function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $ti
         //Всього завдань
         $sql = "select llx_user.rowid, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
             left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
-            left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+            left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
         if(!empty($subdiv_id))
             $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
         else
@@ -2003,7 +2003,7 @@ function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $ti
         //Фактично виконаних
         $sql = "select llx_user.rowid, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
             left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
-            left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+            left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
         if(!empty($subdiv_id))
             $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
         else
@@ -2037,7 +2037,7 @@ function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $ti
     }
     $sql = "select llx_user.rowid, date(datep) datep, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
     left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
-    left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+    left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
     if(!empty($subdiv_id))
         $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
     else
@@ -2067,7 +2067,7 @@ function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $ti
 
     $sql = "select llx_user.rowid, date(datep) datep, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
         left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
-        left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+        left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
     if(!empty($subdiv_id))
         $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
     else
@@ -2100,7 +2100,7 @@ function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $ti
     //Прострочені
     $sql = "select llx_user.rowid, count(distinct llx_actioncomm.id)iCount from llx_actioncomm
         left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
-        left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+        left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
     $sql.=" where 1";
     $sql.=" and date(datep) between adddate(date(now()), interval -1 month) and date(now())
         and llx_actioncomm.percent not in (100, -100) ";
@@ -2134,7 +2134,7 @@ function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $ti
  //майбутнє
     $sql = "select llx_user.rowid, date(datep) datep, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
         left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
-        left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+        left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
     if(!empty($subdiv_id))
         $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
     else
@@ -2169,7 +2169,7 @@ function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $ti
             $period = 'month';
         $sql = "select llx_user.rowid, count(id) iCount  from llx_actioncomm
         left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
-        left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end";
+        left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
         $sql .= " where 1";
         $sql .= " and date(datep) between date(now()) and adddate(date(now()), interval 1 ".$period.")";
         if(empty($code))

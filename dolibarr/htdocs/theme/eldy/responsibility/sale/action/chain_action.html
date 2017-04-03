@@ -237,21 +237,21 @@
     function ClosePreviewMail() {
         $('#previewmail').remove();
     }
-    function DelAction(rowid){
-        if(confirm('Видалити дію?')) {
-            var link = '/dolibarr/htdocs/comm/action/card.php?action=delete_action&rowid=' + rowid;
-            $.ajax({
-                url: link,
-                cache: false,
-                success: function (html) {
-                    if (html == 1) {
-                        history.back();
-                    }else
-                        console.log('помилка ', html, link);
-                }
-            })
-        }
-    }
+//    function DelAction(rowid){
+//        if(confirm('Видалити дію?')) {
+//            var link = '/dolibarr/htdocs/comm/action/card.php?action=delete_action&rowid=' + rowid;
+//            $.ajax({
+//                url: link,
+//                cache: false,
+//                success: function (html) {
+//                    if (html == 1) {
+//                        history.back();
+//                    }else
+//                        console.log('помилка ', html, link);
+//                }
+//            })
+//        }
+//    }
     $(window).keypress(function(event) {
         if(event.keyCode == 27 && event.target.tagName == 'TEXTAREA')
             $('#'+event.target.id).remove();

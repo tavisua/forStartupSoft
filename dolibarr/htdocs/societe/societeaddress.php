@@ -258,7 +258,10 @@ function ShowTable($socid){
         left join `kindoffice` on `kindoffice`.`rowid` = `llx_societe_address`.kindoffice_id
         where fk_soc = '.$socid;
     $res = $db->query($sql);
-//    $obj = $db->fetch_object($res);
+//echo '<pre>';
+//var_dump($sql);
+//echo '</pre>';
+//die();
 
     if(!$res)
         dol_print_error($db);

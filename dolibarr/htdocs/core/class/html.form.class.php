@@ -787,67 +787,75 @@ class Form
      */
     function select_thirdparty_list($selected='',$htmlname='socid',$filter='',$showempty=0, $showtype=0, $forcecombo=0, $events=array(), $filterkey='', $outputmode=0, $limit=0, $id_usr=0)
     {
-        global $conf,$user,$langs;
+        global $conf, $user, $langs;
 
-        $out=''; $num=0;
-        $outarray=array();
+        $out = '';
+        $num = 0;
+        $outarray = array();
 
         // On recherche les societes
         $sql = "SELECT s.rowid, s.nom as name, s.client, s.fournisseur, s.code_client, s.code_fournisseur, s.categoryofcustomer_id";
-        $sql.= " FROM ".MAIN_DB_PREFIX ."societe as s";
-        if (!$user->rights->societe->client->voir && !$user->societe_id) $sql .= ", ".MAIN_DB_PREFIX."societe_commerciaux as sc";
-        $sql.= " WHERE s.entity IN (".getEntity('societe', 1).")";
-        if (! empty($user->societe_id)) $sql.= " AND s.rowid = ".$user->societe_id;
-        if ($filter) $sql.= " AND (".$filter.")";
-        if (!$user->rights->societe->client->voir && !$user->societe_id) $sql.= " AND s.rowid = sc.fk_soc AND sc.fk_user = " .$user->id;
-        if (! empty($conf->global->COMPANY_HIDE_INACTIVE_IN_COMBOBOX)) $sql.= " AND s.status<>0 ";
+        $sql .= " FROM " . MAIN_DB_PREFIX . "societe as s";
+        if (!$user->rights->societe->client->voir && !$user->societe_id) $sql .= ", " . MAIN_DB_PREFIX . "societe_commerciaux as sc";
+        $sql .= " WHERE s.entity IN (" . getEntity('societe', 1) . ")";
+        if (!empty($user->societe_id)) $sql .= " AND s.rowid = " . $user->societe_id;
+        if ($filter) $sql .= " AND (" . $filter . ")";
+        if (!$user->rights->societe->client->voir && !$user->societe_id) $sql .= " AND s.rowid = sc.fk_soc AND sc.fk_user = " . $user->id;
+        if (!empty($conf->global->COMPANY_HIDE_INACTIVE_IN_COMBOBOX)) $sql .= " AND s.status<>0 ";
         $sql .= " and active = 1";
 
         // Add criteria
-        if ($filterkey && $filterkey != '')
-        {
-			$sql.=" AND (";
-        	if (! empty($conf->global->COMPANY_DONOTSEARCH_ANYWHERE))   // Can use index
-        	{
-        		$sql.="(s.name LIKE '".$this->db->escape($filterkey)."%')";
-        	}
-        	else
-        	{
-        		// For natural search
-        		$scrit = explode(' ', $filterkey);
-        		foreach ($scrit as $crit) {
-        			$sql.=" AND (s.name LIKE '%".$this->db->escape($crit)."%')";
-        		}
-        	}
-        	if (! empty($conf->barcode->enabled))
-        	{
-        		$sql .= " OR s.barcode LIKE '".$this->db->escape($filterkey)."%'";
-        	}
-        	$sql.=")";
+        if ($filterkey && $filterkey != '') {
+            $sql .= " AND (";
+            if (!empty($conf->global->COMPANY_DONOTSEARCH_ANYWHERE))   // Can use index
+            {
+                $sql .= "(s.name LIKE '" . $this->db->escape($filterkey) . "%')";
+            } else {
+                // For natural search
+                $scrit = explode(' ', $filterkey);
+                foreach ($scrit as $crit) {
+                    $sql .= " AND (s.name LIKE '%" . $this->db->escape($crit) . "%')";
+                }
+            }
+            if (!empty($conf->barcode->enabled)) {
+                $sql .= " OR s.barcode LIKE '" . $this->db->escape($filterkey) . "%'";
+            }
+            $sql .= ")";
         }
-        if($id_usr != 0) {
+        if ($id_usr != 0) {
             $sqlusr = "select `responsibility`.`alias`, res2.alias as alias2, respon_id, respon_id2 from llx_user
                         inner join `responsibility` on `responsibility`.rowid = llx_user.respon_id
                         left join `responsibility` res2 on `res2`.rowid = llx_user.respon_id2
-                        where llx_user.rowid = ".$id_usr;
+                        where llx_user.rowid = " . $id_usr;
             $resusr = $this->db->query($sqlusr);
-            if(!$resusr)
+            if (!$resusr)
                 dol_print_error($this->db);
             $objusr = $this->db->fetch_object($resusr);
-            switch($objusr->alias){
-                case 'sale':{
-                    $sql .= ' and s.region_id in (select fk_id from llx_user_regions
+            $respon = array($objusr->alias, $objusr->alias2);
+            $sqlusr = "select `responsibility`.`rowid`, `responsibility`.`alias` from `llx_user_responsibility`
+                inner join `responsibility` on `responsibility`.`rowid` = `llx_user_responsibility`.`fk_respon`
+                where fk_user = $id_usr
+                and `llx_user_responsibility`.active = 1";
+            $resusr = $this->db->query($sqlusr);
+            if (!$resusr)
+                dol_print_error($this->db);
+            while ($objusr = $this->db->fetch_object($resusr)) {
+                if(empty($respon[$objusr->alias]))
+                    $respon[$objusr->alias] = array();
+                if (!in_array($objusr->rowid, $respon[$objusr->alias]))
+                    $respon[$objusr->alias][] = $objusr->rowid;
+            }
+
+            if (in_array('sale', array_keys($respon))) {
+                $sql .= ' and s.region_id in (select fk_id from llx_user_regions
                                         where 1
-                                        and fk_user = '.$id_usr.'
+                                        and fk_user = ' . $id_usr . '
                                         and active = 1)';
-                }break;
-                case 'purchase':{
-                    $sql .= " and `s`.`categoryofcustomer_id` in
-                        (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility in(".$objusr->respon_id.", ".(empty($objusr->respon_id2)?0:$objusr->respon_id2)."))";
-                }break;
-                default:{
-                    $sql .= ' and s.`fk_user_creat`=' . $id_usr;
-                }break;
+            } elseif (in_array('purchase', array_keys($respon))) {
+                $sql .= " and `s`.`categoryofcustomer_id` in
+                        (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility in(" . implode(',',$respon['purchase']) . "))";
+            } else {
+                $sql .= ' and s.`fk_user_creat`=' . $id_usr;
             }
         }
         $sql.=$this->db->order("nom","ASC");

@@ -38,8 +38,8 @@
         <table cellspacing="1" class="WidthScroll">
               <thead id="theadDay">
                 <tr class="multiple_header_table">
-                    <th rowspan="4" style="width: 110px;">Область</th>
-                    <th rowspan="4" style="width: 175px;">Район</th>
+                    <th rowspan="4" style="width: 110px;" id="region_title">Область</th>
+                    <th rowspan="4" style="width: 175px;" id="district_title">Район</th>
                     <th rowspan="4" style="width: 33px;">&nbsp;</th>
                     <th colspan="9">% виконання запланованого по факту</th>
                     <th colspan="9">минуле (факт)</th>
@@ -153,6 +153,7 @@
 
 <script>
     $(document).ready(function(){
+        console.log($('#reference_body').find('tr')[0]);
         $('#reference_body').attr('height', window.innerHeight - 370);
 
 //        if('<?=$conf->browser->name?>' =='firefox')

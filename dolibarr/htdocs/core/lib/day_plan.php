@@ -174,13 +174,23 @@ function loadActions($id_usr){
     return $actions;
 }
 function ShowTasks($Code, $Title, $bestvalue = false){
-    global $userActions;
-//    if($Title == 'Найкращі показники по підрозділу') {
-//        echo '<pre>';
-//        var_dump($userActions);
-//        echo '</pre>';
-//        die();
-//    }
+    global $userActions,$db;
+    if($Code == 'AC_CUST') {
+        $sql = "select `code` from llx_c_actioncomm
+            where type in ('system','user')
+            and code not in ('AC_GLOBAL','AC_CURRENT','AC_EDUCATION','AC_INITIATIV','AC_PROJECT')";
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+        $ViewCode='';
+        while($obj = $db->fetch_object($res)){
+            if(empty($ViewCode))
+                $ViewCode = $obj->code;
+            else
+                $ViewCode .= ",".$obj->code;
+        }
+    }else
+        $ViewCode = $Code;
     $table='<tr '.($bestvalue?'class="bestvalue"':'').'><td colspan="2" class="middle_size" style="width: 105px;"><b>'.$Title.'</b></td>';
     $table.='<td style="width: 33px">&nbsp;</td>';
 
@@ -214,7 +224,10 @@ function ShowTasks($Code, $Title, $bestvalue = false){
     $value = '';
     if(!empty($userActions['outstanding'][$Code]))
         $value = $userActions['outstanding'][$Code];
-    $table .= '<td class="middle_size" style="text-align: center; width: 51px; cursor: pointer" onclick="show_overdue_actions('."'$Code'".', $(this));">' . $value . '</td>';
+    if(!$bestvalue)
+        $table .= '<td class="middle_size" style="text-align: center; width: 51px; cursor: pointer" onclick="show_overdue_actions('."'$ViewCode'".', $(this));">' . $value . '</td>';
+    else
+        $table .= '<td class="middle_size" style="text-align: center; width: 51px; ">' . $value . '</td>';
     //майбутнє заплановано
     for($i=0; $i<9; $i++){
         $value = '';
@@ -367,6 +380,7 @@ function getLineActiveList($id_usr){
         $user_respon = $respon_alias[1];
     foreach(array_keys($lineactive) as $key){
         $out.='<tr id="reg'.$key.'" class="regions subtype middle_size '.$_REQUEST['class'].'">';
+
         if(!empty($key)) {
             $out .= '<td colspan="2"><a href="/dolibarr/htdocs/responsibility/'.$user_respon.'/area.php?idmenu=10425&filter=&mainmenu=area&leftmenu='.$userFilter.'&lineactive=' . $key . '" target="_blank">' . $lineactive[$key]['name'] . '</a></td>';
             if($_SERVER["PHP_SELF"] == "/dolibarr/htdocs/responsibility/gen_dir/day_plan.php")
@@ -380,7 +394,7 @@ function getLineActiveList($id_usr){
             elseif($_SERVER["PHP_SELF"] == "/dolibarr/htdocs/responsibility/logistika/day_plan.php")
                 $out .= '<td><button id="btnLineActive'.$key.'" onclick="RegionsByLineActive('.$id_usr.', '.$key.');"><img id="imgLineActive'.$key.'" src="/dolibarr/htdocs/theme/eldy/img/1downarrow.png"></button></td>';
         }
-//        $out.='<td></td>';
+        $out.='<td>&nbsp;</td>';
         //відсоток виконання
         if(isset($total[$key]['month'])){
             $value = round($fact[$key]['month']/$total[$key]['month']*100,0);

@@ -31,7 +31,7 @@ $obj = $db->fetch_object($res);
 $subdivision = $obj->name;
 //if(!isset($_SESSION['actions'])) {
     $sql = "select distinct sub_user.rowid  id_usr, sub_user.alias, `llx_societe`.`region_id`, llx_actioncomm.id, llx_actioncomm.percent, date(llx_actioncomm.datep) datep, llx_actioncomm.percent,
-    case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT','AC_EDUCATION', 'AC_INITIATIV', 'AC_PROJECT') then llx_actioncomm.`code` else 'AC_CUST' end `code`, `llx_societe_action`.`callstatus`
+    case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT','AC_EDUCATION', 'AC_INITIATIV', 'AC_PROJECT') then llx_actioncomm.`code` else 'AC_CUST' end `code`, `llx_societe_action`.`callstatus`, llx_actioncomm.overdue
     from llx_actioncomm
     inner join (select id from `llx_c_actioncomm` where type in('user','system') and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
     left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = llx_actioncomm.id
@@ -40,7 +40,7 @@ $subdivision = $obj->name;
     inner join (select `llx_user`.rowid, `responsibility`.`alias` from `llx_user` inner join `responsibility` on `responsibility`.`rowid` = `llx_user`.`respon_id` where `llx_user`.`subdiv_id` = ".$user_tmp->subdiv_id." and `llx_user`.`active` = 1) sub_user on sub_user.rowid = case when llx_actioncomm_resources.fk_element is null then llx_actioncomm.`fk_user_action` else llx_actioncomm_resources.fk_element end
     where 1
     and llx_actioncomm.active = 1
-    and datep2 between adddate(date(now()), interval -1 month) and adddate(date(now()), interval 1 month)";
+    and (overdue = 1 or datep2 between adddate(date(now()), interval -1 month) and adddate(date(now()), interval 1 month))";
 //echo '<pre>';
 //var_dump($sql);
 //echo '</pre>';
@@ -51,7 +51,7 @@ $subdivision = $obj->name;
 //    $actions = array();
     $time = time();
     while ($obj = $db->fetch_object($res)) {
-            $actions[] = array('id_usr' => $obj->id_usr, 'rowid'=>$obj->id, 'region_id' => $obj->region_id, 'respon_alias' => $obj->alias, 'percent' => $obj->percent, 'datep' => $obj->datep, 'code' => $obj->code, 'callstatus'=>$obj->callstatus);
+            $actions[] = array('overdue'=>$obj->overdue, 'id_usr' => $obj->id_usr, 'rowid'=>$obj->id, 'region_id' => $obj->region_id, 'respon_alias' => $obj->alias, 'percent' => $obj->percent, 'datep' => $obj->datep, 'code' => $obj->code, 'callstatus'=>$obj->callstatus);
     }
     $_SESSION['actions'] = $actions;
 
@@ -94,7 +94,7 @@ exit();
 //}
 
 function ShowTable(){
-    global $actions,$user,$CustActions,$userActions,$actioncode,$id_usr,$user_tmp;
+    global $actions,$user,$CustActions,$userActions,$actioncode,$id_usr,$user_tmp,$db;
     $today = new DateTime();
     $mkToday = dol_mktime(0,0,0,$today->format('m'),$today->format('d'),$today->format('Y'));
 
@@ -117,7 +117,7 @@ function ShowTable(){
                 }if($mkDate-$mkToday<=2678400)//2678400 sec by month
                     $userActions['future_month'][$obj->code]++;
             }
-            if($mkDate <= $mkToday && !in_array($obj->percent, array(100, -100))) {
+            if($obj->overdue) {
                 $userActions['outstanding'][$obj->code]++;
             }
             if($mkDate <= $mkToday && $obj->percent == 100 && (in_array($action['code'], $actioncode) || $action['callstatus'] == '5')){
@@ -146,10 +146,7 @@ function ShowTable(){
 
         }
     }
-//    echo '<pre>';
-//    var_dump($userActions);
-//    echo '</pre>';
-//    die();
+
     $table = '<tbody id="reference_body">';
 //Всього задач
     $table.='<tr><td class="middle_size" style="width: 105px"><b>Всього задач</b></td>
@@ -226,8 +223,10 @@ function ShowTable(){
                 }if($mkDate-$mkToday<=2678400)//2678400 sec by month
                     $userActions['future_month'][$obj->code]++;
             }
-            if($mkDate <= $mkToday && !in_array($obj->percent, array(100, -100))) {
+            if($obj->overdue) {
                 $userActions['outstanding'][$obj->code]++;
+//                if($obj->code == 'AC_CURRENT')
+//                   echo $obj->id.' '.$obj->code.' '.$obj->datep.'</br>';
             }
             if($mkDate <= $mkToday && $obj->percent == 100 && (in_array($obj->code, $actioncode) || $obj->callstatus == '5') ){
                 $userActions['fact_'.$obj->datep][$obj->code]++;
@@ -245,12 +244,12 @@ function ShowTable(){
             }
         }
     }
+
+    $table.= ShowTasks('AC_CUST', 'Найкращі показники по підрозділу', true);
 //        echo '<pre>';
-//        var_dump($userActions);
+//        var_dump($userActions['outstanding']);
 //        echo '</pre>';
 //        die();
-    $table.= ShowTasks('AC_CUST', 'Найкращі показники по підрозділу', true);
-
     $table.= getRegionsList($id_usr);
 
     $table.= ShowTasks('AC_PROJECT', 'Проекти', true);
@@ -279,8 +278,13 @@ function getRegionsList($id_usr){
 //                var_dump($item).'</br>';
 ////                die();
 //            }
-            if(!in_array(empty($item["region_id"])?'null':$item["region_id"], $regions))
-                $regions[]=empty($item["region_id"])?'null':$item["region_id"];
+            if(!in_array(empty($item["region_id"])?'null':$item["region_id"], $regions)) {
+//                if(277 == $item["region_id"] && $item["id_usr"] == 35){
+//                    var_dump($item);
+//                    die('test');
+//                }
+                $regions[] = empty($item["region_id"]) ? 'null' : $item["region_id"];
+            }
             $date = new DateTime($item["datep"]);
             $mkDate = dol_mktime(0, 0, 0, $date->format('m'), $date->format('d'), $date->format('Y'));
 //            echo $item["datep"].' '.var_dump($mkDate >= $mkToday).'</br>';
@@ -298,7 +302,7 @@ function getRegionsList($id_usr){
                     $future[$item["region_id"]]['month']++;
             }
 
-            if($mkDate < $mkToday && $item['percent'] != 100){//Додав $mkDate < $mkToday. Вважається логічним, щоб кількість прострочених рахувати, коли завдання повинно вже було бути виконано
+            if($item["overdue"]){//Додав $mkDate < $mkToday. Вважається логічним, щоб кількість прострочених рахувати, коли завдання повинно вже було бути виконано
                 $outstanding[$item["region_id"]]++;
             }
             if($item['percent'] == 100 && (in_array($item['code'], $actioncode)||$item['callstatus']=='5')){
@@ -331,7 +335,7 @@ function getRegionsList($id_usr){
         $sql.=" union select null, 'Район', 'не вказано'";
     $sql.=" order by statename, `name`";
 //    echo '<pre>';
-//    var_dump($sql);
+//    var_dump($regions);
 //    echo '</pre>';
 //    die();
     $out = '';

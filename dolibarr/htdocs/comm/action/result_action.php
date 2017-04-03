@@ -7,13 +7,17 @@
  */
 define("NOLOGIN",1);		// This means this output page does not require to be logged.
 require '../../main.inc.php';
+require_once 'class/actioncomm.class.php';
 global $db,$user;
 if(!$user->id){
     $user->fetch('',$_SESSION["dol_login"]);
 }
 //llxHeader();
+if(isset($_REQUEST["backtopage"]) && !empty($_REQUEST["backtopage"])){
+    $_REQUEST["backtopage"] = str_replace('_amp038;', '&', $_REQUEST["backtopage"]);
+}
 //echo '<pre>';
-//var_dump($user);
+//var_dump($_REQUEST);
 //echo '</pre>';
 //die();
 if(isset($_REQUEST['action'])) {
@@ -298,7 +302,8 @@ if(!($_GET['action'] == 'addonlyresult' || (isset($_REQUEST["onlyresult"])&&$_RE
         if (empty($contactid))
             $contactid = count($lastactiveaction) > 0 ? $lastactiveaction['contactid'] : 1;
         $form = new Form($db);
-        $contactlist = '<tr><td>Контактне лице</br>' . $form->selectcontacts(empty($_GET['socid']) ? $object->socid : $_GET['socid'], $contactid, 'contactid', 1) . '</td></tr>';
+        if(!empty($_GET['socid'])||!empty($object->socid))
+            $contactlist = '<tr><td>Контактне лице</br>' . $form->selectcontacts(empty($_GET['socid']) ? $object->socid : $_GET['socid'], $contactid, 'contactid', 1) . '</td></tr>';
         $productname = explode(',', $_REQUEST['productsname']);
         $needlist = explode(',', $_REQUEST['need']);
         $object->resultaction['answer'] = '';
@@ -341,7 +346,7 @@ $Actions = new ActionComm($db);
 if(empty($_REQUEST["socid"]))//Якщо не стосується зовнішніх контрагентів
     $AssignedUsersID = implode(',',$Actions->getAssignedUser($_GET['action_id'], true));
 //echo '<pre>';
-//var_dump($_REQUEST);
+//var_dump($AssignedUsersID);
 //echo '</pre>';
 //die();
 if(isset($_GET['action_id'])&&!empty($_GET['action_id']))
@@ -643,8 +648,9 @@ function saveaction($rowid, $createaction = false, $action_id = null){
         $user->fetch('',$_SESSION["dol_login"]);
     }
     if(empty($rowid)){
-        $sql='insert into llx_societe_action(`action_id`,`proposed_id`, `socid`, `contactid`,`callstatus`, `said`,`answer`,
+        $sql='insert into llx_societe_action(`new`,`action_id`,`proposed_id`, `socid`, `contactid`,`callstatus`, `said`,`answer`,
           `argument`,`said_important`,`result_of_action`,`work_before_the_next_action`,`need`,`fact_cost`,`id_usr`) values(';
+        $sql .= $action_id. '1,';
         if(empty($action_id)) {
             if (empty($_REQUEST['actionid'])) $sql .= 'null,';
             else $sql .= $_REQUEST['actionid'] . ',';
@@ -696,12 +702,6 @@ function saveaction($rowid, $createaction = false, $action_id = null){
 //        $sql.='`new`=1 ';
         $sql.='where rowid='.$rowid;
     }
-//    llxHeader('','test',null);
-//echo '<pre>';
-//var_dump($sql);
-//echo '</pre>';
-//die();
-
     $res = $db->query($sql);
     if(!$res){
         dol_print_error($db);
@@ -723,9 +723,20 @@ function saveaction($rowid, $createaction = false, $action_id = null){
         $res = $db->query($sql);
         if (!$res)
             dol_print_error($db);
+        $sql = "update llx_actioncomm set new = 1
+          where id = " . $_REQUEST['actionid'];
+        $res = $db->query($sql);
+        if (!$res)
+            dol_print_error($db);
+//        llxHeader('','test',null);
+//        echo '<pre>';
+//        var_dump($sql);
+//        echo '</pre>';
+//        die();
+
     }
 //    echo '<pre>';
-//    var_dump($socid);
+//    var_dump($_REQUEST);
 //    echo '</pre>';
 //    die();
     $update_need_sql = '';
@@ -773,15 +784,17 @@ function saveaction($rowid, $createaction = false, $action_id = null){
         if (empty($rowid))
             $rowid = get_last_id();
         $TypeAction = array('AC_GLOBAL', 'AC_CURRENT');
-        $sql = 'SELECT `code`, `llx_actioncomm`.`id`, percent from `llx_actioncomm` inner join llx_societe_action on llx_societe_action.`action_id` = `llx_actioncomm`.`id` where llx_societe_action.`rowid` = ' . $rowid;
+        $sql = 'SELECT `code`, `llx_actioncomm`.`overdue`, `llx_actioncomm`.`id`, percent from `llx_actioncomm` inner join llx_societe_action on llx_societe_action.`action_id` = `llx_actioncomm`.`id` where llx_societe_action.`rowid` = ' . $rowid;
 //        die($sql);
         $res = $db->query($sql);
         $objCode = $db->fetch_object($res);
         $complete=$_REQUEST['complete'];
         $authorID = 0;
-        if($objCode->percent == '99' && $objCode->percent != $complete){
+        if($objCode->percent == '99' && ($objCode->percent != $complete || $objCode->overdue)){
             $sql = 'update llx_actioncomm set percent = '.$complete.', new = 0 where id = '.$_REQUEST['actionid'];
             $db->query($sql);
+            $action = new ActionComm($db);
+            $action->setOuterdueStatus($_REQUEST['actionid']);
         }
         if($complete == '100' && (empty($_REQUEST["subaction"]) || !in_array($_REQUEST["subaction"], array('validate')))){
             $sql = 'select fk_user_author from `llx_actioncomm` where id='.$_REQUEST['actionid'];
@@ -824,6 +837,8 @@ function saveaction($rowid, $createaction = false, $action_id = null){
             $res = $db->query($sql);
             if (!$res)
                 dol_print_error($db);
+            $Actions = new ActionComm($db);
+            $Actions->setOuterdueStatus($action_id);
         }
         //Встановлюю мітку про виконання на первинній задачі, якщо значення статусу = виконано
         if($complete == '100') {
@@ -835,7 +850,8 @@ function saveaction($rowid, $createaction = false, $action_id = null){
             and sub_action.fk_parent = llx_actioncomm.id
             and llx_actioncomm.fk_parent = 0';
             $res = $db->query($sql);
-
+            $Actions = new ActionComm($db);
+            $Actions->setOuterdueStatus($_REQUEST['actionid']);
         }
         if(!empty($_REQUEST["actionid"])) {
             require_once $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/comm/action/class/actioncomm.class.php';
@@ -870,8 +886,8 @@ function saveaction($rowid, $createaction = false, $action_id = null){
             where llx_actioncomm.id = ' . $_REQUEST['actionid'] . '
             and percent <> 100';
             $res = $db->query($sql);
-//            var_dump($sql);
-//            die();
+            $Actions = new ActionComm($db);
+            $Actions->setOuterdueStatus($_REQUEST['actionid']);
         }
     }
     if(!$createaction) {

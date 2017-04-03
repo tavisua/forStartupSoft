@@ -107,6 +107,7 @@ class ActionComm extends CommonObject
     var $order_id;      //Linked order
     var $groupoftask;   //GroupOfTask
     var $entity = 1;        //Використовую для визначення базової(первинної) дії
+    var $calc = 1; //Використовується для обчислення план дні де 1 позначені дії, які виконувались за місяць до поточної дати
 // $conf->entity використовується, коли є декілька компаній. Тут буде використовуватись, 1 - коли створена головна дія. 0 - це піддія
 
 	var $transparency;	// Transparency (ical standard). Used to say if people assigned to event are busy or not by event. 0=available, 1=busy, 2=busy (refused events)
@@ -316,17 +317,45 @@ class ActionComm extends CommonObject
         }
         return 0;
     }
+    function Received_Action($action_id)
+    {
+        global $db;
+        $sql = 'update llx_actioncomm set `dateconfirm` = case when `dateconfirm` is null then Now() else `dateconfirm` end, `new`=0, `percent`= case when `percent` = -1 then 0 else `percent` end  where id=' . $action_id;
+//	die($sql);
+        $res = $db->query($sql);
+        if (!$res) {
+            var_dump($sql);
+            dol_print_error($db);
+        }
+        $sql = 'update llx_societe_action set `new`=0  where action_id=' . $action_id;
+//	die($sql);
+        $res = $db->query($sql);
+        if (!$res) {
+            var_dump($sql);
+            dol_print_error($db);
+        }
+
+        return 1;
+    }
     function getAssignedUser($action_id, $arrayonly = false){
         global $db;
         $chain_actions = $this->GetChainActions($action_id);
         $users_id = array();
-        
+
         //Завантажую id користувачів, які пов'язані з діями
-        $sql = "select llx_actioncomm.fk_user_author from llx_actioncomm where id in (".implode(',', $chain_actions).")";
+        $sql = "select llx_actioncomm.fk_user_author, llx_actioncomm.fk_user_action, `llx_actioncomm_resources`.`fk_element`from llx_actioncomm
+            left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = llx_actioncomm.id
+            where llx_actioncomm.id in (".implode(',', $chain_actions).")";
+//        var_dump($sql);
+//        die();
         $res = $db->query($sql);
         while ($obj = $db->fetch_object($res)){
             if(!in_array($obj->fk_user_author, $users_id))
                 $users_id[]= $obj->fk_user_author;
+            if(!empty($obj->fk_user_action)&&$obj->fk_user_action!=$obj->fk_user_author)
+                $users_id[]= $obj->fk_user_action;
+            if(!empty($obj->fk_element)&&$obj->fk_element!=$obj->fk_user_author)
+                $users_id[]= $obj->fk_element;             
         }
         //Завантажую id користувачів, які пов'язані з результатами перемовин
         $sql = "select id_usr from `llx_societe_action` where action_id in(".implode(',', $chain_actions).") and active = 1";
@@ -729,6 +758,136 @@ class ActionComm extends CommonObject
         $out = json_decode($out, true);
         return $out;
     }
+    function setOuterdueStatus($action_id){
+        global $db, $user;
+        $chain_actions = $this->GetChainActions($action_id);
+        $sql = "select id, `llx_actioncomm_resources`.`rowid`, new, datec, fk_parent, datep, percent, fk_user_author, fk_user_action, overdue, `llx_actioncomm_resources`.`fk_element` 
+            from llx_actioncomm 
+            left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = llx_actioncomm.id
+            where id in (".implode(',', $chain_actions).") and active = 1";
+//        echo '<pre>';
+//        var_dump($sql);
+//        echo '</pre>';
+//        die();
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+
+        if(count($chain_actions) == 1 && $res->num_rows) {//Якщо одне завдання, задіяно два виконавця один з яких автор - підчищаю  `llx_actioncomm_resources` аби прострочені виконавцем завдання не відображались у замовника
+            while ($obj = $db->fetch_object($res)) {
+                if($obj->fk_element == $obj->fk_user_author && $obj->fk_user_action == $obj->fk_user_author){
+                    $sql_set = "delete from llx_actioncomm_resources where rowid = ".$obj->rowid;
+                    $db->query($sql_set);
+                }
+            }
+            $res = $db->query($sql);
+        }
+        $executers = array();
+        //Завантажую завдання по виконавцям
+
+        while($obj = $db->fetch_object($res)){
+            $executers[!empty($obj->fk_element)?$obj->fk_element:$obj->fk_user_action][]= $obj->fk_user_author!=$obj->fk_element&&!empty($obj->fk_element)?($obj->id):(-$obj->id);//Знак мінус - якщо користувач ставить завдання собі
+        }
+        mysqli_data_seek($res, 0);
+        //Завантажую інформацію по всім завданням
+        $actions = array();
+        while($obj = $db->fetch_object($res)) {
+            $actions[$obj->id] = array('new'=>$obj->new, 'datec'=>$obj->datec, 'fk_parent'=>$obj->fk_parent,'datep'=>$obj->datep, 'percent'=>$obj->percent,
+                'fk_user_author'=>$obj->fk_user_author, 'fk_user_action'=>$obj->fk_user_action, 'overdue'=>$obj->overdue, 'fk_element'=>$obj->fk_element);
+        }
+        $res = $db->query($sql);
+
+
+
+        while($obj = $db->fetch_object($res)){
+            $date = new DateTime($obj->datep);
+            $now = new DateTime(date('Y-M-d'));
+            $interval = $now->diff($date);
+            $sql_set = "update llx_actioncomm set overdue = NULL where id = ".$obj->id;
+            $obj->overdue = null;
+            $res_set = $db->query($sql_set);
+            if(!$res_set)
+                dol_print_error($db);
+
+            if(empty($obj->fk_parent) || !in_array($actions[$obj->fk_parent]['percent'], array(99,100,-100))) {
+//                echo '<pre>';
+//                var_dump($this->getWorkdayCount($date, $now) > 1 && !in_array($obj->percent, array(99, 100, -100)) && ($obj->new || !$this->getElemMoreThanVal($executers[!empty($obj->fk_element) ? $obj->fk_element : $obj->fk_user_action], $action_id)));
+//                echo '</pre>';
+//                die();
+
+                if ($this->getWorkdayCount($date, $now) > 1 && !in_array($obj->percent, array(99, 100, -100)) && ($obj->new || !$this->getElemMoreThanVal($executers[!empty($obj->fk_element) ? $obj->fk_element : $obj->fk_user_action], $action_id))) {//Позначаю за невиконані завдання, які не були відкриті на протязі доби, або не заплановані піддії
+//                $set_sql = "update llx_actioncomm set overdue = 1 where id = " . $obj->id;
+//                $db->query($set_sql);
+                    $obj->overdue = 1;
+                }
+
+
+                if (!$obj->overdue && !in_array($obj->percent, array(99, 100, -100)) && $obj->fk_user_author == $obj->fk_user_action && $date < $now) {//Завдання не виконане, якщо виконавець прострочив собою заплановану піддію
+                    $obj->overdue = 1;
+                }
+
+                if (!$obj->overdue && !in_array($obj->percent, array(99, 100, -100)) && !empty($executers[$obj->fk_user_author]) && in_array(-$obj->id, $executers[$obj->fk_user_author])) {//Завдання, що плануються виконавцем самому собі більше ніж два робочих дня після додаткової піддії замовником та наявності не прийнятих в цій цепочці задач
+                    if ($this->getWorkdayCount($date, $now) > 2) {
+                        $obj->overdue = 1;
+                    }
+                }
+            }
+
+            if($obj->overdue){
+                $sql_set = "update llx_actioncomm set overdue = 1 where id = ".$obj->id;
+                $res_set = $db->query($sql_set);
+                if(!$res_set)
+                    dol_print_error($db);
+            }
+        }
+        return $chain_actions;
+    }
+    function setFutureDataAction($rowid){
+        global $db;
+        $chain_action = $this->GetChainActions($rowid);
+        if(count($chain_action)>0) {
+            $sql = "select datep maxdate from llx_actioncomm where id = ".max($chain_action);
+//			var_dump($sql);
+//			die();
+            $res = $db->query($sql);
+            if (!$res) {
+                dol_print_error($db);
+            }
+            $obj = $db->fetch_object($res);
+            $date = new DateTime($obj->maxdate);
+            if (count($chain_action) > 1)
+                $sql = "update llx_actioncomm set datefutureaction = 
+					'" . $date->format('Y-m-d H:i:s') . "' where id in (" . (implode(',', $chain_action)) . ")";
+            else
+                $sql = "update llx_actioncomm set datefutureaction = null where id in (" . (implode(',', $chain_action)) . ")";
+            $res = $db->query($sql);
+            if (!$res) {
+                dol_print_error($db);
+            }
+        }
+    }
+    function getWorkdayCount($date_from, $date_to){//Повертає кількість робочих днів у вибраному періоді
+        $out = 0;
+
+        $date_tmp = new DateTime($date_from->format('Y-m-d H:i:s'));
+
+        while($date_tmp<=$date_to){
+            if(date('w',$date_tmp->getTimestamp())>=1 && date('w',$date_tmp->getTimestamp())<=5) {
+                $out++;
+
+            }
+            $date_tmp->add(new DateInterval('P1D'));
+
+        }
+        return $out;
+    }
+    function getElemMoreThanVal($array, $val = 0){//Повертає true, якщо є дія користувача після зазначеного ІД
+        foreach ($array as $item=>$value){
+            if(abs($value) < $val)
+                return true;
+        }
+        return false;
+    }
     function setActionStatusNotActual($action_id, $including_sel_id = false, $subaction = false){
         global $db, $user;
         $actions = $this->GetChainActions($action_id);
@@ -752,7 +911,7 @@ class ActionComm extends CommonObject
                 else
                     $id_usrs = array();
                 if (!count($id_usrs) || $id_usrs[0] == $user->id && count($id_usrs) == 1 || $subaction) {
-                    $sql = "update llx_actioncomm set percent = -100 where id = " . $action . " and percent != 100 and active = 1";
+                    $sql = "update llx_actioncomm set percent = -100, overdue = null where id = " . $action . " and percent != 100 and active = 1";
                     $res = $db->query($sql);
                     if (!$res)
                         dol_print_error($db);

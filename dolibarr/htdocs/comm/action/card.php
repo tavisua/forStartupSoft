@@ -155,36 +155,11 @@ if($_GET['action']=='get_exectime'){
     echo $list;
     exit();
 }elseif($_GET['action']=='delete_action'){
-
+	$delaction = 0;
 	if(substr($_GET['rowid'], 0, 1)=='_')
 	    $sql = 'update llx_societe_action set active = 0 where rowid='.str_replace('_','', $_GET['rowid']);
 	else {
-        require_once $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/comm/action/class/actioncomm.class.php';
-        $Actions = new ActionComm($db);
-        $chain_action = $Actions->GetChainActions($_REQUEST["rowid"]);
-
-		$chain_action = array_flip($chain_action); //Меняем местами ключи и значения
-		unset ($chain_action[$_GET['rowid']]) ; //Удаляем элемент массива
-		$chain_action = array_flip($chain_action); //Меняем местами ключи и значения
-		if(count($chain_action)>0) {
-			$sql = "select max(datec) maxdate from llx_actioncomm where id in (" . (implode(',', $chain_action)) . ")";
-//			var_dump(count($chain_action));
-//			die();
-			$res = $db->query($sql);
-			if (!$res) {
-				dol_print_error($db);
-			}
-			$obj = $db->fetch_object($res);
-			$date = new DateTime($obj->maxdate);
-			if (count($chain_action) > 1)
-				$sql = "update llx_actioncomm set datefutureaction = '" . $date->format('Y-m-d H:i:s') . "' where id in (" . (implode(',', $chain_action)) . ")";
-			else
-				$sql = "update llx_actioncomm set datefutureaction = null where id in (" . (implode(',', $chain_action)) . ")";
-			$res = $db->query($sql);
-			if (!$res) {
-				dol_print_error($db);
-			}
-		}
+		$delaction = 1;
 		$sql = 'update llx_actioncomm set active = 0 where id=' . $_GET['rowid'];
 	}
     $res = $db->query($sql);
@@ -192,26 +167,16 @@ if($_GET['action']=='get_exectime'){
         var_dump($sql);
         dol_print_error($db);
     }
+	if($delaction) {
+		require_once $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/comm/action/class/actioncomm.class.php';
+		$Actions = new ActionComm($db);
+		$Actions->setFutureDataAction($_GET['rowid']);
+	}
     echo 1;
     exit();
 }elseif($_GET['action']=='received_action'){
-
-    $sql = 'update llx_actioncomm set `dateconfirm` = Now(), `new`=0, `percent`= case when `percent` = -1 then 0 else `percent` end  where id='.$_GET['rowid'];
-//	die($sql);
-    $res = $db->query($sql);
-    if(!$res){
-        var_dump($sql);
-        dol_print_error($db);
-    }
-    $sql = 'update llx_societe_action set `new`=0  where action_id='.$_GET['rowid'];
-//	die($sql);
-    $res = $db->query($sql);
-    if(!$res){
-        var_dump($sql);
-        dol_print_error($db);
-    }
-
-    return 1;
+	$Action = new ActionComm($db);
+	echo $Action->Received_Action($_REQUEST['rowid']);
     exit();
 }elseif($_GET['action']=='shownote'){
 
@@ -325,15 +290,18 @@ if($_GET['action']=='get_exectime'){
 		if (!$res) {
 			dol_print_error($db);
 		}
+		foreach ($chain_actions as $item){//Знімаю статус прострочено з піддій
+			$newAction->setOuterdueStatus($item);
+		}
 		//Встановлення статусу виконано дії
-		$sql = 'update llx_actioncomm set dateSetExec = Now(), percent=100 where id ='.$action_id;
+		$sql = 'update llx_actioncomm set dateSetExec = Now(), overdue = null, percent=100 where id ='.$action_id;
 //	die($sql);
 //		print $sql .'<br>';
 		$res = $db->query($sql);
 		if (!$res) {
 			dol_print_error($db);
 		}
-		$sql = 'update llx_actioncomm, llx_actioncomm sub_action  set llx_actioncomm.dateSetExec = Now(), llx_actioncomm.percent=99, llx_actioncomm.new = 1 where sub_action.id=' . $action_id .
+		$sql = 'update llx_actioncomm, llx_actioncomm sub_action  set llx_actioncomm.dateSetExec = Now(), overdue = null, llx_actioncomm.percent=99, llx_actioncomm.new = 1 where sub_action.id=' . $action_id .
 			" and sub_action.fk_parent = llx_actioncomm.id and llx_actioncomm.fk_parent = 0";
 //	die($sql);
 		$res = $db->query($sql);
@@ -377,10 +345,6 @@ if($_GET['action']=='get_exectime'){
 	echo $out;
 	exit();
 }elseif($_GET['action']=='get_freetime'){
-//	echo '<pre>';
-//	var_dump($_GET);
-//	echo '</pre>';
-//	die('test');
 	date_default_timezone_set('Europe/Kiev');
 	global $user;
 	$Action = new ActionComm($db);
@@ -392,6 +356,7 @@ if($_GET['action']=='get_exectime'){
 	echo $freetime;
 	exit();
 }
+
 
 
 
@@ -1028,6 +993,7 @@ if ($action == 'update')
 				setEventMessages($object->error,$object->errors,'errors');
 				$db->rollback();
 			}
+			$object->setFutureDataAction($object->id);//Перерахунок майбутніх дій
 		}
 	}
 
@@ -1317,27 +1283,34 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 	$respon = array();
 
 	if(count($listofuserid) == 1) {
-		$respon[] = $user->respon_id;
+
+		$respon = $user->getResponding($user->id);
+
 		$formactions->select_groupoftask('groupoftask', $respon, GETPOST('groupoftask'));
 	}else{
+//		echo '<pre>';
+//		var_dump($_REQUEST["assignedtouser"]);
+//		echo '</pre>';
+//		die('test');
 		$assigneduser = new User($db);
-		foreach($listofuserid as $id_usr){
-			if($id_usr['id'] != $user->id){
-				$assigneduser->fetch($id_usr['id']);
-				if(!in_array($assigneduser->respon_id,$respon))
-					$respon[]=$assigneduser->respon_id;
-				if(!in_array($assigneduser->respon_id2,$respon))
-					$respon[]=$assigneduser->respon_id2;
-				$sql = "select fk_respon from `llx_user_responsibility` where fk_user = ".$id_usr['id']." and active = 1";
-				$res = $db->query($sql);
-				if(!$res)
-					dol_print_error($db);
-				while($obj = $db->fetch_object($res)){
-					if(!in_array($obj->fk_respon,$respon))
-						$respon[]=$obj->fk_respon;
-				}
-			}
-		}
+		$respon = $assigneduser->getResponding(empty($id_usr['id'])?$_REQUEST["assignedtouser"]:$id_usr['id']);
+//		foreach($listofuserid as $id_usr){
+//			if($id_usr['id'] != $user->id){
+//				$assigneduser->fetch($id_usr['id']);
+//				if(!in_array($assigneduser->respon_id,$respon))
+//					$respon[]=$assigneduser->respon_id;
+//				if(!in_array($assigneduser->respon_id2,$respon))
+//					$respon[]=$assigneduser->respon_id2;
+//				$sql = "select fk_respon from `llx_user_responsibility` where fk_user = ".$id_usr['id']." and active = 1";
+//				$res = $db->query($sql);
+//				if(!$res)
+//					dol_print_error($db);
+//				while($obj = $db->fetch_object($res)){
+//					if(!in_array($obj->fk_respon,$respon))
+//						$respon[]=$obj->fk_respon;
+//				}
+//			}
+//		}
 //		var_dump($respon);
 //		die();
 		$formactions->select_groupoftask('groupoftask', $respon, GETPOST('groupoftask'));
@@ -1428,7 +1401,11 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 				$sec = mktime($datep->format('H'),$datep->format('i'),$datep->format('s'),$datep->format('m'),$datep->format('d'),$datep->format('Y'));
 				$sec += $minutes*60;
 				$datef = new DateTime();
-				$datef->setTimestamp($sec);
+				try {
+					$datef->setTimestamp($sec);
+				}catch(Exception $e){
+					$datef = new DateTime();
+				}
 //				var_dump($datef);
 //				die();
 			}break;
@@ -2644,6 +2621,7 @@ print '
 llxPopupMenu();
 $db->close();
 exit();
+
 function getActionCount($datep){
 	global $db,$user;
 	if(empty($datep))

@@ -29,7 +29,7 @@ function resetActions($id_usr){
     global $db;
     $sql = "select llx_actioncomm.id from llx_actioncomm
     left join llx_actioncomm_resources on llx_actioncomm_resources.`fk_actioncomm` = llx_actioncomm.id
-    left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_author` else `llx_actioncomm_resources`.`fk_element` end
+    left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end
     inner join llx_societe on llx_societe.rowid = llx_actioncomm.fk_soc
     where 1
     and llx_actioncomm.active = 1

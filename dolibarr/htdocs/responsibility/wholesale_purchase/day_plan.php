@@ -42,7 +42,7 @@ $initiative_task = CalcFutureActions("'AC_INITIATIV'", $initiative_task, $user->
 $initiative_task = CalcFaktActions("'AC_INITIATIV'", $initiative_task, $user->id);
 $initiative_task = CalcPercentExecActions("'AC_INITIATIV'", $initiative_task, $user->id);
 
-$table = ShowTable();
+//$table = ShowTable();
 //Підрахунок глобальних задач
 $global_task = array();
 $global_task = CalcOutStandingActions("'AC_GLOBAL'", $global_task, $user->id);
@@ -78,6 +78,7 @@ while($obj = $db->fetch_object($res)){
         $Code .= ",'".$obj->code."'";
 }
 //die($Code);
+$lineactionCode = str_replace("'", '', $Code);
 $lineaction = array();
 $lineaction = CalcOutStandingActions($Code, $lineaction, $user->id);
 $lineaction = CalcFutureActions($Code, $lineaction, $user->id);
@@ -315,9 +316,9 @@ function CalcFutureActions($actioncode, $array, $id_usr){
 function CalcOutStandingActions($actioncode, $array, $id_usr){
     global $db, $user;
     $sql = "select count(*) as iCount  from `llx_actioncomm`
-    left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
-    left join llx_actioncomm_resources on llx_actioncomm_resources.fk_actioncomm = `llx_actioncomm`.id
-    where 1";
+        left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc` 
+        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id 
+    where 1 and overdue = 1";
 //    if($actioncode == "'AC_TEL','AC_FAX','AC_EMAIL','AC_RDV','AC_INT','AC_OTH','AC_DEP'"){
 //        var_dump(strpos($actioncode,","));
 //        die();
@@ -327,11 +328,10 @@ function CalcOutStandingActions($actioncode, $array, $id_usr){
     else
         $sql.=" and llx_actioncomm.`code` in(".$actioncode.") ";
         if(in_array($actioncode, array('AC_GLOBAL','AC_CURRENT','AC_EDUCATION','AC_INITIATIV','AC_PROJECT')) || $user->login !="admin")
-            $sql .=" and llx_actioncomm_resources.fk_element = ".$id_usr;
+            $sql .=" and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end = ".$id_usr;
     $sql .= " and datep2 < '".date("Y-m-d")."'";
-    $sql .=" and percent <> 100 and datea is null";
-
-
+//    if(strpos($actioncode,','))
+//        die($sql);
     $res = $db->query($sql);
     if($db->num_rows($res)) {
         $obj = $db->fetch_object($res);
@@ -404,10 +404,10 @@ function ShowTable(){
     (select `code` from `llx_c_actioncomm` where type in ('system','user') and active = 1) type_action on type_action.`code` = `llx_actioncomm`.`code`
     left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
     where 1 ";
-//    $sql .= " and datep2 < '".date("Y-m-d")."'";
-    $sql .= "and datep2 between adddate(date(now()), interval -1 month) and date(now())";
-    $sql .=" and datea is null
-    group by `llx_societe`.`region_id`";
+    $sql .= " and overdue = 1 and datep2 < '".date("Y-m-d")."' ";
+//    $sql .= "and datep2 between adddate(date(now()), interval -1 month) and date(now())";
+//    $sql .=" and datea is null ";
+    $sql .="group by `llx_societe`.`region_id`";
 //    echo '<pre>';
 //    var_dump($sql);
 //    echo '</pre>';

@@ -5,7 +5,10 @@
 //die();
 require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
 global $user,$db;
-
+//    echo '<pre>';
+//    var_dump($_REQUEST);
+//    echo '</pre>';
+//    die();
 $subdivUserID = array(0);
 if(in_array('dir_depatment',array($user->respon_alias,$user->respon_alias2))){
     $sql = "select rowid from llx_user
@@ -72,11 +75,19 @@ switch($_REQUEST['mainmenu']){
         $actioncode = 'AC_CONVERSATION';
     }
 }
-$author_id = getAuthorID($_GET['action_id']);
+//echo "<pre>";
+//var_dump($_REQUEST);
+//echo "</pre>";
+//die();
+$actionid = empty($_REQUEST['action_id'])?$_REQUEST['actionid']:$_REQUEST['action_id'];
+//die($actionid);
 $Action = $langs->trans($Action);
 llxHeader("",$Action,"");
 print_fiche_titre($Action);
-$description = GetDescription($_GET['action_id']);
+if(empty($actionid))
+    die('Помилка відображення сторінки. Спробуйте увійти знову зі сторінки '.($actioncode == 'AC_CURRENT'?'"Поточні"':'"Глобальні"').' задачі');
+$author_id = getAuthorID($actionid);
+$description = GetDescription($actionid);
 if($actioncode == 'AC_CONVERSATION') {
     $actiontabe = ShowConversation();
 }else{
@@ -115,6 +126,8 @@ llxPopupMenu();
 exit();
 function getSubActionType(){
     global $db;
+    if(empty($_REQUEST["action_id"]))
+        return null;
     $sql = "select subaction, subaction_id from llx_actioncomm where id = ".$_REQUEST["action_id"];
     $res = $db->query($sql);
     if(!$res){
@@ -122,10 +135,7 @@ function getSubActionType(){
     }
     $obj = $db->fetch_object($res);
     return $obj;
-//    echo '<pre>';
-//    var_dump($_REQUEST);
-//    echo '</pre>';
-//    die();
+
 //    switch ($obj->subaction){
 //        case '':{
 //            print '';
@@ -245,6 +255,8 @@ function ValidAsseccMentor(){
             return 0;
 }
 function getAuthorID($action_id){
+    if(empty($action_id))
+        return 0;
     global $db;
     $sql = "select `llx_actioncomm`.`fk_user_author` from `llx_actioncomm` where id = ".$action_id;
     $res = $db->query($sql);
@@ -280,11 +292,16 @@ function ShowActionTable(){
     $chain_actions = array();
     $Action = new ActionComm($db);
     $chain_actions = $Action->GetChainActions($_GET['action_id']);
+    $Action->setFutureDataAction($_GET['action_id']);
 //echo '<pre>';
-//var_dump($chain_actions);
+//var_dump($_REQUEST['executer_id']);
 //echo '</pre>';
 //die();
 //
+    if($_REQUEST['executer_id'] == $user->id){
+//        die('1');
+        $Action->Received_Action($_GET['action_id']);//Відмітка про перегляд завдання
+    }
     $AssignedUsersID = $Action->getAssignedUser($_GET['action_id'], true);
 
     $sql = 'select fk_parent, datep, subaction from `llx_actioncomm` where id in ('.implode(",", $chain_actions).') and fk_parent <> 0';
@@ -315,7 +332,7 @@ function ShowActionTable(){
 //        die();
     }
     //Завантажую результат дії
-    $sql = 'select distinct `llx_societe_action`.`action_id`, `llx_actioncomm`.percent, `llx_societe_action`.`rowid`, `llx_actioncomm`.`datep`,
+    $sql = 'select distinct `llx_societe_action`.`action_id`, `llx_societe_action`.`new`, `llx_actioncomm`.percent, `llx_societe_action`.`rowid`, `llx_actioncomm`.`datep`, `llx_actioncomm`.`overdue`,
         `llx_societe_action`.dtChange datec, create_user.`lastname`, create_user.rowid author_id, `llx_user`.`lastname` as contactname, `llx_user`.rowid as contactUserID,
                 TypeCode.code kindaction, `llx_societe_action`.`said`, `llx_societe_action`.`answer`,`llx_societe_action`.`argument`,
                 `llx_societe_action`.`said_important`, `llx_societe_action`.`result_of_action`,
@@ -332,15 +349,14 @@ function ShowActionTable(){
         order by `llx_societe_action`.dtChange desc, `llx_societe_action`.`rowid` desc;';
 
 //    $sql = "select * from llx_societe_action where action_id in (".implode(",", $chain_actions).") and active = 1";
-
+//echo "<pre>";
+//var_dump($sql);
+//echo "</pre>";
+//die();
     $res_result_action = $db->query($sql);
     $result_action = array();
     $result_actionID = array();
     while($array_item = $db->fetch_object($res_result_action)){
-//echo '<pre>';
-//var_dump($sql);
-//echo '</pre>';
-//die();
         $result_action[]=(array)$array_item;
         if(!in_array($array_item->action_id, $result_actionID))
             $result_actionID[]=$array_item->action_id;
@@ -386,7 +402,7 @@ function ShowActionTable(){
 
 //V 2
     $sql = "select `llx_actioncomm`.id action_id, `llx_actioncomm`.`new`, `llx_actioncomm`.percent, 0 rowid, `llx_actioncomm`.`datep`,
-       `llx_actioncomm`.datec,
+       `llx_actioncomm`.datec,  `llx_actioncomm`.`overdue`,
        `create_user`.`lastname` lastname,
        `create_user`.`rowid` author_id,
         concat(case when `llx_societe_contact`.lastname is null then '' else `llx_societe_contact`.lastname end,
@@ -529,6 +545,13 @@ function ShowActionTable(){
     return $out;
 
 }
+
+/**
+ * @param $row
+ * @param $num
+ * @param bool $result
+ * @return string
+ */
 function CreateNewActionItem($row, $num, $result = false){
     global $db, $conf,$user,$langs,$subdivUserID;
     $dtChange = new DateTime($row->datec);
@@ -650,6 +673,10 @@ function CreateNewActionItem($row, $num, $result = false){
             $actioncode = "'AC_GLOBAL'";
         }
     }
+//    if(347066 == $row->rowid){
+//        var_dump($row->percent);
+//        die();
+//    }
 //    var_dump(empty($row->id_mentor));
 //    die();
     if($row->percent != -100) {
@@ -657,14 +684,8 @@ function CreateNewActionItem($row, $num, $result = false){
             if (empty($row->id_mentor)) {
                 if ($row->percent == 99 && !$result) {
                     $out .= '<img id="confirm' . $row->action_id . '" title = "' . $langs->trans('Confirm') . '" onclick="Confirmation(' . $row->action_id . ');" src="/dolibarr/htdocs/theme/eldy/img/uncheck.png">';
-                } elseif ($row->percent < 99) {
-                    if(!empty($row->new)) {
-                        if ($result)
-                            $out .= '<img id="img_1"  onclick="EditOnlyResult(' . $row->action_id . ',' . (empty($row->rowid) ? 0 : $row->rowid) . ', ' . "'" . $row->kindaction . "'" . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Edit') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">';
-                        else
-                            $out .= '<img id="img_1"  onclick="EditAction(' . $row->action_id . ',' . (empty($row->rowid) ? 0 : $row->rowid) . ', ' . "'" . $row->kindaction . "'" . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Edit') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">';
-                        $out .= '&nbsp;&nbsp;<img  onclick="DelAction(' . (empty($row->rowid) ? "'" . $row->action_id : "'_" . $row->rowid) . "'" . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Delete') . '" src="/dolibarr/htdocs/theme/eldy/img/delete.png">';
-                    }else{
+                } elseif ($row->percent < 99 && empty($row->overdue)) {
+                    if(empty($row->new)&&!$result) {
                         $out.= '<img id="imgManager_' . $row->rowid . '" onclick="PostponeAction(' . $row->action_id . ', '.$actioncode.');" style="vertical-align: middle; cursor: pointer;" title="Перенести дію" src="/dolibarr/htdocs/theme/eldy/img/object_postpone.png">';
                     }
                 }
@@ -681,6 +702,24 @@ function CreateNewActionItem($row, $num, $result = false){
 //    }
     if(!$result && !in_array($row->percent, array(100,-100)))
         $out .= '&nbsp;&nbsp;<img  onclick="ResultAction(' . (empty($row->rowid) ? "'" . $row->action_id : "'_" . $row->rowid) . "'" . ');" style="vertical-align: middle; cursor: pointer;" title="Дії ' . $langs->trans($row->kindaction) . '" src="/dolibarr/htdocs/theme/eldy/img/'.(empty($row->rowid)||(!empty($row->rowid)&&$row->author_id == $user->id) ? "object_result_action"  : "edit").'.png">';
+//    var_dump(363848, $row->author_id,  $row->new);
+//    die();
+    if($result && ($row->new) && $row->author_id == $user->id) {
+        $out .= '<img  onclick="EditOnlyResult(' . $row->action_id . ',' . (empty($row->rowid) ? 0 : $row->rowid) . ', ' . "'" . $row->kindaction . "'" . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Edit') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">';
+        $out .= '&nbsp;&nbsp;<img  onclick="DelAction(' . (empty($row->rowid) ? "'" . $row->action_id : "'_" . $row->rowid) . "'" . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Delete') . '" src="/dolibarr/htdocs/theme/eldy/img/delete.png">';
+    }
+    if($row->contactUserID == $user->id && !empty($row->rowid)){//Встановлюю флаг, що запис не є новим
+        $sql_set = "update `llx_societe_action` set new = 0 where rowid = ".$row->rowid;
+        $res_set = $db->query($sql_set);
+        if(!$res_set)
+            dol_print_error($db);
+    }
+//    if($result && $row->new){
+//        echo '<pre>';
+//        var_dump($row);
+//        echo '</pre>';
+//        die();
+//    }
 
     $out .= '</td>
     </tr>';

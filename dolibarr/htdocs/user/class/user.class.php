@@ -1328,6 +1328,37 @@ class User extends CommonObject
 
 		return $categories;
 	}
+	function getResponding($id_usr, $viewalias=false){
+		$respon = array();
+		if(!empty($this->respon_id)&&!in_array($this->respon_id,$respon))
+			$respon[]=$this->respon_id;
+		if(!empty($this->respon_id2)&&!in_array($this->respon_id2,$respon))
+			$respon[]=$this->respon_id2;
+		$sql = "select fk_respon, `responsibility`.alias from `llx_user_responsibility` 
+					inner join `responsibility` on `responsibility`.rowid = `llx_user_responsibility`.fk_respon
+					where fk_user = ".$id_usr." and `llx_user_responsibility`.active = 1";
+		if(count($respon))
+			$sql.="
+				 union
+				 select rowid, alias
+				 from `responsibility`
+				 where rowid in (".implode(',',$respon).")";
+		$res = $this->db->query($sql);
+		$respon = array();
+
+		if(!$res)
+			dol_print_error($this->db);
+		while($obj = $this->db->fetch_object($res)){
+			if($viewalias) {
+				if (!empty($obj->alias)&&!in_array($obj->alias, $respon))
+					$respon[] = $obj->alias;
+			}else {
+				if (!empty($obj->fk_respon)&&!in_array($obj->fk_respon, $respon))
+					$respon[] = $obj->fk_respon;
+			}
+		}
+		return $respon;
+	}
 	function getLineActive($id_usr){
 		$id_usr = (empty($id_usr)?$this->id:$id_usr);
 		$sql = 'select fk_lineactive from llx_user_lineactive where fk_user = '.$id_usr.' and active = 1';

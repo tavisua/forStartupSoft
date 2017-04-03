@@ -154,7 +154,7 @@ function ShowTask(){
                                     left join `llx_actioncomm_resources` on `llx_actioncomm`.id = `llx_actioncomm_resources`.`fk_actioncomm`
                                     where 1
                                     and `llx_actioncomm_resources`.`fk_element` = ".$filter[$key]."                                    
-                                    and `llx_actioncomm`.percent <> 100
+                                    and `llx_actioncomm`.percentnot not in (100,-100)
                                     and `llx_actioncomm`.`active` = 1";
                     }break;
                 }
@@ -179,7 +179,7 @@ function ShowTask(){
                         and dtChange in (".$filter[$key].")
                         and `llx_actioncomm`.`code` = 'AC_GLOBAL'
                         and `llx_actioncomm`.`active` = 1
-                        and `llx_actioncomm`.`percent` <> 100";
+                        and `llx_actioncomm`.`percent` not in (100,-100)";
                     $res_tmp = $db->query($sql_tmp);
                     $ID = array(0);
                     while($obj = $db->fetch_object($res_tmp)){
@@ -356,14 +356,14 @@ function ShowTask(){
                 $date = new DateTime($obj->datelastaction);
                 $lastaction_val = $date->format('d.m.y').'</br>'.$date->format('H:i');
             }
-            $table .= '<td style="width:76px;text-align: center;"><a target="_blank" href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu=global_task">'.$lastaction_val.'</a></td>';
+            $table .= '<td style="width:76px;text-align: center;"><a target="_blank" href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu=global_task&executer_id='.$tmp_user->id.'">'.$lastaction_val.'</a></td>';
             if(empty($obj->datefutureaction)){
                 $futureaction_val = '<img src="/dolibarr/htdocs/theme/eldy/img/object_action.png">';
             }else{
                 $date = new DateTime($obj->datefutureaction);
                 $futureaction_val = $date->format('d.m.y').'</br>'.$date->format('H:i');
             }            
-            $table .= '<td style="width:76px;text-align: center;"><a target="_blank" href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu=global_task">'.$futureaction_val.'</a></td>';
+            $table .= '<td style="width:76px;text-align: center;"><a target="_blank" href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$obj->id.'&mainmenu=global_task&executer_id='.$tmp_user->id.'">'.$futureaction_val.'</a></td>';
             $table .= '<td style="width:43px;text-align: center;">'.$obj->iMinute.'</td>';
             //Дії наставника
             $table .= '<td style="width:76px;text-align: center"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td><td style="width:76px;text-align: center"><img src="/dolibarr/htdocs/theme/eldy/img/object_action.png"></td>';
@@ -412,13 +412,13 @@ function ShowTask(){
                 $table .= '<td style="width:51px; text-align: center">'.$obj->demotivator.'</td>';
             else
                 $table .= '<td  style="width:51px">&nbsp;</td>';
-            if($taskAuthor[$obj->id] == $user->id)
+            if($taskAuthor[$obj->id] == $user->id && empty($obj->dateconfirm))
                 $table .= '<td  style="width:25px"><img title="Редагувати завдання" id="img_'.$obj->id.'" onclick="EditAction('.$obj->id.', null, '."'AC_GLOBAL'".');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Edit').'" src="/dolibarr/htdocs/theme/eldy/img/edit.png"></td>';
             else
                 $table .= '<td  style="width:25px">&nbsp;</td>';
 
 //            $table .= '<td  style="width:25px"><img id="imgManager_"'.$obj->id.' onclick="RedirectAction('.$obj->id.');" style="vertical-align: middle; cursor: pointer;" title="'.$langs->trans('Redirect').'" src="/dolibarr/htdocs/theme/eldy/img/redirect.png"></td>';
-            if($taskAuthor[$obj->id] == $user->id)
+            if($taskAuthor[$obj->id] == $user->id && $obj->percent <= 99 && empty($obj->dateconfirm))
                 $table .= '<td  style="width:25px"><img title="Видалити завдання" src="/dolibarr/htdocs/theme/eldy/img/delete.png" onclick="ConfirmDelTask(' . $obj->id . ');" id="confirm' . $obj->id . '"></td>';
             else
                 $table .= '<td  style="width:25px">&nbsp;</td>';

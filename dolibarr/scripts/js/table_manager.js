@@ -355,7 +355,7 @@ function showProposed(id,contactid){
         data: param,
         cache:false,
         success:function(html){
-            console.log(html);
+            console.log(window.innerWidth);
             createNewForm('popupmenu','Proposition')
             $('#Proposition').addClass('setdate');
             $('#Proposition').css('width','auto');
@@ -364,7 +364,7 @@ function showProposed(id,contactid){
 
             $('#Proposition').show();
             if($('#contactlist').length > 0)
-                $('#Proposition').offset({top:$('#contactlist').offset().top-30,left:$('#contactlist').offset().left+$('#contactlist').width()/2});
+                $('#Proposition').offset({top:$('#contactlist').offset().top-30,left:window.innerWidth-$('#Proposition').width()-50});
             else
                 $('#savebutton').remove();
             $('#Proposition').attr('TitleProposed', 1);
@@ -1650,7 +1650,7 @@ function AddResultAction(contacttype, contactid){
 
 }
 function DelAction(rowid){
-    if(confirm('Видалити дію?')) {
+    if(confirm('Видалити дію?&&')) {
         var link = '/dolibarr/htdocs/comm/action/card.php?action=delete_action&rowid=' + rowid;
         if($('#loading_img').length>0)
             $('#loading_img').show();
@@ -1692,7 +1692,7 @@ function ConfirmForm(question){
     $('#confirm-container').show();
 }
 function ResultAction(rowid){
-    location.href = '/dolibarr/htdocs/comm/action/result_action.php?action=addonlyresult&backtopage='+location.href+'&actioncode=&action_id='+rowid+'&onlyresult=1';
+    location.href = "/dolibarr/htdocs/comm/action/result_action.php?action=addonlyresult&actioncode=&action_id="+rowid+"&onlyresult=1&backtopage="+location.href.replace(/&/g, '_amp038;');
 }
 function EditAction(rowid, answer_id, actioncode){
     //console.log(rowid, actioncode == 'AC_GLOBAL' || actioncode == 'AC_CURRENT');
@@ -1816,7 +1816,9 @@ function SetTheadColumnWidth(){
         tableWidth += th[c-3].clientWidth-2;
         //console.log(td[c], th[c-3]);
     }
-    console.log('width '+tableWidth);
+    var td = $('.bestvalue')[0].getElementsByTagName('td')[0];
+    $('#region_title').width($(td).width()-$('#district_title').width()-3);
+    console.log('TR ', tr);
 }
 function ShowProducts(){//Відображення кількості замовлених товарів
     if($.cookie('products_id') != null) {

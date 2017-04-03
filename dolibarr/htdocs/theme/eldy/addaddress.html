@@ -61,7 +61,7 @@
                     <?echo $langs->trans('Country')?>
                 </td>
                 <td>
-                    <?echo $form->select_country(GETPOST('country_id')!=''?GETPOST('country_id'):'UA')?>
+                    <?echo $form->select_country(GETPOST('country_id')!=''?GETPOST('country_id'):$soc_address->country_id)?>
                 </td>
             </tr>
             <tr>

@@ -272,21 +272,21 @@
             $('#contactlist').show();
         }
     }
-    function DelAction(rowid){
-        if(confirm('Видалити дію?')) {
-            var link = '/dolibarr/htdocs/comm/action/card.php?action=delete_action&rowid=' + rowid;
-            $.ajax({
-                url: link,
-                cache: false,
-                success: function (html) {
-                    if (html == 1)
-                        location.href = location.href;
-                    else
-                        console.log('помилка ', html, link);
-                }
-            })
-        }
-    }
+//    function DelAction(rowid){
+//        if(confirm('Видалити дію?')) {
+//            var link = '/dolibarr/htdocs/comm/action/card.php?action=delete_action&rowid=' + rowid;
+//            $.ajax({
+//                url: link,
+//                cache: false,
+//                success: function (html) {
+//                    if (html == 1)
+//                        location.href = location.href;
+//                    else
+//                        console.log('помилка ', html, link);
+//                }
+//            })
+//        }
+//    }
     function AddAction(){
         $("#actionbuttons").attr('action', '/dolibarr/htdocs/comm/action/card.php');
         console.log($("#actionbuttons").attr('action'));
