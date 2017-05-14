@@ -100,7 +100,7 @@ class ActionComm extends CommonObject
      * @deprecated Milestone is already event with end date = start date
      */
     var $punctual = 1;
-    var $percentage;    // Percentage
+    var $percentage = -1;    // Percentage
     var $location;      // Location
     var $period;        //Period ReExecution
     var $parent_id;     //Parent action id
@@ -157,6 +157,8 @@ class ActionComm extends CommonObject
     //Мотиватор-демотиватор
     var $motivator;
     var $demotivator;
+    //Фахівець-оцінщик
+    var $user_valuer;
     //Витрати
     var $planed_cost;
     var $fact_cost;
@@ -268,7 +270,7 @@ class ActionComm extends CommonObject
             return array(0);
         $chain_actions = array();
         $chain_actions[]=$action_id;
-        
+
         //Завантажую всі батьківські ІД
         while($action_id = $this->GetLastAction($action_id, 'id')){
             array_unshift($chain_actions, $action_id);
@@ -339,6 +341,8 @@ class ActionComm extends CommonObject
     }
     function getAssignedUser($action_id, $arrayonly = false){
         global $db;
+        if(empty($action_id))
+            $action_id = $this->id;
         $chain_actions = $this->GetChainActions($action_id);
         $users_id = array();
 
@@ -761,6 +765,7 @@ class ActionComm extends CommonObject
     function setOuterdueStatus($action_id){
         global $db, $user;
         $chain_actions = $this->GetChainActions($action_id);
+
         $sql = "select id, `llx_actioncomm_resources`.`rowid`, new, datec, fk_parent, datep, percent, fk_user_author, fk_user_action, overdue, `llx_actioncomm_resources`.`fk_element` 
             from llx_actioncomm 
             left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = llx_actioncomm.id
@@ -770,6 +775,7 @@ class ActionComm extends CommonObject
 //        echo '</pre>';
 //        die();
         $res = $db->query($sql);
+
         if(!$res)
             dol_print_error($db);
 
@@ -797,25 +803,26 @@ class ActionComm extends CommonObject
         }
         $res = $db->query($sql);
 
-
+        $overdue = null;
 
         while($obj = $db->fetch_object($res)){
             $date = new DateTime($obj->datep);
             $now = new DateTime(date('Y-M-d'));
             $interval = $now->diff($date);
             $sql_set = "update llx_actioncomm set overdue = NULL where id = ".$obj->id;
+
             $obj->overdue = null;
             $res_set = $db->query($sql_set);
             if(!$res_set)
                 dol_print_error($db);
 
-            if(empty($obj->fk_parent) || !in_array($actions[$obj->fk_parent]['percent'], array(99,100,-100))) {
+            if(empty($obj->fk_parent) || !in_array($actions[$obj->fk_parent]['percent'], array(99,100,-100,-1))) {
 //                echo '<pre>';
 //                var_dump($this->getWorkdayCount($date, $now) > 1 && !in_array($obj->percent, array(99, 100, -100)) && ($obj->new || !$this->getElemMoreThanVal($executers[!empty($obj->fk_element) ? $obj->fk_element : $obj->fk_user_action], $action_id)));
 //                echo '</pre>';
 //                die();
 
-                if ($this->getWorkdayCount($date, $now) > 1 && !in_array($obj->percent, array(99, 100, -100)) && ($obj->new || !$this->getElemMoreThanVal($executers[!empty($obj->fk_element) ? $obj->fk_element : $obj->fk_user_action], $action_id))) {//Позначаю за невиконані завдання, які не були відкриті на протязі доби, або не заплановані піддії
+                if ($this->getWorkdayCount($date, $now) > 1 && (!in_array($obj->percent, array(99, 100, -100)) || $obj->datec< $now && $obj->percent == -1) && ($obj->new || !$this->getElemMoreThanVal($executers[!empty($obj->fk_element) ? $obj->fk_element : $obj->fk_user_action], $action_id))) {//Позначаю за невиконані завдання, які не були відкриті на протязі доби, або не заплановані піддії
 //                $set_sql = "update llx_actioncomm set overdue = 1 where id = " . $obj->id;
 //                $db->query($set_sql);
                     $obj->overdue = 1;
@@ -832,15 +839,20 @@ class ActionComm extends CommonObject
                     }
                 }
             }
+//            if($obj->id == 522998){
+//                var_dump($obj->overdue);
+//                die();
+//            }
 
             if($obj->overdue){
+                $overdue = 1;
                 $sql_set = "update llx_actioncomm set overdue = 1 where id = ".$obj->id;
                 $res_set = $db->query($sql_set);
                 if(!$res_set)
                     dol_print_error($db);
             }
         }
-        return $chain_actions;
+        return $overdue;
     }
     function setFutureDataAction($rowid){
         global $db;
@@ -997,6 +1009,10 @@ class ActionComm extends CommonObject
             $correctdate = false;
             $cdatep=0;
             $cdatef=0;
+//        echo "<pre>";
+//        var_dump($this->userassigned);
+//        echo "</pre>";
+//        die();
             if(count(array_keys($this->userassigned))>1){
                 $correctdate = true;
                 $minute = ($this->datef-$this->datep)/60;
@@ -1047,6 +1063,7 @@ class ActionComm extends CommonObject
             $sql .= "fact_cost,";
             $sql .= "motivator,";
             $sql .= "demotivator,";
+            $sql .= "fk_user_valuer,";
             $sql .= "typenotification";
             $sql .= ") VALUES (";
             $sql .= "'" . $this->db->idate($now) . "',";
@@ -1084,12 +1101,14 @@ class ActionComm extends CommonObject
             $sql .=  (!empty($this->period)?("'".$this->period."'"):"null") . ",";
             $sql .= "'" . $this->groupoftask . "',";
             $sql .= " " . (!empty($this->order_id) ? "'" . $this->order_id . "'" : "null"). ",";
-            $sql .= "1," . (!empty($this->subaction) ? "'" . $this->subaction . "'" : "null"). ","
+            $sql .= (isset($this->type_code)&&!in_array($this->type_code, array('AC_PROP','AC_COM','AC_FAC','AC_SHIP','AC_SUP_ORD','AC_SUP_INV','AC_OTH_AUTO','AC_OTH')))?'1,':'0,';
+            $sql .= (!empty($this->subaction) ? "'" . $this->subaction . "'" : "null"). ","
                 .(!empty($this->subaction_id)?$this->subaction_id: "null"). ", ".
                 (!empty($this->planed_cost)?"'".$this->planed_cost."'": "null"). ", ".
                 (!empty($this->fact_cost)?"'".$this->fact_cost."'": "null"). ", ".
                 (!empty($this->motivator)?"'".$this->motivator."'": "null"). ", ".
-                (!empty($this->demotivator)?"'".$this->demotivator."'": "null"). ", '".
+                (!empty($this->demotivator)?"'".$this->demotivator."'": "null"). ", ".
+                (!empty($this->user_valuer)?$this->user_valuer: "null"). ", '".
                 $this->typenotification . "'";
             $sql .= ")";
 //            llxHeader();
@@ -1107,7 +1126,7 @@ class ActionComm extends CommonObject
             if ($resql) {
 
                 $this->id = $this->db->last_insert_id(MAIN_DB_PREFIX . "actioncomm", "id");
-
+                
                 if(!empty($this->parent_id)){
                     $chain_action = $this->GetChainActions($this->parent_id);
                     $sql = "update llx_actioncomm set datelastaction = Now(),
@@ -1182,12 +1201,14 @@ class ActionComm extends CommonObject
                         $postfix = 'comerc';
                     else if(in_array('purchase', array($user->respon_alias,$user->respon_alias2)))
                         $postfix = 'service';
-                    $date = new DateTime($this->db->idate($this->datep));
-                    $sql = "update llx_societe set futuredate".$postfix."='".$date->format('Y-m-d')."' where rowid = ".$this->socid;
-                    $res = $this->db->query($sql);
-                    if(!$res)
-                        dol_print_error($this->db);
-                    $this->setDateAction($this->socid);//Оновлення інформації про останні і майбутні контакти
+                    if(!empty($postfix)) {
+                        $date = new DateTime($this->db->idate($this->datep));
+                        $sql = "update llx_societe set futuredate" . $postfix . "='" . $date->format('Y-m-d') . "' where rowid = " . $this->socid;
+                        $res = $this->db->query($sql);
+                        if (!$res)
+                            dol_print_error($this->db);
+                    }
+                        $this->setDateAction($this->socid);//Оновлення інформації про останні і майбутні контакти
                 }
 
             }
@@ -1403,6 +1424,7 @@ class ActionComm extends CommonObject
         $sql .= "a.fact_cost,";
         $sql .= "a.motivator,";
         $sql .= "a.demotivator,";
+        $sql .= "a.fk_user_valuer,";
         $sql.= " u.firstname, u.lastname as lastname, a.period, a.confirmdoc, a.typenotification";
         $sql.= " FROM ".MAIN_DB_PREFIX."actioncomm as a ";
         $sql .= " LEFT JOIN ".MAIN_DB_PREFIX."c_actioncomm as c ON a.fk_action=c.id ";
@@ -1476,6 +1498,7 @@ class ActionComm extends CommonObject
                 $this->fact_cost            = $obj->fact_cost;  //Фактичні витрати
                 $this->motivator            = $obj->motivator;  //Мотиватор
                 $this->demotivator          = $obj->demotivator;//Демотиватор
+                $this->fk_user_valuer       = $obj->fk_user_valuer;//Фахівець-оцінщик
 
                 $this->fk_element			= $obj->fk_element;
                 $this->elementtype			= $obj->elementtype;
@@ -1700,7 +1723,7 @@ class ActionComm extends CommonObject
             $sql.= ", percent = '".$this->percentage."'";
         $sql.= ", datep = ".(strval($this->datep)!='' ? "'".$this->db->idate($this->datep)."'" : 'null');
         $sql.= ", datep2 = ".(strval($this->datef)!='' ? "'".$this->db->idate($this->datef)."'" : 'null');
-        $sql.= ", datepreperform = ".(strval($this->datepreperform->format('Y-m-d'))!='' ? "'".$this->db->idate($this->datepreperform->format('Y-m-d'))."'" : 'null');
+        $sql.= ", datepreperform = ".(strval(date('Y-m-d',$this->datepreperform))!='' ? "'".$this->db->idate(date('Y-m-d',$this->datepreperform))."'" : 'null');
         $sql.= ", durationp = ".(isset($this->durationp) && $this->durationp >= 0 && $this->durationp != ''?"'".$this->durationp."'":"null");	// deprecated
         $sql.= ", note = ".($this->note ? "'".$this->db->escape($this->note)."'":"null");
         $sql.= ", type = ".($this->typeSetOfDate ? "'".$this->db->escape($this->typeSetOfDate)."'":"null");
@@ -1721,6 +1744,7 @@ class ActionComm extends CommonObject
         $sql.= ", fact_cost=".(!empty($this->fact_cost) ?("'".$this->fact_cost."'") :"null");
         $sql.= ", motivator=".(!empty($this->motivator) ?("'".$this->motivator."'") :"null");
         $sql.= ", demotivator=".(!empty($this->demotivator) ?("'".$this->demotivator."'") :"null");
+        $sql.= ", fk_user_valuer=".(!empty($this->user_valuer) ?$this->fk_user_valuer :"null");
         if (! empty($this->fk_element)) $sql.= ", fk_element=".($this->fk_element?$this->fk_element:"null");
         if (! empty($this->elementtype)) $sql.= ", elementtype=".($this->elementtype?"'".$this->elementtype."'":"null");
         $sql.= " WHERE id=".$this->id;
@@ -1760,15 +1784,16 @@ class ActionComm extends CommonObject
 
 				foreach($this->userassigned as $key => $val)
 				{
-					$sql ="INSERT INTO ".MAIN_DB_PREFIX."actioncomm_resources(fk_actioncomm, element_type, fk_element, mandatory, transparency, answer_status)";
-					$sql.=" VALUES(".$this->id.", 'user', ".$val['id'].", ".(empty($val['manadatory'])?'0':$val['manadatory']).", ".(empty($val['transparency'])?'0':$val['transparency']).", ".(empty($val['answer_status'])?'0':$val['answer_status']).")";
+                    if($user->id != $val['id']) {
+                        $sql = "INSERT INTO " . MAIN_DB_PREFIX . "actioncomm_resources(fk_actioncomm, element_type, fk_element, mandatory, transparency, answer_status)";
+                        $sql .= " VALUES(" . $this->id . ", 'user', " . $val['id'] . ", " . (empty($val['manadatory']) ? '0' : $val['manadatory']) . ", " . (empty($val['transparency']) ? '0' : $val['transparency']) . ", " . (empty($val['answer_status']) ? '0' : $val['answer_status']) . ")";
 
-					$resql = $this->db->query($sql);
-					if (! $resql)
-					{
-						$error++;
-		           		$this->errors[]=$this->db->lasterror();
-					}
+                        $resql = $this->db->query($sql);
+                        if (!$resql) {
+                            $error++;
+                            $this->errors[] = $this->db->lasterror();
+                        }
+                    }
 					//var_dump($sql);exit;
 				}
 			}
@@ -1813,6 +1838,9 @@ class ActionComm extends CommonObject
      *   @param		string	$sortorder		ASC or DESC
      *   @return	array or string			Error string if KO, array with actions if OK
      */
+    static function setCronJobStatus($jobname){
+        
+    }
     static function getActions($db, $socid=0, $fk_element=0, $elementtype='', $filter='', $sortfield='', $sortorder='')
     {
         global $conf, $langs;
@@ -1862,6 +1890,7 @@ class ActionComm extends CommonObject
      *      @param	User	$user   Objet user
      *      @return int     		<0 if KO, >0 if OK
      */
+    
     function load_board($user)
     {
         global $conf, $user;
@@ -1911,6 +1940,7 @@ class ActionComm extends CommonObject
         $sql = 'SELECT ';
         $sql.= ' a.id,';
         $sql.= ' datec,';
+        $sql.= ' code,';
         $sql.= ' tms as datem,';
         $sql.= ' fk_user_author,';
         $sql.= ' fk_user_mod';
@@ -1925,6 +1955,7 @@ class ActionComm extends CommonObject
             {
                 $obj = $this->db->fetch_object($result);
                 $this->id = $obj->id;
+                $this->code = $obj->code;
                 if ($obj->fk_user_author)
                 {
                     $cuser = new User($this->db);

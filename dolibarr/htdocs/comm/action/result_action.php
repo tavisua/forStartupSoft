@@ -295,8 +295,6 @@ if(!($_GET['action'] == 'addonlyresult' || (isset($_REQUEST["onlyresult"])&&$_RE
     $contactlist='';
 }else {
     if(!in_array($_REQUEST['actioncode'], array('AC_GLOBAL', 'AC_CURRENT'))) {
-//        var_dump($object->contactid);
-//        die();
         $contactid = empty($object->contactid) ? $_REQUEST['contactid'] : $object->contactid;
         $lastactiveaction = getLastContact();
         if (empty($contactid))
@@ -320,10 +318,7 @@ if($action_id == 0 && !empty($_REQUEST['action_id']))
 //die('test');
 $societe = new Societe($db);
 $societe->fetch(empty($object->socid)&&$_GET['action'] == 'addonlyresult'?$_GET['socid']:$object->socid);
-//echo '<pre>';
-//var_dump($object);
-//echo '</pre>';
-//die();
+
 $formactions = new FormActions($db);
 if($_GET['action'] == 'edituseration'){//Якщо редагуються результати перемовин зі співробітниками
     $sql = "select rowid,said,answer,argument,said_important,result_of_action,fact_cost,work_before_the_next_action,date_next_action,work_before_the_next_action_mentor,date_next_action_mentor
@@ -342,20 +337,23 @@ if($_GET['action'] == 'edituseration'){//Якщо редагуються рез�
 ////print '<div class="tabBar">';
 }
 require_once $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/comm/action/class/actioncomm.class.php';
+
 $Actions = new ActionComm($db);
 if(empty($_REQUEST["socid"]))//Якщо не стосується зовнішніх контрагентів
     $AssignedUsersID = implode(',',$Actions->getAssignedUser($_GET['action_id'], true));
-//echo '<pre>';
-//var_dump($AssignedUsersID);
-//echo '</pre>';
-//die();
+
 if(isset($_GET['action_id'])&&!empty($_GET['action_id']))
     $Actions->fetch($_GET['action_id']);
 $style = "";
 if(($_GET['action']=='addonlyresult'||$_GET['action']=='updateonlyresult')&&empty($_REQUEST['socid'])){//Виконується, якщо дія пов'язана з внутрішніми роботами
     $style = 'style="display:none;"';
-    if(!empty($object))
-        $object->label = $object->note;
+    if(!empty($object)) {
+        if(get_class($Actions) == 'ActionComm'){
+            $object->label = $Actions->note;
+            $object->type = $Actions->type_code;
+        }else
+            $object->label = $object->note;
+    }
 }
 if(empty($form)){
     $form = new Form($db);
@@ -501,13 +499,15 @@ function getLastContact(){
 function addaction(){
     global $conf, $db, $user, $langs;
 //    die($langs->trans('Area'));
-    $socid = $_REQUEST['socid'];
-    $object = new  Societe($db);
-    $object->fetch($socid);
-    $CategoryOfCustomer = $object->getCategoryOfCustomer();
-    $FormOfGoverment = $object->getFormOfGoverment();
-    $contactid=0;
-    $selectcountact = selectcontact($socid);
+    if(!empty($_REQUEST['socid'])) {
+        $socid = $_REQUEST['socid'];
+        $object = new  Societe($db);
+        $object->fetch($socid);
+        $CategoryOfCustomer = $object->getCategoryOfCustomer();
+        $FormOfGoverment = $object->getFormOfGoverment();
+        $contactid = 0;
+        $selectcountact = selectcontact($socid);
+    }
     $action_url = $_SERVER["PHP_SELF"].'?socid='.$socid.'&idmenu=10425&mainmenu=area&action=save';
     $action = 'save';
     include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/addaction.html';
@@ -723,7 +723,7 @@ function saveaction($rowid, $createaction = false, $action_id = null){
         $res = $db->query($sql);
         if (!$res)
             dol_print_error($db);
-        $sql = "update llx_actioncomm set new = 1
+        $sql = "update llx_actioncomm set new = 1, dtValidValuer = case when fk_user_valuer = $user->id and percent = 99 then now() else null end
           where id = " . $_REQUEST['actionid'];
         $res = $db->query($sql);
         if (!$res)
@@ -746,6 +746,8 @@ function saveaction($rowid, $createaction = false, $action_id = null){
             $postfix = 'comerc';
         else if(in_array('purchase', array($user->respon_alias,$user->respon_alias2)))
             $postfix = 'service';
+        else
+            $postfix = 'mentor';
 
             $update_need_sql = "update llx_societe set lastdate = '".date('Y-m-d')."', lastdate".$postfix."='".date('Y-m-d')."', futuredate".$postfix."= null, llx_societe.need = " . (empty($_REQUEST['need']) ? ("null") : ("'" . $db->escape($_REQUEST['need'])) . "'") . "
           where 1 and llx_societe.rowid =".$socid;

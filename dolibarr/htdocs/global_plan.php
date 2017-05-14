@@ -154,7 +154,7 @@ function ShowTask(){
                                     left join `llx_actioncomm_resources` on `llx_actioncomm`.id = `llx_actioncomm_resources`.`fk_actioncomm`
                                     where 1
                                     and `llx_actioncomm_resources`.`fk_element` = ".$filter[$key]."                                    
-                                    and `llx_actioncomm`.percentnot not in (100,-100)
+                                    and `llx_actioncomm`.percent not in (100,-100)
                                     and `llx_actioncomm`.`active` = 1";
                     }break;
                 }

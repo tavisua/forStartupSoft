@@ -31,18 +31,18 @@ $obj = $db->fetch_object($res);
 $subdivision = $obj->name;
 //if(!isset($_SESSION['actions'])) {
     $sql = "select distinct sub_user.rowid  id_usr, sub_user.alias, `llx_societe`.`region_id`, llx_actioncomm.id, llx_actioncomm.percent, date(llx_actioncomm.datep) datep, llx_actioncomm.percent,
-    case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT','AC_EDUCATION', 'AC_INITIATIV', 'AC_PROJECT') then llx_actioncomm.`code` else 'AC_CUST' end `code`, `llx_societe_action`.`callstatus`
+    case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT','AC_EDUCATION', 'AC_INITIATIV', 'AC_PROJECT') then llx_actioncomm.`code` else 'AC_CUST' end `code`, `llx_societe_action`.`callstatus`, llx_actioncomm.overdue
     from llx_actioncomm
     inner join (select id from `llx_c_actioncomm` where type in('user','system') and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
     left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = llx_actioncomm.id
     left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
     left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
-    inner join (select `llx_user`.rowid, `responsibility`.`alias` from `llx_user` inner join `responsibility` on `responsibility`.`rowid` = `llx_user`.`respon_id` where `llx_user`.`subdiv_id` = ".$user_tmp->subdiv_id." and `llx_user`.`active` = 1) sub_user on sub_user.rowid = case when llx_actioncomm_resources.fk_element is null then llx_actioncomm.`fk_user_action` else llx_actioncomm_resources.fk_element end
+    inner join (select `llx_user`.rowid, `responsibility`.`alias` from `llx_user` inner join `responsibility` on `responsibility`.`rowid` = `llx_user`.`respon_id` where `llx_user`.`subdiv_id` = ".$user_tmp->subdiv_id." ) sub_user on sub_user.rowid = case when llx_actioncomm_resources.fk_element is null then llx_actioncomm.`fk_user_action` else llx_actioncomm_resources.fk_element end
     where 1
     and llx_actioncomm.active = 1
-    and datep2 between adddate(date(now()), interval -1 month) and adddate(date(now()), interval 1 month)";
+    and (overdue = 1 or datep2 between adddate(date(now()), interval -1 month) and adddate(date(now()), interval 1 month))";
 //echo '<pre>';
-//var_dump($sql);
+//var_dump($user_tmp->id);
 //echo '</pre>';
 //die();
     $res = $db->query($sql);
@@ -51,7 +51,7 @@ $subdivision = $obj->name;
 //    $actions = array();
     $time = time();
     while ($obj = $db->fetch_object($res)) {
-            $actions[] = array('id_usr' => $obj->id_usr, 'rowid'=>$obj->id, 'region_id' => $obj->region_id, 'respon_alias' => $obj->alias, 'percent' => $obj->percent, 'datep' => $obj->datep, 'code' => $obj->code, 'callstatus'=>$obj->callstatus);
+            $actions[] = array('overdue'=>$obj->overdue,'id_usr' => $obj->id_usr, 'rowid'=>$obj->id, 'region_id' => $obj->region_id, 'respon_alias' => $obj->alias, 'percent' => $obj->percent, 'datep' => $obj->datep, 'code' => $obj->code, 'callstatus'=>$obj->callstatus);
     }
     $_SESSION['actions'] = $actions;
 
@@ -117,7 +117,7 @@ function ShowTable(){
                 }if($mkDate-$mkToday<=2678400)//2678400 sec by month
                     $userActions['future_month'][$obj->code]++;
             }
-            if($mkDate <= $mkToday && !in_array($obj->percent, array(100, -100))) {
+            if($obj->overdue) {
                 $userActions['outstanding'][$obj->code]++;
             }
             if($mkDate <= $mkToday && $obj->percent == 100 && (in_array($action['code'], $actioncode) || $action['callstatus'] == '5')){
@@ -147,7 +147,7 @@ function ShowTable(){
         }
     }
 //    echo '<pre>';
-//    var_dump($userActions);
+//    var_dump($userActions['outstanding']);
 //    echo '</pre>';
 //    die();
     $table = '<tbody id="reference_body">';
@@ -251,7 +251,7 @@ function ShowTable(){
 //        die();
     $table.= ShowTasks('AC_CUST', 'Найкращі показники по підрозділу', true);
 
-    $table.= getRegionsList($id_usr);
+    $table.= getRegionsListMarketing($id_usr);
 
     $table.= ShowTasks('AC_PROJECT', 'Проекти', true);
     $table.= ShowTasks('AC_EDUCATION, ', 'Навчання', true);
@@ -260,7 +260,7 @@ function ShowTable(){
     $table .= '</tbody>';
     return $table;
 }
-function getRegionsList($id_usr){
+function getRegionsListMarketing($id_usr){
     global $db, $actions,$actioncode;
     $outstanding = array();
     $future=array();

@@ -437,10 +437,10 @@ a.vsmenu:link, a.vsmenu:visited, a.vsmenu:hover, a.vsmenu:active {
 #th_email, #th_phonemobile, #th_skype{
     min-width: 130px;
 }
-.combobox {
-    background: #ffc000 none repeat scroll 0 0;
-    border-color: rgb(255, 255, 255);
-    width: 80%;
+.combobox .dolibarrcombobox{
+    background: #ffc000 none repeat scroll 0 0!important;
+    border-color: rgb(255, 255, 255)!important;
+    width: 80%!important;
 }
 input, textarea, select {
     -moz-border-bottom-colors: none;

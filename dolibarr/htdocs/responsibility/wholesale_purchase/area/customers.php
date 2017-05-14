@@ -38,7 +38,7 @@ from `llx_societe` left join `category_counterparty` on `llx_societe`.`categoryo
 left join `formofgavernment` on `llx_societe`.`formofgoverment_id` = `formofgavernment`.rowid
 left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`
 left join `llx_societe_lineactive` on `llx_societe_lineactive`.fk_soc = `llx_societe`.rowid
-where 1 and `llx_societe`.active = 1 and `llx_societe`.`categoryofcustomer_id` in (".(count($category)>0?implode(',',$category):'0').") and (`llx_societe`. fk_user_creat = ".$id_usr." or `llx_societe_lineactive`.`fk_lineactive` in (".implode(',', $user->getLineActive($id_usr))."))";
+where 1 and `llx_societe`.active = 1 ";
 
 
 $sql_count = 'select count(*) iCount from
@@ -54,9 +54,9 @@ where 1 and `llx_societe`.active = 1 and `llx_societe`.`categoryofcustomer_id` i
     $sql_count.=' and `llx_societe`.active = 1 ';
 
 //echo '<pre>';
-//var_dump($id_usr);
+//var_dump(isset($_REQUEST['lineactive'])&& !empty($_REQUEST['lineactive']));
 //echo '</pre>';
-
+//die();
 if(isset($_REQUEST['lineactive'])&& !empty($_REQUEST['lineactive']) && $_REQUEST['lineactive'] == -1) {
     $tmp = 'select `llx_societe`.rowid from `llx_societe`
         left join `llx_societe_lineactive` on `llx_societe_lineactive`.fk_soc = `llx_societe`.rowid
@@ -123,16 +123,7 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['lin
         $kind = (isset($_REQUEST['kind'])&& !empty($_REQUEST['kind']))?$_REQUEST['kind']:'lineactive';
         switch($kind) {
             case 'lineactive': {
-                $sql_filter = 'select `llx_societe`.`rowid` from `llx_societe_lineactive`
-                    inner join `llx_societe` on `llx_societe_lineactive`.`fk_soc`=`llx_societe`.`rowid`
-                    inner join (select ' . $_REQUEST['lineactive'] . ' as category_id
-                      union
-                      select category_id from `oc_category`
-                      where parent_id=' . $_REQUEST['lineactive'] . '
-                      union
-                      select parent_id from `oc_category`
-                      where category_id=' . $_REQUEST['lineactive'] . ') lineactive on lineactive.category_id=`llx_societe_lineactive`.`fk_lineactive`
-                    where 1';
+                $sql_filter = 'select fk_soc rowid from `llx_societe_lineactive` where fk_lineactive = '.$_REQUEST['lineactive'].' and active = 1';
             }break;
             case 'category':{
                 if(is_numeric($_REQUEST['lineactive'])){

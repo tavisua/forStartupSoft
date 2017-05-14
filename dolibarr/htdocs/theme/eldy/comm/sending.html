@@ -63,7 +63,7 @@
 //        console.log($('.secondpage').css('display'));
     })
     function sendTestMessage(){
-        console.log(<?=$userphone?>, $('#message').val());
+//        console.log(<?=$userphone?>, $('#message').val());
         if('<?=$_REQUEST["type"]?>' == 'sms') {
             sendSMS('<?=$userphone?>', $('#message').val(), true);
         }else if ('<?=$_REQUEST["type"]?>' == 'email'){

@@ -31,7 +31,6 @@ $sql = "select fk_id from llx_user_regions where fk_user=".$id_usr." and active 
 //        and llx_user.active = 1
 //        and llx_user_regions.active = 1";
 //}
-
 $res = $db->query($sql);
 if(!$res)
     dol_print_error($db);
@@ -56,15 +55,20 @@ where 1 ";
 $sql_count = 'select count(*) iCount from `llx_societe`
 left join `llx_societe_lineactive` on `llx_societe_lineactive`.fk_soc = `llx_societe`.rowid
 where 1  ';
-
+//echo '<pre>';
+//var_dump($_REQUEST);
+//echo '</pre>';
+//die();
 if(isset($_REQUEST['stateID'])&&!empty($_REQUEST['stateID'])
     || isset($_REQUEST['regionID'])&&!empty($_REQUEST['regionID'])
+    || isset($_REQUEST['state_filter'])&&!empty($_REQUEST['state_filter'])
     || isset($_REQUEST['KindAssets'])&&!empty($_REQUEST['KindAssets'])
     || isset($_REQUEST['model'])&&!empty($_REQUEST['model'])
 ){
     $category = implode(',', $user->getCategoriesContractor($id_usr));
     if(isset($_REQUEST['stateID'])&&!empty($_REQUEST['stateID'])
-        || isset($_REQUEST['regionID'])&&!empty($_REQUEST['regionID'])) {
+        || isset($_REQUEST['regionID'])&&!empty($_REQUEST['regionID'])
+        || isset($_REQUEST['state_filter']) && !empty($_REQUEST['state_filter'])) {
         $sqlRegionFilter = "select `llx_societe`.rowid
             from `llx_societe`
             left join `llx_societe_address` on `llx_societe_address`.`fk_soc` = `llx_societe`.`rowid`
@@ -76,6 +80,9 @@ if(isset($_REQUEST['stateID'])&&!empty($_REQUEST['stateID'])
             $sqlRegionFilter .= " or ";
         if (isset($_REQUEST['regionID']) && !empty($_REQUEST['regionID']))
             $sqlRegionFilter .= "case when `llx_societe_address`.region_id is null then `llx_societe`.region_id else `llx_societe_address`.region_id end in (" . $_REQUEST['regionID'] . ")";
+        if (isset($_REQUEST['state_filter']) && !empty($_REQUEST['state_filter']))
+            $sqlRegionFilter .= "case when `llx_societe_address`.state_id is null then `llx_societe`.state_id else `llx_societe_address`.state_id end in(" . $_REQUEST['state_filter'] . ")";
+//            $sqlRegionFilter .= "case when `llx_societe_address`.region_id is null then `llx_societe`.region_id else `llx_societe_address`.region_id end in (" . $_REQUEST['state_filter'] . ")";
         $sqlRegionFilter .= ")";
         $resFilter = $db->query($sqlRegionFilter);
 
@@ -316,6 +323,7 @@ if(empty($_GET['viewname']))
 elseif ($_GET['viewname'] == 'reverse')
     $kind_view = '</br><span style="padding-top: 30px"><button onclick="ChangeViewNameOption();">&nbsp;&nbsp;&nbsp;ФП&nbsp;&nbsp;&nbsp; <img src="/dolibarr/htdocs/theme/eldy/img/replace.png"> Назва</button></span>';
 
+//include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/logistika/area/customers.html');
 include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/area/customers.html');
 $prev_form = "<a href='#x' class='overlay' id='peview_form'></a>
                      <div class='popup' style='width: 300px;height: 150px'>

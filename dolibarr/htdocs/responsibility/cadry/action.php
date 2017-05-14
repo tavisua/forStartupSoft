@@ -475,20 +475,20 @@ function ShowActionTable(){
 //    die();
     if($db->num_rows($res)==0){
         $out .= '<tr class="impair">
-            <td style="widtd: 80px" class="middle_size">&nbsp;</td>
-            <td style="widtd: 80px" class="middle_size">&nbsp;</td>
-            <td style="widtd: 100px" class="middle_size">&nbsp;</td>
-            <td style="widtd: 80px" class="middle_size">&nbsp;</td>
-            <td style="widtd: 50px" class="middle_size">&nbsp;</td>
-            <td style="widtd: 80px" class="middle_size">&nbsp;</td>
-            <td style="widtd: 80px" class="middle_size">&nbsp;</td>
-            <td style="widtd: 80px" class="middle_size">&nbsp;</td>
-            <td style="widtd: 80px" class="middle_size">&nbsp;</td>
-            <td style="widtd: 80px" class="middle_size">&nbsp;</td>
-            <td style="widtd: 80px" class="middle_size">&nbsp;</td>
-            <td style="widtd: 80px" class="middle_size">&nbsp;</td>
-            <td style="widtd: 80px" class="middle_size">&nbsp;</td>
-            <td style="widtd: 80px" class="middle_size">&nbsp;</td>
+            <td style="width: 80px" class="middle_size">&nbsp;</td>
+            <td style="width: 80px" class="middle_size">&nbsp;</td>
+            <td style="width: 100px" class="middle_size">&nbsp;</td>
+            <td style="width: 80px" class="middle_size">&nbsp;</td>
+            <td style="width: 50px" class="middle_size">&nbsp;</td>
+            <td style="width: 80px" class="middle_size">&nbsp;</td>
+            <td style="width: 80px" class="middle_size">&nbsp;</td>
+            <td style="width: 80px" class="middle_size">&nbsp;</td>
+            <td style="width: 80px" class="middle_size">&nbsp;</td>
+            <td style="width: 80px" class="middle_size">&nbsp;</td>
+            <td style="width: 80px" class="middle_size">&nbsp;</td>
+            <td style="width: 80px" class="middle_size">&nbsp;</td>
+            <td style="width: 80px" class="middle_size">&nbsp;</td>
+            <td style="width: 80px" class="middle_size">&nbsp;</td>
             <td style="width: 35px" class="middle_size">&nbsp;</td>
             </tr>';
     }

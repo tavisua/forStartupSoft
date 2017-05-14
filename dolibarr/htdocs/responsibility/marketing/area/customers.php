@@ -28,9 +28,37 @@ $sql_count = 'select count(*) iCount from
 (select distinct `llx_societe`.*  from `llx_societe`
 left join `llx_societe_lineactive` on `llx_societe_lineactive`.fk_soc = `llx_societe`.rowid
 where 1  ';
+$responsibility = $user->getResponding($user->id, true);
+//echo '<pre>';
+//var_dump($_REQUEST);
+//echo '</pre>';
+//die();
 
+if(count(array_intersect($responsibility, array('counter','corp_manager','purchase','paperwork','cadry','wholesale_purchase','logistika','jurist'))) == 0) {
     $tmp = 'and `llx_societe`.`categoryofcustomer_id` in
-(select case when `fx_category_counterparty` is null then `other_category` else `fx_category_counterparty` end fx_category_counterparty from responsibility_param  where fx_responsibility = '.$respon_id.')';
+        (select case when `fx_category_counterparty` is null then `other_category` else `fx_category_counterparty` end fx_category_counterparty from responsibility_param  where fx_responsibility = ' . $respon_id . ')';
+}else{
+    if($_REQUEST['kind']!='fk_categories') {
+        $sql_categories = 'select distinct case when `responsibility_param`.`fx_category_counterparty` is null then `other_category` else `fx_category_counterparty` end `fk_categories`
+        from `responsibility_param`
+        inner join (select rowid from `responsibility` where alias in (\'' . implode("','", $responsibility) . '\')) counter on counter.rowid=responsibility_param.fx_responsibility
+        left join `category_counterparty` on `category_counterparty`.`rowid` = case when `responsibility_param`.`fx_category_counterparty` is null then `other_category` else `fx_category_counterparty` end
+        where `category_counterparty`.`active` = 1
+        or `responsibility_param`.`fx_category_counterparty` is null
+        and `category_counterparty`.`name` is not null';
+        $res = $db->query($sql_categories);
+        if (!$res)
+            dol_print_error($db);
+        $categories = array(0);
+        while ($obj_cat__id = $db->fetch_object($res)) {
+            if (!in_array($obj_cat__id->fk_categories, $categories))
+                $categories[] = $obj_cat__id->fk_categories;
+        }
+    }else
+        $categories[] = $_REQUEST['lineactiveID'];
+    if(count($categories))
+        $tmp = 'and `llx_societe`.`categoryofcustomer_id` in ('.implode(',',$categories).')';
+}
     $sql.=$tmp;
     $sql_count.=$tmp;
 
@@ -38,8 +66,9 @@ where 1  ';
     $sql_count.=' and `llx_societe`.active = 1 ';
 
 //echo '<pre>';
-//var_dump($user->id);
+//var_dump($sql);
 //echo '</pre>';
+//die();
 
 if($user->login != 'admin') {
     $tmp = ' and (`llx_societe`. fk_user_creat = '.$user->id.' or `llx_societe_lineactive`.`fk_lineactive` in ('.implode(',', $user->getLineActive($id_usr)).'))';
@@ -48,21 +77,21 @@ if($user->login != 'admin') {
 }
 global $respon_id;
 $filterid = array();
-$categoryofcustomer_id = array();
-$sql_cat = 'select case when `fx_category_counterparty` is null then `other_category` else `fx_category_counterparty` end fx_category_counterparty from responsibility_param  where fx_responsibility = '.$respon_id;
-$res_cat = $db->query($sql_cat);
-//echo '<pre>';
-//var_dump($sql_cat);
-//echo '</pre>';
-//die();
-if(!$res_cat)
-    dol_print_error($db);
-while($obj_cat = $db->fetch_object($res_cat)) {
-    if(!in_array($obj_cat->fx_category_counterparty, $categoryofcustomer_id)&&!empty($obj_cat->fx_category_counterparty))
-        $categoryofcustomer_id[] = $obj_cat->fx_category_counterparty;
-}
-if(count($categoryofcustomer_id) == 0)
-    $categoryofcustomer_id[]=0;
+//$categoryofcustomer_id = array();
+//$sql_cat = 'select case when `fx_category_counterparty` is null then `other_category` else `fx_category_counterparty` end fx_category_counterparty from responsibility_param  where fx_responsibility = '.$respon_id;
+//$res_cat = $db->query($sql_cat);
+////echo '<pre>';
+////var_dump($sql_cat);
+////echo '</pre>';
+////die();
+//if(!$res_cat)
+//    dol_print_error($db);
+//while($obj_cat = $db->fetch_object($res_cat)) {
+//    if(!in_array($obj_cat->fx_category_counterparty, $categoryofcustomer_id)&&!empty($obj_cat->fx_category_counterparty))
+//        $categoryofcustomer_id[] = $obj_cat->fx_category_counterparty;
+//}
+//if(count($categoryofcustomer_id) == 0)
+//    $categoryofcustomer_id[]=0;
 
 //var_dump($categoryofcustomer_id);
 //die();
@@ -72,7 +101,10 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['lin
         $phone_number = fPrepPhoneFilter($_REQUEST['filter']);
         $sql_filter = "select llx_societe.rowid from llx_societe
             left join `llx_societe_contact` on `llx_societe_contact`.`socid`=`llx_societe`.`rowid`
-            where 1 and `llx_societe`.`categoryofcustomer_id` in (".implode(',', $categoryofcustomer_id).") and `llx_societe`.`nom`  like '%" . $_REQUEST['filter'] . "%'
+            where 1 ";
+        if(count($categories))
+            $sql_filter.="and `llx_societe`.`categoryofcustomer_id` in (".implode(',', $categories).")";
+        $sql_filter.="and `llx_societe`.`nom`  like '%" . $_REQUEST['filter'] . "%'
             or `llx_societe_contact`.`lastname`  like '%" . $_REQUEST['filter'] . "%'
             or `llx_societe_contact`.`firstname`  like '%" . $_REQUEST['filter'] . "%'
             or `llx_societe_contact`.`subdivision`  like '%" . $_REQUEST['filter'] . "%'
@@ -101,11 +133,11 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['lin
 //var_dump($filterid);
 //echo '</pre>';
 //die();
-    if(isset($_REQUEST['lineactiveID'])&& !empty($_REQUEST['lineactiveID']) && $_REQUEST['lineactiveID'] != -1){
+    if($_REQUEST['kind'] != 'fk_categories' && isset($_REQUEST['lineactiveID'])&& !empty($_REQUEST['lineactiveID']) && $_REQUEST['lineactiveID'] != -1){
         $sql_filter="select `llx_societe`.`rowid`
             from `llx_societe`
             inner join `llx_societe_lineactive` on `llx_societe_lineactive`.`fk_soc` = `llx_societe`.`rowid`
-            where categoryofcustomer_id in (".implode(',', $categoryofcustomer_id).")
+            where categoryofcustomer_id in (".implode(',', $categories).")
             and `llx_societe_lineactive`.`fk_lineactive` = ".$_REQUEST['lineactiveID'];
         $sql_filter.=" and `llx_societe_lineactive`.active = 1";
 //        echo '<pre>';
@@ -126,7 +158,7 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['lin
         $sql .= ' and `llx_societe`.`rowid` in (' . implode(',', $filterid) . ') ';
         $sql_count .= ' and `llx_societe`.`rowid` in (' . implode(',', $filterid) . ')';
     }else{
-        if(isset($_REQUEST['lineactiveID'])&& !empty($_REQUEST['lineactiveID']) && $_REQUEST['lineactiveID'] != -1) {
+        if($_REQUEST['kind'] != 'fk_categories' && isset($_REQUEST['lineactiveID'])&& !empty($_REQUEST['lineactiveID']) && $_REQUEST['lineactiveID'] != -1) {
             $sql .= ' and `llx_societe`.`rowid` in (0) ';
             $sql_count .= ' and `llx_societe`.`rowid` in (0)';
         }

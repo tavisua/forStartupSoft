@@ -38,6 +38,26 @@ if($_GET['action']=='requeredpages'){
 
 exit();
 }
+if($_GET['action']=='getSession'){
+    print empty($_SESSION[$_GET['key']])?0:$_SESSION[$_GET['key']];
+    exit();
+}
+if($_GET['action']=='setSession'){
+    $_SESSION[$_GET['key']]=$_GET['json'];
+    print 1;
+    exit();
+}
+if($_GET['action']=='clearSession'){
+    unset($_SESSION[$_GET['key']]);
+    exit();
+}
+if($_GET['action']=='addSession'){
+    if(strpos($_SESSION[$_GET['key']], $_GET['value']) === false)
+        $_SESSION[$_GET['key']].= ' '.$_GET['value'];
+    print 1;
+    exit();
+}
+
 
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
 

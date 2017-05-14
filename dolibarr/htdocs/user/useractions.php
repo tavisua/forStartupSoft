@@ -5,10 +5,7 @@
  * Date: 21.05.2016
  * Time: 18:23
  */
-//echo '<pre>';
-//var_dump($_SERVER["REQUEST_URI"]);
-//echo '</pre>';
-//die();
+
 require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
 if(isset($_REQUEST['beforeload'])){
     llxHeader("",'Close',"");
@@ -65,7 +62,7 @@ if(!empty($object->user_mobile)) {
             </tr></table>';
 }
 $actiontabe = getActions();
-
+$id_usr = $_REQUEST['id_usr'];
 include $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/theme/eldy/users/useractions.html';
 //echo $user->id.' '.$_GET['id_usr'];
 llxPopupMenu();
@@ -117,26 +114,61 @@ function getActions(){
         from `llx_actioncomm`
         left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
         left join llx_user on llx_user.rowid = `llx_actioncomm`.`fk_user_author`
-        left join `llx_c_actioncomm` on `llx_c_actioncomm`.`code` = `llx_actioncomm`.`code`
-        where (`fk_user_author` = ".$user->id." and  `llx_actioncomm_resources`.`fk_element` = ".(empty($_GET['id_usr'])?"0":$_GET['id_usr'])."
-        or `fk_user_author` = ".(empty($_GET['id_usr'])?"0":$_GET['id_usr'])." and `llx_actioncomm_resources`.`fk_element` = ".$user->id.")
-        and `llx_actioncomm`.`code` in (select `code` from `llx_c_actioncomm` where type in ('user', 'system'))";
+        left join `llx_c_actioncomm` on `llx_c_actioncomm`.`code` = `llx_actioncomm`.`code`";
+    if(empty($_REQUEST['kind']))
+        $sql.= " where (`fk_user_author` = ".$user->id." and  `llx_actioncomm_resources`.`fk_element` = ".(empty($_GET['id_usr'])?"0":$_GET['id_usr'])."
+        or `fk_user_author` = ".(empty($_GET['id_usr'])?"0":$_GET['id_usr'])." and `llx_actioncomm_resources`.`fk_element` = ".$user->id.")";
+    elseif ($_REQUEST['kind'] == 'yourself'){
+        if(empty($_REQUEST["filterdatas"])) {
+            $sql .= " where (`fk_user_author` = " . (empty($_GET['id_usr']) ? "0" : $_GET['id_usr']) . " 
+                or `llx_actioncomm_resources`.`fk_element` = " . (empty($_GET['id_usr']) ? "0" : $_GET['id_usr']) . ") ";
+        }else{
+//            var_dump($_REQUEST["filterdatas"]);
+//            die();
+            $filter = json_decode($_REQUEST["filterdatas"]);
+            if(!empty($filter->performer)){
+                $id_usr = (empty($_GET['id_usr']) ? "0" : $_GET['id_usr']);
+                if($id_usr != $filter->performer)
+                    $sql .= " where (`fk_user_author` = " . $id_usr . " 
+                    and `llx_actioncomm_resources`.`fk_element` = " . $filter->performer . ") ";
+                else
+                    $sql .= " where (`fk_user_author` = " . $id_usr . " 
+                    and `llx_actioncomm_resources`.`fk_element` is null or `fk_user_author` <> " . $id_usr . " 
+                    and `llx_actioncomm_resources`.`fk_element` = " . $id_usr . " ) ";
+            }elseif (!empty($filter->customer)){
+                $id_usr = (empty($_GET['id_usr']) ? "0" : $_GET['id_usr']);
+                if($id_usr != $filter->customer)
+                    $sql .= " where (`fk_user_author` = " . (empty($_GET['id_usr']) ? "0" : $_GET['id_usr']) . " 
+                    or `llx_actioncomm_resources`.`fk_element` = " . $filter->customer . ") ";
+                else
+                    $sql .= " where (`fk_user_author` = " . (empty($_GET['id_usr']) ? "0" : $_GET['id_usr']) . ") ";
+
+            }else
+                $sql .= " where (`fk_user_author` = " . (empty($_GET['id_usr']) ? "0" : $_GET['id_usr']) . " 
+                or `llx_actioncomm_resources`.`fk_element` = " . (empty($_GET['id_usr']) ? "0" : $_GET['id_usr']) . ") ";
+        }
+        $sql.= " and `llx_actioncomm`.percent not in (100,-100,99)";
+    }
+    $sql.= " and `llx_actioncomm`.`code` in (select `code` from `llx_c_actioncomm` where type in ('user', 'system'))";
 //    if($user->id != $_GET['id_usr'])
 //        $sql .= " and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`";
 //    else
 //        $sql .= " and `llx_actioncomm`.`fk_user_author`=`llx_actioncomm_resources`.`fk_element`";
 
-    $sql .= " and `llx_actioncomm`.`active` = 1
-        union
+    $sql .= " and `llx_actioncomm`.`active` = 1 ";
+    if(empty($_REQUEST['kind'])) {
+        $sql .= " union
         select concat('_', `llx_users_action`.`rowid`) as id, '', '', '', '', '', '', `llx_user`.rowid as id_usr, `llx_user`.`lastname`, 'Перемовини', 'AC_CONVERSATION',
         `llx_users_action`.`dtChange`, 100,
         `llx_users_action`.`id_usr`, `llx_users_action`.`contactid`, `llx_users_action`.`dtChange`,''
         from `llx_users_action`
-        left join llx_user on llx_user.rowid = `llx_users_action`.`id_usr`
-        where (`llx_users_action`.`contactid` = ".$user->id." and  `llx_users_action`.`id_usr` = ".(empty($_GET['id_usr'])?"0":$_GET['id_usr'])."
-        or  `llx_users_action`.`id_usr` = ".$user->id." and `llx_users_action`.`contactid` = ".(empty($_GET['id_usr'])?"0":$_GET['id_usr']).")
-        and `llx_users_action`.`active` = 1
-        order by datec desc";
+        left join llx_user on llx_user.rowid = `llx_users_action`.`id_usr` ";
+        $sql .= "where (`llx_users_action`.`contactid` = " . $user->id . " and  `llx_users_action`.`id_usr` = " . (empty($_GET['id_usr']) ? "0" : $_GET['id_usr']) . "
+        or  `llx_users_action`.`id_usr` = " . $user->id . " and `llx_users_action`.`contactid` = " . (empty($_GET['id_usr']) ? "0" : $_GET['id_usr']) . ")";
+        $sql .= "   and `llx_users_action`.`active` = 1";
+    }
+    $sql .= " order by datec desc";
+//
 //    echo '<pre>';
 //    var_dump($sql);
 //    echo '</pre>';
@@ -155,6 +187,11 @@ function getActions(){
             $tmp_user->fetch($obj->id_usr);
             $responsibility[$obj->id_usr]['alias'] = $tmp_user->respon_alias;
             $responsibility[$obj->id_usr]['lastname'] = $tmp_user->lastname;
+        }
+        if(!isset($responsibility[$obj->fk_element])) {
+            $tmp_user->fetch($obj->fk_element);
+            $responsibility[$obj->fk_element]['alias'] = $tmp_user->respon_alias;
+            $responsibility[$obj->fk_element]['lastname'] = $tmp_user->lastname;
         }
         if(is_numeric($obj->id)&&!in_array($obj->id, $taskID)){
             $taskID[]=$obj->id;
@@ -270,13 +307,13 @@ function getActions(){
             $out.='<td class="small_size" style="width: 49px">'.$datec->format('d.m.y').'</td>';
             $out.='<td class="small_size" style="width: 84px">'.$langs->trans($responsibility[$obj->id_usr]['alias']).'</td>';
             $out.='<td class="small_size" style="width: 84px">'.$obj->lastname.'</td>';
-            if($obj->id_usr != $user->id) {
+            if(empty($_REQUEST['kind']) && $obj->id_usr != $user->id) {
                 $out .= '<td class="small_size" style="width: 84px">' . $langs->trans($responsibility[$user->id]['alias']) . '</td>';
                 $out .= '<td class="small_size" style="width: 84px">' . $user->lastname . '</td>';
             }
             else{
-                $out .= '<td class="small_size" style="width: 84px">' . $langs->trans($responsibility[$_GET['id_usr']]['alias']) . '</td>';
-                $out .= '<td class="small_size" style="width: 84px">' . $responsibility[$_GET['id_usr']]['lastname'] . '</td>';
+                $out .= '<td class="small_size" style="width: 84px">' . $langs->trans($responsibility[$obj->fk_element]['alias']) . '</td>';
+                $out .= '<td class="small_size" style="width: 84px">' . $responsibility[$obj->fk_element]['lastname'] . '</td>';
             }
             $out.='<td class="small_size" style="width: 69px">'.$groupoftask[$obj->id].'</td>';
             $out.='<td class="small_size" style="width: 69px">'.(mb_strlen($obj->note, 'UTF-8')>10?mb_substr($obj->note, 0, 10, 'UTF-8').'...<input id="'.$obj->id.'" type="hidden" value="'.$obj->note.'">':$obj->note).'</td>';
@@ -353,10 +390,10 @@ function getActions(){
             else
                 $lastactionvalue = 'Виконано';
             $out.='<td class="small_size" style="text-align: center; width:54px; '.($datep < $date&&$obj->percent <= 98?'background:rgb(255, 0, 0);':'').'">'.$lastactionvalue.'</td>';
-            if($obj->fk_user_author == $user->id && is_numeric($obj->id))
-                $out.='<td style=" text-align: center; width:60px; ">'.($obj->percent != '100'?('<img src="/dolibarr/htdocs/theme/eldy/img/uncheck.png" onclick="ConfirmExec(' . $obj->id . ');" id="confirm' . $obj->id . '">'):'').'</td>';
+            if ($obj->fk_user_author == $user->id && is_numeric($obj->id))
+                $out .= '<td style=" text-align: center; width:60px; ">' . ($obj->percent != '100' ? ('<img src="/dolibarr/htdocs/theme/eldy/img/uncheck.png" onclick="ConfirmExec(' . $obj->id . ');" id="confirm' . $obj->id . '">') : '') . '</td>';
             else
-                $out.='<td  style="width:51px">&nbsp;</td>';
+                $out .= '<td  style="width:51px">&nbsp;</td>';
 //            if(in_array($obj->code, array('AC_GLOBAL', 'AC_CURRENT', 'AC_CONVERSATION'))) {
 //                if(is_numeric($obj->id))
 //                    $onclick = 'href="/dolibarr/htdocs/comm/action/chain_actions.php?action_id=' . $obj->id . '&mainmenu=' . $mainmenu . '"';
@@ -365,19 +402,24 @@ function getActions(){
 //                $out .= '<td id="'.$obj->id.'" style="text-align: center;  width:54px; "><a '.$onclick.'><img title="Переглянути" src="/dolibarr/htdocs/theme/eldy/img/preview.png"></a></td>';
 //            }else
 //                $out.='<td  >&nbsp;</td>';
-            if($obj->fk_user_author == $user->id) {
-                if(is_numeric($obj->id))
-                    $onclick = 'EditAction(' .$obj->id. ', ' . "'" . $obj->code . "'" . ');';
-                else
-                    $onclick = 'EditConversation('.substr($obj->id,1).');';
-                $out .= '<td  style="text-align: center;  width:54px;"><img id="img_' . $obj->id . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png" style="cursor: pointer;" onclick="'.$onclick.'" title="'.(is_numeric($obj->id)?'Редагувати завдання':'Редагувати перемовини').'"></td>';
-                if(is_numeric($obj->id))
-                    $onclick = 'ConfirmDelTask(' . $obj->id . ');';
-                else
-                    $onclick = 'DelConversation('.substr($obj->id,1).');';
-                $out .='<td style="text-align: center;  width:34px;"><img title="'.(is_numeric($obj->id)?'Видалити завдання':'Видалити перемовини').'" src="/dolibarr/htdocs/theme/eldy/img/delete.png" onclick="'.$onclick.'" id="confirm' . $obj->id . '"></td>';
-            }else
-                $out.='<td  >&nbsp;</td><td  >&nbsp;</td>';
+            if($_REQUEST['kind'] == 'yourself'){
+                $out .= '<td  style="width:51px; horiz-align: center">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" onclick="selAction($(this))" class="selectALL" id="checkbox_'.$obj->id.'"></td>';
+                $out .= '<td  >&nbsp;</td>';
+            }else {
+                if ($obj->fk_user_author == $user->id) {
+                    if (is_numeric($obj->id))
+                        $onclick = 'EditAction(' . $obj->id . ', ' . "'" . $obj->code . "'" . ');';
+                    else
+                        $onclick = 'EditConversation(' . substr($obj->id, 1) . ');';
+                    $out .= '<td  style="text-align: center;  width:54px;"><img id="img_' . $obj->id . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png" style="cursor: pointer;" onclick="' . $onclick . '" title="' . (is_numeric($obj->id) ? 'Редагувати завдання' : 'Редагувати перемовини') . '"></td>';
+                    if (is_numeric($obj->id))
+                        $onclick = 'ConfirmDelTask(' . $obj->id . ');';
+                    else
+                        $onclick = 'DelConversation(' . substr($obj->id, 1) . ');';
+                    $out .= '<td style="text-align: center;  width:34px;"><img title="' . (is_numeric($obj->id) ? 'Видалити завдання' : 'Видалити перемовини') . '" src="/dolibarr/htdocs/theme/eldy/img/delete.png" onclick="' . $onclick . '" id="confirm' . $obj->id . '"></td>';
+                } else
+                    $out .= '<td  >&nbsp;</td><td  >&nbsp;</td>';
+            }
             $out.='</tr>';
 
         }

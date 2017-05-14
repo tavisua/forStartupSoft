@@ -9,10 +9,10 @@
 require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
 if(count($_POST)>0){
     $_SESSION['region_id'] = GETPOST('state_filter', 'int');
-    echo '<pre>';
-    var_dump($_SESSION['region_id']);
-    echo '</pre>';
-    die();
+//    echo '<pre>';
+//    var_dump($_SESSION['region_id']);
+//    echo '</pre>';
+//    die();
 }
 if($_REQUEST['action'] == 'showmodel'){
     echo fShowModel($_GET['kind_assets']);
@@ -46,6 +46,7 @@ if(isset($_GET['id_usr'])&&!empty($_GET['id_usr'])){
 if(empty($_REQUEST['category'])&&!empty($_REQUEST['lineactive']))
     $_REQUEST['category'] = $_REQUEST['lineactive'];
 //Шапка сторінки
+
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/logistika/area/header.php';
 //Перелік контрагентів
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/logistika/area/customers.php';

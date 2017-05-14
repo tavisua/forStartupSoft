@@ -16,6 +16,8 @@
     Текст розсилки</br>
     <textarea id="body" placeholder="Поле для вставки html коду розсилки" name="body" style="min-width: 80%;min-height: 500px"><?=$html?></textarea>
     </br>
+    Для відправки співробітникам компанії <input id="inner" onclick="setCheck();" name="inner" type="checkbox" value="" <?=$mail->inner?>>
+    </br>
     <table>
         <tr class="firstpage">
             <td id="post">Посада</td>
@@ -37,7 +39,14 @@
 </form>
 </body>
 <script>
+    function setCheck() {
+        if($('#inner').attr('checked') == 'checked')
+            $('#inner').val(1);
+        else
+            $('#inner').val(0);
+    }
     $(document).ready(function(){
+        setCheck();
         var postlist = '<?=$mail->postlist?>'.split(',');
         $('select#postlist').val(postlist);
         var responsibility = '<?=$mail->responsibility?>'.split(',');

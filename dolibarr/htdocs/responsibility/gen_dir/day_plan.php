@@ -29,16 +29,16 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/day_plan.php';
 //die($user->respon_alias2);
 //unset($_SESSION['actions']);
 //if(!isset($_SESSION['actions'])) {
-//    $sql = "select llx_actioncomm.id, sub_user.rowid  id_usr, sub_user.alias, `llx_societe`.`region_id`, sub_user.subdiv_id, llx_actioncomm.percent, date(llx_actioncomm.datep) datep,
-//    llx_actioncomm.percent, case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT','AC_EDUCATION', 'AC_INITIATIV', 'AC_PROJECT') then llx_actioncomm.`code` else 'AC_CUST' end `code`, `llx_societe_action`.`callstatus`
-//    from llx_actioncomm
-//    inner join (select id from `llx_c_actioncomm` where type in('user','system') and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
-//    left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = llx_actioncomm.id
-//    left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
-//    left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
-//    inner join (select `llx_user`.rowid, `responsibility`.`alias`, `llx_user`.subdiv_id from `llx_user` inner join `responsibility` on `responsibility`.`rowid` = `llx_user`.`respon_id` where 1 and `llx_user`.`active` = 1) sub_user on sub_user.rowid = case when llx_actioncomm_resources.fk_element is null then llx_actioncomm.`fk_user_author` else llx_actioncomm_resources.fk_element end
+//    $sql = "select statistic_action.id, sub_user.rowid  id_usr, sub_user.alias, `llx_societe`.`region_id`, sub_user.subdiv_id, statistic_action.percent, date(statistic_action.datep) datep,
+//    statistic_action.percent, case when statistic_action.`code` in ('AC_GLOBAL', 'AC_CURRENT','AC_EDUCATION', 'AC_INITIATIV', 'AC_PROJECT') then statistic_action.`code` else 'AC_CUST' end `code`, `llx_societe_action`.`callstatus`
+//    from statistic_action
+//    inner join (select id from `llx_c_actioncomm` where type in('user','system') and active = 1) type_action on type_action.id = `statistic_action`.`fk_action`
+//    left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = statistic_action.id
+//    left join `llx_societe` on `llx_societe`.`rowid` = `statistic_action`.`fk_soc`
+//    left join `llx_societe_action` on `llx_societe_action`.`action_id` = `statistic_action`.`id`
+//    inner join (select `llx_user`.rowid, `responsibility`.`alias`, `llx_user`.subdiv_id from `llx_user` inner join `responsibility` on `responsibility`.`rowid` = `llx_user`.`respon_id` where 1 and `llx_user`.`active` = 1) sub_user on sub_user.rowid = case when llx_actioncomm_resources.fk_element is null then statistic_action.`fk_user_author` else llx_actioncomm_resources.fk_element end
 //    where 1
-//    and llx_actioncomm.active = 1
+//    and statistic_action.active = 1
 //    and datep2 between adddate(date(now()), interval -1 month) and adddate(date(now()), interval 1 month)";
 //
 //    $res = $db->query($sql);
@@ -117,7 +117,7 @@ if(isset($_REQUEST['action'])&&$_REQUEST['action']=='getUsersTask'){
     exit();
 }
 if(isset($_REQUEST['action'])&&$_REQUEST['action']=='getRegions'){
-    echo getRegionsList($_REQUEST['id_usr']);
+    echo getRegionsListGenDir($_REQUEST['id_usr']);
     exit();
 }
 
@@ -145,10 +145,10 @@ function ShowTable(){
     $start = time();
 
     //Найкращий користувач системи
-    $sql="select count(id) iCount, case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end user_id  from llx_actioncomm
-        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+    $sql="select count(id) iCount, case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end user_id  from statistic_action
+        left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
         where date(datep) between adddate(date(now()), interval -1 week) and date(now())
-        and (llx_actioncomm.`code`in ('AC_GLOBAL','AC_CURRENT') or llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))
+        and (statistic_action.`code`in ('AC_GLOBAL','AC_CURRENT') or statistic_action.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))
         and active = 1
         group by user_id
         order by iCount desc limit 1;";
@@ -162,10 +162,10 @@ function ShowTable(){
 
     //Найкращий директор дипартам. системи
     $sql="select count(id) iCount, case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end user_id
-        from llx_actioncomm
-        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+        from statistic_action
+        left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
         where date(datep) between adddate(date(now()), interval -1 week) and date(now())
-        and (llx_actioncomm.`code`in ('AC_GLOBAL','AC_CURRENT') or llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))
+        and (statistic_action.`code`in ('AC_GLOBAL','AC_CURRENT') or statistic_action.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))
         and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end in (select rowid from llx_user where respon_id = 8)
         and active = 1 group by user_id order by iCount desc limit 1;";
     $res = $db->query($sql);
@@ -176,14 +176,14 @@ function ShowTable(){
     $out.=getTotalUserAction($bestDDID, 'bestvalue', 'Найкр.ДД.сист.');
 
     //Найкращий департамент системи
-    $sql="select llx_user.subdiv_id, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
-            left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+    $sql="select llx_user.subdiv_id, count(distinct statistic_action.id) iCount from statistic_action
+            left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
             left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end
             where 1
             and  date(datep) between  adddate(date(now()), interval -1 week) and date(now())
-            and (llx_actioncomm.`code`in ('AC_GLOBAL','AC_CURRENT') or llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))
-            and llx_actioncomm.percent = 100
-            and llx_actioncomm.active = 1
+            and (statistic_action.`code`in ('AC_GLOBAL','AC_CURRENT') or statistic_action.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))
+            and statistic_action.percent = 100
+            and statistic_action.active = 1
             and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)
             group by llx_user.subdiv_id
             order by iCount desc limit 1";
@@ -204,7 +204,7 @@ function ShowTable(){
     $out.= getTotalSubdivAction('','Всього по компанії "Поточні"',0,'AC_CURRENT');
     $out.= getTotalSubdivAction('','Всього по компанії "По напрямках"',0,'AC_CUST');
 
-//    //Глобальні і поточні ген.директора
+    //Глобальні і поточні ген.директора
     $out.=getTotalUserAction($user->id, 'even', 'Всього задач');
     $out.=getTotalUserAction($user->id, 'odd', 'Глобальні', 'AC_GLOBAL');
     $out.=getTotalUserAction($user->id, 'even', 'Поточні', 'AC_CURRENT');
@@ -234,17 +234,17 @@ function getTotalUserAction($user_id, $class, $title, $code = '')
         else
             $period = 'week';
         //Всього завдань
-        $sql = "select count(*) iCount from llx_actioncomm
-            left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+        $sql = "select count(*) iCount from statistic_action
+            left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
             where date(datep) between  adddate(date(now()), interval -1 ".$period.") and date(now())
             and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end = " . $user_id;
         if(empty($code))
-            $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+            $sql.=" and statistic_action.`code` <> 'AC_OTH_AUTO'";
         else{
             if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
-                $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+                $sql .= " and statistic_action.`code`='" . $code . "'";
             else
-                $sql .= " and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+                $sql .= " and statistic_action.`code` in (select `code` from llx_c_actioncomm
                         where active = 1
                         and `type` in ('system','user')
                         and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
@@ -260,37 +260,37 @@ function getTotalUserAction($user_id, $class, $title, $code = '')
         $obj = $db->fetch_object($res);
         $total[$period] = $obj->iCount;
         //Фактично виконаних
-        $sql = "select  count(*) iCount from llx_actioncomm
-            left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+        $sql = "select  count(*) iCount from statistic_action
+            left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
             where date(datep) between  adddate(date(now()), interval -1 ".$period.") and date(now())
             and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end = " . $user_id;
         if(empty($code))
-            $sql.= " and (llx_actioncomm.`code`in ('AC_GLOBAL','AC_CURRENT') or llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))";
+            $sql.= " and (statistic_action.`code`in ('AC_GLOBAL','AC_CURRENT') or statistic_action.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))";
         else
             if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
-                $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+                $sql .= " and statistic_action.`code`='" . $code . "'";
             else{
-                $sql.=" and llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1)";
+                $sql.=" and statistic_action.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1)";
             }
-        $sql.=" and llx_actioncomm.percent = 100
-            and llx_actioncomm.active = 1";
+        $sql.=" and statistic_action.percent = 100
+            and statistic_action.active = 1";
         $res = $db->query($sql);
         if (!$res)
             dol_print_error($db);
         $obj = $db->fetch_object($res);
         $fact[$period] = $obj->iCount;
     }
-    $sql = "select date(datep) datep, count(*) iCount from llx_actioncomm
-    left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+    $sql = "select date(datep) datep, count(*) iCount from statistic_action
+    left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
     where date(datep) between  adddate(date(now()), interval -6 day) and date(now())
     and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end = " . $user_id;
     if(empty($code))
-            $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+            $sql.=" and statistic_action.`code` <> 'AC_OTH_AUTO'";
         else{
             if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
-                $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+                $sql .= " and statistic_action.`code`='" . $code . "'";
             else
-                $sql .= " and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+                $sql .= " and statistic_action.`code` in (select `code` from llx_c_actioncomm
                         where active = 1
                         and `type` in ('system','user')
                         and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
@@ -304,21 +304,21 @@ function getTotalUserAction($user_id, $class, $title, $code = '')
         $total[$obj->datep] = $obj->iCount;
     }
 
-    $sql = "select date(datep) datep, count(*) iCount from llx_actioncomm
-    left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+    $sql = "select date(datep) datep, count(*) iCount from statistic_action
+    left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
             where date(datep) between  adddate(date(now()), interval -6 day) and date(now())
             and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end = " . $user_id;
     if(empty($code))
-        $sql.=" and (llx_actioncomm.`code`in ('AC_GLOBAL','AC_CURRENT') or llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))";
+        $sql.=" and (statistic_action.`code`in ('AC_GLOBAL','AC_CURRENT') or statistic_action.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))";
     else{
         if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
-            $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+            $sql .= " and statistic_action.`code`='" . $code . "'";
         else{
-            $sql.=" and llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1)";
+            $sql.=" and statistic_action.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1)";
         }
     }
-    $sql.=" and llx_actioncomm.percent = 100
-            and llx_actioncomm.active = 1
+    $sql.=" and statistic_action.percent = 100
+            and statistic_action.active = 1
             group by date(datep);";
     $res = $db->query($sql);
     if (!$res)
@@ -364,23 +364,29 @@ function getTotalUserAction($user_id, $class, $title, $code = '')
             $fact_block.='<td class="middle_size" style="text-align: center"></td>';
     }
     //Прострочені
-    $sql = "select count(*)iCount from llx_actioncomm
-        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
-        where date(datep) <= date(now()) and llx_actioncomm.overdue = 1
-        and llx_actioncomm.percent not in (100, -100)
+    $sql = "select count(*)iCount from statistic_action
+        left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
+        where date(datep) <= date(now()) and statistic_action.overdue = 1
+        and statistic_action.percent not in (100, -100, 99)      
         and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end = ".$user_id;
     if(empty($code))
-        $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+        $sql.=" and statistic_action.`code` <> 'AC_OTH_AUTO'";
     else{
         if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
-            $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+            $sql .= " and statistic_action.`code`='" . $code . "'";
         else
-            $sql .= " and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+            $sql .= " and statistic_action.`code` in (select `code` from llx_c_actioncomm
                     where active = 1
                     and `type` in ('system','user')
                     and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
     }
     $sql.=" and active = 1;";
+//    if(5 == $user_id) {
+//        echo "<pre>";
+//        var_dump($sql);
+//        echo "</pre>";
+//        die();
+//    }
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
@@ -408,17 +414,17 @@ function getTotalUserAction($user_id, $class, $title, $code = '')
 
     //майбутнє
     $future = '';
-    $sql = "select date(datep) datep, count(*) iCount from llx_actioncomm
-        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+    $sql = "select date(datep) datep, count(*) iCount from statistic_action
+        left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
         where date(datep) between  date(now()) and adddate(date(now()), interval +1 week)
         and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end = ".$user_id;
     if(empty($code))
-        $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+        $sql.=" and statistic_action.`code` <> 'AC_OTH_AUTO'";
     else{
         if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
-            $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+            $sql .= " and statistic_action.`code`='" . $code . "'";
         else
-            $sql .= " and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+            $sql .= " and statistic_action.`code` in (select `code` from llx_c_actioncomm
                     where active = 1
                     and `type` in ('system','user')
                     and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
@@ -441,15 +447,15 @@ function getTotalUserAction($user_id, $class, $title, $code = '')
             else
                 $future .= '<td></td>';
         }else {
-            $sql = "select count(id) iCount  from llx_actioncomm
-            left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id";
+            $sql = "select count(id) iCount  from statistic_action
+            left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id";
             if ($i == 7)
                 $sql .= " where date(datep) between date(now()) and adddate(date(now()), interval 1 week)";
             else
                 $sql .= " where date(datep) between date(now()) and adddate(date(now()), interval 1 month)";
 
             $sql .= " and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end = " . $user_id . "
-            and llx_actioncomm.`code` " . (empty($code) ? "<> 'AC_OTH_AUTO'" : "= '" . $code . "'") . "
+            and statistic_action.`code` " . (empty($code) ? "<> 'AC_OTH_AUTO'" : "= '" . $code . "'") . "
             and active = 1;";
 //        if($i == 7){
 //            var_dump($sql);
@@ -476,7 +482,7 @@ function getTotalUserAction($user_id, $class, $title, $code = '')
     return $out;
     //% виконання запланованого по факту
 }
-function getRegionsList($id_usr){
+function getRegionsListGenDir($id_usr){
     global $db;
     $start = time();
 //Всього завдань та виконані
@@ -490,13 +496,13 @@ function getRegionsList($id_usr){
         else
             $period = 'week';
         //Всього завдань
-        $sql = "select llx_societe.region_id, count(distinct llx_actioncomm.id) iCount  from llx_actioncomm
-            left join llx_societe on `llx_societe`.`rowid` = llx_actioncomm.fk_soc
+        $sql = "select llx_societe.region_id, count(distinct statistic_action.id) iCount  from statistic_action
+            left join llx_societe on `llx_societe`.`rowid` = statistic_action.fk_soc
             where 1
-            and fk_user_author = ".$id_usr."
-            and llx_actioncomm.active = 1";
+            and fk_user_action = ".$id_usr."
+            and statistic_action.active = 1";
         $sql.=" and date(datep) between  adddate(date(now()), interval -1 ".$period.") and date(now())";
-        $sql.=" and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+        $sql.=" and statistic_action.`code` in (select `code` from llx_c_actioncomm
                   where active = 1
                   and `type` in ('system','user')
                   and `code` not in ('AC_GLOBAL','AC_CURRENT'))
@@ -509,14 +515,14 @@ function getRegionsList($id_usr){
             $total[$obj->region_id][$period] = $obj->iCount;
         }
         //Фактично виконаних
-        $sql = "select llx_societe.region_id, count(distinct llx_actioncomm.id) iCount  from llx_actioncomm
-            left join llx_societe on `llx_societe`.`rowid` = llx_actioncomm.fk_soc
+        $sql = "select llx_societe.region_id, count(distinct statistic_action.id) iCount  from statistic_action
+            left join llx_societe on `llx_societe`.`rowid` = statistic_action.fk_soc
             where 1
-            and fk_user_author = ".$id_usr."
-            and llx_actioncomm.active = 1";
+            and fk_user_action = ".$id_usr."
+            and statistic_action.active = 1";
         $sql.=" and date(datep) between  adddate(date(now()), interval -1 ".$period.") and date(now())";
-        $sql.=" and llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1)";
-        $sql.=" and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+        $sql.=" and statistic_action.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1)";
+        $sql.=" and statistic_action.`code` in (select `code` from llx_c_actioncomm
                   where active = 1
                   and `type` in ('system','user')
                   and `code` not in ('AC_GLOBAL','AC_CURRENT'))
@@ -535,33 +541,33 @@ function getRegionsList($id_usr){
         }
 
     }
-    $sql = "select llx_societe.region_id, date(llx_actioncomm.datep) as datep, count(distinct llx_actioncomm.id) iCount  from llx_actioncomm
-            left join llx_societe on `llx_societe`.`rowid` = llx_actioncomm.fk_soc
+    $sql = "select llx_societe.region_id, date(statistic_action.datep) as datep, count(distinct statistic_action.id) iCount  from statistic_action
+            left join llx_societe on `llx_societe`.`rowid` = statistic_action.fk_soc
             where 1
-            and fk_user_author = ".$id_usr."
-            and llx_actioncomm.active = 1 and date(datep) between  adddate(date(now()), interval -6 day) and date(now())
-            and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+            and fk_user_action = ".$id_usr."
+            and statistic_action.active = 1 and date(datep) between  adddate(date(now()), interval -6 day) and date(now())
+            and statistic_action.`code` in (select `code` from llx_c_actioncomm
                   where active = 1
                   and `type` in ('system','user')
                   and `code` not in ('AC_GLOBAL','AC_CURRENT'))
-            group by llx_societe.region_id, date(llx_actioncomm.datep)";
+            group by llx_societe.region_id, date(statistic_action.datep)";
         $res = $db->query($sql);
         if (!$res)
             dol_print_error($db);
         while($obj = $db->fetch_object($res)) {
             $total[$obj->region_id][$obj->datep] = $obj->iCount;
         }
-    $sql = "select llx_societe.region_id, date(llx_actioncomm.datep) as datep, count(distinct llx_actioncomm.id) iCount  from llx_actioncomm
-            left join llx_societe on `llx_societe`.`rowid` = llx_actioncomm.fk_soc
+    $sql = "select llx_societe.region_id, date(statistic_action.datep) as datep, count(distinct statistic_action.id) iCount  from statistic_action
+            left join llx_societe on `llx_societe`.`rowid` = statistic_action.fk_soc
             where 1
-            and fk_user_author = ".$id_usr."
-            and llx_actioncomm.active = 1 and date(datep) between  adddate(date(now()), interval -6 day) and date(now())
-            and llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1)
-            and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+            and fk_user_action = ".$id_usr."
+            and statistic_action.active = 1 and date(datep) between  adddate(date(now()), interval -6 day) and date(now())
+            and statistic_action.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1)
+            and statistic_action.`code` in (select `code` from llx_c_actioncomm
                   where active = 1
                   and `type` in ('system','user')
                   and `code` not in ('AC_GLOBAL','AC_CURRENT'))
-            group by llx_societe.region_id, date(llx_actioncomm.datep)";
+            group by llx_societe.region_id, date(statistic_action.datep)";
         $res = $db->query($sql);
         if (!$res)
             dol_print_error($db);
@@ -569,14 +575,13 @@ function getRegionsList($id_usr){
             $fact[$obj->region_id][$obj->datep] = $obj->iCount;
         }
     //Прострочені
-    $sql = "select llx_societe.region_id,  count(distinct llx_actioncomm.id) iCount  from llx_actioncomm
-            left join llx_societe on `llx_societe`.`rowid` = llx_actioncomm.fk_soc
+    $sql = "select llx_societe.region_id,  count(statistic_action.id) iCount  from statistic_action
+            left join llx_societe on `llx_societe`.`rowid` = statistic_action.fk_soc
             where 1
-            and fk_user_author = ".$id_usr."
-            and llx_actioncomm.active = 1
-            and date(datep) between  adddate(date(now()), interval -1 month) and date(now())
-            and llx_actioncomm.percent not in (100, -100)
-            and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+            and fk_user_action = ".$id_usr."
+            and statistic_action.active = 1
+            and overdue = 1
+            and statistic_action.`code` in (select `code` from llx_c_actioncomm
                   where active = 1
                   and `type` in ('system','user')
                   and `code` not in ('AC_GLOBAL','AC_CURRENT'))
@@ -588,17 +593,17 @@ function getRegionsList($id_usr){
             $outstanding[$obj->region_id] = $obj->iCount;
         }
     //Майбутнє
-    $sql = "select llx_societe.region_id, date(llx_actioncomm.datep) datep, count(distinct llx_actioncomm.id) iCount  from llx_actioncomm
-            left join llx_societe on `llx_societe`.`rowid` = llx_actioncomm.fk_soc
+    $sql = "select llx_societe.region_id, date(statistic_action.datep) datep, count(distinct statistic_action.id) iCount  from statistic_action
+            left join llx_societe on `llx_societe`.`rowid` = statistic_action.fk_soc
             where 1
-            and fk_user_author = ".$id_usr."
-            and llx_actioncomm.active = 1
+            and fk_user_action = ".$id_usr."
+            and statistic_action.active = 1
             and date(datep) between date(now()) and adddate(date(now()), interval +6 day)
-            and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+            and statistic_action.`code` in (select `code` from llx_c_actioncomm
                   where active = 1
                   and `type` in ('system','user')
                   and `code` not in ('AC_GLOBAL','AC_CURRENT'))
-            group by llx_societe.region_id, date(llx_actioncomm.datep)";
+            group by llx_societe.region_id, date(statistic_action.datep)";
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
@@ -610,13 +615,13 @@ function getRegionsList($id_usr){
             $period = 'week';
         else
             $period = 'month';
-        $sql = "select llx_societe.region_id,  count(distinct llx_actioncomm.id) iCount  from llx_actioncomm
-            left join llx_societe on `llx_societe`.`rowid` = llx_actioncomm.fk_soc
+        $sql = "select llx_societe.region_id,  count(distinct statistic_action.id) iCount  from statistic_action
+            left join llx_societe on `llx_societe`.`rowid` = statistic_action.fk_soc
             where 1
             and fk_user_author = ".$id_usr."
-            and llx_actioncomm.active = 1
+            and statistic_action.active = 1
             and date(datep) between date(now()) and adddate(date(now()), interval +1 ".$period.")
-            and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+            and statistic_action.`code` in (select `code` from llx_c_actioncomm
                   where active = 1
                   and `type` in ('system','user')
                   and `code` not in ('AC_GLOBAL','AC_CURRENT'))
@@ -702,7 +707,7 @@ function getRegionsList($id_usr){
         }
 
         //Прострочено
-        $out.='<td id="outstanding'.$obj->rowid.'" style="text-align: center; cursor: pointer;" onclick="ShowOutStandingRegion('.$obj->rowid.', '.$id_usr.');">'.(isset($outstanding[$obj->rowid])?$outstanding[$obj->rowid]:0).'</td>';
+        $out.='<td id="outstanding'.$obj->rowid.'" style="text-align: center; cursor: pointer;" onclick="ShowOutStandingRegion('.(empty($obj->rowid)?0:$obj->rowid).', '.$id_usr.');">'.(isset($outstanding[$obj->rowid])?$outstanding[$obj->rowid]:0).'</td>';
 
         //майбутнє (план)
         for($i=0; $i<9; $i++){
@@ -755,8 +760,8 @@ function getLineActiveTask($subdiv_id, $class, $code = '', $title=''){
         else
             $period = 'week';
         //Всього завдань
-        $sql = "select responsibility.alias respon_id, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
-            left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+        $sql = "select responsibility.alias respon_id, count(distinct statistic_action.id) iCount from statistic_action
+            left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
             left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end
             left join responsibility on llx_user.respon_id = responsibility.rowid";
         if(!empty($subdiv_id))
@@ -766,17 +771,17 @@ function getLineActiveTask($subdiv_id, $class, $code = '', $title=''){
 
         $sql.=" and date(datep) between  adddate(date(now()), interval -1 ".$period.") and date(now())";
         if(empty($code))
-            $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+            $sql.=" and statistic_action.`code` <> 'AC_OTH_AUTO'";
         else{
             if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
-                $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+                $sql .= " and statistic_action.`code`='" . $code . "'";
             else
-                $sql .= " and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+                $sql .= " and statistic_action.`code` in (select `code` from llx_c_actioncomm
                     where active = 1
                     and `type` in ('system','user')
                     and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
         }
-         $sql.=" and llx_actioncomm.active = 1";
+         $sql.=" and statistic_action.active = 1";
          $sql.=" and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)";
          $sql.=" group by responsibility.alias";
 
@@ -787,8 +792,8 @@ function getLineActiveTask($subdiv_id, $class, $code = '', $title=''){
             $total[$obj->respon_id][$period] = $obj->iCount;
         }
         //Фактично виконаних
-        $sql = "select responsibility.alias respon_id, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
-            left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+        $sql = "select responsibility.alias respon_id, count(distinct statistic_action.id) iCount from statistic_action
+            left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
             left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end
             left join responsibility on llx_user.respon_id = responsibility.rowid";
         if(!empty($subdiv_id))
@@ -797,15 +802,15 @@ function getLineActiveTask($subdiv_id, $class, $code = '', $title=''){
             $sql.=" where 1";
         $sql.=" and  date(datep) between  adddate(date(now()), interval -1 ".$period.") and date(now())";
         if(empty($code))
-            $sql.=" and (llx_actioncomm.`code`in ('AC_GLOBAL','AC_CURRENT') or llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))";
+            $sql.=" and (statistic_action.`code`in ('AC_GLOBAL','AC_CURRENT') or statistic_action.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))";
         else{
             if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
-                $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+                $sql .= " and statistic_action.`code`='" . $code . "'";
             else
-                $sql .= " and llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1)";
+                $sql .= " and statistic_action.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1)";
         }
-        $sql.=" and llx_actioncomm.percent = 100
-            and llx_actioncomm.active = 1
+        $sql.=" and statistic_action.percent = 100
+            and statistic_action.active = 1
             and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)
             group by responsibility.alias";
 //        if(empty($subdiv_id)&&$i==1){
@@ -822,8 +827,8 @@ function getLineActiveTask($subdiv_id, $class, $code = '', $title=''){
         }
 
     }
-    $sql = "select responsibility.alias respon_id, date(datep) datep, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
-    left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+    $sql = "select responsibility.alias respon_id, date(datep) datep, count(distinct statistic_action.id) iCount from statistic_action
+    left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
     left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end
     left join responsibility on llx_user.respon_id = responsibility.rowid";
     if(!empty($subdiv_id))
@@ -832,17 +837,17 @@ function getLineActiveTask($subdiv_id, $class, $code = '', $title=''){
         $sql.=" where 1";
     $sql.=" and date(datep) between  adddate(date(now()), interval -6 day) and date(now())";
     if(empty($code))
-        $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+        $sql.=" and statistic_action.`code` <> 'AC_OTH_AUTO'";
     else{
         if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
-            $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+            $sql .= " and statistic_action.`code`='" . $code . "'";
         else
-            $sql .= " and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+            $sql .= " and statistic_action.`code` in (select `code` from llx_c_actioncomm
                 where active = 1
                 and `type` in ('system','user')
                 and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
     }
-    $sql.=" and llx_actioncomm.active = 1
+    $sql.=" and statistic_action.active = 1
     and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)
     group by responsibility.alias, date(datep);";
 
@@ -853,8 +858,8 @@ function getLineActiveTask($subdiv_id, $class, $code = '', $title=''){
         $total[$obj->respon_id][$obj->datep] = $obj->iCount;
     }
 
-    $sql = "select responsibility.alias respon_id, date(datep) datep, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
-        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+    $sql = "select responsibility.alias respon_id, date(datep) datep, count(distinct statistic_action.id) iCount from statistic_action
+        left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
         left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end
         left join responsibility on llx_user.respon_id = responsibility.rowid";
     if(!empty($subdiv_id))
@@ -863,15 +868,15 @@ function getLineActiveTask($subdiv_id, $class, $code = '', $title=''){
         $sql.=" where 1";
     $sql.=" and date(datep) between  adddate(date(now()), interval -6 day) and date(now())";
     if(empty($code))
-        $sql.=" and (llx_actioncomm.`code`in ('AC_GLOBAL','AC_CURRENT') or llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))";
+        $sql.=" and (statistic_action.`code`in ('AC_GLOBAL','AC_CURRENT') or statistic_action.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))";
     else{
             if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
-                $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+                $sql .= " and statistic_action.`code`='" . $code . "'";
             else
-                $sql .= " and llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1)";
+                $sql .= " and statistic_action.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1)";
     }
-    $sql.=" and llx_actioncomm.percent = 100
-        and llx_actioncomm.active = 1
+    $sql.=" and statistic_action.percent = 100
+        and statistic_action.active = 1
         group by responsibility.alias, date(datep);";
 //    if($code == 'AC_CUST'){
 
@@ -883,25 +888,25 @@ function getLineActiveTask($subdiv_id, $class, $code = '', $title=''){
         $fact[$obj->respon_id][$obj->datep] = $obj->iCount;
     }
     //Прострочені
-    $sql = "select responsibility.alias respon_id, count(distinct llx_actioncomm.id)iCount from llx_actioncomm
-        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+    $sql = "select responsibility.alias respon_id, count(distinct statistic_action.id)iCount from statistic_action
+        left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
         left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end
         left join responsibility on llx_user.respon_id = responsibility.rowid";
     $sql.=" where 1";
     $sql.=" and overdue = 1 
-        and llx_actioncomm.percent not in (100,99, -100) ";
+        and statistic_action.percent not in (100,99, -100) ";
     if(empty($code))
-        $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+        $sql.=" and statistic_action.`code` <> 'AC_OTH_AUTO'";
     else{
         if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
-            $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+            $sql .= " and statistic_action.`code`='" . $code . "'";
         else
-            $sql .= " and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+            $sql .= " and statistic_action.`code` in (select `code` from llx_c_actioncomm
                     where active = 1
                     and `type` in ('system','user')
                     and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
     }
-    $sql.=" and llx_actioncomm.active = 1
+    $sql.=" and statistic_action.active = 1
             and llx_user.subdiv_id = ". $subdiv_id."
             group by responsibility.alias";
 //if(empty($code)) {
@@ -918,8 +923,8 @@ function getLineActiveTask($subdiv_id, $class, $code = '', $title=''){
         $outstanding[$obj->respon_id] = $obj->iCount;
     }
  //майбутнє
-    $sql = "select responsibility.alias respon_id, date(datep) datep, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
-        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+    $sql = "select responsibility.alias respon_id, date(datep) datep, count(distinct statistic_action.id) iCount from statistic_action
+        left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
         left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end
         left join responsibility on llx_user.respon_id = responsibility.rowid";
     if(!empty($subdiv_id))
@@ -928,18 +933,18 @@ function getLineActiveTask($subdiv_id, $class, $code = '', $title=''){
         $sql.=" where 1";
     $sql.=" and date(datep) between  date(now()) and adddate(date(now()), interval +1 week)";
     if(empty($code))
-        $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+        $sql.=" and statistic_action.`code` <> 'AC_OTH_AUTO'";
     else{
         if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
-            $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+            $sql .= " and statistic_action.`code`='" . $code . "'";
         else
-            $sql .= " and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+            $sql .= " and statistic_action.`code` in (select `code` from llx_c_actioncomm
                     where active = 1
                     and `type` in ('system','user')
                     and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
     }
 
-    $sql.=" and llx_actioncomm.active = 1
+    $sql.=" and statistic_action.active = 1
         group by responsibility.alias, date(datep);";
     $res = $db->query($sql);
     if(!$res)
@@ -952,24 +957,24 @@ function getLineActiveTask($subdiv_id, $class, $code = '', $title=''){
             $period = 'week';
         else
             $period = 'month';
-        $sql = "select responsibility.alias respon_id, count(id) iCount  from llx_actioncomm
-        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+        $sql = "select responsibility.alias respon_id, count(id) iCount  from statistic_action
+        left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
         left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end
         left join responsibility on llx_user.respon_id = responsibility.rowid";
         $sql .= " where 1";
         $sql .= " and date(datep) between date(now()) and adddate(date(now()), interval 1 ".$period.")";
         if(empty($code))
-            $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+            $sql.=" and statistic_action.`code` <> 'AC_OTH_AUTO'";
         else{
             if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
-                $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+                $sql .= " and statistic_action.`code`='" . $code . "'";
             else
-                $sql .= " and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+                $sql .= " and statistic_action.`code` in (select `code` from llx_c_actioncomm
                         where active = 1
                         and `type` in ('system','user')
                         and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
         }
-        $sql .= " and llx_actioncomm.active = 1
+        $sql .= " and statistic_action.active = 1
         and llx_user.subdiv_id = ".$subdiv_id."
         group by llx_user.respon_id;";
         $res = $db->query($sql);
@@ -1078,10 +1083,10 @@ function getLineActiveTask($subdiv_id, $class, $code = '', $title=''){
 function getOverdueUserID(){
     global $db;
     $sql = "select distinct fk_user_action, `llx_actioncomm_resources`.fk_element
-        from llx_actioncomm
+        from statistic_action
         left join `llx_actioncomm_resources` on fk_actioncomm = id
         where overdue = 1  
-        and llx_actioncomm.active = 1";
+        and statistic_action.active = 1";
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
@@ -1134,8 +1139,8 @@ function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $ti
         else
             $period = 'week';
         //Всього завдань
-        $sql = "select llx_user.rowid, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
-            left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+        $sql = "select llx_user.rowid, count(distinct statistic_action.id) iCount from statistic_action
+            left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
             left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
         if(!empty($subdiv_id)) {
             $sql .= " where llx_user.subdiv_id = " . $subdiv_id;
@@ -1145,17 +1150,17 @@ function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $ti
 
         $sql.=" and date(datep) between  adddate(date(now()), interval -1 ".$period.") and date(now())";
         if(empty($code))
-            $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+            $sql.=" and statistic_action.`code` <> 'AC_OTH_AUTO'";
         else{
             if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
-                $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+                $sql .= " and statistic_action.`code`='" . $code . "'";
             else
-                $sql .= " and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+                $sql .= " and statistic_action.`code` in (select `code` from llx_c_actioncomm
                     where active = 1
                     and `type` in ('system','user')
                     and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
         }
-         $sql.=" and llx_actioncomm.active = 1";
+         $sql.=" and statistic_action.active = 1";
          $sql.=" group by llx_user.rowid";
 
         $res = $db->query($sql);
@@ -1165,8 +1170,8 @@ function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $ti
             $total[$obj->rowid][$period] = $obj->iCount;
         }
         //Фактично виконаних
-        $sql = "select llx_user.rowid, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
-            left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+        $sql = "select llx_user.rowid, count(distinct statistic_action.id) iCount from statistic_action
+            left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
             left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
         if(!empty($subdiv_id))
             $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
@@ -1174,15 +1179,15 @@ function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $ti
             $sql.=" where 1";
         $sql.=" and  date(datep) between  adddate(date(now()), interval -1 ".$period.") and date(now())";
         if(empty($code))
-            $sql.=" and (llx_actioncomm.`code`in ('AC_GLOBAL','AC_CURRENT') or llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))";
+            $sql.=" and (statistic_action.`code`in ('AC_GLOBAL','AC_CURRENT') or statistic_action.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))";
         else{
             if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
-                $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+                $sql .= " and statistic_action.`code`='" . $code . "'";
             else
-                $sql .= " and llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1)";
+                $sql .= " and statistic_action.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1)";
         }
-        $sql.=" and llx_actioncomm.percent = 100
-            and llx_actioncomm.active = 1
+        $sql.=" and statistic_action.percent = 100
+            and statistic_action.active = 1
             and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)
             group by llx_user.rowid";
 //        if(empty($subdiv_id)&&$i==1){
@@ -1199,8 +1204,8 @@ function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $ti
         }
 
     }
-    $sql = "select llx_user.rowid, date(datep) datep, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
-    left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+    $sql = "select llx_user.rowid, date(datep) datep, count(distinct statistic_action.id) iCount from statistic_action
+    left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
     left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
     if(!empty($subdiv_id))
         $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
@@ -1208,17 +1213,17 @@ function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $ti
         $sql.=" where 1";
     $sql.=" and (overdue = 1 or date(datep) between  adddate(date(now()), interval -6 day) and date(now()))";
     if(empty($code))
-        $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+        $sql.=" and statistic_action.`code` <> 'AC_OTH_AUTO'";
     else{
         if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
-            $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+            $sql .= " and statistic_action.`code`='" . $code . "'";
         else
-            $sql .= " and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+            $sql .= " and statistic_action.`code` in (select `code` from llx_c_actioncomm
                 where active = 1
                 and `type` in ('system','user')
                 and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
     }
-    $sql.=" and llx_actioncomm.active = 1
+    $sql.=" and statistic_action.active = 1
     and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)
     group by llx_user.rowid, date(datep);";
 
@@ -1229,8 +1234,8 @@ function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $ti
         $total[$obj->rowid][$obj->datep] = $obj->iCount;
     }
 
-    $sql = "select llx_user.rowid, date(datep) datep, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
-        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+    $sql = "select llx_user.rowid, date(datep) datep, count(distinct statistic_action.id) iCount from statistic_action
+        left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
         left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
     if(!empty($subdiv_id))
         $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
@@ -1238,15 +1243,15 @@ function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $ti
         $sql.=" where 1";
     $sql.=" and date(datep) between  adddate(date(now()), interval -6 day) and date(now())";
     if(empty($code))
-        $sql.=" and (llx_actioncomm.`code`in ('AC_GLOBAL','AC_CURRENT') or llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))";
+        $sql.=" and (statistic_action.`code`in ('AC_GLOBAL','AC_CURRENT') or statistic_action.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))";
     else{
             if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
-                $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+                $sql .= " and statistic_action.`code`='" . $code . "'";
             else
-                $sql .= " and llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1)";
+                $sql .= " and statistic_action.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1)";
     }
-    $sql.=" and llx_actioncomm.percent = 100
-        and llx_actioncomm.active = 1
+    $sql.=" and statistic_action.percent = 100
+        and statistic_action.active = 1
         and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)
         group by llx_user.rowid, date(datep);";
 //    if($code == 'AC_CUST'){
@@ -1262,24 +1267,23 @@ function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $ti
         $fact[$obj->rowid][$obj->datep] = $obj->iCount;
     }
     //Прострочені
-    $sql = "select llx_user.rowid, count(distinct llx_actioncomm.id)iCount from llx_actioncomm
-        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+    $sql = "select llx_user.rowid, count(statistic_action.id)iCount from statistic_action
+        left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
         left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
     $sql.=" where 1";
-    $sql.=" and overdue = 1
-        and llx_actioncomm.percent not in (100, 99, -100) ";
+    $sql.=" and overdue = 1 ";
     if(empty($code))
-        $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+        $sql.=" and statistic_action.`code` <> 'AC_OTH_AUTO'";
     else{
         if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
-            $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+            $sql .= " and statistic_action.`code`='" . $code . "'";
         else
-            $sql .= " and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+            $sql .= " and statistic_action.`code` in (select `code` from llx_c_actioncomm
                     where active = 1
                     and `type` in ('system','user')
                     and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
     }
-    $sql.=" and llx_actioncomm.active = 1
+    $sql.=" and statistic_action.active = 1
             and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)
             group by llx_user.rowid";
 //if(empty($code)) {
@@ -1296,8 +1300,8 @@ function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $ti
         $outstanding[$obj->rowid] = $obj->iCount;
     }
  //майбутнє
-    $sql = "select llx_user.rowid, date(datep) datep, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
-        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+    $sql = "select llx_user.rowid, date(datep) datep, count(distinct statistic_action.id) iCount from statistic_action
+        left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
         left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
     if(!empty($subdiv_id))
         $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
@@ -1305,18 +1309,18 @@ function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $ti
         $sql.=" where 1";
     $sql.=" and date(datep) between  date(now()) and adddate(date(now()), interval +1 week)";
     if(empty($code))
-        $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+        $sql.=" and statistic_action.`code` <> 'AC_OTH_AUTO'";
     else{
         if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
-            $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+            $sql .= " and statistic_action.`code`='" . $code . "'";
         else
-            $sql .= " and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+            $sql .= " and statistic_action.`code` in (select `code` from llx_c_actioncomm
                     where active = 1
                     and `type` in ('system','user')
                     and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
     }
 
-    $sql.=" and llx_actioncomm.active = 1
+    $sql.=" and statistic_action.active = 1
         and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)
         group by llx_user.rowid, date(datep);";
 
@@ -1333,23 +1337,23 @@ function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $ti
             $period = 'week';
         else
             $period = 'month';
-        $sql = "select llx_user.rowid, count(id) iCount  from llx_actioncomm
-        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+        $sql = "select llx_user.rowid, count(id) iCount  from statistic_action
+        left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
         left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
         $sql .= " where 1";
         $sql .= " and date(datep) between date(now()) and adddate(date(now()), interval 1 ".$period.")";
         if(empty($code))
-            $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+            $sql.=" and statistic_action.`code` <> 'AC_OTH_AUTO'";
         else{
             if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
-                $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+                $sql .= " and statistic_action.`code`='" . $code . "'";
             else
-                $sql .= " and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+                $sql .= " and statistic_action.`code` in (select `code` from llx_c_actioncomm
                         where active = 1
                         and `type` in ('system','user')
                         and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
         }
-        $sql .= " and llx_actioncomm.active = 1
+        $sql .= " and statistic_action.active = 1
         and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)
         group by llx_user.rowid;";
         $res = $db->query($sql);
@@ -1471,7 +1475,7 @@ function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $ti
                 $out.='<td class="middle_size" style="text-align: center"></td>';
         }
         //Прострочено
-        $out.='<td class="middle_size" style="text-align: center; ">'.(isset($outstanding[$obj->rowid])?$outstanding[$obj->rowid]:0).'</td>';
+        $out.='<td id="outstanding_'.$code.$obj->rowid.'" class="middle_size" style="text-align: center; cursor: pointer;" onclick = "ShowOutStandingRegion(-1, '.$obj->rowid.', '."'$code'".');">'.(isset($outstanding[$obj->rowid])?$outstanding[$obj->rowid]:0).'</td>';
 
         //майбутнє (план)
         for($i=0; $i<9; $i++){
@@ -1523,8 +1527,8 @@ function getActionsBySub($class, $code){
         else
             $period = 'week';
         //Всього завдань
-        $sql = "select llx_user.subdiv_id, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
-            left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+        $sql = "select llx_user.subdiv_id, count(distinct statistic_action.id) iCount from statistic_action
+            left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
             left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
         if(!empty($subdiv_id)&&!is_array($subdiv_id))
             $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
@@ -1537,17 +1541,17 @@ function getActionsBySub($class, $code){
 
         $sql.=" and date(datep) between  adddate(date(now()), interval -1 ".$period.") and date(now())";
         if(empty($code))
-            $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+            $sql.=" and statistic_action.`code` <> 'AC_OTH_AUTO'";
         else{
             if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
-                $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+                $sql .= " and statistic_action.`code`='" . $code . "'";
             else
-                $sql .= " and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+                $sql .= " and statistic_action.`code` in (select `code` from llx_c_actioncomm
                     where active = 1
                     and `type` in ('system','user')
                     and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
         }
-         $sql.=" and llx_actioncomm.active = 1";
+         $sql.=" and statistic_action.active = 1";
          $sql.=" and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)";
          $sql.=" group by llx_user.subdiv_id";
 
@@ -1558,8 +1562,8 @@ function getActionsBySub($class, $code){
             $total[$obj->subdiv_id][$period] = $obj->iCount;
         }
         //Фактично виконаних
-        $sql = "select llx_user.subdiv_id, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
-            left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+        $sql = "select llx_user.subdiv_id, count(distinct statistic_action.id) iCount from statistic_action
+            left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
             left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
         if(!empty($subdiv_id)&&!is_array($subdiv_id))
             $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
@@ -1570,15 +1574,15 @@ function getActionsBySub($class, $code){
             $sql.=" where 1";
         $sql.=" and  date(datep) between  adddate(date(now()), interval -1 ".$period.") and date(now())";
         if(empty($code))
-            $sql.=" and (llx_actioncomm.`code`in ('AC_GLOBAL','AC_CURRENT') or llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))";
+            $sql.=" and (statistic_action.`code`in ('AC_GLOBAL','AC_CURRENT') or statistic_action.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))";
         else{
             if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
-                $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+                $sql .= " and statistic_action.`code`='" . $code . "'";
             else
-                $sql .= " and llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1)";
+                $sql .= " and statistic_action.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1)";
         }
-        $sql.=" and llx_actioncomm.percent = 100
-            and llx_actioncomm.active = 1
+        $sql.=" and statistic_action.percent = 100
+            and statistic_action.active = 1
             and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)
             group by llx_user.subdiv_id";
 //        if(empty($subdiv_id)&&$i==1){
@@ -1595,8 +1599,8 @@ function getActionsBySub($class, $code){
         }
 
     }
-    $sql = "select llx_user.subdiv_id, date(datep) datep, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
-    left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+    $sql = "select llx_user.subdiv_id, date(datep) datep, count(distinct statistic_action.id) iCount from statistic_action
+    left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
     left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
     if(!empty($subdiv_id)&&!is_array($subdiv_id))
         $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
@@ -1608,17 +1612,17 @@ function getActionsBySub($class, $code){
         $sql.=" where 1";
     $sql.=" and date(datep) between  adddate(date(now()), interval -6 day) and date(now())";
     if(empty($code))
-        $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+        $sql.=" and statistic_action.`code` <> 'AC_OTH_AUTO'";
     else{
         if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
-            $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+            $sql .= " and statistic_action.`code`='" . $code . "'";
         else
-            $sql .= " and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+            $sql .= " and statistic_action.`code` in (select `code` from llx_c_actioncomm
                 where active = 1
                 and `type` in ('system','user')
                 and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
     }
-    $sql.=" and llx_actioncomm.active = 1
+    $sql.=" and statistic_action.active = 1
     and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)
     group by llx_user.subdiv_id, date(datep);";
 
@@ -1629,8 +1633,8 @@ function getActionsBySub($class, $code){
         $total[$obj->subdiv_id][$obj->datep] = $obj->iCount;
     }
 
-    $sql = "select llx_user.subdiv_id, date(datep) datep, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
-        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+    $sql = "select llx_user.subdiv_id, date(datep) datep, count(distinct statistic_action.id) iCount from statistic_action
+        left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
         left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
     if(!empty($subdiv_id)&&!is_array($subdiv_id))
         $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
@@ -1641,15 +1645,15 @@ function getActionsBySub($class, $code){
         $sql.=" where 1";
     $sql.=" and date(datep) between  adddate(date(now()), interval -6 day) and date(now())";
     if(empty($code))
-        $sql.=" and (llx_actioncomm.`code`in ('AC_GLOBAL','AC_CURRENT') or llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))";
+        $sql.=" and (statistic_action.`code`in ('AC_GLOBAL','AC_CURRENT') or statistic_action.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))";
     else{
             if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
-                $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+                $sql .= " and statistic_action.`code`='" . $code . "'";
             else
-                $sql .= " and llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1)";
+                $sql .= " and statistic_action.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1)";
     }
-    $sql.=" and llx_actioncomm.percent = 100
-        and llx_actioncomm.active = 1
+    $sql.=" and statistic_action.percent = 100
+        and statistic_action.active = 1
         and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)
         group by llx_user.subdiv_id, date(datep);";
 //    if($code == 'AC_CUST'){
@@ -1665,28 +1669,28 @@ function getActionsBySub($class, $code){
         $fact[$obj->subdiv_id][$obj->datep] = $obj->iCount;
     }
     //Прострочені
-    $sql = "select llx_user.subdiv_id, count(distinct llx_actioncomm.id)iCount from llx_actioncomm
-        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+    $sql = "select llx_user.subdiv_id, count(distinct statistic_action.id)iCount from statistic_action
+        left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
         left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
     $sql.=" where 1";
-    $sql.=" and llx_actioncomm.overdue = 1";
+    $sql.=" and statistic_action.overdue = 1";
 //    $sql.=" and date(datep) between adddate(date(now()), interval -1 month) and date(now())
-//        and llx_actioncomm.percent not in (100, -100) ";
+//        and statistic_action.percent not in (100, -100) ";
     if ($user->rights->user->user->mentor){
         $sql.=" and llx_user.subdiv_id in(".implode(',',$subdiv_id).")";
     }
     if(empty($code))
-        $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+        $sql.=" and statistic_action.`code` <> 'AC_OTH_AUTO'";
     else{
         if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
-            $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+            $sql .= " and statistic_action.`code`='" . $code . "'";
         else
-            $sql .= " and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+            $sql .= " and statistic_action.`code` in (select `code` from llx_c_actioncomm
                     where active = 1
                     and `type` in ('system','user')
                     and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
     }
-    $sql.=" and llx_actioncomm.active = 1
+    $sql.=" and statistic_action.active = 1
             and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)
             group by llx_user.subdiv_id";
 //if(empty($code)) {
@@ -1703,8 +1707,8 @@ function getActionsBySub($class, $code){
         $outstanding[$obj->subdiv_id] = $obj->iCount;
     }
  //майбутнє
-    $sql = "select llx_user.subdiv_id, date(datep) datep, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
-        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+    $sql = "select llx_user.subdiv_id, date(datep) datep, count(distinct statistic_action.id) iCount from statistic_action
+        left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
         left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
     if(!empty($subdiv_id)&&!is_array($subdiv_id))
         $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
@@ -1715,18 +1719,18 @@ function getActionsBySub($class, $code){
         $sql.=" and llx_user.subdiv_id in(".implode(',',$subdiv_id).")";
     }
     if(empty($code))
-        $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+        $sql.=" and statistic_action.`code` <> 'AC_OTH_AUTO'";
     else{
         if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
-            $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+            $sql .= " and statistic_action.`code`='" . $code . "'";
         else
-            $sql .= " and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+            $sql .= " and statistic_action.`code` in (select `code` from llx_c_actioncomm
                     where active = 1
                     and `type` in ('system','user')
                     and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
     }
 
-    $sql.=" and llx_actioncomm.active = 1
+    $sql.=" and statistic_action.active = 1
         and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)
         group by llx_user.subdiv_id, date(datep);";
 
@@ -1741,8 +1745,8 @@ function getActionsBySub($class, $code){
             $period = 'week';
         else
             $period = 'month';
-        $sql = "select llx_user.subdiv_id, count(id) iCount  from llx_actioncomm
-        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+        $sql = "select llx_user.subdiv_id, count(id) iCount  from statistic_action
+        left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
         left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
         $sql .= " where 1";
         $sql .= " and date(datep) between date(now()) and adddate(date(now()), interval 1 ".$period.")";
@@ -1752,17 +1756,17 @@ function getActionsBySub($class, $code){
             $sql.=" and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)";
         }
         if(empty($code))
-            $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+            $sql.=" and statistic_action.`code` <> 'AC_OTH_AUTO'";
         else{
             if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
-                $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+                $sql .= " and statistic_action.`code`='" . $code . "'";
             else
-                $sql .= " and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+                $sql .= " and statistic_action.`code` in (select `code` from llx_c_actioncomm
                         where active = 1
                         and `type` in ('system','user')
                         and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
         }
-        $sql .= " and llx_actioncomm.active = 1
+        $sql .= " and statistic_action.active = 1
         
         group by llx_user.subdiv_id;";
         $res = $db->query($sql);
@@ -1894,8 +1898,8 @@ function getTotalSubdivAction($class,$title,$subdiv_id=0,$code=''){
         else
             $period = 'week';
         //Всього завдань
-        $sql = "select count(distinct llx_actioncomm.id) iCount from llx_actioncomm
-            left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+        $sql = "select count(distinct statistic_action.id) iCount from statistic_action
+            left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
             left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
         if(!empty($subdiv_id))
             $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
@@ -1904,17 +1908,17 @@ function getTotalSubdivAction($class,$title,$subdiv_id=0,$code=''){
 
         $sql.=" and date(datep) between  adddate(date(now()), interval -1 ".$period.") and date(now())";
         if(empty($code))
-            $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+            $sql.=" and statistic_action.`code` <> 'AC_OTH_AUTO'";
         else{
             if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
-                $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+                $sql .= " and statistic_action.`code`='" . $code . "'";
             else
-                $sql .= " and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+                $sql .= " and statistic_action.`code` in (select `code` from llx_c_actioncomm
                     where active = 1
                     and `type` in ('system','user')
                     and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
         }
-         $sql.=" and llx_actioncomm.active = 1";
+         $sql.=" and statistic_action.active = 1";
          $sql.=" and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)";
 //        if(empty($subdiv_id)){
 //            echo '<pre>';
@@ -1928,8 +1932,8 @@ function getTotalSubdivAction($class,$title,$subdiv_id=0,$code=''){
         $obj = $db->fetch_object($res);
         $total[$period] = $obj->iCount;
         //Фактично виконаних
-        $sql = "select  count(distinct llx_actioncomm.id) iCount from llx_actioncomm
-            left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+        $sql = "select  count(distinct statistic_action.id) iCount from statistic_action
+            left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
             left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
         if(!empty($subdiv_id))
             $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
@@ -1937,15 +1941,15 @@ function getTotalSubdivAction($class,$title,$subdiv_id=0,$code=''){
             $sql.=" where 1";
         $sql.=" and  date(datep) between  adddate(date(now()), interval -1 ".$period.") and date(now())";
         if(empty($code))
-            $sql.=" and (llx_actioncomm.`code`in ('AC_GLOBAL','AC_CURRENT') or llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))";
+            $sql.=" and (statistic_action.`code`in ('AC_GLOBAL','AC_CURRENT') or statistic_action.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))";
         else{
             if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
-                $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+                $sql .= " and statistic_action.`code`='" . $code . "'";
             else
-                $sql .= " and llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1)";
+                $sql .= " and statistic_action.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1)";
         }
-        $sql.=" and llx_actioncomm.percent = 100
-            and llx_actioncomm.active = 1";
+        $sql.=" and statistic_action.percent = 100
+            and statistic_action.active = 1";
          $sql.=" and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)";
 
         $res = $db->query($sql);
@@ -1955,8 +1959,8 @@ function getTotalSubdivAction($class,$title,$subdiv_id=0,$code=''){
         $fact[$period] = $obj->iCount;
 
     }
-    $sql = "select date(datep) datep, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
-    left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+    $sql = "select date(datep) datep, count(distinct statistic_action.id) iCount from statistic_action
+    left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
     left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
     if(!empty($subdiv_id))
         $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
@@ -1964,17 +1968,17 @@ function getTotalSubdivAction($class,$title,$subdiv_id=0,$code=''){
         $sql.=" where 1";
     $sql.=" and date(datep) between  adddate(date(now()), interval -6 day) and date(now())";
     if(empty($code))
-        $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+        $sql.=" and statistic_action.`code` <> 'AC_OTH_AUTO'";
     else{
         if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
-            $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+            $sql .= " and statistic_action.`code`='" . $code . "'";
         else
-            $sql .= " and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+            $sql .= " and statistic_action.`code` in (select `code` from llx_c_actioncomm
                 where active = 1
                 and `type` in ('system','user')
                 and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
     }
-    $sql.=" and llx_actioncomm.active = 1
+    $sql.=" and statistic_action.active = 1
             and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)
     group by date(datep);";
 
@@ -1985,8 +1989,8 @@ function getTotalSubdivAction($class,$title,$subdiv_id=0,$code=''){
         $total[$obj->datep] = $obj->iCount;
     }
 
-    $sql = "select date(datep) datep, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
-        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+    $sql = "select date(datep) datep, count(distinct statistic_action.id) iCount from statistic_action
+        left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
         left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
     if(!empty($subdiv_id))
         $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
@@ -1994,15 +1998,15 @@ function getTotalSubdivAction($class,$title,$subdiv_id=0,$code=''){
         $sql.=" where 1";
     $sql.=" and date(datep) between  adddate(date(now()), interval -6 day) and date(now())";
     if(empty($code))
-        $sql.=" and (llx_actioncomm.`code`in ('AC_GLOBAL','AC_CURRENT') or llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))";
+        $sql.=" and (statistic_action.`code`in ('AC_GLOBAL','AC_CURRENT') or statistic_action.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1))";
     else{
             if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
-                $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+                $sql .= " and statistic_action.`code`='" . $code . "'";
             else
-                $sql .= " and llx_actioncomm.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1)";
+                $sql .= " and statistic_action.id in (select `llx_societe_action`.`action_id` from `llx_societe_action` where `llx_societe_action`.`callstatus` = 5 and active = 1)";
     }
-    $sql.=" and llx_actioncomm.percent = 100
-        and llx_actioncomm.active = 1
+    $sql.=" and statistic_action.percent = 100
+        and statistic_action.active = 1
         and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)
         group by date(datep);";
 //    if($code == 'AC_CUST'){
@@ -2069,29 +2073,29 @@ $percent_block = '';
     }
 
     //Прострочені
-    $sql = "select count(distinct llx_actioncomm.id) iCount from llx_actioncomm
-        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+    $sql = "select count(distinct statistic_action.id) iCount from statistic_action
+        left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
         left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
     if(!empty($subdiv_id))
         $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
     else
         $sql.=" where 1";
 //    $sql.=" and date(datep) <= date(now())";
-    $sql.=" and llx_actioncomm.overdue = 1"; //Якщо піднято прапор прострочено
+    $sql.=" and statistic_action.overdue = 1"; //Якщо піднято прапор прострочено
 
     if(empty($code))
-        $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+        $sql.=" and statistic_action.`code` <> 'AC_OTH_AUTO'";
     else{
         if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
-            $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+            $sql .= " and statistic_action.`code`='" . $code . "'";
         else
-            $sql .= " and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+            $sql .= " and statistic_action.`code` in (select `code` from llx_c_actioncomm
                     where active = 1
                     and `type` in ('system','user')
                     and `code` not in ('AC_GLOBAL','AC_CURRENT','AC_OTH_AUTO'))";
     }
     $sql.=" and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)";
-    $sql.=" and llx_actioncomm.active = 1;";
+    $sql.=" and statistic_action.active = 1;";
 //    if('AC_CUST' == $code)
 //        die($sql);
     $res = $db->query($sql);
@@ -2103,8 +2107,8 @@ $percent_block = '';
     else
         $outstanding = '<td  style="text-align: center">' . $obj->iCount . '</td>';
     //майбутнє
-    $sql = "select date(datep) datep, count(distinct llx_actioncomm.id) iCount from llx_actioncomm
-        left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+    $sql = "select date(datep) datep, count(distinct statistic_action.id) iCount from statistic_action
+        left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
         left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
     if(!empty($subdiv_id))
         $sql.=" where llx_user.subdiv_id = " . $subdiv_id;
@@ -2112,18 +2116,18 @@ $percent_block = '';
         $sql.=" where 1";
     $sql.=" and date(datep) between  date(now()) and adddate(date(now()), interval +1 week)";
     if(empty($code))
-        $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+        $sql.=" and statistic_action.`code` <> 'AC_OTH_AUTO'";
     else{
         if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
-            $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+            $sql .= " and statistic_action.`code`='" . $code . "'";
         else
-            $sql .= " and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+            $sql .= " and statistic_action.`code` in (select `code` from llx_c_actioncomm
                     where active = 1
                     and `type` in ('system','user')
                     and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
     }
 
-    $sql.=" and llx_actioncomm.active = 1
+    $sql.=" and statistic_action.active = 1
             and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)
         group by date(datep);";
 
@@ -2144,8 +2148,8 @@ $percent_block = '';
             else
                 $future_block .= '<td></td>';
         }else {
-            $sql = "select count(id) iCount  from llx_actioncomm
-            left join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
+            $sql = "select count(id) iCount  from statistic_action
+            left join `llx_actioncomm_resources` on `fk_actioncomm` = statistic_action.id
             left join llx_user on llx_user.rowid = case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end";
             if(!empty($subdiv_id))
                 $sql .= " where llx_user.subdiv_id = " . $subdiv_id;
@@ -2157,18 +2161,18 @@ $percent_block = '';
                 $sql .= " and date(datep) between date(now()) and adddate(date(now()), interval 1 month)";
 
             if(empty($code))
-                $sql.=" and llx_actioncomm.`code` <> 'AC_OTH_AUTO'";
+                $sql.=" and statistic_action.`code` <> 'AC_OTH_AUTO'";
             else{
                 if(in_array($code, array('AC_GLOBAL', 'AC_CURRENT')))
-                    $sql .= " and llx_actioncomm.`code`='" . $code . "'";
+                    $sql .= " and statistic_action.`code`='" . $code . "'";
                 else
-                    $sql .= " and llx_actioncomm.`code` in (select `code` from llx_c_actioncomm
+                    $sql .= " and statistic_action.`code` in (select `code` from llx_c_actioncomm
                             where active = 1
                             and `type` in ('system','user')
                             and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
             }
             $sql.=" and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)";
-            $sql .= " and llx_actioncomm.active = 1;";
+            $sql .= " and statistic_action.active = 1;";
 
 //    if(!empty($code)){
 //        echo '<pre>';

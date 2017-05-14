@@ -58,9 +58,21 @@ $sql_count = 'select count(*) iCount from `llx_societe` where 1 ';
     $tmp = '';
     if ($region_id != 0)
         $tmp .= ' and `region_id` = ' . $region_id . ' ';
-    elseif(count($regions)>0)
+    elseif (substr($_REQUEST['state_filter'], 0, strlen('category_id_'))=='category_id_'){
+//echo '<pre>';
+//var_dump(implode(',',$regions));
+//echo '</pre>';
+//die();
+        $sql_states = "select distinct state_id from regions where rowid in (".implode(',',$regions).")";
+        $res_states = $db->query($sql_states);
+        $states = array(0);
+        while($obj = $db->fetch_object($res_states)){
+            $states[]=$obj->state_id;
+        }
+        $tmp .= ' and (`llx_societe`.`categoryofcustomer_id` = '.substr($_REQUEST['state_filter'], strlen('category_id_')).' and (`fk_user_creat` = '.$user->id.' or state_id in ('.implode(',',$states).')))';
+    }elseif(count($regions)>0)
         $tmp .= ' and (`region_id` in ('.implode(',',$regions).') or `region_id` is null and `fk_user_creat` = '.$user->id.')';
-    if(!($user->respon_alias == 'gen_dir'||$user->respon_alias == 'dir_depatment'))
+    if(!($user->respon_alias == 'gen_dir'||$user->respon_alias == 'dir_depatment')&&substr($_REQUEST['state_filter'], 0, strlen('category_id_'))!='category_id_')
         $tmp .= ' and `llx_societe`.`categoryofcustomer_id` in (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility = ' . $user->respon_id . ')';
     $sql .= $tmp;
     $sql_count .= $tmp;
@@ -76,10 +88,7 @@ $sql_count.=' and `llx_societe`.active = 1 ';
 //    $sql.=$tmp;
 //    $sql_count.=$tmp;
 //}
-//echo '<pre>';
-//var_dump($sql);
-//echo '</pre>';
-//die();
+
 
 if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])){
     if($_REQUEST['filter']!='today') {

@@ -57,9 +57,19 @@ function user_prepare_head($object)
     $head[$h][2] = 'responsibility';
     $h++;
 
+	$head[$h][0] = DOL_URL_ROOT.'/user/useractions.php?id_usr='.$object->id.'&mainmenu=tools&idmenu=5223&kind=yourself';
+    $head[$h][1] = 'Активні завдання';
+    $head[$h][2] = 'active_actions';
+    $h++;
+
 	//Добавляю ссылку на страницу закрепленных районов ответственности
 //    if($object->respon_alias == 'sale' || $object->respon_alias2 == 'sale'){
-	if(count(array_intersect(array($object->respon_alias,$object->respon_alias2), array('sale','wholesale_purchase'))) > 0){
+	$responsibility = $object->getResponding($object->id, true);
+//	echo '<pre>';
+//	var_dump($responsibility);
+//	echo '</pre>';
+//	die();
+	if(count(array_intersect($responsibility, array('sale','wholesale_purchase'))) > 0){
         $head[$h][0] = DOL_URL_ROOT.'/user/areas.php?id='.$object->id.'&mainmenu=tools&idmenu=5223';
         $head[$h][1] = $langs->trans("Areas");
         $head[$h][2] = 'areas';
@@ -71,25 +81,25 @@ function user_prepare_head($object)
 		$head[$h][2] = 'SubdivisionsMentor';
 		$h++;
 	}
-	if(count(array_intersect(array($object->respon_alias,$object->respon_alias2), array('service','purchase','wholesale_purchase'))) > 0){
+	if(count(array_intersect($responsibility, array('service','purchase','wholesale_purchase'))) > 0){
         $head[$h][0] = DOL_URL_ROOT.'/user/lineactive.php?id='.$object->id.'&mainmenu=tools&idmenu=5223';
         $head[$h][1] = $langs->trans("PropLineActive");
         $head[$h][2] = 'lineactive';
         $h++;
     }
-	if(count(array_intersect(array($object->respon_alias,$object->respon_alias2), array('marketing'))) > 0){
+	if(count(array_intersect($responsibility, array('marketing'))) > 0){
         $head[$h][0] = DOL_URL_ROOT.'/user/lineactive_marketing.php?id='.$object->id.'&mainmenu=tools&idmenu=5223';
         $head[$h][1] = $langs->trans("LineActive");
         $head[$h][2] = 'lineactive';
         $h++;
     }
-	if(count(array_intersect(array($object->respon_alias,$object->respon_alias2), array('counter','corp_manager','purchase','paperwork','cadry','wholesale_purchase','logistika','jurist'))) > 0){
+	if(count(array_intersect($responsibility, array('counter','corp_manager','purchase','paperwork','cadry','wholesale_purchase','logistika','jurist'))) > 0){
 		$head[$h][0] = DOL_URL_ROOT.'/user/categories.php?id='.$object->id.'&mainmenu=tools&idmenu=5223';
         $head[$h][1] = $langs->trans("CategoriesContractors");
         $head[$h][2] = 'categories';
         $h++;
     }
-	if(count(array_intersect(array($object->respon_alias,$object->respon_alias2), array('paperwork'))) > 0){
+	if(count(array_intersect($responsibility, array('paperwork'))) > 0){
 		$head[$h][0] = DOL_URL_ROOT.'/user/states.php?id='.$object->id.'&mainmenu=tools&idmenu=5223';
         $head[$h][1] = $langs->trans("States");
         $head[$h][2] = 'states';

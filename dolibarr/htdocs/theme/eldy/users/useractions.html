@@ -18,16 +18,16 @@
 </br>
 
 <button title="Запланувати дію" onclick="AddAction();">    Додати дію    </button>
-<button title="Додати результат перемовин в таблицю 'Дії'" onclick="AddResultAction('users', <?=$_GET['id_usr']?>);">    Додати результат перемовин    </button>
+<button title="Управління" onclick="ShowActionForAction($(this));">    Управління    </button>
     <table id="actions_table" class="WidthScroll" cellspacing="1">
         <thead>
         <tr class="header_table">
             <th style="width: 25px" class="middle_size" rowspan="2">Вид дій</th>
             <th style="width: 45px" class="middle_size" rowspan="2">Дата запису</th>
             <th style="width: 80px" class="middle_size" rowspan="2">Стуктурний підрозділ "ХТО"</th>
-            <th style="width: 80px" class="middle_size" rowspan="2">ПІБ ХТО</th>
+            <th style="width: 80px" align="center" class="middle_size" rowspan="2">ПІБ ХТО<br><br><br><img  id="CustomerFilter" onclick="GetCustomer(<?=$id_usr?>);" title="Встановити фільтр по замовнику" src="/dolibarr/htdocs/theme/eldy/img/btn_arrow_down.png"></th>
             <th style="width: 80px" class="middle_size" rowspan="2">Стуктурний підрозділ "КОМУ"</th>
-            <th style="width: 80px" class="middle_size" rowspan="2">ПІБ КОМУ</th>
+            <th style="width: 80px" align="center"  class="middle_size" rowspan="2">ПІБ КОМУ<br><br><br><img  id="PerformerFilter" onclick="GetPerformers(<?=$id_usr?>);" title="Встановити фільтр по виконавцю" src="/dolibarr/htdocs/theme/eldy/img/btn_arrow_down.png"></th>
             <th style="width: 65px" class="middle_size" rowspan="2">Група завдань</th>
             <th style="width: 65px" class="middle_size" rowspan="2">Задача</th>
             <th style="width: 100px" class="middle_size" rowspan="2">Примітка: Що зробить, кінцева мета, підтвердження</th>
@@ -39,7 +39,8 @@
             <th width="50px" class="small_size" rowspan="2">Відмітка : особливе, важливе</th>
             <th style="width: 50px" rowspan="2" class="middle_size">Статус</th>
             <th style="width: 50px" rowspan="2" class="middle_size">Підтр. про виконан.</th>
-            <th style="width: 50px" rowspan="2" class="middle_size"></th>
+            <th style="width: 50px; horiz-align: center;" rowspan="2" class="middle_size"><?if($_REQUEST['kind'] == 'yourself'){?>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" onclick="selCbxAction($(this));" id="selectALL">
+                <?}?></th>
             <th style="width: 50px" rowspan="2" class="middle_size"></th>
         </tr>
         <tr class="multiple_header_table">
@@ -65,12 +66,162 @@
     <input type="hidden" name="datep" value="<?=date('dd.mm.yyyy')?>">
 </form>
 <script>
+    function ShowActionForAction(object){
+        createNewForm('popupmenu','actionform');
+        var html = '<button id = "reSetExecuter" onmouseover="ShowUserList($(this));">Змінити виконавця</button>';
+        $('#actionform').html(html);
+        $('#actionform').show();
+        $('#actionform').offset({left:object.offset().left, top:object.offset().top+object.height()});
+
+//        console.log($('#actionform').offset(), object.offset());
+    }
+    function ShowUserList(object) {
+        createNewForm('popupmenu','userlist');
+        var html = '<table style="background: #ffffff; width: 250px"><thead><tr class="multiple_header_table"><th class="middle_size">Список можливих виконавців</th></tr></thead>' +
+                '<tbody><tr><td align="center"><img src="/dolibarr/htdocs/theme/eldy/img/working2.gif"></td></tr></tbody></table>';
+//        $('#userlist').find('table').remove();
+        $('#userlist').html(html);
+        $('#userlist').show();
+        $('#userlist').offset({left:object.offset().left+object.width(), top:object.offset().top});
+        $('#userlist').width(300);
+        var param ={
+            action:'getuserlist'
+        }
+        $.ajax({
+            url:"/dolibarr/htdocs/user/list.php",
+            data:param,
+            cashe:false,
+            success:function (html) {
+                console.log(html);
+                $('#userlist').html(html);
+                $('#user_list').find('tbody').height($('#actions').height())
+                $('.region').bind('click', function (object) {
+                    var lastname = $('tr.region#'+object.currentTarget.id).find('td.lastname').html();
+                    var firstname = $('tr.region#'+object.currentTarget.id).find('td.firstname').html();
+                    if(confirm('Призначити виконавцем вибраних завдань користувача "'+lastname+' '+firstname+'"')){
+                        var actionsID = getCookie('actionsID');
+                        if(actionsID !== undefined) {
+                            actionsID = actionsID.split(',');
+                        }else{
+                            actionsID = [];
+                        }
+                        var param ={
+                            action:'resetExecuter',
+                            active_user:'<?=$_GET["id_usr"]?>',
+                            id_usr:object.currentTarget.id,
+                            actionsID:actionsID.join()
+                        }
+                        $.ajax({
+                            url:"/dolibarr/htdocs/user/list.php",
+                            data:param,
+                            cashe:false,
+                            success:function (result) {
+                                if(result == 1) {
+                                    document.cookie="actionsID=";
+                                    location = location;
+                                }
+                            }
+                        })
+                    }
+                    $('#userlist').remove();
+                    $('#reSetExecuter').remove();
+                })
+            }
+        })
+    }
+    function selAction(object) {
+        var actionsID = getCookie('actionsID');
+        var select = $(object).attr('checked') == 'checked';
+        if(actionsID !== undefined) {
+            actionsID = actionsID.split(',');
+        }else{
+            actionsID = [];
+        }
+        if(select && $.inArray($(object).attr('id').substr(9),actionsID)<0){
+            actionsID.push($(object).attr('id').substr(9));
+        }
+        while(!select && $.inArray($(object).attr('id').substr(9),actionsID) >=0){
+            actionsID.splice($.inArray($(object).attr('id').substr(9), actionsID),1);
+        }
+        if(!select)
+            $('#selectALL').removeAttr('checked');
+        document.cookie="actionsID="+actionsID;
+        console.log(document.cookie);
+    }
     $(document).ready(function(){
+        var actionsID = getCookie('actionsID');
+        if(actionsID !== undefined){
+            actionsID = actionsID.split(',');
+            $.each(actionsID, function (key, value) {
+                $('#checkbox_'+value).attr('checked', 'checked');
+            })
+            var selectAll = true;
+            $.each($('.selectALL'), function (key, value) {
+                if($(value).attr('checked') == undefined) {
+                    selectAll = false;
+                    return;
+                }
+            })
+            if(selectAll){
+                $('#selectALL').attr('checked', 'checked');
+            }
+//            console.log(actionsID);
+        }
         $('#phonetitle').width($('#phone').width());
         $('#email_title').width($('#email').width());
         $('#skype_title').width($('#skype').width());
         $('#actions').height($(window).height() - 300);
+        var th = document.getElementById('actions_table');
+        th = th.getElementsByTagName('th');
+        console.log(th, 'TEST');
+        var left = 30;
+        var widths = [];
+        var TotalWidth = 0;
+        for(var i=0; i<th.length; i++){
+            if(th[i].className == "middle_size" || th[i].id == '') {
+                var iWidth = th[i].offsetWidth;
+                if (th[i].className == 'header_table')
+                    left += parseInt(iWidth);
+                TotalWidth += iWidth;
+                widths.push(parseInt(iWidth));
+            }
+        }
+        var tr = document.getElementById('actions');
+        tr = tr.getElementsByTagName('tr');
+        for(var t = 0; t<tr.length; t++) {
+            var td = tr[t].getElementsByTagName('td');
+            for (var i = 0; i < td.length; i++) {
+                if(i<12 || i>16)
+                    td[i].style.width = widths[i] - 2;
+                else
+                    td[i].style.width = widths[i+7] - 3;
+//                console.log(td[i].offsetWidth);
+            }
+        }
+        $('#actions').offset({left:22});
+        $('#actions').width($('#actions').width()+20);
     })
+    function selCbxAction(object){
+        var actionsID = getCookie('actionsID');
+        if(actionsID !== undefined){
+            actionsID = [actionsID];
+        }else{
+            actionsID = [];
+        }
+        $.each(document.getElementsByClassName(object.attr('id')), function (index, value) {
+            if(object.attr('checked') == 'checked') {
+                $(value).attr('checked', object.attr('checked'));
+                if($.inArray($(value).attr('id'), actionsID)<0){
+                    actionsID.push($(value).attr('id').substr(9));
+                }
+            }else {
+                $(value).removeAttr("checked");
+                actionsID.splice($.inArray($(value).attr('id'), actionsID));
+            }
+        })
+        document.cookie="actionsID="+actionsID;
+//        console.log(document.cookie);
+    }
     function AddAction(){
         $('#actionbuttons').submit();
     }

@@ -173,8 +173,159 @@ function loadActions($id_usr){
 //        $_SESSION['actions'] = $actions;
     return $actions;
 }
+function getRegionsList($id_usr){
+    global $db, $actions,$actioncode;
+    $outstanding = array();
+    $future=array();
+    $fact = array();
+    $total = array();
+    $regions = array();
+    $maxAction = array();
+    $today = new DateTime();
+    $mkToday = dol_mktime(0,0,0,$today->format('m'),$today->format('d'),$today->format('Y'));
+    $count = 0;
+    foreach($actions as $item){
+//        var_dump($item);
+//        die();
+        if($item["id_usr"]==$id_usr&&$item["code"]=='AC_CUST'&&$item["respon_alias"]=='sale'){
+//            if(empty($item["region_id"])&&$item["datep"]=='2016-05-27'){
+//                var_dump($item).'</br>';
+////                die();
+//            }
+            if(!in_array(empty($item["region_id"])?'null':$item["region_id"], $regions)) {
+//                if(277 == $item["region_id"] && $item["id_usr"] == 35){
+//                    var_dump($item);
+//                    die('test');
+//                }
+                $regions[] = empty($item["region_id"]) ? 'null' : $item["region_id"];
+            }
+            $date = new DateTime($item["datep"]);
+            $mkDate = dol_mktime(0, 0, 0, $date->format('m'), $date->format('d'), $date->format('Y'));
+//            echo $item["datep"].' '.var_dump($mkDate >= $mkToday).'</br>';
+
+//            if($item["datep"]=='2016-05-11'){
+//                die('test');
+//            }
+            if ($mkDate == $mkToday)
+                $count++;
+            if ($mkDate >= $mkToday) {
+                $future[$item["region_id"]][$item["datep"]]++;
+                if ($mkDate - $mkToday <= 604800)//604800 sec by week
+                    $future[$item["region_id"]]['week']++;
+                if ($mkDate - $mkToday <= 2678400)//2678400 sec by month
+                    $future[$item["region_id"]]['month']++;
+            }
+
+            if($item["overdue"]){//Додав $mkDate < $mkToday. Вважається логічним, щоб кількість прострочених рахувати, коли завдання повинно вже було бути виконано
+                $outstanding[$item["region_id"]]++;
+            }
+            if($item['percent'] == 100 && (in_array($item['code'], $actioncode)||$item['callstatus']=='5')){
+                $fact[$item["region_id"]][$item["datep"]]++;
+                if($mkToday-$mkDate<=604800)//604800 sec by week
+                    $fact[$item["region_id"]]['week']++;
+                if($mkToday-$mkDate<=2678400)//2678400 sec by month
+                    $fact[$item["region_id"]]['month']++;
+            }
+
+            $total[$item["region_id"]][$item["datep"]]++;
+            if($mkToday-$mkDate<=604800)//604800 sec by week
+                $total[$item["region_id"]]['week']++;
+            if($mkToday-$mkDate<=2678400)//2678400 sec by month
+                $total[$item["region_id"]]['month']++;
+        }
+    }
+//    echo '<pre>';
+//    var_dump($regions);
+//    echo '</pre>';
+//    die();
+
+    $sql = "select `regions`.`rowid`,`states`.`name` statename, `regions`.`name` from `regions`
+        inner join `states` on `states`.`rowid` = `regions`.`state_id`
+        where (`regions`.`rowid` in (select `llx_user_regions`.fk_id from `llx_user_regions` where `llx_user_regions`.fk_user = ".$id_usr."
+              and `llx_user_regions`.active = 1)
+              or `regions`.`rowid` in (".(count($regions)>0?implode(",",$regions):0)."))
+        and `regions`.active = 1";
+    if(count($regions)>0 && in_array('null', $regions))
+        $sql.=" union select null, 'Район', 'не вказано'";
+    $sql.=" order by statename, `name`";
+//    echo '<pre>';
+//    var_dump($regions);
+//    echo '</pre>';
+//    die();
+    $out = '';
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    while($obj = $db->fetch_object($res)){
+        $out.='<tr id="reg'.$obj->rowid.'" class="regions subtype middle_size">';
+        if(!empty($obj->rowid)) {
+            $out .= '<td><a href="/dolibarr/htdocs/responsibility/sale/area.php?idmenu=10425&mainmenu=area&leftmenu=&state_filter=' . $obj->rowid . '" target="_blank">' . $obj->statename . '</a></td>';
+            $out .= '<td><a href="/dolibarr/htdocs/responsibility/sale/area.php?idmenu=10425&mainmenu=area&leftmenu=&state_filter=' . $obj->rowid . '" target="_blank">' . $obj->name . '</a></td>';
+        }else{
+            $out .= '<td>'. $obj->statename . '</td>';
+            $out .= '<td>'. $obj->name . '</td>';
+        }
+        $out .= '<td>&nbsp;</td>';
+//        $out.='<td></td>';
+        //відсоток виконання
+        if(isset($total[$obj->rowid]['month'])){
+            $value = round($fact[$obj->rowid]['month']/$total[$obj->rowid]['month']*100,0);
+            $out.='<td style="text-align: center">'.$value.'</td>';
+        }else
+            $out.='<td></td>';
+        if(isset($total[$obj->rowid]['week'])){
+            $value = round($fact[$obj->rowid]['week']/$total[$obj->rowid]['week']*100,0);
+            $out.='<td style="text-align: center">'.$value.'</td>';
+        }else
+            $out.='<td></td>';
+        for($i=6;$i>=0;$i--) {
+            if(isset($total[$obj->rowid][date("Y-m-d", (time()-3600*24*$i))])){
+                $value = round($fact[$obj->rowid][date("Y-m-d", (time()-3600*24*$i))]/$total[$obj->rowid][date("Y-m-d", (time()-3600*24*$i))]*100,0);
+                $out.='<td style="text-align: center">'.$value.'</td>';
+            }else
+                $out .= '<td></td>';
+        }
+        //фактично виконано
+        if(isset($fact[$obj->rowid]['month']))
+            $out.='<td style="text-align: center">'.$fact[$obj->rowid]['month'].'</td>';
+        else
+            $out.='<td></td>';
+        if(isset($fact[$obj->rowid]['week']))
+            $out.='<td style="text-align: center">'.$fact[$obj->rowid]['week'].'</td>';
+        else
+            $out.='<td></td>';
+        for($i=6;$i>=0;$i--){
+            if(isset($fact[$obj->rowid][date("Y-m-d", (time()-3600*24*$i))]))
+                $out.='<td style="text-align: center">'.$fact[$obj->rowid][date("Y-m-d", (time()-3600*24*$i))].'</td>';
+            else
+                $out.='<td style="text-align: center"></td>';
+        }
+        //прострочено
+        if(isset($outstanding[$obj->rowid])) {
+            $out .= '<td id="outstanding'.$obj->rowid.'" style="text-align: center; cursor: pointer;" onclick="ShowOutStandingRegion('.$obj->rowid.', '.$id_usr.');">' . $outstanding[$obj->rowid] . '</td>';
+        }else
+            $out.='<td></td>';
+        //заплановано на майбутнє
+        for($i=0;$i<=6;$i++){
+            if($future[$obj->rowid][date("Y-m-d", (time()+3600*24*$i))])
+                $out.='<td style="text-align: center">'.$future[$obj->rowid][date("Y-m-d", (time()+3600*24*$i))].'</td>';
+            else
+                $out.='<td></td>';
+        }
+        if(isset($future[$obj->rowid]['week']))
+            $out.='<td style="text-align: center">'.$future[$obj->rowid]['week'].'</td>';
+        else
+            $out.='<td></td>';
+        if(isset($future[$obj->rowid]['month']))
+            $out.='<td style="text-align: center">'.$future[$obj->rowid]['month'].'</td>';
+        else
+            $out.='<td></td>';
+        $out.='</tr>';
+    }
+    return $out;
+}
 function ShowTasks($Code, $Title, $bestvalue = false){
-    global $userActions,$db;
+    global $db, $userActions;
     if($Code == 'AC_CUST') {
         $sql = "select `code` from llx_c_actioncomm
             where type in ('system','user')
@@ -645,53 +796,65 @@ function getLineActiveService($id_usr){
     return $out;
 }
 function getLineActive($id_usr){
-    global $db;
+    global $db,$user;
     //Визначаю сферу відповідальності користувача
-    $sql = "select res1.alias, res2.alias alias2 from llx_user
-        left join responsibility res1 on res1.rowid = llx_user.respon_id
-        left join responsibility res2 on res2.rowid = llx_user.respon_id2
-        where llx_user.rowid = ".$id_usr;
-    $resAlias = $db->query($sql);
-    $objAlias = $db->fetch_object($resAlias);
-    $arrayAlias = array($objAlias->alias, $objAlias->alias2);
+
+    $arrayAlias = $user->getResponding($id_usr,true);
     $lineactive = array();
-    if(count(array_intersect($arrayAlias, array('marketing')))>0) {
-        $sql = "select distinct `llx_c_lineactive_marketing`.`rowid`, `llx_c_lineactive_marketing`.`name` from llx_c_lineactive_marketing
-            inner join `llx_user_lineactive` on `llx_user_lineactive`.`fk_lineactive` = llx_c_lineactive_marketing.rowid
-            where 1
-            and `llx_user_lineactive`.`fk_user` = ".$id_usr."
-            and `llx_user_lineactive`.`active` = 1
-            and `llx_user_lineactive`.`page` is null";
-        $res = $db->query($sql);
-        if (!$res)
-            dol_print_error($db);
-        while ($obj = $db->fetch_object($res)) {
-            if (!isset($lineactive[$obj->rowid])) {
-                $lineactive[$obj->rowid] = array('name' => $obj->name);
-            }
+//    if(count(array_intersect($arrayAlias, array('marketing')))>0) {
+//        $sql = "select distinct `llx_c_lineactive_marketing`.`rowid`, `llx_c_lineactive_marketing`.`name` from llx_c_lineactive_marketing
+//            inner join `llx_user_lineactive` on `llx_user_lineactive`.`fk_lineactive` = llx_c_lineactive_marketing.rowid
+//            where 1
+//            and `llx_user_lineactive`.`fk_user` = ".$id_usr."
+//            and `llx_user_lineactive`.`active` = 1
+//            and `llx_user_lineactive`.`page` is null";
+//        $res = $db->query($sql);
+//        if (!$res)
+//            dol_print_error($db);
+//        while ($obj = $db->fetch_object($res)) {
+//            if (!isset($lineactive[$obj->rowid])) {
+//                $lineactive[$obj->rowid] = array('name' => $obj->name);
+//            }
+//        }
+//    }
+//
+//
+//    if(count(array_intersect($arrayAlias, array('jurist', 'corp_manager', 'purchase', 'paperwork','counter','logistika')))>0) {
+//        $sql = "select category_counterparty.rowid, category_counterparty.name from `llx_user_categories_contractor`
+//            inner join `category_counterparty` on `category_counterparty`.`rowid` = `llx_user_categories_contractor`.`fk_categories`
+//            where `llx_user_categories_contractor`.fk_user = " . $id_usr . "
+//            and `llx_user_categories_contractor`.`active` = 1";
+////        echo '<pre>';
+////        var_dump($sql);
+////        echo '</pre>';
+////        die();
+//        $res = $db->query($sql);
+//        if (!$res)
+//            dol_print_error($db);
+//        while ($obj = $db->fetch_object($res)) {
+//            if (!isset($lineactive[$obj->rowid])) {
+//                $lineactive[$obj->rowid] = array('name' => $obj->name, 'kind' => 'fk_categories');
+//            }
+//        }
+//    }
+    $sql_categories = 'select distinct case when `responsibility_param`.`fx_category_counterparty` is null then `other_category` else `fx_category_counterparty` end `rowid`, `category_counterparty`.`name`
+        from `responsibility_param`
+        inner join (select rowid from `responsibility` where alias in (\''.implode("','",$arrayAlias).'\')) counter on counter.rowid=responsibility_param.fx_responsibility
+        left join `category_counterparty` on `category_counterparty`.`rowid` = case when `responsibility_param`.`fx_category_counterparty` is null then `other_category` else `fx_category_counterparty` end
+        where `category_counterparty`.`active` = 1
+        or `responsibility_param`.`fx_category_counterparty` is null
+        and `category_counterparty`.`name` is not null';
+//    die($sql_categories);
+    $res = $db->query($sql_categories);
+    if (!$res)
+        dol_print_error($db);
+    while ($obj = $db->fetch_object($res)) {
+        if (!isset($lineactive[$obj->rowid])) {
+            $lineactive[$obj->rowid] = array('name' => $obj->name, 'kind' => 'fk_categories');
         }
     }
-
-
-    if(count(array_intersect($arrayAlias, array('jurist', 'corp_manager', 'purchase', 'paperwork','counter','logistika')))>0) {
-        $sql = "select category_counterparty.rowid, category_counterparty.name from `llx_user_categories_contractor`
-            inner join `category_counterparty` on `category_counterparty`.`rowid` = `llx_user_categories_contractor`.`fk_categories`
-            where `llx_user_categories_contractor`.fk_user = " . $id_usr . "
-            and `llx_user_categories_contractor`.`active` = 1";
-//        echo '<pre>';
-//        var_dump($sql);
-//        echo '</pre>';
-//        die();
-        $res = $db->query($sql);
-        if (!$res)
-            dol_print_error($db);
-        while ($obj = $db->fetch_object($res)) {
-            if (!isset($lineactive[$obj->rowid])) {
-                $lineactive[$obj->rowid] = array('name' => $obj->name, 'kind' => 'fk_categories');
-            }
-        }
-    }
-
+//    var_dump($lineactive);
+//    die();
     if(count(array_intersect($arrayAlias, array('purchase','service')))>0) {
         $sql = "select fk_lineactive, `oc_category_description`.`name`, min(page) page from `llx_user_lineactive`
         inner join `oc_category_description` on `oc_category_description`.`category_id` = `llx_user_lineactive`.fk_lineactive

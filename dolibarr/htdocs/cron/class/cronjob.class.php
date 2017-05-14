@@ -90,6 +90,42 @@ class Cronjob extends CommonObject
      *  @param  int		$notrigger   0=launch triggers after, 1=disable triggers
      *  @return int      		   	 <0 if KO, Id of created object if OK
      */
+	 function setStartCronStatus($cronname){
+		global $db;
+		$sql = "select rowid, date(dateend) dateend from llx_cronjob where command = '$cronname'";
+		$res = $db->query($sql);
+		if(!$res)
+			dol_print_error($db);
+		if($res->num_rows != 0){
+			$obj = $db->fetch_object($res);
+//			if($obj->dateend == date('Y-m-d', time()))
+//				return 0;
+			$sql = 'update llx_cronjob set datelastrun = datestart, dateend = null, datestart = now() where rowid = '.$obj->rowid;
+			$res = $db->query($sql);
+			if(!$res)
+				dol_print_error($db);
+			return 1;
+		}else{
+			$sql = "insert into llx_cronjob(command,datestart)values('$cronname',now())";
+			$res = $db->query($sql);
+			if(!$res)
+				dol_print_error($db);
+		}
+	}
+	function setExecCronStatus($cronname){
+		global $db;
+		$sql = "select rowid from llx_cronjob where command = '$cronname' and dateend is null";
+		$res = $db->query($sql);
+		if(!$res)
+			dol_print_error($db);
+		if($res->num_rows != 0){
+			$obj = $db->fetch_object($res);
+			$sql = 'update llx_cronjob set dateend = now() where rowid = '.$obj->rowid;
+			$res = $db->query($sql);
+			if(!$res)
+				dol_print_error($db);
+		}		
+	} 
     function create($user, $notrigger=0)
     {
     	global $conf, $langs;

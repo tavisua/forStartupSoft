@@ -107,7 +107,6 @@ $extralabels=$extrafields->fetch_name_optionals_label($object->table_element);
 $hookmanager->initHooks(array('usercard','globalcard'));
 
 
-
 /**
  * Actions
  */
@@ -1152,6 +1151,7 @@ else
             }
         }
         $object->getrights();
+        
 //        echo '<pre>';
 //        var_dump($object->rights->user->user);
 //        echo '</pre>';
@@ -1209,6 +1209,7 @@ else
         /*
          * Fiche en mode visu
          */
+        
         if ($action != 'edit')
         {
             $rowspan=19;

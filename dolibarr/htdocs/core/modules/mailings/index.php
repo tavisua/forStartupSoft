@@ -39,6 +39,9 @@ if($action == 'check'){
     die('1');
 }
 if($action == 'sendmail'){
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/cron/class/cronjob.class.php';
+    $CronJob = new Cronjob($db);
+    $CronJob->setStartCronStatus($_REQUEST['type']);
     set_time_limit(0);
     $out = array();
     if(isset($_REQUEST['id'])&&!empty($_REQUEST['id'])) {
@@ -184,6 +187,7 @@ if($action == 'sendmail'){
 //            echo '</pre>';
         }break;
     }
+    $CronJob->setExecCronStatus($_REQUEST['type']);
     die('1');
 }
 if($action == 'createtask') {//Створюю завдання перевіряючому розсилку
@@ -267,18 +271,24 @@ if($action == 'EditMail') {
 }
 if($action == 'htmlspecialchars_decode'){
     print '<div style="z-index: 10; position: fixed;margin-left: 50%"><a class="close"  onclick="ClosePreviewTask();" title="Закрити"></a></div><div>';
-    print htmlspecialchars_decode(str_replace('contactname', $user->firstname, $_REQUEST['html']));
+    $body = htmlspecialchars_decode($_REQUEST['html']);
+    print str_replace('contactname', $user->firstname,$body);
     print '</div>';
     die();
 }
 if($action == 'insert'){
+//    echo '<pre>';
+//    var_dump($_REQUEST);
+//    echo '</pre>';
+//    die();
     if(!empty($_REQUEST['postlist']))
         $postlist = implode(',',$_REQUEST['postlist']);
     if(!empty($_REQUEST['responsibility']))
         $responsibility = implode(',',$_REQUEST['responsibility']);
-    $sql = "insert into llx_mailing(statut,titre,body,fk_user_creat,`postlist`,`responsibility`)
+    $sql = "insert into llx_mailing(statut,titre,body,fk_user_creat,`postlist`,`responsibility`,`inner`)
       values(1, '".$db->escape($_REQUEST['theme'])."','".$db->escape($_REQUEST['body'])."',$user->id, 
-      '".$postlist."', '".$responsibility."')";
+      '".$postlist."', '".$responsibility."', ".(empty($_REQUEST['inner'])?0:$_REQUEST['inner']).")";
+//    die($sql);
 //    echo '</pre>';
 //    header($_REQUEST['backtopage']);
     $res = $db->query($sql);
@@ -302,9 +312,13 @@ if($action == 'update'){
         $postlist = implode(',',$_REQUEST['postlist']);
     if(!empty($_REQUEST['responsibility']))
         $responsibility = implode(',',$_REQUEST['responsibility']);
-    $sql = "update llx_mailing 
-    set titre = '".$_REQUEST['theme']."', body='".$db->escape($_REQUEST['body'])."', fk_user_creat='".$user->id."', `postlist`='".$postlist."', 
-        `responsibility`='".$responsibility."' where rowid=".$_REQUEST['rowid'];
+    $body = $db->escape($_REQUEST['body']);
+//    $body = str_replace("'",'&#039;',$body);//Заміна одинарних кавичок
+//    $body = str_replace('"','&quot;',$body);//Заміна двойних кавичок
+
+    $sql = "update llx_mailing     
+    set titre = '".$_REQUEST['theme']."', body='".$body."', fk_user_creat='".$user->id."', `postlist`='".$postlist."', 
+        `responsibility`='".$responsibility."', `inner`=".(empty($_REQUEST['inner'])?0:$_REQUEST['inner'])." where rowid=".$_REQUEST['rowid'];
 //    echo '<pre>';
 //    var_dump($sql);
 //    echo '</pre>';
@@ -312,6 +326,7 @@ if($action == 'update'){
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
+
     header("Location: ".$_SERVER["PHP_SELF"]);
     die();
 }
@@ -319,7 +334,7 @@ if($action == 'edit'){
     $title = "Редагувати розсилку";
     llxHeader("",$title,"");
     $action = 'update';
-    $sql = 'select titre,body,`postlist`,`responsibility` from llx_mailing where rowid = '.$_GET["rowid"];
+    $sql = 'select titre,body,`postlist`,`responsibility`, `inner` from llx_mailing where rowid = '.$_GET["rowid"];
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
@@ -327,6 +342,13 @@ if($action == 'edit'){
     $rowid = $_GET["rowid"];
     $theme = $mail->titre;
     $html = $mail->body;
+//    var_dump($mail->inner);
+//    die();
+    if($mail->inner == 1)
+        $mail->inner = 'checked = "checked"';
+    else
+        $mail->inner = "";
+//    die($mail->inner);
     $backtopage = $_SERVER['REQUEST_URI'];
     include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/mailing/card.html');
     die();
@@ -403,7 +425,7 @@ function AutoSendMail($rowid){
     if($rowid == 0)
         return 1;
     global $db,$langs,$user,$conf;
-    $sql = "select titre,body, postlist, responsibility from llx_mailing where rowid = ".$rowid;
+    $sql = "select titre,body, postlist, responsibility, `inner` from llx_mailing where rowid = ".$rowid;
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
@@ -422,17 +444,47 @@ function AutoSendMail($rowid){
     while($obj = $db->fetch_object($res)){
         $postedlist[]=mb_strtolower($obj->email,'utf-8');
     }
-    $sql = "select llx_societe.state_id, socid, email1, email2 from `llx_societe_contact`
+//    var_dump(empty($mess->inner));
+//    die('test');
+    if(empty($mess->inner)) {
+        $sql = "select llx_societe.state_id, socid, email1, email2 from `llx_societe_contact`
             left join llx_societe on llx_societe.rowid = `llx_societe_contact`.socid
                     where 1 ";
-    if(!empty($postlist)&&!empty($responsibility))
-        $sql .= " and (post_id in (".$postlist.") or `respon_id` in (".$responsibility."))";
-    elseif (!empty($postlist))
-        $sql .= " and post_id in (".$postlist.")";
-    elseif (!empty($responsibility))
-        $sql .= " and respon_id in (".$responsibility.")";
-    $sql.=" and ((email1 like '%@%' and send_email1 = 1) or (email2 like '%@%' and send_email2 = 1))
+        if (!empty($postlist) && !empty($responsibility))
+            $sql .= " and (post_id in (" . $postlist . ") or `respon_id` in (" . $responsibility . "))";
+        elseif (!empty($postlist))
+            $sql .= " and post_id in (" . $postlist . ")";
+        elseif (!empty($responsibility))
+            $sql .= " and respon_id in (" . $responsibility . ")";
+        $sql .= " and ((email1 like '%@%' and send_email1 = 1) or (email2 like '%@%' and send_email2 = 1))
             and `llx_societe_contact`.active = 1 and `llx_societe`.active = 1";
+    }else{
+        $user_id = array();
+        if(!empty($postlist)){
+            $sql = "select rowid from llx_user where post_id in ($postlist) and active = 1";
+            $res = $db->query($sql);
+            if(!$res)
+                dol_print_error($db);
+            while($obj = $db->fetch_object($res)){
+                if(!in_array($obj->rowid, $user_id))
+                    $user_id[] = $obj->rowid;
+            }
+        }
+        if(!empty($responsibility)){
+            $sql = "select rowid from llx_user where (respon_id in ($responsibility) or respon_id2 in ($responsibility)) and active = 1
+                    union
+                    select fk_user from `llx_user_responsibility` where fk_respon in ($responsibility) and active = 1";
+            $res = $db->query($sql);
+            if(!$res)
+                dol_print_error($db);
+            while($obj = $db->fetch_object($res)){
+                if(!in_array($obj->rowid, $user_id))
+                    $user_id[] = $obj->rowid;
+            }
+        }
+        $sql = "select email email1, '' email2 from llx_user where rowid in (".implode(',',$user_id).")";
+
+    }
 //    $sql.=" and llx_societe.state_id in (11,17)";
 //    $sql.=" order by llx_societe.state_id";
 //    echo '<pre>';

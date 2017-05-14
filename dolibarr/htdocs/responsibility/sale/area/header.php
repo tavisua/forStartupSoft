@@ -14,7 +14,7 @@ $Area = $langs->trans('Area');
 $AsOfTheDate = $langs->trans('AsOfTheOfDate');
 //die($TitleToday);
 //echo '<pre>';
-//var_dump($_GET['id_usr']);
+//var_dump($_REQUEST);
 //echo '</pre>';
 //exit();
 if(isset($_GET['id_usr'])&&!empty($_GET['id_usr'])) {
@@ -22,7 +22,9 @@ if(isset($_GET['id_usr'])&&!empty($_GET['id_usr'])) {
 }
 $region_id = 0;
 if(isset($_REQUEST['state_filter'])) {//Если изменялся регион
-    $region_id = $_REQUEST['state_filter'];
+    if(substr($_REQUEST['state_filter'], 0, strlen('category_id_'))!='category_id_') {
+        $region_id = $_REQUEST['state_filter'];
+    }
 //    var_dump(GETPOST('state_filter'), 'all');
 }
 

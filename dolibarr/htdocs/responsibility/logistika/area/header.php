@@ -17,9 +17,10 @@ $AsOfTheDate = $langs->trans('AsOfTheOfDate');
 //var_dump($_SERVER["REQUEST_URI"]);
 //echo '</pre>';
 //die();
-$sql = 'select regions.rowid, regions.state_id, trim(states.name) as states_name, trim(regions.name) as regions_name from states, regions, '.MAIN_DB_PREFIX.'user_regions ur
-    where ur.fk_user='.$user->id.' and ur.active = 1 and ur.fk_id=regions.rowid and regions.state_id=states.rowid order by regions_name asc, states_name asc';
-//die($sql);
+$sql = 'select rowid as state_id, `name` as states_name from states where active = 1 order by `name` asc;';
+//'select regions.rowid, regions.state_id, trim(states.name) as states_name, trim(regions.name) as regions_name from states, regions, '.MAIN_DB_PREFIX.'user_regions ur
+//    where ur.fk_user='.$user->id.' and ur.active = 1 and ur.fk_id=regions.rowid and regions.state_id=states.rowid order by regions_name asc, states_name asc';
+
 $res = $db->query($sql);
 
 $region_id = 0;
@@ -36,11 +37,11 @@ if($db->num_rows($res)>0) {
 //        if($region_id == 0) {
 //            $region_id = $obj->rowid;
 //        }
-        $selected = $region_id == $obj->rowid;
+        $selected = $region_id == $obj->state_id;
         if(!$selected)
-            $AreaList .= '<option value="'.$obj->rowid.'" >'.trim($obj->regions_name).' ('.decrease_word($obj->states_name).')</option>';
+            $AreaList .= '<option value="'.$obj->state_id.'" >'.trim($obj->states_name).'</option>';
         else {
-            $AreaList .= '<option value="' . $obj->rowid . '" selected = "selected" >' . trim($obj->regions_name) . ' (' . decrease_word($obj->states_name) . ')</option>';
+            $AreaList .= '<option value="' . $obj->state_id . '" selected = "selected" >' . trim($obj->states_name) . '</option>';
             $state_id = $obj->state_id;
         }
     }

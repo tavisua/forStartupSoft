@@ -48,6 +48,22 @@ require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
 require_once DOL_DOCUMENT_ROOT.'/contact/class/contact.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/agenda.lib.php';
+if($_REQUEST['action'] == 'birthday_remainder'){
+    global $user,$db;
+    define("NOLOGIN",1);		// Не потрібно залогіниватись, якщо створюються автоматичні завдання по нагадуванню про день народження
+    $sql = "select  socid, llx_societe.region_id, categoryofcustomer_id from `llx_societe_contact`
+        inner join `llx_societe` on `llx_societe`.`rowid` = `llx_societe_contact`.`socid`
+        where birthdaydate is not null
+        and send_birthdaydate = 1
+        and date(concat(date_format(now(), '%Y-'), date_format(date_add(birthdaydate, interval -10 day), '%m-%d'))) = date(now())
+        and `categoryofcustomer_id` in (5,7,8,9,10)";
+    $res = $db->query($sql);
+    while($obj = $db->fetch_object($res)){
+        echo $obj->region_id.'</br>';
+    }
+    var_dump($res);
+    exit();
+}
 if (! empty($conf->projet->enabled)) {
 	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formprojet.class.php';
 }

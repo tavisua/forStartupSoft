@@ -98,7 +98,7 @@ $deadline = getDeadLine();
 $accessMentor = ValidAsseccMentor();
 //var_dump($subaction->subaction);
 //die();
-$contactdata = getContactData($author_id);
+$contactdata = getContactData($actionid);
 $date = new DateTime();
 if(empty($subaction->subaction)) {
     $addSubAction = '<form method="post" action="/dolibarr/htdocs/comm/action/card.php">
@@ -189,39 +189,77 @@ function getDeadLine(){
 }
 function getContactData($author_id){
     global $user,$db;
-    $sql = "select llx_actioncomm.fk_user_author, `llx_actioncomm_resources`.`fk_element` from llx_actioncomm
+    $sql = "select llx_actioncomm.fk_user_author, `llx_actioncomm`.`fk_user_valuer`, `llx_actioncomm_resources`.`fk_element` from llx_actioncomm
         left join `llx_actioncomm_resources`on `fk_actioncomm` = `llx_actioncomm`.`id`
         where id = ".$_GET['action_id'];
-    $sql .= " and llx_actioncomm.fk_user_author<>`llx_actioncomm_resources`.`fk_element`";
+//    $sql .= " and llx_actioncomm.fk_user_author<>`llx_actioncomm_resources`.`fk_element`";
     $res = $db->query($sql);
-//    var_dump($sql);
-//    die();
+
     if(!$res)
         dol_print_error($db);
-    $obj = $db->fetch_object($res);
-    $out = '';
-//    require_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
-    $user_tmp = new User($db);
-    if(!empty($author_id) && $user->id == $author_id) {
-        $user_tmp->fetch($obj->fk_element);
-    }else {
-        $user_tmp->fetch($obj->fk_user_author);
-    }
+    $array = $db->fetch_array($res);
     $out='';
-    if(!empty($user_tmp->lastname))
-        $out .= '<b>Прізвище</b> '.$user_tmp->lastname.'</br></br>';
-    if(!empty($user_tmp->office_phone)) {
-        $userphone = str_replace('+','',$user_tmp->office_phone);
-        $userphone = str_replace('(','',$userphone);
-        $userphone = str_replace(')','',$userphone);
-        $userphone = str_replace('-','',$userphone);
-        $userphone = str_replace(' ','',$userphone);
-        if(!empty($user_tmp->office_phone))
-            $out .= '<b>Телефон</b> <a onclick="Call('.$userphone.', '."'users'".', '.$user_tmp->id.');">' . $user_tmp->office_phone . '</a> <a onclick="showSMSform('.$userphone.')"><img src="/dolibarr/htdocs/theme/eldy/img/object_sms.png"></a>'.'</br></br>';
-        if(!empty($user_tmp->skype))
-            $out .= '<b>Скайп</b> <a href="skype:'.$user_tmp->skype.'?call">'.$user_tmp->skype.'</a>';
+//    echo '<pre>';
+//    var_dump($sql);
+//    echo '</pre>';
+//    die();
+    $user_tmp = new User($db);
+    if($array != NULL) {
+        foreach ($array as $key => $value) {
+//        if(!is_numeric($key))
+//                print $key.'</br>';
+            if ($value > 0 && !is_numeric($key)) {
+                $user_tmp->fetch($value);
+                switch ($key) {
+                    case 'fk_user_author': {
+                        $out .= '<b>Замовник</b> ' . $user_tmp->lastname . '<br>';
+                    }
+                        break;
+                    case 'fk_user_valuer': {
+                        $out .= '<b>Фахівець-оцінщик</b> ' . $user_tmp->lastname . '<br>';
+                    }
+                        break;
+                    case 'fk_element': {
+                        $out .= '<b>Виконавець</b> ' . $user_tmp->lastname . '<br>';
+                    }
+                        break;
+                }
+                if (!empty($user_tmp->office_phone)) {
+                    $userphone = str_replace('+', '', $user_tmp->office_phone);
+                    $userphone = str_replace('(', '', $userphone);
+                    $userphone = str_replace(')', '', $userphone);
+                    $userphone = str_replace('-', '', $userphone);
+                    $userphone = str_replace(' ', '', $userphone);
+                    if (!empty($user_tmp->office_phone))
+                        $out .= '<i>Телефон</i> <a onclick="Call(' . $userphone . ', ' . "'users'" . ', ' . $user_tmp->id . ');">' . $user_tmp->office_phone . '</a> <a onclick="showSMSform(' . $userphone . ')"><img src="/dolibarr/htdocs/theme/eldy/img/object_sms.png"></a>' . '</br>';
+                    if (!empty($user_tmp->skype))
+                        $out .= '<i>Скайп</i> <a href="skype:' . $user_tmp->skype . '?call">' . $user_tmp->skype . '</a>';
 
+                }
+                $out .= '</br>';
+            }
+        }
     }
+//    require_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
+//    if(!empty($author_id) && $user->id == $author_id) {
+//        $user_tmp->fetch($obj->fk_element);
+//    }else {
+//        $user_tmp->fetch($obj->fk_user_author);
+//    }
+//    if(!empty($user_tmp->lastname))
+//        $out .= '<b>Прізвище</b> '.$user_tmp->lastname.'</br></br>';
+//    if(!empty($user_tmp->office_phone)) {
+//        $userphone = str_replace('+','',$user_tmp->office_phone);
+//        $userphone = str_replace('(','',$userphone);
+//        $userphone = str_replace(')','',$userphone);
+//        $userphone = str_replace('-','',$userphone);
+//        $userphone = str_replace(' ','',$userphone);
+//        if(!empty($user_tmp->office_phone))
+//            $out .= '<b>Телефон</b> <a onclick="Call('.$userphone.', '."'users'".', '.$user_tmp->id.');">' . $user_tmp->office_phone . '</a> <a onclick="showSMSform('.$userphone.')"><img src="/dolibarr/htdocs/theme/eldy/img/object_sms.png"></a>'.'</br></br>';
+//        if(!empty($user_tmp->skype))
+//            $out .= '<b>Скайп</b> <a href="skype:'.$user_tmp->skype.'?call">'.$user_tmp->skype.'</a>';
+//
+//    }
     if(empty($out))
         $out='замовник і виконавець - я';
     return $out;
@@ -430,21 +468,21 @@ function ShowActionTable(){
 //    die();
     if($db->num_rows($res)==0){
         $out .= '<tr class="impair">
-            <td style="widtd: 80px" class="middle_size">&nbsp;</td>
-            <td style="widtd: 80px" class="middle_size">&nbsp;</td>
-            <td style="widtd: 100px" class="middle_size">&nbsp;</td>
-            <td style="widtd: 80px" class="middle_size">&nbsp;</td>
-            <td style="widtd: 50px" class="middle_size">&nbsp;</td>
-            <td style="widtd: 80px" class="middle_size">&nbsp;</td>
-            <td style="widtd: 80px" class="middle_size">&nbsp;</td>
-            <td style="widtd: 80px" class="middle_size">&nbsp;</td>
-            <td style="widtd: 80px" class="middle_size">&nbsp;</td>
-            <td style="widtd: 80px" class="middle_size">&nbsp;</td>
-            <td style="widtd: 80px" class="middle_size">&nbsp;</td>
-            <td style="widtd: 80px" class="middle_size">&nbsp;</td>
-            <td style="widtd: 80px" class="middle_size">&nbsp;</td>
-            <td style="widtd: 80px" class="middle_size">&nbsp;</td>
-            <td style="widtd: 50px" class="middle_size">&nbsp;</td>
+            <td style="width: 80px" class="middle_size">&nbsp;</td>
+            <td style="width: 80px" class="middle_size">&nbsp;</td>
+            <td style="width: 100px" class="middle_size">&nbsp;</td>
+            <td style="width: 80px" class="middle_size">&nbsp;</td>
+            <td style="width: 50px" class="middle_size">&nbsp;</td>
+            <td style="width: 80px" class="middle_size">&nbsp;</td>
+            <td style="width: 80px" class="middle_size">&nbsp;</td>
+            <td style="width: 80px" class="middle_size">&nbsp;</td>
+            <td style="width: 80px" class="middle_size">&nbsp;</td>
+            <td style="width: 80px" class="middle_size">&nbsp;</td>
+            <td style="width: 80px" class="middle_size">&nbsp;</td>
+            <td style="width: 80px" class="middle_size">&nbsp;</td>
+            <td style="width: 80px" class="middle_size">&nbsp;</td>
+            <td style="width: 80px" class="middle_size">&nbsp;</td>
+            <td style="width: 50px" class="middle_size">&nbsp;</td>
             <td style="width: 35px" class="middle_size">&nbsp;</td>
             </tr>';
     }
@@ -601,22 +639,22 @@ function CreateNewActionItem($row, $num, $result = false){
         $title = 'Результат дії '.$title;
     }
     $out = '<tr class="' . (fmod($num, 2) == 0 ? 'impair' : 'pair') . '">
-    <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'dtChange" style="widtd: 80px" class="middle_size">' . (empty($row->datec) ? '' : $dtChange->format('d.m.y H:i:s')) . '</td>
-    <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'lastname" style="widtd: 100px" class="middle_size">' . $row->lastname . '</td>
-    <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'contactname" style="widtd: 80px" class="middle_size">' . $row->contactname . '</td>
-    <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'kindaction" style="widtd: 50px; text-align: center;" class="middle_size" ><img src="/dolibarr/htdocs/theme/' . $conf->theme . '/img/' . $iconitem . '" title="' . $title . '"></td>
-    <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'said" style="widtd: 80px" class="middle_size">' . (strlen($row->said) > 20 ? mb_substr($row->said, 0, 20, 'UTF-8') . '...<input type="hidden" value="' . EcsapeQuote($row->said) . '" id="input_' . $row->rowid . 'said">' : $row->said) . '</td>
-    <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'answer" style="widtd: 80px" class="middle_size">' . (strlen($row->answer) > 20 ? mb_substr($row->answer, 0, 20, 'UTF-8') . '...<input type="hidden" value="' . EcsapeQuote($row->answer) . '" id="input_' . $row->rowid . 'answer">' : $row->answer) . '</td>
-    <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'argument" style="widtd: 80px" class="middle_size">' . (strlen($row->argument) > 20 ? mb_substr($row->argument, 0, 20, 'UTF-8') . '...<input type="hidden" value="' . EcsapeQuote($row->argument) . '" id="input_' . $row->rowid . 'argument">' : $row->argument) . '</td>
-    <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'said_important" style="widtd: 80px" class="middle_size">' . (strlen($row->said_important) > 20 ? mb_substr($row->said_important, 0, 20, 'UTF-8') . '...<input type="hidden" value="' . EcsapeQuote($row->said_important) . '" id="input_' . $row->rowid . 'said_important>' : $row->said_important) . '</td>
-    <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'result_of_action" style="widtd: 80px" class="middle_size">' . (strlen($row->result_of_action) > 20 ? mb_substr($row->result_of_action, 0, 20, 'UTF-8') . '...<input type="hidden" value="' . EcsapeQuote($row->result_of_action) . '" id="input_' . $row->rowid . 'result_of_action">' : $row->result_of_action) . '</td>
-    <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'work_before_the_next_action" style="widtd: 80px" class="middle_size">' . (strlen($row->work_before_the_next_action) > 20 ? mb_substr($row->work_before_the_next_action, 0, 20, 'UTF-8') . '...<input type="hidden" value="' . EcsapeQuote($row->work_before_the_next_action) . '" id="input_' . $row->rowid . 'work_before_the_next_action">' : $row->work_before_the_next_action) . '</td>';
+    <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'dtChange" style="width: 80px" class="middle_size">' . (empty($row->datec) ? '' : $dtChange->format('d.m.y H:i:s')) . '</td>
+    <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'lastname" style="width: 100px" class="middle_size">' . $row->lastname . '</td>
+    <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'contactname" style="width: 80px" class="middle_size">' . $row->contactname . '</td>
+    <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'kindaction" style="width: 50px; text-align: center;" class="middle_size" ><img src="/dolibarr/htdocs/theme/' . $conf->theme . '/img/' . $iconitem . '" title="' . $title . '"></td>
+    <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'said" style="width: 80px" class="middle_size">' . (strlen($row->said) > 20 ? mb_substr($row->said, 0, 20, 'UTF-8') . '...<input type="hidden" value="' . EcsapeQuote($row->said) . '" id="input_' . $row->rowid . 'said">' : $row->said) . '</td>
+    <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'answer" style="width: 80px" class="middle_size">' . (strlen($row->answer) > 20 ? mb_substr($row->answer, 0, 20, 'UTF-8') . '...<input type="hidden" value="' . EcsapeQuote($row->answer) . '" id="input_' . $row->rowid . 'answer">' : $row->answer) . '</td>
+    <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'argument" style="width: 80px" class="middle_size">' . (strlen($row->argument) > 20 ? mb_substr($row->argument, 0, 20, 'UTF-8') . '...<input type="hidden" value="' . EcsapeQuote($row->argument) . '" id="input_' . $row->rowid . 'argument">' : $row->argument) . '</td>
+    <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'said_important" style="width: 80px" class="middle_size">' . (strlen($row->said_important) > 20 ? mb_substr($row->said_important, 0, 20, 'UTF-8') . '...<input type="hidden" value="' . EcsapeQuote($row->said_important) . '" id="input_' . $row->rowid . 'said_important>' : $row->said_important) . '</td>
+    <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'result_of_action" style="width: 80px" class="middle_size">' . (strlen($row->result_of_action) > 20 ? mb_substr($row->result_of_action, 0, 20, 'UTF-8') . '...<input type="hidden" value="' . EcsapeQuote($row->result_of_action) . '" id="input_' . $row->rowid . 'result_of_action">' : $row->result_of_action) . '</td>
+    <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'work_before_the_next_action" style="width: 80px" class="middle_size">' . (strlen($row->work_before_the_next_action) > 20 ? mb_substr($row->work_before_the_next_action, 0, 20, 'UTF-8') . '...<input type="hidden" value="' . EcsapeQuote($row->work_before_the_next_action) . '" id="input_' . $row->rowid . 'work_before_the_next_action">' : $row->work_before_the_next_action) . '</td>';
     if(!$result)
-        $out.= '<td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'dtAction" style="widtd: 80px" class="middle_size">' . (empty($row->datep) ? '' : ($dateaction->format('d.m.y') . '</br>' . $dateaction->format('H:i'))) . '</td>';
+        $out.= '<td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'dtAction" style="width: 80px" class="middle_size">' . (empty($row->datep) ? '' : ($dateaction->format('d.m.y') . '</br>' . $dateaction->format('H:i'))) . '</td>';
     else
-        $out.= '<td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'dtAction" style="widtd: 80px" class="middle_size"></td>';
-    $out.='<td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'work_before_the_next_action_mentor" style="widtd: 80px" class="middle_size">' . (strlen($row->work_mentor) > 20 ? mb_substr($row->work_mentor, 0, 20, 'UTF-8') . '...<input type="hidden" value="' . $row->work_mentor . '" id="input_' . $row->rowid . 'work_mentor">' : $row->work_mentor) . '</td>
-    <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'date_next_action_mentor" style="widtd: 80px" class="middle_size">' . (empty($row->date_mentor) ? '' : $dtDateMentor->format('d.m.Y')) . '</td>';
+        $out.= '<td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'dtAction" style="width: 80px" class="middle_size"></td>';
+    $out.='<td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'work_before_the_next_action_mentor" style="width: 80px" class="middle_size">' . (strlen($row->work_mentor) > 20 ? mb_substr($row->work_mentor, 0, 20, 'UTF-8') . '...<input type="hidden" value="' . $row->work_mentor . '" id="input_' . $row->rowid . 'work_mentor">' : $row->work_mentor) . '</td>
+    <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'date_next_action_mentor" style="width: 80px" class="middle_size">' . (empty($row->date_mentor) ? '' : $dtDateMentor->format('d.m.Y')) . '</td>';
 
     //Статус завдання
 //    if ($row->percent == -1)
@@ -656,12 +694,12 @@ function CreateNewActionItem($row, $num, $result = false){
         $status = '<img title="Робота прийнята" src="/dolibarr/htdocs/theme/eldy/img/done.png">';
     if($result)
         $status = '';
-    $out.='<td '.$style.';widtd: 50px; text-align: center;" class="middle_size" >' . $langs->trans($status) . '</td>';
+    $out.='<td '.$style.';width: 50px; text-align: center;" class="middle_size" >' . $langs->trans($status) . '</td>';
 
     $out.='<td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'action" style="width: 75px; text-align: center;" class="middle_size"><script>
          var click_event = "/dolibarr/htdocs/societe/addcontact.php?action=edit&mainmenu=companies&rowid=1";
         </script>';
-//<td rowid="' . $row->rowid . '" id = "' . $row->rowid . 'date_next_action" style="widtd: 80px" class="middle_size">' . (empty($row->date_next_action) ? '' : $dtNextAction->format('d.m.Y H:i:s')) . '</td>
+//<td rowid="' . $row->rowid . '" id = "' . $row->rowid . 'date_next_action" style="width: 80px" class="middle_size">' . (empty($row->date_next_action) ? '' : $dtNextAction->format('d.m.Y H:i:s')) . '</td>
 //            $out .= '<img id="img_1" "="" onclick="" style="vertical-align: middle" title="'.$langs->trans('AddSubAction').'" src="/dolibarr/htdocs/theme/eldy/img/Add.png">';
     $actioncode = '';
     switch ($_REQUEST['mainmenu']) {

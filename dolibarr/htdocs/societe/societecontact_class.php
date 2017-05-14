@@ -321,16 +321,23 @@ class societecontact {
 //            and `llx_societe_contact`.`active` = 1
 //            and `llx_c_proposition`.active = 1
 //            and `llx_c_proposition`.`begin`<=Now() and (`llx_c_proposition`.`end`>= Now() or `llx_c_proposition`.`end` is null )';
+        $sql = "select `rowid` from `llx_societe_contact` where `socid` = ".(empty($obj->socid)?$_REQUEST['socid']:$obj->socid)." and active = 1";
+        $contact_res = $db->query($sql);
+        $contact_id = array(0);
+        while($item = $db->fetch_object($contact_res)){
+            $contact_id[]=$item->rowid;
+        }
+
+
         $sql = "select distinct `proposition`.fk_proposition as prososed_id, `proposition`.fk_post as post_id, `proposition`.`fk_lineactive`
-                from  `llx_societe_contact`
-                inner join `llx_societe` on `llx_societe`.rowid = `llx_societe_contact`.`socid`
+                from  `llx_societe_contact`                
                 inner join (select llx_proposition_properties.fk_proposition, llx_proposition_properties.fk_post, `llx_proposition_properties`.fk_lineactive from llx_c_proposition
                   inner join llx_proposition_properties on llx_c_proposition.rowid = llx_proposition_properties.fk_proposition
                   where 1
                   and `llx_c_proposition`.active = 1
                   and `llx_c_proposition`.`begin`<=Now() and (`llx_c_proposition`.`end`>= Now() or `llx_c_proposition`.`end` is null )
                   and llx_proposition_properties.active = 1) proposition on `llx_societe_contact`.post_id = proposition.fk_post
-                where `llx_societe_contact`.`socid`= ".(empty($obj->socid)?$_REQUEST['socid']:$obj->socid)."
+                where `llx_societe_contact`.`rowid` in (".implode(',',$contact_id).")
                 and `llx_societe_contact`.`active` = 1";
 
 
@@ -360,7 +367,7 @@ class societecontact {
 
             $sql = 'select distinct proposed_id, contactid from `llx_societe_action`
                 left join `llx_actioncomm` on `llx_actioncomm`.`id` = `llx_societe_action`.`action_id`
-                where contactid in (select `rowid` from `llx_societe_contact` where `socid` = '.(empty($obj->socid)?$_REQUEST['socid']:$obj->socid).' and active = 1)
+                where contactid in ('.implode(',',$contact_id).')
                 and `llx_societe_action`.`proposed_id` is not null
                 and `llx_societe_action`.`active` = 1
                 and `llx_actioncomm`.`active` = 1';

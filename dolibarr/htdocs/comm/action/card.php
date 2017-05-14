@@ -48,9 +48,11 @@ if(isset($_REQUEST['action'])&&$_REQUEST['action'] == 'edit'&&isset($_REQUEST['a
 }
 if(isset($_REQUEST['action'])&&$_REQUEST['action'] == 'create' && isset($_REQUEST['parent_id'])&&!empty($_REQUEST['parent_id'])){
 	$chain_actions = array();
-	if(getActionStatus($_REQUEST['parent_id'])=='100' && in_array($_REQUEST["actioncode"], array('AC_GLOBAL','AC_CURRENT')) ){
+	$Action = new ActionComm($db);
+	$Action->info($_REQUEST['parent_id']);
+	if(getActionStatus($_REQUEST['parent_id'])=='100' && in_array($Action->code, array('AC_GLOBAL','AC_CURRENT')) ){
 		//Перевіряю чи виконана первинна дія
-		$Action = new ActionComm($db);
+
 		$chain_actions = $Action->GetChainActions($_REQUEST['parent_id']);
 		if(count($chain_actions) && getActionStatus($chain_actions[0])=='100') {
 			llxHeader('', 'Помилка', '');
@@ -388,7 +390,7 @@ $action=GETPOST('action','alpha');
 $cancel=GETPOST('cancel','alpha');
 //$backtopage=GETPOST('backtopage','alpha');
 $backtopage=$_REQUEST['backtopage'];
-//var_dump($backtopage);
+//var_dump($_POST);
 //die();
 if(substr($backtopage, 0, 1) == "'")
 	$backtopage = substr($backtopage, 1, strlen($backtopage)-2);
@@ -433,7 +435,7 @@ $datef=dol_mktime($fulldayevent?'23':GETPOST("p2hour"), $fulldayevent?'59':GETPO
 // Security check
 $socid = GETPOST('socid','int');
 $id = GETPOST('id','int');
-
+//$id = 488259;
 
 if ($user->societe_id) $socid=$user->societe_id;
 $result = restrictedArea($user, 'agenda', $id, 'actioncomm&societe', 'myactions|allactions', 'fk_soc', 'id');
@@ -633,6 +635,7 @@ if ($action == 'add')
 		$object->subaction_id = GETPOST("subaction_id");
 		$object->motivator = GETPOST("motivator");
 		$object->demotivator = GETPOST("demotivator");
+		$object->user_valuer = GETPOST("user_valuer");
 //        die($object->parent_id);
 
 		if (! GETPOST('label'))
@@ -657,9 +660,9 @@ if ($action == 'add')
 		$object->datepreperform = $dateprep;
 		if(isset($_REQUEST['typeaction']) && $_REQUEST['typeaction'] == 'subaction' || GETPOST("mentor_action") == 1)
 			$object->entity = 0;
-//		var_dump($object->entity);
-//		die();
 		$object->percentage = $percentage;
+//		var_dump($object->percentage);
+//		die();
 		$object->duree=((float) (GETPOST('dureehour') * 60) + (float) GETPOST('dureemin')) * 60;
 
 		$listofuserid=array();
@@ -748,26 +751,51 @@ if ($action == 'add')
 
 		$db->begin();
 //        echo '<pre>';
-//        var_dump($object);
+//        var_dump(count(dol_json_decode($_SESSION['assignedtouser'], true)));
 //        echo '</pre>';
 //        die();
 		// On cree l'action
-		if(isset($_REQUEST["dateNextAction"])&&!empty($_REQUEST["dateNextAction"])) {
+		if(isset($_REQUEST["dateNextAction"])&&!empty($_REQUEST["dateNextAction"])&&count(dol_json_decode($_SESSION['assignedtouser'], true))<=1) {
 			$dateconfirm = new DateTime();
 			$object->dateconfirm = $dateconfirm->format('Y-m-d H:i:s');
 			$object->percentage = 0;
 		}
+
+		$idaction=$object->add($user);
+		if(!empty($object->user_valuer)&&$object->user_valuer>0){//Якщо призначено фахівця оцінщика -
+			$valuer_action = new ActionComm($db);
+			$valuer_action->fetch($idaction);
+
+			foreach (array_keys($valuer_action->userassigned) as $key){
+				if($key != $user->id){
+					unset($valuer_action->userassigned[$key]);
+				}else{
+					$valuer_action->userassigned[$key]["transparency"] = 0;
+				}
+			}
+			$valuer_action->userassigned[$object->user_valuer] = array("id"=>$object->user_valuer, "transparency"=>0);
 //		echo '<pre>';
-//		var_dump($object);
+//		var_dump($valuer_action->userassigned);
 //		echo '</pre>';
 //		die();
-		$idaction=$object->add($user);
+			$valuer_action->id=null;
+			$valuer_action->parent_id = $idaction;
+			$valuer_action->percentage = -1;
+			$valuer_action->groupoftask = 10;
+//			$valuer_action->datep=dol_mktime($_REQUEST["dateNextActionhour"], $_REQUEST["dateNextActionmin"], 0, $_REQUEST["dateNextActionmonth"], $_REQUEST["dateNextActionday"], $_REQUEST["dateNextActionyear"]);
+//			$valuer_action->datef=$valuer_action->datep+$_REQUEST["exec_time_dateNextAction"]*60;
+			$valuer_action->entity = 0;
+			$valuer_action->note = "Будь ласка проконтролюйте виконання задачі";
+//			$dateconfirm = new DateTime();
+//			$valuer_action->dateconfirm = $dateconfirm->format('Y-m-d H:i:s');
+			$valuer_action->add($user);
+		}
 //		echo '<pre>';
 //		var_dump($idaction);
 //		echo '</pre>';
 //		die();
 		if(isset($_REQUEST["dateNextAction"])&&
-				!empty($_REQUEST["dateNextAction"])
+				!empty($_REQUEST["dateNextAction"])&&count(dol_json_decode($_SESSION['assignedtouser'], true))<=1
 				&&in_array($object->type_code, array('AC_GLOBAL','AC_CURRENT'))
 				&&(!isset($_REQUEST["mentor_action"])||empty($_REQUEST["mentor_action"]))){
 			$subaction = new ActionComm($db);
@@ -796,26 +824,33 @@ if ($action == 'add')
 				$moreparam='';
 				if ($user->id != $object->ownerid) $moreparam="usertodo=-1";	// We force to remove filter so created record is visible when going back to per user view.
 //				echo '<pre>';
-//				var_dump(empty($backtopage));
+//				var_dump(!empty(GETPOST('save_and_create')));
 //				echo '</pre>';
 //				die('stop');
 				$db->commit();
 				if (!empty($backtopage))
 				{
-					dol_syslog("Back to ".$backtopage.($moreparam?(preg_match('/\?/',$backtopage)?'&'.$moreparam:'?'.$moreparam):''));
+//					var_dump($_POST);
+//					die();
+					if(empty($_REQUEST['save_and_create'])) {
+						dol_syslog("Back to " . $backtopage . ($moreparam ? (preg_match('/\?/', $backtopage) ? '&' . $moreparam : '?' . $moreparam) : ''));
 //					header("Location: ".$backtopage.($moreparam?(preg_match('/\?/',$backtopage)?'&'.$moreparam:'?'.$moreparam):''));
+					}else{
+						$backtopage = '/dolibarr/htdocs/comm/action/card.php?action=create';
+					}
                     $Location = "Location: ".str_replace("'",'', $backtopage);
 //					var_dump($backtopage);
 //					die($backtopage);
                     header($Location);
 				}
 				elseif(!empty($object->socid)){
-					if($object->type_code == 'AC_GLOBAL')
-						$backtopage = '/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$idaction.'&mainmenu=global_task';
-					elseif($object->type_code == 'AC_CURRENT')
-						$backtopage = '/dolibarr/htdocs/comm/action/chain_actions.php?action_id='.$idaction.'&mainmenu=current_task';
+					if ($object->type_code == 'AC_GLOBAL')
+						$backtopage = '/dolibarr/htdocs/comm/action/chain_actions.php?action_id=' . $idaction . '&mainmenu=global_task';
+					elseif ($object->type_code == 'AC_CURRENT')
+						$backtopage = '/dolibarr/htdocs/comm/action/chain_actions.php?action_id=' . $idaction . '&mainmenu=current_task';
 					else
-						$backtopage = '/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/action.php?socid='.$object->socid.'&idmenu=10425&mainmenu=area';
+						$backtopage = '/dolibarr/htdocs/responsibility/' . $user->respon_alias . '/action.php?socid=' . $object->socid . '&idmenu=10425&mainmenu=area';
+
 //					$backtopage = '/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/action.php?socid='.$object->socid.'&idmenu=10425&mainmenu=area';
 //					var_dump($backtopage);
 //					die();
@@ -899,6 +934,7 @@ if ($action == 'update')
 		$object->typeSetOfDate = GETPOST("typeSetOfDate");
 		$object->motivator = GETPOST("motivator");
 		$object->demotivator = GETPOST("demotivator");
+		$object->user_valuer = GETPOST("user_valuer");
 		$object->planed_cost = GETPOST("planed_cost");
 
         $object->contactid   = GETPOST("contactid",'int');
@@ -1113,7 +1149,7 @@ if ($action == 'create') {
 
 }
 elseif($action == 'edit') {
-	if(!isset($_REQUEST["duplicate_action"]) && $_REQUEST['action_id'] > 0)
+	if(!isset($_REQUEST["duplicate_action"]) && $_REQUEST['action_id'] > 0 || $_REQUEST['id'] > 0)
 		llxHeader('', $langs->trans("EditAction"), $help_url);
 	else
 		llxHeader('', $langs->trans("DuplicateAction"), $help_url);
@@ -1436,17 +1472,20 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 	if($_REQUEST['actioncode'] == 'AC_TEL')
 		print '<div style="padding-top: 10px"><span style="font-size: 12px">На вибрану дату заплановано <span id="ActionsCount">0</span> дзвінків</span></div>';
 	print '</td></tr>';
-//	echo '<pre>';
-//	var_dump(count(dol_json_decode($_SESSION['assignedtouser'], true)));
-//	echo '</pre>';
-//	die();
+	print '<tr class="global_current">';
+	print '<td width="30%" class="nowrap" >' . $langs->trans("DateNextActionStart") . '</td><td>';
+	$form->select_date($datep, 'dateNextAction', 1, 1, 1, "action", 1, 1, 0, 0, 'fulldayend', 'dtChangeNextDateAction');
+	print '<span id="ShowFreeTime" onclick="ShowFreeTime('."'dateNextAction'".');" title="Переглянути наявність вільного часу" style="vertical-align: middle"><img src="/dolibarr/htdocs/theme/eldy/img/calendar.png"></span>  ';
+	print '<span style="font-size: 12px">Необхідно часу  </span><input type="text" class="param exec_time" size="2" id = "exec_time_dateNextAction" name="exec_time_dateNextAction"><span style="font-size: 12px"> хвилин.</span></td></tr>';
+
 	if(count(dol_json_decode($_SESSION['assignedtouser'], true)) <= 1 && $action == 'create' && (!isset($_REQUEST["typeaction"])||empty($_REQUEST["typeaction"]))) {//Якщо відбувається створення нової дії тільки для активного користувача
+//	if(/*count(dol_json_decode($_session['assignedtouser'], true)) <= 1 &&*/ $action == 'create' && (!isset($_REQUEST["typeaction"])||empty($_REQUEST["typeaction"]))) {//Змінив щоб можливо було встановлювати дату наступних дій для пов'язаних користувачів
 		print '<script> var user_id='.$user->id.'</script>';
-		print '<tr class="global_current">';
-		print '<td width="30%" class="nowrap" >' . $langs->trans("DateNextActionStart") . '</td><td>';
-		$form->select_date($datep, 'dateNextAction', 1, 1, 1, "action", 1, 1, 0, 0, 'fulldayend', 'dtChangeNextDateAction');
-		print '<span id="ShowFreeTime" onclick="ShowFreeTime('."'dateNextAction'".');" title="Переглянути наявність вільного часу" style="vertical-align: middle"><img src="/dolibarr/htdocs/theme/eldy/img/calendar.png"></span>  ';
-		print '<span style="font-size: 12px">Необхідно часу  </span><input type="text" class="param exec_time" size="2" id = "exec_time_dateNextAction" name="exec_time_dateNextAction"><span style="font-size: 12px"> хвилин.</span></td></tr>';
+//		print '<tr class="global_current">';
+//		print '<td width="30%" class="nowrap" >' . $langs->trans("DateNextActionStart") . '</td><td>';
+//		$form->select_date($datep, 'dateNextAction', 1, 1, 1, "action", 1, 1, 0, 0, 'fulldayend', 'dtChangeNextDateAction');
+//		print '<span id="ShowFreeTime" onclick="ShowFreeTime('."'dateNextAction'".');" title="Переглянути наявність вільного часу" style="vertical-align: middle"><img src="/dolibarr/htdocs/theme/eldy/img/calendar.png"></span>  ';
+//		print '<span style="font-size: 12px">Необхідно часу  </span><input type="text" class="param exec_time" size="2" id = "exec_time_dateNextAction" name="exec_time_dateNextAction"><span style="font-size: 12px"> хвилин.</span></td></tr>';
 		print '<tr class="global_current">';
 		print '<td width="30%" class="nowrap" >Робота до/на наступних дій</td><td>';
 		print '<textarea id="work_before_the_next_action" name="work_before_the_next_action" class="flat" cols="90" rows="6"></textarea></td></tr>';
@@ -1588,7 +1627,12 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 	print '<tr><td class="nowrap">'.$langs->trans("ActionOnContact").'</td><td>';
 	$form->select_contacts($_REQUEST['socid'],GETPOST('contactid'),'contactid',1);
 	print '</td></tr>';
-
+	print '<tr><td class="nowrap">Фахівець-оцінщик</td><td>';
+//		var_dump($object->fk_user_valuer);
+//		die();
+	print $form->select_dolusers($object->fk_user_valuer,'user_valuer', 1);
+//	$form->select_contacts($_REQUEST['socid'],GETPOST('contactid'),'contactid',1);
+	print '</td></tr>';
 
 	// Project
 	if (! empty($conf->projet->enabled))
@@ -1639,6 +1683,8 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 
 	print '<center><br>';
 	print '<input type="submit" class="button" value="'.$langs->trans("Add").'">';
+	print ' &nbsp; &nbsp; ';
+	print '<input type="submit" class="button" name="save_and_create" value="Зберегти та запланувати наступну дію">';
 	print ' &nbsp; &nbsp; ';
 	print '<input type="submit" class="button" name="cancel" value="'.$langs->trans("Cancel").'">';
 	print '</center>';
@@ -1986,7 +2032,12 @@ if ($id > 0)
             $form->select_contacts($object->socid, $object->contactid,'contactid',1);
             print '</td></tr>';
 		}
-
+		print '<tr><td class="nowrap">Фахівець-оцінщик</td><td>';
+//		var_dump($object->fk_user_valuer);
+//		die();
+		print $form->select_dolusers($object->fk_user_valuer,'user_valuer', 1);
+//	$form->select_contacts($_REQUEST['socid'],GETPOST('contactid'),'contactid',1);
+		print '</td></tr>';
 		// Project
 		if (! empty($conf->projet->enabled))
 		{

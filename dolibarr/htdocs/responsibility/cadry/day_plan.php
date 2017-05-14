@@ -251,7 +251,7 @@ function ShowTable(){
 //        die();
     $table.= ShowTasks('AC_CUST', 'Найкращі показники по підрозділу', true);
 
-    $table.= getRegionsList($id_usr);
+    $table.= getRegionsListCadry($id_usr);
 
     $table.= ShowTasks('AC_PROJECT', 'Проекти', true);
     $table.= ShowTasks('AC_EDUCATION, ', 'Навчання', true);
@@ -260,7 +260,7 @@ function ShowTable(){
     $table .= '</tbody>';
     return $table;
 }
-function getRegionsList($id_usr){
+function getRegionsListCadry($id_usr){
     global $db, $actions,$actioncode;
     $outstanding = array();
     $future=array();

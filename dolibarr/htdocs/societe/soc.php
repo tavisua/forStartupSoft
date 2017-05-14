@@ -101,6 +101,9 @@ if (! empty($canvas))
 }
 
 // Security check
+if(!$user->rights->societe){
+    $user->getrights('societe');
+}
 $result = restrictedArea($user, 'societe', $socid, '&societe', '', 'fk_soc', 'rowid', $objcanvas);
 
 // Initialize technical object to manage hooks of thirdparties. Note that conf->hooks_modules contains array array
@@ -768,7 +771,7 @@ else
         $object->state_id			= GETPOST('state_id', 'int');
         $object->region_id          = GETPOST('region_id', 'int');
         $object->skype				= GETPOST('skype', 'alpha');
-        $object->phone				= GETPOST('phone', 'alpha');
+        $object->phone				= empty($_REQUEST['incomming_call'])?GETPOST('phone', 'alpha'):'+'.trim($_REQUEST['incomming_call']);
         $object->fax				= GETPOST('fax', 'alpha');
         $object->email				= GETPOST('email', 'custom', 0, FILTER_SANITIZE_EMAIL);
         $object->url				= GETPOST('url', 'custom', 0, FILTER_SANITIZE_URL);

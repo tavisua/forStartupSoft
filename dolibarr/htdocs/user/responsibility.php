@@ -118,9 +118,9 @@ $ColParam['class']='';
 $TableParam[]=$ColParam;
 
 $tablename='responsibility';
-$sql = "select `responsibility`.`rowid`,`responsibility`.`name`, case when respon.active is null then 0 else respon.active end active
+$sql = "select `responsibility`.`rowid`,`responsibility`.`name`, case when respon.fk_respon is null then 0 else 1 end active
 from `responsibility` 
-left join (select * from llx_user_responsibility where fk_user = ".$_GET['id']." and active = 1) respon on `respon`.`fk_respon` = `responsibility`.`rowid`
+left join (select distinct llx_user_responsibility.fk_respon from llx_user_responsibility where llx_user_responsibility.fk_user = ".$_GET['id']." and llx_user_responsibility.active = 1) respon on `respon`.`fk_respon` = `responsibility`.`rowid`
 where `responsibility`.active = 1";
 
 

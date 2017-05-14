@@ -184,8 +184,7 @@ function ShowTask(){
                                         and `llx_actioncomm`.`active` = 1";
                             else {
                                 $sql_tmp = "select rowid from llx_user
-                                            where subdiv_id = " . $user->subdiv_id . "
-                                            and active = 1";
+                                            where subdiv_id = " . $user->subdiv_id ;
                                 $res = $db->query($sql_tmp);
                                 $users_id = array(0);
                                 while ($obj = $db->fetch_object($res)) {

@@ -9,7 +9,8 @@
 //var_dump($_SERVER);
 //echo '</pre>';
 //die();
-
+if($_REQUEST['action'] == 'createStatisticPage')
+    define('NOLOGIN',1);
 require $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/main.inc.php';
 if(isset($_REQUEST['action'])){
     global $db,$user;
@@ -31,7 +32,12 @@ if(isset($_REQUEST['action'])){
             }
         }
         case 'setOverdue_Actions_GlobalItem':{
-            echo date('H:m', time());
+            require_once $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/cron/class/cronjob.class.php';
+            $CronJob = new Cronjob($db);
+            $status = $CronJob->setStartCronStatus('setOverdue_Actions_GlobalItem');
+            if($status == 0)
+                return 0;
+
             set_time_limit(0);
             require_once $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/comm/action/class/actioncomm.class.php';
             $Action = new ActionComm($db);
@@ -41,25 +47,11 @@ if(isset($_REQUEST['action'])){
                 $res = $db->query($sql);
                 if (!$res)
                     dol_print_error($db);
-                $sql = "select llx_actioncomm.id from llx_actioncomm where date(datep) < date(now()) and llx_actioncomm.`code` <> 'AC_OTH_AUTO' and llx_actioncomm.percent not in (100, -100, 99)";
-                $res = $db->query($sql);
-                if (!$res)
-                    dol_print_error($db);
-                $actionsID = array();
-//                $num = 0;
-
-                while ($obj = $db->fetch_object($res)) {
-//                    if($num++ > 10)
-//                        break;
-//                    if(!in_array($obj->id,$actionsID))
-                    $Action->setOuterdueStatus($obj->id);
-//                        $actionsID = array_merge($actionsID, $Action->setOuterdueStatus($obj->id));
-//                        var_dump($actionsID);
-                }
+                setOverdue_Actions_GlobalItem();
 
 
 //                echo time()-$time;
-                echo date('H:m', time());
+                $CronJob->setExecCronStatus('setOverdue_Actions_GlobalItem');
 
             }else{
                 $Action->setOuterdueStatus($_REQUEST['action_id']);
@@ -184,25 +176,29 @@ if(isset($_REQUEST['action'])){
                 $id_user = $user->id;
             else
                 $id_user = $_GET['id_usr'];
-            $sql="select distinct  date(llx_actioncomm.datep) datep
-                from llx_actioncomm
-                inner join (select id from `llx_c_actioncomm` where type in('user','system') and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
-                left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = llx_actioncomm.id
-                left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
-                left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
+            $sql="select distinct  date(statistic_action.datep) datep
+                from statistic_action
+                inner join (select id from `llx_c_actioncomm` where type in('user','system') and active = 1) type_action on type_action.id = `statistic_action`.`fk_action`
+                left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = statistic_action.id
+                left join `llx_societe` on `llx_societe`.`rowid` = `statistic_action`.`fk_soc`
+                left join `llx_societe_action` on `llx_societe_action`.`action_id` = `statistic_action`.`id`
                 inner join (select `llx_user`.rowid, `responsibility`.`alias`
                   from `llx_user` inner join `responsibility` on `responsibility`.`rowid` = `llx_user`.`respon_id` where `llx_user`.`rowid` = ".$id_user.")
-                  sub_user on sub_user.rowid = case when llx_actioncomm_resources.fk_element is null then llx_actioncomm.`fk_user_author` else llx_actioncomm_resources.fk_element end
+                  sub_user on sub_user.rowid = case when llx_actioncomm_resources.fk_element is null then statistic_action.`fk_user_action` else llx_actioncomm_resources.fk_element end
                 where 1
-                and llx_actioncomm.active = 1
-                and datep2 between adddate(date(now()), interval -1 month) and adddate(date(now()), interval 1 month)";
-            if(!empty($_REQUEST["region_id"]))
-                $sql.= "and region_id = ".$_REQUEST["region_id"];
-            else
-                $sql.= "and region_id is null";
-            $sql.= " and percent <> 100
-                and date(datep2)<date(now())";
+                and statistic_action.active = 1 ";
+            if($_REQUEST["region_id"] != -1){
+                if (!empty($_REQUEST["region_id"]))
+                    $sql .= "and region_id = " . $_REQUEST["region_id"];
+                else
+                    $sql .= "and region_id is null";
+            }
+            $sql.= " and overdue = 1";
             $res = $db->query($sql);
+//            echo '<pre>';
+//            var_dump($sql);
+//            echo '</pre>';
+//            die();
             if(!$res)
                 dol_print_error($db);
             $out = '<a class="close" title="Закрити" onclick="closeForm($(this).parent());"></a>
@@ -320,7 +316,7 @@ if(isset($_REQUEST['action'])){
 }
 //echo 'pleace wait...';
 //echo '<pre>';
-//var_dump($user);
+//var_dump([$user->respon_alias,$user->respon_alias2]);
 //echo '</pre>';
 //die();
 $dir_depatment = ['dir_depatment','corp_manager'];
@@ -328,48 +324,180 @@ $dir_depatment = ['dir_depatment','corp_manager'];
 header("Location: http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/responsibility/".(count(array_intersect([$user->respon_alias,$user->respon_alias2],$dir_depatment))>0&&$user->respon_alias!='gen_dir'?'dir_depatment':$user->respon_alias)."/day_plan.php?idmenu=10419&mainmenu=plan_of_days&leftmenu=");
 
 exit();
-
-function createStaticDayPlanPage(){
-    global $db, $user;
-    $sql = "select distinct sub_user.rowid  id_usr, sub_user.alias, `llx_societe`.`region_id`, llx_actioncomm.id, llx_actioncomm.percent, date(llx_actioncomm.datep) datep, llx_actioncomm.percent,
-    case when llx_actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT','AC_EDUCATION', 'AC_INITIATIV', 'AC_PROJECT') then llx_actioncomm.`code` else 'AC_CUST' end `code`, `llx_societe_action`.`callstatus`,
-    `llx_societe`.`categoryofcustomer_id`
-    from llx_actioncomm
-    inner join (select id from `llx_c_actioncomm` where type in('user','system') and active = 1) type_action on type_action.id = `llx_actioncomm`.`fk_action`
-    left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = llx_actioncomm.id
-    left join `llx_societe` on `llx_societe`.`rowid` = `llx_actioncomm`.`fk_soc`
-    left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
-    inner join (select `llx_user`.rowid, `responsibility`.`alias` from `llx_user` inner join `responsibility` on `responsibility`.`rowid` = `llx_user`.`respon_id` where 1 and `llx_user`.`active` = 1) sub_user on sub_user.rowid = case when llx_actioncomm_resources.fk_element is null then llx_actioncomm.`fk_user_author` else llx_actioncomm_resources.fk_element end
-    where 1
-    and llx_actioncomm.active = 1
-    and datep2 between adddate(date(now()), interval -1 month) and adddate(date(now()), interval 1 month)";
+function setOverdue_Actions_GlobalItem(){
+    global $db;
+    $sql = "update llx_actioncomm set overdue = null";
     $res = $db->query($sql);
-    global $actions;
-    $actions = array();
+    if (!$res)
+        dol_print_error($db);
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/comm/action/class/actioncomm.class.php';
+    $Action = new ActionComm($db);
+    $sql = "select llx_actioncomm.id from llx_actioncomm where date(datep) between adddate(date(now()), interval -1 month) and date(now())
+        and active = 1 and `code` <> 'AC_OTH_AUTO'";
+    $res = $db->query($sql);
+    if (!$res)
+        dol_print_error($db);
+//                $num = 0;
+    $sql = "update llx_actioncomm set overdue = null";
+    $res_update = $db->query($sql);
+    if (!$res_update)
+        dol_print_error($db);
     while ($obj = $db->fetch_object($res)) {
-        $actions[] = array('overdue'=>$obj->overdue, 'id_usr' => $obj->id_usr, 'rowid'=>$obj->id, 'region_id' => $obj->region_id, 'respon_alias' => $obj->alias, 'percent' => $obj->percent, 'datep' => $obj->datep, 'code' => $obj->code, 'callstatus'=>$obj->callstatus);
-    }
-    echo '<pre>';
-    var_dump($actions);
-    echo '</pre>';
-    die();
-    while($obj = $db->fetch_object($res)){
 
-        $respon = $user->getResponding($obj->rowid, true);
-        $raport = '';
-        if(!array_intersect(array('gen_dir', 'dir_depatment'),$respon)){
-            if(in_array('sale', $respon)){//sale
-                die('1');
-                require_once $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/responsibility/sale/day_plan.php';
-                $raport = ShowTable();
+        $overdue = $Action->setOuterdueStatus($obj->id);
+//        if($overdue){
+//            $sql = "update llx_actioncomm set overdue = 1 where id = ".$obj->id;
+//            $res_update = $db->query($sql);
+//        }
+//                        $actionsID = array_merge($actionsID, $Action->setOuterdueStatus($obj->id));
+//                        var_dump($actionsID);
+    }
+
+}
+function createStaticDayPlanPage(){
+    global $db;
+    set_time_limit(0);
+    $sql = "insert into llx_cronjob (`command`,`datestart`,`params`,`label`,`jobtype`)  values('createStatisticPage',now(),'0','_','_')";
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $actioncode = array('AC_GLOBAL','AC_CURRENT','AC_EDUCATION','AC_INITIATIV','AC_PROJECT');
+    setOverdue_Actions_GlobalItem();
+    $sql = "show tables like 'statistic_action'";
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    if($res->num_rows != 0) {
+        $sql = "drop table statistic_action;";
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+    }
+    $sql = "create table statistic_action like llx_actioncomm";
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $sql = "insert into statistic_action
+    select * from llx_actioncomm
+    where date(datep) between adddate(date(now()), interval -1 week) and adddate(date(now()), interval 1 month) or overdue = 1
+    and active = 1
+    and code <> 'AC_OTH_AUTO'";
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $sql = "update llx_cronjob set `dateend` = now() where `command` = 'createStatisticPage' and `dateend` is null";
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    echo 1;
+}
+function TotalTask($actions_tmp){
+    global $actioncode;
+    $today = new DateTime();
+    $mkToday = dol_mktime(0,0,0,$today->format('m'),$today->format('d'),$today->format('Y'));
+    $userActions_tmp = array();
+    foreach ($actions_tmp as $key=>$item) {
+//        echo '<pre>';
+//        var_dump($action);
+//        echo '</pre>';
+//        die();
+            $obj = (object)$item;
+            $date = new DateTime($obj->datep);
+            $mkDate = dol_mktime(0, 0, 0, $date->format('m'), $date->format('d'), $date->format('Y'));
+
+
+        $userActions_tmp[$obj->datep][$obj->code]++;
+
+            if ($mkDate >= $mkToday) { //Future actions
+                if ($mkDate - $mkToday <= 604800) {//604800 sec by week
+                    $userActions_tmp['future_week'][$obj->code]++;
+                }
+                if ($mkDate - $mkToday <= 2678400)//2678400 sec by month
+                    $userActions_tmp['future_month'][$obj->code]++;
+            }
+            if ($obj->overdue) {
+                $userActions_tmp['outstanding'][$obj->code]++;
+            }
+            if ($mkDate <= $mkToday && $obj->percent == 100 && (in_array($item['code'], $actioncode) || $item['callstatus'] == '5')) {
+//                if($obj->datep == '2016-05-30'){
+//                        echo '<pre>';
+//                        var_dump($item['rowid'], $item['code'], $item['callstatus']);
+//                        echo '</pre>';
+//                }
+                $userActions_tmp['fact_' . $obj->datep][$obj->code]++;
+                if ($mkToday - $mkDate <= 604800)//604800 sec by week
+                    $userActions_tmp['fact_week'][$obj->code]++;
+                if ($mkToday - $mkDate <= 2678400)//2678400 sec by month
+                    $userActions_tmp['fact_month'][$obj->code]++;
+            }
+            if ($mkDate <= $mkToday) {
+                $userActions_tmp['total_' . $obj->datep][$obj->code]++;
+                if ($mkToday - $mkDate <= 604800)//604800 sec by week
+                    $userActions_tmp['total_week'][$obj->code]++;
+                if ($mkToday - $mkDate <= 2678400)//2678400 sec by month
+                    $userActions_tmp['total_month'][$obj->code]++;
             }
         }
-        if(!empty($raport)) {
-            print $raport;
-            die($obj->rowid);
+
+//    if($mkDate <= $mkToday && $action['percent'] == 100 && $action['code'] == 'AC_CUST' && $action['callstatus'] == '5'){
+//        if($mkToday-$mkDate<=604800&&$mkToday-$mkDate>=0)//604800 sec by week
+//            $CustActions[$action['id_usr']]++;
+//
+//    }
+    $table='<tr><td class="middle_size" style="width: 105px"><b>Всього задач</b></td>
+    <td style="width: 175px">&nbsp;</td>
+    <td style="width: 33px">&nbsp;</td>';
+    //% виконання запланованого по факту
+    for($i=8; $i>=0; $i--){
+        if($i < 8) {
+            $percent = '';
+            if($i<7) {
+                $count = (isset($userActions_tmp['fact_' . date("Y-m-d", (time() - 3600 * 24 * $i))]) ? array_sum(($userActions_tmp['fact_' . date("Y-m-d", (time() - 3600 * 24 * $i))])) : ('0'));
+                $total = (isset($userActions_tmp['total_' . date("Y-m-d", (time() - 3600 * 24 * $i))]) ? array_sum(($userActions_tmp['total_' . date("Y-m-d", (time() - 3600 * 24 * $i))])) : (''));
+            }else{
+                $count = isset($userActions_tmp['fact_week'])?array_sum($userActions_tmp['fact_week']):'';
+                $total = isset($userActions_tmp['total_week'])?array_sum($userActions_tmp['total_week']):'';
+            }
+        }else{
+            $count = isset($userActions_tmp['fact_month'])?array_sum(($userActions_tmp['fact_month'])):('0');
+            $total = isset($userActions_tmp['total_month'])?array_sum(($userActions_tmp['total_month'])):('0');
+        }
+        if(!empty($total))
+            $percent = round(100*$count/($total==0?1:$total));
+        $table .= '<td class="middle_size" style="width: ' . (in_array($i, array(0,8))?'35':'30') . 'px; text-align:center;">' . $percent. '</td>';
+    }
+    //минуле факт
+    for($i=8; $i>=0; $i--){
+        if($i < 8)
+            $table.='<td class="middle_size" style="width: '.(in_array($i, array(0,8))?'35':'30').'px; text-align:center;">'.($i<7?(isset($userActions_tmp['fact_'.date("Y-m-d", (time()-3600*24*$i))])?array_sum(($userActions_tmp['fact_'.date("Y-m-d", (time()-3600*24*$i))])):('')):(isset($userActions_tmp['fact_week'])?array_sum($userActions_tmp['fact_week']):'')).'</td>';
+        else
+            $table.='<td class="middle_size" style="width: '.(in_array($i, array(0,8))?'35':'30').'px; text-align:center;">'.(isset($userActions_tmp['fact_month'])?array_sum($userActions_tmp['fact_month']):('0')).'</td>';
+    }
+    //прострочено
+    $value = '';
+    if(!empty($userActions_tmp['outstanding']))
+        $value = array_sum($userActions_tmp['outstanding']);
+    $table .= '<td class="middle_size" style="text-align: center; width: 51px">' . $value . '</td>';
+    //майбутнє заплановано
+    for($i=0; $i<9; $i++){
+        $value = '';
+        if($i < 8) {
+            if($i < 7)
+                $value =  (isset($userActions_tmp[date("Y-m-d", (time() + 3600 * 24 * $i))]) ? array_sum($userActions_tmp[date("Y-m-d", (time() + 3600 * 24 * $i))]) : (''));
+            else {
+                if(!empty($userActions_tmp['future_week']))
+                    $value = (array_sum($userActions_tmp['future_week']));
+            }
+            $table .= '<td class="middle_size" style="text-align: center; width: ' . (in_array($i, array(0))?'35':'30') . 'px">'.(($i < 7)?'<a href="/dolibarr/htdocs/hourly_plan.php?idmenu=10420&mainmenu=hourly_plan&leftmenu=&date=' . date("Y-m-d", (time() + 3600 * 24 * $i)) . '">':'') . $value . (($i < 7)?'</a>':'').'</td>';
+        }else {
+            if(!empty($userActions_tmp['future_month']))
+                $value = array_sum($userActions_tmp['future_month']);
+            $table .= '<td class="middle_size" style="text-align: center; width: 35px">' . $value . '</td>';
         }
     }
-}
+    $table.='</tr>';
+    return $table;
+};
 function getNewAcctions($id_usr){
 //    echo '<pre>';
 //    var_dump($id_usr);
@@ -391,7 +519,7 @@ function getNewAcctions($id_usr){
         left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
         where `llx_actioncomm`.new = 1
         and `llx_actioncomm`.`active` = 1
-        and `llx_actioncomm`.`fk_user_author` = ".$id_usr."
+        and (case when `llx_actioncomm`.`fk_user_valuer` is null or `llx_actioncomm`.`fk_user_valuer`<=0 then `llx_actioncomm`.`fk_user_author` else `llx_actioncomm`.`fk_user_valuer` end) = ".$id_usr."
         and `llx_societe_action`.`id_usr` <> ".$id_usr."
         and (`llx_societe_action`.`new` is null or `llx_societe_action`.`new` = 1)
         and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`
@@ -411,7 +539,7 @@ function getNewAcctions($id_usr){
     $sql.=" union
         select `llx_actioncomm`.`id`, `llx_actioncomm`.`percent`, `llx_actioncomm`.`code`, `llx_societe_action`.`dtChange`, `llx_user`.`lastname` from llx_actioncomm
         left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
-        left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`        
+        left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
         left join `llx_user` on `llx_user`.`rowid` = `llx_societe_action`.`id_usr`
         where `llx_actioncomm`.new = 1
         and `llx_actioncomm`.`active` = 1
@@ -428,7 +556,18 @@ function getNewAcctions($id_usr){
         and `llx_actioncomm`.`active` = 1
         and `llx_actioncomm`.`fk_user_author` = ".$id_usr."
         and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`
-        and `llx_actioncomm`.`percent` = 99";
+        and `llx_actioncomm`.`percent` = 99
+        and (`llx_actioncomm`.`fk_user_valuer` is null or `llx_actioncomm`.`fk_user_valuer`< 0 or `llx_actioncomm`.`fk_user_valuer` > 0 and `llx_actioncomm`.`dtValidValuer` is not null) ";
+    $sql.=" union
+        select `llx_actioncomm`.`id`, `llx_actioncomm`.`percent`, `llx_actioncomm`.`code`, `llx_actioncomm`.`datea`, `llx_user`.`lastname`  from llx_actioncomm
+        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
+        left join `llx_user` on `llx_user`.`rowid` = `llx_actioncomm_resources`.`fk_element`
+        where `new` = 1
+        and `llx_actioncomm`.`active` = 1
+        and `llx_actioncomm`.`percent` = 99
+        and `llx_actioncomm`.`fk_user_valuer` = ".$id_usr."
+        and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`
+        and `llx_actioncomm`.`dtValidValuer` is null";
     $res = $db->query($sql);
 //    echo '<pre>';
 //    var_dump($sql);

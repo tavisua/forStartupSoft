@@ -25,6 +25,25 @@
  */
 
 require '../main.inc.php';
+if($_REQUEST['action'] == 'findSocieteContact'){
+    global $db;
+    $phone = '%';
+    for($i = -9; $i<0; $i++){
+        $phone.=substr($_REQUEST['phone'], $i, 1).'%';
+    }
+    $sql = "select `llx_societe`.rowid, `llx_societe`.`nom`, `formofgavernment`.`name` formofgavernment from `llx_societe_contact`
+        inner join `llx_societe` on `llx_societe`.`rowid` = `llx_societe_contact`.`socid`
+        inner join `formofgavernment` on `formofgavernment`.`rowid` = `llx_societe`.`formofgoverment_id`
+        where  `llx_societe_contact`.`mobile_phone1` like '$phone' limit 1";
+    $res = $db->query($sql);
+    if(!$res->num_rows)
+        print 0;
+    else{
+        $obj = $db->fetch_object($res);
+        print '{"formofgavernment": "'.$obj->formofgavernment.'", "name": "'.$obj->nom.'", "id": '.$obj->rowid.' }';
+    }
+    exit();
+}
 require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
 
 $langs->load("companies");

@@ -83,8 +83,13 @@
         <tr>
             <td <?=$style?>><b>Форма правління</b></td>
             <td <?=$style?>><?=$societe->getFormOfGoverment();?></td>
-            <td ><b>Контакт</b></td>
-            <td ><?=(!empty($object->contactid)||!empty($_GET['socid'])?$form->selectcontacts(empty($_GET['socid']) ? $object->socid : $_GET['socid'], $object->contactid, 'contactid', 1):$Actions->getAssignedUser($_REQUEST["action_id"]))?></td>
+            <?if(!empty($societe->id)){?>
+            <td ></td>
+            <td ></td>
+            <?}else{?>
+            <td ><b>Контактне лице</td>
+            <td ><?=$Actions->getAssignedUser(0);?></td>
+            <?}?>
             <td <?=$style?> id="PlanTimeTitle"></td>
             <td <?=$style?> id="PlanTimeResult"></td>
             <?if(!empty($style)){?>

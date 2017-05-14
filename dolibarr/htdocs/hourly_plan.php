@@ -76,7 +76,7 @@ elseif(!empty($_GET['id_usr']))
 $sql = "select  `llx_actioncomm`.type, `llx_actioncomm`.id as rowid, `llx_actioncomm`.datep, `llx_actioncomm`.datep2,
         `llx_actioncomm`.`code`, `llx_actioncomm`.fk_user_author, `llx_actioncomm`.label, `llx_societe`.region_id, `regions`.`name` as region_name, case when `llx_actioncomm`.fk_soc is null then `llx_user`.`lastname` else `llx_societe`.`nom` end lastname,
         `llx_actioncomm`.`note`, `llx_actioncomm`.`percent`, `llx_c_actioncomm`.`libelle` title, `llx_actioncomm`.confirmdoc,
-        `llx_actioncomm`.priority, max(`llx_societe_action`.`callstatus`) as callstatus
+        `llx_actioncomm`.priority, max(`llx_societe_action`.`callstatus`) as callstatus, `llx_actioncomm`.overdue
         from `llx_actioncomm`
         left join `llx_societe` on `llx_societe`.rowid = `llx_actioncomm`.fk_soc
         left join `states` on `states`.rowid = `llx_societe`.state_id
@@ -215,8 +215,9 @@ while($row = $db->fetch_object($res)) {
         $task_table .='<div class="task_cell" style="float: left; width: 20px; border-color: transparent"></div>';
 
 //    $task .= '<div id="'.$row->rowid.'" class="'.$classitem.'" style="height: 216px" >' . $task_table . '</div>';
+
     if(!empty($_GET['region_id']))
-        $selected = $_GET['region_id'] == $row->region_id;
+        $selected = $_GET['region_id'] == $row->region_id || $_GET['region_id'] == -1 && $row->overdue == 1;
     $task .= '<tr id="' . $row->rowid . '"><td class="' . $classitem . ' '.($selected?"sel_item":"").'" >' . $task_table . '</td></tr>';
 //    $task.='<tr id="'.$row->rowid.'"><td class="'.$classitem.'" style="height: '.($DiffSec/600*($conf->browser->name == 'firefox' ? ($DiffSec/60<=30?($DiffSec/60<15?22:23.8):23.7) : 22)).'px">'.$task_table.'</td></tr>';
     $prev_time = mktime($datep2->format('H'), $datep2->format('i'), $datep2->format('s'), $datep2->format('m'), $datep2->format('d'), $datep2->format('Y'));

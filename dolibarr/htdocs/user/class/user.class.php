@@ -85,6 +85,7 @@ class User extends CommonObject
     var $respon_id2;
     var $respon_alias;
     var $respon_alias2;
+	var $respon_array = array();
     var $usergroup_id;
     var $accessToken;
     var $id_connect;
@@ -612,6 +613,11 @@ class User extends CommonObject
 //        die();
         return $setting;
     }
+	function getUserList()
+	{
+		
+		
+	}		
 	function getrights($moduletag='')
 	{
 		global $conf;
@@ -1309,7 +1315,13 @@ class User extends CommonObject
 				}
 			}
 		}
-		$out .= '<option value="users" id="users">Співробітники</option>';
+		$sql = "select rowid, name from `category_counterparty`
+			where `name` like 'Перевіз%' or `name` like 'Навантаж%'
+			and active = 1 order by `name`";
+		$res = $this->db->query($sql);
+		while($obj = $this->db->fetch_object($res)) {
+			$out .= '<option value="category_id_'.$obj->rowid.'" category_id="'.$obj->rowid.'">'.trim($obj->name).'</option>';
+		}
 		$out .= '</select>';
 		return $out;
 	}
@@ -1360,17 +1372,20 @@ class User extends CommonObject
 		return $respon;
 	}
 	function getLineActive($id_usr){
-		$id_usr = (empty($id_usr)?$this->id:$id_usr);
-		$sql = 'select fk_lineactive from llx_user_lineactive where fk_user = '.$id_usr.' and active = 1';
 
-		$res = $this->db->query($sql);
-		if(!$res)
-			dol_print_error($this->db);
+		$id_usr = (empty($id_usr)?$this->id:$id_usr);
+//		$sql = 'select fk_lineactive from llx_user_lineactive where fk_user = '.$id_usr.' and active = 1';
+//
+//		$res = $this->db->query($sql);
+//		if(!$res)
+//			dol_print_error($this->db);
 		$lineactive = array(0);
-		while($obj = $this->db->fetch_object($res)){
-			if(!in_array($obj->fk_lineactive, $lineactive))
-				$lineactive[]=$obj->fk_lineactive;
-		}
+//		while($obj = $this->db->fetch_object($res)){
+//			if(!in_array($obj->fk_lineactive, $lineactive))
+//				$lineactive[]=$obj->fk_lineactive;
+//		}
+		$responsibility = $this->getResponding($id_usr, true);
+
 		$sql = "select res.alias, res2.alias alias2 from llx_user
 			left join `responsibility` res on res.rowid = llx_user.respon_id
 			left join `responsibility` res2 on res2.rowid = llx_user.respon_id2
@@ -1379,7 +1394,7 @@ class User extends CommonObject
 		if(!$resAlias)
 			dol_print_error($this->db);
 		$object = $this->db->fetch_object($resAlias);
-		if(count(array_intersect(array($object->respon_alias,$object->respon_alias2), array('service','purchase','wholesale_purchase'))) > 0) {
+		if(count(array_intersect($responsibility, array('service','purchase','wholesale_purchase'))) > 0) {
 			foreach ($lineactive as $item) {
 				$sql = 'select ' . $item . ' as category_id
               union
@@ -1397,7 +1412,7 @@ class User extends CommonObject
 				}
 			}
 		}
-		if(count(array_intersect(array($object->respon_alias,$object->respon_alias2), array('marketing'))) > 0) {
+		if(count(array_intersect($responsibility, array('marketing'))) > 0) {
 			$sql = "select fk_lineactive from `llx_user_lineactive`
 				where `fk_user` = ".$id_usr."
 				and active = 1
@@ -1411,7 +1426,7 @@ class User extends CommonObject
 			}
 		}
 
-//		var_dump($lineactive);
+//		var_dump(implode(',',$lineactive));
 //		die();
 		return $lineactive;
 	}

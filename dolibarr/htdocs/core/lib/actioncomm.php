@@ -102,29 +102,44 @@ if($_REQUEST['action'] == 'getGroupOfTask'){
     echo $out;
 }
 if($_REQUEST['action'] == 'getPerformance' || $_REQUEST['action'] == 'getCustomer') {
-    $sql = "select id from `llx_c_actioncomm` where `code` = '".$_REQUEST['code']."'";
+//    echo '<pre>';
+//    var_dump($_REQUEST);
+//    echo '</pre>';
+//    die();
+    $sql = "select id from `llx_c_actioncomm` where active = 1";
+    if($_REQUEST['code'] != 'AC_ALL')
+        $sql.=" and `code` = '".$_REQUEST['code']."'";
     $res = $db->query($sql);
-    $fk_action = $db->fetch_object($res);
-
+    if($res->num_rows<=1)
+        $fk_action = $db->fetch_object($res);
+    else{
+        while($obj = $db->fetch_object($res)){
+            $fk_action[]=$obj->id;
+        }
+    }
     $sql = "select distinct llx_user.rowid, llx_user.lastname, llx_user.firstname
-        from `llx_actioncomm`
-        inner join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.id";
+        from `llx_actioncomm` 
+        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.id";
     if($_REQUEST['action'] == 'getPerformance')
-        $sql.=" inner join llx_user on llx_user.rowid = llx_actioncomm_resources.fk_element";
+        $sql.="                 
+        inner join llx_user on llx_user.rowid = llx_actioncomm_resources.fk_element";
     elseif($_REQUEST['action'] == 'getCustomer')
         $sql.=" inner join llx_user on llx_user.rowid = `llx_actioncomm`.`fk_user_author`";
-    $sql.=" where 1
-        and fk_action = ".$fk_action->id."
-        and llx_actioncomm.`code` = '".$_REQUEST['code']."' and llx_actioncomm.percent != 100 and llx_actioncomm.active = 1
+    $sql.=" where 1 ";
+    if(!is_array($fk_action))
+        $sql.=" and fk_action = ".$fk_action->id;
+    else
+        $sql.=" and fk_action in (".implode(',',$fk_action).")";
+    $sql.=" and llx_actioncomm.percent not in (100,-100,99) and llx_actioncomm.active = 1
         and (`llx_actioncomm`.`fk_user_author` = ".$_REQUEST['id_usr']." or `llx_actioncomm_resources`.`fk_element` = ".$_REQUEST['id_usr'].")
         order by llx_user.lastname, llx_user.firstname";
-    $res = $db->query($sql);
-    if(!$res)
-        dol_print_error($db);
 //    echo '<pre>';
 //    var_dump($sql);
 //    echo '</pre>';
 //    die();
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
     $out .= '<tr id="0">';
     $out .= '<td class="middle_size" onclick="setParam('."'".($_REQUEST['action'] == 'getPerformance'?'performer':'customer')."',0)".'" style="cursor:pointer" ><b>Всі завдання</b></td>';
     $out .= '</tr>';

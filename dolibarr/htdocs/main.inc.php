@@ -1653,6 +1653,8 @@ function top_menu($head, $title='', $target='', $disablejs=0, $disablehead=0, $a
         // Wrapper to show tooltips
         print "\n".'<script type="text/javascript">
                     jQuery(document).ready(function () {
+                        window.sessionStorage.clear(\'phone_conected\');
+                        $.session.get(\'taken_call\');
                         Timer();
                         getMessage();
                         $("#bookmarkActionPanel").hide();
@@ -2265,7 +2267,6 @@ if (! function_exists("llxFooter"))
                 </style>
             ';
         }
-
         print "</body>\n";
         print "</html>\n";
     }

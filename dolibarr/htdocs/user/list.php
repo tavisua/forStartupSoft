@@ -27,6 +27,61 @@ if(isset($_REQUEST['action'])&&$_REQUEST['action']=='getAction'){
     print json_encode($out);
     exit();
 }
+if(isset($_REQUEST['action'])&&$_REQUEST['action']=='resetExecuter'){//Зміна виконавця
+    require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
+    $actionsID = explode(',',$_REQUEST['actionsID']);
+    foreach ($actionsID as $value){
+        $Action = new ActionComm($db);
+        $Action->fetch($value);
+        $object->fetch($Action->authorid);
+        if(count($Action->userassigned) == 1 && $Action->authorid==$_REQUEST['active_user']){
+            $Action->userassigned[$_REQUEST['id_usr']]['id']= $_REQUEST['id_usr'];//$Action->userassigned[$Action->authorid];
+            unset($Action->userassigned[$Action->authorid]);
+//            if(517294 == $value) {
+//                echo '<pre>';
+//                var_dump($Action);
+//                echo '</pre>';
+//                exit();
+//            }
+            $Action->authorid       = $_REQUEST['id_usr'];
+
+        }elseif($Action->userassigned[1] == $_REQUEST['active_user']){
+
+            $Action->userassigned[1] = $_REQUEST['id_usr'];
+        }
+
+        $Action->update($object);
+        unset($Action);
+//            if(517294 == $value) {
+//                echo '<pre>';
+//                var_dump($Action);
+//                echo '</pre>';
+//                exit();
+//            }
+
+    }
+    echo '1';
+    exit();
+}
+if(isset($_REQUEST['action'])&&$_REQUEST['action']=='getuserlist'){//Завантаження списку користувачів
+    $sql = "select `llx_user`.`rowid`, `subdivision`.`name`, `llx_user`.`lastname`, `llx_user`.`firstname` from llx_user
+        inner join `subdivision` on `subdiv_id` = `subdivision`.rowid 
+        where `llx_user`.active = 1
+        order by `subdivision`.`name`, `llx_user`.`lastname`, `llx_user`.`firstname`";
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $out ='<table id="user_list" style="background: #ffffff; width: 250px; padding: 0" class="WidthScroll"><thead><tr class="multiple_header_table"><th style="colspan=3; width: 450px; height: 100%">Список можливих виконавців</th></tr></thead><tbody>';
+    if($res->num_rows == 0){
+        $out.='<tr style="background: #ffffff;"><td align="center">Нема жодних записів</td></tr>';
+    }
+    while($obj = $db->fetch_object($res)){
+        $out.='<tr id = '.$obj->rowid.' style="background: #ffffff; cursor:pointer" class = "region small_size"><td class = "subdivision_item">'.$obj->name.'</td><td class=" lastname">'.$obj->lastname.'</td><td class = "firstname">'.$obj->firstname.'</td></tr>';
+    }
+    $out.='</tbody></table>';
+    print $out;
+    exit();
+}
 if(isset($_REQUEST['action'])&&$_REQUEST['action']=='getusercontact'){
     $object->fetch($_REQUEST['id_usr']);
     $phone = str_replace(array('+','(',')',' ','-'),'',$object->office_phone);

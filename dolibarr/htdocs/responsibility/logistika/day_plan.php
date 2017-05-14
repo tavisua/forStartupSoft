@@ -61,7 +61,7 @@ if(!isset($_SESSION['actions'])) {
 }
 
 if($_REQUEST['action']=='getActionsByRegions'){
-    echo getRegionsList($_REQUEST['id_usr']);
+    echo getRegionsLogistList($_REQUEST['id_usr']);
     exit();
 }
 
@@ -83,7 +83,7 @@ llxPopupMenu();
 //llxFooter();
 
 exit();
-function getRegionsList($id_usr){
+function getRegionsLogistList($id_usr){
     global $db, $actions,$actioncode;
     $outstanding = array();
     $future=array();
