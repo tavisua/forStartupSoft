@@ -88,6 +88,7 @@ if(empty($actionid))
     die('Помилка відображення сторінки. Спробуйте увійти знову зі сторінки '.($actioncode == 'AC_CURRENT'?'"Поточні"':'"Глобальні"').' задачі');
 $author_id = getAuthorID($actionid);
 $description = GetDescription($actionid);
+
 if($actioncode == 'AC_CONVERSATION') {
     $actiontabe = ShowConversation();
 }else{
@@ -98,6 +99,7 @@ $deadline = getDeadLine();
 $accessMentor = ValidAsseccMentor();
 //var_dump($subaction->subaction);
 //die();
+
 $contactdata = getContactData($actionid);
 $date = new DateTime();
 if(empty($subaction->subaction)) {
@@ -229,7 +231,7 @@ function getContactData($author_id){
                     $userphone = str_replace('(', '', $userphone);
                     $userphone = str_replace(')', '', $userphone);
                     $userphone = str_replace('-', '', $userphone);
-                    $userphone = str_replace(' ', '', $userphone);
+                    $userphone = str_replace(' ', '', $userphone);    
                     if (!empty($user_tmp->office_phone))
                         $out .= '<i>Телефон</i> <a onclick="Call(' . $userphone . ', ' . "'users'" . ', ' . $user_tmp->id . ');">' . $user_tmp->office_phone . '</a> <a onclick="showSMSform(' . $userphone . ')"><img src="/dolibarr/htdocs/theme/eldy/img/object_sms.png"></a>' . '</br>';
                     if (!empty($user_tmp->skype))
@@ -238,6 +240,35 @@ function getContactData($author_id){
                 }
                 $out .= '</br>';
             }
+        }
+    }
+    $sql = "select llx_societe.nom, `llx_societe_contact`.lastname, firstname, work_phone, mobile_phone1, call_mobile_phone1, mobile_phone2, call_mobile_phone2, email1, send_email1, email2, send_email2 from llx_actioncomm
+        inner join llx_societe on llx_societe.rowid = llx_actioncomm.fk_soc
+        left join `llx_societe_contact` on `llx_societe_contact`.rowid = `fk_contact`
+        where id = ".$_GET['action_id'];
+    $res = $db->query($sql);
+
+    if(!$res)
+        dol_print_error($db);
+    if($res->num_rows){
+        $obj = $db->fetch_object($res);
+        $out.='<b>Компанія</b> '.$obj->nom.'</br>';
+        $out.='<b>Контакт</b> '.$obj->lastname.' '.$obj->firstname.'</br>';
+        if($obj->call_mobile_phone1) {
+            $userphone = str_replace('+', '', $obj->mobile_phone1);
+            $userphone = str_replace('(', '', $userphone);
+            $userphone = str_replace(')', '', $userphone);
+            $userphone = str_replace('-', '', $userphone);
+            $userphone = str_replace(' ', '', $userphone);
+            $out .= '<b>Телефон 1</b> <a onclick="Call('.$userphone.', \'users\', 8);">'.$obj->mobile_phone1.'</a>';
+        }        
+        if($obj->call_mobile_phone2) {
+            $userphone = str_replace('+', '', $obj->mobile_phone2);
+            $userphone = str_replace('(', '', $userphone);
+            $userphone = str_replace(')', '', $userphone);
+            $userphone = str_replace('-', '', $userphone);
+            $userphone = str_replace(' ', '', $userphone);
+            $out .= '<b>Телефон 2</b> <a onclick="Call('.$userphone.', \'users\', 8);">'.$obj->mobile_phone2.'</a>';
         }
     }
 //    require_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
@@ -336,10 +367,13 @@ function ShowActionTable(){
 //echo '</pre>';
 //die();
 //
+
     if($_REQUEST['executer_id'] == $user->id){
 //        die('1');
+
         $Action->Received_Action($_GET['action_id']);//Відмітка про перегляд завдання
     }
+
     $AssignedUsersID = $Action->getAssignedUser($_GET['action_id'], true);
 
     $sql = 'select fk_parent, datep, subaction from `llx_actioncomm` where id in ('.implode(",", $chain_actions).') and fk_parent <> 0';
@@ -369,6 +403,7 @@ function ShowActionTable(){
 //        echo '</pre>';
 //        die();
     }
+
     //Завантажую результат дії
     $sql = 'select distinct `llx_societe_action`.`action_id`, `llx_societe_action`.`new`, `llx_actioncomm`.percent, `llx_societe_action`.`rowid`, `llx_actioncomm`.`datep`, `llx_actioncomm`.`overdue`,
         `llx_societe_action`.dtChange datec, create_user.`lastname`, create_user.rowid author_id, `llx_user`.`lastname` as contactname, `llx_user`.rowid as contactUserID,
@@ -384,7 +419,7 @@ function ShowActionTable(){
         inner join (select code, libelle label from `llx_c_actioncomm` where active = 1 and (type = "system" or type = "user")) TypeCode on TypeCode.code = `llx_actioncomm`.code
         where `llx_societe_action`.`action_id` in ('.implode(",", $chain_actions).')
         and `llx_societe_action`.active = 1
-        order by `llx_societe_action`.dtChange desc, `llx_societe_action`.`rowid` desc;';
+        order by datec desc, `llx_societe_action`.`rowid` desc;';
 
 //    $sql = "select * from llx_societe_action where action_id in (".implode(",", $chain_actions).") and active = 1";
 //echo "<pre>";

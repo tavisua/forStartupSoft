@@ -1292,15 +1292,14 @@ function sending(){
     //SaveContactList
     $out = '';
 //		echo '<pre>';
-//		var_dump($_REQUEST);
+//		var_dump($_REQUEST["emails"]);
 //		echo '</pre>';
 //		die();
 	require_once DOL_DOCUMENT_ROOT.'/core/class/CMailFile.class.php';
     foreach($_REQUEST["emails"] as $contact){
 //		$from = 'a.zosimov@t-i-t.com.ua';
-
-
-        $email = $contact["contact"]."<".$contact["email"].">";
+		
+        $email = (is_array($contact)?($contact["contact"]."<".$contact["email"].">"):$contact);
 		$socid = empty($contact['socid'])?0:$contact['socid'];
 		$contactID = empty($contact['contactID'])?0:$contact['contactID'];
 		$subject = $_REQUEST['subject'];
@@ -1348,5 +1347,5 @@ function sending(){
             dol_print_error($db);
     }
     $out=substr($out,0,strlen($out)-1);
-    return $out;
+	return $out;
 }

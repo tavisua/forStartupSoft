@@ -22,7 +22,10 @@
  *	\file       htdocs/index.php
  *	\brief      Dolibarr home page
  */
-
+//echo '<pre>';
+//var_dump($_REQUEST);
+//echo '</pre>';
+//exit();
 define('NOCSRFCHECK',1);	// This is login page. We must be able to go on it from another web site.
 //if(!isset($_COOKIE['required_pages']))
 //    $_COOKIE['required_pages'] = 1;
@@ -61,9 +64,7 @@ if($_GET['action']=='addSession'){
 
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formother.class.php';
 
-//echo '<pre>';
-//var_dump($_REQUEST);
-//echo '</pre>';
+
 
 // If not defined, we select menu "home"
 $_GET['mainmenu']=GETPOST('mainmenu', 'alpha')?GETPOST('mainmenu', 'alpha'):'home';

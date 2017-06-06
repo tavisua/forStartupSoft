@@ -351,7 +351,7 @@ class dbBuilder{
 //                        }
 
 //                        if (in_array($fields[$num_col]->type, array(16,8,3))) {
-                        if ($fields[$num_col]->max_length == 1) {
+                        if ($fields[$num_col]->max_length == 1 || $fields[$num_col]->length == 1) {
 //                            if($row['rowid'] == 8){
 //                                var_dump($readonly);
 //                                die();

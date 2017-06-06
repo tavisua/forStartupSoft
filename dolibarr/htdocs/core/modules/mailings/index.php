@@ -488,7 +488,7 @@ function AutoSendMail($rowid){
 //    $sql.=" and llx_societe.state_id in (11,17)";
 //    $sql.=" order by llx_societe.state_id";
 //    echo '<pre>';
-//    var_dump(empty($postedlist));
+//    var_dump($postedlist);
 //    echo '</pre>';
 //    die();
     set_time_limit(0);

@@ -565,7 +565,9 @@ function ShowTask(){
             if(isset($taskSociete[$obj->id])&&!empty($taskSociete[$obj->id])){
                 $link = "/dolibarr/htdocs/responsibility/sale/action.php?socid=".$taskSociete[$obj->id]."&idmenu=10425&mainmenu=area";
             }
-            $table .= '<td style="width:76px;text-align: center"><a target="_blank" href="'.$link.'">'.$lastaction_value.'</a></td>';
+            if($obj->fk_groupoftask == 10)//Якщо виконується контроль
+                $link.='&id_usr='.$user->id;
+                $table .= '<td style="width:76px;text-align: center"><a target="_blank" href="'.$link.'">'.$lastaction_value.'</a></td>';
             if(empty($obj->datefutureaction)){
                 $value = '<img src="/dolibarr/htdocs/theme/eldy/img/object_action.png">';
             }else{

@@ -72,6 +72,30 @@ if($_REQUEST['action'] == 'update_societe') {
     }
     exit();
 }
+$sql = "select `llx_actioncomm_resources`.rowid, `llx_actioncomm_resources`.`fk_element`, `llx_actioncomm`.id, `llx_actioncomm`.fk_user_action from llx_actioncomm
+left join `llx_actioncomm_resources` on `fk_actioncomm` = `llx_actioncomm`.`id`
+where llx_actioncomm.fk_soc in
+      (select llx_societe.rowid from llx_societe
+      where region_id in
+        (select fk_id from llx_user_regions        
+        where fk_user = ".$_GET['id_usr']."
+        and active = 1) order by llx_societe.rowid)
+        and `code` not in ('AC_OTH_AUTO')        
+        and date_format(datep, '%Y-%m-%d')>='".date('Y-m-d')."'
+        order by date_format(datep, '%Y-%m-%d')";
+$res = $db->query($sql);
+while($obj = $db->fetch_object($res)){
+    $sql = '';
+    if(!empty($obj->fk_element)){
+        $sql = "update llx_actioncomm_resources set fk_element = ".$_GET['id_usr']." where rowid = ".$obj->rowid;
+    }elseif (!empty($obj->fk_user_action)){
+        $sql = "update llx_actioncomm set fk_user_action = ".$_GET['id_usr']." where id = ".$obj->id;
+    }
+    $res_up = $db->query($sql);
+    if(!$res_up)
+        dol_print_error($db);
+}
+
 $sql = "SELECT `llx_actioncomm`.id, `llx_actioncomm`.priority, `llx_actioncomm`.datep, `llx_actioncomm`.datep2, `llx_actioncomm`.fk_user_action,
 case
   when `llx_actioncomm_resources`.`fk_element` is null

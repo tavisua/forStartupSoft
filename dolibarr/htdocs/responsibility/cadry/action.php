@@ -191,6 +191,14 @@ function setStatus(){
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
+    $sql = "update llx_actioncomm set percent = 100 where id = ".$_REQUEST['rowid'];
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);    
+    $sql = "delete from llx_newactions where id = ".$_REQUEST['rowid'];
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
     return 1;
 }
 

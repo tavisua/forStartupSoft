@@ -81,7 +81,8 @@
                     'to':$('#to').val(),
                     'action':'getCustomers',
                     'type':'<?=$_REQUEST["type"]?>',
-                    'addParam':'<?=$_REQUEST["addParam"]?>'
+                    'addParam':'<?=$_REQUEST["addParam"]?>',
+                    'test':'<?=$_REQUEST["test"]?>'
                     }
         $.ajax({
             url:'/dolibarr/htdocs/comm/smsSending/card.php',

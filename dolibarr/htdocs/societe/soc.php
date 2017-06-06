@@ -755,7 +755,9 @@ else
         if (GETPOST("type")=='c')  { $object->client=1; }
         if (GETPOST("type")=='p')  { $object->client=2; }
         if (! empty($conf->fournisseur->enabled) && (GETPOST("type")=='f' || GETPOST("type")==''))  { $object->fournisseur=1; }
-
+        if(!empty($_REQUEST['taken_id'])&&strpos($_SESSION['taken_call'], $_REQUEST['taken_id']) === false){
+            $_SESSION['taken_call'] .=  ' '.$_REQUEST['taken_id'];
+        }
         $object->name				= GETPOST('nom', 'alpha');
         $object->firstname			= GETPOST('firstname', 'alpha');
         $object->particulier		= $private;

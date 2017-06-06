@@ -110,18 +110,18 @@ function LineActive(){
     $lineactive = getLineActive($id_usr);
 
 //    echo '<pre>';
-//    var_dump($lineactive);
+//    var_dump($_REQUEST);
 //    echo '</pre>';
 //    die();
-    $out = '<select id="lineactive" class="combobox" onchange="setLineActiveFilter();">';
-    $out.='<option value="-1" selected="selected">Відобразити всі</option>';
-    $lineactiveID = isset($_REQUEST['lineactiveID'])&& !empty($_REQUEST['lineactiveID'])?$_REQUEST['lineactiveID']:0;
+    $out = '<form action="'.$_SERVER["REQUEST_URI"].'" method="post"><select id="id_category" name = "id_category" class="combobox" onchange="this.form.submit()">';
+    $out.='<option value="-1" '.(empty($_REQUEST['id_category'])?'selected="selected"':'').'>Відобразити всі</option>';
+    $lineactiveID = isset($_REQUEST['id_category'])&& !empty($_REQUEST['id_category'])?$_REQUEST['id_category']:0;
 //    while($obj = $db->fetch_object($res)){
 //        $out.='<option '.($obj->category_id == 'users'?'id="users"':'').' value="'.$obj->category_id.'" '.(is_numeric($category_id) == is_numeric($obj->category_id) && $category_id == $obj->category_id?'selected="selected"':'').'>'.$obj->name.'</option>';
 //    }
     foreach(array_keys($lineactive) as $key){
         $out.='<option '.($key == 'users'?'id="users"':'').' kind ="'.$lineactive[$key]['kind'].'" value="'.$key.'" '.(is_numeric($lineactiveID) == is_numeric($key) && $lineactiveID == $key?'selected="selected"':'').'>'.$lineactive[$key]['name'].' '.(!empty($lineactive[$key]['type'])?'['.$lineactive[$key]['type'].']':'').'</option>';
     }
-    $out.='</select>';
+    $out.='</select></form>';
     return $out;
 }

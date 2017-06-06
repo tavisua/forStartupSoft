@@ -22,7 +22,7 @@ if($action == 'add') {
     echo getStatusSending();
     exit();
 }elseif($action == 'getCustomers'){
-    $result = getCustomers($_REQUEST['type']);
+    $result = getCustomers($_REQUEST['type'], !empty($_REQUEST['test']));
     echo $result;
 //    echo '1';
     exit();
@@ -105,9 +105,10 @@ function sending(){
     $out=substr($out,0,strlen($out)-1);
     return $out;
 }
-function getCustomers($type){
+function getCustomers($type, $test=false){
 //    die($type);
     global $db, $user;
+
     $sql = 'select `llx_societe_contact`.`rowid`, `llx_societe_contact`.`socid`, `states`.`name` state_name,
         `formofgavernment`.name as form_gov, `regions`.`name` region_name, `llx_societe`.`nom`, `llx_post`.`postname`,
         llx_societe_contact.lastname, llx_societe_contact.firstname, llx_societe_contact.email1, llx_societe_contact.email2, llx_societe_contact.mobile_phone1,
@@ -127,6 +128,8 @@ function getCustomers($type){
 
 //    $sql.=' where 1 and fk_user_creat ='.$user->id;
     $sql.=' where 1';
+    if(in_array('sale', array($user->respon_alias, $user->respon_alias2)))
+        $sql.=' and llx_societe.`categoryofcustomer_id` = 5';
     if(!isset($_REQUEST['addParam'])||empty($_REQUEST['addParam']))
         $sql.=' and region_id in (select fk_id from llx_user_regions where fk_user = '.$user->id.' and active = 1) ';
     $sql.=' and llx_societe.active = 1';
@@ -166,8 +169,34 @@ function getCustomers($type){
 //    var_dump($sql);
 //    echo '</pre>';
 //    die();
+    if($test){
+        $sql = "select llx_societe.rowid, llx_societe.nom, llx_societe_contact.email1, llx_societe_contact.email2 from `llx_societe_contact`
+            inner join llx_societe on llx_societe.rowid = `llx_societe_contact`.`socid`
+            where email1 like '%t-i-t%'";
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+        $emaillist = [];
+        while($obj = $db->fetch_object($res)){
+            if(!empty($obj->email1)&&empty($emaillist[$obj->email1])){
+                $emaillist[$obj->email1]=array('nom'=>$obj->nom,'rowid'=>$obj->rowid);
+            }
+            if(!empty($obj->email2)&&empty($emaillist[$obj->email2])){
+                $emaillist[$obj->email2]=array('nom'=>$obj->nom,'rowid'=>$obj->rowid);
+            }
+        }
+        $sql = '';
+        $sql.=" select 1 active, 0 as rowid, 'admin' as nom, 'tavis.ua@gmail.com' email1, 'mikhailov_viktor@mail.ru' email2";
+//        foreach ($emaillist as $key=>$value){
+//            if(!empty($sql))
+//                $sql.=' union ';
+//            $sql.=" select 1 active, ".$value['rowid']." as rowid, '".$value['nom']."' as nom, '$key' email1, '' email2";
+//        }
+    }
     $out = '';
     $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
     $num = 1;
     while($obj = $db->fetch_object($res)){
         if($obj->active) {

@@ -34,7 +34,7 @@ if($_REQUEST['action'] == 'findSocieteContact'){
     $sql = "select `llx_societe`.rowid, `llx_societe`.`nom`, `formofgavernment`.`name` formofgavernment from `llx_societe_contact`
         inner join `llx_societe` on `llx_societe`.`rowid` = `llx_societe_contact`.`socid`
         inner join `formofgavernment` on `formofgavernment`.`rowid` = `llx_societe`.`formofgoverment_id`
-        where  `llx_societe_contact`.`mobile_phone1` like '$phone' limit 1";
+        where  `llx_societe_contact`.`mobile_phone1` like '$phone' or `llx_societe`.`phone` like '$phone' or `llx_societe_contact`.`mobile_phone2` like '$phone' limit 1";
     $res = $db->query($sql);
     if(!$res->num_rows)
         print 0;

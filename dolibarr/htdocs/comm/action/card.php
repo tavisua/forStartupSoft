@@ -292,6 +292,11 @@ if($_GET['action']=='get_exectime'){
 		if (!$res) {
 			dol_print_error($db);
 		}
+		$sql = 'delete from llx_newactions where id_action in (' . implode(',', $chain_actions) . ')';
+		$res = $db->query($sql);
+		if (!$res) {
+			dol_print_error($db);
+		}
 		foreach ($chain_actions as $item){//Знімаю статус прострочено з піддій
 			$newAction->setOuterdueStatus($item);
 		}
@@ -388,12 +393,15 @@ $langs->load("agenda");
 
 $action=GETPOST('action','alpha');
 $cancel=GETPOST('cancel','alpha');
-//$backtopage=GETPOST('backtopage','alpha');
-$backtopage=$_REQUEST['backtopage'];
+$backtopage=GETPOST('backtopage','alpha');
+//$backtopage=$_REQUEST['backtopage'];
 //var_dump($_POST);
 //die();
+
 if(substr($backtopage, 0, 1) == "'")
-	$backtopage = substr($backtopage, 1, strlen($backtopage)-2);
+	$backtopage = substr($backtopage, 1, strlen($backtopage)-1);
+if(substr($backtopage, strlen($backtopage)-1, 1) == "'")
+	$backtopage = substr($backtopage, 1, strlen($backtopage)-1);
 if(substr($backtopage, 0, 1) != "/")
 	$backtopage = '/'.$backtopage;
 $contactid=GETPOST('contactid','int');
@@ -406,13 +414,17 @@ if ($cancel)
 //	echo '</pre>';
 //	die();
 	if(empty($backtopage)){
-
-		$sql = 'select fk_soc from `llx_actioncomm` where id='.$_REQUEST['id'];
-		$res = $db->query($sql);
-		if(!$res)
-			dol_print_error($db);
-		$obj = $db->fetch_object($res);
-		$backtopage='/dolibarr/htdocs/responsibility/sale/action.php?socid='.$obj->fk_soc.'&idmenu=10425&mainmenu=area';
+		$socid=0;
+		if(empty($_REQUEST['socid'])) {
+			$sql = 'select fk_soc from `llx_actioncomm` where id=' . $_REQUEST['id'];
+			$res = $db->query($sql);
+			if (!$res)
+				dol_print_error($db);
+			$obj = $db->fetch_object($res);
+			$socid = $obj->fk_soc;
+		}else
+			$socid = $_REQUEST['socid'];
+		$backtopage='/dolibarr/htdocs/responsibility/sale/action.php?socid='.$socid.'&idmenu=10425&mainmenu=area';
 	}
 
 	$listofuserid = dol_json_decode($_SESSION['assignedtouser'],1);
@@ -462,6 +474,8 @@ if($id) {
 		$datepreperform = new DateTime(GETPOST('preperform'));
 	}
 }else{
+	if(empty($object->userownerid))
+		$object->userownerid = $user->id;
 	$datepreperform = new DateTime(GETPOST('preperform'));
 }
 //var_dump($action);
@@ -717,7 +731,10 @@ if ($action == 'add')
 	// TODO external modules
 	if (! empty($conf->webcalendar->enabled) && GETPOST('add_webcal') == 'on') $object->use_webcal=1;
 	if (! empty($conf->phenix->enabled) && GETPOST('add_phenix') == 'on') $object->use_phenix=1;
-
+//	echo'<pre>';
+//	var_dump($object->userownerid, $_SESSION['assignedtouser']);
+//	echo'</pre>';
+//	die('$error');
 	// Check parameters
 	if (empty($object->userownerid) && empty($_SESSION['assignedtouser']))
 	{
@@ -755,6 +772,7 @@ if ($action == 'add')
 //        echo '</pre>';
 //        die();
 		// On cree l'action
+
 		if(isset($_REQUEST["dateNextAction"])&&!empty($_REQUEST["dateNextAction"])&&count(dol_json_decode($_SESSION['assignedtouser'], true))<=1) {
 			$dateconfirm = new DateTime();
 			$object->dateconfirm = $dateconfirm->format('Y-m-d H:i:s');
@@ -762,6 +780,10 @@ if ($action == 'add')
 		}
 
 		$idaction=$object->add($user);
+//		echo '<pre>';
+//		var_dump($idaction);
+//		echo '</pre>';
+//		die();
 		if(!empty($object->user_valuer)&&$object->user_valuer>0){//Якщо призначено фахівця оцінщика -
 			$valuer_action = new ActionComm($db);
 			$valuer_action->fetch($idaction);
@@ -790,10 +812,8 @@ if ($action == 'add')
 //			$valuer_action->dateconfirm = $dateconfirm->format('Y-m-d H:i:s');
 			$valuer_action->add($user);
 		}
-//		echo '<pre>';
-//		var_dump($idaction);
-//		echo '</pre>';
-//		die();
+
+
 		if(isset($_REQUEST["dateNextAction"])&&
 				!empty($_REQUEST["dateNextAction"])&&count(dol_json_decode($_SESSION['assignedtouser'], true))<=1
 				&&in_array($object->type_code, array('AC_GLOBAL','AC_CURRENT'))
@@ -811,7 +831,6 @@ if ($action == 'add')
 			$subaction->dateconfirm = $dateconfirm->format('Y-m-d H:i:s');
 			$subaction->add($user);
 		}
-//		var_dump($idaction);
 //
 
 		if ($idaction > 0)
@@ -836,11 +855,25 @@ if ($action == 'add')
 						dol_syslog("Back to " . $backtopage . ($moreparam ? (preg_match('/\?/', $backtopage) ? '&' . $moreparam : '?' . $moreparam) : ''));
 //					header("Location: ".$backtopage.($moreparam?(preg_match('/\?/',$backtopage)?'&'.$moreparam:'?'.$moreparam):''));
 					}else{
-						$backtopage = '/dolibarr/htdocs/comm/action/card.php?action=create';
+						if(empty($_REQUEST['socid'])){
+							$sql = "select fk_soc from llx_actioncomm where id = ".empty($_REQUEST['parent_id'])?0:$_REQUEST['parent_id'];
+							$res = $db->query($sql);
+							if(!$res)
+								dol_print_error($db);
+							$obj = $db->fetch_object($res);
+							$_REQUEST['socid'] = $obj->fk_soc;
+						}
+						$backtopage = '/dolibarr/htdocs/comm/action/card.php?action=create&actioncode='.$_REQUEST['actioncode'].'&socid='.$_REQUEST['socid'].'&parent_id='.$_REQUEST['parent_id'].'&backtopage='.htmlspecialchars($_REQUEST['backtopage']);
+					}
+					if(strpos($backtopage,'http')) {
+						if(substr($backtopage, 0, 1) == '/')
+							$backtopage = substr($backtopage, 1);
+					}elseif (substr($backtopage, 0, 1) != '/'){
+						$backtopage.='/'.$backtopage;
 					}
                     $Location = "Location: ".str_replace("'",'', $backtopage);
-//					var_dump($backtopage);
-//					die($backtopage);
+//					var_dump(strpos('http',$backtopage));
+//					die(htmlspecialchars($_REQUEST['backtopage']));
                     header($Location);
 				}
 				elseif(!empty($object->socid)){
@@ -853,9 +886,9 @@ if ($action == 'add')
 
 //					$backtopage = '/dolibarr/htdocs/responsibility/'.$user->respon_alias.'/action.php?socid='.$object->socid.'&idmenu=10425&mainmenu=area';
 //					var_dump($backtopage);
-//					die();
 					$Location = "Location: ".str_replace("'",'', $backtopage);
-                    header($Location);
+
+					header($Location);
 				}
 //				elseif($idaction)
 //				{
@@ -1032,7 +1065,6 @@ if ($action == 'update')
 			$object->setFutureDataAction($object->id);//Перерахунок майбутніх дій
 		}
 	}
-
 	if (! $error)
 	{
 //		echo '<pre>';
@@ -1045,6 +1077,7 @@ if ($action == 'update')
 				$backtopage = substr($backtopage, 1, mb_strlen($backtopage) - 2);
 			}
 			unset($_SESSION['assignedtouser']);
+			die($backtopage);
 			header("Location: " . $backtopage);
 			exit;
 		}elseif(!empty($object->socid)){
@@ -1716,6 +1749,7 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 }
 //var_dump($id);
 //die();
+
 if($id < 0){
 	$id = -$id;
 	$_REQUEST["duplicate_action"] = 1;//Дублювання дії
@@ -1728,6 +1762,10 @@ if($id < 0){
 if ($id > 0)
 {
 	$result1=$object->fetch($id);
+//	echo '<pre>';
+//	var_dump($object);
+//	echo '</pre>';
+//	die();
 	$result2=$object->fetch_thirdparty();
 	$result3=$object->fetch_contact();
 	$result4=$object->fetch_userassigned();
@@ -2393,6 +2431,7 @@ if ($id > 0)
 //	    }
 //	}
 }
+
 print "<script>
     $(function($) {
         $.mask.definitions['~']='[+-]';

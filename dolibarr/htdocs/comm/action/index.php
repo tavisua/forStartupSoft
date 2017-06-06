@@ -27,7 +27,8 @@
  *  \ingroup    agenda
  *  \brief      Home page of calendar events
  */
-
+if($_REQUEST['action'] == 'birthday_remainder')
+    define("NOLOGIN",1);
 require '../../main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
 if($_REQUEST['action']=='get_actiondate'){
@@ -48,20 +49,87 @@ require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
 require_once DOL_DOCUMENT_ROOT.'/contact/class/contact.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/date.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/agenda.lib.php';
+$now=dol_now();
+$nowarray=dol_getdate($now);
+$nowyear=$nowarray['year'];
+$nowmonth=$nowarray['mon'];
+$nowday=$nowarray['mday'];
 if($_REQUEST['action'] == 'birthday_remainder'){
     global $user,$db;
     define("NOLOGIN",1);		// Не потрібно залогіниватись, якщо створюються автоматичні завдання по нагадуванню про день народження
-    $sql = "select  socid, llx_societe.region_id, categoryofcustomer_id from `llx_societe_contact`
+    $responsibility = [];
+    $sql = "select fx_responsibility, fx_category_counterparty from  `responsibility_param`
+        where fx_category_counterparty  in (5,7,8,9,10)";
+    $res = $db->query($sql);
+    while($obj = $db->fetch_object($res)){
+        $responsibility[$obj->fx_category_counterparty][] = $obj->fx_responsibility;
+    }
+    $sql = "select  socid, `llx_societe_contact`.rowid as contact_id, birthdaydate, llx_societe.region_id, categoryofcustomer_id from `llx_societe_contact`
         inner join `llx_societe` on `llx_societe`.`rowid` = `llx_societe_contact`.`socid`
         where birthdaydate is not null
         and send_birthdaydate = 1
         and date(concat(date_format(now(), '%Y-'), date_format(date_add(birthdaydate, interval -10 day), '%m-%d'))) = date(now())
         and `categoryofcustomer_id` in (5,7,8,9,10)";
+//    var_dump($sql);
+//    die();
     $res = $db->query($sql);
+    $i = 0;
     while($obj = $db->fetch_object($res)){
-        echo $obj->region_id.'</br>';
+        switch ($obj->categoryofcustomer_id){
+            case 5:{//Клієнти
+                $id_usr = getIDCongratulatorOnRegionID($obj->region_id, $responsibility[$obj->categoryofcustomer_id]);
+                $user_congratulator = new User($db);
+                $user_congratulator->fetch($id_usr);
+                $datebirth = new DateTime($obj->birthdaydate);
+                $i = 0;
+                foreach ([$now, $datebirth->getTimestamp()] as $date) {
+                    $date = dol_getdate($date);
+                    $remainder = new ActionComm($db);
+                    $date = new DateTime($remainder->GetFreeTime($nowyear.'-'.$date['mon'].'-'.$date['mday'].' 8:0:0', $id_usr, 10));
+                    $datep = $date->getTimestamp();
+                    $datef = $datep_mk+600;
+
+//                    echo '<pre>';
+//                    var_dump();
+//                    echo '</pre>';
+//                    die();
+//                    $remainder->get
+                    $remainder->priority = 0;
+                    $remainder->userownerid = $id_usr;
+                    $remainder->fulldayevent = 0;
+                    $remainder->typenotification = 'system';
+                    $remainder->period = 0;
+                    $remainder->groupoftask = 1;
+                    $remainder->authorid = $id_usr;
+                    $remainder->type_code = 'AC_CURRENT';
+                    $remainder->label = "Поздоровлення з днем народження";
+                    $remainder->typeSetOfDate = 'w';
+                    $remainder->fk_project = 0;
+//                    $datef = dol_mktime('10', '10', 0, $date['mon'], $date['mday'], $nowyear);
+//$datef=dol_mktime($fulldayevent?'23':GETPOST("p2hour"), $fulldayevent?'59':GETPOST("p2min"), $fulldayevent?'59':'0', GETPOST("p2month"), GETPOST("p2day"), GETPOST("p2year"));
+//                    $datep = dol_mktime('10', '00', 0, $date['mon'], $date['mday'], $nowyear);
+                    $remainder->datep = $datep;
+                    $remainder->datef = $datef;
+                    $remainder->socid = $obj->socid;
+                    $remainder->contactid = $obj->contact_id;
+//                $remainder->datepreperform = $dateprep;
+                    $remainder->note = "Поздоровити ".$datebirth->format('d.m.')." з днем народження";
+//                    if($obj->socid == 8649){
+//                        echo '<pre>';
+//                        var_dump($remainder);
+//                        echo '</pre>';
+//                        die();
+//                    }
+//                    echo  $user_congratulator->id.'</br>';
+                    
+                    $remainder->add($user_congratulator, $i==0?'oncreate':'ondatep');
+                    $i++;
+                }
+            }break;
+        }
+        $i++;
     }
-    var_dump($res);
+    echo '1';
     exit();
 }
 if (! empty($conf->projet->enabled)) {
@@ -193,11 +261,7 @@ $form=new Form($db);
 $companystatic=new Societe($db);
 $contactstatic=new Contact($db);
 
-$now=dol_now();
-$nowarray=dol_getdate($now);
-$nowyear=$nowarray['year'];
-$nowmonth=$nowarray['mon'];
-$nowday=$nowarray['mday'];
+
 
 $listofextcals=array();
 
@@ -1119,6 +1183,23 @@ $db->close();
  * @param   int		$minheight       Minimum height for each event. 60px by default.
  * @return	void
  */
+function getIDCongratulatorOnRegionID($region, $responsibility){//Визначаю корис
+    global $db;
+    $sql = "select llx_user.rowid from llx_user_regions
+        inner join llx_user on llx_user.rowid = llx_user_regions.fk_user
+        where fk_id = $region
+        and llx_user_regions.active = 1
+        and llx_user.active = 1
+        and (llx_user.respon_id in (".implode(',', $responsibility).") or llx_user.respon_id2 in (".implode(',', $responsibility)."))
+        order by llx_user_regions.dtChange desc
+        limit 1";
+    $res = $db->query($sql);
+    if($res->num_rows > 0){
+        $obj = $db->fetch_object($res);
+        return $obj->rowid;
+    }else
+        return 0;
+}
 function show_day_events($db, $day, $month, $year, $monthshown, $style, &$eventarray, $maxprint=0, $maxnbofchar=16, $newparam='', $showinfo=0, $minheight=60)
 {
     global $user, $conf, $langs;

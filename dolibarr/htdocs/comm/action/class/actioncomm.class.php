@@ -265,6 +265,15 @@ class ActionComm extends CommonObject
         }else
             return 'null';
     }
+    function getAuthorIDLastResultAction($action_id){
+        global $db;
+        $sql = "select id_usr from llx_societe_action where `llx_societe_action`.`action_id` = $action_id and active = 1 order by dtChange desc limit 1";
+        $res = $db->query($sql);
+        if($res->num_rows == 0)
+            return 0;
+        $obj = $db->fetch_object($res);
+        return $obj->id_usr;
+    }
     function GetChainActions($action_id){
         if(empty($action_id))
             return array(0);
@@ -319,25 +328,66 @@ class ActionComm extends CommonObject
         }
         return 0;
     }
+
     function Received_Action($action_id)
     {
-        global $db;
-        $sql = 'update llx_actioncomm set `dateconfirm` = case when `dateconfirm` is null then Now() else `dateconfirm` end, `new`=0, `percent`= case when `percent` = -1 then 0 else `percent` end  where id=' . $action_id;
+        global $db, $user;
+        $out = [];
+        if(substr($action_id, 0, 1) != '_') {
+            $sql = "select code from llx_actioncomm where id = ".$action_id;
+            $res = $db->query($sql);
+            if (!$res) {
+                var_dump($sql);
+                dol_print_error($db);
+            }
+            $obj = $db->fetch_object($res);
+            $out['code']= $obj->code;
+            $out['id']= $action_id;
+            $sql = 'update llx_actioncomm set `dateconfirm` = case when `dateconfirm` is null then Now() else `dateconfirm` end, `new`=0, `percent`= case when `percent` = -1 then 0 else `percent` end  where id=' . $action_id;
 //	die($sql);
+            $res = $db->query($sql);
+            if (!$res) {
+                var_dump($sql);
+                dol_print_error($db);
+            }
+            $sql = 'update llx_societe_action set `new`=0  where action_id=' . $action_id;
+//	die($sql);
+            $res = $db->query($sql);
+            if (!$res) {
+                var_dump($sql);
+                dol_print_error($db);
+            }
+        }else{
+            $action_id = -substr($action_id, 1);
+            $sql = "select llx_actioncomm.fk_soc socid, action_id, llx_societe_action.socid socid2 from llx_societe_action
+              inner join llx_actioncomm on llx_actioncomm.id = llx_societe_action.action_id 
+              where rowid =".abs($action_id);
+//            die($sql);
+            $res = $db->query($sql);
+            if (!$res) {
+                var_dump($sql);
+                dol_print_error($db);
+            }
+            $obj = $db->fetch_object($res);
+            $out['socid']= $obj->socid;
+            $out['id']= $obj->action_id;
+            if($obj->socid != $obj->socid2){
+                $sql = 'update llx_societe_action set socid='.$obj->socid.' where rowid = '.abs($action_id);
+                $res = $db->query($sql);
+                if (!$res) {
+                    var_dump($sql);
+                    dol_print_error($db);
+                }
+            }
+        }
+        $sql = "delete from llx_newactions where id_usr = $user->id and id_action = $action_id";
         $res = $db->query($sql);
         if (!$res) {
             var_dump($sql);
             dol_print_error($db);
         }
-        $sql = 'update llx_societe_action set `new`=0  where action_id=' . $action_id;
-//	die($sql);
-        $res = $db->query($sql);
-        if (!$res) {
-            var_dump($sql);
-            dol_print_error($db);
-        }
-
-        return 1;
+        $out['result'] = 1;
+        echo json_encode($out);
     }
     function getAssignedUser($action_id, $arrayonly = false){
         global $db;
@@ -931,7 +981,7 @@ class ActionComm extends CommonObject
             }
         }
     }
-    function add($user,$notrigger=0)
+    function add($user,$when_show='oncreate',$notrigger=0)
     {
 //        echo '<pre>';
 //        var_dump($this);
@@ -1064,7 +1114,8 @@ class ActionComm extends CommonObject
             $sql .= "motivator,";
             $sql .= "demotivator,";
             $sql .= "fk_user_valuer,";
-            $sql .= "typenotification";
+            $sql .= "typenotification,";
+            $sql .= "when_show";
             $sql .= ") VALUES (";
             $sql .= "'" . $this->db->idate($now) . "',";
             if(!$correctdate) {
@@ -1109,13 +1160,14 @@ class ActionComm extends CommonObject
                 (!empty($this->motivator)?"'".$this->motivator."'": "null"). ", ".
                 (!empty($this->demotivator)?"'".$this->demotivator."'": "null"). ", ".
                 (!empty($this->user_valuer)?$this->user_valuer: "null"). ", '".
-                $this->typenotification . "'";
+                $this->typenotification . "',";
+            $sql .= "'$when_show'";
             $sql .= ")";
-//            llxHeader();
-//            var_dump($sql);
-//            die();
+
             dol_syslog(get_class($this) . "::add", LOG_DEBUG);
             $resql=$this->db->query($sql);
+//            var_dump($sql);
+//            die();
             if(!$resql)
                 dol_print_error($this->db);
 //            $resql = 1;
@@ -1146,6 +1198,11 @@ class ActionComm extends CommonObject
                         {
                             $val=array('id'=>$val);
                         }
+//                        if($this->socid == 8649) {
+//                            llxHeader();
+//                            var_dump($user->id != $val['id'], $user->id ,  $val['id'], $this->userassigned[array_keys($this->userassigned)[$i]]);
+//                            die();
+//                        }
                         if($user->id != $val['id']) {
                             $sql = "INSERT INTO " . MAIN_DB_PREFIX . "actioncomm_resources(fk_actioncomm, element_type, fk_element, mandatory, transparency, answer_status)";
                             $sql .= " VALUES(" . $this->id . ", 'user', " . $val['id'] . ", " . (empty($val['mandatory']) ? '0' : $val['mandatory']) . ", " . (empty($val['transparency']) ? '0' : $val['transparency']) . ", " . (empty($val['answer_status']) ? '0' : $val['answer_status']) . ")";
@@ -1218,6 +1275,23 @@ class ActionComm extends CommonObject
                 $this->error=$this->db->lasterror();
                 return -1;
             }
+            //Сповіщення про створення нової дії
+            if(count(array_keys($this->userassigned))>1)
+                $when_show = 'oncreate';
+            else
+                $when_show = 'ondate';
+//            echo '<pre>';
+//            var_dump($this->code);
+//            echo '</pre>';
+//            die();
+
+            if(!in_array($this->code, array('AC_COMPANY_CREATE', 'AC_OTH_AUTO'))) {
+                $from = !empty($val['id']) ? $val['id'] : $this->authorid;
+                if(!empty($from))
+                    $this->ShowAction(!empty($val['id']) ? $val['id'] : $this->authorid, empty($this->authorid) ? $user->id : $this->authorid, $this->id, $when_show);
+            }
+//            die('test');
+
         }
         if (! $error)
         {
@@ -1538,8 +1612,56 @@ class ActionComm extends CommonObject
         return $num;
 
     }
-
-
+    function getFromToUserIDs($action_id){
+        $author_id = $this->getAuthorID($action_id);
+        $authorIDLastResultItem = $this->getAuthorIDLastResultAction($action_id);
+        if($authorIDLastResultItem == 0 || $author_id == $authorIDLastResultItem){
+             $this->fetch($action_id);
+            $for_user = array_keys($this->userassigned)[1];
+            $from_user = $author_id;
+        }else{
+            $for_user = $author_id;
+            $from_user = $authorIDLastResultItem;
+        }
+        return array('for'=>$for_user, 'from'=>$from_user);
+    }
+    function ShowAction($id_usr, $from_user, $action_id, $when_show){
+//        echo '<pre>';
+//        var_dump($id_usr, $from_user, $action_id, $when_show);
+//        echo '</pre>';
+//        die();
+        global $db;
+        $sql = "select count(*) iCount from llx_newactions where id_usr = $id_usr and id_action = $action_id";
+        $res = $db->query($sql);
+        $obj_count = $db->fetch_object($res);
+        if($obj_count->iCount == 0){
+            $sql = "insert into llx_newactions(id_usr,from_user,id_action,when_show) values($id_usr,$from_user,$action_id,'$when_show')";
+            $res = $db->query($sql);
+            if(!$res)
+                $db->lasterror();
+        }
+        if($res)
+            return 1;
+    }
+    function getUsersIDFromSociete($socid){
+        global $db;
+        $sql = "select distinct `llx_user_regions`.fk_user, llx_societe.region_id from llx_societe
+            inner join `responsibility_param` on `responsibility_param`.`fx_category_counterparty` = llx_societe.`categoryofcustomer_id`
+            inner join `llx_user_regions` on `llx_user_regions`.`fk_id` = llx_societe.region_id
+            inner join `llx_user` on llx_user.rowid = `llx_user_regions`.fk_user
+            where llx_societe.rowid = $socid
+            and `llx_user_regions`.`active` = 1
+            and (`llx_user`.`respon_id` = `responsibility_param`.`fx_responsibility` or `llx_user`.`respon_id2` = `responsibility_param`.`fx_responsibility`)
+            and `llx_user`.`active` = 1;";
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+        $usersID = [];
+        while($obj = $db->fetch_object($res)){
+            $usersID[]=$obj->fk_user;    
+        }
+        return $usersID;    
+    }
     function setDateAction($socid){
         global $db;
         //Остання дата співпраці

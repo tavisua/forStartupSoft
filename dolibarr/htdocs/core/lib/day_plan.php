@@ -843,7 +843,8 @@ function getLineActive($id_usr){
         left join `category_counterparty` on `category_counterparty`.`rowid` = case when `responsibility_param`.`fx_category_counterparty` is null then `other_category` else `fx_category_counterparty` end
         where `category_counterparty`.`active` = 1
         or `responsibility_param`.`fx_category_counterparty` is null
-        and `category_counterparty`.`name` is not null';
+        and `category_counterparty`.`name` is not null
+        order by `category_counterparty`.`name`';
 //    die($sql_categories);
     $res = $db->query($sql_categories);
     if (!$res)

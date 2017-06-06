@@ -38,7 +38,7 @@ if(count(array_intersect($responsibility, array('counter','corp_manager','purcha
     $tmp = 'and `llx_societe`.`categoryofcustomer_id` in
         (select case when `fx_category_counterparty` is null then `other_category` else `fx_category_counterparty` end fx_category_counterparty from responsibility_param  where fx_responsibility = ' . $respon_id . ')';
 }else{
-    if($_REQUEST['kind']!='fk_categories') {
+    if(empty($_REQUEST["id_category"])) {
         $sql_categories = 'select distinct case when `responsibility_param`.`fx_category_counterparty` is null then `other_category` else `fx_category_counterparty` end `fk_categories`
         from `responsibility_param`
         inner join (select rowid from `responsibility` where alias in (\'' . implode("','", $responsibility) . '\')) counter on counter.rowid=responsibility_param.fx_responsibility
@@ -55,7 +55,17 @@ if(count(array_intersect($responsibility, array('counter','corp_manager','purcha
                 $categories[] = $obj_cat__id->fk_categories;
         }
     }else
-        $categories[] = $_REQUEST['lineactiveID'];
+        $categories[] = $_REQUEST["id_category"];
+//    echo '<pre>';
+//    var_dump('select distinct case when `responsibility_param`.`fx_category_counterparty` is null then `other_category` else `fx_category_counterparty` end `fk_categories`
+//        from `responsibility_param`
+//        inner join (select rowid from `responsibility` where alias in (\'dir_depatment\')) counter on counter.rowid=responsibility_param.fx_responsibility
+//        left join `category_counterparty` on `category_counterparty`.`rowid` = case when `responsibility_param`.`fx_category_counterparty` is null then `other_category` else `fx_category_counterparty` end
+//        where `category_counterparty`.`active` = 1
+//        or `responsibility_param`.`fx_category_counterparty` is null
+//        and `category_counterparty`.`name` is not null');
+//    echo '</pre>';
+//    die();
     if(count($categories))
         $tmp = 'and `llx_societe`.`categoryofcustomer_id` in ('.implode(',',$categories).')';
 }
@@ -66,7 +76,7 @@ if(count(array_intersect($responsibility, array('counter','corp_manager','purcha
     $sql_count.=' and `llx_societe`.active = 1 ';
 
 //echo '<pre>';
-//var_dump($sql);
+//var_dump($_REQUEST);
 //echo '</pre>';
 //die();
 

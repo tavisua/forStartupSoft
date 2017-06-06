@@ -9,7 +9,7 @@
 //var_dump($_SERVER);
 //echo '</pre>';
 //die();
-if($_REQUEST['action'] == 'createStatisticPage')
+if($_REQUEST['action'] == 'createStatisticPage' || $_REQUEST['action'] == 'insertNewActions')
     define('NOLOGIN',1);
 require $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/main.inc.php';
 if(isset($_REQUEST['action'])){
@@ -18,6 +18,70 @@ if(isset($_REQUEST['action'])){
         case 'createStatisticPage':{
             createStaticDayPlanPage();
             exit();
+        }break;
+        case 'insertNewActions':{
+            $sql = "select `llx_actioncomm`.`id`, `llx_actioncomm`.`percent`, `llx_actioncomm`.`code`, `llx_actioncomm`.`datec`, `llx_user`.`rowid`, `llx_user`.`lastname` from llx_actioncomm
+                left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
+                left join `llx_user` on `llx_user`.`rowid` = `llx_actioncomm_resources`.`fk_element`
+                where new = 1
+                and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`
+                and `llx_actioncomm`.`percent` = -1
+                and `llx_actioncomm`.`active` = 1 union
+                select `llx_actioncomm`.`id`, `llx_actioncomm`.`percent`, `llx_actioncomm`.`code`, `llx_societe_action`.`dtChange`, `llx_user`.`rowid`, `llx_user`.`lastname` from llx_actioncomm
+                left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
+                left join `llx_user` on `llx_user`.`rowid` = `llx_actioncomm_resources`.`fk_element`
+                left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
+                where `llx_actioncomm`.new = 1
+                and `llx_actioncomm`.`active` = 1
+                and `llx_societe_action`.`id_usr` <> (case when `llx_actioncomm`.`fk_user_valuer` is null or `llx_actioncomm`.`fk_user_valuer`<=0 then `llx_actioncomm`.`fk_user_author` else `llx_actioncomm`.`fk_user_valuer` end)
+                and (`llx_societe_action`.`new` is null or `llx_societe_action`.`new` = 1)
+                and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`
+                and `llx_actioncomm`.`percent` >=0 and `llx_actioncomm`.`percent`<99 union
+                select `llx_actioncomm`.`id`, `llx_actioncomm`.`percent`, `llx_actioncomm`.`code`, `llx_societe_action`.`dtChange`, `llx_user`.`rowid`, `llx_user`.`lastname` from llx_actioncomm
+                left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
+                left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
+                left join `llx_user` on `llx_user`.`rowid` = case when `llx_societe_action`.`id_mentor` is null then `llx_societe_action`.`id_usr` else `llx_societe_action`.`id_mentor` end
+                where 1
+                and `llx_societe_action`.`new` in(1,null)
+                and `llx_actioncomm`.`active` = 1
+                and `llx_societe_action`.`id_usr` <> `llx_actioncomm_resources`.`fk_element`
+                and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`
+                and `llx_actioncomm`.`percent` >=0 and `llx_actioncomm`.`percent`<99 union
+                select `llx_actioncomm`.`id`, `llx_actioncomm`.`percent`, `llx_actioncomm`.`code`, `llx_societe_action`.`dtChange`, `llx_user`.`rowid`, `llx_user`.`lastname` from llx_actioncomm
+                left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
+                left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
+                left join `llx_user` on `llx_user`.`rowid` = `llx_actioncomm_resources`.`fk_element`
+                where `llx_actioncomm`.new = 1
+                and `llx_actioncomm`.`active` = 1
+                and `llx_societe_action`.`id_usr` <> `llx_actioncomm_resources`.`fk_element`
+                and `llx_societe_action`.`new` is null
+                and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`
+                and `llx_actioncomm`.`percent` >=0 and `llx_actioncomm`.`percent`<99 union
+                select `llx_actioncomm`.`id`, `llx_actioncomm`.`percent`, `llx_actioncomm`.`code`, `llx_actioncomm`.`datea`, `llx_user`.`rowid`, `llx_user`.`lastname`  from llx_actioncomm
+                left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
+                left join `llx_user` on `llx_user`.`rowid` = `llx_actioncomm`.`fk_user_author`
+                where `new` = 1
+                and `llx_actioncomm`.`active` = 1
+                and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`
+                and `llx_actioncomm`.`percent` = 99
+                and (`llx_actioncomm`.`fk_user_valuer` is null or `llx_actioncomm`.`fk_user_valuer`< 0 or `llx_actioncomm`.`fk_user_valuer` > 0 and `llx_actioncomm`.`dtValidValuer` is not null)  union
+                select `llx_actioncomm`.`id`, `llx_actioncomm`.`percent`, `llx_actioncomm`.`code`, `llx_actioncomm`.`datea`, `llx_user`.`rowid`, `llx_user`.`lastname`  from llx_actioncomm
+                left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
+                left join `llx_user` on `llx_user`.`rowid` = `llx_actioncomm`.`fk_user_valuer`
+                where `new` = 1
+                and `llx_actioncomm`.`active` = 1
+                and `llx_actioncomm`.`percent` = 99
+                and `llx_actioncomm`.`fk_user_valuer` is not null
+                and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`
+                and `llx_actioncomm`.`dtValidValuer` is null";
+            $res = $db->query($sql);
+            require_once $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/comm/action/class/actioncomm.class.php';
+            $action_tmp = new ActionComm($db);
+
+            while($obj = $db->fetch_object($res)){
+                $usersID = $action_tmp->getFromToUserIDs($obj->id);
+                $action_tmp->ShowAction($usersID['for'],$usersID['from'],$obj->id,'oncreate');
+            }
         }break;
         case 'resetFutureActions':{
             set_time_limit(0);
@@ -499,75 +563,88 @@ function TotalTask($actions_tmp){
     return $table;
 };
 function getNewAcctions($id_usr){
+
+    global $db, $user;
+    $sql = "select llx_actioncomm.id, llx_actioncomm.datep, llx_actioncomm.when_show, `llx_actioncomm`.`code`, llx_actioncomm.percent, llx_user.lastname from llx_newactions
+        inner join llx_actioncomm on llx_actioncomm.id = llx_newactions.id_action
+        inner join llx_user on llx_user.rowid = llx_newactions.from_user
+        where llx_newactions.id_usr = $id_usr
+        union all
+        select concat('_',ABS(llx_newactions.id_action)) id, llx_newactions.dtChange, llx_newactions.when_show, 'AC_COMMENT', 0, llx_user.lastname
+        from llx_newactions
+        inner join llx_user on llx_user.rowid = llx_newactions.from_user
+        where llx_newactions.id_usr = $id_usr
+        and llx_newactions.id_action < 0";
+
 //    echo '<pre>';
-//    var_dump($id_usr);
+//    var_dump($sql);
 //    echo '</pre>';
 //    die();
-    global $db, $user;
-    $sql = "select `llx_actioncomm`.`id`, `llx_actioncomm`.`percent`, `llx_actioncomm`.`code`, `llx_actioncomm`.`datec`, `llx_user`.`lastname` from llx_actioncomm
-        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
-        left join `llx_user` on `llx_user`.`rowid` = `llx_actioncomm`.`fk_user_author`
-        where new = 1
-        and `llx_actioncomm_resources`.`fk_element` = ".$id_usr."
-        and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`
-        and `llx_actioncomm`.`percent` = -1
-        and `llx_actioncomm`.`active` = 1";
-    $sql.=" union
-        select `llx_actioncomm`.`id`, `llx_actioncomm`.`percent`, `llx_actioncomm`.`code`, `llx_societe_action`.`dtChange`, `llx_user`.`lastname` from llx_actioncomm
-        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
-        left join `llx_user` on `llx_user`.`rowid` = `llx_actioncomm_resources`.`fk_element`
-        left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
-        where `llx_actioncomm`.new = 1
-        and `llx_actioncomm`.`active` = 1
-        and (case when `llx_actioncomm`.`fk_user_valuer` is null or `llx_actioncomm`.`fk_user_valuer`<=0 then `llx_actioncomm`.`fk_user_author` else `llx_actioncomm`.`fk_user_valuer` end) = ".$id_usr."
-        and `llx_societe_action`.`id_usr` <> ".$id_usr."
-        and (`llx_societe_action`.`new` is null or `llx_societe_action`.`new` = 1)
-        and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`
-        and `llx_actioncomm`.`percent` >=0 and `llx_actioncomm`.`percent`<99";
-    $sql.=" union
-        select `llx_actioncomm`.`id`, `llx_actioncomm`.`percent`, `llx_actioncomm`.`code`, `llx_societe_action`.`dtChange`, `llx_user`.`lastname` from llx_actioncomm
-        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
-        left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
-        left join `llx_user` on `llx_user`.`rowid` = case when `llx_societe_action`.`id_mentor` is null then `llx_societe_action`.`id_usr` else `llx_societe_action`.`id_mentor` end
-        where 1
-        and `llx_actioncomm_resources`.`fk_element` = ".$id_usr."
-        and `llx_societe_action`.`new` in(1,null)
-        and `llx_actioncomm`.`active` = 1
-        and `llx_societe_action`.`id_usr` <> ".$id_usr."
-        and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`
-        and `llx_actioncomm`.`percent` >=0 and `llx_actioncomm`.`percent`<99";
-    $sql.=" union
-        select `llx_actioncomm`.`id`, `llx_actioncomm`.`percent`, `llx_actioncomm`.`code`, `llx_societe_action`.`dtChange`, `llx_user`.`lastname` from llx_actioncomm
-        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
-        left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
-        left join `llx_user` on `llx_user`.`rowid` = `llx_societe_action`.`id_usr`
-        where `llx_actioncomm`.new = 1
-        and `llx_actioncomm`.`active` = 1
-        and `llx_actioncomm_resources`.`fk_element` = ".$id_usr."
-        and `llx_societe_action`.`id_usr` <> ".$id_usr."
-        and `llx_societe_action`.`new` is null
-        and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`
-        and `llx_actioncomm`.`percent` >=0 and `llx_actioncomm`.`percent`<99";
-    $sql.=" union
-        select `llx_actioncomm`.`id`, `llx_actioncomm`.`percent`, `llx_actioncomm`.`code`, `llx_actioncomm`.`datea`, `llx_user`.`lastname`  from llx_actioncomm
-        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
-        left join `llx_user` on `llx_user`.`rowid` = `llx_actioncomm_resources`.`fk_element`
-        where `new` = 1
-        and `llx_actioncomm`.`active` = 1
-        and `llx_actioncomm`.`fk_user_author` = ".$id_usr."
-        and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`
-        and `llx_actioncomm`.`percent` = 99
-        and (`llx_actioncomm`.`fk_user_valuer` is null or `llx_actioncomm`.`fk_user_valuer`< 0 or `llx_actioncomm`.`fk_user_valuer` > 0 and `llx_actioncomm`.`dtValidValuer` is not null) ";
-    $sql.=" union
-        select `llx_actioncomm`.`id`, `llx_actioncomm`.`percent`, `llx_actioncomm`.`code`, `llx_actioncomm`.`datea`, `llx_user`.`lastname`  from llx_actioncomm
-        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
-        left join `llx_user` on `llx_user`.`rowid` = `llx_actioncomm_resources`.`fk_element`
-        where `new` = 1
-        and `llx_actioncomm`.`active` = 1
-        and `llx_actioncomm`.`percent` = 99
-        and `llx_actioncomm`.`fk_user_valuer` = ".$id_usr."
-        and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`
-        and `llx_actioncomm`.`dtValidValuer` is null";
+//
+//    $sql = "select `llx_actioncomm`.`id`, `llx_actioncomm`.`percent`, `llx_actioncomm`.`code`, `llx_actioncomm`.`datec`, `llx_user`.`lastname` from llx_actioncomm
+//        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
+//        left join `llx_user` on `llx_user`.`rowid` = `llx_actioncomm`.`fk_user_author`
+//        where new = 1
+//        and `llx_actioncomm_resources`.`fk_element` = ".$id_usr."
+//        and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`
+//        and `llx_actioncomm`.`percent` = -1
+//        and `llx_actioncomm`.`active` = 1";
+//    $sql.=" union
+//        select `llx_actioncomm`.`id`, `llx_actioncomm`.`percent`, `llx_actioncomm`.`code`, `llx_societe_action`.`dtChange`, `llx_user`.`lastname` from llx_actioncomm
+//        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
+//        left join `llx_user` on `llx_user`.`rowid` = `llx_actioncomm_resources`.`fk_element`
+//        left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
+//        where `llx_actioncomm`.new = 1
+//        and `llx_actioncomm`.`active` = 1
+//        and (case when `llx_actioncomm`.`fk_user_valuer` is null or `llx_actioncomm`.`fk_user_valuer`<=0 then `llx_actioncomm`.`fk_user_author` else `llx_actioncomm`.`fk_user_valuer` end) = ".$id_usr."
+//        and `llx_societe_action`.`id_usr` <> ".$id_usr."
+//        and (`llx_societe_action`.`new` is null or `llx_societe_action`.`new` = 1)
+//        and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`
+//        and `llx_actioncomm`.`percent` >=0 and `llx_actioncomm`.`percent`<99";
+//    $sql.=" union
+//        select `llx_actioncomm`.`id`, `llx_actioncomm`.`percent`, `llx_actioncomm`.`code`, `llx_societe_action`.`dtChange`, `llx_user`.`lastname` from llx_actioncomm
+//        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
+//        left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
+//        left join `llx_user` on `llx_user`.`rowid` = case when `llx_societe_action`.`id_mentor` is null then `llx_societe_action`.`id_usr` else `llx_societe_action`.`id_mentor` end
+//        where 1
+//        and `llx_actioncomm_resources`.`fk_element` = ".$id_usr."
+//        and `llx_societe_action`.`new` in(1,null)
+//        and `llx_actioncomm`.`active` = 1
+//        and `llx_societe_action`.`id_usr` <> ".$id_usr."
+//        and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`
+//        and `llx_actioncomm`.`percent` >=0 and `llx_actioncomm`.`percent`<99";
+//    $sql.=" union
+//        select `llx_actioncomm`.`id`, `llx_actioncomm`.`percent`, `llx_actioncomm`.`code`, `llx_societe_action`.`dtChange`, `llx_user`.`lastname` from llx_actioncomm
+//        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
+//        left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
+//        left join `llx_user` on `llx_user`.`rowid` = `llx_societe_action`.`id_usr`
+//        where `llx_actioncomm`.new = 1
+//        and `llx_actioncomm`.`active` = 1
+//        and `llx_actioncomm_resources`.`fk_element` = ".$id_usr."
+//        and `llx_societe_action`.`id_usr` <> ".$id_usr."
+//        and `llx_societe_action`.`new` is null
+//        and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`
+//        and `llx_actioncomm`.`percent` >=0 and `llx_actioncomm`.`percent`<99";
+//    $sql.=" union
+//        select `llx_actioncomm`.`id`, `llx_actioncomm`.`percent`, `llx_actioncomm`.`code`, `llx_actioncomm`.`datea`, `llx_user`.`lastname`  from llx_actioncomm
+//        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
+//        left join `llx_user` on `llx_user`.`rowid` = `llx_actioncomm_resources`.`fk_element`
+//        where `new` = 1
+//        and `llx_actioncomm`.`active` = 1
+//        and `llx_actioncomm`.`fk_user_author` = ".$id_usr."
+//        and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`
+//        and `llx_actioncomm`.`percent` = 99
+//        and (`llx_actioncomm`.`fk_user_valuer` is null or `llx_actioncomm`.`fk_user_valuer`< 0 or `llx_actioncomm`.`fk_user_valuer` > 0 and `llx_actioncomm`.`dtValidValuer` is not null) ";
+//    $sql.=" union
+//        select `llx_actioncomm`.`id`, `llx_actioncomm`.`percent`, `llx_actioncomm`.`code`, `llx_actioncomm`.`datea`, `llx_user`.`lastname`  from llx_actioncomm
+//        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
+//        left join `llx_user` on `llx_user`.`rowid` = `llx_actioncomm_resources`.`fk_element`
+//        where `new` = 1
+//        and `llx_actioncomm`.`active` = 1
+//        and `llx_actioncomm`.`percent` = 99
+//        and `llx_actioncomm`.`fk_user_valuer` = ".$id_usr."
+//        and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`
+//        and `llx_actioncomm`.`dtValidValuer` is null";
     $res = $db->query($sql);
 //    echo '<pre>';
 //    var_dump($sql);
@@ -578,35 +655,38 @@ function getNewAcctions($id_usr){
     $actions = array();
     if($db->num_rows($res) > 0){
         while($obj = $db->fetch_object($res)){
-            $date = new DateTime($obj->datec);
-            $actions[$obj->id] = array('id'=>$obj->id, 'code'=>$obj->code, 'mentor'=>0,'datec'=>$date->format('d.m H:i'), 'lastname'=>$obj->lastname, 'percent'=>$obj->percent);
+            $date = new DateTime($obj->datep);
+//            if($obj->when_show != 'oncreate')
+//                die($date->format('Y-m-d'));
+            if($obj->when_show == 'oncreate' || $obj->when_show == 'ondatep' && $date->format('Y-m-d') == date('Y-m-d') || empty($obj->when_show))
+                $actions[$obj->id] = array('id'=>$obj->id, 'code'=>$obj->code, 'mentor'=>0,'datec'=>$date->format('d.m H:i'), 'lastname'=>$obj->lastname, 'percent'=>$obj->percent);
         }
     }
-    if(count($actions)>0) {
-        //Завантажую коментарі наставника
-        $sql = "select `llx_actioncomm`.`id`, `llx_actioncomm`.`code`, `llx_societe_action`.`dtChange`, `llx_actioncomm`.`fk_user_action`, `llx_actioncomm_resources`.`fk_element`, `llx_actioncomm`.fk_soc, `llx_user`.`lastname`  
-        from `llx_societe_action`
-        inner join `llx_user` on `llx_user`.`rowid` = `llx_societe_action`.`id_mentor`
-        inner join `llx_actioncomm` on `llx_societe_action`.`action_id`= `llx_actioncomm`.`id` 
-        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm`= `llx_actioncomm`.`id` 
-        where 1
-        and `llx_actioncomm`.`id` in (".implode(',', array_keys($actions)).")
-        and `llx_societe_action`.`new` = 1
-        and `llx_societe_action`.`active` = 1";
-
-        $res = $db->query($sql);
-        if (!$res)
-            dol_print_error($db);
-        $societelist = array(0);
-        if ($db->num_rows($res) > 0) {
-            while ($obj = $db->fetch_object($res)) {
-                if ($obj->fk_user_action == $id_usr || $obj->fk_element == $id_usr || in_societelist($id_usr, $obj->fk_soc)) {
-                    $date = new DateTime($obj->dtChange);
-                    $actions[$obj->id] = array('id' => $obj->id, 'code' => $obj->code, 'mentor' => 1, 'datec' => $date->format('d.m H:i'), 'lastname' => $obj->lastname, 'percent' => $obj->percent);
-                }
-            }
-        }
-    }
+//    if(count($actions)>0) {
+//        //Завантажую коментарі наставника
+//        $sql = "select `llx_actioncomm`.`id`, `llx_actioncomm`.`code`, `llx_societe_action`.`dtChange`, `llx_actioncomm`.`fk_user_action`, `llx_actioncomm_resources`.`fk_element`, `llx_actioncomm`.fk_soc, `llx_user`.`lastname`
+//        from `llx_societe_action`
+//        inner join `llx_user` on `llx_user`.`rowid` = `llx_societe_action`.`id_mentor`
+//        inner join `llx_actioncomm` on `llx_societe_action`.`action_id`= `llx_actioncomm`.`id`
+//        left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm`= `llx_actioncomm`.`id`
+//        where 1
+//        and `llx_actioncomm`.`id` in (".implode(',', array_keys($actions)).")
+//        and `llx_societe_action`.`new` = 1
+//        and `llx_societe_action`.`active` = 1";
+//
+//        $res = $db->query($sql);
+//        if (!$res)
+//            dol_print_error($db);
+//        $societelist = array(0);
+//        if ($db->num_rows($res) > 0) {
+//            while ($obj = $db->fetch_object($res)) {
+//                if ($obj->fk_user_action == $id_usr || $obj->fk_element == $id_usr || in_societelist($id_usr, $obj->fk_soc)) {
+//                    $date = new DateTime($obj->dtChange);
+//                    $actions[$obj->id] = array('id' => $obj->id, 'code' => $obj->code, 'mentor' => 1, 'datec' => $date->format('d.m H:i'), 'lastname' => $obj->lastname, 'percent' => $obj->percent);
+//                }
+//            }
+//        }
+//    }
 
     if(count($actions)>0)
         return json_encode($actions);

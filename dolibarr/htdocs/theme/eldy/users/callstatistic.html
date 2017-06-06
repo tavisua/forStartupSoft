@@ -64,6 +64,8 @@
     <?=$tbody;?>
 </table>
 <script>
+    $('#userlist').height($(window).height() - 250);
+
     function SetMonthFilter(){
         var selMonth = getParameterByName('month');
         var searchString = location.search;

@@ -11,7 +11,6 @@ class dbMysqli {
     private $baseLink;
     public function __construct()
     {
-////        include '/dolibarr/htdocs/conf/conf.php';
         if (!file_exists($_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/conf/conf.php')) {
             die('Не удалось найти файл конфигурации!');
         }

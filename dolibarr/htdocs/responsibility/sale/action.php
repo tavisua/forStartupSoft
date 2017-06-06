@@ -271,6 +271,10 @@ function setStatus(){
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
+    $sql = "delete from llx_newactions where id = ".$_REQUEST['rowid'];
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
     return 1;
 }
 
@@ -730,7 +734,7 @@ function ShowActionTable(){
 //            die();
             if($user->rights->user->user->mentor && $mentor ||(in_array('gen_dir', array($user->respon_alias,$user->respon_alias2)))){
                 if(empty($row->date_mentor))
-                    $out .= '<img id="img_1"  onclick="SetRemarkOfMentor(' . $row->rowid . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('SetRemarkOfMentor') . '" src="/dolibarr/htdocs/theme/eldy/img/filenew.png">';
+                    $out .= '<img id="img_1"  onclick="SetRemarkOfMentor(' .(substr($row->rowid, 0, 1) == '_'?'0, '.substr($row->rowid,1): $row->rowid) . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('SetRemarkOfMentor') . '" src="/dolibarr/htdocs/theme/eldy/img/filenew.png">';
                 else
                     $out .= '<img onclick="EditMentorRemark(' . (substr($row->rowid, 0, 1) == '_' ? "'" . $row->rowid . "'" : $row->rowid) . ', ' . (empty($row->answer_id) ? '0' : $row->answer_id) . ', ' . "'" . (empty($row->kindaction) ? 'AC_TEL' : $row->kindaction) . "'" . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('edit_mentor') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">
                     <img onclick="DelMentorRemark(' . (substr($row->rowid, 0, 1) == '_' ? "'" . $row->rowid . "'" : $row->rowid) . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('delete_mentor') . '" src="/dolibarr/htdocs/theme/eldy/img/delete.png">';

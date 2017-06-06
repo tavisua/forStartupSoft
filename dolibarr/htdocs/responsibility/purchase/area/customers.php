@@ -15,7 +15,8 @@ foreach($search as $elem) {
 $page = isset($_GET['page'])?$_GET['page']:1;
 $per_page = isset($_GET['per_page'])?$_GET['per_page']:30;
 
-if(empty($_GET['viewname']))     $name = "concat(`llx_societe`.`nom`,' ',case when `formofgavernment`.`name` is null then '' else `formofgavernment`.`name` end)"; elseif ($_GET['viewname'] == "reverse")     $name = "concat(case when `formofgavernment`.`name` is null then '' else `formofgavernment`.`name` end,' ',`llx_societe`.`nom`)";  $sql = "select `llx_societe`.rowid, $name nom,
+if(empty($_GET['viewname']))     $name = "concat(`llx_societe`.`nom`,' ',case when `formofgavernment`.`name` is null then '' else `formofgavernment`.`name` end)"; elseif ($_GET['viewname'] == "reverse")     $name = "concat(case when `formofgavernment`.`name` is null then '' else `formofgavernment`.`name` end,' ',`llx_societe`.`nom`)";
+$sql = "select `llx_societe`.rowid, $name nom,
 `llx_societe`.`town`, round(`llx_societe_classificator`.`value`,0) as width, `llx_societe`.`remark`, ' ' deficit,
 ' ' task,' ' lastdate, ' ' lastdatecomerc, ' ' futuredatecomerc, ' ' exec_time, ' ' lastdateservice,
 ' ' futuredateservice, ' ' lastdateaccounts, ' ' futuredateaccounts, ' ' lastdatementor, ' ' futuredatementor
@@ -36,11 +37,12 @@ if(!$res_respon)
 $resp_obj = $db->fetch_object($res_respon);
 //var_dump($id_usr);
 //die();
+if(empty($_REQUEST['lineactive']) || $_REQUEST['kind'] == 'fk_lineactive') {
     $tmp = 'and `llx_societe`.`categoryofcustomer_id` in
-(select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility in('.$resp_obj->respon_id.', '.(empty($resp_obj->respon_id2)?'0':$resp_obj->respon_id2).'))';
-    $sql.=$tmp;
-    $sql_count.=$tmp;
-
+(select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility in(' . $resp_obj->respon_id . ', ' . (empty($resp_obj->respon_id2) ? '0' : $resp_obj->respon_id2) . '))';
+    $sql .= $tmp;
+    $sql_count .= $tmp;
+}
     $sql .= ' and `llx_societe`.active = 1 ';
     $sql_count.=' and `llx_societe`.active = 1 ';
 
@@ -54,15 +56,20 @@ $resp_obj = $db->fetch_object($res_respon);
 //    $sql.=$tmp;
 //    $sql_count.=$tmp;
 //}
+
 if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['lineactive'])&& !empty($_REQUEST['lineactive'])){
     if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])) {
         $phone_number = fPrepPhoneFilter($_REQUEST['filter']);
-        $sql_cat = "select fx_category_counterparty from responsibility_param where `fx_responsibility` = ".$user->respon_id." and fx_category_counterparty is not null";
-        $res_cat = $db->query($sql_cat);
-        $cat_ID = array(0);
-        while($obj = $db->fetch_object($res_cat)){
-            if(!in_array($obj->fx_category_counterparty, $cat_ID))
-                $cat_ID[] = $obj->fx_category_counterparty;
+        if($_REQUEST['kind']=='fk_lineactive'||empty($_REQUEST['kind'])) {
+            $sql_cat = "select case when fx_category_counterparty is not null then fx_category_counterparty else other_category end fx_category_counterparty from responsibility_param where `fx_responsibility` in (" .implode(',', array($user->respon_id,$user->respon_id2)) . ")";
+            $res_cat = $db->query($sql_cat);
+            $cat_ID = array(0);
+            while ($obj = $db->fetch_object($res_cat)) {
+                if (!in_array($obj->fx_category_counterparty, $cat_ID))
+                    $cat_ID[] = $obj->fx_category_counterparty;
+            }
+        }elseif ($_REQUEST['kind']=='fk_categories'){
+            $cat_ID[] = $_REQUEST['lineactive'];
         }
         $sql_filter = "select llx_societe.rowid from llx_societe
             left join `llx_societe_contact` on `llx_societe_contact`.`socid`=`llx_societe`.`rowid`
@@ -93,7 +100,7 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['lin
             }
 
     }
-    if(isset($_REQUEST['lineactive'])&& !empty($_REQUEST['lineactive']) && $_REQUEST['lineactive'] != -1){
+    if(isset($_REQUEST['lineactive'])&& !empty($_REQUEST['lineactive']) && $_REQUEST['lineactive'] != -1 && $_REQUEST['kind']=='fk_lineactive'){
 
 //        $sql_filter='select `llx_societe`.`rowid` from `llx_societe_lineactive`
 //            inner join `llx_societe` on `llx_societe_lineactive`.`fk_soc`=`llx_societe`.`rowid`
@@ -115,7 +122,7 @@ if(isset($_REQUEST['filter'])&&!empty($_REQUEST['filter'])||isset($_REQUEST['lin
         $lineactive = getSubLineActive(array_keys($catalog));
     }
 }
-if(!(empty($_REQUEST['lineactive'])||$_REQUEST['lineactive'] == -1)){
+if(!(empty($_REQUEST['lineactive'])||$_REQUEST['lineactive'] == -1)&&$_REQUEST['kind']=='fk_lineactive'){
     $catalog = getLineActive($id_usr);
     $lineactive = getSubLineActive(array_keys($catalog));
 }
@@ -123,36 +130,46 @@ if(!(empty($_REQUEST['lineactive'])||$_REQUEST['lineactive'] == -1)){
 //    var_dump($lineactive);
 //    echo '</pre>';
 //    die();
-    $sql_respon = 'select rowid from `responsibility` where alias = "purchase" and active = 1';
+    $sql_respon = "select `fk_respon` from `llx_user_responsibility` where fk_user = $user->id and active = 1";
     $res_respon = $db->query($sql_respon);
     $respon_list = [];
     while($obj = $db->fetch_object($res_respon)){
         $respon_list[]=$obj->rowid;
     }
-if((empty($_REQUEST['lineactive'])||$_REQUEST['lineactive'] == -1)) {
-    $sql_filter = "select `llx_societe`.`rowid` from `llx_societe` ";
-    $sql_filter.= "where 1    
-    and `llx_societe`.`categoryofcustomer_id` in
-        (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility in (".implode(',',$respon_list)."))
-    and `llx_societe`.active = 1";
-}else {
-    if (count($lineactive) == 0)
-        $lineactive[0][] = 0;
-    $sql_lineactive = 'null';
+    $respon_list[]=$user->respon_id;
+    $respon_list[]=$user->respon_id2;
 
-    foreach ($lineactive as $item) {
-        $sql_lineactive .= (!empty($sql_lineactive) ? "," : "") . implode(',', $item);
-    }
-    if (empty($sql_lineactive))
-        $sql_lineactive = '0';
-    $sql_filter = "select `llx_societe`.`rowid` from `llx_societe_lineactive`
-    inner join `llx_societe` on `llx_societe_lineactive`.`fk_soc`=`llx_societe`.`rowid`
-    where 1
+if((empty($_REQUEST['lineactive'])||$_REQUEST['lineactive'] == -1)&& in_array($_REQUEST['kind'], array('fk_lineactive','',null))) {
+    $sql_filter = "select `llx_societe`.`rowid` from `llx_societe` ";
+    $sql_filter .= "where 1    
     and `llx_societe`.`categoryofcustomer_id` in
-        (select responsibility_param.fx_category_counterparty from responsibility_param  where fx_responsibility in (".implode(',',$respon_list)."))
-    and `llx_societe_lineactive`.`fk_lineactive` in (" . $sql_lineactive . ")
-    and `llx_societe_lineactive`.`active` = 1";
+        (select case when fx_category_counterparty is not null then fx_category_counterparty else other_category end fx_category_counterparty from responsibility_param  where fx_responsibility in (" . implode(',', $respon_list) . "))
+    and `llx_societe`.active = 1";
+}elseif($_REQUEST['kind']=='fk_categories'&&!empty($_REQUEST['lineactive'])){
+    $sql_filter = "select `llx_societe`.`rowid` from llx_societe where `llx_societe`.`categoryofcustomer_id` = ".$_REQUEST['lineactive']." and active = 1";
+
 }
+//else if($_REQUEST['kind']=='fk_lineactive' && count($respon_list)){
+//    if (count($lineactive) == 0)
+//        $lineactive[0][] = 0;
+//    $sql_lineactive = 'null';
+//
+//    foreach ($lineactive as $item) {
+//        $sql_lineactive .= (!empty($sql_lineactive) ? "," : "") . implode(',', $item);
+//    }
+//    if (empty($sql_lineactive))
+//        $sql_lineactive = '0';
+//     {
+//        $sql_filter = "select `llx_societe`.`rowid` from `llx_societe_lineactive`
+//        inner join `llx_societe` on `llx_societe_lineactive`.`fk_soc`=`llx_societe`.`rowid`
+//        where 1
+//        and `llx_societe`.`categoryofcustomer_id` in
+//            (select case when fx_category_counterparty is not null then fx_category_counterparty else other_category end fx_category_counterparty from responsibility_param  where fx_responsibility in (".implode(',',$respon_list).")) ";
+//
+//        $sql_filter .= "and `llx_societe_lineactive`.`fk_lineactive` in (" . $sql_lineactive . ") ";
+//        $sql_filter .= "and `llx_societe_lineactive`.`active` = 1";
+//    }
+//}
 //        echo '<pre>';
 //        var_dump($sql_filter);
 //        echo '<pre>';
@@ -166,16 +183,18 @@ if ($db->num_rows($res))
         if (!in_array($obj->rowid, $lineactiveFilterID))
             $lineactiveFilterID[] = $obj->rowid;
     }
+
 if(count($lineactiveFilterID)||count($filterid)) {
-//    echo '<pre>';
-//    var_dump(array_intersect($lineactiveFilterID, $filterid));
-//    echo '</pre>';
-//    die();
+
     if(count($filterid) == 0)
         $filterarray = $lineactiveFilterID;
     else{
         $filterarray = array_intersect($lineactiveFilterID, $filterid);
     }
+//    echo '<pre>';
+//    var_dump(count($lineactiveFilterID));
+//    echo '</pre>';
+//    die();
     if(count($filterarray) == 0)
         $filterarray[]=0;
     $sql .= ' and `llx_societe`.`rowid` in (' . implode(',', $filterarray) . ') ';

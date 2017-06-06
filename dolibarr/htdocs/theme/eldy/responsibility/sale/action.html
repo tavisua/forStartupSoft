@@ -78,7 +78,7 @@
         <button title="Скрити чи відобразити таблицю 'Дії'">    Скрити дії    </button>
 
         <button title="Запланувати дію" onclick="AddAction();">    Додати дію    </button>
-        <button title="Додати результат перемовин в таблицю 'Дії'" onclick="AddResultAction(false, null)">    Додати результат перемовин    </button>
+        <button title="Додати результат перемовин в таблицю 'Дії'" onclick="AddResultAction(false, null); return false;">    Додати результат перемовин    </button>
 
         <!--<button title="Додати запис в таблицю 'Дії'" onclick="location.href=location.href+'&action=add'">    Додати дію    </button>-->
         <!--<button title="Додати інформацію про потреби">    Потреби    </button>-->
@@ -123,7 +123,7 @@
 <!--</form>-->
 <form id="redirect" action="/dolibarr/htdocs/comm/action/result_action.php" method="get">
     <input type="hidden" name="mainmenu" value="<?=$_REQUEST['mainmenu']?>" id="mainmenu_action">
-    <input type="hidden" name="backtopage" value="'<?=$_SERVER['REQUEST_URI']?>'">
+    <input type="hidden" name="backtopage" value="<?=$_SERVER['REQUEST_URI']?>">
     <input type="hidden" name="action_id" value="" id="action_id">
     <input type="hidden" name="answer_id" value="" id="answer_id">
     <input type="hidden" name="actioncode" value="" id="actioncode">

@@ -34,7 +34,7 @@ if(count($_POST)>0) {
 //        $respon_sql.= str_replace("'\"",'',$respon_sql);
         $sql = 'delete from responsibility_param where fx_responsibility = ' . GETPOST('rowid') . '
             and (
-                (fx_category_counterparty not in (' . str_replace("'",'',$respon_sql) . ') and other_category is null)
+                (fx_category_counterparty not in (' . str_replace('users','0',str_replace("'",'',$respon_sql)) . ') and other_category is null)
             or
                 (other_category not in (' . $respon_sql . ') and fx_category_counterparty is null)
             )';
@@ -81,7 +81,7 @@ while($row = $db->fetch_object($res)){
 //        var_dump(in_array("'users'", $id_respon));
 //        die();
 
-$sql = 'select rowid, name from category_counterparty where active = 1 order by trim(name)';
+$sql = 'select 0, "" as `name` union select rowid, name from category_counterparty where active = 1 order by trim(name)';
 $res = $db->query($sql);
 $selector = '<select id = "select_respon" multiple size="5" name="select_respon">';
 while($row = $db->fetch_object($res)){

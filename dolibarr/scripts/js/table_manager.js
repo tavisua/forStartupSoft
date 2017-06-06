@@ -306,7 +306,7 @@ function SaveResultProporition(contactid, lastID){
         //console.log(location);
         //return;
         var param = {
-            backtopage: location.pathname,
+            // backtopage: location.pathname,
             action: 'addonlyresult',
             socid: getParameterByName('socid'),
             mainmenu: 'area',
@@ -318,7 +318,7 @@ function SaveResultProporition(contactid, lastID){
             need: needList,
             contactid: contactid
         }
-        $('#redirect').attr('target', '_blank');
+        // $('#redirect').attr('target', '_blank');
         $('#redirect').find('#action_id').val($('#actionid').val());
         $('#redirect').find('#actioncode').val('AC_TEL');
         $('#redirect').find('#onlyresult').remove();
@@ -530,7 +530,9 @@ function SetRemarkOfMentor(action_id, rowid){
     //return;
     var link = '/dolibarr/htdocs/comm/action/result_action.php';
     var backtopage = encodeURIComponent(location.pathname+location.search);
-    window.open(link+'?action=SetRemarkOfMentor&action_id='+action_id+(rowid!==undefined?'&rowid='+rowid:'')+'&backtopage='+backtopage, '_blank');
+    var goto = link+'?action=SetRemarkOfMentor&action_id='+action_id+(rowid!==undefined?'&rowid='+rowid:'')+'&backtopage='+backtopage;
+    console.log(goto);
+    window.open(goto, '_blank');
     // location.href = link+'?action=SetRemarkOfMentor&action_id='+action_id+(rowid!==undefined?'&rowid='+rowid:'')+'&backtopage='+backtopage;
 }
 function GetExecDate(datetype){
@@ -1088,13 +1090,14 @@ function Timer(){
     // window.sessionStorage.clear('phone_conected');
     var phone_conected = window.sessionStorage.getItem('phone_conected');//phone_conected - змінна, що вказує на підключення телефону
     var incoming_call = window.sessionStorage.getItem('incoming_call');
-    if(incoming_call == null)
-        incoming_call = $.session.get("incoming_call");
+    // if(incoming_call == null)
+    //     incoming_call = $.session.get("incoming_call");
     var taken_call = window.sessionStorage.getItem('taken_call');
-    if(taken_call == null)
-        taken_call = $.session.get("taken_call");
-
+    // if(taken_call == null)
+    //     taken_call = $.session.get("taken_call");
     if((phone_conected == null || phone_conected == 1) && taken_call != null) {
+        // console.log('incoming_call',incoming_call);
+        // console.log('taken_call',taken_call);
         var client = new HttpClient();
         window.sessionStorage.setItem('phone_conected', 0);
         client.get('http://localhost:9002?action=poling', function (status, response) {
@@ -1106,7 +1109,7 @@ function Timer(){
                 }
                 var json = JSON.parse(response);
                 if (json.result == "ok") {
-                    if (json.phone.end === undefined && $('#incoming_call_' + json.phone.id).length == 0 && ($.inArray(taken_call, ['0', null])>=0 || taken_call.indexOf(JSON.stringify(json.phone.id).replace(/"/g, '')) == -1)) {
+                    if (json.phone.type == 'incoming' && json.phone.end === undefined && $('#incoming_call_' + json.phone.id).length == 0 && (taken_call == 0 || taken_call.indexOf(JSON.stringify(json.phone.id).replace(/"/g, '')) == -1)) {
                         HTMLIncommingCall(json);
                     }
                 }
@@ -1119,8 +1122,8 @@ function Timer(){
         obj.forEach(function (value, key) {
             if(value.length > 10) {
                 var json = JSON.parse('{"phone":{'+value);
-                // console.log(json.phone.id);
-                if(json.phone.end === undefined && taken_call.indexOf(json.phone.id) == -1 && $('#incoming_call_' + json.phone.id).length == 0) {
+                console.log(json.phone);
+                if(json.phone.type == 'incoming' && json.phone.end === undefined && taken_call.indexOf(json.phone.id) == -1 && $('#incoming_call_' + json.phone.id).length == 0) {
                         HTMLIncommingCall(json)
                 }
             }
@@ -1169,6 +1172,7 @@ function HTMLIncommingCall(json){
                 if($('div#incoming_call_'+json.phone.id).length != 0) {
                     console.log(id);
                     $('td#'+id).html((contactInfo.name !== undefined ? contactInfo.formofgavernment + ' ' + contactInfo.name : json.phone.phone));
+                    $('td#contactInfo_'+id).html(JSON.stringify(contactInfo));
                 }
             }
         })
@@ -1177,18 +1181,19 @@ function HTMLIncommingCall(json){
     // console.log($('.incoming_call').length);
 }
 function redirectToActionList(id){
-    var contactInfo = JSON.parse($('td#contactInfo_incoming_call_'+id).html());
-    var link;
-    // console.log(contactInfo);
-    if(contactInfo == 0){
-        link = '/dolibarr/htdocs/societe/soc.php?mainmenu=area&idmenu=10425&incomming_call='+$('td#incoming_call_'+id).html();
-    }else{
-        link = '/dolibarr/htdocs/responsibility/dir_depatment/action.php?socid='+contactInfo.id+'&idmenu=10425&mainmenu=area';
-    }
-    // console.log(window.sessionStorage.getItem('incomming_call'));
+    console.log(window.sessionStorage.getItem('incomming_call'));
     if(window.sessionStorage.getItem('taken_call') == null || window.sessionStorage.getItem('taken_call').indexOf(id) == -1) {
         $.session.add('taken_call', id);
     }
+    var contactInfo = JSON.parse($('td#contactInfo_incoming_call_'+id).html());
+    var link;
+    console.log(contactInfo);
+    if(contactInfo == 0){
+        link = '/dolibarr/htdocs/societe/soc.php?mainmenu=area&idmenu=10425&incomming_call='+$('td#incoming_call_'+id).html()+'&taken_id='+id;
+    }else{
+        link = '/dolibarr/htdocs/responsibility/sale/action.php?socid='+contactInfo.id+'&idmenu=10425&mainmenu=area';
+    }
+
 
     document.location.href = link;
 
@@ -1275,13 +1280,18 @@ function getMessage(){
                             title = 'Робота з контрагентами';
                             class_name = 'office_callphone';
                             icon_name = 'cust';
+                        }break;                        
+                        case "'AC_COMMENT'":{
+                            title = 'Робота з контрагентами';
+                            class_name = 'office_callphone';
+                            icon_name = 'comment';
                         }break;
                     }
                     if(actions[key]['mentor'] == 1){
                         // class_name = 'mentor';
                         icon_name = 'mentor';
                     }
-                    html = '<div onclick="RedirectToTask('+actions[key]['id']+', '+code+')" id="mes'+i+'" title="'+title+'" class="message '+class_name+'_taskitem" style="position: absolute; height: auto;">' +
+                    html = '<div onclick="RedirectToTask('+"'"+actions[key]['id']+"'"+', '+code+')" id="mes'+i+'" title="'+title+'" class="message '+class_name+'_taskitem" style="position: absolute; height: auto;">' +
                         ' <div style="width: 150px;height: 40px;">    ' +
                         '<table style="width: 150px;height: 40px">' +
                         '    <tr>';
@@ -1363,12 +1373,14 @@ function CalcMotivation(){
 function RedirectToTask(id, code){
         //console.log(code, code=='AC_GLOBAL');
         //    return;
+
     var link = "http://"+location.hostname+"/dolibarr/htdocs/comm/action/card.php?action=received_action&rowid="+id;
     $.ajax({
         url: link,
         cache: false,
         success: function(html){
-            console.log(html);
+            var json = $.parseJSON(html);
+            // console.log(html);
             var mainmenu = '';
             var idmenu = '';
             if(code=='AC_GLOBAL') {
@@ -1380,8 +1392,14 @@ function RedirectToTask(id, code){
             }
             if(code=='AC_CURRENT' || code == 'AC_GLOBAL')
                 location.href = '/dolibarr/htdocs/comm/action/chain_actions.php?action_id='+id+'&mainmenu='+mainmenu+'&idmenu='+idmenu+'&_backtopage=true';
-            else
-                location.href = '/dolibarr/htdocs/responsibility/sale/action.php?action_id='+id+'&mainmenu='+mainmenu+'&idmenu='+idmenu+'#'+id+'&_backtopage=true';
+            else {
+                // console.log(json.socid == null, json.code == null);
+                if(json.socid == null)
+                    location.href = '/dolibarr/htdocs/responsibility/sale/action.php?action_id=' + id + '&mainmenu=' + mainmenu + '&idmenu=' + idmenu + '#' + id + '&_backtopage=true';
+                else
+                    location.href = '/dolibarr/htdocs/responsibility/sale/action.php?socid=' + json.socid + '&mainmenu=' + mainmenu + '&idmenu=10425&_backtopage=true';
+
+            }
         }
     })
 }
@@ -1554,7 +1572,7 @@ function closeForm(obj){
 }
 function sendSMS(number, text, confirmSend){
     number = ' [{"value": "'+number.replace(/\;/gi,'"}, {"value": "')+'"}]';
-    // console.log(number);
+    // console.log(requestID());
     // return;
     if((number === undefined  && text === undefined)||(number.length == 0  && text.length == 0)) {
         number = $("#phone_number").val();
@@ -1569,14 +1587,58 @@ function sendSMS(number, text, confirmSend){
     }else
         send = 1;
     if(send == 1) {
-        var blob = new Blob(['{"phone": ' + number + ',"text":"' + text + '"}'], {type: "text/plain;charset=utf-8"});
+        var param = {
+            'action':'sendGroupSMS',
+            'requestID':requestID(),
+            'sms_json':'{"phone": ' + number + ',"text":"' + text + '"}'
+        }
+        $.ajax({
+            type:'post',
+            url:'http://localhost:9002/',
+            data:param,
+            cache:false,
+            success:function (confirmSend) {
+                if(confirmSend == true)
+                    close_registerform();
+            }
+        })
+        console.log('sendSMS');
+        var blob = new Blob(['{"requestID":"'+requestID()+'","phone": ' + number + ',"text":"' + text + '"}'], {type: "text/plain;charset=utf-8"});
         saveAs(blob, "sms.json");
         console.log('savefile');
         if(confirmSend == true)
             close_registerform();
     }
 }
+function requestID(){
+    var letters='QWERTYUIOPASDFGHJKLZXCVBNM1234567890';
+    var count=letters.length;
+    var date = new Date();
+    var intval= date.getTime();
+    var result='';
+    for(var i=0; i<4; i++) {
+        var last=intval%count;
+        intval=(intval-last)/count;
+        result+=letters[last];
+    }
+    return result+intval;
+}
 function Call(number, contacttype, contactid){
+
+    var param = {
+        type:'get',
+        'action':'call',
+        'number':'+'+number
+    }
+    $.ajax({
+        url:'http://localhost:9002/',
+        data:param,
+        cache:false,
+        success:function (confirmSend) {
+            // f(confirmSend == true)
+            // close_registerform();
+        }
+    })
     var blob = new Blob(['{"call":"'+number+'"}'], {type: "text/plain;charset=utf-8"});
     saveAs(blob, "call.json");
     //AddResultAction(contacttype,contactid);
@@ -1819,7 +1881,10 @@ function AddResultAction(contacttype, contactid){
     backtopage = backtopage.replace(/\&/g,'%26')
     //console.log(contacttype);
     //return;
-    window.open(link+'?action='+(contacttype=='users'?'useraction&id_usr=':'addonlyresult&actioncode=AC_TEL&socid='+getParameterByName('socid')+'&contactid=')+contactid+'&backtopage='+backtopage);
+
+    // window.open(link+'?action='+(contacttype=='users'?'useraction&id_usr=':'addonlyresult&actioncode=AC_TEL&socid='+getParameterByName('socid')+'&contactid=')+contactid+'&backtopage='+backtopage);
+    // console.log(link+'?action='+(contacttype=='users'?'useraction&id_usr=':'addonlyresult&actioncode=AC_TEL&socid='+getParameterByName('socid')+'&contactid=')+contactid+'&backtopage='+backtopage);
+    location.href =link+'?action='+(contacttype=='users'?'useraction&id_usr=':'addonlyresult&actioncode=AC_TEL&socid='+getParameterByName('socid')+'&contactid=')+contactid+'&backtopage='+backtopage;
 
     //var inputaction = $("#actionbuttons").find('input');
     //for(var i = 0; i<inputaction.length; i++) {
@@ -1829,7 +1894,6 @@ function AddResultAction(contacttype, contactid){
     //}
     //$("#actionbuttons").attr('method', 'get');
     //$("#actionbuttons").attr('action', link);
-
 
     //console.log(link);
 
@@ -1877,7 +1941,10 @@ function ConfirmForm(question){
     $('#confirm-container').show();
 }
 function ResultAction(rowid){
-    location.href = "/dolibarr/htdocs/comm/action/result_action.php?action=addonlyresult&actioncode=&action_id="+rowid+"&onlyresult=1&backtopage="+location.href.replace(/&/g, '_amp038;');
+    var backtopage = location.href.replace(/&/g, '%26');
+    backtopage = backtopage.replace(/&amp;/g, '%26');
+    backtopage = backtopage.replace(/=/g, '%3D');
+    location.href = "/dolibarr/htdocs/comm/action/result_action.php?action=addonlyresult&actioncode=&action_id="+rowid+"&onlyresult=1&backtopage="+backtopage;
 }
 function EditAction(rowid, answer_id, actioncode){
     //console.log(rowid, actioncode == 'AC_GLOBAL' || actioncode == 'AC_CURRENT');

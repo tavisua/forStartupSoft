@@ -31,6 +31,92 @@ require '../main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/usergroups.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
+global $db;
+if(empty($_REQUEST['id'])&&$_REQUEST['action']=='doublelink'){
+    llxHeader();
+    $sql = "select llx_user_regions.rowid, llx_user.lastname, regions.`name`, llx_user_regions.active from llx_user_regions
+        inner join llx_user on llx_user.rowid = llx_user_regions.fk_user
+        inner join regions on regions.rowid = llx_user_regions.fk_id
+        where 1
+        and llx_user_regions.fk_id in 
+          (select fk_id from llx_user_regions 
+            inner join llx_user on llx_user.rowid = llx_user_regions.fk_user  
+            where llx_user_regions.active = 1 
+            and llx_user.active = 1
+            group by fk_id having count(*)>1)
+        and llx_user_regions.active = 1
+        and llx_user.active = 1
+        
+        order by regions.`name`, llx_user.lastname";
+    print_fiche_titre('Райони, що закріплені за декількома АТ');
+    print '<div class="liste_titre" style="height: 30px"></div>';
+    print '<div class="reference_without_control">';
+    print '<table class="scrolling-table" id="reference_title">';
+    print '<thead><tr class="liste_titre"><th>Прізвище</th><th>Район</th><th></th></tr></thead>';
+    print '<tbody id="reference_body">';
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    while($obj = $db->fetch_object($res)){
+        print '<tr>
+                <td>'.$obj->lastname.'</td>
+                <td>'.$obj->name.'</td>';
+            if($obj->active == 1)
+                print '<td><img id="img'.$obj->rowid.'active" src="/dolibarr/htdocs/theme/eldy/img/switch_on.png" onclick="switch_change('.$obj->rowid.');"></td>';
+            else
+                print '<td><img id="img'.$obj->rowid.'active" src="/dolibarr/htdocs/theme/eldy/img/switch_off.png" onclick="switch_change('.$obj->rowid.');"></td>';
+        print'</tr>';
+    }
+    print '</tbody>';
+    print '</div>';
+    print'
+<script type="text/javascript">
+    $(document).ready(function() {
+        $("#reference_body").height($("#reference_body").height()-40);
+    });
+    function switch_change(rowid){
+        var active;
+        if("/dolibarr/htdocs/theme/eldy/img/switch_on.png" == $("#img"+rowid+"active").attr("src")){
+            $("#img"+rowid+"active").attr("src", "/dolibarr/htdocs/theme/eldy/img/switch_off.png");
+            active = 0;
+        }else{
+            $("#img"+rowid+"active").attr("src", "/dolibarr/htdocs/theme/eldy/img/switch_on.png");        
+            active = 1;
+        }
+        var param={
+            active:active,
+            rowid:rowid,
+            action:"putch"
+        }        
+        $.ajax({
+            url:"/dolibarr/htdocs/user/areas.php",
+            data:param,
+            cache:false,
+            success:function(result) {
+              if(result == 1)
+                console.log("ok");
+              else 
+                console.log("error");
+            }
+        })
+       console.log();
+    }
+</script>';
+
+    exit();
+}elseif (empty($_REQUEST['id'])&&$_REQUEST['action']=="putch"){
+    $sql = "update llx_user_regions set active = ".$_REQUEST["active"].", dtChange=now() where rowid = ".$_REQUEST["rowid"];
+    $res = $db->query($sql);
+    if(!$res)
+        print 0;
+    else
+        print 1;
+    exit();
+}elseif (empty($_REQUEST['id'])){
+    llxHeader();
+    print_fiche_titre('Поверніться на попередню сторінку');
+    exit();
+}
 if(isset($_REQUEST['action']) && $_REQUEST['action']=='resetexecuter'){
     global $db;
     $sql = "select rowid from llx_societe
@@ -204,7 +290,7 @@ $TableParam[]=$ColParam;
 $tablename='regions';
 //$sql='select `'.$tablename.'`.rowid, `'.$tablename.'`.name regions_name, states.name states_name, null, `'.$tablename.'`.active
 //from `'.$tablename.'` left join states on `'.$tablename.'`.`state_id` = `states`.rowid';
-$sql = 'select `regions`.rowid, `regions`.name regions_name, states.name states_name, null, case when `usr_regions`.active is null then 0 else `usr_regions`.active end active
+$sql = 'select `regions`.rowid, `regions`.name regions_name, states.name states_name, null, `usr_regions`.active
 from `regions` 
 left join (select fk_id, active from `llx_user_regions`
   where fk_user = '.$_GET['id'].') usr_regions on usr_regions.fk_id = `regions`.rowid
