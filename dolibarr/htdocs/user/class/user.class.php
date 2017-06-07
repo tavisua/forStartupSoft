@@ -1296,7 +1296,9 @@ class User extends CommonObject
 				and `llx_user_regions`.active = 1
 				and `llx_user`.`active` = 1';
 		}
-		//die($sql);
+
+//		var_dump($this->respon_alias, $this->respon_alias2);
+//		die();
 		$res = $this->db->query($sql);
 		$out =  '<select name = "'.$htmlname.'" id="'.$htmlname.'" size="'.$size.'" '.($size>1?"multiple":"").' class="combobox" '.(!empty($event)?'onchange="'.$event.'"':'').'>';
 		if($this->db->num_rows($res)>0) {
@@ -1321,6 +1323,9 @@ class User extends CommonObject
 		$res = $this->db->query($sql);
 		while($obj = $this->db->fetch_object($res)) {
 			$out .= '<option value="category_id_'.$obj->rowid.'" category_id="'.$obj->rowid.'">'.trim($obj->name).'</option>';
+		}
+		if($addParam == 'all'){
+			$out .= '<option value="workers" category_id="0">Співробітники "Техніки і Технології"</option>';
 		}
 		$out .= '</select>';
 		return $out;

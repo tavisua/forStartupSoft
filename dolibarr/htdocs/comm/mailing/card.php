@@ -28,7 +28,7 @@ if (! defined('NOSTYLECHECK')) define('NOSTYLECHECK','1');
 require '../../main.inc.php';
 
 if($_GET['action'] == 'create_emaillist'){
-	header('Location: /dolibarr/htdocs/comm/smsSending/card.php?action=add&type=email');
+	header('Location: /dolibarr/htdocs/comm/smsSending/card.php?action=add&type=email&addParam='.$_REQUEST['addParam']);
 	exit();
 }
 if($_REQUEST['action'] == 'sendmails'){

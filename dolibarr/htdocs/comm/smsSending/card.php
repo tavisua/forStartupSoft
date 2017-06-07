@@ -108,8 +108,39 @@ function sending(){
 function getCustomers($type, $test=false){
 //    die($type);
     global $db, $user;
+    if(empty($_REQUEST['areas']))
+        die('Необхідно вказати для яких користувачів буде розсилка');
+//    echo '<pre>';
+//    var_dump($_REQUEST['areas']);
+//    echo '</pre>';
+//    die();
+    $sql = '';
+    if(in_array('workers', $_REQUEST['areas']) && $_REQUEST['areas'][0] == 0){
+        $sql = "select llx_user.rowid, 0 socid, `states`.`name` state_name,
+                '' as form_gov, '' region_name, 'Техніка і Технології' as nom, '' postname,
+                llx_user.lastname, llx_user.firstname, llx_user.email email1, '' email2, llx_user.office_phone mobile_phone1,
+                '' mobile_phone2, '' `value`, 1 `active`
+          from llx_user
+        inner join `subdivision` on `subdivision`.`rowid`=llx_user.subdiv_id
+        inner join `states` on `states`.`rowid`= `subdivision`.`state_id`
+        where llx_user.active = 1";
+        if ($_REQUEST['type'] == 'email')
+            $sql.=" and llx_user.email like '%@%'";
+        elseif ($_REQUEST['type'] == 'sms')
+            $sql.=" and mobile_phone1 is not null";
+    }
+    $inarea = false;
+    foreach ($_REQUEST['areas'] as $value){
+        if(is_numeric($value)) {
+            $inarea = true;
+            break;
+        }
+    }
 
-    $sql = 'select `llx_societe_contact`.`rowid`, `llx_societe_contact`.`socid`, `states`.`name` state_name,
+    if($inarea) {
+        if(!empty($sql))
+            $sql.=' union ';
+        $sql .= 'select `llx_societe_contact`.`rowid`, `llx_societe_contact`.`socid`, `states`.`name` state_name,
         `formofgavernment`.name as form_gov, `regions`.`name` region_name, `llx_societe`.`nom`, `llx_post`.`postname`,
         llx_societe_contact.lastname, llx_societe_contact.firstname, llx_societe_contact.email1, llx_societe_contact.email2, llx_societe_contact.mobile_phone1,
         llx_societe_contact.mobile_phone2, `llx_societe_classificator`.`value`, case when `llx_societe_classificator`.`active` is null then 1 else `llx_societe_classificator`.`active` end `active`
@@ -120,57 +151,62 @@ function getCustomers($type, $test=false){
         left join `states` on `states`.`rowid` = `llx_societe`.`state_id`
         left join `formofgavernment` on `formofgavernment`.`rowid` = llx_societe.`formofgoverment_id`';
 
-    if(!empty($_REQUEST["from"]) || !empty($_REQUEST["to"])) {
-        $sql.=' inner join llx_societe_classificator on llx_societe_classificator.soc_id = `llx_societe`.`rowid`';
-    }else
-        $sql.=' left join llx_societe_classificator on llx_societe_classificator.soc_id = `llx_societe`.`rowid`';
+        if (!empty($_REQUEST["from"]) || !empty($_REQUEST["to"])) {
+            $sql .= ' inner join llx_societe_classificator on llx_societe_classificator.soc_id = `llx_societe`.`rowid`';
+        } else
+            $sql .= ' left join llx_societe_classificator on llx_societe_classificator.soc_id = `llx_societe`.`rowid`';
 
 
 //    $sql.=' where 1 and fk_user_creat ='.$user->id;
-    $sql.=' where 1';
-    if(in_array('sale', array($user->respon_alias, $user->respon_alias2)))
-        $sql.=' and llx_societe.`categoryofcustomer_id` = 5';
-    if(!isset($_REQUEST['addParam'])||empty($_REQUEST['addParam']))
-        $sql.=' and region_id in (select fk_id from llx_user_regions where fk_user = '.$user->id.' and active = 1) ';
-    $sql.=' and llx_societe.active = 1';
-    $sql.=' and `llx_societe_contact`.active = 1';
-    if(!(empty($_REQUEST["areas"])||count($_REQUEST["areas"])==1&&$_REQUEST["areas"][0]==0))
-        $sql .= ' and region_id in ('.implode(',',$_REQUEST["areas"]).')';
-    $add = false;
-    if(!(empty($_REQUEST["postlist"])||count($_REQUEST["postlist"])==1&&$_REQUEST["postlist"][0]==0) &&
-        !(empty($_REQUEST["responsibility"])||count($_REQUEST["responsibility"])==1&&$_REQUEST["responsibility"][0]==0)) {
-        $sql .= ' and(';
-        $add = true;
-    }
-    if(!(empty($_REQUEST["postlist"])||count($_REQUEST["postlist"])==1&&$_REQUEST["postlist"][0]==0))
-        $sql .= ($add?'':' and').' `llx_societe_contact`.`post_id` in ('.implode(',',$_REQUEST["postlist"]).')';
-    if(!(empty($_REQUEST["responsibility"])||count($_REQUEST["responsibility"])==1&&$_REQUEST["responsibility"][0]==0))
-        $sql .= ($add?' or':' and').' `llx_societe_contact`.`respon_id` in ('.implode(',',$_REQUEST["responsibility"]).')';
-    if(!(empty($_REQUEST["postlist"])||count($_REQUEST["postlist"])==1&&$_REQUEST["postlist"][0]==0) &&
-        !(empty($_REQUEST["responsibility"])||count($_REQUEST["responsibility"])==1&&$_REQUEST["responsibility"][0]==0))
-        $sql .= ')';
+        $sql .= ' where 1';
+        if (in_array('sale', array($user->respon_alias, $user->respon_alias2)))
+            $sql .= ' and llx_societe.`categoryofcustomer_id` = 5';
+        if (!isset($_REQUEST['addParam']) || empty($_REQUEST['addParam']))
+            $sql .= ' and region_id in (select fk_id from llx_user_regions where fk_user = ' . $user->id . ' and active = 1) ';
+        $sql .= ' and llx_societe.active = 1';
+        $sql .= ' and `llx_societe_contact`.active = 1';
+        if (!(empty($_REQUEST["areas"]) || count($_REQUEST["areas"]) == 1 && $_REQUEST["areas"][0] == 0))
+            $sql .= ' and region_id in (' . implode(',', $_REQUEST["areas"]) . ')';
+        $add = false;
+        if (!(empty($_REQUEST["postlist"]) || count($_REQUEST["postlist"]) == 1 && $_REQUEST["postlist"][0] == 0) &&
+            !(empty($_REQUEST["responsibility"]) || count($_REQUEST["responsibility"]) == 1 && $_REQUEST["responsibility"][0] == 0)
+        ) {
+            $sql .= ' and(';
+            $add = true;
+        }
+        if (!(empty($_REQUEST["postlist"]) || count($_REQUEST["postlist"]) == 1 && $_REQUEST["postlist"][0] == 0))
+            $sql .= ($add ? '' : ' and') . ' `llx_societe_contact`.`post_id` in (' . implode(',', $_REQUEST["postlist"]) . ')';
+        if (!(empty($_REQUEST["responsibility"]) || count($_REQUEST["responsibility"]) == 1 && $_REQUEST["responsibility"][0] == 0))
+            $sql .= ($add ? ' or' : ' and') . ' `llx_societe_contact`.`respon_id` in (' . implode(',', $_REQUEST["responsibility"]) . ')';
+        if (!(empty($_REQUEST["postlist"]) || count($_REQUEST["postlist"]) == 1 && $_REQUEST["postlist"][0] == 0) &&
+            !(empty($_REQUEST["responsibility"]) || count($_REQUEST["responsibility"]) == 1 && $_REQUEST["responsibility"][0] == 0)
+        )
+            $sql .= ')';
 
-    if(!empty($_REQUEST["from"]) && !empty($_REQUEST["to"])) {
-        $sql .= ' and llx_societe_classificator.value between '.$_REQUEST["from"].' and '.$_REQUEST["to"];
-    }elseif(!empty($_REQUEST["from"])){
-        $sql .= ' and llx_societe_classificator.value >= '.$_REQUEST["from"];
-    }elseif(!empty($_REQUEST["to"])){
-        $sql .= ' and llx_societe_classificator.value <= '.$_REQUEST["to"];
-    }
-    if($_REQUEST['type'] == 'sms')
-        $sql .=' and (call_mobile_phone1 = 1 or call_mobile_phone2 = 1)';
-    elseif($_REQUEST['type'] == 'email')
-        $sql .=' and (send_email1 = 1 or send_email2 = 1)';
+        if (!empty($_REQUEST["from"]) && !empty($_REQUEST["to"])) {
+            $sql .= ' and llx_societe_classificator.value between ' . $_REQUEST["from"] . ' and ' . $_REQUEST["to"];
+        } elseif (!empty($_REQUEST["from"])) {
+            $sql .= ' and llx_societe_classificator.value >= ' . $_REQUEST["from"];
+        } elseif (!empty($_REQUEST["to"])) {
+            $sql .= ' and llx_societe_classificator.value <= ' . $_REQUEST["to"];
+        }
+        if ($_REQUEST['type'] == 'sms')
+            $sql .= ' and (call_mobile_phone1 = 1 or call_mobile_phone2 = 1)';
+        elseif ($_REQUEST['type'] == 'email')
+            $sql .= ' and (send_email1 = 1 or send_email2 = 1)';
 
 //    $sql .=' and `llx_societe_classificator`.`active` = 1';
-    $sql .=' order by state_name, region_name, nom, lastname';
+        $sql .= ' order by state_name, region_name, nom, lastname';
+    }
 
 //    echo '<pre>';
 //    var_dump($sql);
 //    echo '</pre>';
 //    die();
     if($test){
-        $sql = "select llx_societe.rowid, llx_societe.nom, llx_societe_contact.email1, llx_societe_contact.email2 from `llx_societe_contact`
+        if(!empty($sql))
+            $sql.=' union ';
+        $sql .= "select llx_societe.rowid, llx_societe.nom, llx_societe_contact.email1, llx_societe_contact.email2 from `llx_societe_contact`
             inner join llx_societe on llx_societe.rowid = `llx_societe_contact`.`socid`
             where email1 like '%t-i-t%'";
         $res = $db->query($sql);
@@ -193,6 +229,8 @@ function getCustomers($type, $test=false){
 //            $sql.=" select 1 active, ".$value['rowid']." as rowid, '".$value['nom']."' as nom, '$key' email1, '' email2";
 //        }
     }
+    if(empty($sql))
+        die('Необхідно вказати для яких користувачів буде розсилка');
     $out = '';
     $res = $db->query($sql);
     if(!$res)

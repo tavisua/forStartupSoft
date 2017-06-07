@@ -578,8 +578,8 @@ function ShowActionTable(){
         `llx_actioncomm`.fk_user_author author_id, `llx_societe_action`.work_before_the_next_action_mentor work_mentor, `llx_societe_action`.dtMentorChange date_mentor,`llx_societe_action`.id_usr
         from `llx_actioncomm`
         inner join (select code, libelle label from `llx_c_actioncomm` where active = 1 and (type = 'system' or type = 'user')) TypeCode on TypeCode.code = `llx_actioncomm`.code
-        left join `llx_societe_contact` on `llx_societe_contact`.rowid=`llx_actioncomm`.fk_contact
-        left join `llx_societe_action` on `llx_actioncomm`.id = `llx_societe_action`.`action_id`
+        left join `llx_societe_action` on `llx_actioncomm`.id = `llx_societe_action`.`action_id`        
+        left join `llx_societe_contact` on `llx_societe_contact`.rowid=case when `llx_actioncomm`.fk_contact is null then `llx_societe_action`.`contactid` else `llx_actioncomm`.fk_contact end
         left join `llx_user` on case when `llx_societe_action`.id_usr is null or `llx_societe_action`.id_usr = 0  then `llx_actioncomm`.fk_user_author else `llx_societe_action`.id_usr end  = `llx_user`.rowid
         where fk_soc = ".(empty($_REQUEST["socid"])?0:$_REQUEST["socid"])." and `llx_actioncomm`.`active` = 1
         union
