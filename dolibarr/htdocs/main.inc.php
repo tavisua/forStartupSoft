@@ -368,7 +368,6 @@ if (! empty($_SESSION["disablemodules"]))
     }
 }
 
-
 /*
  * Phase authentication / login
  */
@@ -380,6 +379,7 @@ $notloginpage = array('/dolibarr/htdocs/autocall/index.php',
 if(in_array($_SERVER['PHP_SELF'], $notloginpage)){
     define("NOLOGIN",1);
 }
+
 //die($_SERVER['PHP_SELF']);
 if (! defined('NOLOGIN'))
 {
@@ -758,7 +758,6 @@ if (! defined('NOLOGIN'))
         $conf->css  = "/theme/".$conf->theme."/style.css.php";
     }
 }
-
 // Case forcing style from url
 if (GETPOST('theme'))
 {

@@ -111,9 +111,9 @@
         <input id="fact_cost" name="fact_cost" type="hidden" value="<?=empty($object->resultaction['fact_cost'])?0:$object->resultaction['fact_cost']?>">
         <input id="socid" name="socid" type="hidden" value="<?=isset($_REQUEST['onlyresult'])&&!empty($_REQUEST['onlyresult'])?$object->socid:$_REQUEST['socid']?>">
         <input id="mainmenu" name="mainmenu" type="hidden" value="<?=$_GET['mainmenu']?>">
-        <input type="hidden" value="<?=$_GET['actioncode']?>" name="actioncode">
-        <input type="hidden" value="<?=$_GET['proposed_id']?>" name="proposed_id">
-        <input type="hidden" value="" name="complete" id="complete">
+        <input id="actioncode" name="actioncode" type="hidden" value="<?=$_GET['actioncode']?>">
+        <input id="proposed_id" name="proposed_id" type="hidden" value="<?=$_GET['proposed_id']?>">
+        <input id="complete" name="complete" type="hidden" value="">
         <input id="action" name="action" type="hidden" value="">
         <input id="subaction" name="subaction" type="hidden" value="<?=$_GET['subaction']?>">
         <input id="assignedusers" name="assignedusers" type="hidden" value="">
@@ -121,7 +121,7 @@
         <input type="hidden" name="typeSetOfDate" id="type" value="<?=$_REQUEST['typeSetOfDate']?>">
         <input type="hidden" name="error" id="error" value="<?=$_REQUEST['error']?>">
         <input id="callstatus" name="callstatus" type="hidden" value="<?=empty($object->callstatus)?2:$object->callstatus?>">
-        <input id="backtopage" type="hidden" value="<?=$_GET['backtopage']?>" name="backtopage">
+        <input id="backtopage" type="hidden" relise="2" value="<?=urlencode($_GET['backtopage'])?>" name="backtopage">
         <?if($_REQUEST['actioncode']!='AC_TEL' && $user->id == $Actions->getAuthorID($_REQUEST['action_id'])){?><br class="forAllGroup"><br class="forAllGroup">
         <label><input id="forAllGroup" name="forAllGroup" type="checkbox" value="" > Застосувати до завдання,<br>поставленого групі людей</label><?}?>
         </br>
@@ -393,24 +393,28 @@
                 $("#action").val('update');
             $('#complete').val($('#valcomplete').val());
 //            console.log($("addaction").attr('action'));
-            submitResultAction();
+            submitResultAction(param);
 //        alert('test');
         }
     }
-    function submitResultAction(){
+    function submitResultAction(param){
             var actioncode = getParameterByName('actioncode');
+//            if(actioncode.length == 0)
+//                actioncode=param.actioncode;
             var validcode = ['AC_CURRENT', 'AC_GLOBAL'];
+
             if($("#forAllGroup") !== null){
                 $("#forAllGroup").val($("#forAllGroup").attr('checked') == 'checked');
             }
 
 //            console.log($.inArray(actioncode, validcode) != '-1');
 //        return;
-            if(actioncode!=null && actioncode.length>0 && $.inArray(actioncode, validcode) != '-1') {
+            if(actioncode!=null && actioncode.length>0 && $.inArray(actioncode.toUpperCase(), validcode) != '-1') {
                 $.ajax({
                     url: '/dolibarr/htdocs/comm/action/result_action.php?action=getTypeNotification&action_id=<?=$_REQUEST["action_id"]?>',
                     cache: false,
                     success: function (result) {
+                        console.log(result);
                         var result = JSON.parse(result);
                         if (result['typenotification'] == 'sms' && result['author_id'] != <?=$user->id?>
                         &&
@@ -427,6 +431,7 @@
                             sendSMS(number, 'Надано відповідь на поставлену Вами задачу. Перевірте будь ласка.', false)
                         }
 //                    console.log(result);
+
                         $("#addaction").submit();
                     }
                 })
@@ -470,7 +475,8 @@
             item = item.split('=');
             param[item[0]]=item[1];
         })
-
+//        console.log(param);
+//        return 0;
         $('#complete').val($('#valcomplete').val());
 
         $("#addaction").attr('action', '/dolibarr/htdocs/comm/action/result_action.php');
@@ -482,6 +488,8 @@
             $("#action").val('updateonlyresult_and_create');
         else
             $("#action").val('update_and_create');
+//        console.log($("#addaction").serialize());
+//        alert("stop");
         submitResultAction();
     }
 //    function loadcontactlist(){

@@ -8,15 +8,19 @@
             </tr>
             <tr class="firstpage">
                 <td style="text-align: center;">Куди?</td>
-                <td rowspan="2">&nbsp;</td>
-                <td id="post">Посада</td>
-                <td id="or" rowspan="2">чи</td>
-                <td id="sphereOfResponsibility">Сфера відповідальності</td>
+                <!--<td rowspan="2">&nbsp;</td>-->
+                <td id="post" rowspan="2">Посада</td>
+                <td id="or" rowspan="3">чи</td>
+                <td id="sphereOfResponsibility" rowspan="2">Сфера відповідальності</td>
             </tr>
             <tr class="firstpage">
-                <td><?=$user->getAreasList(0, 'areas', 10, '', $_GET['addParam']);?></td>
+                <td ><?=$form->select_country(226);?></td>
+            </tr>
+            <tr class="firstpage">
+                <td id="areas"><?=$user->getAreasList(0, 'areas', 10, '', $_GET['addParam']);?></td>
                 <td id="PostList"><?=$user->getContactPostsList('postlist',10,$_GET['addParam']);?></td>
                 <td id="ResponsibilityList"><?=$user->getContactResponsibility('responsibility',10,$_GET['addParam']);?></td>
+
             </tr>
             <tr class="firstpage">
                 <td>Кількість землі </td>
@@ -62,6 +66,22 @@
         $('select').css('width','100%');
 //        console.log($('.secondpage').css('display'));
     })
+    $('#selectcountry_id').on('change', function (e) {
+        var param =
+        {
+            action:'getAreas',
+            country_id:$('#selectcountry_id').val()
+        }
+        $.ajax({
+            url:'/dolibarr/htdocs/comm/smsSending/card.php',
+            type:'GET',
+            data:param,
+            cashe:false,
+            success:function (html) {
+                $('td#areas').html(html);
+            }
+        })
+    })
     function sendTestMessage(){
 //        console.log(<?=$userphone?>, $('#message').val());
         if('<?=$_REQUEST["type"]?>' == 'sms') {
@@ -74,7 +94,9 @@
         }
     }
     function nextstep(){
-        var param = {'areas':$('#areas').val(),
+//        console.log($('select#areas'));
+//        alert($('select#areas').val());
+        var param = {'areas':$('select#areas').val(),
                     'postlist':$('#postlist').val(),
                     'responsibility':$('#responsibility').val(),
                     'from':$('#from').val(),
@@ -82,13 +104,13 @@
                     'action':'getCustomers',
                     'type':'<?=$_REQUEST["type"]?>',
                     'addParam':'<?=$_REQUEST["addParam"]?>',
-                    'test':'<?=$_REQUEST["test"]?>'
+                    'country_id':$('#selectcountry_id').val()
                     }
         $.ajax({
             url:'/dolibarr/htdocs/comm/smsSending/card.php',
             data:param,
             cache:false,
-            type: 'post',
+            type: 'get',
             success:function(result){
                 $('tbody#mailing').prepend(result)
                 $('tbody#mailing').css('height','350px');
@@ -215,6 +237,7 @@
 <style>
     #post{
         text-align: center;border-left: solid; border-left-color: #6C7C8B; border-left-width: thin;
+        border-top: solid; border-top-color: #6C7C8B; border-top-width: thin;
     }
     #or{
         text-align: center; border-bottom: solid; border-bottom-color: #6C7C8B; border-bottom-width: thin;

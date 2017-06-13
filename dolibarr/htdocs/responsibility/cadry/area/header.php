@@ -99,7 +99,7 @@ if($db->num_rows($res) > 0) {
 }
 $CreateCompany = $langs->trans('CreateCompany');
 
-include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/logistika/area/header.html');
+include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/cadry/area/header.html');
 return;
 
 function CategoriesContractors(){

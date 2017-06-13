@@ -21,16 +21,17 @@ if(!$user->id){
 if(isset($_REQUEST["backtopage"]) && !empty($_REQUEST["backtopage"])){
     $_REQUEST["backtopage"] = str_replace('_amp038;', '&', $_REQUEST["backtopage"]);
 }
-//llxHeader();
-//echo '<pre>';
-//var_dump($_REQUEST);
-//echo '</pre>';
-//die();
 if(isset($_REQUEST['action'])) {
     if (in_array($_REQUEST['action'], array('update', 'update_and_create', 'saveonlyresult','addonlyresult_and_create', 'updateonlyresult_and_create')) ||
         in_array($_REQUEST['action'], array('updateonlyresult')) && $_REQUEST['mainmenu'] == 'area') {
 //    var_dump((substr($_POST['action'],strlen($_POST['action'])-strlen('_and_create') )== '_and_create'));
 //    die();
+//        if($user->login == 'admin') {
+//            echo '<pre>';
+//            var_dump($_REQUEST);
+//            echo '</pre>';
+//            die('test');
+//        }
         $actions = array($_REQUEST['actionid']);
         require_once './class/actioncomm.class.php';
         $newItem = new ActionComm($db);
@@ -38,25 +39,20 @@ if(isset($_REQUEST['action'])) {
 
             $actions = $newItem->getGroupActions($_REQUEST['actionid']);
         }
-//        var_dump($_REQUEST);
-//        die();
 
         foreach ($actions as $item) {
             saveaction($_REQUEST['rowid'], (substr($_REQUEST['action'], strlen($_REQUEST['action']) - strlen('_and_create')) == '_and_create'), $item);
         }
-//        echo '<pre>';
-//        var_dump($_REQUEST);
-//        echo '</pre>';
         if((substr($_REQUEST['action'], strlen($_REQUEST['action']) - strlen('_and_create')) == '_and_create')){
             $sql = "select code from llx_actioncomm where id =".$_REQUEST['action_id'];
             $res = $db->query($sql);
             $obj = $db->fetch_object($res);
             $location = 'Location:'.'http://'.$_SERVER["HTTP_HOST"].'/dolibarr/htdocs/comm/action/card.php?&socid='.$_REQUEST['socid'].'&actioncode='.$obj->code.
-                '&action=create&contactid='.$_REQUEST['contactid'].'&mainmenu=area&datep='.date('d.m.Y').'&backtopage='.htmlspecialchars($_REQUEST['backtopage']);
+                '&action=create&parent_id='.$_REQUEST['actionid'].'&contactid='.$_REQUEST['contactid'].'&mainmenu=area&datep='.date('d.m.Y').'&backtopage='.$_REQUEST['backtopage'];
         }else
-            $location = 'Location:'.str_replace("'",'',$_REQUEST['backtopage']);
-//        die($location);
-        header($location);
+            $location = 'Location:'.htmlspecialchars(str_replace("'",'',$_REQUEST['backtopage']));
+        echo ($location);
+        header(urldecode($location));
         exit();
     } elseif (in_array($_REQUEST["action"], array('savetaskmentor','savetaskmentor_and_create'))) {
         savetaskmentor($_REQUEST['action'] == 'savetaskmentor_and_create');
@@ -238,7 +234,7 @@ if((!isset($_REQUEST["onlyresult"])||empty($_REQUEST["onlyresult"]))&&$action_id
 }
 $head=actions_prepare_head($object);
 if($_GET['action'] == 'addonlyresult' || $_GET['action'] == 'useraction')
-    print_fiche_titre($langs->trans("AddResultAction"));
+    print_fiche_titre($langs->trans("AddResultAction").'1');
 elseif($_REQUEST["action"]=='edituseration')
     print_fiche_titre('Редагувати перемовини');
 elseif($_REQUEST["action"]=='SetRemarkOfMentor') {
@@ -690,10 +686,7 @@ function saveaction($rowid, $createaction = false, $action_id = null){
         elseif(!empty($_REQUEST['socid']))
             $socid = $_REQUEST['socid'];
     }
-//    echo '<pre>';
-//    var_dump($_REQUEST);
-//    echo '</pre>';
-//    die();
+
     $newdate='';
     if(empty($action_id)&&isset($_REQUEST['actionid'])&&!empty($_REQUEST['actionid']))
         $action_id = $_REQUEST['actionid'];
@@ -859,9 +852,10 @@ function saveaction($rowid, $createaction = false, $action_id = null){
         $update_need_sql .= " and llx_societe.rowid = llx_actioncomm.fk_soc";
     }
 //    echo '<pre>';
-//    var_dump($update_need_sql);
+//    var_dump($_REQUEST);
 //    echo '</pre>';
 //    die();
+
     if(!empty($update_need_sql)){
         $res = $db->query($update_need_sql);
         if (!$res) {
@@ -987,6 +981,7 @@ function saveaction($rowid, $createaction = false, $action_id = null){
             $Actions->setOuterdueStatus($_REQUEST['actionid']);
         }
     }
+
     if(!$createaction) {
         if(substr($_REQUEST['backtopage'], 0, 1) == "'" && substr($_REQUEST['backtopage'], strlen($_REQUEST['backtopage'])-1, 1) == "'")
             $backtopage = substr($_REQUEST['backtopage'], 1, strlen($_REQUEST['backtopage']) - 2);
@@ -999,8 +994,9 @@ function saveaction($rowid, $createaction = false, $action_id = null){
             else
                 $backtopage .= '?beforeload=close';
         }
+//        die(urldecode($backtopage));
         if($_REQUEST["action"]!='saveonlyresult')
-            header("Location: " . $backtopage);
+            header("Location: " . urldecode($backtopage));
 
     }else{
         if(substr($_REQUEST['backtopage'], 0, 1) == "'" && substr($_REQUEST['backtopage'], strlen($_REQUEST['backtopage'])-1, 1) == "'")
@@ -1021,6 +1017,14 @@ function saveaction($rowid, $createaction = false, $action_id = null){
         }
 //        var_dump($_REQUEST['assignedusers']);
 //        die();
+//        if(count($_POST)){
+//            llxHeader();
+//            echo '<pre>';
+//            var_dump($_POST);
+//            echo '</pre>';
+//            die();
+//        }
+
         $link = "http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/comm/action/card.php?mainmenu=".$_REQUEST['mainmenu']."&actioncode=".$_REQUEST['actioncode'].
             "&socid=".$socid."&action=create&parent_id=".$_REQUEST["actionid"];
         if(!empty($_REQUEST['assignedusers'])) {

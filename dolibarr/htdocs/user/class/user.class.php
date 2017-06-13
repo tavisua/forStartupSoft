@@ -1278,14 +1278,18 @@ class User extends CommonObject
 		$out .= '</select>';
 		return $out;
 	}
-	function getAreasList($region_id, $htmlname='state_filter', $size=1, $event ='this.form.submit()', $addParam=''){
+	function getAreasList($region_id, $htmlname='state_filter', $size=1, $event ='this.form.submit()', $addParam='', $countryID='226'){
+
 		if($this->respon_alias == 'sale'|| $this->respon_alias2 == 'sale' || $addParam == 'all') {
-			if($addParam == 'all')
+			if ($addParam == 'all')
 				$sql = 'select regions.rowid, regions.state_id, trim(states.name) as states_name, trim(regions.name) as regions_name from states, regions
 					where 1 and regions.state_id=states.rowid order by regions_name asc, states_name asc';
 			else
 				$sql = 'select regions.rowid, regions.state_id, trim(states.name) as states_name, trim(regions.name) as regions_name from states, regions, ' . MAIN_DB_PREFIX . 'user_regions ur
 					where ur.fk_user=' . $this->id . ' and ur.active = 1 and ur.fk_id=regions.rowid and regions.state_id=states.rowid order by regions_name asc, states_name asc';
+		}elseif (!empty($countryID)){
+			$sql = 'select regions.rowid, regions.state_id, trim(states.name) as states_name, trim(regions.name) as regions_name from states, regions
+					where 1 and states.country_id = '.$countryID.' and regions.state_id=states.rowid order by regions_name asc, states_name asc';
 		}elseif($this->respon_alias == 'dir_depatment' || $this->respon_alias == 'gen_dir') {
 			$sql = 'select regions.rowid, regions.state_id, trim(states.name) as states_name, trim(regions.name) as regions_name
 				from states
@@ -1295,14 +1299,15 @@ class User extends CommonObject
 				where `llx_user`.`subdiv_id` = '.$this->subdiv_id.'
 				and `llx_user_regions`.active = 1
 				and `llx_user`.`active` = 1';
+
 		}
 
 //		var_dump($this->respon_alias, $this->respon_alias2);
-//		die();
+//		die($sql);
 		$res = $this->db->query($sql);
 		$out =  '<select name = "'.$htmlname.'" id="'.$htmlname.'" size="'.$size.'" '.($size>1?"multiple":"").' class="combobox" '.(!empty($event)?'onchange="'.$event.'"':'').'>';
-		if($this->db->num_rows($res)>0) {
 			$out .='<option value="0" class="multiple_header_table">Відобразити все</option>\r\n';
+		if($this->db->num_rows($res)>0) {
 			for ($i = 0; $i < $this->db->num_rows($res); $i++) {
 				$obj = $this->db->fetch_object($res);
 		//        if($region_id == 0) {

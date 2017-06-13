@@ -1093,6 +1093,8 @@ function Timer(){
     // if(incoming_call == null)
     //     incoming_call = $.session.get("incoming_call");
     var taken_call = window.sessionStorage.getItem('taken_call');
+    // console.log('taken_call', $.session.get('taken_call'));
+
     // if(taken_call == null)
     //     taken_call = $.session.get("taken_call");
     if((phone_conected == null || phone_conected == 1) && taken_call != null) {
@@ -1181,13 +1183,13 @@ function HTMLIncommingCall(json){
     // console.log($('.incoming_call').length);
 }
 function redirectToActionList(id){
-    console.log(window.sessionStorage.getItem('incomming_call'));
-    if(window.sessionStorage.getItem('taken_call') == null || window.sessionStorage.getItem('taken_call').indexOf(id) == -1) {
+    if(window.sessionStorage.getItem('taken_call') == null || $.session.get('taken_call').indexOf(id) == -1) {
         $.session.add('taken_call', id);
+        console.log(window.sessionStorage.getItem('incomming_call'));
     }
     var contactInfo = JSON.parse($('td#contactInfo_incoming_call_'+id).html());
     var link;
-    console.log(contactInfo);
+
     if(contactInfo == 0){
         link = '/dolibarr/htdocs/societe/soc.php?mainmenu=area&idmenu=10425&incomming_call='+$('td#incoming_call_'+id).html()+'&taken_id='+id;
     }else{
@@ -1940,11 +1942,12 @@ function ConfirmForm(question){
     $('#confirm-container').position(50,100);
     $('#confirm-container').show();
 }
-function ResultAction(rowid){
+function ResultAction(rowid, actioncode){
     var backtopage = location.href.replace(/&/g, '%26');
     backtopage = backtopage.replace(/&amp;/g, '%26');
     backtopage = backtopage.replace(/=/g, '%3D');
-    location.href = "/dolibarr/htdocs/comm/action/result_action.php?action=addonlyresult&actioncode=&action_id="+rowid+"&onlyresult=1&backtopage="+backtopage;
+    backtopage = backtopage.replace(/\?/g, '%3F');
+    location.href = "/dolibarr/htdocs/comm/action/result_action.php?action=addonlyresult&actioncode="+actioncode+"&action_id="+rowid+"&onlyresult=1&backtopage="+backtopage;
 }
 function EditAction(rowid, answer_id, actioncode){
     //console.log(rowid, actioncode == 'AC_GLOBAL' || actioncode == 'AC_CURRENT');
@@ -2964,21 +2967,21 @@ function change_switch_callfield(obj){
 
 }
 
-function save_data(link){
+function save_data(link) {
     //console.log('http://'+location.hostname+'/dolibarr/htdocs/DBManager/dbManager.php?save=1&'+link);
     //return;
     $.ajax({
-        url: 'http://'+location.hostname+'/dolibarr/htdocs/DBManager/dbManager.php?save=1&'+link,
+        url: 'http://' + location.hostname + '/dolibarr/htdocs/DBManager/dbManager.php?save=1&' + link,
         cache: false,
         success: function (html) {
-            console.log('***'+html+'***');
+            console.log('***' + html + '***');
             location.reload();
             return;
             var rowid = html;
             var tr = document.getElementById("0");
-            if(tr == null)
-                tr = document.getElementById('tr'+rowid);
-            if(tr != null) {
+            if (tr == null)
+                tr = document.getElementById('tr' + rowid);
+            if (tr != null) {
                 tr.id = 'tr' + rowid;
                 var tdlist = tr.getElementsByTagName('td');
                 for (var i = 0; i < tdlist.length; i++) {
@@ -3028,10 +3031,7 @@ function save_data(link){
                     }
 
                 }
-
-                document.getElementById('edit_rowid').value = html;
             }
         }
-    });
-
-};
+    })
+}

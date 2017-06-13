@@ -16,7 +16,10 @@ if(in_array('dir_depatment',array($user->respon_alias,$user->respon_alias2))){
     }
 }
 if(empty($_REQUEST['socid'])&&!empty($_REQUEST['action_id'])){
-    $sql = "select fk_soc from llx_actioncomm where id = ".$_REQUEST['action_id'];
+    $action_id = $_REQUEST['action_id'];
+    if(substr($action_id, 0,1) == '_')
+        $action_id = substr($action_id,1);
+    $sql = "select fk_soc from llx_actioncomm where id = ".$action_id;
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);

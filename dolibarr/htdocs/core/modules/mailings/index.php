@@ -140,7 +140,7 @@ if($action == 'sendmail'){
                 }
             }
             foreach ($mail_id as $rowid) {
-                AutoSendMail($rowid);
+                AutoSendMail($rowid, $_REQUEST['type']);
             }
         }break;
         case 'prepared_sendmail':{
@@ -418,7 +418,7 @@ function PreparedEmailList($mess, $states_id = array()){
 
     return array('societelist'=>$societelist, 'emaillist'=>$emaillist);
 }
-function AutoSendMail($rowid){
+function AutoSendMail($rowid, $type=''){
 //    $string = array('name'=>"%C2%B3%EA%F2%EE%F0");
 //
 //    die(http_build_url($string, 'flags_'));
@@ -437,13 +437,14 @@ function AutoSendMail($rowid){
     $postlist = $mess->postlist;
     $responsibility = $mess->responsibility;
 
-    $sql = "select rtrim(email) email from llx_mailing_cibles where fk_mailing = ".$rowid;
+    $sql = "select rtrim(email) email from llx_mailing_cibles where fk_mailing = " . $rowid;
     $res = $db->query($sql);
-    if(!$res)
+    if (!$res)
         dol_print_error($db);
-    while($obj = $db->fetch_object($res)){
-        $postedlist[]=mb_strtolower($obj->email,'utf-8');
+    while ($obj = $db->fetch_object($res)) {
+        $postedlist[] = mb_strtolower($obj->email, 'utf-8');
     }
+
 //    var_dump(empty($mess->inner));
 //    die('test');
     if(empty($mess->inner)) {
@@ -491,27 +492,46 @@ function AutoSendMail($rowid){
 //    var_dump($postedlist);
 //    echo '</pre>';
 //    die();
+
     set_time_limit(0);
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
 //    $societelist = array();
     $emaillist = array();
-    while($obj = $db->fetch_object($res)){
-        $add = false;
-        if(empty($emaillist[$obj->state_id]))
-            $emaillist[$obj->state_id] = array();
-        if(!empty($obj->email1)&&strpos($obj->email1, '@') && (!empty($postedlist)?!in_array($obj->email1,$postedlist):true)&&
-            (!empty($emaillist[$obj->state_id])?!in_array($obj->email1, $emaillist[$obj->state_id]):true)) {
-            $emaillist[$obj->state_id][] = $obj->email1;
-            $add = true;
-        }elseif (!empty($obj->email2)&&strpos($obj->email2, '@')&& (!empty($postedlist)?!in_array($obj->email2,$postedlist):true) &&
-                (!empty($emaillist[$obj->state_id])?!in_array($obj->email2, $emaillist[$obj->state_id]):true)) {
-            $emaillist[$obj->state_id][] = $obj->email2;
-            $add = true;
+    if ($type == 'control'){
+        $sql = "select llx_societe_contact.lastname, `llx_societe`.state_id, llx_societe_contact.firstname, llx_societe_contact.email1, llx_societe_contact.email2 from llx_societe
+            left join `llx_societe_contact` on `llx_societe_contact`.`socid` = `llx_societe`.`rowid`
+            where nom like '%контроль%'";
+        $res = $db->query($sql);
+        if (!$res)
+            dol_print_error($db);
+        while ($obj = $db->fetch_object($res)) {
+            if(!empty($obj->email1))
+                $emaillist[$obj->state_id][] = mb_strtolower($obj->email1, 'utf-8');
+            if(!empty($obj->email2))
+                $emaillist[$obj->state_id][] = mb_strtolower($obj->email2, 'utf-8');
         }
+        $emaillist[0][] = 'tavis.ua@gmail.com';
+    }else {
+        while ($obj = $db->fetch_object($res)) {
+            $add = false;
+            if (empty($emaillist[$obj->state_id]))
+                $emaillist[$obj->state_id] = array();
+            if (!empty($obj->email1) && strpos($obj->email1, '@') && (!empty($postedlist) ? !in_array($obj->email1, $postedlist) : true) &&
+                (!empty($emaillist[$obj->state_id]) ? !in_array($obj->email1, $emaillist[$obj->state_id]) : true)
+            ) {
+                $emaillist[$obj->state_id][] = $obj->email1;
+                $add = true;
+            } elseif (!empty($obj->email2) && strpos($obj->email2, '@') && (!empty($postedlist) ? !in_array($obj->email2, $postedlist) : true) &&
+                (!empty($emaillist[$obj->state_id]) ? !in_array($obj->email2, $emaillist[$obj->state_id]) : true)
+            ) {
+                $emaillist[$obj->state_id][] = $obj->email2;
+                $add = true;
+            }
 //        if($add)
 //            $societelist[]=$obj->socid;
+        }
     }
 //    unset($emaillist);
 //    $emaillist[12][]='tavis@shtorm.com';
@@ -549,9 +569,9 @@ function AutoSendMail($rowid){
                     dol_print_error($db);
                 }else {
                     $postedlist[]=mb_strtolower(trim($item),'utf-8');
-                    $result = true;
+                    $result = false;
 //                    die($_REQUEST['type']);
-                    if($_REQUEST['type'] == 'sendmails') {
+                    if(in_array($_REQUEST['type'], array('sendmails', 'control'))) {
                         $result = $mailSMTP->send($item, $subject, $mesg, $headers); // отправляем письмо
                     }
 //                    $result = false;

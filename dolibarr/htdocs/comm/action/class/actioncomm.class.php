@@ -387,7 +387,8 @@ class ActionComm extends CommonObject
             dol_print_error($db);
         }
         $out['result'] = 1;
-        echo json_encode($out);
+        return json_encode($out);
+//        echo json_encode($out);
     }
     function getAssignedUser($action_id, $arrayonly = false){
         global $db;

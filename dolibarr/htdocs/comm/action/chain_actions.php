@@ -84,6 +84,7 @@ $actionid = empty($_REQUEST['action_id'])?$_REQUEST['actionid']:$_REQUEST['actio
 $Action = $langs->trans($Action);
 llxHeader("",$Action,"");
 print_fiche_titre($Action);
+
 if(empty($actionid))
     die('Помилка відображення сторінки. Спробуйте увійти знову зі сторінки '.($actioncode == 'AC_CURRENT'?'"Поточні"':'"Глобальні"').' задачі');
 $author_id = getAuthorID($actionid);
@@ -99,7 +100,6 @@ $deadline = getDeadLine();
 $accessMentor = ValidAsseccMentor();
 //var_dump($subaction->subaction);
 //die();
-
 $contactdata = getContactData($actionid);
 $date = new DateTime();
 if(empty($subaction->subaction)) {
@@ -740,11 +740,14 @@ function CreateNewActionItem($row, $num, $result = false){
     switch ($_REQUEST['mainmenu']) {
         case 'current_task': {
             $actioncode = "'AC_CURRENT'";
-        }
+        }break;
             break;
         case 'global_task': {
             $actioncode = "'AC_GLOBAL'";
-        }
+        }break;
+        default:{
+            $actioncode = "'$row->kindaction'";
+        }break;
     }
 //    if(347066 == $row->rowid){
 //        var_dump($row->percent);
@@ -774,7 +777,7 @@ function CreateNewActionItem($row, $num, $result = false){
 //        $out .= '<img id="img_1"  onclick="EditOnlyResult(' . $row->action_id . ',' . (empty($row->rowid) ? 0 : $row->rowid) . ', ' . $actioncode . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Edit') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">';
 //    }
     if(!$result && !in_array($row->percent, array(100,-100)))
-        $out .= '&nbsp;&nbsp;<img  onclick="ResultAction(' . (empty($row->rowid) ? "'" . $row->action_id : "'_" . $row->rowid) . "'" . ');" style="vertical-align: middle; cursor: pointer;" title="Дії ' . $langs->trans($row->kindaction) . '" src="/dolibarr/htdocs/theme/eldy/img/'.(empty($row->rowid)||(!empty($row->rowid)&&$row->author_id == $user->id) ? "object_result_action"  : "edit").'.png">';
+        $out .= '&nbsp;&nbsp;<img  onclick="ResultAction(' . (empty($row->rowid) ? "'" . $row->action_id : "'_" . $row->rowid) . "'" . ', '.$actioncode.');" style="vertical-align: middle; cursor: pointer;" title="Дії ' . $langs->trans($row->kindaction) . '" src="/dolibarr/htdocs/theme/eldy/img/'.(empty($row->rowid)||(!empty($row->rowid)&&$row->author_id == $user->id) ? "object_result_action"  : "edit").'.png">';
 //    var_dump(363848, $row->author_id,  $row->new);
 //    die();
     if($result && ($row->new) && $row->author_id == $user->id) {

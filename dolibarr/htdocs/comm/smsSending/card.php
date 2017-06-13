@@ -5,12 +5,17 @@
  * Date: 21.04.2016
  * Time: 18:47
  */
+
+require $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/main.inc.php';
+require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
+
+$action = $_REQUEST['action'];
+//global $user;
 //echo '<pre>';
-//var_dump($_REQUEST);
+//var_dump($user);
 //echo '</pre>';
 //die();
-require $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/main.inc.php';
-$action = $_REQUEST['action'];
+
 //die($action);
 if($action == 'add') {
     llxHeader('',$langs->trans('NewMailing'));
@@ -29,8 +34,10 @@ if($action == 'add') {
 }elseif($action == 'mailing'){
     echo sending();
     exit();
+}elseif($action == 'getAreas'){
+    echo $user->getAreasList(0, 'areas', 10, '', '', $_GET['country_id']);
+    exit();
 }
-global $user;
 $userphone='';
 if(!empty($user->user_mobile))
     $userphone=$user->user_mobile;
@@ -46,6 +53,7 @@ $userphone = str_replace(' ','',$userphone);
 //var_dump($user);
 //echo '<pre>';
 //die();
+$form = new Form($db);
 include DOL_DOCUMENT_ROOT.'/theme/eldy/comm/sending.html';
 exit();
 function getStatusSending(){
@@ -108,14 +116,14 @@ function sending(){
 function getCustomers($type, $test=false){
 //    die($type);
     global $db, $user;
-    if(empty($_REQUEST['areas']))
-        die('Необхідно вказати для яких користувачів буде розсилка');
 //    echo '<pre>';
-//    var_dump($_REQUEST['areas']);
+//    var_dump(strlen($_REQUEST['areas'])==0&&$_REQUEST['country_id']==226, count($_REQUEST["areas"]), strlen($_REQUEST['areas']));
 //    echo '</pre>';
 //    die();
+    if(count($_REQUEST['areas'])==0&&$_REQUEST['country_id']==226)
+        die('Необхідно вказати для яких користувачів буде розсилка');
     $sql = '';
-    if(in_array('workers', $_REQUEST['areas']) && $_REQUEST['areas'][0] == 0){
+    if(!empty($_REQUEST['areas'])&&in_array('workers', $_REQUEST['areas']) && $_REQUEST['areas'][0] == 0){
         $sql = "select llx_user.rowid, 0 socid, `states`.`name` state_name,
                 '' as form_gov, '' region_name, 'Техніка і Технології' as nom, '' postname,
                 llx_user.lastname, llx_user.firstname, llx_user.email email1, '' email2, llx_user.office_phone mobile_phone1,
@@ -130,12 +138,32 @@ function getCustomers($type, $test=false){
             $sql.=" and mobile_phone1 is not null";
     }
     $inarea = false;
-    foreach ($_REQUEST['areas'] as $value){
-        if(is_numeric($value)) {
+    if(count($_REQUEST['areas'])>0) {
+        if($_REQUEST['areas'][0] != 0||$_REQUEST['country_id']!=226){
+            if($_REQUEST['areas']=='')
+                $_REQUEST['areas'][0]=0;
+            foreach ($_REQUEST['areas'] as $value) {
+                if (is_numeric($value)) {
+                    $inarea = true;
+                    break;
+                }
+            }
+        }else {
+            $sql_tmp = 'select fk_id from `llx_user_regions` where fk_user = '.$user->id.' and active = 1';
+            $res = $db->query($sql_tmp);
+            if(!$res)
+                dol_print_error($db);
+
+            while($area = $db->fetch_object($res)){
+                $areas[]=$area->fk_id;
+            }
+            $_REQUEST['areas'] = $areas;
             $inarea = true;
-            break;
         }
+    }elseif($_REQUEST['country_id']!=226){
+        $inarea = true;
     }
+
 
     if($inarea) {
         if(!empty($sql))
@@ -161,6 +189,9 @@ function getCustomers($type, $test=false){
         $sql .= ' where 1';
         if (in_array('sale', array($user->respon_alias, $user->respon_alias2)))
             $sql .= ' and llx_societe.`categoryofcustomer_id` = 5';
+        elseif (!empty($_REQUEST['country_id'])){
+            $sql .= ' and llx_societe.`fk_pays` = '.$_REQUEST['country_id'];
+        }
         if (!isset($_REQUEST['addParam']) || empty($_REQUEST['addParam']))
             $sql .= ' and region_id in (select fk_id from llx_user_regions where fk_user = ' . $user->id . ' and active = 1) ';
         $sql .= ' and llx_societe.active = 1';
@@ -198,7 +229,6 @@ function getCustomers($type, $test=false){
 //    $sql .=' and `llx_societe_classificator`.`active` = 1';
         $sql .= ' order by state_name, region_name, nom, lastname';
     }
-
 //    echo '<pre>';
 //    var_dump($sql);
 //    echo '</pre>';

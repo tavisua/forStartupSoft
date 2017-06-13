@@ -134,7 +134,8 @@ if(!(empty($_REQUEST['lineactive'])||$_REQUEST['lineactive'] == -1)&&$_REQUEST['
     $res_respon = $db->query($sql_respon);
     $respon_list = [];
     while($obj = $db->fetch_object($res_respon)){
-        $respon_list[]=$obj->rowid;
+        if(!empty($obj->rowid))
+            $respon_list[]=$obj->rowid;
     }
     $respon_list[]=$user->respon_id;
     $respon_list[]=$user->respon_id2;

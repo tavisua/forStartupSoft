@@ -42,7 +42,7 @@
             </tr>
         </table>
 </div>
-<?=llxSendSmsEmail()?>
+<?=llxSendSmsEmail('all')?>
 <div class="areas_header">
     <?echo $Classifycation?>
 </div>
@@ -151,3 +151,8 @@
         GetUserPlan(link);
     })
 </script>
+<style>
+    div#sendSmsEmail{
+        margin-top: -30px;
+    }
+</style>

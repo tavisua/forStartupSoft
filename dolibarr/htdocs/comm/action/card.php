@@ -33,11 +33,13 @@ if($_GET['action']=='getActionsCount'){
 	exit();
 }
 require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
-//llxHeader();
-//echo '<pre>';
-//var_dump($_REQUEST);
-//echo '</pre>';
-//die();
+//if($user->login == 'oo.gromov@t-i-t.com.ua') {
+//	llxHeader();
+//	echo '<pre>';
+//	var_dump($_SERVER['REQUEST_URI'], $_GET);
+//	echo '</pre>';
+//	die();
+//}
 
 if(isset($_REQUEST['action'])&&$_REQUEST['action'] == 'edit'&&isset($_REQUEST['action_id'])&&in_array($_REQUEST['actioncode'], array('AC_GLOBAL','AC_CURRENT'))) {//Редагування з дії глобальне/поточне
 	$_POST["backtopage"] = $_REQUEST["backtopage"];
@@ -395,14 +397,14 @@ $action=GETPOST('action','alpha');
 $cancel=GETPOST('cancel','alpha');
 $backtopage=GETPOST('backtopage','alpha');
 //$backtopage=$_REQUEST['backtopage'];
-//var_dump($_POST);
+//var_dump($_REQUEST['backtopage']);
 //die();
 
 if(substr($backtopage, 0, 1) == "'")
 	$backtopage = substr($backtopage, 1, strlen($backtopage)-1);
 if(substr($backtopage, strlen($backtopage)-1, 1) == "'")
 	$backtopage = substr($backtopage, 1, strlen($backtopage)-1);
-if(substr($backtopage, 0, 1) != "/")
+if(substr($backtopage, 0, 1) != "/"&&substr($backtopage, 0, 4)!='http')
 	$backtopage = '/'.$backtopage;
 $contactid=GETPOST('contactid','int');
 $origin=GETPOST('origin','alpha');
@@ -580,7 +582,7 @@ if ($action == 'add')
 //        else $backtopage=DOL_URL_ROOT.'/comm/action/index.php';
 //    }
 //	echo '<pre>';
-//	var_dump($_REQUEST);
+//	var_dump($backtopage, $cancel);
 //	echo '</pre>';
 //	die();
     if ($contactid)
@@ -865,15 +867,17 @@ if ($action == 'add')
 						}
 						$backtopage = '/dolibarr/htdocs/comm/action/card.php?action=create&actioncode='.$_REQUEST['actioncode'].'&socid='.$_REQUEST['socid'].'&parent_id='.$_REQUEST['parent_id'].'&backtopage='.htmlspecialchars($_REQUEST['backtopage']);
 					}
-					if(strpos($backtopage,'http')) {
+					if(strpos($backtopage,'http')<0) {
 						if(substr($backtopage, 0, 1) == '/')
 							$backtopage = substr($backtopage, 1);
-					}elseif (substr($backtopage, 0, 1) != '/'){
+					}elseif (substr($backtopage, 0, 1) != '/'&& strpos($backtopage,'http')<0){
 						$backtopage.='/'.$backtopage;
 					}
                     $Location = "Location: ".str_replace("'",'', $backtopage);
-//					var_dump(strpos('http',$backtopage));
-//					die(htmlspecialchars($_REQUEST['backtopage']));
+//					if($user->login == 'admin'){
+//						var_dump($Location);
+//						die($_REQUEST['backtopage']);
+//					}
                     header($Location);
 				}
 				elseif(!empty($object->socid)){
@@ -1155,6 +1159,7 @@ if ($action == 'mupdate')
     }
     if (! empty($backtopage))
     {
+		die($backtopage);
         header("Location: ".$backtopage);
         exit;
     }
