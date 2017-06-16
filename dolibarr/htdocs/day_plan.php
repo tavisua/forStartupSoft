@@ -646,10 +646,10 @@ function getNewAcctions($id_usr){
 //        and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`
 //        and `llx_actioncomm`.`dtValidValuer` is null";
     $res = $db->query($sql);
-//    echo '<pre>';
-//    var_dump($sql);
-//    echo '</pre>';
-//    die();
+    echo '<pre>';
+    var_dump($sql);
+    echo '</pre>';
+    die();
     if(!$res)
         dol_print_error($db);
     $actions = array();

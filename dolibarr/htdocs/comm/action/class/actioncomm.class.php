@@ -213,6 +213,24 @@ class ActionComm extends CommonObject
 //        die();
         return $result[$name];
     }
+    function getDatesByPeriod($dayofweek, $period){
+        $daysofweek=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+        $dayindex = array_search($dayofweek, $daysofweek);
+        $date_tmp = $period[0];
+//        echo $dayindex.'</br>';
+        $out = [];
+//        echo '<pre>';
+        while($date_tmp<=$period[1]){
+//            var_dump($date_tmp, date_format($date_tmp,'w')==$dayindex, date_format($date_tmp,'w'));
+            if(date_format($date_tmp,'w') == $dayindex) {
+                $item = new DateTime(date_format($date_tmp,'Y-m-d H:i:s'));
+                $out[] = $item;
+            }
+            date_add($date_tmp, date_interval_create_from_date_string('1 days'));
+        }
+//        echo '</pre>';
+        return $out;
+    }
     function getAuthorID($action_id){
         global $db;
         $sql = "select fk_user_author,note from llx_actioncomm where id = ".$action_id;
@@ -1280,7 +1298,7 @@ class ActionComm extends CommonObject
             if(count(array_keys($this->userassigned))>1)
                 $when_show = 'oncreate';
             else
-                $when_show = 'ondate';
+                $when_show = 'ondatep';
 //            echo '<pre>';
 //            var_dump($this->code);
 //            echo '</pre>';

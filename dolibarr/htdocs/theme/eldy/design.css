@@ -902,6 +902,9 @@ td.titreProposed {
     border-color: rgb(255, 255, 255);
     width: 80%;
 }
+#selperiod *{
+    background-color:red;
+}
 /*.combobox{*/
     /*background: #ffc000 -moz-linear-gradient(center bottom , #ffc000 90%, rgb(240, 240, 240) 100%) repeat scroll 0 0;*/
     /*padding: 1px 2px 1px 7px!important;*/

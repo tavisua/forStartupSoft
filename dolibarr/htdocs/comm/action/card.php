@@ -36,7 +36,7 @@ require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
 //if($user->login == 'oo.gromov@t-i-t.com.ua') {
 //	llxHeader();
 //	echo '<pre>';
-//	var_dump($_SERVER['REQUEST_URI'], $_GET);
+//	var_dump($_REQUEST);
 //	echo '</pre>';
 //	die();
 //}
@@ -214,7 +214,7 @@ if($_GET['action']=='get_exectime'){
 			dol_print_error($db);
 		}
 		$obj = $db->fetch_object($res);
-		if (!empty($obj->period)) {//Створюю таке саме завдання через вказаний інтервал часу
+		if (!empty($obj->period)&&!in_array($obj->period, ['EveryMonday','EveryTuesday','EveryWednesday','EveryThursday','EveryFriday','EverySaturday','EverySunday'])) {//Створюю таке саме завдання через вказаний інтервал часу
 			$date = new DateTime($obj->datep);
 			$datepreperform = new DateTime($obj->datepreperform);
 			$mkDate = mktime('0', '0', '0', $date->format('m'), $date->format('d'), $date->format('Y'));
@@ -359,8 +359,8 @@ if($_GET['action']=='get_exectime'){
 	$Action = new ActionComm($db);
 	$date = new DateTime();
 	$date->setTimestamp(time());
-//	var_dump($_GET['date']);
-//	die();
+	if(strlen($_GET['date'])<16)
+		$_GET['date']=date('Y-m-d H:i:s');
 	$freetime = $Action->GetFreeTime($_GET['date'], $_GET['id_usr'], $_GET['minute'], $_GET['priority']);
 	echo $freetime;
 	exit();
@@ -780,39 +780,53 @@ if ($action == 'add')
 			$object->dateconfirm = $dateconfirm->format('Y-m-d H:i:s');
 			$object->percentage = 0;
 		}
-
-		$idaction=$object->add($user);
-//		echo '<pre>';
-//		var_dump($idaction);
-//		echo '</pre>';
-//		die();
-		if(!empty($object->user_valuer)&&$object->user_valuer>0){//Якщо призначено фахівця оцінщика -
-			$valuer_action = new ActionComm($db);
-			$valuer_action->fetch($idaction);
-
-			foreach (array_keys($valuer_action->userassigned) as $key){
-				if($key != $user->id){
-					unset($valuer_action->userassigned[$key]);
-				}else{
-					$valuer_action->userassigned[$key]["transparency"] = 0;
-				}
+		$idactions = [];
+		if(in_array($_REQUEST["selperiod"], ['EveryMonday','EveryTuesday','EveryWednesday','EveryThursday','EveryFriday','EverySaturday','EverySunday'])){
+			$begin = new DateTime($_REQUEST["dateNextActionyear"].'-'.$_REQUEST["dateNextActionmonth"].'-'.$_REQUEST["dateNextActionday"].' '.$_REQUEST["dateNextActionhour"].':'.$_REQUEST["dateNextActionmin"].':00');
+			$end   = new DateTime($_REQUEST["apyear"].'-'.$_REQUEST["apmonth"].'-'.$_REQUEST["apday"].' '.$_REQUEST["aphour"].':'.$_REQUEST["apmin"].':00');
+			$dates = $object->getDatesByPeriod(substr($_REQUEST["selperiod"],5), [$begin, $end]);
+			foreach ($dates as $date){
+//				$object->datepreperform =
+				$object->datep=dol_mktime(date_format($date, 'H'), date_format($date, 'i'), 0, date_format($date, 'm'), date_format($date, 'd'), date_format($date, 'Y'));
+				$object->datef=$subaction->datep+$_REQUEST["exec_time_dateNextAction"]*60;
+//				echo '<pre>';
+//				var_dump($object);
+//				echo '</pre>';
+//				die();
+				$idactions[]=$object->add($user, 'ondatep');
 			}
-			$valuer_action->userassigned[$object->user_valuer] = array("id"=>$object->user_valuer, "transparency"=>0);
+		}else
+			$idactions[]=$object->add($user);
+
+		if(!empty($object->user_valuer)&&$object->user_valuer>0){//Якщо призначено фахівця оцінщика -
+			foreach ($idactions as $idaction) {
+				$valuer_action = new ActionComm($db);
+				$valuer_action->fetch($idaction);
+
+				foreach (array_keys($valuer_action->userassigned) as $key) {
+					if ($key != $user->id) {
+						unset($valuer_action->userassigned[$key]);
+					} else {
+						$valuer_action->userassigned[$key]["transparency"] = 0;
+					}
+				}
+				$valuer_action->userassigned[$object->user_valuer] = array("id" => $object->user_valuer, "transparency" => 0);
 //		echo '<pre>';
 //		var_dump($valuer_action->userassigned);
 //		echo '</pre>';
 //		die();
-			$valuer_action->id=null;
-			$valuer_action->parent_id = $idaction;
-			$valuer_action->percentage = -1;
-			$valuer_action->groupoftask = 10;
+				$valuer_action->id = null;
+				$valuer_action->parent_id = $idaction;
+				$valuer_action->percentage = -1;
+				$valuer_action->groupoftask = 10;
 //			$valuer_action->datep=dol_mktime($_REQUEST["dateNextActionhour"], $_REQUEST["dateNextActionmin"], 0, $_REQUEST["dateNextActionmonth"], $_REQUEST["dateNextActionday"], $_REQUEST["dateNextActionyear"]);
 //			$valuer_action->datef=$valuer_action->datep+$_REQUEST["exec_time_dateNextAction"]*60;
-			$valuer_action->entity = 0;
-			$valuer_action->note = "Будь ласка проконтролюйте виконання задачі";
+				$valuer_action->entity = 0;
+				$valuer_action->note = "Будь ласка проконтролюйте виконання задачі";
 //			$dateconfirm = new DateTime();
 //			$valuer_action->dateconfirm = $dateconfirm->format('Y-m-d H:i:s');
-			$valuer_action->add($user);
+				$valuer_action->add($user);
+			}
 		}
 
 
@@ -820,18 +834,24 @@ if ($action == 'add')
 				!empty($_REQUEST["dateNextAction"])&&count(dol_json_decode($_SESSION['assignedtouser'], true))<=1
 				&&in_array($object->type_code, array('AC_GLOBAL','AC_CURRENT'))
 				&&(!isset($_REQUEST["mentor_action"])||empty($_REQUEST["mentor_action"]))){
-			$subaction = new ActionComm($db);
-			$subaction->fetch($idaction);
-			$subaction->id=null;
-			$subaction->parent_id = $idaction;
-			$subaction->percentage = 0;
-			$subaction->datep=dol_mktime($_REQUEST["dateNextActionhour"], $_REQUEST["dateNextActionmin"], 0, $_REQUEST["dateNextActionmonth"], $_REQUEST["dateNextActionday"], $_REQUEST["dateNextActionyear"]);
-			$subaction->datef=$subaction->datep+$_REQUEST["exec_time_dateNextAction"]*60;
-			$subaction->entity = 0;
-			$subaction->note = $_REQUEST["work_before_the_next_action"];
-			$dateconfirm = new DateTime();
-			$subaction->dateconfirm = $dateconfirm->format('Y-m-d H:i:s');
-			$subaction->add($user);
+			foreach ($idactions as $idaction) {
+				$subaction = new ActionComm($db);
+				$subaction->fetch($idaction);
+				$subaction->id = null;
+				$subaction->parent_id = $idaction;
+				$subaction->percentage = 0;
+				if(!in_array($_REQUEST["selperiod"], ['EveryMonday','EveryTuesday','EveryWednesday','EveryThursday','EveryFriday','EverySaturday','EverySunday'])) {
+					$when_show = 'oncreate';
+					$subaction->datep = dol_mktime($_REQUEST["dateNextActionhour"], $_REQUEST["dateNextActionmin"], 0, $_REQUEST["dateNextActionmonth"], $_REQUEST["dateNextActionday"], $_REQUEST["dateNextActionyear"]);
+					$subaction->datef = $subaction->datep + $_REQUEST["exec_time_dateNextAction"] * 60;
+				}else
+					$when_show = 'ondatep';
+				$subaction->entity = 0;
+				$subaction->note = $_REQUEST["work_before_the_next_action"];
+				$dateconfirm = new DateTime();
+				$subaction->dateconfirm = $dateconfirm->format('Y-m-d H:i:s');
+				$subaction->add($user, $when_show);
+			}
 		}
 //
 
@@ -1618,7 +1638,7 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 	    // Period
 
 //		print '<tr id="period"><td>'.$langs->trans("Period").'</td><td colspan="3"></td></tr>';
-	print '<tr id="period"><td>'.$langs->trans("Period").'</td><td colspan="3">'.$form->select_period('selperiod', $object->period).'</td></tr>';
+	print '<tr id="period"><td>'.$langs->trans("Period").'</td><td colspan="3">'.$form->select_period('selperiod', $object->period).'<img id="period_info" onclick = "ShowHint();" style="position:absolute;display:none;float:right" src="/dolibarr/htdocs/theme/eldy/img/info.png" alt="" title="Натисніть щоб дізнатись" class="hideonsmartphone" border="0"></td></tr>';
 
 	print '<tr id=""><td>Мотивація, грн</td><td colspan="3"><input type="text" id="motivator" name="motivator"  class="param_item" value="'.(GETPOST('motivator')?GETPOST('motivator'):($object->motivator?$object->motivator:'')).'" size="5"></td></tr>';
 	print '<tr id=""><td>Демотивація, грн</td><td colspan="3"><input type="text" id="demotivator" name="demotivator"  class="param_item" value="'.(GETPOST('demotivator')?GETPOST('demotivator'):($object->demotivator?$object->demotivator:'')).'" size="5"></td></tr>';
@@ -1728,7 +1748,40 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 	print '</center>';
 	print "</form>";
     print '</div>';
+	print '<style>
+		#selperiod{
+			float: left;
+		}
+	</style>';
 	print "<script>
+				function ShowHint () {
+					$('#popupmenu').width('350px');
+					$('#popupmenu').html('<a class=\"close\" onclick=\"ClosePopupMenu();\" title=\"Закрити\"></a>' +
+					 '<div style=\"width:100%;background:white;border: 2px solid #C2C2C2;\">При виборі періоду виконання дії</br>' +
+					  'щопонеділка, щовівторка, щосереди, щочетверга, щоп\'ятниці, щосуботи та щонеділі' +
+					   ' система автоматично створить дії на вказаний час на період з дати, що вказана в полі \'Дата наступних дій\'' +
+					    'по дату, що вказана в полі \'Виконати кінцево до\'</div>');					
+//					console.log($('#popupmenu').offset(), offset, {top:offset.top, left:offset.left});			
+					$('#popupmenu').show();			
+					var offset = {
+						top:	$('img#period_info').offset().top,
+						left:	$('img#period_info').offset().left
+					}					
+					$('#popupmenu').offset({top:offset.top, left:offset.left});		
+
+					console.log($('#popupmenu').offset(), $('img#period_info').offset());
+					
+				}
+				$('#selperiod').change(function(e) {
+//					console.log($.inArray($('#selperiod').val(), ['EveryMonday','EveryTuesday','EveryWednesday','EveryThursday','EveryFriday','EverySaturday','EverySunday']));
+					if($.inArray($('#selperiod').val(), ['EveryMonday','EveryTuesday','EveryWednesday','EveryThursday','EveryFriday','EverySaturday','EverySunday'])>=0){
+						$('img#period_info').attr(\"style\", \"display:\");						
+						$('#dateNextAction').change=null;
+					}else {
+						$('img#period_info').hide();
+						$('#dateNextAction').change(dtChangeNextDateAction('dateNextAction','dd.MM.yyyy'));
+					}
+				})
 				$('#formaction').submit(function(e){
 					if($('#error').length>0&&$('#error').val()==1){
 						alert('Дані на формі містять помилки.');
