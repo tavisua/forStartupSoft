@@ -43,6 +43,52 @@ if($_REQUEST['action']=='clearFilter'){
     die();
     exit();
 }
+if($_REQUEST['action']=='fixDnepr'){
+    global $db;
+    @set_time_limit(0);
+    $sql = "select llx_actioncomm.id, fk_user_author, fk_user_action from llx_societe
+        inner join `llx_societe_action` on `llx_societe_action`.`socid` = llx_societe.rowid
+        inner join llx_actioncomm on llx_actioncomm.id = llx_societe_action.action_id
+        where state_id = 3";
+    $actions = [];
+    $local_res = $db->query($sql);
+    if(!$local_res)
+        dol_print_error($db);
+    while($obj = $db->fetch_object($local_res)){
+        $actions[$obj->id]=[$obj->fk_user_author, $obj->fk_user_action];
+    }
+    $db_remout=getDoliDBInstance('mysqli', '185.67.1.101', 'vopimwkk_admin', 'C~~KiE3cDThX', 'vopimwkk_uspex2015', '3306');
+    $remout_actions = [];
+    $remout_res = $db_remout->query($sql);
+    if(!$remout_res)
+        dol_print_error($db_remout);
+    while($obj = $db->fetch_object($remout_res)){
+        $remout_actions[$obj->id]=[$obj->fk_user_author, $obj->fk_user_action];
+    }
+    $out = [];
+    foreach ($actions as $key=>$value){
+        if(!isset($remout_actions[$key]))
+            $out[$key]=$value;
+        else{
+            if($remout_actions[$key][0]!=$value[0]||$remout_actions[$key][1]!=$value[1]){
+
+                $out[$key]=$value;
+            }
+        }
+    }
+    foreach ($out as $key=>$value) {
+        print implode('=>', $value).' / '.$key.'</br>';
+        $sql = 'update llx_actioncomm set fk_user_author = '.$value[0].', fk_user_action = '.$value[1].' where id = '.$key;
+        $remout_res = $db_remout->query($sql);
+        if(!$remout_res)
+            dol_print_error($db_remout);
+    }
+//    echo '<pre>';
+//    var_dump($out);
+//    echo '</pre>';
+
+    exit();
+}
 
 
 require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
