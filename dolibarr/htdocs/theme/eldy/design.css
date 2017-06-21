@@ -784,6 +784,9 @@ a.calluser, a.calluser:hover{
     text-decoration: none;
     white-space: nowrap;
 }
+.select_item{
+    background-color: #EFEFD4;
+}
 .inactiveTab{
     cursor:no-drop!important;
     /*background-image: none !important;*/

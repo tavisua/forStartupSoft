@@ -397,6 +397,20 @@ class Societe extends CommonObject
      *    @param	User	$user       Object of user that ask creation
      *    @return   int         		>= 0 if OK, < 0 if KO
      */
+    function Permission($socid){
+        global $user;
+        $regions = $user->getregions($_REQUEST['id_usr']);
+        $categories = $user->getCategoriesContractor($_REQUEST['id_usr']);
+        $this->fetch($socid);
+//        var_dump($this->categoryofcustomer_id);
+//        die();
+//        if(!(in_array($this->region_id, $regions)||in_array($this->categoryofcustomer_id, $categories)||$user->login == 'admin')) {
+//            if($_SERVER["SCRIPT_NAME"] != '/dolibarr/htdocs/responsibility/sale/action.php')
+//                llxHeader();
+//            die('У вас нема прав для перегляду данної інформації');
+//        }
+
+    }
     function getStateRegion(){
         if(empty($this->id))
             return '';

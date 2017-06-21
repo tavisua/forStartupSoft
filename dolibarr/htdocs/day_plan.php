@@ -443,7 +443,7 @@ function createStaticDayPlanPage(){
         dol_print_error($db);
     $sql = "insert into statistic_action
     select * from llx_actioncomm
-    where date(datep) between adddate(date(now()), interval -1 week) and adddate(date(now()), interval 1 month) or overdue = 1
+    where date(datep) between adddate(date(now()), interval -1 month) and adddate(date(now()), interval 1 month) or overdue = 1
     and active = 1
     and code <> 'AC_OTH_AUTO'";
     $res = $db->query($sql);
@@ -646,10 +646,10 @@ function getNewAcctions($id_usr){
 //        and `llx_actioncomm`.`fk_user_author`<>`llx_actioncomm_resources`.`fk_element`
 //        and `llx_actioncomm`.`dtValidValuer` is null";
     $res = $db->query($sql);
-    echo '<pre>';
-    var_dump($sql);
-    echo '</pre>';
-    die();
+//    echo '<pre>';
+//    var_dump($sql);
+//    echo '</pre>';
+//    die();
     if(!$res)
         dol_print_error($db);
     $actions = array();

@@ -271,7 +271,7 @@ function getRegionsListSale($id_usr){
     $mkToday = dol_mktime(0,0,0,$today->format('m'),$today->format('d'),$today->format('Y'));
     $count = 0;
     foreach($actions as $item){
-//        var_dump($item);
+//        var_dump($id_usr);
 //        die();
         if($item["id_usr"]==$id_usr&&$item["code"]=='AC_CUST'&&$item["respon_alias"]=='sale'){
 //            if(empty($item["region_id"])&&$item["datep"]=='2016-05-27'){
@@ -305,12 +305,15 @@ function getRegionsListSale($id_usr){
             if($item["overdue"]){//Додав $mkDate < $mkToday. Вважається логічним, щоб кількість прострочених рахувати, коли завдання повинно вже було бути виконано
                 $outstanding[$item["region_id"]]++;
             }
-            if($item['percent'] == 100 && (in_array($item['code'], $actioncode)||$item['callstatus']=='5')){
+            if($mkDate <= $mkToday&&$item['percent'] == 100 && (in_array($item['code'], $actioncode)||$item['callstatus']=='5')){
                 $fact[$item["region_id"]][$item["datep"]]++;
-                if($mkToday-$mkDate<=604800)//604800 sec by week
+                if($mkToday-$mkDate<=604800) {//604800 sec by week
+//                    print ' ' . $item["datep"] . ' ' . $item["region_id"] . ' ' . $item['callstatus'] . '</br>';
                     $fact[$item["region_id"]]['week']++;
-                if($mkToday-$mkDate<=2678400)//2678400 sec by month
+                }
+                if($mkToday-$mkDate<=2678400) {//2678400 sec by month
                     $fact[$item["region_id"]]['month']++;
+                }
             }
 
             $total[$item["region_id"]][$item["datep"]]++;
@@ -321,7 +324,7 @@ function getRegionsListSale($id_usr){
         }
     }
 //    echo '<pre>';
-//    var_dump($regions);
+//    var_dump($actions);
 //    echo '</pre>';
 //    die();
 

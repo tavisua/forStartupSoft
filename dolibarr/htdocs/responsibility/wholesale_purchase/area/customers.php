@@ -54,10 +54,10 @@ where 1 and `llx_societe`.active = 1 and `llx_societe`.`categoryofcustomer_id` i
     $sql_count.=' and `llx_societe`.active = 1 ';
 
 //echo '<pre>';
-//var_dump(isset($_REQUEST['lineactive'])&& !empty($_REQUEST['lineactive']));
+//var_dump(isset($_REQUEST['lineactive'])&& !empty($_REQUEST['lineactive']) && ($_REQUEST['lineactive'] == -1) || empty($_REQUEST['lineactive']));
 //echo '</pre>';
 //die();
-if(isset($_REQUEST['lineactive'])&& !empty($_REQUEST['lineactive']) && $_REQUEST['lineactive'] == -1) {
+if(isset($_REQUEST['lineactive'])&& !empty($_REQUEST['lineactive']) && ($_REQUEST['lineactive'] == -1) || empty($_REQUEST['lineactive'])) {
     $tmp = 'select `llx_societe`.rowid from `llx_societe`
         left join `llx_societe_lineactive` on `llx_societe_lineactive`.fk_soc = `llx_societe`.rowid
         left join `llx_societe_classificator` on `llx_societe`.rowid = `llx_societe_classificator`.`soc_id`

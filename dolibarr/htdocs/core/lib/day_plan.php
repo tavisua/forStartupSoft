@@ -366,9 +366,9 @@ function ShowTasks($Code, $Title, $bestvalue = false){
     }
     //минуле факт
     for($i=8; $i>=0; $i--){
-        if($i < 8)
-            $table.='<td class="middle_size" style="width: '.(in_array($i, array(0,8))?'35':'30').'px; text-align:center;">'.($i<7?(isset($userActions['fact_'.date("Y-m-d", (time()-3600*24*$i))][$Code])?$userActions['fact_'.date("Y-m-d", (time()-3600*24*$i))][$Code]:('')):$userActions['fact_week'][$Code]).'</td>';
-        else
+        if($i < 8) {
+            $table .= '<td class="middle_size" style="width: ' . (in_array($i, array(0, 8)) ? '35' : '30') . 'px; text-align:center;">' . ($i < 7 ? (isset($userActions['fact_' . date("Y-m-d", (time() - 3600 * 24 * $i))][$Code]) ? $userActions['fact_' . date("Y-m-d", (time() - 3600 * 24 * $i))][$Code] : ('')) : $userActions['fact_week'][$Code]) . '</td>';
+        }else
             $table.='<td class="middle_size" style="width: '.(in_array($i, array(0,8))?'35':'30').'px; text-align:center;">'.(isset($userActions['fact_month'][$Code])?$userActions['fact_month'][$Code]:('')).'</td>';
     }
     //прострочено
@@ -494,10 +494,7 @@ function getLineActiveList($id_usr){
                 $total[$item[$param_name]]['month']++;
         }
     }
-//    echo '<pre>';
-//    var_dump($fact);
-//    echo '</pre>';
-//    die();
+
     $lineactive = getLineActive($id_usr);
     if(in_array('sale', $respon_alias))//Для продажу
         $lineactive[0]=array("name"=> "Напрямок не вказано", "type"=>"");

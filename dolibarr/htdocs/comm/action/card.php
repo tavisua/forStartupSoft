@@ -789,15 +789,15 @@ if ($action == 'add')
 //				$object->datepreperform =
 				$object->datep=dol_mktime(date_format($date, 'H'), date_format($date, 'i'), 0, date_format($date, 'm'), date_format($date, 'd'), date_format($date, 'Y'));
 				$object->datef=$subaction->datep+$_REQUEST["exec_time_dateNextAction"]*60;
-//				echo '<pre>';
-//				var_dump($object);
-//				echo '</pre>';
-//				die();
+
 				$idactions[]=$object->add($user, 'ondatep');
 			}
 		}else
 			$idactions[]=$object->add($user);
-
+//				echo '<pre>';
+//				var_dump($idactions);
+//				echo '</pre>';
+//				die();
 		if(!empty($object->user_valuer)&&$object->user_valuer>0){//Якщо призначено фахівця оцінщика -
 			foreach ($idactions as $idaction) {
 				$valuer_action = new ActionComm($db);
@@ -855,7 +855,7 @@ if ($action == 'add')
 		}
 //
 
-		if ($idaction > 0)
+		if (count($idactions) > 0)
 		{
 			if (! $object->error)
 			{

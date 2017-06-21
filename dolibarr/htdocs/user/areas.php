@@ -28,10 +28,12 @@
 //var_dump($_REQUEST);
 //echo '</pre>';
 require '../main.inc.php';
+
 require_once DOL_DOCUMENT_ROOT.'/core/lib/usergroups.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/functions2.lib.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/admin.lib.php';
 global $db;
+
 if(empty($_REQUEST['id'])&&$_REQUEST['action']=='doublelink'){
     llxHeader();
     $sql = "select llx_user_regions.rowid, llx_user.lastname, regions.`name`, llx_user_regions.active from llx_user_regions
@@ -112,11 +114,12 @@ if(empty($_REQUEST['id'])&&$_REQUEST['action']=='doublelink'){
     else
         print 1;
     exit();
-}elseif (empty($_REQUEST['id'])){
+}elseif (empty($_REQUEST['id'])&&!isset($_REQUEST['action'])){
     llxHeader();
     print_fiche_titre('Поверніться на попередню сторінку');
     exit();
 }
+
 if(isset($_REQUEST['action']) && $_REQUEST['action']=='resetexecuter'){
     global $db;
     $sql = "select rowid from llx_societe
@@ -137,7 +140,7 @@ if(isset($_REQUEST['action']) && $_REQUEST['action']=='resetexecuter'){
     $sql = "select `llx_actioncomm`.id, `llx_actioncomm`.fk_user_action, `llx_actioncomm`.fk_user_author, `llx_actioncomm_resources`.rowid, `llx_actioncomm_resources`.`fk_element`
         from llx_actioncomm 
         left join `llx_actioncomm_resources` on `llx_actioncomm`.`id` =  `llx_actioncomm_resources`.`fk_actioncomm`
-        where fk_soc in (".implode(',', $societe_id).") and active = 1 and percent <> 100
+        where fk_soc in (".implode(',', $societe_id).") and active = 1
         and code <> 'AC_OTH_AUTO'";
     $res = $db->query($sql);
     if(!$res) {
@@ -145,6 +148,12 @@ if(isset($_REQUEST['action']) && $_REQUEST['action']=='resetexecuter'){
         exit();
     }
     while($obj = $db->fetch_object($res)){
+        $sql = "update llx_newactions set id_usr = ".$_REQUEST['id_usr']." where id_action = ".$obj->id;
+        $up_res = $db->query($sql);
+        if(!$up_res) {
+            print '{"result":"error", info:"'.$db->lasterror().'"}';
+            exit();
+        }
         if(empty($obj->fk_element))
             $sql = "update llx_actioncomm set fk_user_action = ".$_REQUEST['id_usr']." where id = ".$obj->id;
         else
@@ -181,34 +190,60 @@ if(isset($_REQUEST['switch_active'])){
     }
     exit();
 }
+if($_REQUEST['action'] == 'redirectRegion'){
+    RedirectTask($_REQUEST['id_usr'], $_REQUEST['region_id']);
+    exit();
+}
 if($_REQUEST['action'] == 'redirectAllTask'){
     llxHeader();
     global $db;
+
 //    $sql = "select count(*) iCount from llx_actioncomm where code = 'AC_TEL' and `fk_user_author` = 0";
 //    $res = $db->query($sql);
-
     set_time_limit(0);
     $start = $_GET['start'];
-    if($start == 0) {
-        $sql = "update llx_actioncomm
-            set `fk_user_author` = 0
-            where 1 and code = 'AC_TEL'";
-        $resAction = $db->query($sql);
-        $iCount = $db->affected_rows($resAction);
-        echo 'Обнулено', ($iCount), 'записей';
-    }
-    $sql = 'select fk_user, fk_id from `llx_user_regions` where 1 and active = 1 limit '.$start.',50';
+    if(empty($start))
+        $start = 0;
+//    if($start == 0) {
+//        $sql = "update llx_actioncomm
+//            set `fk_user_author` = 0
+//            where 1 and code <> 'AC_OTH_AUTO'";
+//        $resAction = $db->query($sql);
+//        $iCount = $db->affected_rows($resAction);
+//        echo 'Обнулено', ($iCount), 'записей';
+//        $start = 0;
+//    }
+    $sql = 'select `llx_user_regions`.fk_user, `llx_user_regions`.fk_id from `llx_user_regions`
+      INNER join llx_user on llx_user.rowid = `llx_user_regions`.fk_user
+      where 1  and (`llx_user`.respon_id = 1 or `llx_user`.respon_id2 = 1)  and `llx_user_regions`.active = 1';
+    $sql.=' group by fk_id, `llx_user`.`active` desc
+      order by fk_id  limit  '.$start.',50';
+
     $res = $db->query($sql);
+    $regions=[];
+    if(isset($_REQUEST['lastregion'])&&!empty($_REQUEST['lastregion']))
+        $regions[]=$_REQUEST['lastregion'];
+    if(!$res)
+        dol_print_error($db);
+
     $usersID = array();
     $num = 0;
-
+    $last_region = 0;
     print '<tbody>';
     while($obj = $db->fetch_object($res)){
+            if(!in_array($obj->fk_id, $regions)) {
+//                print ' arraycount='.implode(',',$regions).' '.$obj->fk_user.' '.$obj->fk_id.'</br>';
+                $regions[] = $obj->fk_id;
+                RedirectTask($obj->fk_user, $obj->fk_id);
+            }
+//            else if($obj->fk_id == 415){
+//                die($obj->fk_user);
+//            }
 
-            RedirectTask($obj->fk_user, $obj->fk_id);
 //            $usersID[] = $obj->fk_user;
         $num++;
-        print date('H:i:s').'</br>';
+        $last_region = $obj->fk_id;
+        print ' '.date('H:i:s').'</br>';
 //        if(count($usersID)>10)
 //        exit();
     }
@@ -216,11 +251,11 @@ if($_REQUEST['action'] == 'redirectAllTask'){
     print 'ok';
     if($num>0) {
         $start+=50;
-        print '<script type="application/javascript">
+    print '<script type="application/javascript">
 
     $(document).ready(function() {
         console.log("'.$start.'");
-        location.href="/dolibarr/htdocs/user/areas.php?action=redirectAllTask&mainmenu=home&start='.$start.'"
+        location.href="/dolibarr/htdocs/user/areas.php?action=redirectAllTask&mainmenu=home&start='.$start.'&lastregion='.$last_region.'";
     })
     </script>';
     }
@@ -417,28 +452,34 @@ function RedirectTask($id_usr, $region_id, $reset = false){
             inner join (select code from `llx_c_actioncomm` where active = 1 and (type = 'system' or type = 'user'))code_t on code_t.`code` = `llx_actioncomm`.`code`
             where 1";
     $resAction = $db->query($sql);
+//    die($sql);
     $actionsID = array(0);
     while($obj = $db->fetch_object($resAction)){
+//        if(560393 == $obj->id)
+//            die($id_usr);
         $actionsID[] = $obj->id;
     }
-//    $sql = "update `llx_actioncomm_resources`
-//            set fk_element = ".$id_usr."
-//            where `llx_actioncomm_resources`.`fk_actioncomm` in (".implode(",",$actionsID).")";
-//
-//    $res = $db->query($sql);
-//    if (!$res)
-//        dol_print_error($db);
-//    else
-//        echo ' redirect llx_actioncomm_resources</br>';
 
-
+    $sql = "update llx_newactions set id_usr = ".$id_usr." where abs(id_action) in (".implode(",",$actionsID).")";
+    $up_res = $db->query($sql);
+    if(!$up_res) {
+        print '{"result":"error", info:"'.$db->lasterror().'"}';
+        exit();
+    }
+    $sql = "delete from `llx_newactions`
+    where `llx_newactions`.id_usr = ".$id_usr."
+    and  abs(`llx_newactions`.id_action) in
+    (select id from llx_actioncomm where fk_user_action = ".$id_usr." and `code` not in ('AC_CURRENT','AC_GLOBAL') )";
+    $res = $db->query($sql);
+    if (!$res)
+        dol_print_error($db);
     $sql = "update llx_actioncomm
-            set `fk_user_author` = " . $id_usr . "
+            set `fk_user_author` = " . $id_usr . ",  `fk_user_action` = " . $id_usr . "
             where llx_actioncomm.id in (".implode(",",$actionsID).")";
 
     $res = $db->query($sql);
 //    $iCount = $db->affected_rows($res);
-    echo 'Установлено ', $db->affected_rows($res), ' записей';
+    echo 'Установлено ', $db->affected_rows($res), ' записей region_id='.$region_id;
 //    var_dump(mysql_affected_rows(), $sql);
 //    die();
     if (!$res)

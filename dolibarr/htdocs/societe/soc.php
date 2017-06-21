@@ -83,7 +83,9 @@ if ($user->societe_id) $socid=$user->societe_id;
 if (empty($socid) && $action == 'view') $action='create';
 
 $object = new Societe($db);
-
+if($socid) {
+    $object->Permission($socid);
+}
 $extrafields = new ExtraFields($db);
 
 // fetch optionals attributes and labels

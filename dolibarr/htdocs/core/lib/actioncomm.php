@@ -122,7 +122,7 @@ if($_REQUEST['action'] == 'getPerformance' || $_REQUEST['action'] == 'getCustome
         left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.id";
     if($_REQUEST['action'] == 'getPerformance')
         $sql.="                 
-        inner join llx_user on llx_user.rowid = llx_actioncomm_resources.fk_element";
+        inner join llx_user on llx_user.rowid = case when llx_actioncomm_resources.fk_element is null then `llx_actioncomm`.`fk_user_author` else llx_actioncomm_resources.fk_element end";
     elseif($_REQUEST['action'] == 'getCustomer')
         $sql.=" inner join llx_user on llx_user.rowid = `llx_actioncomm`.`fk_user_author`";
     $sql.=" where 1 ";
@@ -149,7 +149,7 @@ if($_REQUEST['action'] == 'getPerformance' || $_REQUEST['action'] == 'getCustome
             $out .= '</tr>';
     }
     while($obj = $db->fetch_object($res)){
-        $out .= '<tr id="'.$obj->rowid.'">';
+        $out .= '<tr id="'.$obj->rowid.'" '.($obj->rowid == $user->id?'class="select_item"':'').'>';
         $out .= '<td class="middle_size" onclick="setParam('."'".($_REQUEST['action'] == 'getPerformance'?'performer':'customer')."',".$obj->rowid.')" style="cursor:pointer" >'.$obj->lastname.' '.mb_substr($obj->firstname, 0,1, 'UTF-8').'.</td>';
         $out .= '</tr>';
     }

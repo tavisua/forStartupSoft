@@ -556,6 +556,10 @@ function showCallStatus(){
 }
 function ShowActionTable(){
     global $db, $langs, $conf,$subdivUserID,$user;
+    $object = new Societe($db);
+    if($_REQUEST['socid']&&!in_array('dir_depatment',array($user->respon_alias,$user->respon_alias2))) {
+        $object->Permission($_REQUEST['socid']);
+    }
     $sql = "select `region_id` from `llx_societe` where rowid = ".$_REQUEST['socid'];
     $res_region = $db->query($sql);
     $region_id = $db->fetch_object($res_region);
@@ -600,7 +604,6 @@ function ShowActionTable(){
         order by `datep` desc";
 
 
-
 //    echo '<pre>';
 //    var_dump($sql);
 //    echo '</pre>';
@@ -613,6 +616,7 @@ function ShowActionTable(){
     $out = '<tbody>';
 //    var_dump($sql);
 //    die();
+
     if($db->num_rows($res)==0){
         $out .= '<tr class="impair">
             <td style="width: 80px" class="middle_size">&nbsp;</td>

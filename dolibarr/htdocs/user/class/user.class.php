@@ -601,6 +601,8 @@ class User extends CommonObject
 	}
     function getregions($id)
     {
+		if(empty($id))
+			$id=$this->id;
         $sql = "select fk_id as id from " . MAIN_DB_PREFIX . "user_regions as ur where ur.fk_user= ".$id." and active = 1";
 //        $sql = 'select rowid as id from regions limit 10';
         dol_syslog(get_class($this) . '::getregions', LOG_DEBUG);

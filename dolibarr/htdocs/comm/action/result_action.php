@@ -5,10 +5,12 @@
  * Date: 14.01.2016
  * Time: 13:45
  */
-//echo'<pre>';
-//var_dump($_REQUEST);
-//echo'</pre>';
-//die($_GET['backtopage']);
+//if('getTypeNotification'!=$_REQUEST['action']) {
+//    echo '<pre>';
+//    var_dump($_REQUEST);
+//    echo '</pre>';
+//    die($_GET['backtopage']);
+//}
 define("NOLOGIN",1);		// This means this output page does not require to be logged.
 require '../../main.inc.php';
 require_once 'class/actioncomm.class.php';
@@ -51,7 +53,8 @@ if(isset($_REQUEST['action'])) {
                 '&action=create&parent_id='.$_REQUEST['actionid'].'&contactid='.$_REQUEST['contactid'].'&mainmenu=area&datep='.date('d.m.Y').'&backtopage='.$_REQUEST['backtopage'];
         }else
             $location = 'Location:'.htmlspecialchars(str_replace("'",'',$_REQUEST['backtopage']));
-        echo ($location);
+        if($_REQUEST['action'] =='updateonlyresult')
+            echo ($location);
         header(urldecode($location));
         exit();
     } elseif (in_array($_REQUEST["action"], array('savetaskmentor','savetaskmentor_and_create'))) {
@@ -994,9 +997,19 @@ function saveaction($rowid, $createaction = false, $action_id = null){
             else
                 $backtopage .= '?beforeload=close';
         }
-//        die(urldecode($backtopage));
-        if($_REQUEST["action"]!='saveonlyresult')
-            header("Location: " . urldecode($backtopage));
+//        echo '<pre>';
+//        var_dump(urldecode($backtopage));
+//        echo '</pre>';
+//        die();
+        if($_REQUEST["action"]!='saveonlyresult') {
+            $link = urldecode($backtopage);
+            if(substr($link, 0,1)=="'")
+                $link = 'http://'.$_SERVER["HTTP_HOST"] . substr($link, 1, strlen($link)-2);
+            else
+                $link = 'http://'.$_SERVER["HTTP_HOST"] . $link;
+            header("Location: " .$link);
+            die();
+        }
 
     }else{
         if(substr($_REQUEST['backtopage'], 0, 1) == "'" && substr($_REQUEST['backtopage'], strlen($_REQUEST['backtopage'])-1, 1) == "'")
