@@ -1370,7 +1370,7 @@ function getActionsByUsers($subdiv_id, $class, $code = '', $respon_alias='', $ti
          //Завантажую виконавців
     $sql = "select  llx_user.rowid, lastname, firstname, active from llx_user
         where subdiv_id = $subdiv_id
-        and (active = 1 or rowid in (".implode(',',$_SESSION['overdueUserID'])."))";
+        and (active = 1 )";
     if(count($respon)>0)
         $sql.=" and (llx_user.respon_id in (".implode(',',$respon).") or llx_user.respon_id2 in (".implode(',',$respon)."))";
     $sql.=" order by `lastname`";
