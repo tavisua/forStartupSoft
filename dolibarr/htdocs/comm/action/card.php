@@ -294,6 +294,13 @@ if($_GET['action']=='get_exectime'){
 		if (!$res) {
 			dol_print_error($db);
 		}
+		//Оновлення статусів в таблиці статистики statistic_action
+		$sql = 'update statistic_action set dateSetExec = Now(), percent=100 where id in (' . implode(',', $chain_actions) . ')';
+//	die($sql);
+		$res = $db->query($sql);
+		if (!$res) {
+			dol_print_error($db);
+		}
 		$sql = 'delete from llx_newactions where id_action in (' . implode(',', $chain_actions) . ')';
 		$res = $db->query($sql);
 		if (!$res) {

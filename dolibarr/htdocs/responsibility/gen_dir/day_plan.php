@@ -1548,6 +1548,7 @@ function getActionsBySub($class, $code){
             else
                 $sql .= " and statistic_action.`code` in (select `code` from llx_c_actioncomm
                     where active = 1
+                    and llx_user.active = 1
                     and `type` in ('system','user')
                     and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
         }
@@ -1583,6 +1584,7 @@ function getActionsBySub($class, $code){
         }
         $sql.=" and statistic_action.percent = 100
             and statistic_action.active = 1
+            and llx_user.active = 1
             and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)
             group by llx_user.subdiv_id";
 //        if(empty($subdiv_id)&&$i==1){
@@ -1623,6 +1625,7 @@ function getActionsBySub($class, $code){
                 and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
     }
     $sql.=" and statistic_action.active = 1
+    and llx_user.active = 1
     and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)
     group by llx_user.subdiv_id, date(datep);";
 
@@ -1654,6 +1657,7 @@ function getActionsBySub($class, $code){
     }
     $sql.=" and statistic_action.percent = 100
         and statistic_action.active = 1
+        and llx_user.active = 1
         and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)
         group by llx_user.subdiv_id, date(datep);";
 //    if($code == 'AC_CUST'){
@@ -1691,6 +1695,7 @@ function getActionsBySub($class, $code){
                     and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
     }
     $sql.=" and statistic_action.active = 1
+            and llx_user.active = 1
             and llx_user.subdiv_id in (select rowid from `subdivision` where active = 1)
             group by llx_user.subdiv_id";
 //if(empty($code)) {
@@ -1726,6 +1731,7 @@ function getActionsBySub($class, $code){
         else
             $sql .= " and statistic_action.`code` in (select `code` from llx_c_actioncomm
                     where active = 1
+                    and llx_user.active = 1
                     and `type` in ('system','user')
                     and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
     }
@@ -1766,7 +1772,7 @@ function getActionsBySub($class, $code){
                         and `type` in ('system','user')
                         and `code` not in ('AC_GLOBAL','AC_CURRENT'))";
         }
-        $sql .= " and statistic_action.active = 1
+        $sql .= " and llx_user.active = 1 and statistic_action.active = 1
         
         group by llx_user.subdiv_id;";
         $res = $db->query($sql);

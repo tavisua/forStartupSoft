@@ -73,32 +73,44 @@ if(!isset($_GET['id_usr'])||empty($_GET['id_usr']))
     $id_usr = $user->id;
 elseif(!empty($_GET['id_usr']))
     $id_usr = $_GET['id_usr'];
-$sql = "select  `llx_actioncomm`.type, `llx_actioncomm`.id as rowid, `llx_actioncomm`.datep, `llx_actioncomm`.datep2,
-        `llx_actioncomm`.`code`, `llx_actioncomm`.fk_user_author, `llx_actioncomm`.label, `llx_societe`.region_id, `regions`.`name` as region_name, case when `llx_actioncomm`.fk_soc is null then `llx_user`.`lastname` else `llx_societe`.`nom` end lastname,
-        `llx_actioncomm`.`note`, `llx_actioncomm`.`percent`, `llx_c_actioncomm`.`libelle` title, `llx_actioncomm`.confirmdoc,
-        `llx_actioncomm`.priority, max(`llx_societe_action`.`callstatus`) as callstatus, `llx_actioncomm`.overdue
-        from `llx_actioncomm`
-        left join `llx_societe` on `llx_societe`.rowid = `llx_actioncomm`.fk_soc
+$tablename = "`llx_actioncomm`";
+$begin_period = new DateTime(date('Y-m-d', mktime(0, 0, 0, date('m')-1, date('d'), date('Y'))));
+$end_period =  new DateTime(date('Y-m-d', mktime(0, 0, 0, date('m')+1, date('d'), date('Y'))));
+
+if($dateQuery>=$begin_period&&$dateQuery<=$end_period)
+    $tablename = "`statistic_action`";
+//echo '<pre>';
+//var_dump($tablename);
+//echo '</pre>';
+//
+//die();
+$sql = "select  $tablename.type, $tablename.id as rowid, $tablename.datep, $tablename.datep2,
+        $tablename.`code`, $tablename.fk_user_author, $tablename.label, `llx_societe`.region_id, `regions`.`name` as region_name, case when $tablename.fk_soc is null then `llx_user`.`lastname` else `llx_societe`.`nom` end lastname,
+        $tablename.`note`, $tablename.`percent`, `llx_c_actioncomm`.`libelle` title, $tablename.confirmdoc,
+        $tablename.priority, max(`llx_societe_action`.`callstatus`) as callstatus, $tablename.overdue
+        from $tablename
+        left join `llx_societe` on `llx_societe`.rowid = $tablename.fk_soc
         left join `states` on `states`.rowid = `llx_societe`.state_id
         left join `regions` on `regions`.rowid=`llx_societe`.region_id
-        left join `llx_user` on `llx_user`.rowid= `llx_actioncomm`.fk_user_author
-        left join `llx_c_actioncomm` on `llx_c_actioncomm`.`code` = `llx_actioncomm`.`code`
-        left join `llx_actioncomm_resources` on `llx_actioncomm`.`id` =  `llx_actioncomm_resources`.`fk_actioncomm`
-        left join `llx_societe_action` on `llx_societe_action`.`action_id` = `llx_actioncomm`.`id`
+        left join `llx_user` on `llx_user`.rowid= $tablename.fk_user_author
+        left join `llx_c_actioncomm` on `llx_c_actioncomm`.`code` = $tablename.`code`
+        left join `llx_actioncomm_resources` on $tablename.`id` =  `llx_actioncomm_resources`.`fk_actioncomm`
+        left join `llx_societe_action` on `llx_societe_action`.`action_id` = $tablename.`id`
         where 1
         and date(datep) = '".$dateQuery->format('Y-m-d')."'
-        and `llx_actioncomm`.active = 1
+        and $tablename.active = 1
 
-        and (case when `llx_actioncomm_resources`.`fk_element` is null then `llx_actioncomm`.fk_user_action else `llx_actioncomm_resources`.`fk_element` end) = ".$id_usr."
-        and (`llx_actioncomm`.`entity` = 1 AND `llx_actioncomm_resources`.`fk_element` is null AND `llx_actioncomm`.`code` IN('AC_GLOBAL','AC_CURRENT') OR `llx_actioncomm`.`entity` = 0 AND `llx_actioncomm`.`code` IN('AC_GLOBAL','AC_CURRENT') OR `llx_actioncomm`.`entity` = 1 AND `llx_actioncomm`.`code` NOT IN('AC_GLOBAL','AC_CURRENT'))
+        and (case when `llx_actioncomm_resources`.`fk_element` is null then $tablename.fk_user_action else `llx_actioncomm_resources`.`fk_element` end) = ".$id_usr."
+        /*and ($tablename.`entity` = 1 AND `llx_actioncomm_resources`.`fk_element` is null AND $tablename.`code` IN('AC_GLOBAL','AC_CURRENT') 
+            OR $tablename.`entity` = 0 AND $tablename.`code` IN('AC_GLOBAL','AC_CURRENT') OR $tablename.`entity` = 1 AND $tablename.`code` NOT IN('AC_GLOBAL','AC_CURRENT'))*/
         and fk_action in
               (select id from `llx_c_actioncomm`
               where `type` in ('system', 'user'))
-        and (`llx_actioncomm`.hide is null or `llx_actioncomm`.hide <> 1)
-        group by `llx_actioncomm`.id,  `llx_actioncomm`.datep, `llx_actioncomm`.datep2,
-        `llx_actioncomm`.`code`, `llx_actioncomm`.fk_user_author, `llx_actioncomm`.label, `regions`.`name`, case when `llx_actioncomm`.fk_soc is null then `llx_user`.`lastname` else `llx_societe`.`nom` end,
-        `llx_actioncomm`.`note`, `llx_actioncomm`.`percent`, `llx_c_actioncomm`.`libelle`, `llx_actioncomm`.confirmdoc,
-        `llx_actioncomm`.priority
+        and ($tablename.hide is null or $tablename.hide <> 1)
+        group by $tablename.id,  $tablename.datep, $tablename.datep2,
+        $tablename.`code`, $tablename.fk_user_author, $tablename.label, `regions`.`name`, case when $tablename.fk_soc is null then `llx_user`.`lastname` else `llx_societe`.`nom` end,
+        $tablename.`note`, $tablename.`percent`, `llx_c_actioncomm`.`libelle`, $tablename.confirmdoc,
+        $tablename.priority
         order by priority,datep";
 //
 //echo '<pre>';

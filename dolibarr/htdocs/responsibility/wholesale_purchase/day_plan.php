@@ -2,7 +2,8 @@
 
 require $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
-
+$CustActions = array();
+$actioncode = array('AC_GLOBAL','AC_CURRENT','AC_EDUCATION','AC_INITIATIV','AC_PROJECT');
 //echo '<pre>';
 //var_dump($_SERVER);
 //echo '</pre>';
@@ -86,8 +87,12 @@ $lineaction = CalcFaktActions($Code, $lineaction, $user->id);
 $lineaction = CalcPercentExecActions($Code, $lineaction, $user->id);
 
 
+require_once DOL_DOCUMENT_ROOT.'/core/lib/day_plan.php';
+
 $bestvalue = array();
 $bestuser_id = GetBestUserID();
+//die('test');
+
 $bestvalue = CalcOutStandingActions($Code, $bestvalue, $bestuser_id);
 $bestvalue = CalcFutureActions($Code, $bestvalue, $bestuser_id);
 $bestvalue = CalcFaktActions($Code, $bestvalue, $bestuser_id);
@@ -135,7 +140,7 @@ for($i = 0; $i<9; $i++){
         }
     }
 }
-die('test');
+//die('test');
 $sql = 'select name from subdivision where rowid = '.(empty($user->subdiv_id)?0:$user->subdiv_id);
 $res = $db->query($sql);
 if(!$res)
@@ -244,10 +249,19 @@ while ($obj = $db->fetch_object($res)) {
             }
         }
     }
+//    if($obj->datep == '2017-06-21'&&$obj->code=='AC_CURRENT'&&$obj->percent!=100&&$obj->id_usr==42){
+//        echo'<pre>';
+//        var_dump($obj);
+//        echo'</pre>';
+//    }
     $actions[] = array('overdue'=> $obj->overdue, 'id_usr' => $obj->id_usr, 'rowid'=>$obj->id, 'socid'=>$obj->socid, 'region_id' => $lineactive_id, 'respon_alias' => $obj->alias, 'percent' => $obj->percent, 'datep' => $obj->datep, 'code' => $obj->code, 'callstatus'=>$obj->callstatus);
 }
 $_SESSION['actions'] = $actions;
-die('test');
+//die('test');
+//echo '<pre>';
+//var_dump($actions);
+//echo '</pre>';
+//die();
 $table = ShowTable();
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/wholesale_purchase/day_plan.html';
 
@@ -483,6 +497,8 @@ function ShowTable(){
 //                die();
                 $userActions['outstanding'][$obj->code]++;
             }
+//            var_dump($action['code'], $actioncode);
+//            die();
             if($mkDate <= $mkToday && $obj->percent == 100 && (in_array($action['code'], $actioncode) || $action['callstatus'] == '5')){
 //                if($obj->datep == '2016-05-30'){
 //                        echo '<pre>';

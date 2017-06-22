@@ -442,9 +442,11 @@ function createStaticDayPlanPage(){
     if(!$res)
         dol_print_error($db);
     $sql = "insert into statistic_action
-    select * from llx_actioncomm
+    select distinct llx_actioncomm.* from llx_actioncomm
+    left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
     where date(datep) between adddate(date(now()), interval -1 month) and adddate(date(now()), interval 1 month) or overdue = 1
     and active = 1
+    and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end in (select rowid from llx_user where active = 1)
     and code <> 'AC_OTH_AUTO'";
     $res = $db->query($sql);
     if(!$res)
