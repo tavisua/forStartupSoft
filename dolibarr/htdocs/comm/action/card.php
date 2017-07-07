@@ -121,8 +121,12 @@ if($_GET['action']=='get_exectime'){
 		echo getGroupActionsStatus($_GET['action_id']);
 	exit();
 }elseif($_GET['action']=='validateDataAction'){
+//	echo '<pre>';
+//	var_dump($_REQUEST);
+//	echo '</pre>';
+//	die();
 	$Action = new ActionComm($db);
-	echo $Action->validateDateAction($_REQUEST['date'], $_REQUEST['id_usr'],$_REQUEST['minutes'],$_REQUEST['prioritet']);
+	echo $Action->validateDateAction($_REQUEST['date'], $_REQUEST['id_usr'],$_REQUEST['minutes'],$_REQUEST['prioritet'],$_REQUEST['parent_id']);
 	exit();
 }elseif($_GET['action']=='getlastactivecontact'){
 
@@ -366,9 +370,13 @@ if($_GET['action']=='get_exectime'){
 	$Action = new ActionComm($db);
 	$date = new DateTime();
 	$date->setTimestamp(time());
-	if(strlen($_GET['date'])<16)
-		$_GET['date']=date('Y-m-d H:i:s');
-	$freetime = $Action->GetFreeTime($_GET['date'], $_GET['id_usr'], $_GET['minute'], $_GET['priority']);
+//	var_dump($_GET['date']);
+//	die();
+//	if(strlen($_GET['date'])<16) {
+
+//		$_GET['date'] = date('Y-m-d H:i:s');
+//	}
+	$freetime = $Action->GetFreeTime($_GET['date'], $_GET['id_usr'], $_GET['minute'], $_GET['priority'], $_GET['parent_id']);
 	echo $freetime;
 	exit();
 }
@@ -776,10 +784,7 @@ if ($action == 'add')
 	{
 
 		$db->begin();
-//        echo '<pre>';
-//        var_dump(count(dol_json_decode($_SESSION['assignedtouser'], true)));
-//        echo '</pre>';
-//        die();
+
 		// On cree l'action
 
 		if(isset($_REQUEST["dateNextAction"])&&!empty($_REQUEST["dateNextAction"])&&count(dol_json_decode($_SESSION['assignedtouser'], true))<=1) {
@@ -795,16 +800,21 @@ if ($action == 'add')
 			foreach ($dates as $date){
 //				$object->datepreperform =
 				$object->datep=dol_mktime(date_format($date, 'H'), date_format($date, 'i'), 0, date_format($date, 'm'), date_format($date, 'd'), date_format($date, 'Y'));
-				$object->datef=$subaction->datep+$_REQUEST["exec_time_dateNextAction"]*60;
-
+				$object->datef=dol_mktime(date_format($date, 'H'), date_format($date, 'i'), 0, date_format($date, 'm'), date_format($date, 'd'), date_format($date, 'Y'))+$_REQUEST["exec_time_dateNextAction"]*60;
+//				echo '<pre>';
+//				var_dump($date);
+//				echo '</pre>';
+//				die();
 				$idactions[]=$object->add($user, 'ondatep');
 			}
-		}else
-			$idactions[]=$object->add($user);
+		}else {
+			$idactions[] = $object->add($user);
+		}
 //				echo '<pre>';
 //				var_dump($idactions);
 //				echo '</pre>';
 //				die();
+
 		if(!empty($object->user_valuer)&&$object->user_valuer>0){//Якщо призначено фахівця оцінщика -
 			foreach ($idactions as $idaction) {
 				$valuer_action = new ActionComm($db);
@@ -840,7 +850,8 @@ if ($action == 'add')
 		if(isset($_REQUEST["dateNextAction"])&&
 				!empty($_REQUEST["dateNextAction"])&&count(dol_json_decode($_SESSION['assignedtouser'], true))<=1
 				&&in_array($object->type_code, array('AC_GLOBAL','AC_CURRENT'))
-				&&(!isset($_REQUEST["mentor_action"])||empty($_REQUEST["mentor_action"]))){
+				&&(!isset($_REQUEST["mentor_action"])||empty($_REQUEST["mentor_action"]))&&
+				!in_array($_REQUEST["selperiod"], ['EveryMonday','EveryTuesday','EveryWednesday','EveryThursday','EveryFriday','EverySaturday','EverySunday'])){
 			foreach ($idactions as $idaction) {
 				$subaction = new ActionComm($db);
 				$subaction->fetch($idaction);
@@ -1533,6 +1544,9 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 		print '<span id="ShowFreeTime" onclick="ShowFreeTime(' . "'ap'" . ');" title="Переглянути наявність вільного часу" style="vertical-align: middle"><img src="/dolibarr/htdocs/theme/eldy/img/calendar.png"></span>  ';
 		print '<span style="font-size: 12px">Необхідно часу  </span><input type="text" class="param exec_time" size="2" value="1" id = "exec_time_ap" name="exec_time_ap"><span style="font-size: 12px"> хвилин.</span>';
 	}
+	if(!empty($_REQUEST["parent_id"]))
+		print '<div style="padding-top: 10px"><span style="font-size: 12px">В межах основної задачі  </span> <input id="into_parent_action" name="into_parent_action" onchange="$(\'#aphour\').change();"; type="checkbox"></div>';
+
 	// На вибрану дату заплановано
 	if($_REQUEST['actioncode'] == 'AC_TEL')
 		print '<div style="padding-top: 10px"><span style="font-size: 12px">На вибрану дату заплановано <span id="ActionsCount">0</span> дзвінків</span></div>';
@@ -1570,7 +1584,8 @@ if ($action == 'create' && !isset($_REQUEST["duplicate_action"]))
 							$('#'+prefix+'day').val()+' '+$('#'+prefix+'hour').val()+':'+$('#'+prefix+'min').val()),
 						minutes:$('#exec_time_'+prefix).val(),
 						id_usr: ".$user->id.",
-						prioritet:$('#priority').val()
+						prioritet:$('#priority').val(),
+						into_parent_action:$('#into_parent_action').length>0?$('#into_parent_action').val():0
 					}
 					$.ajax({
 						cache:false,

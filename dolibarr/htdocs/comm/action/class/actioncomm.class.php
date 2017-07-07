@@ -228,6 +228,7 @@ class ActionComm extends CommonObject
             }
             date_add($date_tmp, date_interval_create_from_date_string('1 days'));
         }
+
 //        echo '</pre>';
         return $out;
     }
@@ -318,7 +319,7 @@ class ActionComm extends CommonObject
 //        die();
         return $chain_actions;
     }
-    function validateDateAction($date, $id_usr, $minutes, $prioritet){
+    function validateDateAction($date, $id_usr, $minutes, $prioritet, $parent_id = 0){
         $valid_date = new DateTime($date);
 
         $mk_valid_begin = dol_mktime($valid_date->format('H'),$valid_date->format('i'),$valid_date->format('s'),$valid_date->format('m'),$valid_date->format('d'),$valid_date->format('Y'));
@@ -497,29 +498,30 @@ class ActionComm extends CommonObject
             $exec_time = 0;
         return $exec_time;
     }
-    function GetFreeTime($inputdate, $id_usr, $minutes, $prioritet = 0){
+    function GetFreeTime($inputdate, $id_usr, $minutes, $prioritet = 0, $parent_id = 0){
         if(empty($prioritet))$prioritet = 0;
-//        var_dump(substr_count($inputdate, ':'));
-//        die();
+
         if(substr_count($inputdate, ':') == 1)
             $starttime = $inputdate.":00";
         $date = new DateTime($inputdate);
-
+//        var_dump($inputdate);
+//        die();
         $PlanTime = 0;
         while(!$PlanTime) {
             if($date->format('w')>0 && $date->format('w')<6)
-                $PlanTime = $this->GetFirstFreeTime($date->format('Y-m-d H:i'), $id_usr, $minutes, $prioritet, $starttime);
+                $PlanTime = $this->GetFirstFreeTime($date->format('Y-m-d H:i'), $id_usr, $minutes, $prioritet, $starttime, $parent_id);
             $date = new DateTime(date('Y-m-d', mktime(8,0,0,$date->format('m'),$date->format('d'),$date->format('Y'))+ 86400));
         }
 //        var_dump($PlanTime);
 //        die();
+
         return $PlanTime;
     }
-    function GetFirstFreeTime($date, $id_usr, $minutes, $prioritet = 0, $starttime){
-        $freetime = $this->GetFreeTimePeriod($date, $id_usr, $prioritet);
+    function GetFirstFreeTime($date, $id_usr, $minutes, $prioritet = 0, $starttime, $parent_id=0){
+        $freetime = $this->GetFreeTimePeriod($date, $id_usr, $prioritet, false, $parent_id);
         $date = new DateTime($date);
 //        echo '<pre>';
-//        var_dump($freetime);
+//        var_dump($date);
 //        echo '</pre>';
 //        die();
         if(empty($starttime))
@@ -635,18 +637,19 @@ class ActionComm extends CommonObject
         }
         return 0;
     }
-    function GetFreeTimePeriod($date, $id_usr, $prioritet, $fullday = false){
+    function GetFreeTimePeriod($date, $id_usr, $prioritet, $fullday = false, $parent_id=0){
         global $db;
         $date = new DateTime($date);
-        $sql = "select `llx_actioncomm`.`id`, `llx_actioncomm`.`datep`, `llx_actioncomm`.`datep2` from `llx_actioncomm`
+        $sql = "select `llx_actioncomm`.`id`, `llx_actioncomm`.`datep`, `llx_actioncomm`.`datep2`, `llx_actioncomm`.fk_parent from `llx_actioncomm`
             left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.id
             where `llx_actioncomm`.`datep` between '".$date->format('Y-m-d')."' and adddate('".$date->format('Y-m-d')."', interval 1 day)
             and fk_action in
               (select id from `llx_c_actioncomm`
               where `type` in ('system', 'user'))
-                and (case when `llx_actioncomm_resources`.fk_element is null then `llx_actioncomm`.fk_user_author else `llx_actioncomm_resources`.fk_element end = ".$id_usr.")
+                and (case when `llx_actioncomm_resources`.fk_element is null then `llx_actioncomm`.fk_user_action else `llx_actioncomm_resources`.fk_element end = ".$id_usr.")
             and `llx_actioncomm`.`priority` = ".(empty($prioritet)?0:$prioritet)."
             and `llx_actioncomm`.`active` = 1
+            ".(!empty($parent_id)?" and fk_parent = $parent_id":"")."
             and (`llx_actioncomm`.hide is null or `llx_actioncomm`.hide <> 1)
             order by `llx_actioncomm`.`datep`, `llx_actioncomm`.`datep2`";
 
@@ -654,15 +657,27 @@ class ActionComm extends CommonObject
         if(!$res)
             dol_print_error($db); //and (`llx_actioncomm_resources`.`fk_element`= ".$id_usr." or (`llx_actioncomm`.`fk_user_author`= ".$id_usr." and `llx_actioncomm`.id not in (select `llx_actioncomm_resources`.`fk_actioncomm` from `llx_actioncomm_resources` where `llx_actioncomm_resources`.`fk_element`= ".$id_usr.")))
         $Now = new DateTime();
-//        var_dump($sql);
+//        var_dump($parent_id);
 //        die();
-        if($Now<$date) {
-            if(!$fullday)
-                $time = mktime(8, 0, 0, $date->format('m'), $date->format('d'), $date->format('Y'));
-            else
-                $time = mktime(0, 0, 0, $date->format('m'), $date->format('d'), $date->format('Y'));
-        }else
-            $time = mktime($Now->format('H'),$Now->format('i'),$Now->format('s'),$date->format('m'),$date->format('d'),$date->format('Y'));
+        if(empty($parent_id)) {
+            if ($Now < $date) {
+                if (!$fullday)
+                    $time = mktime(8, 0, 0, $date->format('m'), $date->format('d'), $date->format('Y'));
+                else
+                    $time = mktime(0, 0, 0, $date->format('m'), $date->format('d'), $date->format('Y'));
+            } else
+                $time = mktime($Now->format('H'), $Now->format('i'), $Now->format('s'), $date->format('m'), $date->format('d'), $date->format('Y'));
+        }else{
+            $sql = "select `llx_actioncomm`.`id`, `llx_actioncomm`.`datep`, `llx_actioncomm`.`datep2` from `llx_actioncomm` where id = ".$parent_id;
+            $res_parent = $db->query($sql);
+            if(!$res_parent)
+                dol_print_error($db);
+            $obj = $db->fetch_object($res_parent);
+            $date_begin = new DateTime($obj->datep);
+            $date_end = new DateTime($obj->datep2);
+            $time = mktime($date_begin->format('H'), $date_begin->format('i'), 0, $date_begin->format('m'), $date_begin->format('d'), $date_begin->format('Y'));
+
+        }
 
         $freetime = array();
         while($obj = $db->fetch_object($res)){
@@ -675,12 +690,16 @@ class ActionComm extends CommonObject
             $tmp_date = new DateTime($obj->datep2);
             $time = mktime($tmp_date->format('H'), $tmp_date->format('i'),$tmp_date->format('s'),$tmp_date->format('m'), $tmp_date->format('d'),$tmp_date->format('Y'));
         }
-        if(!$fullday)
-            $tmp_mk = mktime(19,0,0,$date->format('m'),$date->format('d'),$date->format('Y'));
-        else
-            $tmp_mk = mktime(23,59,0,$date->format('m'),$date->format('d'),$date->format('Y'));
-//        var_dump(($tmp_mk - $time));
-//        die();
+        if(empty($date_end)) {
+            if (!$fullday)
+                $tmp_mk = mktime(19, 0, 0, $date->format('m'), $date->format('d'), $date->format('Y'));
+            else
+                $tmp_mk = mktime(23, 59, 0, $date->format('m'), $date->format('d'), $date->format('Y'));
+        }else{
+
+            $tmp_mk = mktime($date_end->format('H'), $date_end->format('i'), 0, $date_end->format('m'), $date_end->format('d'), $date_end->format('Y'));
+        }
+
         if(($tmp_mk - $time)/60>0) {
             $freetime[] = array(date('H.i.s', $time), ($tmp_mk - $time)/60, $date->format('Y-m-d'));
         }
@@ -1073,13 +1092,14 @@ class ActionComm extends CommonObject
         $this->db->begin();
 //        var_dump(array_keys($this->userassigned));
 //        die();
+
         for ($i = count(array_keys($this->userassigned))>1?1:0; $i < count(array_keys($this->userassigned)); $i++) {
 
             $correctdate = false;
             $cdatep=0;
             $cdatef=0;
 //        echo "<pre>";
-//        var_dump($this->userassigned);
+//        var_dump(count(array_keys($this->userassigned))>1?1:0);
 //        echo "</pre>";
 //        die();
             if(count(array_keys($this->userassigned))>1){
@@ -1295,10 +1315,12 @@ class ActionComm extends CommonObject
                 return -1;
             }
             //Сповіщення про створення нової дії
-            if(count(array_keys($this->userassigned))>1)
-                $when_show = 'oncreate';
-            else
-                $when_show = 'ondatep';
+            if($when_show == 'oncreate') {//Якщо за замовченням сповіщення відбувається в день виконання дії - залишаю як є
+                if (count(array_keys($this->userassigned)) > 1)
+                    $when_show = 'oncreate';
+                else
+                    $when_show = 'ondatep';
+            }
 //            echo '<pre>';
 //            var_dump($this->code);
 //            echo '</pre>';

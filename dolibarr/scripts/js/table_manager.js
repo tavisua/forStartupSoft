@@ -911,7 +911,7 @@ function CalcP(date, minute, id_usr, prefix){
         })
     }
     $.ajax({
-        url:'/dolibarr/htdocs/comm/action/card.php?date='+date+'&minute='+minute+'&id_usr='+id_usr+'&action=get_freetime',
+        url:'/dolibarr/htdocs/comm/action/card.php?date='+date+'&minute='+minute+'&id_usr='+id_usr+'&action=get_freetime&parent_id='+($('#into_parent_action').length>0?($('#into_parent_action').attr('checked')=='checked'?$('#parent_id').val():0):0),
         cache:false,
         success:function(result){
             var time = result.substr(10,6);

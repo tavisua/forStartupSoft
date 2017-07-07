@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title><?=$title?></title>
+</head>
+<body>
+<?=print_fiche_titre($title);?>
+<form id="mailing" action="" method="post">
+    <input id="action" name="action" type="hidden" value="create">
+    <button type="submit" onclick="return SetActionValue('create_testmail');">&nbsp;&nbsp;&nbsp;&nbsp;Додати email&nbsp;&nbsp;&nbsp;&nbsp;</button>
+    <button type="submit" onclick="return SetActionValue('');">&nbsp;&nbsp;&nbsp;&nbsp;Список розсилок&nbsp;&nbsp;&nbsp;&nbsp;</button>
+</form>
+
+<table  cellspacing="1">
+    <thead>
+    <tr class="multiple_header_table">
+        <th style="min-width:180px">Email</th>
+        <th style="min-width:85px">Дії</th>
+    </tr>
+    </thead>
+
+    <?echo $table?>
+</table>
+<a href="#x" class="overlay" id="editor"></a>
+<div class="popup">
+    <form>
+        <input id="rowid" name="rowid" value="" type="hidden">
+        <table id="edit_table">
+            <tbody><tr>
+                <td class="param">email</td><td><input id="email" class="edit_text" name="email" value=""></td>
+            </tr><tr>
+                <td class="param">Активне</td><td><img id="edit_active" src="/dolibarr/htdocs/theme/eldy/img/switch_on.png" onclick="change_switch(0, 'llx_post', 'active');"></td>
+            </tr>    </tbody></table>
+    </form>
+    <a class="close" title="Закрыть" href="#close"></a>
+    <br><script>
+    var tablename = 'llx_c_testmails';
+    var fieldname = '';
+    var sendtable = '';
+</script><button onclick="save()">Сохранить</button>
+    <button onclick="close_form();">Закрыть</button>
+</div>
+</body>
+<script>
+    function EditTestMail(rowid) {
+        $('input#rowid').val(rowid);
+        $('input#email').val($('td#'+rowid+'_mail').html());
+        location.href = '#editor';
+    }
+    function DeleteTestMail (rowid) {
+        if(confirm('Видалити емейл?')) {
+            $('input#rowid').val(rowid);
+            $('img#edit_active').attr('src', '/dolibarr/htdocs/theme/eldy/img/switch_off.png');
+            save();
+        }
+    }
+    function save(){
+        var param = {
+            action: 'testmails',
+            rowid: $('input#rowid').val(),
+            email: $('input#email').val(),
+            active: $('img#edit_active').attr('src')=='/dolibarr/htdocs/theme/eldy/img/switch_on.png',
+        }
+        console.log(param);
+        $.ajax({
+            url:'',
+            data:param,
+            cache:false,
+            success:function(result){
+                if(result == '1')
+                        location.href = '/dolibarr/htdocs/core/modules/mailings/index.php?action=show_testmails'
+                console.log(result);
+            }
+        })
+    }
+    function SetActionValue(value) {
+        if(value == 'create_testmail'){
+            location.href = '#editor';
+            return false;
+        }
+
+        $('#action').val(value);
+    }
+</script>
+</html>

@@ -78,7 +78,7 @@ $begin_period = new DateTime(date('Y-m-d', mktime(0, 0, 0, date('m')-1, date('d'
 $end_period =  new DateTime(date('Y-m-d', mktime(0, 0, 0, date('m')+1, date('d'), date('Y'))));
 
 if($dateQuery>=$begin_period&&$dateQuery<=$end_period)
-    $tablename = "`statistic_action`";
+    $tablename = "`llx_actioncomm`";
 //echo '<pre>';
 //var_dump($tablename);
 //echo '</pre>';

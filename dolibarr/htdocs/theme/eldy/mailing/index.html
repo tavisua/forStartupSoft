@@ -7,7 +7,8 @@
 <body>
     <form id="mailing" action="" method="post">
         <input id="action" name="action" type="hidden" value="create">
-        <button type="submit">&nbsp;&nbsp;&nbsp;&nbsp;Створити розсилку&nbsp;&nbsp;&nbsp;&nbsp;</button>
+        <button type="submit" onclick="SetActionValue('create');">&nbsp;&nbsp;&nbsp;&nbsp;Створити розсилку&nbsp;&nbsp;&nbsp;&nbsp;</button>
+        <button type="submit" onclick="SetActionValue('show_testmails');">&nbsp;&nbsp;&nbsp;&nbsp;Тестові скриньки&nbsp;&nbsp;&nbsp;&nbsp;</button>
     </form>
 
     <table  cellspacing="1" class="WidthScroll">
@@ -28,6 +29,9 @@
     $(document).ready(function (e) {
         $('#loading_img').hide();
     })
+    function SetActionValue(value) {
+        $('#action').val(value);
+    }
     function ShowValidater(validaters, elem) {
         var param = {
             action:'showvalidaters',
@@ -118,23 +122,26 @@
         }
     }
     function TestMail(elem) {
-        var param = {
-            id:elem.attr('rowid'),
-            action:'sendmail',
-            type: 'test',
-            id_usr: <?=$user->id?>
-        }
-        $.ajax({
-            data:param,
-            cache:false,
-            type:'post',
-            success:function(html){
-                if(html == '1')
-                    alert("Повідомлення відправлено.\n\rПередивіться поштову скриньку.\n\rМожливо лист потрапив в папку 'Спам'");
-                else if(html == '0')
-                    alert('Повідомлення не було відправлено');
+        if(confirm('Відправити тестову розсилку?')){
+            var param = {
+                id:elem.attr('rowid'),
+                action:'sendmail',
+                type: 'test',
+                id_usr: <?=$user->id?>
             }
-        })
+            $.ajax({
+                data:param,
+                cache:false,
+                type:'post',
+                success:function(html){
+                    console.log(html);
+                    if(html == '1')
+                        alert("Повідомлення відправлено.\n\rПередивіться поштову скриньку.\n\rМожливо лист потрапив в папку 'Спам'");
+                    else if(html == '0')
+                        alert('Повідомлення не було відправлено');
+                }
+            })
+        }
     }
     function Edit(elem){
         var symbol = '?';

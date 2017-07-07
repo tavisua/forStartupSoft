@@ -55,7 +55,8 @@ $('select').change(function(e){
                 $('#'+prefix+'day').val()+' '+$('#'+prefix+'hour').val()+':'+$('#'+prefix+'min').val()),
             minutes:$('#exec_time_'+prefix).val(),
             id_usr:".$user->id.",
-            prioritet:$('#priority').val()
+            prioritet:$('#priority').val(),
+            into_parent_action:$('#into_parent_action').length>0?($('#into_parent_action').attr('checked')=='checked'?$('#parent_id').val():0):0
         }
         $.ajax({
             cache:false,

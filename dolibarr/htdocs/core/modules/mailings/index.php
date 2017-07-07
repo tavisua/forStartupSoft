@@ -11,11 +11,43 @@ if(!empty($_REQUEST['action']) && in_array($_REQUEST['action'], array('check', '
 require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
 global $db,$user;
 //echo '<pre>';
-//var_dump($user);
+//var_dump($_REQUEST);
 //echo '</pre>';
 //die();
 $action = $_REQUEST['action'];
+if($action == 'testmails'){
+    if(!empty($_REQUEST['rowid']))
+        $sql = "update llx_c_testmails set mail = '".$_REQUEST['email']."', active = ".($_REQUEST["active"]=='true'?1:0).", dateup = now(), id_usr = $user->id where rowid = ".$_REQUEST['rowid'];
+    else
+        $sql = "insert into llx_c_testmails(mail,active,id_usr)values('".$_REQUEST['email']."',".($_REQUEST["active"]=='true'?1:0).",$user->id)";
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    else
+        die('1');
+}
+if($action == 'show_testmails'){
+    $title = "Список тестових email";
+    llxHeader("",$title,"");
+    $backtopage = $_SERVER['REQUEST_URI'];
+    $sql = "select * from llx_c_testmails where active = 1";
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $table = '<tbody>';
+    while($obj = $db->fetch_object($res)){
 
+        $table.='<tr id="'.$obj->rowid.'"><td id="'.$obj->rowid.'_mail">'.$obj->mail.'</td>
+            <td>
+                <img onclick="EditTestMail('.$obj->rowid.')" rowid="'.$obj->rowid.'" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Edit') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">
+                <img onclick="DeleteTestMail('.$obj->rowid.')" rowid="'.$obj->rowid.'" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Edit') . '" src="/dolibarr/htdocs/theme/eldy/img/delete.png">
+            </td>';
+    }
+    $table.= '</tbody>';
+
+    include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/mailing/testmails.html');
+    exit();
+}
 if($action == 'check'){
 //    define("NOLOGIN",1);		// This means this output page does not require to be logged.
     $sql = "select rowid
@@ -60,29 +92,7 @@ if($action == 'sendmail'){
     $conf->notification->email_from=$conf->mailing->email_from;
     switch ($_REQUEST['type']){
         case 'test':{
-            if(!$user->id) {
-                $user->fetch($_REQUEST['id_usr']);
-//                echo '<pre>';
-//                var_dump($_REQUEST);
-//                echo '</pre>';
-//                die($user->email);
-            }
-            require_once DOL_DOCUMENT_ROOT.'/core/class/SendMailSmtpClass.php';
-            $mailSMTP = new SendMailSmtpClass('shop@t-i-t.com.ua', '777722345', 'ssl://smtp.yandex.ua', 'Техніка і технології', 465);
-// $mailSMTP = new SendMailSmtpClass('логин', 'пароль', 'хост', 'имя отправителя');
-
-// заголовок письма
-            $headers= "MIME-Version: 1.0\r\n";
-            $headers .= "Content-type: text/html; charset=utf-8\r\n"; // кодировка письма
-            $headers .= "From: 'Техніка і технології' <shop@t-i-t.com.ua>\r\n"; // от кого письмо
-            $result =  $mailSMTP->send($user->email, $subject, $mesg, $headers); // отправляем письмо
-// $result =  $mailSMTP->send('Кому письмо', 'Тема письма', 'Текст письма', 'Заголовки письма');
-            llxHeader();
-            if($result === true){
-                echo "1";
-            }else{
-                echo "Письмо не отправлено. Ошибка: " . $result;
-            }
+            AutoSendMail($_REQUEST['id'],$_REQUEST['type']);
             exit();
 //            $email = $user->email;
 ////            var_dump($user->email);
@@ -441,6 +451,7 @@ function AutoSendMail($rowid, $type=''){
     $res = $db->query($sql);
     if (!$res)
         dol_print_error($db);
+    $postedlist = [];
     while ($obj = $db->fetch_object($res)) {
         $postedlist[] = mb_strtolower($obj->email, 'utf-8');
     }
@@ -499,7 +510,15 @@ function AutoSendMail($rowid, $type=''){
         dol_print_error($db);
 //    $societelist = array();
     $emaillist = array();
-    if ($type == 'control'){
+    if($type == 'test') {
+        $sql = 'select mail from llx_c_testmails where active = 1';
+        $res = $db->query($sql);
+        if (!$res)
+            dol_print_error($db);
+        while ($obj = $db->fetch_object($res)) {
+            $emaillist[0][] = mb_strtolower($obj->mail, 'utf-8');
+        }
+    }else if ($type == 'control'){
         $sql = "select llx_societe_contact.lastname, `llx_societe`.state_id, llx_societe_contact.firstname, llx_societe_contact.email1, llx_societe_contact.email2 from llx_societe
             left join `llx_societe_contact` on `llx_societe_contact`.`socid` = `llx_societe`.`rowid`
             where nom like '%контроль%'";
@@ -508,11 +527,10 @@ function AutoSendMail($rowid, $type=''){
             dol_print_error($db);
         while ($obj = $db->fetch_object($res)) {
             if(!empty($obj->email1))
-                $emaillist[$obj->state_id][] = mb_strtolower($obj->email1, 'utf-8');
+                $emaillist[$obj->state_id][] = mb_strtolower($obj->llx_societe_contact.lastname.'<'.$obj->email1.'>', 'utf-8');
             if(!empty($obj->email2))
-                $emaillist[$obj->state_id][] = mb_strtolower($obj->email2, 'utf-8');
+                $emaillist[$obj->state_id][] = mb_strtolower($obj->llx_societe_contact.lastname.'<'.$obj->email2.'>', 'utf-8');
         }
-        $emaillist[0][] = 'tavis.ua@gmail.com';
     }else {
         while ($obj = $db->fetch_object($res)) {
             $add = false;
@@ -542,38 +560,122 @@ function AutoSendMail($rowid, $type=''){
 //    var_dump($emaillist);
 //    echo '</pre>';
 //    die();
-    require_once DOL_DOCUMENT_ROOT.'/core/class/SendMailSmtpClass.php';
-    $mailSMTP = new SendMailSmtpClass('shop@t-i-t.com.ua', '777722345', 'ssl://smtp.yandex.ua', 'Техніка і технології', 465);
-// $mailSMTP = new SendMailSmtpClass('логин', 'пароль', 'хост', 'имя отправителя');
+//    var_dump(base64_encode('shop@t-i-t.com.ua'));
+//    die();
+//    die(DOL_DOCUMENT_ROOT.'/core/class/mailings/PHPMailerAutoload.php');
+    require_once DOL_DOCUMENT_ROOT.'/core/class/mailing/PHPMailerAutoload.php';
+    date_default_timezone_set('Etc/UTC');
+//Create a new PHPMailer instance
+    $mail = new PHPMailer;
 
+//Tell PHPMailer to use SMTP
+    $mail->isSMTP();
 
-// заголовок письма
-    $headers= "MIME-Version: 1.0\r\n";
-    $headers .= "Content-type: text/html; charset=utf-8\r\n"; // кодировка письма
-    $headers .= "From: 'Техніка і технології' <shop@t-i-t.com.ua>\r\n"; // от кого письмо
+//Enable SMTP debugging
+// 0 = off (for production use)
+// 1 = client messages
+// 2 = client and server messages
+    $mail->SMTPDebug = 0;
 
+//Ask for HTML-friendly debug output
+    $mail->Debugoutput = 'html';
+
+//Set the hostname of the mail server
+    $mail->Host = 'zmx6.vps.cloud.net.ua';
+//    $mail->Host = 'server.uspex2015.com.ua';
+// use
+// $mail->Host = gethostbyname('smtp.gmail.com');
+// if your network does not support SMTP over IPv6
+
+//Set the SMTP port number - 587 for authenticated TLS, a.k.a. RFC4409 SMTP submission
+    $mail->Port = 587;
+
+    $mail->CharSet = 'utf-8';
+
+//Set the encryption system to use - ssl (deprecated) or tls
+    $mail->SMTPSecure = 'tls';
+
+//Whether to use SMTP authentication
+    $mail->SMTPAuth = true;
+
+//Username to use for SMTP authentication - use full email address for gmail
+    $mail->Username = "shop@t-i-t.com.ua";
+//    $mail->Username = "shop@uspex2015.com.ua";
+
+//Password to use for SMTP authentication
+    $mail->Password = "123qaz";
+//    $mail->Password = "N7x6EnqV";
+
+//Set who the message is to be sent from
+    $mail->setFrom('shop@t-i-t.com.ua', 'Техніка і технології');
+//    $mail->setFrom('shop@uspex2015.com.ua', 'Техніка і технології');
+
+//Set an alternative reply-to address
+//$mail->addReplyTo('replyto@example.com', 'First Last');
+
+//Set who the message is to be sent to
+//    $mail->addAddress('tavis.ua@gmail.com', 'Михайлов Віктор');
+////    $mail->clearAddresses();
+//    $mail->addAddress('t-i-t1245@meta.ua', 'Михайлов Віктор');
+//    $mail->addAddress('qw5148917@meta.ua', 'Михайлов Віктор');
+//    $mail->addAddress('veravikr@ukr.net', 'Михайлов Віктор');
 
 //echo '<pre>';
-//var_dump($emaillist);
+//var_dump(substr($mess->body, 0, strpos($mess->body,'<div class="block bt-picture-text block-menu-processed">')));
+////var_dump($mess->body);
 //echo '</pre>';
 //die();
+
+//Set the subject line
+    $mail->Subject = $mess->titre;
+
+//Read an HTML message body from an external file, convert referenced images to embedded,
+//convert HTML into a basic plain-text alternative body
+//$mail->msgHTML(file_get_contents('test.html'), dirname(__FILE__));
+$mail->msgHTML($mess->body);
+//$mail->msgHTML(substr($mess->body, 0, strpos($mess->body,'<div class="block bt-picture-text block-menu-processed">')).'  List-unsubscribe: <a href="t-i-t.com.ua">Отписаться</a>');
+
+//Replace the plain text body with one created manually
+    $mail->AltBody = $mess->titre;
+//    if (!$mail->send()) {
+//        echo "Mailer Error: " . $mail->ErrorInfo;
+//    } else {
+//        echo "Message sent!";
+//    }
+//    die();
+
+
     $num = 0;
     foreach ($emaillist as $key=>$value){
-        foreach ($value as $item) {
-//            $item = 'ahrozahidrv@gmail.com';
-            if(!in_array(strtolower(trim($item)), $postedlist)) {
 
-                $sql = "insert into `llx_mailing_cibles`(fk_mailing,email,date_envoi) values(" . $rowid . ",'" . $item . "',now())";
-                $res = $db->query($sql);
-                if (!$res) {
+        foreach ($value as $item) {
+            if(!in_array(strtolower(trim($item)), $postedlist)) {
+                $mail->clearAddresses();
+                $mail->addAddress($item,'');
+                if($type != 'test') {
+                    $sql = "insert into `llx_mailing_cibles`(fk_mailing,email,date_envoi) values(" . $rowid . ",'" . $item . "',now())";
+                    $res = $db->query($sql);
+                }
+
+                if (!$res&&$type != 'test') {
                     dol_print_error($db);
                 }else {
                     $postedlist[]=mb_strtolower(trim($item),'utf-8');
                     $result = false;
 //                    die($_REQUEST['type']);
-                    if(in_array($_REQUEST['type'], array('sendmails', 'control'))) {
-                        $result = $mailSMTP->send($item, $subject, $mesg, $headers); // отправляем письмо
-                    }
+//                    if(in_array($_REQUEST['type'], array('sendmails', 'control'))) {
+                        if (!$mail->send()) {// отправляем письмо
+                            $result = false;
+                            echo "Mailer Error: " . $mail->ErrorInfo.$item;
+                        } else {
+                            $result = true;
+                            echo "Message sent to $item!</br>";
+                        }
+//                        if($result)
+//                            echo 'Вдало '.$item.'</br>';
+//                        else
+//                            echo 'Не вдало '.$item.'</br>';
+//                    }
 //                    $result = false;
                     if (!$result) {
                         $sql = "update llx_mailing_cibles set statut = -1 where rowid = " . $db->last_insert_id(MAIN_DB_PREFIX . "mailing_cibles");
@@ -593,10 +695,12 @@ function AutoSendMail($rowid, $type=''){
             }
         }
     }
-    $sql = "update `llx_mailing` set date_send = now() where rowid = ".$rowid;
-    $res = $db->query($sql);
-    if(!$res)
-        dol_print_error($db);
+    if($_REQUEST['type'] == 'sendmails') {
+        $sql = "update `llx_mailing` set date_send = now() where rowid = " . $rowid;
+        $res = $db->query($sql);
+        if (!$res)
+            dol_print_error($db);
+    }
 }
 function MailingList(){
     global $db,$langs,$user;
