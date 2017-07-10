@@ -127,12 +127,16 @@ function LineActive(){
         from `responsibility_param`
         left join `category_counterparty` on `category_counterparty`.`rowid` = case when fx_category_counterparty is null then other_category else fx_category_counterparty end
         where `fx_responsibility` in (select rowid from `responsibility`
-        where alias = '".$user->respon_alias."');";
+        where alias = '".$user->respon_alias."') order by `name`;";
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
+    $out_id = [];
     while($obj = $db->fetch_object($res)){
-        $out.='<option kind="category" value="'.$obj->fx_category_counterparty.'" '.($category_id == $obj->fx_category_counterparty&&$kind=='category'?'selected="selected"':'').'>'.$obj->name.'</option>';
+        if(empty($out_id[$kind]) || !in_array($obj->fx_category_counterparty, $out_id[$kind])) {
+            $out_id[$kind][] = $obj->fx_category_counterparty;
+            $out .= '<option kind="category" value="' . $obj->fx_category_counterparty . '" ' . ($category_id == $obj->fx_category_counterparty && $kind == 'category' ? 'selected="selected"' : '') . '>' . $obj->name . '</option>';
+        }
     }
     $out.='</select>';
     return $out;

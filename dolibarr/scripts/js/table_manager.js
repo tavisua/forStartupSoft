@@ -1036,6 +1036,24 @@ function saveorders(typicalqueries){
             }
         }
 }
+function setColumnWidth(table){
+    var HeaderList =  getColumnHeaderTable(table);
+    // var ColumnList = getColumnTable(table);
+    console.log(HeaderList);
+
+}
+function getColumnTable(table){
+    var tr = $(table).find('tbody').find('tr')[0];
+    var out = [];
+    $.each(tr.cells, function (key, value) {
+        if($(value).css('display') != 'none')
+            out.push(value);
+    })
+    return out;
+}
+function getColumnHeaderTable(table){
+
+}
 function showHideActionPanel(){
     console.log($('#bookmarkActionPanel').css('right') == '-30px');
     var show = $('#bookmarkActionPanel').css('right') == '-30px';
@@ -2018,19 +2036,21 @@ function DuplicateAction(id, actioncode){
     }
 }
 function loading(){
-    var img = $("#loading_img").find("img");
-    for(var position = 0; position<img.length; position++){
-        if(img[position].style.opacity == "1"){
-            if(position == 7)
-                position = -1;
-            img[++position].style.opacity = "1";
-            var minusCount=0;
-            for(var k=-1; k>=-4; k--){
-                if(position+k<0)
-                    minusCount++;
-                var index = position+k>=0?position+k:8-minusCount;
-                var opacity = (3+k)/3;
-                img[index].style.opacity = opacity;
+    if($("#loading_img").length>0) {
+        var img = $("#loading_img").find("img");
+        for (var position = 0; position < img.length; position++) {
+            if (img[position].style.opacity == "1") {
+                if (position == 7)
+                    position = -1;
+                img[++position].style.opacity = "1";
+                var minusCount = 0;
+                for (var k = -1; k >= -4; k--) {
+                    if (position + k < 0)
+                        minusCount++;
+                    var index = position + k >= 0 ? position + k : 8 - minusCount;
+                    var opacity = (3 + k) / 3;
+                    img[index].style.opacity = opacity;
+                }
             }
         }
     }

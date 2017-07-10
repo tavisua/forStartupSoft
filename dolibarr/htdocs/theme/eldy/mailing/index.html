@@ -18,6 +18,7 @@
             <th style="min-width:120px">Дата створення</th>
             <th style="min-width:120px">Дата перевірки</th>
             <th style="min-width:120px">Дата відправки</th>
+            <th style="min-width:120px">Відпр.</br>після дзвінка</th>
             <th style="min-width:85px">Дії</th>
         </tr>
         </thead>
@@ -28,6 +29,34 @@
 <script>
     $(document).ready(function (e) {
         $('#loading_img').hide();
+        setColumnWidth($('.WidthScroll')[0]);
+
+    })
+    $('.check').click(function (e) {
+
+        var param = {
+            action:'set_send_after_phone',
+            mail_id:$(e.target).parent().attr('id'),
+            checked:strpos($(e.target).find('img').attr('src'),'uncheck.png')==false?0:1
+        }
+        $.ajax({
+            data: param,
+            cache: false,
+            type: 'post',
+            success: function (res) {
+                if(res == 1) {
+                    var img = $(e.target).find('img');
+                    if(param.checked == 1) {
+                        img.attr("src", "/dolibarr/htdocs/theme/eldy/img/check.png")
+                    }else {
+                        img.attr("src", "/dolibarr/htdocs/theme/eldy/img/uncheck.png")
+//                        alert('test');
+                    }
+                    console.log(img);
+                }
+                console.log(res);
+            }
+        })
     })
     function SetActionValue(value) {
         $('#action').val(value);

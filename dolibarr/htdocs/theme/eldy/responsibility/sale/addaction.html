@@ -271,7 +271,6 @@
 
 <script type="text/javascript">
     $(document).ready(function(){
-        console.log($('#subaction').val());
         switch ($('#subaction').val()){
             case 'sendmail':{
                 $('#saveandcreatbtn').hide();
@@ -282,7 +281,7 @@
                 var param = {
                     action:'sendmail',
                     type:'prepared_sendmail',
-                    id: <?=$subactionID?>
+                    id: '<?=$subactionID?>'
                 }
                 $.ajax({
                     url: '/dolibarr/htdocs/core/modules/mailings/index.php',
@@ -296,7 +295,6 @@
 
             }break;
         }
-
         $('#said').focus();
         $("#ActionList").width(800);
         $("#addaction").width(800);

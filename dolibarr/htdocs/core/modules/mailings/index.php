@@ -70,7 +70,13 @@ if($action == 'check'){
     }
     die('1');
 }
-if($action == 'sendmail'){
+if($action == 'set_send_after_phone') {
+    $sql = "update llx_mailing set send_after_phone = ".$_REQUEST['checked'].', `date_send` = case when `date_send` is null then now() else `date_send` end where rowid = '.$_REQUEST['mail_id'];
+    $res = $db->query($sql);
+    if (!$res)
+        dol_print_error($db);
+    die('1');
+}else if($action == 'sendmail'){
     require_once $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/cron/class/cronjob.class.php';
     $CronJob = new Cronjob($db);
     $CronJob->setStartCronStatus($_REQUEST['type']);
@@ -708,7 +714,7 @@ function MailingList(){
 //    var_dump($user->rights->mailing);
 //    echo '</pre>';
 //    die();
-    $sql = "select rowid,titre,body,date_creat,date_valid,date_send,fk_user_creat,fk_user_valid from `llx_mailing`
+    $sql = "select rowid,titre,body,date_creat,date_valid,date_send,fk_user_creat,fk_user_valid,send_after_phone from `llx_mailing`
         where statut = 1
         order by date_creat desc";
     $res = $db->query($sql);
@@ -732,6 +738,7 @@ function MailingList(){
         $out.='<td style="min-width:121px" class="middle_size">'.(!empty($obj->date_valid)?$date_valid->format('d.m.y H:i'):'&nbsp;&nbsp;&nbsp;').'</td>';
         $date_send = new DateTime($obj->date_send);
         $out.='<td style="min-width:121px" class="middle_size">'.(!empty($obj->date_send)?$date_send->format('d.m.y H:i'):'&nbsp;&nbsp;&nbsp;').'</td>';
+        $out.='<td style="min-width:121px; text-align: center" class="check">'.(empty($obj->send_after_phone)?'<img src="/dolibarr/htdocs/theme/eldy/img/uncheck.png">':'<img src="/dolibarr/htdocs/theme/eldy/img/check.png">').'</td>';
         //Action
         $out.='<td style="min-width:51px">
                 <img onclick="Preview($(this))" rowid="'.$obj->rowid.'" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Preview') . '" src="/dolibarr/htdocs/theme/eldy/img/preview.png">';
