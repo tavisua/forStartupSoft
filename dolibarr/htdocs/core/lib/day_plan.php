@@ -582,7 +582,7 @@ function getLineActiveList($id_usr){
         }
         //прострочено
         if(isset($outstanding[$key])) {
-            $out .= '<td id="outstanding'.$key.'" style="text-align: center; cursor: pointer;" onclick="ShowOutStandingRegion('.$key.', '.$id_usr.');">' . $outstanding[$key] . '</td>';
+            $out .= '<td id="outstanding'.$key.'" style="text-align: center; cursor: pointer;" onclick="ShowOutStandingRegion('.(empty($key)?0:$key).', '.$id_usr.');">' . $outstanding[$key] . '</td>';
         }else
             $out.='<td></td>';
         //заплановано на майбутнє
@@ -770,7 +770,7 @@ function getLineActiveService($id_usr){
         }
         //прострочено
         if(isset($outstanding[$key])) {
-            $out .= '<td id="outstanding'.$key.'" style="text-align: center; cursor: pointer;" onclick="ShowOutStandingRegion('.$key.', '.$id_usr.');">' . $outstanding[$key] . '</td>';
+            $out .= '<td id="outstanding'.$key.'" style="text-align: center; cursor: pointer;" onclick="ShowOutStandingRegion('.(empty($key)?0:$key).', '.$id_usr.');">' . $outstanding[$key] . '</td>';
         }else
             $out.='<td></td>';
         //заплановано на майбутнє
