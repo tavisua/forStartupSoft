@@ -19,19 +19,62 @@ if(isset($_GET['action'])&&$_GET['action']=='getRegionsStatistic'){
 //}
 if(isset($_GET['action'])&&$_GET['action']=='getPropositionStatistic'){//Формування таблиці статистики перемовин
     global $db;
+    $statistic = [];
 
+    //Визначення фактично озвучених пропозицій
+    $sql = "select `llx_societe_action`.proposed_id, `llx_societe_contact`.`post_id`, `llx_societe`.`state_id`,  count(`llx_societe_action`.rowid) iCount
+                from `llx_societe_action`
+                inner join (select rowid from  `llx_c_proposition` where active = 1) prop_tmp on `llx_societe_action`.proposed_id = prop_tmp.rowid
+                inner join llx_actioncomm on llx_actioncomm.id = `llx_societe_action`.`action_id`
+                left join `llx_societe_contact` on `llx_societe_contact`.`rowid` = `llx_actioncomm`.`fk_contact`
+                inner join `llx_societe` on `llx_societe`.`rowid` = `llx_societe_contact`.`socid`
+                left join `llx_post` on `llx_post`.`rowid` = `llx_societe_contact`.`post_id`
+                where 1
+                and `llx_societe_action`.`active` = 1
+                and post_id > 0
+                group by `llx_societe_action`.proposed_id, `llx_societe_contact`.`post_id`, `llx_societe`.`state_id`";
+    $res_statistic = $db->query($sql);
+    while ($objStatistic = $db->fetch_object($res_statistic)){
+        if(!empty($objStatistic->state_id)) {
+            $statistic[$objStatistic->proposed_id][$objStatistic->post_id]['FactCount'] = (empty($statistic[$objStatistic->proposed_id][$objStatistic->post_id]['FactCount']) ?
+                $objStatistic->iCount :
+                $statistic[$objStatistic->proposed_id][$objStatistic->post_id]['FactCount'] += $objStatistic->iCount);
+            $statistic[$objStatistic->proposed_id]['states_fact'][$objStatistic->state_id][$objStatistic->post_id] .= $objStatistic->iCount;
+        }
+    }
+    $count = 0;
+//    echo '<pre>';
+//    var_dump($statistic);
+//    var_dump(array_keys($statistic[135]['states_fact']));
+//    echo '</pre>';
+//    die();
+//    foreach ($statistic[135]['states_fact'] as $state_id=>$item){
+//
+//        foreach ($item as $key=>$val) {
+//            if($key == 18) {
+//                echo $key . '=>' . $val . '</br>';
+//                $count += $val;
+//            }
+//        }
+//    }
+////    echo '<pre>';
+////    var_dump($statistic[135][18]);
+////    var_dump($statistic[135]['states_fact']);
+////    echo '</pre>';
+////    echo $count;
+//    die();
     //Оброблюю дані, щодо полуничок
     $sql = "select distinct llx_c_proposition.rowid, llx_c_proposition.`text`, date_format(llx_c_proposition.`begin`, '%d.%m.%Y') `begin`, date_format(llx_c_proposition.`end`, '%d.%m.%Y') `end`,
          date_format(llx_c_proposition.dtChange, '%d.%m.%Y') dtChange, llx_c_proposition.active, llx_proposition_properties.`fk_post`, `llx_post`.postname
         from llx_c_proposition
         inner join llx_proposition_properties on llx_proposition_properties.fk_proposition = `llx_c_proposition`.rowid
         inner join `llx_post` on `llx_post`.`rowid` = llx_proposition_properties.`fk_post`
+        where llx_c_proposition.active = 1
         order by llx_c_proposition.`begin` desc;";
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
     $proposition = [];
-    $statistic = [];
     while($obj = $db->fetch_object($res)){
         $begin = date_create_from_format('d.m.Y', $obj->begin);
         $begin = $begin->getTimestamp();
@@ -45,7 +88,7 @@ if(isset($_GET['action'])&&$_GET['action']=='getPropositionStatistic'){//Фор�
             $end = $end->getTimestamp();
             $length = $end - $begin;
         }
-        if(empty($statistic[$obj->rowid])){//Визначаю статистику по розсилці
+//        if(empty($statistic[$obj->rowid])){//Визначаю статистику по розсилці
             $sql = "select distinct fk_post from llx_proposition_properties where fk_proposition = ".$obj->rowid." and active = 1";//Визначення посад
             $res_statistic = $db->query($sql);
             $postid=[];
@@ -63,6 +106,7 @@ if(isset($_GET['action'])&&$_GET['action']=='getPropositionStatistic'){//Фор�
                 $statistic[$obj->rowid][$objStatistic->post_id]['TotalCount'] = $objStatistic->iCount;
                 $statistic[$obj->rowid][$objStatistic->post_id]['FilterCount'] = $objStatistic->iCount;
             }
+
 
             $sql = "select square from llx_c_proposition where rowid = ".$obj->rowid;//Визначення площі, згідно якої відбувається вибірка
             $res_statistic = $db->query($sql);
@@ -85,11 +129,8 @@ if(isset($_GET['action'])&&$_GET['action']=='getPropositionStatistic'){//Фор�
                     $statistic[$obj->rowid]['states'][$res_statistic->state_id][$res_statistic->post_id] = $res_statistic->iCount;
                 }
 //                $square = "'".trim($objStatistic->square)."'";
-//                echo '<pre>';
-//                var_dump($statistic[$obj->rowid]['states']);
-//                echo '</pre>';
-//                die($square);
             }else{
+
                 $square = $objStatistic->square;
                 $sql = "select count(*) iCount, post_id from llx_societe_contact
                     inner join (select soc_id from `llx_societe_classificator` where `classifycation_id` = 5 and value >=".$objStatistic->square." and active = 1) classificator on classificator.soc_id = llx_societe_contact.socid
@@ -112,6 +153,10 @@ if(isset($_GET['action'])&&$_GET['action']=='getPropositionStatistic'){//Фор�
                     and llx_societe_contact.active = 1
                     and llx_societe.active = 1
                     group by llx_societe.state_id, llx_societe_contact.post_id ";
+//                echo '<pre>';
+//                var_dump($sql);
+//                echo '</pre>';
+//                die();
                     $res_statistic = $db->query($sql);
                     if (!$res_statistic) {
                         dol_print_error($db);
@@ -123,16 +168,11 @@ if(isset($_GET['action'])&&$_GET['action']=='getPropositionStatistic'){//Фор�
 
 //                }
             }
-        }
-//        if($obj->rowid == 66){
-//            echo '<pre>';
-//            var_dump($statistic[$obj->rowid]);
-//            echo '</pre>';
-//            die();
 //        }
+
         $proposition[]=array('rowid'=>$obj->rowid, 'begin'=>date('d.m.y',$begin), 'title'=>mb_substr($obj->text, 0, 10, 'UTF-8').'...', 'fulltext'=>$obj->text,
             'length'=>(!empty($end)?date('d',$length):''), 'type'=>'proposition', 'fk_post'=>$obj->fk_post, 'postname'=>$obj->postname, 'TotalCount'=>$statistic[$obj->rowid][$obj->fk_post]['TotalCount'],
-            'FilterCount'=>$statistic[$obj->rowid][$obj->fk_post]['FilterCount'], 'states'=>$statistic[$obj->rowid]['states']);
+            'FilterCount'=>$statistic[$obj->rowid][$obj->fk_post]['FilterCount'], 'FactCount'=>$statistic[$obj->rowid][$obj->fk_post]['FactCount'], 'states_fact'=>$statistic[$obj->rowid]['states_fact'], 'states'=>$statistic[$obj->rowid]['states']);
     }
     $out = '';
     $num = 0;
@@ -143,13 +183,9 @@ if(isset($_GET['action'])&&$_GET['action']=='getPropositionStatistic'){//Фор�
 
     while($row = $db->fetch_row($res))
         $states[]=$row[0];
-//    var_dump($states);
-//    die();
-
     foreach ($proposition as $item){
-
         $class=(fmod($nom++,2)==0?"impair":"pair");
-        $out.='<tr class="'.$class.' middle_size" rowid = "'.$item['rowid'].'">';
+        $out.='<tr class="'.$class.' middle_size" rowid = "'.$item['rowid'].'" postid="'.$item['fk_post'].'">';
         $out.='<td>'.$item['begin'].'</td>';
         $out.='<td style="min-width: 30px">'.$item['length'].'</td>';
         $out.='<td><img src="/dolibarr/htdocs/theme/eldy/img/strawberry.png"></td>';
@@ -160,10 +196,14 @@ if(isset($_GET['action'])&&$_GET['action']=='getPropositionStatistic'){//Фор�
             $out.='<td>'.$item['FilterCount'].' ('.round($item['FilterCount']/$item['TotalCount']*100,0).'%)</td>';
         else
             $out.='<td>'.$item['FilterCount'].'(0%)</td>';
-        $out.='<td style="min-width: 30px"></td>';
+        //Фактично виконано шт(% від тих, що підпадають під критерій)
+        if(empty($item['FactCount']))
+            $out.='<td style="min-width: 30px">(0%)</td>';
+        else
+            $out.='<td style="min-width: 30px">'.$item['FactCount'].'('.round($item['FactCount']/$item['FilterCount']*100,0).'%)</td>';
         foreach ($states as $state){
-            if(!empty($item['TotalCount']))
-                $out.='<td>'.$item['states'][$state][$item['fk_post']].'('.round($item['states'][$state][$item['fk_post']]/$item['TotalCount']*100,0).'%)</td>';
+            if(!empty($item['states'][$state][$item['fk_post']]))
+                $out.='<td title="'.(empty($item['states_fact'][$state][$item['fk_post']])?0:$item['states_fact'][$state][$item['fk_post']]).' з '.$item['states'][$state][$item['fk_post']].'">'.$item['states_fact'][$state][$item['fk_post']].'('.round($item['states_fact'][$state][$item['fk_post']]/$item['states'][$state][$item['fk_post']]*100,0).'%)</td>';
             else
                 $out.='<td class="small_size">'.$item['states'][$state][$item['fk_post']].'(0%)</td>';
 

@@ -642,17 +642,21 @@ class ActionComm extends CommonObject
         $date = new DateTime($date);
         $sql = "select `llx_actioncomm`.`id`, `llx_actioncomm`.`datep`, `llx_actioncomm`.`datep2`, `llx_actioncomm`.fk_parent from `llx_actioncomm`
             left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.id
-            where `llx_actioncomm`.`datep` between '".$date->format('Y-m-d')."' and adddate('".$date->format('Y-m-d')."', interval 1 day)
+            where 1
+            and (case when `llx_actioncomm_resources`.fk_element is null then `llx_actioncomm`.fk_user_action else `llx_actioncomm_resources`.fk_element end = ".$id_usr.")
+            and `llx_actioncomm`.`priority` = ".(empty($prioritet)?0:$prioritet)."
+            and `llx_actioncomm`.`active` = 1            
+            and `llx_actioncomm`.`datep` between '".$date->format('Y-m-d')."' and adddate('".$date->format('Y-m-d')."', interval 1 day)
             and fk_action in
               (select id from `llx_c_actioncomm`
-              where `type` in ('system', 'user'))
-                and (case when `llx_actioncomm_resources`.fk_element is null then `llx_actioncomm`.fk_user_action else `llx_actioncomm_resources`.fk_element end = ".$id_usr.")
-            and `llx_actioncomm`.`priority` = ".(empty($prioritet)?0:$prioritet)."
-            and `llx_actioncomm`.`active` = 1
+              where `type` in ('system', 'user'))            
             ".(!empty($parent_id)?" and fk_parent = $parent_id":"")."
             and (`llx_actioncomm`.hide is null or `llx_actioncomm`.hide <> 1)
             order by `llx_actioncomm`.`datep`, `llx_actioncomm`.`datep2`";
-
+//        echo '<pre>';
+//        var_dump($sql);
+//        echo '</pre>';
+//        die();
         $res = $db->query($sql);
         if(!$res)
             dol_print_error($db); //and (`llx_actioncomm_resources`.`fk_element`= ".$id_usr." or (`llx_actioncomm`.`fk_user_author`= ".$id_usr." and `llx_actioncomm`.id not in (select `llx_actioncomm_resources`.`fk_actioncomm` from `llx_actioncomm_resources` where `llx_actioncomm_resources`.`fk_element`= ".$id_usr.")))
