@@ -1643,6 +1643,33 @@ function requestID(){
     }
     return result+intval;
 }
+function setColWidth(table){
+    var tdList = $(table).find('tbody').find('tr')[0].getElementsByTagName('td');
+    var trList = $(table).find('thead').find('tr');
+    var thList = [];
+
+    for(var col=0; col<tdList.length; col++){
+            for(var row=0; row<trList.length; row++){
+                var cellsList = trList[row].getElementsByTagName('td').length>0?trList[row].getElementsByTagName('td'):trList[row].getElementsByTagName('th');
+                for(var tdIndex = 0; tdIndex<cellsList.length; tdIndex++){
+                    var td = cellsList[tdIndex];
+                    if($.inArray(td, thList)<0&&($(td).attr('rowspan')==undefined?1:parseInt($(td).attr('rowspan')))+row == trList.length)
+                        thList.push(td);
+                }
+            }
+
+    }
+    //Встановлюю значення ширини столбців в шапці відповідно до ширини стовбчиків в таблиці
+    for(var col=0; col<tdList.length; col++) {
+        if(thList[col] != undefined) {
+            if (thList[col].localName == 'th') {
+                thList[col].style.minWidth = $(tdList[col]).width() - 1;
+                thList[col].style.maxWidth = $(tdList[col]).width() - 1;
+            } else
+                $(thList[col]).width($(tdList[col]).width() - 1);
+        }
+    }
+}
 function Call(number, contacttype, contactid){
 
     var param = {

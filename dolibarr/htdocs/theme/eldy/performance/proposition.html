@@ -37,7 +37,7 @@
 </br>
 <style>
     .verttext{
-        -webkit-transform: rotate(-90deg);
+        /*-webkit-transform: rotate(-90deg);*/
         transform: rotate(-90deg);
     }
     .regions{
@@ -71,54 +71,56 @@
 //                tbody.html(res);
                 $('#loading_img').remove();
                 tbody.attr('height', window.innerHeight - 420);
-                var tdlist = $('#proposition').find('tbody').find('tr')[0].getElementsByTagName('td');
-//                var tdlist = tr.getElementsByTagName('td')
-//                console.log(tdlist);
-//                return;
+                setColWidth($('#proposition'));
 
-                var thlist = $('#proposition').find('thead').find('tr')[0].getElementsByTagName('th');
-                if($.browser.chrome){
-                    var index = tdlist.length;
-
-                    $.each(tdlist, function (key, td) {
-                        if (index == key && key <= 6) {
-                            $(thlist[key]).width(td.clientWidth+5);
-                            console.log($(thlist[key]).width(), td.clientWidth);
-
-//                            $(thlist[key]).style.minWidth = td.clientWidth - 2;
-                        }
-                        else if (key > 7) {
-                            if (key == 8)
-                                $(thlist = $('#proposition').find('thead').find('tr')[1]).getElementsByTagName('th');
-                            if ($(thlist[key - 8]) !== undefined)
-                                $(thlist[key - 8]).style.minWidth = td.clientWidth - 2;
-
-                        }
-                        if (key >= 3)
-                            index--;
-                    })                    
-                }else {
-                    thlist[0].style.minWidth = 47;
-                    thlist[1].style.maxWidth = 30;
-                    thlist[2].style.maxWidth = 22;
-                    var index = 3;
-                    $.each(tdlist, function (key, td) {
-                        if (index == key && key <= 6) {
-                            console.log(thlist[key].style.maxWidth, td.clientWidth);
-                            thlist[key].style.maxWidth = td.clientWidth - 2;
-                            thlist[key].style.minWidth = td.clientWidth - 2;
-                        }
-                        else if (key > 7) {
-                            if (key == 8)
-                                thlist = $('#proposition').find('thead').find('tr')[1].getElementsByTagName('th');
-                            if (thlist[key - 8] !== undefined)
-                                thlist[key - 8].style.minWidth = td.clientWidth - 2;
-
-                        }
-                        if (key >= 3)
-                            index++;
-                    })
-                }
+//                var tdlist = $('#proposition').find('tbody').find('tr')[0].getElementsByTagName('td');
+////                var tdlist = tr.getElementsByTagName('td')
+////                console.log(tdlist);
+////                return;
+//
+//                var thlist = $('#proposition').find('thead').find('tr')[0].getElementsByTagName('th');
+//                if($.browser.chrome){
+//                    var index = tdlist.length;
+//
+//                    $.each(tdlist, function (key, td) {
+//                        if (index == key && key <= 6) {
+//                            $(thlist[key]).width(td.clientWidth+5);
+//                            console.log($(thlist[key]).width(), td.clientWidth);
+//
+////                            $(thlist[key]).style.minWidth = td.clientWidth - 2;
+//                        }
+//                        else if (key > 7) {
+//                            if (key == 8)
+//                                $(thlist = $('#proposition').find('thead').find('tr')[1]).getElementsByTagName('th');
+//                            if ($(thlist[key - 8]) !== undefined)
+//                                $(thlist[key - 8]).style.minWidth = td.clientWidth - 2;
+//
+//                        }
+//                        if (key >= 3)
+//                            index--;
+//                    })
+//                }else {
+//                    thlist[0].style.minWidth = 47;
+//                    thlist[1].style.maxWidth = 30;
+//                    thlist[2].style.maxWidth = 22;
+//                    var index = 3;
+//                    $.each(tdlist, function (key, td) {
+//                        if (index == key && key <= 6) {
+//                            console.log(thlist[key].style.maxWidth, td.clientWidth);
+//                            thlist[key].style.maxWidth = td.clientWidth - 2;
+//                            thlist[key].style.minWidth = td.clientWidth - 2;
+//                        }
+//                        else if (key > 7) {
+//                            if (key == 8)
+//                                thlist = $('#proposition').find('thead').find('tr')[1].getElementsByTagName('th');
+//                            if (thlist[key - 8] !== undefined)
+//                                thlist[key - 8].style.minWidth = td.clientWidth - 2;
+//
+//                        }
+//                        if (key >= 3)
+//                            index++;
+//                    })
+//                }
 //                console.log(thList[0]);
 //                console.log(thList[0].clientWidth, thList[0].clientHeight);
 

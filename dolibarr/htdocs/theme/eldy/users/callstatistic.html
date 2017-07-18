@@ -16,7 +16,7 @@
         </div>
     <?}?>
 </div>
-<table cellspacing="1" class="WidthScroll" >
+<table cellspacing="1" class="WidthScroll" id = "callstatistic">
     <thead >
         <tr  class="multiple_header_table">
             <td colspan="9">Звіт за період <form>з<?=$form->select_date($begin, 'begin', 0, 0, 0, "action", 1, 0, 0, 0, 'fulldaystart')?> по
@@ -30,8 +30,8 @@
             <td rowspan="2" style="width: 150px">Посада</td>
             <td rowspan="2" style="width: 146px">Прізвище</td>
             <td rowspan="2" style="width: 145px">Ім'я побатькові</td>
-            <td colspan="3">Кількість дзвінків</td>
-            <td></td>
+            <td colspan="4">Кількість дзвінків</td>
+            <!--<td></td>-->
         </tr>
         <!--<tr  class="multiple_header_table">-->
             <!--<form id="filter" action="" method="post">-->
@@ -56,16 +56,19 @@
             <td>Заплановано</td>
             <td>Виконано</td>
             <td>Зараховано</td>
+            <td>Ефективні</td>
             </form>
             <!--<td><button onclick="setFilter();">Встановити фільтр</button></br><button style="width: 100%" onclick="ClearFilter();">Очистити фільтр</button></td>-->
-            <td style="width: 130px"></td>
+            <!--<td style="width: 130px"></td>-->
         </tr>
     </thead>
     <?=$tbody;?>
 </table>
 <script>
     $('#userlist').height($(window).height() - 250);
-
+    jQuery(document).ready(function () {
+        setColWidth($('#callstatistic'));
+    })
     function SetMonthFilter(){
         var selMonth = getParameterByName('month');
         var searchString = location.search;
