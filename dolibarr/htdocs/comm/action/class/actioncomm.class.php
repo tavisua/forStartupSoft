@@ -293,7 +293,7 @@ class ActionComm extends CommonObject
         $obj = $db->fetch_object($res);
         return $obj->id_usr;
     }
-    function GetChainActions($action_id){
+    function GetChainActions($action_id, $id_usr = 0){
         if(empty($action_id))
             return array(0);
         $chain_actions = array();
@@ -315,8 +315,22 @@ class ActionComm extends CommonObject
             if(!$added)
                 break;
         }
-//        var_dump($chain_actions);
-//        die();
+        if(!empty($id_usr)){ //У разі, якщо встановлено ІД користувача, що задіяно в завданнях - видаляю всі задачі, які були створені в цьому ланцюжку до задіяння цього користувача
+            $sql = "select min(id) id from llx_actioncomm
+                left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = llx_actioncomm.id
+                where llx_actioncomm.id in(".implode(',',$chain_actions).")
+                and locate($id_usr, concat(llx_actioncomm.fk_user_action,' ',llx_actioncomm_resources.fk_element))>0";
+            global $db;
+            $res = $db->query($sql);
+            $obj = $db->fetch_object($res);
+
+            foreach ($chain_actions as $key=>$actionID){
+                if($actionID<$obj->id){
+                    $chain_actions[$key] = -$chain_actions[$key];
+                }
+            }
+        }
+
         return $chain_actions;
     }
     function validateDateAction($date, $id_usr, $minutes, $prioritet, $parent_id = 0){

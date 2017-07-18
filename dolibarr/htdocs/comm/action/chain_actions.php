@@ -360,8 +360,12 @@ function ShowActionTable(){
     global $db, $langs, $conf,$user;
     $chain_actions = array();
     $Action = new ActionComm($db);
-    $chain_actions = $Action->GetChainActions($_GET['action_id']);
+    $chain_actions = $Action->GetChainActions($_GET['action_id'], empty($_GET['all_item'])?$user->id:0);
     $Action->setFutureDataAction($_GET['action_id']);
+    $tmp_chain_actions = array();
+    foreach ($chain_actions as $actionID){
+        $tmp_chain_actions[] = abs($actionID);
+    }
 //echo '<pre>';
 //var_dump($_REQUEST['executer_id']);
 //echo '</pre>';
@@ -376,7 +380,7 @@ function ShowActionTable(){
 
     $AssignedUsersID = $Action->getAssignedUser($_GET['action_id'], true);
 
-    $sql = 'select fk_parent, datep, subaction from `llx_actioncomm` where id in ('.implode(",", $chain_actions).') and fk_parent <> 0';
+    $sql = 'select fk_parent, datep, subaction from `llx_actioncomm` where id in ('.implode(",", $tmp_chain_actions).') and fk_parent <> 0';
     $res = $db->query($sql);
 
     $nextaction = array();
@@ -389,13 +393,13 @@ function ShowActionTable(){
     if($subaction == 'sendmail'){//Якщо дія, пов'язана з відсиланням ємейлів, видаляю з $chain_actions дії інших користувачів
         $sql = "select `llx_actioncomm_resources`.`fk_actioncomm`, `llx_actioncomm_resources`.`fk_element`, `llx_actioncomm_resources`.`transparency` from llx_actioncomm 
             inner join `llx_actioncomm_resources` on `fk_actioncomm` = llx_actioncomm.id
-            where llx_actioncomm.id in(".implode(',',$chain_actions).")";
+            where llx_actioncomm.id in(".implode(',',$tmp_chain_actions).")";
         $res = $db->query($sql);
         if(!$res)
             dol_print_error($db);
         while($obj = $db->fetch_object($res)){
             if($obj->transparency == 0 && $obj->fk_element != $user->id){
-                unset($chain_actions[array_search($obj->fk_actioncomm, $chain_actions)]);
+                unset($chain_actions[array_search($obj->fk_actioncomm, $tmp_chain_actions)]);
             }
         }
 //        echo '<pre>';
@@ -417,7 +421,7 @@ function ShowActionTable(){
         left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.id
         left join `llx_user` on  `llx_societe_action`.contactid = `llx_user`.rowid
         inner join (select code, libelle label from `llx_c_actioncomm` where active = 1 and (type = "system" or type = "user")) TypeCode on TypeCode.code = `llx_actioncomm`.code
-        where `llx_societe_action`.`action_id` in ('.implode(",", $chain_actions).')
+        where `llx_societe_action`.`action_id` in ('.implode(",", $tmp_chain_actions).')
         and `llx_societe_action`.active = 1
         order by datec desc, `llx_societe_action`.`rowid` desc;';
 
@@ -488,7 +492,7 @@ function ShowActionTable(){
         inner join (select code, libelle label from `llx_c_actioncomm` where active = 1 and (type = 'system' or type = 'user')) TypeCode on TypeCode.code = `llx_actioncomm`.code
         left join `llx_societe_contact` on `llx_societe_contact`.rowid=`llx_actioncomm`.fk_contact
         left join `llx_user` create_user on `llx_actioncomm`.fk_user_author = `create_user`.rowid
-        where id in (".implode(",", $chain_actions).") and llx_actioncomm.active = 1
+        where id in (".implode(",", $tmp_chain_actions).") and llx_actioncomm.active = 1
         order by datec desc, `llx_actioncomm`.id desc";
 //echo '<pre>';
 //var_dump($sql);
@@ -598,7 +602,8 @@ function ShowActionTable(){
                     }
                 }
             }
-            $out .=CreateNewActionItem($row, $num++);
+
+            $out .=CreateNewActionItem($row, $num++, false, in_array(-$row->action_id, $chain_actions));
         }
     }
 //        <th style="width: 80px" class="middle_size">Дата і час внесення</th>
@@ -625,7 +630,7 @@ function ShowActionTable(){
  * @param bool $result
  * @return string
  */
-function CreateNewActionItem($row, $num, $result = false){
+function CreateNewActionItem($row, $num, $result = false, $hide = false){
     global $db, $conf,$user,$langs,$subdivUserID;
     $dtChange = new DateTime($row->datec);
     $dateaction = new DateTime($row->datep);
@@ -673,7 +678,7 @@ function CreateNewActionItem($row, $num, $result = false){
         $iconitem = 'result_action.png';
         $title = 'Результат дії '.$title;
     }
-    $out = '<tr class="' . (fmod($num, 2) == 0 ? 'impair' : 'pair') . '">
+    $out = '<tr class="' . (fmod($num, 2) == 0 ? 'impair' : 'pair') . ($hide?' hideclass':'').'">
     <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'dtChange" style="width: 80px" class="middle_size">' . (empty($row->datec) ? '' : $dtChange->format('d.m.y H:i:s')) . '</td>
     <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'lastname" style="width: 100px" class="middle_size">' . $row->lastname . '</td>
     <td rowid="' . (empty($row->rowid)?$row->action_id:$row->rowid) . '" id = "' . (empty($row->rowid)?$row->action_id:$row->rowid) . 'contactname" style="width: 80px" class="middle_size">' . $row->contactname . '</td>
@@ -814,9 +819,9 @@ function EcsapeQuote($input){
     return str_replace('"', '&quot;', $input);
 }
 function GetChainActions($action_id){
-    global $db;
+    global $db, $user;
     $Actions = new ActionComm($db);
-    $chain_actions = $Actions->GetChainActions($action_id);
+    $chain_actions = $Actions->GetChainActions($action_id, $user->id);
     return $chain_actions;
 }
 

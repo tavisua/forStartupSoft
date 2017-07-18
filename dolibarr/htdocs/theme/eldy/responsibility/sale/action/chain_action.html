@@ -31,7 +31,10 @@
                     <?=$addSubAction?>
                 </td>
             <?}else{?>
-                <td style="font-size: small;"><button  style="width: 100%" onclick="AddResult(<?="'".$subaction->subaction."'"?>);">Додати результат дії</button>
+                <td style="font-size: small;">
+                    <button id="HideRowBtn" style="width: 100%" onclick="ShowAllTask();">Відобразити весь ланцюг задач</button>
+                </br></br>
+                    <button  style="width: 100%" onclick="AddResult(<?="'".$subaction->subaction."'"?>);">Додати результат дії</button>
                 </br></br>
                     <?=$addSubAction?>
                 </td>
@@ -192,8 +195,24 @@
         $('#forAllGroup').val(false);
         return {"result":"false"};
     }
+    function ShowAllTask() {
+//        console.log($('#HideRowBtn').text());
+        if($('#HideRowBtn').text() == 'Відобразити весь ланцюг задач'){
+            $('#HideRowBtn').text('Відобразити тільки мої задачі');
+            $('.hideclass').show();
+        }else{
+            $('#HideRowBtn').text('Відобразити весь ланцюг задач');
+            $('.hideclass').hide();
+        }
+    }
     $(document).ready(function (e) {
         $('#confirm-container').hide();
+        $('.hideclass').hide();
+        if($('.hideclass').length>0)
+            $('#HideRowBtn').show();
+        else
+            $('#HideRowBtn').hide();
+
         var param = {
             action: 'get_subactiontype',
             action_id:'<?=$_REQUEST['action_id']?>'
