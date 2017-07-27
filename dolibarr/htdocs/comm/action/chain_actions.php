@@ -166,11 +166,16 @@ function getDeadLine(){
     if($obj->entity == 1) {
         $actionsID = GetChainActions($_GET['action_id']);
         $sql = "select id from llx_actioncomm where id in (" . implode(',', $actionsID) . ") and entity = 1";
+
         $res = $db->query($sql);
+
         if (!$res)
             dol_print_error($db);
-        $obj = $db->fetch_object($res);
-        $sql = "select datepreperform, datep2  from llx_actioncomm where id = " . $obj->id;
+        if($res->num_rows>0) {
+            $obj = $db->fetch_object($res);
+            $sql = "select datepreperform, datep2  from llx_actioncomm where id = " . $obj->id;
+        }else
+            $sql = "select datepreperform, datep2  from llx_actioncomm where id = " . $_GET['action_id'];
         $res = $db->query($sql);
         if (!$res)
             dol_print_error($db);
