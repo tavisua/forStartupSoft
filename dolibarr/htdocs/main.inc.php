@@ -1000,7 +1000,10 @@ if (! function_exists("llxHeader"))
                                 <tr>
                                     <td class="middle_size" colspan="4" id="PropositionTitle"></td>
                                 </tr>
-
+                                <tr style="display: none">
+                                    <td ><input id="LastCallID" value=""></td>
+                                    <td ><input id="ContactID" value=""></td>
+                                </tr>                    
                             </tbody>
                         </table>
                     </div>';

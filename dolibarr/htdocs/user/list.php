@@ -202,14 +202,14 @@ function callStatistic($begin,$end){
         $nowMonth = $now->format('m');
         $sql = "select sub_user.rowid  id_usr, sub_user.alias, `llx_societe`.`region_id`, sub_user.subdiv_id, actioncomm.percent, date(actioncomm.datep) datep,
         case when actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT','AC_EDUCATION', 'AC_INITIATIV', 'AC_PROJECT') then actioncomm.`code` else 'AC_CUST' end `code`,
-        `llx_societe_action`.`callstatus`, `llx_societe_action`.rowid as answer_id
+        `llx_societe_action`.`callstatus`, `llx_societe_action`.rowid as answer_id, actioncomm.`CallLength`
 
         from
-        (select id, percent, datep,fk_soc,`code`, fk_user_action fk_user_author from llx_actioncomm
+        (select id, percent, datep,fk_soc,`code`, fk_user_action fk_user_author, `CallLength` from llx_actioncomm
         where 1";
 
         if(empty($_REQUEST['month'])){
-            $sql.= " and datep between '".$begin."' and '".$end."'";
+            $sql.= " and datep between '".$begin."' and DATE_ADD('".$end."', INTERVAL 1 DAY)";
         }else {
             $selMonth = $_REQUEST['month'];
             $Year = date('Y');
@@ -235,7 +235,7 @@ function callStatistic($begin,$end){
             }
 //            var_dump($date>$today);
 //            die();
-            $sql .= " and datep between '".$date->format('Y-m-d')."' and '".$date_to->format('Y-m-d')."'";
+            $sql .= " and datep between '".$date->format('Y-m-d')."' and DATE_ADD('".$date_to->format('Y-m-d')."', INTERVAL 1 DAY)";
         }
         $sql.=" and llx_actioncomm.active = 1
                   and `code` not in ('AC_GLOBAL', 'AC_CURRENT')) actioncomm
@@ -256,7 +256,7 @@ function callStatistic($begin,$end){
         while ($obj = $db->fetch_object($res)) {
             $actions[] = array('id_usr' => $obj->id_usr, 'region_id' => $obj->region_id, 'subdiv_id'=>$obj->subdiv_id,
                 'respon_alias' => $obj->alias, 'percent' => $obj->percent, 'datep' => $obj->datep, 'code' => $obj->code,
-                'callstatus'=> $obj->callstatus);
+                'callstatus'=> $obj->callstatus, 'CallLength'=>$obj->CallLength);
         }
         $_SESSION['callstatistic'] = $actions;
 
@@ -266,13 +266,22 @@ function callStatistic($begin,$end){
     $allcall = array();
     $execcall = array();
     $efectcall = array();
+    $longcall = array();
     foreach($actions as $call){
         $allcall[$call['id_usr']]++;
         if($call["percent"] == 100)
             $execcall[$call['id_usr']]++;
         if($call["callstatus"] == 5)
             $efectcall[$call['id_usr']]++;
+        if(!empty($call["CallLength"]) && $call["CallLength"]>60 && $call["percent"] == 100){
+            $longcall[$call['id_usr']]++;
+        }
     }
+//    echo '<pre>';
+//    var_dump($longcall);
+//    echo '</pre>';
+//    die();
+
     $sql = "select `llx_user`.rowid, `llx_user`.login email, `llx_user`.lastname, `llx_user`.firstname, `llx_user`.`subdiv_id`, `llx_user`.`office_phone`, `llx_user`.`skype`,
         `subdivision`.`name` as s_subdivision_name, `llx_usergroup`.`nom` as s_llx_usergroup_nom, `responsibility`.alias, r2.alias as alias2, `llx_post`.`postname`
         from `llx_user` left join `subdivision` on `llx_user`.`subdiv_id`= `subdivision`.rowid
@@ -325,7 +334,7 @@ function callStatistic($begin,$end){
         $out.='<td class="middle_size" style="width:100px; text-align:center;"id="allcall_'.$obj->rowid.'">'.(!empty($allcall[$obj->rowid])?$allcall[$obj->rowid]:'').'</td>';
         $out.='<td class="middle_size" style="width:73px; text-align:center;"id="execcall_'.$obj->rowid.'">'.(!empty($execcall[$obj->rowid])?$execcall[$obj->rowid]:'').'</td>';
         $out.='<td class="middle_size" style="width:91px; text-align:center;"id="efectcall_'.$obj->rowid.'">'.(!empty($efectcall[$obj->rowid])?$efectcall[$obj->rowid]:'').'</td>';
-        $out.='<td style="width:127px" class="emptycol">&nbsp;</td>';
+        $out.='<td style="width:127px" class="middle_size">'.(!empty($longcall[$obj->rowid])?$longcall[$obj->rowid]:'').'</td>';
         $out.='</tr>';
         $count++;
     }

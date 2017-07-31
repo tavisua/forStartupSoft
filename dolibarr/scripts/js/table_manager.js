@@ -1128,9 +1128,33 @@ function Timer(){
                     return;
                 }
                 var json = JSON.parse(response);
-                if (json.result == "ok") {
+                if (json.result == "ok" && json.phone !== undefined) {
                     if (json.phone.type == 'incoming' && json.phone.end === undefined && $('#incoming_call_' + json.phone.id).length == 0 && (taken_call == 0 || taken_call.indexOf(JSON.stringify(json.phone.id).replace(/"/g, '')) == -1)) {
                         HTMLIncommingCall(json);
+                    }
+                    if(json.phone.type == 'outgoing' && json.phone.end !== undefined){
+                        if($('#LastCallID').val().length == 0)
+                            $('#LastCallID').val(json.phone.id);
+                        // console.log($('#LastCallID').val().length, $('#LastCallID').val(),json.phone.id);
+                        if($('#LastCallID').val()!=json.phone.id){
+                            console.log('CalledID', json.phone.id);
+                            param = {
+                                type: 'get',
+                                'action': 'setCallLength',
+                                'callID':$('#LastCallID').val(),
+                                'start': json.phone.start,
+                                'end': json.phone.end
+                            }
+                            $('#LastCallID').val(json.phone.id);
+                            $.ajax({
+                                url:'/dolibarr/htdocs/responsibility/sale/action.php',
+                                data:param,
+                                cache:false,
+                                success:function (res) {
+                                    console.log(res);
+                                }
+                            })
+                        }
                     }
                 }
             }
@@ -1671,7 +1695,6 @@ function setColWidth(table){
     }
 }
 function Call(number, contacttype, contactid){
-
     var param = {
         type:'get',
         'action':'call',
@@ -1682,15 +1705,38 @@ function Call(number, contacttype, contactid){
         data:param,
         cache:false,
         success:function (confirmSend) {
-            // f(confirmSend == true)
-            // close_registerform();
+            console.log('confirmSend',confirmSend);
+            var obj_res = JSON.parse(confirmSend);
+            console.log('CallID', obj_res.phone.id);
+
+            if(obj_res.phone.end === undefined) {
+                $('#ContactID').val(contactid);
+                $('#LastCallID').val(obj_res.phone.id);
+                param = {
+                    type: 'get',
+                    'action': 'setCallID',
+                    'contactID': contactid,
+                    'callID':obj_res.phone.id
+                }
+                $.ajax({
+                    url:'/dolibarr/htdocs/responsibility/sale/action.php',
+                    data:param,
+                    cache:false,
+                    success:function (res) {
+                        console.log(res);
+                    }
+                })
+            }
         }
+
     })
-    var blob = new Blob(['{"call":"'+number+'"}'], {type: "text/plain;charset=utf-8"});
-    saveAs(blob, "call.json");
+    // var blob = new Blob(['{"call":"'+number+'"}'], {type: "text/plain;charset=utf-8"});
+    // saveAs(blob, "call.json");
     //AddResultAction(contacttype,contactid);
 }
+function GetCallID(){
 
+}
 function GotoRequiredPage(pagename){
     //if(pagename.length == 0)
         return;

@@ -38,6 +38,12 @@ if(isset($_REQUEST['action'])||isset($_POST['action'])){
 
         echo getProposition($_REQUEST['socid']);
         exit();
+    }elseif($_REQUEST['action'] == 'setCallID'){
+        echo setCallID();
+        exit();
+    }elseif($_REQUEST['action'] == 'setCallLength'){
+        echo setCallLength();
+        exit();
     }elseif($_REQUEST['action'] == 'setStatus'){
         echo setStatus();
         exit();
@@ -260,6 +266,34 @@ function getContactList(){
     }
     $out.='</tbody></table>';
     return $out;
+}
+function setCallLength(){
+    global $db;
+    $start = new DateTime($_REQUEST['start']);
+    $end = new DateTime($_REQUEST['end']);
+    $sql = "update llx_actioncomm set CallLength = ".($end->diff($start)->s-5)." where callID = '".$_REQUEST['callID']."' limit 1";
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    return 1;
+}
+function setCallID(){
+    global $db;
+    $sql = "select id from llx_actioncomm
+        where fk_contact = ".$_REQUEST['contactID']."
+        and active = 1
+        and percent < 99
+        order by datep
+        limit 1";
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $obj = $db->fetch_object($res);
+    $sql = "update llx_actioncomm set CallID = '".$_REQUEST['callID']."' where id = ".$obj->id;
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    return 1;
 }
 function setStatus(){
     global $db,$user;

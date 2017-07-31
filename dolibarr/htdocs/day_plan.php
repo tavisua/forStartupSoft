@@ -455,7 +455,12 @@ function createStaticDayPlanPage(){
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
-    echo 1;
+    die('1');
+
+//    require_once '/core/class/raports/dayplan.class.php';
+//    $DayPlan = new DayPlan($db);
+//    $DayPlan->RefreshRaport();
+
 }
 function TotalTask($actions_tmp){
     global $actioncode;

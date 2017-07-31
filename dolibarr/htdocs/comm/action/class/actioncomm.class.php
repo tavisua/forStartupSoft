@@ -449,7 +449,7 @@ class ActionComm extends CommonObject
         $sql = "select id_usr from `llx_societe_action` where action_id in(".implode(',', $chain_actions).") and active = 1";
         $res = $db->query($sql);
         while ($obj = $db->fetch_object($res)){
-            if(!in_array($obj->id_usr, $users_id))
+            if(!empty($obj->id_usr)&&!in_array($obj->id_usr, $users_id))
                 $users_id[]= $obj->id_usr;
         }
 
