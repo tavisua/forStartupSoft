@@ -78,17 +78,17 @@ while($row = $db->fetch_object($res)){
     else
         $id_respon[] = $row->fx_category_counterparty;
 }
-//        var_dump(in_array("'users'", $id_respon));
+//        var_dump($id_respon);
 //        die();
 
-$sql = 'select 0, "" as `name` union select rowid, name from category_counterparty where active = 1 order by trim(name)';
+$sql = 'select 0 as rowid, "" as `name` union select rowid, name from category_counterparty where active = 1 order by trim(name)';//Виправив помилку відображення виділених категорій
 $res = $db->query($sql);
 $selector = '<select id = "select_respon" multiple size="5" name="select_respon">';
 while($row = $db->fetch_object($res)){
     $selected = in_array($row->rowid, $id_respon);
-    if($selected)
-        $selector .= '<option selected = "selected" value="'.$row->rowid.'"> '.$row->name.'</option>\r\n';
-    else
+    if($selected) {
+        $selector .= '<option selected = "selected" value="' . $row->rowid . '"> ' . $row->name . '</option>\r\n';
+    }else
         $selector .= '<option value="'.$row->rowid.'"> '.$row->name.'</option>\r\n';
 }
 $selector .= '<option value="users" '.(in_array("'users'", $id_respon)?'selected = "selected"':'').'>Співробітники</option>\r\n';

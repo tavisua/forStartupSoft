@@ -3,6 +3,12 @@
 require $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 
+llxHeader("",$langs->trans('PlanOfDays'),"");
+print_fiche_titre($langs->trans('PlanOfDays'));
+//die('test');
+//if("08.08.17" == date('d.m.y')) {
+//    die("Вибачте, але до кінця дня цей звіт працювати не буде");
+//}
 //echo '<pre>';
 //var_dump($user->rights->user->user->mentor);
 //echo '</pre>';
@@ -106,15 +112,6 @@ $outstanding = CalcOutStandingActions($actions);
     $future = CalcFutureActions($actions);
     $_SESSION['future'] = $future;
 
-llxHeader("",$langs->trans('PlanOfDays'),"");
-//echo '<pre>';
-//var_dump($_SESSION['actions']);
-//echo '</pre>';
-//die();
-//die('test');
-
-print_fiche_titre($langs->trans('PlanOfDays'));
-//die('test');
 $table = ShowTable();
 
 //if(array_intersect(array($user->respon_id, $user->respon_id2),array(8,20,28)) == 0)
@@ -783,6 +780,9 @@ function CalcOutStandingActions($actions, $code=''){
 
 function ShowTable(){
     global $db,$user;
+//    require_once $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/core/class/raports/dayplan.class.php';
+//    $dayplan = new DayPlan($db);
+//    return $dayplan->BuildRaport('dir_depatment', $user->id);
     $out = '<tbody id="reference_body">';
     $start = time();
 //    var_dump(array_intersect(array($user->respon_id, $user->respon_id2),array(8,20,28)) == 0);

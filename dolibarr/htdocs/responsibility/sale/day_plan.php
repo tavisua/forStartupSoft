@@ -2,6 +2,11 @@
 
 require $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
+llxHeader("",$langs->trans('PlanOfDays'),"");
+print_fiche_titre($langs->trans('PlanOfDays'));
+//if("09.08.17" == date('d.m.y')) {
+//    die("Вибачте, але до кінця дня цей звіт працювати не буде");
+//}
 
 $actions = array();
 $future = array();
@@ -64,10 +69,6 @@ $subdivision = $obj->name;
 //echo '</pre>';
 //die();
 
-llxHeader("",$langs->trans('PlanOfDays'),"");
-print_fiche_titre($langs->trans('PlanOfDays'));
-
-
 
 $table = ShowTable();
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/day_plan.html';
@@ -95,6 +96,13 @@ exit();
 
 function ShowTable(){
     global $actions,$user,$CustActions,$userActions,$actioncode,$id_usr,$user_tmp,$db;
+    if($user->subdiv_id == 21) {
+        require_once $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/core/class/raports/dayplan.class.php';
+        $dayplan = new DayPlan($db);
+        return $dayplan->BuildRaport('sale', $user->id);
+    }
+
+    //---------------
     $today = new DateTime();
     $mkToday = dol_mktime(0,0,0,$today->format('m'),$today->format('d'),$today->format('Y'));
 

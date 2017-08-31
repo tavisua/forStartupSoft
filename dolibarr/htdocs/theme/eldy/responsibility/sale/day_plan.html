@@ -144,6 +144,7 @@
     $(document).ready(function(){
         $('#reference_body').attr('height', window.innerHeight - 370);
         $('#reference_body').width($('#reference_body').width()+15);
+        setColumnWidth($('.WidthScroll')[0]);
         $('#popupmenu').offset({top:550, left:-250});
         var Width = $(".WidthScroll").width();
         var Top = $(".WidthScroll").height();

@@ -3,7 +3,11 @@
 require $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/core/lib/functions.lib.php';
 
-
+llxHeader("",$langs->trans('PlanOfDays'),"");
+print_fiche_titre($langs->trans('PlanOfDays'));
+//if("09.08.17" == date('d.m.y')) {
+//    die("Вибачте, але до кінця дня цей звіт працювати не буде");
+//}
 $actions = array();
 $future = array();
 $outstanding = array();
@@ -142,9 +146,6 @@ $subdivision = $obj->name;
 //var_dump($actions);
 //echo '</pre>';
 //die();
-
-llxHeader("",$langs->trans('PlanOfDays'),"");
-print_fiche_titre($langs->trans('PlanOfDays'));
 
 
 

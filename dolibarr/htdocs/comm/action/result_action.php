@@ -689,7 +689,6 @@ function saveaction($rowid, $createaction = false, $action_id = null){
         elseif(!empty($_REQUEST['socid']))
             $socid = $_REQUEST['socid'];
     }
-
     $newdate='';
     if(empty($action_id)&&isset($_REQUEST['actionid'])&&!empty($_REQUEST['actionid']))
         $action_id = $_REQUEST['actionid'];
@@ -769,6 +768,13 @@ function saveaction($rowid, $createaction = false, $action_id = null){
     $res = $db->query($sql);
     if(!$res){
         dol_print_error($db);
+    }
+    if(isset($_REQUEST['actioncode'])&&$_REQUEST['actioncode']=='AC_TEL'){//Незважаючи на те, дозвонився АТ чи ні, після збереження результатів виконання дзвінка встановлюю що дзвінок виконано
+        $sql = "update llx_actioncomm set percent = 100 where id=".$_REQUEST["actionid"];
+        $res = $db->query($sql);
+        if(!$res){
+            dol_print_error($db);
+        }
     }
     if(isset($_REQUEST['actionid'])&&!empty($_REQUEST['actionid'])){
         $action_tmp = new ActionComm($db);

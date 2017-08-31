@@ -969,7 +969,7 @@ if (! function_exists("llxHeader"))
             </div>';
         }
 
-        if(substr($_SERVER["SCRIPT_NAME"], strlen($_SERVER["SCRIPT_NAME"])-strlen('action.php')) && $_REQUEST['mainmenu'] == 'area') {//Ш
+//        if(substr($_SERVER["SCRIPT_NAME"], strlen($_SERVER["SCRIPT_NAME"])-strlen('action.php')) && $_REQUEST['mainmenu'] == 'area') {//Ш
             print '<div id="bookmarkActionPanel" onclick="showHideActionPanel();">
                     <span>Панель</br>інструментів</span>
                     </div>
@@ -1014,7 +1014,7 @@ if (! function_exists("llxHeader"))
                         })
                     </script>
                     ';
-        }
+//        }
 
 
 

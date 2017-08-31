@@ -1,6 +1,8 @@
 <a href="<?=$refer_link?>#<?echo $_REQUEST['socid']?>"><?echo $langs->trans('Area')?></a>  /  <b><?echo $langs->trans('ActionArea')?></b></div>
 
-
+<div id="SendMail"><table><tr><td><img style="margin-top: 5px" src="/dolibarr/htdocs/theme/eldy/img/email_delivery.png"></td>
+    <td class="middle_size">Відправка інформаційного листа відбудеться через <label id="TimeCount">10</label>
+    <button id="CanselSenMail" onclick="ResetSendMail();">Відмінити</button></td></tr></table></div>
 
 </br>
 <div  id="customerinfo" style="float: left">
@@ -144,6 +146,9 @@
 </style>
 <input type="hidden" id="starttimer" value="">
 <script>
+    function ResetSendMail() {
+        $('#SendMail').hide();
+    }
     function ShowContragentCard(elem) {
         var search = location.search.substr(1).split('&');
         $.each(search, function (key, value){
@@ -227,7 +232,7 @@
 //        setActionPanelPosition();
         LoadProposition();
     })
-    $('.result_of_action').click(function(e){
+   $('.result_of_action').click(function(e){
         var param = {
             action:'showCallStatus',
             answer_id:$('#' + e.target.id).attr('answer_id')
@@ -327,7 +332,7 @@
                             for(var r = 0; r<symbols.length; r++){
                                 number = number.replace(symbols[r],'');
                             }
-                            number_cell[0].innerHTML = '<a onclick="Call('+number+', '+"'thirdcontact'"+', '+id+');">'+number_cell[0].innerHTML+'</a>';
+                            number_cell[0].innerHTML = '<a '+($('td#'+id+'email1').html().indexOf('@')>=0?'sendmail="1"':'')+' onclick="Call('+number+', '+"'thirdcontact'"+', '+id+', $(this));">'+number_cell[0].innerHTML+'</a>';
 //                            Call(number);
 //                            console.log(number);
                         }

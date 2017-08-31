@@ -37,6 +37,11 @@ $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
+$ColParam['title']='pass';
+$ColParam['width']='20';
+$ColParam['align']='';
+$ColParam['class']='pass';
+$TableParam[]=$ColParam;
 unset($ColParam['sourcetable']);
 unset($ColParam['detailfield']);
 
@@ -46,7 +51,7 @@ $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 $tablename='subdivision';
-$sql='select subdivision.rowid, subdivision.name, states.name s_states_name, subdivision.email, subdivision.active
+$sql='select subdivision.rowid, subdivision.name, states.name s_states_name, subdivision.email, subdivision.pass, subdivision.active
   from '.$tablename.' left join `states` on `'.$tablename.'`.`state_id` = `states`.rowid order by subdivision.name';
 //die($sql);
 //$sql = "select -1 rowid, null subdivision_name, null s_states_name, null `email`, null `active`

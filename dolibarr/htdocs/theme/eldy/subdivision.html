@@ -16,3 +16,16 @@
         <div class="menu_end"></div>
     </div>
 </div>
+<script>
+    $(document).ready(function () {
+        var td = $('#edit_pass').parent();
+        td.html('<input id="edit_pass" type="password">');
+        $.each($('td'), function (key, value) {
+            if($(value).attr('id') !== undefined) {
+                if ($(value).attr('id').substr($(value).attr('id').length - 4, 4) == 'pass')
+                    $(value).hide();
+            }
+        })
+        $('#th3').hide();
+    })
+</script>

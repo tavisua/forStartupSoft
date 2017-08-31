@@ -273,7 +273,8 @@ function callStatistic($begin,$end){
             $execcall[$call['id_usr']]++;
         if($call["callstatus"] == 5)
             $efectcall[$call['id_usr']]++;
-        if(!empty($call["CallLength"]) && $call["CallLength"]>60 && $call["percent"] == 100){
+//        if(!empty($call["CallLength"]) && $call["CallLength"]>60 && $call["percent"] == 100){
+        if(!empty($call["CallLength"])&&$call["CallLength"]>=60){
             $longcall[$call['id_usr']]++;
         }
     }

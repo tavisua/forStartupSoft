@@ -10,11 +10,15 @@ if(!empty($_REQUEST['action']) && in_array($_REQUEST['action'], array('check', '
     define("NOLOGIN",1);// This means this output page does not require to be logged.
 require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
 global $db,$user;
+$SendActionType= ['night','after_phone','before_birsthday5'];
 //echo '<pre>';
 //var_dump($_REQUEST);
 //echo '</pre>';
 //die();
-$action = $_REQUEST['action'];
+
+$action = empty($_POST['action'])?$_REQUEST['action']:$_POST['action'];
+//var_dump($action, $_POST['action'], $_REQUEST['action']);
+//die();
 if($action == 'testmails'){
     if(!empty($_REQUEST['rowid']))
         $sql = "update llx_c_testmails set mail = '".$_REQUEST['email']."', active = ".($_REQUEST["active"]=='true'?1:0).", dateup = now(), id_usr = $user->id where rowid = ".$_REQUEST['rowid'];
@@ -70,13 +74,19 @@ if($action == 'check'){
     }
     die('1');
 }
-if($action == 'set_send_after_phone') {
-    $sql = "update llx_mailing set send_after_phone = ".$_REQUEST['checked'].', `date_send` = case when `date_send` is null then now() else `date_send` end where rowid = '.$_REQUEST['mail_id'];
-    $res = $db->query($sql);
-    if (!$res)
-        dol_print_error($db);
-    die('1');
-}else if($action == 'sendmail'){
+
+if(in_array($action, array('update','insert'))) {
+    if(!empty($_REQUEST['sendactiontype'])){
+        $begin_period = "'".$_REQUEST['beginyear'].'-'.$_REQUEST['beginmonth'].'-'.$_REQUEST['beginday']."'";
+        $end_period = "'".$_REQUEST['endyear'].'-'.$_REQUEST['endmonth'].'-'.$_REQUEST['endday']."'";
+    }else{
+        $begin_period = 'null'; 
+        $end_period = 'null'; 
+    }
+}
+//die($action);
+if($action == 'sendmail'){
+
     require_once $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/cron/class/cronjob.class.php';
     $CronJob = new Cronjob($db);
     $CronJob->setStartCronStatus($_REQUEST['type']);
@@ -145,7 +155,20 @@ if($action == 'set_send_after_phone') {
                 $mail_id[]=$_REQUEST['id'];
             else{
                 global $db;
-                $sql = "select rowid from llx_mailing where 1 and statut=1 and date_send is null and date_valid is not null";
+                $sql = "select rowid from llx_mailing where 1 and statut=1 and date_valid is not null ";
+                switch ($_REQUEST['type']) {
+                    case 'after_phone':{
+                        $sql.=" and send_after = 1 
+                                    and now() between period_begin and period_end ";
+                    }break;
+                    case 'before_birsthday5':{
+                        $sql.=" and send_after = 2 
+                                    and now() between period_begin and period_end ";
+                    }break;
+                    default: {
+                        $sql.=" and date_send is null and (send_after in (0,null))";
+                    }
+                }
                 $res = $db->query($sql);
                 if(!$res)
                     return 0;
@@ -156,8 +179,9 @@ if($action == 'set_send_after_phone') {
                 }
             }
             foreach ($mail_id as $rowid) {
-                AutoSendMail($rowid, $_REQUEST['type']);
+                AutoSendMail($rowid, $_REQUEST['type'], $_REQUEST["contactID"]);
             }
+            return 1;
         }break;
         case 'prepared_sendmail':{
             define("NOLOGIN",1);// This means this output page does not require to be logged.
@@ -217,7 +241,7 @@ if($action == 'createtask') {//Створюю завдання перевіря�
         require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
         $action = new ActionComm($db);
         $exec_minuted = $action->GetExecTime('AC_CURRENT');
-        $freetime = $action->GetFreeTime(date('Y-m-d'), $_REQUEST['valider_id'], $exec_minuted, 0, date('Y-m-d H:i:s'));
+        $freetime = $action->GetFreeTime(date('Y-m-d'), $_REQUEST['valider_id'], $exec_minuted, 0);
         $date = new DateTime($freetime);
         $action->datep = mktime($date->format('h'), $date->format('i'), $date->format('s'), $date->format('m'), $date->format('d'), $date->format('Y'));
         $action->datef = $action->datep + $exec_minuted * 60;
@@ -236,9 +260,6 @@ if($action == 'createtask') {//Створюю завдання перевіря�
         $action->userownerid = 1;
         $action->fk_element = "";
         $action->elementtype = "";
-//    echo '<pre>';
-//    var_dump($user->id);
-//    echo '</pre>';
         $action->add($user);
         die('1');
     }else{
@@ -301,9 +322,9 @@ if($action == 'insert'){
         $postlist = implode(',',$_REQUEST['postlist']);
     if(!empty($_REQUEST['responsibility']))
         $responsibility = implode(',',$_REQUEST['responsibility']);
-    $sql = "insert into llx_mailing(statut,titre,body,fk_user_creat,`postlist`,`responsibility`,`inner`)
+    $sql = "insert into llx_mailing(statut,titre,body,fk_user_creat,`postlist`,`responsibility`,`inner`, `send_after`,`period_begin`,`period_end`)
       values(1, '".$db->escape($_REQUEST['theme'])."','".$db->escape($_REQUEST['body'])."',$user->id, 
-      '".$postlist."', '".$responsibility."', ".(empty($_REQUEST['inner'])?0:$_REQUEST['inner']).")";
+      '".$postlist."', '".$responsibility."', ".(empty($_REQUEST['inner'])?0:$_REQUEST['inner']).", ".(empty($_REQUEST['sendactiontype'])?0:$_REQUEST['sendactiontype']).", $begin_period, $end_period)";
 //    die($sql);
 //    echo '</pre>';
 //    header($_REQUEST['backtopage']);
@@ -333,7 +354,8 @@ if($action == 'update'){
 //    $body = str_replace('"','&quot;',$body);//Заміна двойних кавичок
 
     $sql = "update llx_mailing     
-    set titre = '".$_REQUEST['theme']."', body='".$body."', fk_user_creat='".$user->id."', `postlist`='".$postlist."', 
+    set titre = '".$_REQUEST['theme']."', body='".$body."', send_after = ".(empty($_REQUEST['sendactiontype'])?0:$_REQUEST['sendactiontype']).
+        ", period_begin=".$begin_period.", period_end=".$end_period.", fk_user_creat='".$user->id."', `postlist`='".$postlist."', 
         `responsibility`='".$responsibility."', `inner`=".(empty($_REQUEST['inner'])?0:$_REQUEST['inner'])." where rowid=".$_REQUEST['rowid'];
 //    echo '<pre>';
 //    var_dump($sql);
@@ -350,7 +372,7 @@ if($action == 'edit'){
     $title = "Редагувати розсилку";
     llxHeader("",$title,"");
     $action = 'update';
-    $sql = 'select titre,body,`postlist`,`responsibility`, `inner` from llx_mailing where rowid = '.$_GET["rowid"];
+    $sql = 'select titre,body,`postlist`,`responsibility`, `inner`, `send_after`,`period_begin`,`period_end` from llx_mailing where rowid = '.$_GET["rowid"];
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
@@ -365,7 +387,34 @@ if($action == 'edit'){
     else
         $mail->inner = "";
 //    die($mail->inner);
+    $begin = new DateTime('01'.date('.m.Y'));
+    $unixtime = time();
+    $end = new DateTime(date('t',$unixtime).date('.m.Y'));
     $backtopage = $_SERVER['REQUEST_URI'];
+    if(!empty($mail->send_after)){
+        if(empty($mail->period_begin)){
+            $begin = "";
+        }else{
+            $begin = new DateTime($mail->period_begin);
+        }
+        if(empty($mail->period_end)){
+            $end = "";
+        }else{
+            $end = new DateTime($mail->period_end);
+        }        
+    }else{
+        $begin = null;
+        $end = null;
+    }
+    $select = "<select id='sendactiontype' name='sendactiontype' class='combobox' onchange='setactiontype()'>";
+    foreach ($SendActionType as $key=>$value){
+        $select.="<option value='$key'".($mail->send_after == $key?"selected":"").">".$langs->trans($value)."</option>";
+    }
+    $select.="</select>";
+//    echo '<pre>';
+//    var_dump($SendActionType);
+//    echo '</pre>';
+//    die();
     include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/mailing/card.html');
     die();
 }
@@ -377,6 +426,31 @@ if($action == 'create'){
     include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/mailing/card.html');
     die();
 }
+//if($action == 'autosendmail'){
+//    global $db,$user;
+//    $sql = "select rowid, titre, body  from `llx_mailing`
+//        where send_after_phone is not null
+//        and now() between send_phone_period_begin and send_phone_period_end";
+//    $res = $db->query($sql);
+//    $mail = CreateSMTPMailer();
+//
+//    while($obj = $db->fetch_object($res)){
+//        $sql = "select rowid from llx_mailing_cibles where fk_mailing = ".$obj->rowid." and fk_contact = ".$_REQUEST['contactid']."limit 1";
+//        $mail_res = $db->query($sql);
+//        if(!$mail_res->num_rows){
+//            //Визначаю контактний мейл торгівельного
+//            $sql = "select email, pass from `subdivision` where rowid = 7 and active = 1";
+//
+//
+//        }
+//    }
+//    echo '<pre>';
+//    var_dump($user);
+//    echo '</pre>';
+//    die();
+//    echo 0;
+//    die();
+//}
 //die($action);
 
 //echo '<pre>';
@@ -434,141 +508,7 @@ function PreparedEmailList($mess, $states_id = array()){
 
     return array('societelist'=>$societelist, 'emaillist'=>$emaillist);
 }
-function AutoSendMail($rowid, $type=''){
-//    $string = array('name'=>"%C2%B3%EA%F2%EE%F0");
-//
-//    die(http_build_url($string, 'flags_'));
-    if($rowid == 0)
-        return 1;
-    global $db,$langs,$user,$conf;
-    $sql = "select titre,body, postlist, responsibility, `inner` from llx_mailing where rowid = ".$rowid;
-    $res = $db->query($sql);
-    if(!$res)
-        dol_print_error($db);
-    $mess = $db->fetch_object($res);
-    $subject =  $mess->titre;
-    $msgishtml = $mess->body;
-    $mesg = $mess->body;
-    $conf->notification->email_from=$conf->mailing->email_from;
-    $postlist = $mess->postlist;
-    $responsibility = $mess->responsibility;
-
-    $sql = "select rtrim(email) email from llx_mailing_cibles where fk_mailing = " . $rowid;
-    $res = $db->query($sql);
-    if (!$res)
-        dol_print_error($db);
-    $postedlist = [];
-    while ($obj = $db->fetch_object($res)) {
-        $postedlist[] = mb_strtolower($obj->email, 'utf-8');
-    }
-
-//    var_dump(empty($mess->inner));
-//    die('test');
-    if(empty($mess->inner)) {
-        $sql = "select llx_societe.state_id, socid, email1, email2 from `llx_societe_contact`
-            left join llx_societe on llx_societe.rowid = `llx_societe_contact`.socid
-                    where 1 ";
-        if (!empty($postlist) && !empty($responsibility))
-            $sql .= " and (post_id in (" . $postlist . ") or `respon_id` in (" . $responsibility . "))";
-        elseif (!empty($postlist))
-            $sql .= " and post_id in (" . $postlist . ")";
-        elseif (!empty($responsibility))
-            $sql .= " and respon_id in (" . $responsibility . ")";
-        $sql .= " and ((email1 like '%@%' and send_email1 = 1) or (email2 like '%@%' and send_email2 = 1))
-            and `llx_societe_contact`.active = 1 and `llx_societe`.active = 1";
-    }else{
-        $user_id = array();
-        if(!empty($postlist)){
-            $sql = "select rowid from llx_user where post_id in ($postlist) and active = 1";
-            $res = $db->query($sql);
-            if(!$res)
-                dol_print_error($db);
-            while($obj = $db->fetch_object($res)){
-                if(!in_array($obj->rowid, $user_id))
-                    $user_id[] = $obj->rowid;
-            }
-        }
-        if(!empty($responsibility)){
-            $sql = "select rowid from llx_user where (respon_id in ($responsibility) or respon_id2 in ($responsibility)) and active = 1
-                    union
-                    select fk_user from `llx_user_responsibility` where fk_respon in ($responsibility) and active = 1";
-            $res = $db->query($sql);
-            if(!$res)
-                dol_print_error($db);
-            while($obj = $db->fetch_object($res)){
-                if(!in_array($obj->rowid, $user_id))
-                    $user_id[] = $obj->rowid;
-            }
-        }
-        $sql = "select email email1, '' email2 from llx_user where rowid in (".implode(',',$user_id).")";
-
-    }
-//    $sql.=" and llx_societe.state_id in (11,17)";
-//    $sql.=" order by llx_societe.state_id";
-//    echo '<pre>';
-//    var_dump($postedlist);
-//    echo '</pre>';
-//    die();
-
-    set_time_limit(0);
-    $res = $db->query($sql);
-    if(!$res)
-        dol_print_error($db);
-//    $societelist = array();
-    $emaillist = array();
-    if($type == 'test') {
-        $sql = 'select mail from llx_c_testmails where active = 1';
-        $res = $db->query($sql);
-        if (!$res)
-            dol_print_error($db);
-        while ($obj = $db->fetch_object($res)) {
-            $emaillist[0][] = mb_strtolower($obj->mail, 'utf-8');
-        }
-    }else if ($type == 'control'){
-        $sql = "select llx_societe_contact.lastname, `llx_societe`.state_id, llx_societe_contact.firstname, llx_societe_contact.email1, llx_societe_contact.email2 from llx_societe
-            left join `llx_societe_contact` on `llx_societe_contact`.`socid` = `llx_societe`.`rowid`
-            where nom like '%контроль%'";
-        $res = $db->query($sql);
-        if (!$res)
-            dol_print_error($db);
-        while ($obj = $db->fetch_object($res)) {
-            if(!empty($obj->email1))
-                $emaillist[$obj->state_id][] = mb_strtolower($obj->llx_societe_contact.lastname.'<'.$obj->email1.'>', 'utf-8');
-            if(!empty($obj->email2))
-                $emaillist[$obj->state_id][] = mb_strtolower($obj->llx_societe_contact.lastname.'<'.$obj->email2.'>', 'utf-8');
-        }
-    }else {
-        while ($obj = $db->fetch_object($res)) {
-            $add = false;
-            if (empty($emaillist[$obj->state_id]))
-                $emaillist[$obj->state_id] = array();
-            if (!empty($obj->email1) && strpos($obj->email1, '@') && (!empty($postedlist) ? !in_array($obj->email1, $postedlist) : true) &&
-                (!empty($emaillist[$obj->state_id]) ? !in_array($obj->email1, $emaillist[$obj->state_id]) : true)
-            ) {
-                $emaillist[$obj->state_id][] = $obj->email1;
-                $add = true;
-            } elseif (!empty($obj->email2) && strpos($obj->email2, '@') && (!empty($postedlist) ? !in_array($obj->email2, $postedlist) : true) &&
-                (!empty($emaillist[$obj->state_id]) ? !in_array($obj->email2, $emaillist[$obj->state_id]) : true)
-            ) {
-                $emaillist[$obj->state_id][] = $obj->email2;
-                $add = true;
-            }
-//        if($add)
-//            $societelist[]=$obj->socid;
-        }
-    }
-//    unset($emaillist);
-//    $emaillist[12][]='tavis@shtorm.com';
-//    $emaillist[12][]='tavis.ua@gmail.com';
-//    $emaillist[12][]='mikhailv_viktor@mail.ru';
-//    $emaillist[12][]='veravikt@ukr.net';
-//    echo '<pre>';
-//    var_dump($emaillist);
-//    echo '</pre>';
-//    die();
-//    var_dump(base64_encode('shop@t-i-t.com.ua'));
-//    die();
-//    die(DOL_DOCUMENT_ROOT.'/core/class/mailings/PHPMailerAutoload.php');
+function CreateSMTPMailer($email="shop@t-i-t.com.ua", $pass="123qaz"){
     require_once DOL_DOCUMENT_ROOT.'/core/class/mailing/PHPMailerAutoload.php';
     date_default_timezone_set('Etc/UTC');
 //Create a new PHPMailer instance
@@ -605,40 +545,170 @@ function AutoSendMail($rowid, $type=''){
     $mail->SMTPAuth = true;
 
 //Username to use for SMTP authentication - use full email address for gmail
-    $mail->Username = "shop@t-i-t.com.ua";
+    $mail->Username = $email;
 //    $mail->Username = "shop@uspex2015.com.ua";
 
 //Password to use for SMTP authentication
-    $mail->Password = "123qaz";
+    $mail->Password = $pass;
 //    $mail->Password = "N7x6EnqV";
 
 //Set who the message is to be sent from
-    $mail->setFrom('shop@t-i-t.com.ua', 'Техніка і технології');
+    $mail->setFrom($email, 'Техніка і технології');
 //    $mail->setFrom('shop@uspex2015.com.ua', 'Техніка і технології');
+    return $mail;
+}
+function AutoSendMail($rowid, $type='', $contact_id=0){
+//    $string = array('name'=>"%C2%B3%EA%F2%EE%F0");
+//
 
-//Set an alternative reply-to address
-//$mail->addReplyTo('replyto@example.com', 'First Last');
+    if($rowid == 0)
+        return 1;
+    global $db,$langs,$user,$conf;
+    $sql = "select titre,body, postlist, responsibility, `inner` from llx_mailing where rowid = ".$rowid;
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $mess = $db->fetch_object($res);
+    $subject =  $mess->titre;
+    $msgishtml = $mess->body;
+    $mesg = $mess->body;
+    $conf->notification->email_from=$conf->mailing->email_from;
+    $postlist = $mess->postlist;
+    $responsibility = $mess->responsibility;
 
-//Set who the message is to be sent to
-//    $mail->addAddress('tavis.ua@gmail.com', 'Михайлов Віктор');
-////    $mail->clearAddresses();
-//    $mail->addAddress('t-i-t1245@meta.ua', 'Михайлов Віктор');
-//    $mail->addAddress('qw5148917@meta.ua', 'Михайлов Віктор');
-//    $mail->addAddress('veravikr@ukr.net', 'Михайлов Віктор');
+    $sql = "select rtrim(email) email from llx_mailing_cibles where fk_mailing = " . $rowid;
+    $res = $db->query($sql);
+    if (!$res)
+        dol_print_error($db);
+    $postedlist = [];
+    while ($obj = $db->fetch_object($res)) {
+        $postedlist[] = mb_strtolower($obj->email, 'utf-8');
+    }
 
-//echo '<pre>';
-//var_dump(substr($mess->body, 0, strpos($mess->body,'<div class="block bt-picture-text block-menu-processed">')));
-////var_dump($mess->body);
-//echo '</pre>';
-//die();
+//    var_dump(empty($mess->inner));
+//    die('test');
+    if(empty($mess->inner)) {
+        $sql = "select llx_societe.state_id, socid, email1, email2 from `llx_societe_contact`
+            left join llx_societe on llx_societe.rowid = `llx_societe_contact`.socid
+                    where 1 ";
+        if (!empty($postlist) && !empty($responsibility))
+            $sql .= " and (post_id in (" . $postlist . ") or `respon_id` in (" . $responsibility . "))";
+        elseif (!empty($postlist))
+            $sql .= " and post_id in (" . $postlist . ")";
+        elseif (!empty($responsibility))
+            $sql .= " and respon_id in (" . $responsibility . ")";
+        if($type == 'before_birsthday5'){//Поздоровлення за 5 днів до Д.Н.
+            $sql .= " and date(concat(year(now()), '-', month(`birthdaydate`), '-', day(`birthdaydate`))) = adddate(date(now()), interval 5 day)";
+        }elseif ($type == 'after_phone'){
+            $sql.= " and `llx_societe_contact`.`rowid` = ".$contact_id;
+        }else {
+            $sql .= " and ((email1 like '%@%' and send_email1 = 1) or (email2 like '%@%' and send_email2 = 1))
+            and `llx_societe_contact`.active = 1 and `llx_societe`.active = 1";
+        }
+    }else{
+        $user_id = array();
+        if(!empty($postlist)){
+            $sql = "select rowid from llx_user where post_id in ($postlist) and active = 1";
+            $res = $db->query($sql);
+            if(!$res)
+                dol_print_error($db);
+            while($obj = $db->fetch_object($res)){
+                if(!in_array($obj->rowid, $user_id))
+                    $user_id[] = $obj->rowid;
+            }
+        }
+        if(!empty($responsibility)){
+            $sql = "select rowid from llx_user where (respon_id in ($responsibility) or respon_id2 in ($responsibility)) and active = 1
+                    union
+                    select fk_user from `llx_user_responsibility` where fk_respon in ($responsibility) and active = 1";
+            $res = $db->query($sql);
+            if(!$res)
+                dol_print_error($db);
+            while($obj = $db->fetch_object($res)){
+                if(!in_array($obj->rowid, $user_id))
+                    $user_id[] = $obj->rowid;
+            }
+        }
+        $sql = "select email email1, '' email2 from llx_user where rowid in (".implode(',',$user_id).")";
 
+    }
+//    $sql.=" and llx_societe.state_id in (11,17)";
+//    $sql.=" order by llx_societe.state_id";
+
+    set_time_limit(0);
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+//    $societelist = array();
+    $emaillist = array();
+    if($type == 'test') {
+        $sql = 'select mail from llx_c_testmails where active = 1';
+        $res = $db->query($sql);
+        if (!$res)
+            dol_print_error($db);
+        while ($obj = $db->fetch_object($res)) {
+            $emaillist[0][] = mb_strtolower($obj->mail, 'utf-8');
+        }
+    }else if ($type == 'control'){
+        $sql = "select llx_societe_contact.lastname, `llx_societe`.state_id, llx_societe_contact.firstname, llx_societe_contact.email1, llx_societe_contact.email2 from llx_societe
+            left join `llx_societe_contact` on `llx_societe_contact`.`socid` = `llx_societe`.`rowid`
+            where nom like '%контроль%'";
+        $res = $db->query($sql);
+        if (!$res)
+            dol_print_error($db);
+        while ($obj = $db->fetch_object($res)) {
+            if(!empty($obj->email1))
+                $emaillist[$obj->state_id][] = mb_strtolower($obj->llx_societe_contact.lastname.'<'.$obj->email1.'>', 'utf-8');
+            if(!empty($obj->email2))
+                $emaillist[$obj->state_id][] = mb_strtolower($obj->llx_societe_contact.lastname.'<'.$obj->email2.'>', 'utf-8');
+        }
+    }else {
+
+        while ($obj = $db->fetch_object($res)) {
+            $add = false;
+            if (empty($emaillist[$obj->state_id]))
+                $emaillist[$obj->state_id] = array();
+            if (!empty($obj->email1) && strpos($obj->email1, '@') && (!empty($postedlist) ? !in_array($obj->email1, $postedlist) : true) &&
+                (!empty($emaillist[$obj->state_id]) ? !in_array($obj->email1, $emaillist[$obj->state_id]) : true)
+            ) {
+                $emaillist[$obj->state_id][] = $obj->email1;
+                $add = true;
+            } elseif (!empty($obj->email2) && strpos($obj->email2, '@') && (!empty($postedlist) ? !in_array($obj->email2, $postedlist) : true) &&
+                (!empty($emaillist[$obj->state_id]) ? !in_array($obj->email2, $emaillist[$obj->state_id]) : true)
+            ) {
+                $emaillist[$obj->state_id][] = $obj->email2;
+                $add = true;
+            }
+//        if($add)
+//            $societelist[]=$obj->socid;
+        }
+    }
+//    unset($emaillist);
+//    $emaillist[12][]='tavis@shtorm.com';
+//    $emaillist[12][]='tavis.ua@gmail.com';
+//    $emaillist[12][]='mikhailv_viktor@mail.ru';
+//    $emaillist[12][]='veravikt@ukr.net';
+//    var_dump(base64_encode('shop@t-i-t.com.ua'));
+//    die();
+//    die(DOL_DOCUMENT_ROOT.'/core/class/mailings/PHPMailerAutoload.php');
+    $mail = CreateSMTPMailer();
 //Set the subject line
     $mail->Subject = $mess->titre;
+    if ($type == 'after_phone' && $mail->Username == 'shop@t-i-t.com.ua'){
+        $sql = "select email, pass from subdivision where state_id = ".array_keys($emaillist)[0].' and email is not null and pass is not null';
+        $res = $db->query($sql);
 
+
+        if($res->num_rows){
+            $obj = $db->fetch_object($res);
+            $mail->Username = $obj->email;
+            $mail->Password = $obj->pass;
+        }
+    }
 //Read an HTML message body from an external file, convert referenced images to embedded,
 //convert HTML into a basic plain-text alternative body
 //$mail->msgHTML(file_get_contents('test.html'), dirname(__FILE__));
-$mail->msgHTML($mess->body);
+    $mail->msgHTML($mess->body);
 //$mail->msgHTML(substr($mess->body, 0, strpos($mess->body,'<div class="block bt-picture-text block-menu-processed">')).'  List-unsubscribe: <a href="t-i-t.com.ua">Отписаться</a>');
 
 //Replace the plain text body with one created manually
@@ -649,7 +719,10 @@ $mail->msgHTML($mess->body);
 //        echo "Message sent!";
 //    }
 //    die();
-
+//        echo '<pre>';
+//        var_dump($emaillist);
+//        echo '</pre>';
+//        die();
 
     $num = 0;
     foreach ($emaillist as $key=>$value){
@@ -709,12 +782,9 @@ $mail->msgHTML($mess->body);
     }
 }
 function MailingList(){
-    global $db,$langs,$user;
-//    echo '<pre>';
-//    var_dump($user->rights->mailing);
-//    echo '</pre>';
-//    die();
-    $sql = "select rowid,titre,body,date_creat,date_valid,date_send,fk_user_creat,fk_user_valid,send_after_phone from `llx_mailing`
+    global $db,$langs,$user,$SendActionType;
+
+    $sql = "select rowid,titre,body,date_creat,date_valid,date_send,fk_user_creat,fk_user_valid,send_after,period_begin,period_end from `llx_mailing`
         where statut = 1
         order by date_creat desc";
     $res = $db->query($sql);
@@ -738,9 +808,14 @@ function MailingList(){
         $out.='<td style="min-width:121px" class="middle_size">'.(!empty($obj->date_valid)?$date_valid->format('d.m.y H:i'):'&nbsp;&nbsp;&nbsp;').'</td>';
         $date_send = new DateTime($obj->date_send);
         $out.='<td style="min-width:121px" class="middle_size">'.(!empty($obj->date_send)?$date_send->format('d.m.y H:i'):'&nbsp;&nbsp;&nbsp;').'</td>';
-        $out.='<td style="min-width:121px; text-align: center" class="check">'.(empty($obj->send_after_phone)?'<img src="/dolibarr/htdocs/theme/eldy/img/uncheck.png">':'<img src="/dolibarr/htdocs/theme/eldy/img/check.png">').'</td>';
+        //SendActionType
+        $out.='<td style="min-width:121px; text-align: center" class="middle_size">'.$langs->trans($SendActionType[empty($obj->send_after)?0:$obj->send_after]).'</td>';
+        $begin_period = new DateTime($obj->period_begin);
+        $end_period = new DateTime($obj->period_end);
+        $out.='<td style="min-width:121px" class="middle_size">'.(!empty($obj->period_begin)?$begin_period->format('d.m.y'):'&nbsp;&nbsp;&nbsp;').'</td>';
+        $out.='<td style="min-width:121px" class="middle_size">'.(!empty($obj->period_end)?$end_period->format('d.m.y'):'&nbsp;&nbsp;&nbsp;').'</td>';
         //Action
-        $out.='<td style="min-width:51px">
+        $out.='<td style="min-width:85px">
                 <img onclick="Preview($(this))" rowid="'.$obj->rowid.'" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Preview') . '" src="/dolibarr/htdocs/theme/eldy/img/preview.png">';
         if($user->rights->mailing->creer){
             $out.='<img onclick="Edit($(this))" rowid="'.$obj->rowid.'" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Edit') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">';

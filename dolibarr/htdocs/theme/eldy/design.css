@@ -25,7 +25,7 @@
 .unactivepage{
     background: #cccccc;
 }
-#tabs_area{
+#tabs_area .pass{
     display: none;
 }
 .subcatalog {
@@ -96,7 +96,18 @@ overflow-y: auto; /* прокрутка по вертикали */
     list-style: outside none none;
     padding-left: 30px;
 }
-
+#SendMail{
+    border-radius: 10px;
+    background-color: #A19B9E;
+    width: auto;
+    height: 40px;
+    position: absolute;
+    text-align: center;
+    border-bottom-color: dimgrey;
+    border-bottom-width: 2px;
+    display: none;
+    z-index: 10;
+}
 #groupproducts_title{
     background-color: white;
     text-align: center;
@@ -297,7 +308,7 @@ tr.subtype:hover {
     text-align:center;
 }
 /* Кнoпкa зaкрыть для тех ктo в тaнке) */
-#modal_form #modal_close {
+#modal_form #modal_close{
     width: 21px;
     height: 21px;
     position: absolute;
@@ -305,6 +316,10 @@ tr.subtype:hover {
     right: 10px;
     cursor: pointer;
     display: block;
+}
+#send_after_phone{
+    position: absolute;
+    alignment: top;
 }
 /* Пoдлoжкa */
 #overlay {
@@ -483,6 +498,9 @@ body {
 }
 .middle_size{
     font-size: 12px !important;
+}
+.top{
+    vertical-align: top;
 }
 .small_size{
     font-size: 10px;

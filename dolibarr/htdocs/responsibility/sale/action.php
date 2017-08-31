@@ -2,7 +2,10 @@
 require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/core/modules/societe/modules_societe.class.php';
 require_once DOL_DOCUMENT_ROOT.'/societe/societecontact_class.php';
-
+//echo '<pre>';
+//var_dump($_REQUEST);
+//echo '</pre>';
+//die();
 global $user,$db;
 $subdivUserID = array(0);
 if(in_array('dir_depatment',array($user->respon_alias,$user->respon_alias2))){
@@ -269,13 +272,18 @@ function getContactList(){
 }
 function setCallLength(){
     global $db;
-    $start = new DateTime($_REQUEST['start']);
-    $end = new DateTime($_REQUEST['end']);
-    $sql = "update llx_actioncomm set CallLength = ".($end->diff($start)->s-5)." where callID = '".$_REQUEST['callID']."' limit 1";
-    $res = $db->query($sql);
-    if(!$res)
-        dol_print_error($db);
-    return 1;
+    if(!empty($_REQUEST['callID'])) {
+        $start = new DateTime($_REQUEST['start']);
+        $end = new DateTime($_REQUEST['end']);
+        $diff = mktime($end->format('H'), $end->format('i'), $end->format('s'), $end->format('m'), $end->format('d'), $end->format('Y')) -
+            mktime($start->format('H'), $start->format('i'), $start->format('s'), $start->format('m'), $start->format('d'), $start->format('Y'));
+        $sql = "update llx_actioncomm set CallLength = " . $diff . " where callID = '" . $_REQUEST['callID'] . "' limit 1";
+        $res = $db->query($sql);
+        if (!$res)
+            dol_print_error($db);
+        return 1;
+    }else
+        return 0;
 }
 function setCallID(){
     global $db;

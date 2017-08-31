@@ -5,10 +5,8 @@
  * Date: 05.02.2016
  * Time: 9:06
  */
-//echo '<pre>';
-//var_dump($_SERVER);
-//echo '</pre>';
-//die();
+
+
 if($_REQUEST['action'] == 'createStatisticPage' || $_REQUEST['action'] == 'insertNewActions')
     define('NOLOGIN',1);
 require $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/main.inc.php';
@@ -19,6 +17,10 @@ if(isset($_REQUEST['action'])){
             createStaticDayPlanPage();
             exit();
         }break;
+        case 'updateStatisticPage':{
+            updateStaticDayPlanPage();
+            exit();
+        }
         case 'insertNewActions':{
             $sql = "select `llx_actioncomm`.`id`, `llx_actioncomm`.`percent`, `llx_actioncomm`.`code`, `llx_actioncomm`.`datec`, `llx_user`.`rowid`, `llx_user`.`lastname` from llx_actioncomm
                 left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
@@ -418,6 +420,18 @@ function setOverdue_Actions_GlobalItem(){
     }
 
 }
+function updateStaticDayPlanPage(){
+    global $db;
+    set_time_limit(0);
+    $sql = "insert into llx_cronjob (`command`,`datestart`,`params`,`label`,`jobtype`)  values('updateStatisticPage',now(),'0','_','_')";
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);    
+    require_once '/core/class/raports/dayplan.class.php';
+    $DayPlan = new DayPlan($db);
+    $DayPlan->UpdateRaport();
+    die(1);
+}
 function createStaticDayPlanPage(){
     global $db;
     set_time_limit(0);
@@ -456,11 +470,12 @@ function createStaticDayPlanPage(){
     if(!$res)
         dol_print_error($db);
     die('1');
-
-//    require_once '/core/class/raports/dayplan.class.php';
-//    $DayPlan = new DayPlan($db);
-//    $DayPlan->RefreshRaport();
-
+    $time = time();
+    require_once '/dolibarr/htdocs/core/class/raports/dayplan.class.php';
+    $DayPlan = new DayPlan($db);
+    $DayPlan->RefreshRaport();
+    var_dump(time()-$time);
+    die(1);
 }
 function TotalTask($actions_tmp){
     global $actioncode;

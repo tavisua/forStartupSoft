@@ -518,11 +518,11 @@ class ActionComm extends CommonObject
         if(substr_count($inputdate, ':') == 1)
             $starttime = $inputdate.":00";
         $date = new DateTime($inputdate);
-//        var_dump($inputdate);
+//        var_dump($inputdate, $id_usr, $minutes, $prioritet, $parent_id);
 //        die();
         $PlanTime = 0;
         while(!$PlanTime) {
-            if($date->format('w')>0 && $date->format('w')<6)
+            if($date->format('w')>0 && $date->format('w')<6 || $date->format('d.m.y')=='19.08.17')
                 $PlanTime = $this->GetFirstFreeTime($date->format('Y-m-d H:i'), $id_usr, $minutes, $prioritet, $starttime, $parent_id);
             $date = new DateTime(date('Y-m-d', mktime(8,0,0,$date->format('m'),$date->format('d'),$date->format('Y'))+ 86400));
         }
@@ -1546,6 +1546,7 @@ class ActionComm extends CommonObject
         $sql.= " a.fk_soc,";
         $sql.= " a.fk_groupoftask,";
         $sql.= " a.fk_project,";
+        $sql.= " a.active,";
         $sql.= " a.fk_user_author, a.fk_user_mod,";
         $sql.= " a.fk_user_action, a.fk_user_done,";
         $sql.= " a.fk_contact, a.percent as percentage,";
@@ -1632,6 +1633,7 @@ class ActionComm extends CommonObject
                 $this->motivator            = $obj->motivator;  //Мотиватор
                 $this->demotivator          = $obj->demotivator;//Демотиватор
                 $this->fk_user_valuer       = $obj->fk_user_valuer;//Фахівець-оцінщик
+                $this->active               = $obj->active;//Флаг чи видалений запис
 
                 $this->fk_element			= $obj->fk_element;
                 $this->elementtype			= $obj->elementtype;

@@ -1052,7 +1052,52 @@ function getColumnTable(table){
     return out;
 }
 function getColumnHeaderTable(table){
+    var trlist = $(table).find('thead').find('tr');
+    var uplevel = trlist[0];
+    var downlevel = null;
+    var th_downlevel = null;
+    if(trlist.length>1) {
+        downlevel = trlist[trlist.length - 1]
+        th_downlevel = $(downlevel).find('th');
+    }
+    var thList = $(uplevel).find('th');
+    var downIndex = 0;
+    var ColList = [];
+    //Визначаю всі колонки в шапці таблиці
+    $.each(thList, function (key, th) {
+        if($(th).attr('colspan') === undefined) {
+            ColList.push($(th));
+        }else {
+            for(var i = 0; i<$(th).attr('colspan'); i++) {
+                ColList.push($(th_downlevel[downIndex]));
+                downIndex++;
+            }
+        }
+    })
+    //Визначаю строки тіла таблиці
+    trlist = $(table).find('tbody').find('tr');
+    $.each(trlist, function (key, tr){
+        var tdList = $(tr).find('td');
+        var minLeft;
+        downIndex = 0;
+        $.each(tdList, function (key, td) {
+            var iColWidth = 0;
+            minLeft = $(ColList[downIndex]).offset().left;
+            if($(td).attr('colspan') === undefined){
+                iColWidth = $(ColList[downIndex]).offset().left+$(ColList[downIndex]).width()
+                downIndex++;
+            }else{
+                for(var i = 0; i<$(td).attr('colspan'); i++) {
+                    iColWidth = $(ColList[downIndex]).offset().left+$(ColList[downIndex]).width();
+                    downIndex++;
+                }
+            }
+            console.log(key, td, $(ColList[downIndex-1]).offset(), $(ColList[downIndex-1]).width(), iColWidth, minLeft, iColWidth-minLeft);
+            $(td).width(iColWidth-minLeft);
+            minLeft = iColWidth-minLeft;
 
+        })
+    })
 }
 function showHideActionPanel(){
     console.log($('#bookmarkActionPanel').css('right') == '-30px');
@@ -1092,9 +1137,32 @@ $(window).keydown(function(){
 })
 function Timer(){
     var sec = $('#timer').text().substr(0, $('#timer').text().length-1);
-
+    //
+    if($('#SendMail').length && $('#SendMail').css('display') == 'block'){
+        var Count = parseInt($('#TimeCount').text())-1;
+        $('#TimeCount').text(Count);
+        if(!Count) {
+            $('#SendMail').hide();
+            var                 //Відправка комерційної пропозиції
+                param = {
+                    type: 'get',
+                    'action': 'sendmail',
+                    'type':'after_phone',
+                    'contactID': $('#SendMail').attr('contactid')
+                }
+            $.ajax({
+                url:'/dolibarr/htdocs/core/modules/mailings/index.php',
+                data:param,
+                cache:false,
+                success:function (res) {
+                    console.log(res);
+                }
+            })
+        }
+    }
     sec = parseInt(sec)+1;
     $('#timer').text(sec + 'с');
+
     if(sec<10){
         $('#backgroundtimer').css('background', 'url(http://'+location.host+'/dolibarr/htdocs/theme/eldy/img/green_timer.png)');
         $('#timer').css('color', '#ffffff');
@@ -1111,7 +1179,6 @@ function Timer(){
     // if(incoming_call == null)
     //     incoming_call = $.session.get("incoming_call");
     var taken_call = window.sessionStorage.getItem('taken_call');
-    // console.log('taken_call', $.session.get('taken_call'));
 
     // if(taken_call == null)
     //     taken_call = $.session.get("taken_call");
@@ -1133,10 +1200,13 @@ function Timer(){
                         HTMLIncommingCall(json);
                     }
                     if(json.phone.type == 'outgoing' && json.phone.end !== undefined){
-                        if($('#LastCallID').val().length == 0)
+                        console.log('LastCallID',$('#LastCallID').val());
+
+                        if($('#LastCallID').val()=='') {
                             $('#LastCallID').val(json.phone.id);
-                        // console.log($('#LastCallID').val().length, $('#LastCallID').val(),json.phone.id);
-                        if($('#LastCallID').val()!=json.phone.id){
+                        }
+                        console.log($('#LastCallID').val().length, $('#LastCallID').val(),json.phone.id);
+                        if($('#LastCallID').val().length && $('#LastCallID').val()!=json.phone.id){
                             console.log('CalledID', json.phone.id);
                             param = {
                                 type: 'get',
@@ -1166,7 +1236,7 @@ function Timer(){
         obj.forEach(function (value, key) {
             if(value.length > 10) {
                 var json = JSON.parse('{"phone":{'+value);
-                console.log(json.phone);
+                // console.log(json.phone);
                 if(json.phone.type == 'incoming' && json.phone.end === undefined && taken_call.indexOf(json.phone.id) == -1 && $('#incoming_call_' + json.phone.id).length == 0) {
                         HTMLIncommingCall(json)
                 }
@@ -1616,14 +1686,13 @@ function closeForm(obj){
 }
 function sendSMS(number, text, confirmSend){
     number = ' [{"value": "'+number.replace(/\;/gi,'"}, {"value": "')+'"}]';
-    // console.log(requestID());
+    // console.log(number);
     // return;
     if((number === undefined  && text === undefined)||(number.length == 0  && text.length == 0)) {
         number = $("#phone_number").val();
         text = $("#textsms").val();
     }
-    //console.log(number, text);
-    //return;
+    console.log(number, text);
     var send = 0;
     if(confirmSend == true){
         if(confirm('Відправити СМС повідомлення?'))
@@ -1631,26 +1700,34 @@ function sendSMS(number, text, confirmSend){
     }else
         send = 1;
     if(send == 1) {
+
         var param = {
             'action':'sendGroupSMS',
             'requestID':requestID(),
-            'sms_json':'{"phone": ' + number + ',"text":"' + text + '"}'
+            'sms_json': '{"phone": '+number+',"text":"'+text+'"}'
         }
+        console.log(param);
+
+
+
         $.ajax({
             type:'post',
             url:'http://localhost:9002/',
             data:param,
-            cache:false,
+
             success:function (confirmSend) {
                 if(confirmSend == true)
                     close_registerform();
+                else
+                    console.log('sendSMSerror '+confirmSend, param);
+                // $('#sendMessage').attr('disabled', '');
             }
         })
-        console.log('sendSMS');
-        var blob = new Blob(['{"requestID":"'+requestID()+'","phone": ' + number + ',"text":"' + text + '"}'], {type: "text/plain;charset=utf-8"});
-        saveAs(blob, "sms.json");
-        console.log('savefile');
-        if(confirmSend == true)
+        console.log('sendSMS ', param);
+        // var blob = new Blob(['{"requestID":"'+requestID()+'","phone": ' + number + ',"text":"' + text + '"}'], {type: "text/plain;charset=utf-8"});
+        // saveAs(blob, "sms.json");
+        // console.log('savefile');
+        // if(confirmSend == true)
             close_registerform();
     }
 }
@@ -1694,12 +1771,22 @@ function setColWidth(table){
         }
     }
 }
-function Call(number, contacttype, contactid){
+function Call(number, contacttype, contactid, elem){
+    // console.log($(elem).attr('sendmail'));
+    if($(elem).attr('sendmail') !== undefined) {
+        $('#SendMail').css('top', $(elem).offset().top);
+        $('#SendMail').css('left', $(elem).offset().left);
+        $('#TimeCount').text('10');
+        $('#SendMail').attr('contactid',contactid);
+        $('#SendMail').show();
+    }
+    // number=380978059053;
     var param = {
         type:'get',
         'action':'call',
         'number':'+'+number
     }
+    $('#LastCallID').val('');
     $.ajax({
         url:'http://localhost:9002/',
         data:param,

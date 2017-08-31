@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<form action="http://localhost:9002" method="post" enctype="multipart/form-data">
+    <b>Тестирование групповой отправки СМС</b><br>
+    <input type="hidden" name="action" value="sendGroupSMS">
+    <input type="hidden" name="requestID" value="new Date().getTime()">
+    <input type="hidden" name="sms_json" value="{'phone':  [{'value': '380978059053'}, {'value': '380662094598'}],'text':'Test SMS'}">
+    <input type="submit" value="Отправить СМС">
+</form>
+</body>
+</html>

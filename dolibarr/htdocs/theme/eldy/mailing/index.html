@@ -18,7 +18,9 @@
             <th style="min-width:120px">Дата створення</th>
             <th style="min-width:120px">Дата перевірки</th>
             <th style="min-width:120px">Дата відправки</th>
-            <th style="min-width:120px">Відпр.</br>після дзвінка</th>
+            <th style="min-width:120px">Відпр.</th>
+            <th style="min-width:120px">Початок періоду</th>
+            <th style="min-width:120px">Кінець періоду</th>
             <th style="min-width:85px">Дії</th>
         </tr>
         </thead>
@@ -95,6 +97,7 @@
                     action: 'createtask'
                 }
                 $.ajax({
+                    url: "/dolibarr/htdocs/core/modules/mailings/index.php",
                     data: param,
                     cache: false,
                     type: 'post',

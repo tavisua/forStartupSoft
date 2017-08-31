@@ -1,3 +1,26 @@
+<div id="loading_img" style="width: 200px; height: 200px; position: fixed; z-index: 10000; opacity: 1; top: 115px; left: 607px;">
+    <img src="/dolibarr/htdocs/theme/eldy/img/loading/loading0.png" style="position: absolute; top: 0px; left: 0px; opacity: -0.333333; width: 196px; height: 196px; margin-top: 2px; margin-left: 2px;">
+    <img src="/dolibarr/htdocs/theme/eldy/img/loading/loading1.png" style="position: absolute; top: 0px; left: 0px; opacity: 0; width: 196px; height: 196px; margin-top: 2px; margin-left: 2px;">
+    <img src="/dolibarr/htdocs/theme/eldy/img/loading/loading2.png" style="position: absolute; top: 0px; left: 0px; opacity: 0.333333; margin-top: 6px; margin-left: 6px; width: 188px; height: 188px;">
+    <img src="/dolibarr/htdocs/theme/eldy/img/loading/loading3.png" style="position: absolute; top: 0px; left: 0px; opacity: 0.666667; margin-top: 4px; margin-left: 4px; width: 192px; height: 192px;">
+    <img src="/dolibarr/htdocs/theme/eldy/img/loading/loading4.png" style="position: absolute; top: 0px; left: 0px; opacity: 1; margin-top: 2px; margin-left: 2px; width: 196px; height: 196px;">
+    <img src="/dolibarr/htdocs/theme/eldy/img/loading/loading5.png" style="position: absolute; top: 0px; left: 0px; opacity: -0.333333; margin-top: 8px; margin-left: 8px; width: 184px; height: 184px;">
+    <img src="/dolibarr/htdocs/theme/eldy/img/loading/loading6.png" style="position: absolute; top: 0px; left: 0px; opacity: -0.333333; margin-top: 6px; margin-left: 6px; width: 188px; height: 188px;">
+    <img src="/dolibarr/htdocs/theme/eldy/img/loading/loading7.png" style="position: absolute; top: 0px; left: 0px; opacity: -0.333333; margin-top: 4px; margin-left: 4px; width: 192px; height: 192px;">
+    <script>
+        $(document).ready(function(){
+//                console.log();
+            if($(".WidthScroll").length)
+                $("#loading_img").offset({top:115, left:$(".WidthScroll").width()/2-100});
+            $("#loading_img").css("opacity",1);
+
+            var img = $("#loading_img").find("img");
+            img[0].style.opacity = "1";
+            loading();
+        })
+
+    </script>
+</div>
 <div class="tabBar" style="width: 900px;">
     <table style="border-collapse:collapse" class="WidthScroll">
         <tbody id="mailing">
@@ -52,8 +75,8 @@
             <!--<td colspan="4" style="width: 100%; height: 150px"><textarea style="width: 100%;height: 100%" <?if($_GET['type'] == 'sms'){?>maxlength="69"<?}?> id="message" name="message"></textarea></td>-->
         </tr>
         <tr class="secondpage" style="display: none">
-            <td><button onclick="sendTestMessage();">Тестове повідомлення</button></td>
-            <td><button onclick="sendMessage();">Відіслати повідомлення</button></td>
+            <td><button id="test_send" onclick="sendTestMessage();">Тестове повідомлення</button></td>
+            <td><button id="sendMessage" onclick="sendMessage();">Відіслати повідомлення</button></td>
         </tr>
     </table>
 </div>
@@ -61,6 +84,7 @@
 
 <script>
     $(document).ready(function(){
+        $('#loading_img').hide();
         $('select#areas [value=0]').html('Вибрати всі');
         $('#postlist').prepend($('select#areas [value=0]').clone());
         $('#responsibility').prepend($('select#areas [value=0]').clone());
@@ -97,6 +121,7 @@
     function nextstep(){
 //        console.log($('select#areas'));
 //        alert($('select#areas').val());
+        $("#loading_img").show();
         var param = {'areas':$('select#areas').val(),
                     'postlist':$('#postlist').val(),
                     'responsibility':$('#responsibility').val(),
@@ -113,6 +138,7 @@
             cache:false,
             type: 'get',
             success:function(result){
+                $("#loading_img").hide();
                 $('tbody#mailing').prepend(result)
                 $('tbody#mailing').css('height','350px');
 //                $('#ContactList').html(result);
@@ -178,6 +204,7 @@
 
     function sendMessage(){
         if(confirm('Відправити розсилку?')) {
+            $('#sendMessage').attr('disabled', 'disabled');
             $('#phones').val('');
             var contactlist = [];
             var target = [];
