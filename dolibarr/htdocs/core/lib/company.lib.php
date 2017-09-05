@@ -42,7 +42,7 @@ function societe_prepare_head(Societe $object)
     $head = array();
 
     $head[$h][0] = DOL_URL_ROOT.'/societe/soc.php?socid='.$object->id;
-    $head[$h][1] = $langs->trans("Card");
+    $head[$h][1] = $langs->trans("BasicInfo");
     $head[$h][2] = 'card';
     $h++;
 
@@ -56,39 +56,39 @@ function societe_prepare_head(Societe $object)
         $head[$h][2] = 'customer';
         $h++;
     }
-    if (! empty($conf->fournisseur->enabled) && $object->fournisseur && ! empty($user->rights->fournisseur->lire))
-    {
-        $head[$h][0] = DOL_URL_ROOT.'/fourn/card.php?socid='.$object->id;
-        $head[$h][1] = $langs->trans("Supplier");
-        $head[$h][2] = 'supplier';
-        $h++;
-    }
-
-    if (! empty($conf->global->MAIN_SUPPORT_SHARED_CONTACT_BETWEEN_THIRDPARTIES))
-    {
-        $head[$h][0] = DOL_URL_ROOT.'/societe/societecontact.php?socid='.$object->id;
-        $head[$h][1] = $langs->trans("ContactsAddresses");
-        $head[$h][2] = 'contact';
-        $h++;
-    }
-
-    if (! empty($conf->agenda->enabled) && (!empty($user->rights->agenda->myactions->read) || !empty($user->rights->agenda->allactions->read) ))
-     {
-    	$head[$h][0] = DOL_URL_ROOT.'/societe/agenda.php?socid='.$object->id;
-    	$head[$h][1] = $langs->trans("Agenda");
-    	$head[$h][2] = 'agenda';
-    	$h++;
-    }
-    //show categorie tab
-    if (! empty($conf->categorie->enabled)  && ! empty($user->rights->categorie->lire))
-    {
-        $type = 2;
-        if ($object->fournisseur) $type = 1;
-        $head[$h][0] = DOL_URL_ROOT.'/categories/categorie.php?socid='.$object->id."&type=".$type;
-        $head[$h][1] = $langs->trans('Categories');
-        $head[$h][2] = 'category';
-        $h++;
-    }
+//    if (! empty($conf->fournisseur->enabled) && $object->fournisseur && ! empty($user->rights->fournisseur->lire))
+//    {
+//        $head[$h][0] = DOL_URL_ROOT.'/fourn/card.php?socid='.$object->id;
+//        $head[$h][1] = $langs->trans("Supplier");
+//        $head[$h][2] = 'supplier';
+//        $h++;
+//    }
+//
+//    if (! empty($conf->global->MAIN_SUPPORT_SHARED_CONTACT_BETWEEN_THIRDPARTIES))
+//    {
+//        $head[$h][0] = DOL_URL_ROOT.'/societe/societecontact.php?socid='.$object->id;
+//        $head[$h][1] = $langs->trans("ContactsAddresses");
+//        $head[$h][2] = 'contact';
+//        $h++;
+//    }
+//
+//    if (! empty($conf->agenda->enabled) && (!empty($user->rights->agenda->myactions->read) || !empty($user->rights->agenda->allactions->read) ))
+//     {
+//    	$head[$h][0] = DOL_URL_ROOT.'/societe/agenda.php?socid='.$object->id;
+//    	$head[$h][1] = $langs->trans("Agenda");
+//    	$head[$h][2] = 'agenda';
+//    	$h++;
+//    }
+//    //show categorie tab
+//    if (! empty($conf->categorie->enabled)  && ! empty($user->rights->categorie->lire))
+//    {
+//        $type = 2;
+//        if ($object->fournisseur) $type = 1;
+//        $head[$h][0] = DOL_URL_ROOT.'/categories/categorie.php?socid='.$object->id."&type=".$type;
+//        $head[$h][1] = $langs->trans('Categories');
+//        $head[$h][2] = 'category';
+//        $h++;
+//    }
 
     // Show more tabs from modules
     // Entries must be declared in modules descriptor with line
@@ -96,83 +96,112 @@ function societe_prepare_head(Societe $object)
     // $this->tabs = array('entity:-tabname:Title:@mymodule:/mymodule/mypage.php?id=__ID__');   to remove a tab
     complete_head_from_modules($conf,$langs,$object,$head,$h,'thirdparty');
 
-    if ($user->societe_id == 0)
-    {
-        if (! empty($conf->commande->enabled) || ! empty($conf->propal->enabled) || ! empty($conf->facture->enabled) || ! empty($conf->fichinter->enabled) || ! empty($conf->fournisseur->enabled))
-        {
-	        $head[$h][0] = DOL_URL_ROOT.'/societe/consumption.php?socid='.$object->id;
-	        $head[$h][1] = $langs->trans("Referers");
-	        $head[$h][2] = 'consumption';
-	        $h++;
-        }
+//    if ($user->societe_id == 0)
+//    {
+//        if (! empty($conf->commande->enabled) || ! empty($conf->propal->enabled) || ! empty($conf->facture->enabled) || ! empty($conf->fichinter->enabled) || ! empty($conf->fournisseur->enabled))
+//        {
+//	        $head[$h][0] = DOL_URL_ROOT.'/societe/consumption.php?socid='.$object->id;
+//	        $head[$h][1] = $langs->trans("Referers");
+//	        $head[$h][2] = 'consumption';
+//	        $h++;
+//        }
+//
+//        // Notifications
+//        if (! empty($conf->notification->enabled))
+//        {
+//        	$nbNote = 0;
+//        	$sql = "SELECT COUNT(n.rowid) as nb";
+//        	$sql.= " FROM ".MAIN_DB_PREFIX."notify_def as n";
+//        	$sql.= " WHERE fk_soc = ".$object->id;
+//        	$resql=$db->query($sql);
+//        	if ($resql)
+//        	{
+//        		$num = $db->num_rows($resql);
+//        		$i = 0;
+//        		while ($i < $num)
+//        		{
+//        			$obj = $db->fetch_object($resql);
+//        			$nbNote=$obj->nb;
+//        			$i++;
+//        		}
+//        	}
+//        	else {
+//        		dol_print_error($db);
+//        	}
+//
+//        	$head[$h][0] = DOL_URL_ROOT.'/societe/notify/card.php?socid='.$object->id;
+//        	$head[$h][1] = $langs->trans("Notifications");
+//			if ($nbNote > 0) $head[$h][1].= ' <span class="badge">'.$nbNote.'</span>';
+//        	$head[$h][2] = 'notify';
+//        	$h++;
+//        }
+//
+//		// Notes
+//        $nbNote = 0;
+//        if(!empty($object->note_private)) $nbNote++;
+//		if(!empty($object->note_public)) $nbNote++;
+//        $head[$h][0] = DOL_URL_ROOT.'/societe/note.php?id='.$object->id;
+//        $head[$h][1] = $langs->trans("Note");
+//		if ($nbNote > 0) $head[$h][1].= ' <span class="badge">'.$nbNote.'</span>';
+//        $head[$h][2] = 'note';
+//        $h++;
+//
+//        // Attached files
+//        require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
+//        $upload_dir = $conf->societe->dir_output . "/" . $object->id;
+//        $nbFiles = count(dol_dir_list($upload_dir,'files',0,'','(\.meta|_preview\.png)$'));
+//        $head[$h][0] = DOL_URL_ROOT.'/societe/document.php?socid='.$object->id;
+//        $head[$h][1] = $langs->trans("Documents");
+//		if($nbFiles > 0) $head[$h][1].= ' <span class="badge">'.$nbFiles.'</span>';
+//        $head[$h][2] = 'document';
+//        $h++;
+//    }
 
-        // Notifications
-        if (! empty($conf->notification->enabled))
-        {
-        	$nbNote = 0;
-        	$sql = "SELECT COUNT(n.rowid) as nb";
-        	$sql.= " FROM ".MAIN_DB_PREFIX."notify_def as n";
-        	$sql.= " WHERE fk_soc = ".$object->id;
-        	$resql=$db->query($sql);
-        	if ($resql)
-        	{
-        		$num = $db->num_rows($resql);
-        		$i = 0;
-        		while ($i < $num)
-        		{
-        			$obj = $db->fetch_object($resql);
-        			$nbNote=$obj->nb;
-        			$i++;
-        		}
-        	}
-        	else {
-        		dol_print_error($db);
-        	}
+//    if (($object->client==1 || $object->client==2 || $object->client==3) && (! empty ( $conf->global->PRODUIT_CUSTOMER_PRICES )))
+//    {
+//    	$langs->load("products");
+//	    // price
+//	    $head[$h][0] = DOL_URL_ROOT.'/societe/price.php?socid='.$object->id;
+//	    $head[$h][1] = $langs->trans("CustomerPrices");
+//	    $head[$h][2] = 'price';
+//	    $h++;
+//    }
+//
+//    // Log
+//    $head[$h][0] = DOL_URL_ROOT.'/societe/info.php?socid='.$object->id;
+//    $head[$h][1] = $langs->trans("Info");
+//    $head[$h][2] = 'info';
+//    $h++;
 
-        	$head[$h][0] = DOL_URL_ROOT.'/societe/notify/card.php?socid='.$object->id;
-        	$head[$h][1] = $langs->trans("Notifications");
-			if ($nbNote > 0) $head[$h][1].= ' <span class="badge">'.$nbNote.'</span>';
-        	$head[$h][2] = 'notify';
-        	$h++;
-        }
-
-		// Notes
-        $nbNote = 0;
-        if(!empty($object->note_private)) $nbNote++;
-		if(!empty($object->note_public)) $nbNote++;
-        $head[$h][0] = DOL_URL_ROOT.'/societe/note.php?id='.$object->id;
-        $head[$h][1] = $langs->trans("Note");
-		if ($nbNote > 0) $head[$h][1].= ' <span class="badge">'.$nbNote.'</span>';
-        $head[$h][2] = 'note';
-        $h++;
-
-        // Attached files
-        require_once DOL_DOCUMENT_ROOT.'/core/lib/files.lib.php';
-        $upload_dir = $conf->societe->dir_output . "/" . $object->id;
-        $nbFiles = count(dol_dir_list($upload_dir,'files',0,'','(\.meta|_preview\.png)$'));
-        $head[$h][0] = DOL_URL_ROOT.'/societe/document.php?socid='.$object->id;
-        $head[$h][1] = $langs->trans("Documents");
-		if($nbFiles > 0) $head[$h][1].= ' <span class="badge">'.$nbFiles.'</span>';
-        $head[$h][2] = 'document';
-        $h++;
-    }
-
-    if (($object->client==1 || $object->client==2 || $object->client==3) && (! empty ( $conf->global->PRODUIT_CUSTOMER_PRICES )))
-    {
-    	$langs->load("products");
-	    // price
-	    $head[$h][0] = DOL_URL_ROOT.'/societe/price.php?socid='.$object->id;
-	    $head[$h][1] = $langs->trans("CustomerPrices");
-	    $head[$h][2] = 'price';
-	    $h++;
-    }
-
-    // Log
-    $head[$h][0] = DOL_URL_ROOT.'/societe/info.php?socid='.$object->id;
-    $head[$h][1] = $langs->trans("Info");
-    $head[$h][2] = 'info';
+        // Адреси
+    $head[$h][0] = DOL_URL_ROOT.'/societe/societeaddress.php?mainmenu=&idmenu=&socid='.$object->id;
+    $head[$h][1] = $langs->trans("AddressList");
+    $head[$h][2] = 'AddressList';
     $h++;
-
+    // Список контактів
+    $head[$h][0] = DOL_URL_ROOT.'/societe/societecontact.php?mainmenu=&idmenu=&socid='.$object->id;
+    $head[$h][1] = $langs->trans("ContactList");
+    $head[$h][2] = 'ContactList';
+    $h++;
+    // Господарські дані
+    $head[$h][0] = DOL_URL_ROOT.'/societe/economin_indicator.php?mainmenu=&idmenu=&socid='.$object->id;
+    $head[$h][1] = $langs->trans("EconomicData");
+    $head[$h][2] = 'EconomicData';
+    $h++;
+    //Напрямкок
+    $head[$h][0] = DOL_URL_ROOT.'/societe/lineactive.php?mainmenu=&idmenu=&socid='.$object->id;
+    $head[$h][1] = $langs->trans("LineActive");
+    $head[$h][2] = 'LineActive';
+    //Фінанси і реквізити
+    $head[$h][0] = DOL_URL_ROOT.'/societe/finance.php?mainmenu=&idmenu=&socid='.$object->id;
+    $head[$h][1] = $langs->trans("FinanceAndDetails");
+    $head[$h][2] = 'FinanceAndDetails';
+    $h++;
+    //Партнери контрагента
+    $head[$h][0] = DOL_URL_ROOT.'/societe/partners.php?mainmenu=&idmenu=&socid='.$object->id;
+    $head[$h][1] = $langs->trans("PartnersOfCustomer");
+    $head[$h][2] = 'PartnersOfCustomer';
+    $h++;
     complete_head_from_modules($conf,$langs,$object,$head,$h,'thirdparty','remove');
 
     return $head;

@@ -39,16 +39,20 @@ llxHeader('',$ContactList,$help_url);
 print_fiche_titre($ContactList);
 $object = new Societe($db);
 $object->fetch($socid);
+if(!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit')
+    $action = '&action=edit';
+else
+    $action = '';
 print '
         <div class="tabs" data-role="controlgroup" data-type="horizontal">
             <div class="inline-block tabsElem">
-                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/soc.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('BasicInfo').'</a>
+                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/soc.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].$action.'&socid='.$object->id.'">'.$langs->trans('BasicInfo').'</a>
             </div>
             <div class="inline-block tabsElem">
-                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societeaddress.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('AddressList').'</a>
+                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societeaddress.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].$action.'&socid='.$object->id.'">'.$langs->trans('AddressList').'</a>
             </div>
             <div class="inline-block tabsElem tabsElemActive">
-                <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societecontact.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('ContactList').'</a>
+                <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societecontact.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].$action.'&socid='.$object->id.'">'.$langs->trans('ContactList').'</a>
             </div>';
 $sql = "select case when `responsibility_param`.`fx_category_counterparty` is null then `responsibility_param`.`other_category` else `responsibility_param`.`fx_category_counterparty` end category_id, `responsibility`.`alias` from `responsibility`
                 inner join `responsibility_param` on `responsibility_param`.`fx_responsibility` = `responsibility`.`rowid`
@@ -79,11 +83,11 @@ $sql = "select case when `responsibility_param`.`fx_category_counterparty` is nu
             }
 
                 print '<div class="inline-block tabsElem">
-                                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('EconomicData').'</a>
+                                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].$action.'&socid='.$object->id.'">'.$langs->trans('EconomicData').'</a>
                             </div>';
             if(in_array($object->categoryofcustomer_id, $purchase_category)||in_array($object->categoryofcustomer_id, $marketing_category)) {
                 print '<div class="inline-block tabsElem">
-                                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/lineactive.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('LineActive').'</a>
+                                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/lineactive.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].$action.'&socid='.$object->id.'">'.$langs->trans('LineActive').'</a>
                             </div>';
             }
 print '<div class="inline-block tabsElem">
@@ -198,10 +202,30 @@ and `llx_societe_contact`.`active` = 1';
 $contacttable = new societecontact();
 //var_dump($_REQUEST['sortfield']);
 if(!isset($_REQUEST['sortfield']))
-    $table = $contacttable->fShowTable($TableParam, $sql, "'".$tablename."'", $conf->theme, null, null, $readonly = array(), false);
+    $table = $contacttable->fShowTable($TableParam, $sql, "'".$tablename."'", $conf->theme, null, null, $readonly = array(), false, !empty($_REQUEST['action']));
 else
-    $table = $contacttable->fShowTable($TableParam, $sql, "'".$tablename."'", $conf->theme, $_REQUEST['sortfield'], $_REQUEST['sortorder']);
-
+    $table = $contacttable->fShowTable($TableParam, $sql, "'".$tablename."'", $conf->theme, $_REQUEST['sortfield'], $_REQUEST['sortorder'], false, !empty($_REQUEST['action']));
+if(!empty($_REQUEST['action'])&&$_REQUEST['action'] == 'edit')
+    $controlbtn = '        <div class="address_header">
+            <div class="blockvmenupair" style="width: auto!important; height: 65px">
+                <div class="menu_titre" style="width: 65px">
+                    <b><?echo $Control?></b>
+                </div>
+                <div class="menu_top"></div>
+                <div class="menu_contenu" style="float: left">
+                    <form action="/dolibarr/htdocs/societe/addcontact.php" method="post">
+                        <input id="url" name="url" type="hidden" value="'.$_SERVER['REQUEST_URI'].'">
+                        <input id="mainmenu" name="mainmenu" type="hidden" value="'.$_REQUEST['mainmenu'].'">
+                        <input id="idmenu" name="idmenu" type="hidden" value="'.$_REQUEST['idmenu'].'">
+                        <input id="user_id" name="user_id" type="hidden" value="'.$user->id.'">
+                        <input id="socid" name="socid" type="hidden" value="'.$socid.'">
+                        <input id="action" name="action" type="hidden" value="add">
+                        <button type="submit">&nbsp;&nbsp;&nbsp;&nbsp;'.$AddContact.'&nbsp;&nbsp;&nbsp;&nbsp;</button>
+                    </form>
+                </div>
+                <div class="menu_end"></div>
+            </div>
+        </div>';
 include DOL_DOCUMENT_ROOT.'/theme/'.$conf->theme.'/societecontact.html';
 
 llxFooter();

@@ -247,7 +247,7 @@ function getContactData($author_id){
             }
         }
     }
-    $sql = "select llx_societe.nom, `llx_societe_contact`.lastname, firstname, work_phone, mobile_phone1, call_mobile_phone1, mobile_phone2, call_mobile_phone2, email1, send_email1, email2, send_email2 from llx_actioncomm
+    $sql = "select llx_societe.rowid, llx_societe.nom, `llx_societe_contact`.lastname, firstname, work_phone, mobile_phone1, call_mobile_phone1, mobile_phone2, call_mobile_phone2, email1, send_email1, email2, send_email2 from llx_actioncomm
         inner join llx_societe on llx_societe.rowid = llx_actioncomm.fk_soc
         left join `llx_societe_contact` on `llx_societe_contact`.rowid = `fk_contact`
         where id = ".$_GET['action_id'];
@@ -257,7 +257,7 @@ function getContactData($author_id){
         dol_print_error($db);
     if($res->num_rows){
         $obj = $db->fetch_object($res);
-        $out.='<b>Компанія</b> '.$obj->nom.'</br>';
+        $out.='<b>Компанія</b> <a href="'.DOL_URL_ROOT.'/societe/soc.php?mainmenu=&idmenu=&socid='.$obj->rowid.'" target="_blank">'.$obj->nom.'</a></br>';
         $out.='<b>Контакт</b> '.$obj->lastname.' '.$obj->firstname.'</br>';
         if($obj->call_mobile_phone1) {
             $userphone = str_replace('+', '', $obj->mobile_phone1);

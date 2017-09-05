@@ -104,6 +104,12 @@ if($_REQUEST['action'] == 'birthday_remainder'){
     global $user,$db;
     define("NOLOGIN",1);		// Не потрібно залогіниватись, якщо створюються автоматичні завдання по нагадуванню про день народження
     $responsibility = [];
+    $sql = "select fk_user from `llx_user_rights` where fk_id = 126";
+    $res = $db->query($sql);
+    $usersID = [];
+    while($obj = $db->fetch_object($res))
+        $usersID[]=$obj->fk_user;
+
     $sql = "select fx_responsibility, fx_category_counterparty from  `responsibility_param`
         where fx_category_counterparty  in (5,7,8,9,10)";
     $res = $db->query($sql);
@@ -128,6 +134,40 @@ if($_REQUEST['action'] == 'birthday_remainder'){
                 $user_congratulator->fetch($id_usr);
                 $datebirth = new DateTime($obj->birthdaydate);
                 $i = 0;
+                //Нагадування для маркетингу
+                foreach ($usersID as $item) {
+                    $date = new DateTime();
+                    $date = dol_getdate($date->getTimestamp());
+                    $remainder = new ActionComm($db);
+                    $date = new DateTime($remainder->GetFreeTime($nowyear.'-'.$date['mon'].'-'.$date['mday'].' 8:0:0', $item, 10));
+                    $datep = $date->getTimestamp();
+                    $datef = $datep_mk+600;
+                    $user_congratulator->fetch($item);
+                    require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
+                    $action = new ActionComm($db);
+                    $exec_minuted = $action->GetExecTime('AC_CURRENT');
+                    $freetime = $action->GetFreeTime(date('Y-m-d'), $item, $exec_minuted, 0);
+                    $date = new DateTime($freetime);
+                    $action->datep = mktime($date->format('h'), $date->format('i'), $date->format('s'), $date->format('m'), $date->format('d'), $date->format('Y'));
+                    $action->datef = $action->datep + $exec_minuted * 60;
+                    $action->type_code = 'AC_CURRENT';
+                    $action->label = "Поздоровити з Д.Н.";
+                    $action->period = 0;
+                    $action->groupoftask = 1;
+                    $action->socid = $obj->socid;
+                    $action->contactid = $obj->contact_id;
+                    $action->percentage = -1;
+                    $action->priority = 0;
+                    $action->authorid = $user_congratulator->id;
+                    $action->note = "Поздоровити з днем народження";
+                    $action->userassigned[] = array("id" => $user_congratulator->id, "transparency" => 1);
+                    $action->userownerid = 1;
+                    $action->fk_element = "";
+                    $action->elementtype = "";
+                    $action->add($user_congratulator);
+                    echo $user_congratulator->id.' '.$obj->socid.'</br>';
+                }
+                //Нагадування для торгівельних агентів
                 foreach ([$now, $datebirth->getTimestamp()] as $date) {
                     $date = dol_getdate($date);
                     $remainder = new ActionComm($db);
@@ -175,8 +215,7 @@ if($_REQUEST['action'] == 'birthday_remainder'){
         }
         $i++;
     }
-    echo '1';
-    exit();
+    die('1');
 }
 if (! empty($conf->projet->enabled)) {
 	require_once DOL_DOCUMENT_ROOT.'/core/class/html.formprojet.class.php';

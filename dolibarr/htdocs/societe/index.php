@@ -25,6 +25,49 @@
  */
 
 require '../main.inc.php';
+if($_REQUEST['action'] == 'BirthdayRemainder'){
+    global $db;
+    $sql = "select fk_user from `llx_user_rights` where fk_id = 126";
+    $res = $db->query($sql);
+    if($res->num_rows){
+        $usersID = [];
+        while($obj = $db->fetch_object($res))
+            $usersID[]=$obj->fk_user;
+        $sql = "select llx_societe.state_id, socid, llx_societe_contact.rowid contact_id from `llx_societe_contact`
+            left join llx_societe on llx_societe.rowid = `llx_societe_contact`.socid
+                    where 1 
+ and date(concat(year(now()), '-', month(`birthdaydate`), '-', day(`birthdaydate`))) = adddate(date(now()), interval 10 day)";
+        $res = $db->query($sql);
+        $userAuthor = new User($db);
+        while($obj = $db->fetch_object($res)) {
+            foreach ($usersID as $item) {
+                $userAuthor->fetch($item);
+                require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
+                $action = new ActionComm($db);
+                $exec_minuted = $action->GetExecTime('AC_CURRENT');
+                $freetime = $action->GetFreeTime(date('Y-m-d'), $item, $exec_minuted, 0);
+                $date = new DateTime($freetime);
+                $action->datep = mktime($date->format('h'), $date->format('i'), $date->format('s'), $date->format('m'), $date->format('d'), $date->format('Y'));
+                $action->datef = $action->datep + $exec_minuted * 60;
+                $action->type_code = 'AC_CURRENT';
+                $action->label = "Поздоровити з Д.Н.";
+                $action->period = 0;
+                $action->socid = $obj->socid;
+                $action->contactid = $obj->contact_id;
+                $action->percentage = -1;
+                $action->priority = 0;
+                $action->authorid = $userAuthor->id;
+                $action->note = 'Необхідно поздоровити контрагента з нем народження';
+                $action->userassigned[] = array("id" => $userAuthor->id, "transparency" => 1);
+                $action->userownerid = 1;
+                $action->fk_element = "";
+                $action->elementtype = "";
+                $action->add($userAuthor);
+            }
+        }
+        die('1');
+    }
+}
 if($_REQUEST['action'] == 'findSocieteContact'){
     global $db;
     $phone = '%';

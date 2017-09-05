@@ -150,11 +150,11 @@ class societecontact {
 //        }
         return $out;
     }
-    public function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $sortorder='', $readonly = array(), $showtitle=false){
+    public function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $sortorder='', $readonly = array(), $showtitle=false, $edit = true){
         global $user, $conf, $langs, $db;
 
 //            echo '<pre>';
-//            var_dump($sql);
+//            var_dump( $showtitle, $edit);
 //            echo '</pre>';
 //            die();
         $notShowedFields = array('rowid', 'socid', 'post_id');
@@ -442,18 +442,22 @@ class societecontact {
                                     $width = ($title[$num_col - 1]['width']) != '' ? ($title[$num_col - 1]['width'] + (($num_col - 1) * 1.5) . 'px') : ('auto');
 
                                 if ($fields[$num_col]->type == 16) {
-                                    if (count($readonly) == 0) {
-                                        if ($value == '1') {
-                                            $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');" > </td>';
+                                    if($edit) {
+                                        if (count($readonly) == 0) {
+                                            if ($value == '1') {
+                                                $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');" > </td>';
+                                            } else {
+                                                $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_off.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');"> </td>';
+                                            }
                                         } else {
-                                            $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_off.png" onclick="change_switch(' . $row['rowid'] . ', ' . $tablename . ', ' . $col_name . ');"> </td>';
+                                            if (in_array($row['rowid'], $readonly)) {
+                                                $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png"> </td>';
+                                            } else {
+                                                $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_off.png"> </td>';
+                                            }
                                         }
-                                    } else {
-                                        if (in_array($row['rowid'], $readonly)) {
-                                            $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_on.png"> </td>';
-                                        } else {
-                                            $table .= '<td class = "switch" id="' . $row['rowid'] . $fields[$num_col]->name . '" style="width: ' . $width . '" ><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/switch_off.png"> </td>';
-                                        }
+                                    }else{
+                                        $table.="<td></td>";
                                     }
                                 } elseif (!empty($title[$num_col - 1]['action'])) {
                                     $link = "'" . $title[$num_col - 1]["action"] . '&' . $title[$num_col - 1]["param"] . '=' . $row['rowid'] . "'";
@@ -502,6 +506,7 @@ class societecontact {
                                                         $table .= '<td id="proposed'.$row['post_id'].'" style="width: 20px" onclick="showTitleProposed('.$row['post_id'].','.$postArray[$row['post_id']][0][0].','.$row['rowid'].', proposed'.$row['post_id'].');"><img id="proposedIcon' . $row['rowid'] . $fields[$num_col]->name . '" title = "'.$langs->trans('Proposition').'" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/strawberry.png"></td>';
                                                     $table .= '<td style="width: 20px" onclick="showSMSform(' . $number . ');"><img id="sms' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/object_sms.png"></td>';
                                                 }
+                                                
                                                 $ID = "'#img" . $row['rowid'] . $fields[$num_col]->name . "'";
                                                 if ($row[$call_pref . "_" . $fields[$num_col]->name] == 0)
                                                     $table .= '<td><img id="img' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/uncheck.png" onclick = "change_switch_callfield($(' . $ID . '));">';
@@ -520,6 +525,7 @@ class societecontact {
                                                     //                                            echo '</pre>';
                                                     $table .= '</td>';
                                                 }
+
                                             }
                                             $table .= '</tr>';
                                             $table .= '</table>';
@@ -589,13 +595,13 @@ class societecontact {
 //            die();
 //            if(count($readonly)==0 && $showtitle) {
             $click_link = "/dolibarr/htdocs/societe/addcontact.php?action=edit&mainmenu=companies&rowid=".$row['rowid'];
-                $table .= '<td style="width: 20px" align="left">
-                <script> var click_event'.$row['rowid'].' = "'.$click_link.'";</script>
-                <img  id="img_'. $row['rowid'].'" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/edit.png" title="'.$langs->trans('Edit').'" style="vertical-align: middle" onclick="location.href=click_event'.$row['rowid'].'"">
-
-
-                       </td>';
-//            }
+            if($edit){
+                $table .= '<td style="width: 20px" align="left">   
+                    <script> var click_event'.$row['rowid'].' = "'.$click_link.'";</script>
+                    <img  id="img_'. $row['rowid'].'" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/edit.png" title="'.$langs->trans('Edit').'" style="vertical-align: middle" onclick="location.href=click_event'.$row['rowid'].'""></td>';
+            }else{
+                $table.='<td></td>';
+            }
             $table .= '</tr>';
         }
         $table .= '</tbody>'."\r\n";

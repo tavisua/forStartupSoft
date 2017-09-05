@@ -123,17 +123,20 @@ if($_REQUEST['action'] == 'get_economic_indicators') {
 $Title = $langs->trans("EconomicIndicators");
 llxHeader('',$Title,$help_url);
 print_fiche_titre($Title);
-
+if(!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit')
+    $action = '&action=edit';
+else
+    $action = '';
 print '
         <div class="tabs" data-role="controlgroup" data-type="horizontal">
             <div class="inline-block tabsElem">
-                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/soc.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('BasicInfo').'</a>
+                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/soc.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].$action.'&socid='.$object->id.'">'.$langs->trans('BasicInfo').'</a>
             </div>
             <div class="inline-block tabsElem">
-                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societeaddress.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('AddressList').'</a>
+                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societeaddress.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].$action.'&socid='.$object->id.'">'.$langs->trans('AddressList').'</a>
             </div>
             <div class="inline-block tabsElem">
-                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societecontact.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('ContactList').'</a>
+                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societecontact.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].$action.'&socid='.$object->id.'">'.$langs->trans('ContactList').'</a>
             </div>';
             $sql = "select case when `responsibility_param`.`fx_category_counterparty` is null then `responsibility_param`.`other_category` else `responsibility_param`.`fx_category_counterparty` end category_id, `responsibility`.`alias` from `responsibility`
                 inner join `responsibility_param` on `responsibility_param`.`fx_responsibility` = `responsibility`.`rowid`
@@ -164,11 +167,11 @@ print '
             }
 
             print '<div class="inline-block tabsElem">
-                            <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('EconomicData').'</a>
+                            <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].$action.'&socid='.$object->id.'">'.$langs->trans('EconomicData').'</a>
                         </div>';
             if(in_array($object->categoryofcustomer_id, $purchase_category)||in_array($object->categoryofcustomer_id, $marketing_category)) {
                 print '<div class="inline-block tabsElem">
-                                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/lineactive.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('LineActive').'</a>
+                                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/lineactive.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].$action.'&socid='.$object->id.'">'.$langs->trans('LineActive').'</a>
                             </div>';
             }
 //
@@ -179,7 +182,27 @@ print '<div class="inline-block tabsElem">
                 <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/partners.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&socid='.$object->id.'">'.$langs->trans('PartnersOfCustomer').'</a>
             </div>
         </div>';
-
+if(!empty($_REQUEST['action']))
+    $contactbtn = '    <div class="address_header">
+            <div class="blockvmenupair">
+                <div class="menu_titre">
+                    <b>'.$langs->trans('Control').'</b>
+                </div>
+                <div class="menu_top"></div>
+                <div class="menu_contenu">
+                    <form action="'.$_SERVER['PHP_SELF'].'" method="post">
+                        <input id="url" name="url" type="hidden" value="'.$_SERVER['REQUEST_URI'].'">
+                        <input id="mainmenu" name="mainmenu" type="hidden" value="'.$_REQUEST['mainmenu'].'">
+                        <input id="idmenu" name="idmenu" type="hidden" value="'.$_REQUEST['idmenu'].'">
+                        <input id="user_id" name="user_id" type="hidden" value="'.$user->id.'">
+                        <input id="socid" name="socid" type="hidden" value="'.$socid.'">
+                        <input id="action" name="action" type="hidden" value="add">
+                        <button type="submit">&nbsp;&nbsp;&nbsp;&nbsp;'.$langs->trans('AddParameters').'&nbsp;&nbsp;&nbsp;&nbsp;</button>
+                    </form>
+                </div>
+                <div class="menu_end"></div>
+            </div>
+        </div>';
 //if(in_array($object->categoryofcustomer_id, $sales_category)){
     include($_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/theme/' . $conf->theme . '/economic_indicator.html');
     print '<script>

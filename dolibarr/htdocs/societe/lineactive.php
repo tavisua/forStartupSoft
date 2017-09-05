@@ -159,22 +159,26 @@ $sql = "select case when `responsibility_param`.`fx_category_counterparty` is nu
 $Title = $langs->trans("LineActive");
 llxHeader('',$Title,$help_url);
 print_fiche_titre($Title);
+if(!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit')
+    $action = '&action=edit';
+else
+    $action = '';
 print '
         <div class="tabs" data-role="controlgroup" data-type="horizontal">
             <div class="inline-block tabsElem">
-                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/soc.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('BasicInfo').'</a>
+                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/soc.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].$action.'&socid='.$object->id.'">'.$langs->trans('BasicInfo').'</a>
             </div>
             <div class="inline-block tabsElem">
-                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societeaddress.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('AddressList').'</a>
+                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societeaddress.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].$action.'&socid='.$object->id.'">'.$langs->trans('AddressList').'</a>
             </div>
             <div class="inline-block tabsElem">
-                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societecontact.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('ContactList').'</a>
+                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societecontact.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].$action.'&socid='.$object->id.'">'.$langs->trans('ContactList').'</a>
             </div>';
             print '<div class="inline-block tabsElem">
-                            <a id="user" class=" tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('EconomicData').'</a>
+                            <a id="user" class=" tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].$action.'&socid='.$object->id.'">'.$langs->trans('EconomicData').'</a>
                         </div>';
             print '<div class="inline-block tabactive tabsElem">
-                                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/lineactive.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('LineActive').'</a>
+                                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/lineactive.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].$action.'&socid='.$object->id.'">'.$langs->trans('LineActive').'</a>
                             </div>';
 
 print '<div class="inline-block tabsElem">
@@ -227,7 +231,8 @@ print '<div class="inline-block tabsElem">
     elseif(in_array($object->categoryofcustomer_id, $marketing_category))
         print $form->select_lineaction_marketing($lineactive, 'select_lineaction', 30);
     print '</br>';
-    print '<input type="submit" value="Зберегти">';
+    if(!empty($action))
+        print '<input type="submit" value="Зберегти">';
     print '</form>';
     print '</div>';
     print "<script>

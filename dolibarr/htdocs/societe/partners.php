@@ -143,16 +143,20 @@ llxHeader('',$Title,$help_url);
 print_fiche_titre($Title);
 $object = new Societe($db);
 $object->fetch($socid);
+if(!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit')
+    $action = '&action=edit';
+else
+   $action = '';
 print '
         <div class="tabs" data-role="controlgroup" data-type="horizontal">
             <div class="inline-block tabsElem">
-                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/soc.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$_REQUEST['socid'].'">'.$langs->trans('BasicInfo').'</a>
+                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/soc.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].$action.'&socid='.$_REQUEST['socid'].'">'.$langs->trans('BasicInfo').'</a>
             </div>
             <div class="inline-block tabsElem">
-                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societeaddress.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$_REQUEST['socid'].'">'.$langs->trans('AddressList').'</a>
+                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societeaddress.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].$action.'&socid='.$_REQUEST['socid'].'">'.$langs->trans('AddressList').'</a>
             </div>
             <div class="inline-block tabsElem">
-                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societecontact.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$_REQUEST['socid'].'">'.$langs->trans('ContactList').'</a>
+                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societecontact.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].$action.'&socid='.$_REQUEST['socid'].'">'.$langs->trans('ContactList').'</a>
             </div>';
 $sql = "select case when `responsibility_param`.`fx_category_counterparty` is null then `responsibility_param`.`other_category` else `responsibility_param`.`fx_category_counterparty` end category_id, `responsibility`.`alias` from `responsibility`
                 inner join `responsibility_param` on `responsibility_param`.`fx_responsibility` = `responsibility`.`rowid`
@@ -183,11 +187,11 @@ $sql = "select case when `responsibility_param`.`fx_category_counterparty` is nu
             }
 
                 print '<div class="inline-block tabsElem">
-                                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('EconomicData').'</a>
+                                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].$action.'&socid='.$object->id.'">'.$langs->trans('EconomicData').'</a>
                             </div>';
             if(in_array($object->categoryofcustomer_id, $purchase_category)||in_array($object->categoryofcustomer_id, $marketing_category)) {
                 print '<div class="inline-block tabsElem">
-                                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/lineactive.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('LineActive').'</a>
+                                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/lineactive.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].$action.'&socid='.$object->id.'">'.$langs->trans('LineActive').'</a>
                             </div>';
             }
 print '<div class="inline-block tabsElem">
@@ -198,6 +202,28 @@ print '<div class="inline-block tabsElem">
             </div>
         </div>';
 $table = ShowTable();
+if(!empty($action))
+    $controlbtn =
+        '<div class="address_header">
+            <div class="blockvmenupair">
+            <div class="menu_titre">
+                <b>'.$langs->trans('Control').'</b>
+            </div>
+            <div class="menu_top"></div>
+            <div class="menu_contenu">
+                <form id="control" action="'.$_SERVER['PHP_SELF'].'" method="post">
+                    <input id="url" name="url" type="hidden" value="'.$_SERVER['REQUEST_URI'].'">
+                    <input id="mainmenu" name="mainmenu" type="hidden" value="'.$_REQUEST['mainmenu'].'">
+                    <input id="idmenu" name="idmenu" type="hidden" value="'.$_REQUEST['idmenu'].'">
+                    <input id="socid" name="socid" type="hidden" value="'.$socid.'">
+                    <input id="rowid" name="rowid" type="hidden" value="">
+                    <input id="action" name="action" type="hidden" value="add">
+                    <button type="submit">&nbsp;&nbsp;&nbsp;&nbsp;'.$langs->trans('AddItem').'&nbsp;&nbsp;&nbsp;&nbsp;</button>
+                </form>
+            </div>
+            <div class="menu_end"></div>
+            </div>
+        </div>';
 include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/societepartners.html');
 exit();
 function ShowTable()

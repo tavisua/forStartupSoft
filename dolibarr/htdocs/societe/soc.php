@@ -428,7 +428,7 @@ if (empty($reshook))
                 	if (!empty($backtopage))
                 	{
                         if($_REQUEST['mainmenu'] == 'area' && $action == 'add'){
-                            header("Location: /dolibarr/htdocs/societe/societeaddress.php?mainmenu=area&idmenu=10425&socid=" . $object->id);
+                            header("Location: /dolibarr/htdocs/societe/societeaddress.php?mainmenu=area&idmenu=10425&socid=" . $object->id.'&action=edit');
                         }else {
                             header("Location: " . $backtopage . "=#tr" . $object->id);
                         }
@@ -2399,6 +2399,7 @@ else
         $res=$object->fetch($socid);
 //        var_dump($socid);
 //        die();
+
         if ($res < 0) {
             dol_print_error($db,$object->error);
             exit;
@@ -2434,11 +2435,10 @@ else
         print '</td>';
         print '</tr>';
         */
-
         // Name
         print '<tr><td width="25%">'.$langs->trans('ThirdPartyName').'</td>';
         print '<td colspan="3">';
-        print $form->showrefnav($object, 'socid', '', ($user->societe_id?0:1), 'rowid', 'nom');
+        print $object->name;
         print '</td>';
         print '</tr>';
 
@@ -2501,17 +2501,17 @@ else
             print '</tr>';
         }
 
-        // Status
-        print '<tr><td>'.$langs->trans("Status").'</td>';
-        print '<td colspan="'.(2+(($showlogo || $showbarcode)?0:1)).'">';
-        if (! empty($conf->use_javascript_ajax) && $user->rights->societe->creer && ! empty($conf->global->MAIN_DIRECT_STATUS_UPDATE)) {
-            print ajax_object_onoff($object, 'status', 'status', 'InActivity', 'ActivityCeased');
-        } else {
-            print $object->getLibStatut(2);
-        }
-        print '</td>';
-        print $htmllogobar; $htmllogobar='';
-        print '</tr>';
+//        // Status
+//        print '<tr><td>'.$langs->trans("Status").'</td>';
+//        print '<td colspan="'.(2+(($showlogo || $showbarcode)?0:1)).'">';
+//        if (! empty($conf->use_javascript_ajax) && $user->rights->societe->creer && ! empty($conf->global->MAIN_DIRECT_STATUS_UPDATE)) {
+//            print ajax_object_onoff($object, 'status', 'status', 'InActivity', 'ActivityCeased');
+//        } else {
+//            print $object->getLibStatut(2);
+//        }
+//        print '</td>';
+//        print $htmllogobar; $htmllogobar='';
+//        print '</tr>';
 
         // Address
         print "<tr><td valign=\"top\">".$langs->trans('Address').'</td><td colspan="'.(2+(($showlogo || $showbarcode)?0:1)).'">';
@@ -2560,164 +2560,164 @@ else
         print '<tr><td>'.$langs->trans('Phone').'</td><td style="min-width: 25%;">'.dol_print_phone($object->phone,$object->country_code,0,$object->id,'AC_TEL').'</td>';
         print '<td>'.$langs->trans('Fax').'</td><td style="min-width: 25%;">'.dol_print_phone($object->fax,$object->country_code,0,$object->id,'AC_FAX').'</td></tr>';
 
-        // Prof ids
-        $i=1; $j=0;
-        while ($i <= 6)
-        {
-            $idprof=$langs->transcountry('ProfId'.$i,$object->country_code);
-            if ($idprof!='-')
-            {
-                if (($j % 2) == 0) print '<tr>';
-                print '<td>'.$idprof.'</td><td>';
-                $key='idprof'.$i;
-                print $object->$key;
-                if ($object->$key)
-                {
-                    if ($object->id_prof_check($i,$object) > 0) print ' &nbsp; '.$object->id_prof_url($i,$object);
-                    else print ' <font class="error">('.$langs->trans("ErrorWrongValue").')</font>';
-                }
-                print '</td>';
-                if (($j % 2) == 1) print '</tr>';
-                $j++;
-            }
-            $i++;
-        }
-        if ($j % 2 == 1)  print '<td colspan="2"></td></tr>';
+//        // Prof ids
+//        $i=1; $j=0;
+//        while ($i <= 6)
+//        {
+//            $idprof=$langs->transcountry('ProfId'.$i,$object->country_code);
+//            if ($idprof!='-')
+//            {
+//                if (($j % 2) == 0) print '<tr>';
+//                print '<td>'.$idprof.'</td><td>';
+//                $key='idprof'.$i;
+//                print $object->$key;
+//                if ($object->$key)
+//                {
+//                    if ($object->id_prof_check($i,$object) > 0) print ' &nbsp; '.$object->id_prof_url($i,$object);
+//                    else print ' <font class="error">('.$langs->trans("ErrorWrongValue").')</font>';
+//                }
+//                print '</td>';
+//                if (($j % 2) == 1) print '</tr>';
+//                $j++;
+//            }
+//            $i++;
+//        }
+//        if ($j % 2 == 1)  print '<td colspan="2"></td></tr>';
 
-        // VAT payers
-        print '<tr><td>';
-        print $langs->trans('VATIsUsed');
-        print '</td><td>';
-        print yn($object->tva_assuj);
-        print '</td>';
+//        // VAT payers
+//        print '<tr><td>';
+//        print $langs->trans('VATIsUsed');
+//        print '</td><td>';
+//        print yn($object->tva_assuj);
+//        print '</td>';
+//
+//        // VAT Code
+//        print '<td class="nowrap">'.$langs->trans('VATIntra').'</td><td>';
+//        if ($object->tva_intra)
+//        {
+//            $s='';
+//            $s.=$object->tva_intra;
+//            $s.='<input type="hidden" id="tva_intra" name="tva_intra" size="12" maxlength="20" value="'.$object->tva_intra.'">';
+//
+//            if (empty($conf->global->MAIN_DISABLEVATCHECK))
+//            {
+//                $s.=' &nbsp; ';
+//
+//                if ($conf->use_javascript_ajax)
+//                {
+//                    print "\n";
+//                    print '<script language="JavaScript" type="text/javascript">';
+//                    print "function CheckVAT(a) {\n";
+//                    print "newpopup('".DOL_URL_ROOT."/societe/checkvat/checkVatPopup.php?vatNumber='+a,'".dol_escape_js($langs->trans("VATIntraCheckableOnEUSite"))."',500,285);\n";
+//                    print "}\n";
+//                    print '</script>';
+//                    print "\n";
+//                    $s.='<a href="#" class="hideonsmartphone" onclick="javascript: CheckVAT( $(\'#tva_intra\').val() );">'.$langs->trans("VATIntraCheck").'</a>';
+//                    $s = $form->textwithpicto($s,$langs->trans("VATIntraCheckDesc",$langs->trans("VATIntraCheck")),1);
+//                }
+//                else
+//                {
+//                    $s.='<a href="'.$langs->transcountry("VATIntraCheckURL",$object->country_id).'" class="hideonsmartphone" target="_blank">'.img_picto($langs->trans("VATIntraCheckableOnEUSite"),'help').'</a>';
+//                }
+//            }
+//            print $s;
+//        }
+//        else
+//        {
+//            print '&nbsp;';
+//        }
+//        print '</td>';
+//        print '</tr>';
 
-        // VAT Code
-        print '<td class="nowrap">'.$langs->trans('VATIntra').'</td><td>';
-        if ($object->tva_intra)
-        {
-            $s='';
-            $s.=$object->tva_intra;
-            $s.='<input type="hidden" id="tva_intra" name="tva_intra" size="12" maxlength="20" value="'.$object->tva_intra.'">';
-
-            if (empty($conf->global->MAIN_DISABLEVATCHECK))
-            {
-                $s.=' &nbsp; ';
-
-                if ($conf->use_javascript_ajax)
-                {
-                    print "\n";
-                    print '<script language="JavaScript" type="text/javascript">';
-                    print "function CheckVAT(a) {\n";
-                    print "newpopup('".DOL_URL_ROOT."/societe/checkvat/checkVatPopup.php?vatNumber='+a,'".dol_escape_js($langs->trans("VATIntraCheckableOnEUSite"))."',500,285);\n";
-                    print "}\n";
-                    print '</script>';
-                    print "\n";
-                    $s.='<a href="#" class="hideonsmartphone" onclick="javascript: CheckVAT( $(\'#tva_intra\').val() );">'.$langs->trans("VATIntraCheck").'</a>';
-                    $s = $form->textwithpicto($s,$langs->trans("VATIntraCheckDesc",$langs->trans("VATIntraCheck")),1);
-                }
-                else
-                {
-                    $s.='<a href="'.$langs->transcountry("VATIntraCheckURL",$object->country_id).'" class="hideonsmartphone" target="_blank">'.img_picto($langs->trans("VATIntraCheckableOnEUSite"),'help').'</a>';
-                }
-            }
-            print $s;
-        }
-        else
-        {
-            print '&nbsp;';
-        }
-        print '</td>';
-        print '</tr>';
-
-        // Local Taxes
-        //TODO: Place into a function to control showing by country or study better option
-        if($mysoc->localtax1_assuj=="1" && $mysoc->localtax2_assuj=="1")
-        {
-            print '<tr><td>'.$langs->transcountry("LocalTax1IsUsed",$mysoc->country_code).'</td><td>';
-            print yn($object->localtax1_assuj);
-            print '</td><td>'.$langs->transcountry("LocalTax2IsUsed",$mysoc->country_code).'</td><td>';
-            print yn($object->localtax2_assuj);
-            print '</td></tr>';
-
-            if($object->localtax1_assuj=="1" && (! isOnlyOneLocalTax(1)))
-            {
-            	print '<form method="post" action="'.$_SERVER['PHP_SELF'].'?socid='.$object->id.'">';
-            	print '<input type="hidden" name="action" value="set_localtax1">';
-            	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-            	print '<tr><td>'.$langs->transcountry("TypeLocaltax1", $mysoc->country_code).' <a href="'.$_SERVER["PHP_SELF"].'?action=editRE&amp;socid='.$object->id.'">'.img_edit($langs->transnoentitiesnoconv('Edit'),1).'</td>';
-            	if($action == 'editRE')
-            	{
-            		print '<td align="left">';
-            		$formcompany->select_localtax(1,$object->localtax1_value, "lt1");
-            		print '<input type="submit" class="button" value="'.$langs->trans("Modify").'"></td>';
-            	}
-            	else
-            	{
-            		print '<td>'.$object->localtax1_value.'</td>';
-            	}
-            	print '</tr></form>';
-            }
-            if($object->localtax2_assuj=="1" && (! isOnlyOneLocalTax(2)))
-            {
-            	print '<form method="post" action="'.$_SERVER['PHP_SELF'].'?socid='.$object->id.'">';
-            	print '<input type="hidden" name="action" value="set_localtax2">';
-            	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-            	print '<tr><td>'.$langs->transcountry("TypeLocaltax2", $mysoc->country_code).'<a href="'.$_SERVER["PHP_SELF"].'?action=editIRPF&amp;socid='.$object->id.'">'.img_edit($langs->transnoentitiesnoconv('Edit'),1).'</td>';
-            	if($action == 'editIRPF'){
-            		print '<td align="left">';
-            		$formcompany->select_localtax(2,$object->localtax2_value, "lt2");
-            		print '<input type="submit" class="button" value="'.$langs->trans("Modify").'"></td>';
-            	}else{
-            		print '<td>'.$object->localtax2_value.'</td>';
-            	}
-            	print '</tr></form>';
-            }
-        }
-        elseif($mysoc->localtax1_assuj=="1" && $mysoc->localtax2_assuj!="1")
-        {
-            print '<tr><td>'.$langs->transcountry("LocalTax1IsUsed",$mysoc->country_code).'</td><td colspan="3">';
-            print yn($object->localtax1_assuj);
-            print '</td><tr>';
-            if($object->localtax1_assuj=="1" && (! isOnlyOneLocalTax(1)))
-            {
-            	print '<form method="post" action="'.$_SERVER['PHP_SELF'].'?socid='.$object->id.'">';
-            	print '<input type="hidden" name="action" value="set_localtax1">';
-            	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-            	print '<tr><td> '.$langs->transcountry("TypeLocaltax1", $mysoc->country_code).'<a href="'.$_SERVER["PHP_SELF"].'?action=editRE&amp;socid='.$object->id.'">'.img_edit($langs->transnoentitiesnoconv('Edit'),1).'</td>';
-            	if($action == 'editRE'){
-            		print '<td align="left">';
-            		$formcompany->select_localtax(1,$object->localtax1_value, "lt1");
-            		print '<input type="submit" class="button" value="'.$langs->trans("Modify").'"></td>';
-            	}else{
-            		print '<td>'.$object->localtax1_value.'</td>';
-            	}
-            	print '</tr></form>';
-
-            }
-        }
-        elseif($mysoc->localtax2_assuj=="1" && $mysoc->localtax1_assuj!="1")
-        {
-            print '<tr><td>'.$langs->transcountry("LocalTax2IsUsed",$mysoc->country_code).'</td><td colspan="3">';
-            print yn($object->localtax2_assuj);
-            print '</td><tr>';
-            if($object->localtax2_assuj=="1" && (! isOnlyOneLocalTax(2)))
-            {
-
-            	print '<form method="post" action="'.$_SERVER['PHP_SELF'].'?socid='.$object->id.'">';
-            	print '<input type="hidden" name="action" value="set_localtax2">';
-            	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
-            	print '<tr><td> '.$langs->transcountry("TypeLocaltax2", $mysoc->country_code).' <a href="'.$_SERVER["PHP_SELF"].'?action=editIRPF&amp;socid='.$object->id.'">'.img_edit($langs->transnoentitiesnoconv('Edit'),1).'</td>';
-            	if($action == 'editIRPF'){
-            		print '<td align="left">';
-            		$formcompany->select_localtax(2,$object->localtax2_value, "lt2");
-            		print '<input type="submit" class="button" value="'.$langs->trans("Modify").'"></td>';
-            	}else{
-            		print '<td>'.$object->localtax2_value.'</td>';
-            	}
-            	print '</tr></form>';
-
-            }
-        }
+//        // Local Taxes
+//        //TODO: Place into a function to control showing by country or study better option
+//        if($mysoc->localtax1_assuj=="1" && $mysoc->localtax2_assuj=="1")
+//        {
+//            print '<tr><td>'.$langs->transcountry("LocalTax1IsUsed",$mysoc->country_code).'</td><td>';
+//            print yn($object->localtax1_assuj);
+//            print '</td><td>'.$langs->transcountry("LocalTax2IsUsed",$mysoc->country_code).'</td><td>';
+//            print yn($object->localtax2_assuj);
+//            print '</td></tr>';
+//
+//            if($object->localtax1_assuj=="1" && (! isOnlyOneLocalTax(1)))
+//            {
+//            	print '<form method="post" action="'.$_SERVER['PHP_SELF'].'?socid='.$object->id.'">';
+//            	print '<input type="hidden" name="action" value="set_localtax1">';
+//            	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+//            	print '<tr><td>'.$langs->transcountry("TypeLocaltax1", $mysoc->country_code).' <a href="'.$_SERVER["PHP_SELF"].'?action=editRE&amp;socid='.$object->id.'">'.img_edit($langs->transnoentitiesnoconv('Edit'),1).'</td>';
+//            	if($action == 'editRE')
+//            	{
+//            		print '<td align="left">';
+//            		$formcompany->select_localtax(1,$object->localtax1_value, "lt1");
+//            		print '<input type="submit" class="button" value="'.$langs->trans("Modify").'"></td>';
+//            	}
+//            	else
+//            	{
+//            		print '<td>'.$object->localtax1_value.'</td>';
+//            	}
+//            	print '</tr></form>';
+//            }
+//            if($object->localtax2_assuj=="1" && (! isOnlyOneLocalTax(2)))
+//            {
+//            	print '<form method="post" action="'.$_SERVER['PHP_SELF'].'?socid='.$object->id.'">';
+//            	print '<input type="hidden" name="action" value="set_localtax2">';
+//            	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+//            	print '<tr><td>'.$langs->transcountry("TypeLocaltax2", $mysoc->country_code).'<a href="'.$_SERVER["PHP_SELF"].'?action=editIRPF&amp;socid='.$object->id.'">'.img_edit($langs->transnoentitiesnoconv('Edit'),1).'</td>';
+//            	if($action == 'editIRPF'){
+//            		print '<td align="left">';
+//            		$formcompany->select_localtax(2,$object->localtax2_value, "lt2");
+//            		print '<input type="submit" class="button" value="'.$langs->trans("Modify").'"></td>';
+//            	}else{
+//            		print '<td>'.$object->localtax2_value.'</td>';
+//            	}
+//            	print '</tr></form>';
+//            }
+//        }
+//        elseif($mysoc->localtax1_assuj=="1" && $mysoc->localtax2_assuj!="1")
+//        {
+//            print '<tr><td>'.$langs->transcountry("LocalTax1IsUsed",$mysoc->country_code).'</td><td colspan="3">';
+//            print yn($object->localtax1_assuj);
+//            print '</td><tr>';
+//            if($object->localtax1_assuj=="1" && (! isOnlyOneLocalTax(1)))
+//            {
+//            	print '<form method="post" action="'.$_SERVER['PHP_SELF'].'?socid='.$object->id.'">';
+//            	print '<input type="hidden" name="action" value="set_localtax1">';
+//            	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+//            	print '<tr><td> '.$langs->transcountry("TypeLocaltax1", $mysoc->country_code).'<a href="'.$_SERVER["PHP_SELF"].'?action=editRE&amp;socid='.$object->id.'">'.img_edit($langs->transnoentitiesnoconv('Edit'),1).'</td>';
+//            	if($action == 'editRE'){
+//            		print '<td align="left">';
+//            		$formcompany->select_localtax(1,$object->localtax1_value, "lt1");
+//            		print '<input type="submit" class="button" value="'.$langs->trans("Modify").'"></td>';
+//            	}else{
+//            		print '<td>'.$object->localtax1_value.'</td>';
+//            	}
+//            	print '</tr></form>';
+//
+//            }
+//        }
+//        elseif($mysoc->localtax2_assuj=="1" && $mysoc->localtax1_assuj!="1")
+//        {
+//            print '<tr><td>'.$langs->transcountry("LocalTax2IsUsed",$mysoc->country_code).'</td><td colspan="3">';
+//            print yn($object->localtax2_assuj);
+//            print '</td><tr>';
+//            if($object->localtax2_assuj=="1" && (! isOnlyOneLocalTax(2)))
+//            {
+//
+//            	print '<form method="post" action="'.$_SERVER['PHP_SELF'].'?socid='.$object->id.'">';
+//            	print '<input type="hidden" name="action" value="set_localtax2">';
+//            	print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+//            	print '<tr><td> '.$langs->transcountry("TypeLocaltax2", $mysoc->country_code).' <a href="'.$_SERVER["PHP_SELF"].'?action=editIRPF&amp;socid='.$object->id.'">'.img_edit($langs->transnoentitiesnoconv('Edit'),1).'</td>';
+//            	if($action == 'editIRPF'){
+//            		print '<td align="left">';
+//            		$formcompany->select_localtax(2,$object->localtax2_value, "lt2");
+//            		print '<input type="submit" class="button" value="'.$langs->trans("Modify").'"></td>';
+//            	}else{
+//            		print '<td>'.$object->localtax2_value.'</td>';
+//            	}
+//            	print '</tr></form>';
+//
+//            }
+//        }
 /*
         if ($mysoc->country_code=='ES' && $mysoc->localtax2_assuj!="1" && ! empty($conf->fournisseur->enabled) && $object->fournisseur==1)
         {
@@ -2727,9 +2727,9 @@ else
         }
 */
         // Type + Staff
-        $arr = $formcompany->typent_array(1);
-        $object->typent= $arr[$object->typent_code];
-        print '<tr><td>'.$langs->trans("ThirdPartyType").'</td><td>'.$object->typent.'</td><td>'.$langs->trans("Staff").'</td><td>'.$object->effectif.'</td></tr>';
+//        $arr = $formcompany->typent_array(1);
+//        $object->typent= $arr[$object->typent_code];
+//        print '<tr><td>'.$langs->trans("ThirdPartyType").'</td><td>'.$object->typent.'</td><td>'.$langs->trans("Staff").'</td><td>'.$object->effectif.'</td></tr>';
 
         // Legal
         print '<tr><td>'.$langs->trans('JuridicalStatus').'</td><td colspan="3">'.$object->forme_juridique.'</td></tr>';
@@ -2769,8 +2769,9 @@ else
             print '<table width="100%" class="nobordernopadding"><tr><td>';
             print $langs->trans('RIB');
             print '<td><td align="right">';
-            if ($user->rights->societe->creer) print '<a href="'.DOL_URL_ROOT.'/societe/rib.php?socid='.$object->id.'">'.img_edit().'</a>';
-            else print '&nbsp;';
+//            if ($user->rights->societe->creer) print '<a href="'.DOL_URL_ROOT.'/societe/rib.php?socid='.$object->id.'">'.img_edit().'</a>';
+//            else
+                print '&nbsp;';
             print '</td></tr></table>';
             print '</td>';
             print '<td colspan="3">';
@@ -2778,244 +2779,244 @@ else
             print '</td></tr>';
         }
 
-        // Parent company
-        if (empty($conf->global->SOCIETE_DISABLE_PARENTCOMPANY))
-        {
-        	// Payment term
-        	print '<tr><td>';
-        	print '<table class="nobordernopadding" width="100%"><tr><td>';
-        	print $langs->trans('ParentCompany');
-        	print '</td>';
-        	if ($action != 'editparentcompany') print '<td align="right"><a href="'.$_SERVER["PHP_SELF"].'?action=editparentcompany&amp;socid='.$object->id.'">'.img_edit($langs->transnoentitiesnoconv('Edit'),1).'</a></td>';
-        	print '</tr></table>';
-        	print '</td><td colspan="3">';
-        	if ($action == 'editparentcompany')
-        	{
-        		$form->form_thirdparty($_SERVER['PHP_SELF'].'?socid='.$object->id,$object->parent,'editparentcompany','s.rowid <> '.$object->id,1);
-        	}
-        	else
-        	{
-        		$form->form_thirdparty($_SERVER['PHP_SELF'].'?socid='.$object->id,$object->parent,'none','s.rowid <> '.$object->id,1);
-        	}
-        	print '</td>';
-        	print '</tr>';
-        }
+//        // Parent company
+//        if (empty($conf->global->SOCIETE_DISABLE_PARENTCOMPANY))
+//        {
+//        	// Payment term
+//        	print '<tr><td>';
+//        	print '<table class="nobordernopadding" width="100%"><tr><td>';
+//        	print $langs->trans('ParentCompany');
+//        	print '</td>';
+//        	if ($action != 'editparentcompany') print '<td align="right"><a href="'.$_SERVER["PHP_SELF"].'?action=editparentcompany&amp;socid='.$object->id.'">'.img_edit($langs->transnoentitiesnoconv('Edit'),1).'</a></td>';
+//        	print '</tr></table>';
+//        	print '</td><td colspan="3">';
+//        	if ($action == 'editparentcompany')
+//        	{
+//        		$form->form_thirdparty($_SERVER['PHP_SELF'].'?socid='.$object->id,$object->parent,'editparentcompany','s.rowid <> '.$object->id,1);
+//        	}
+//        	else
+//        	{
+//        		$form->form_thirdparty($_SERVER['PHP_SELF'].'?socid='.$object->id,$object->parent,'none','s.rowid <> '.$object->id,1);
+//        	}
+//        	print '</td>';
+//        	print '</tr>';
+//        }
 
         // Sales representative
         include DOL_DOCUMENT_ROOT.'/societe/tpl/linesalesrepresentative.tpl.php';
 
-        // Module Adherent
-        if (! empty($conf->adherent->enabled))
-        {
-            $langs->load("members");
-            print '<tr><td width="25%" valign="top">'.$langs->trans("LinkedToDolibarrMember").'</td>';
-            print '<td colspan="3">';
-            $adh=new Adherent($db);
-            $result=$adh->fetch('','',$object->id);
-            if ($result > 0)
-            {
-                $adh->ref=$adh->getFullName($langs);
-                print $adh->getNomUrl(1);
-            }
-            else
-            {
-                print $langs->trans("ThirdpartyNotLinkedToMember");
-            }
-            print '</td>';
-            print "</tr>\n";
-        }
-
-        // Webservices url/key
-        if (!empty($conf->syncsupplierwebservices->enabled)) {
-            print '<tr><td>'.$langs->trans("WebServiceURL").'</td><td>'.dol_print_url($object->webservices_url).'</td>';
-            print '<td class="nowrap">'.$langs->trans('WebServiceKey').'</td><td>'.$object->webservices_key.'</td></tr>';
-        }
+//        // Module Adherent
+//        if (! empty($conf->adherent->enabled))
+//        {
+//            $langs->load("members");
+//            print '<tr><td width="25%" valign="top">'.$langs->trans("LinkedToDolibarrMember").'</td>';
+//            print '<td colspan="3">';
+//            $adh=new Adherent($db);
+//            $result=$adh->fetch('','',$object->id);
+//            if ($result > 0)
+//            {
+//                $adh->ref=$adh->getFullName($langs);
+//                print $adh->getNomUrl(1);
+//            }
+//            else
+//            {
+//                print $langs->trans("ThirdpartyNotLinkedToMember");
+//            }
+//            print '</td>';
+//            print "</tr>\n";
+//        }
+//
+//        // Webservices url/key
+//        if (!empty($conf->syncsupplierwebservices->enabled)) {
+//            print '<tr><td>'.$langs->trans("WebServiceURL").'</td><td>'.dol_print_url($object->webservices_url).'</td>';
+//            print '<td class="nowrap">'.$langs->trans('WebServiceKey').'</td><td>'.$object->webservices_key.'</td></tr>';
+//        }
 
         print '</table>';
 
-        dol_fiche_end();
+//        dol_fiche_end();
 
 
         /*
          *  Actions
          */
-        print '<div class="tabsAction">'."\n";
-
-		$parameters=array();
-		$reshook=$hookmanager->executeHooks('addMoreActionsButtons',$parameters,$object,$action);    // Note that $action and $object may have been modified by hook
-		if (empty($reshook))
-		{
-	        if (! empty($object->email))
-	        {
-	        	$langs->load("mails");
-	        	print '<div class="inline-block divButAction"><a class="butAction" href="'.$_SERVER['PHP_SELF'].'?socid='.$object->id.'&amp;action=presend&amp;mode=init">'.$langs->trans('SendMail').'</a></div>';
-	        }
-	        else
-			{
-	        	$langs->load("mails");
-	       		print '<div class="inline-block divButAction"><a class="butActionRefused" href="#" title="'.dol_escape_htmltag($langs->trans("NoEMail")).'">'.$langs->trans('SendMail').'</a></div>';
-	        }
-
-	        if ($user->rights->societe->creer)
-	        {
-	            print '<div class="inline-block divButAction"><a class="butAction" href="'.$_SERVER["PHP_SELF"].'?socid='.$object->id.'&amp;action=edit">'.$langs->trans("Modify").'</a></div>'."\n";
-	        }
-
-	        if ($user->rights->societe->supprimer)
-	        {
-	            if ($conf->use_javascript_ajax && empty($conf->dol_use_jmobile))	// We can't use preloaded confirm form with jmobile
-	            {
-	                print '<div class="inline-block divButAction"><span id="action-delete" class="butActionDelete">'.$langs->trans('Delete').'</span></div>'."\n";
-	            }
-	            else
-				{
-	                print '<div class="inline-block divButAction"><a class="butActionDelete" href="'.$_SERVER["PHP_SELF"].'?socid='.$object->id.'&amp;action=delete">'.$langs->trans('Delete').'</a></div>'."\n";
-	            }
-	        }
-		}
-
-        print '</div>'."\n";
-
-
-		if ($action == 'presend')
-		{
-			/*
-			 * Affiche formulaire mail
-			*/
-
-			// By default if $action=='presend'
-			$titreform='SendMail';
-			$topicmail='';
-			$action='send';
-			$modelmail='thirdparty';
-
-			print '<br>';
-			print_titre($langs->trans($titreform));
-
-			// Define output language
-			$outputlangs = $langs;
-			$newlang = '';
-			if ($conf->global->MAIN_MULTILANGS && empty($newlang) && ! empty($_REQUEST['lang_id']))
-				$newlang = $_REQUEST['lang_id'];
-			if ($conf->global->MAIN_MULTILANGS && empty($newlang))
-				$newlang = $object->client->default_lang;
-
-			// Cree l'objet formulaire mail
-			include_once DOL_DOCUMENT_ROOT.'/core/class/html.formmail.class.php';
-			$formmail = new FormMail($db);
-			$formmail->param['langsmodels']=(empty($newlang)?$langs->defaultlang:$newlang);
-			$formmail->fromtype = 'user';
-			$formmail->fromid   = $user->id;
-			$formmail->fromname = $user->getFullName($langs);
-			$formmail->frommail = $user->email;
-			$formmail->withfrom=1;
-			$formmail->withtopic=1;
-			$liste=array();
-			foreach ($object->thirdparty_and_contact_email_array(1) as $key=>$value) $liste[$key]=$value;
-			$formmail->withto=GETPOST('sendto')?GETPOST('sendto'):$liste;
-			$formmail->withtofree=0;
-			$formmail->withtocc=$liste;
-			$formmail->withtoccc=$conf->global->MAIN_EMAIL_USECCC;
-			$formmail->withfile=2;
-			$formmail->withbody=1;
-			$formmail->withdeliveryreceipt=1;
-			$formmail->withcancel=1;
-			// Tableau des substitutions
-			$formmail->substit['__SIGNATURE__']=$user->signature;
-			$formmail->substit['__PERSONALIZED__']='';
-			$formmail->substit['__CONTACTCIVNAME__']='';
-
-			//Find the good contact adress
-			/*
-			$custcontact='';
-			$contactarr=array();
-			$contactarr=$object->liste_contact(-1,'external');
-
-			if (is_array($contactarr) && count($contactarr)>0)
-			{
-			foreach($contactarr as $contact)
-			{
-			if ($contact['libelle']==$langs->trans('TypeContact_facture_external_BILLING')) {
-
-			require_once DOL_DOCUMENT_ROOT . '/contact/class/contact.class.php';
-
-			$contactstatic=new Contact($db);
-			$contactstatic->fetch($contact['id']);
-			$custcontact=$contactstatic->getFullName($langs,1);
-			}
-			}
-
-			if (!empty($custcontact)) {
-			$formmail->substit['__CONTACTCIVNAME__']=$custcontact;
-			}
-			}*/
+//        print '<div class="tabsAction">'."\n";
+//
+//		$parameters=array();
+//		$reshook=$hookmanager->executeHooks('addMoreActionsButtons',$parameters,$object,$action);    // Note that $action and $object may have been modified by hook
+//		if (empty($reshook))
+//		{
+//	        if (! empty($object->email))
+//	        {
+//	        	$langs->load("mails");
+//	        	print '<div class="inline-block divButAction"><a class="butAction" href="'.$_SERVER['PHP_SELF'].'?socid='.$object->id.'&amp;action=presend&amp;mode=init">'.$langs->trans('SendMail').'</a></div>';
+//	        }
+//	        else
+//			{
+//	        	$langs->load("mails");
+//	       		print '<div class="inline-block divButAction"><a class="butActionRefused" href="#" title="'.dol_escape_htmltag($langs->trans("NoEMail")).'">'.$langs->trans('SendMail').'</a></div>';
+//	        }
+//
+//	        if ($user->rights->societe->creer)
+//	        {
+//	            print '<div class="inline-block divButAction"><a class="butAction" href="'.$_SERVER["PHP_SELF"].'?socid='.$object->id.'&amp;action=edit">'.$langs->trans("Modify").'</a></div>'."\n";
+//	        }
+//
+//	        if ($user->rights->societe->supprimer)
+//	        {
+//	            if ($conf->use_javascript_ajax && empty($conf->dol_use_jmobile))	// We can't use preloaded confirm form with jmobile
+//	            {
+//	                print '<div class="inline-block divButAction"><span id="action-delete" class="butActionDelete">'.$langs->trans('Delete').'</span></div>'."\n";
+//	            }
+//	            else
+//				{
+//	                print '<div class="inline-block divButAction"><a class="butActionDelete" href="'.$_SERVER["PHP_SELF"].'?socid='.$object->id.'&amp;action=delete">'.$langs->trans('Delete').'</a></div>'."\n";
+//	            }
+//	        }
+//		}
+//
+//        print '</div>'."\n";
 
 
-			// Tableau des parametres complementaires du post
-			$formmail->param['action']=$action;
-			$formmail->param['models']=$modelmail;
-			$formmail->param['socid']=$object->id;
-			$formmail->param['returnurl']=$_SERVER["PHP_SELF"].'?socid='.$object->id;
-
-			// Init list of files
-			if (GETPOST("mode")=='init')
-			{
-				$formmail->clear_attached_files();
-				$formmail->add_attached_files($file,basename($file),dol_mimetype($file));
-			}
-
-			print $formmail->get_form();
-
-			print '<br>';
-		}
-		else
-		{
-
-	        if (empty($conf->global->SOCIETE_DISABLE_BUILDDOC))
-	        {
-				print '<div class="fichecenter"><div class="fichehalfleft">';
-	            print '<a name="builddoc"></a>'; // ancre
-
-	            /*
-	             * Documents generes
-	             */
-	            $filedir=$conf->societe->multidir_output[$object->entity].'/'.$object->id;
-	            $urlsource=$_SERVER["PHP_SELF"]."?socid=".$object->id;
-	            $genallowed=$user->rights->societe->creer;
-	            $delallowed=$user->rights->societe->supprimer;
-
-	            $var=true;
-
-	            $somethingshown=$formfile->show_documents('company',$object->id,$filedir,$urlsource,$genallowed,$delallowed,'',0,0,0,28,0,'',0,'',$object->default_lang);
-
-				print '</div><div class="fichehalfright"><div class="ficheaddleft">';
-
-
-				print '</div></div></div>';
-
-	            print '<br>';
-	        }
-
-	        print '<div class="fichecenter"><br></div>';
-
-	        // Subsidiaries list
-	        $result=show_subsidiaries($conf,$langs,$db,$object);
-
-	        // Contacts list
-	        if (empty($conf->global->SOCIETE_DISABLE_CONTACTS))
-	        {
-	            $result=show_contacts($conf,$langs,$db,$object,$_SERVER["PHP_SELF"].'?socid='.$object->id);
-	        }
-
-	        // Addresses list
-	        if (! empty($conf->global->SOCIETE_ADDRESSES_MANAGEMENT))
-	        {
-	        	$result=show_addresses($conf,$langs,$db,$object,$_SERVER["PHP_SELF"].'?socid='.$object->id);
-	        }
-
-	        // Projects list
-	        $result=show_projects($conf,$langs,$db,$object,$_SERVER["PHP_SELF"].'?socid='.$object->id);
-		}
+//		if ($action == 'presend')
+//		{
+//			/*
+//			 * Affiche formulaire mail
+//			*/
+//
+//			// By default if $action=='presend'
+//			$titreform='SendMail';
+//			$topicmail='';
+//			$action='send';
+//			$modelmail='thirdparty';
+//
+//			print '<br>';
+//			print_titre($langs->trans($titreform));
+//
+//			// Define output language
+//			$outputlangs = $langs;
+//			$newlang = '';
+//			if ($conf->global->MAIN_MULTILANGS && empty($newlang) && ! empty($_REQUEST['lang_id']))
+//				$newlang = $_REQUEST['lang_id'];
+//			if ($conf->global->MAIN_MULTILANGS && empty($newlang))
+//				$newlang = $object->client->default_lang;
+//
+//			// Cree l'objet formulaire mail
+//			include_once DOL_DOCUMENT_ROOT.'/core/class/html.formmail.class.php';
+//			$formmail = new FormMail($db);
+//			$formmail->param['langsmodels']=(empty($newlang)?$langs->defaultlang:$newlang);
+//			$formmail->fromtype = 'user';
+//			$formmail->fromid   = $user->id;
+//			$formmail->fromname = $user->getFullName($langs);
+//			$formmail->frommail = $user->email;
+//			$formmail->withfrom=1;
+//			$formmail->withtopic=1;
+//			$liste=array();
+//			foreach ($object->thirdparty_and_contact_email_array(1) as $key=>$value) $liste[$key]=$value;
+//			$formmail->withto=GETPOST('sendto')?GETPOST('sendto'):$liste;
+//			$formmail->withtofree=0;
+//			$formmail->withtocc=$liste;
+//			$formmail->withtoccc=$conf->global->MAIN_EMAIL_USECCC;
+//			$formmail->withfile=2;
+//			$formmail->withbody=1;
+//			$formmail->withdeliveryreceipt=1;
+//			$formmail->withcancel=1;
+//			// Tableau des substitutions
+//			$formmail->substit['__SIGNATURE__']=$user->signature;
+//			$formmail->substit['__PERSONALIZED__']='';
+//			$formmail->substit['__CONTACTCIVNAME__']='';
+//
+//			//Find the good contact adress
+//			/*
+//			$custcontact='';
+//			$contactarr=array();
+//			$contactarr=$object->liste_contact(-1,'external');
+//
+//			if (is_array($contactarr) && count($contactarr)>0)
+//			{
+//			foreach($contactarr as $contact)
+//			{
+//			if ($contact['libelle']==$langs->trans('TypeContact_facture_external_BILLING')) {
+//
+//			require_once DOL_DOCUMENT_ROOT . '/contact/class/contact.class.php';
+//
+//			$contactstatic=new Contact($db);
+//			$contactstatic->fetch($contact['id']);
+//			$custcontact=$contactstatic->getFullName($langs,1);
+//			}
+//			}
+//
+//			if (!empty($custcontact)) {
+//			$formmail->substit['__CONTACTCIVNAME__']=$custcontact;
+//			}
+//			}*/
+//
+//
+//			// Tableau des parametres complementaires du post
+//			$formmail->param['action']=$action;
+//			$formmail->param['models']=$modelmail;
+//			$formmail->param['socid']=$object->id;
+//			$formmail->param['returnurl']=$_SERVER["PHP_SELF"].'?socid='.$object->id;
+//
+//			// Init list of files
+//			if (GETPOST("mode")=='init')
+//			{
+//				$formmail->clear_attached_files();
+//				$formmail->add_attached_files($file,basename($file),dol_mimetype($file));
+//			}
+//
+//			print $formmail->get_form();
+//
+//			print '<br>';
+//		}
+//		else
+//		{
+//
+//	        if (empty($conf->global->SOCIETE_DISABLE_BUILDDOC))
+//	        {
+//				print '<div class="fichecenter"><div class="fichehalfleft">';
+//	            print '<a name="builddoc"></a>'; // ancre
+//
+//	            /*
+//	             * Documents generes
+//	             */
+//	            $filedir=$conf->societe->multidir_output[$object->entity].'/'.$object->id;
+//	            $urlsource=$_SERVER["PHP_SELF"]."?socid=".$object->id;
+//	            $genallowed=$user->rights->societe->creer;
+//	            $delallowed=$user->rights->societe->supprimer;
+//
+//	            $var=true;
+//
+//	            $somethingshown=$formfile->show_documents('company',$object->id,$filedir,$urlsource,$genallowed,$delallowed,'',0,0,0,28,0,'',0,'',$object->default_lang);
+//
+//				print '</div><div class="fichehalfright"><div class="ficheaddleft">';
+//
+//
+//				print '</div></div></div>';
+//
+//	            print '<br>';
+//	        }
+//
+//	        print '<div class="fichecenter"><br></div>';
+//
+//	        // Subsidiaries list
+//	        $result=show_subsidiaries($conf,$langs,$db,$object);
+//
+//	        // Contacts list
+//	        if (empty($conf->global->SOCIETE_DISABLE_CONTACTS))
+//	        {
+//	            $result=show_contacts($conf,$langs,$db,$object,$_SERVER["PHP_SELF"].'?socid='.$object->id);
+//	        }
+//
+//	        // Addresses list
+//	        if (! empty($conf->global->SOCIETE_ADDRESSES_MANAGEMENT))
+//	        {
+//	        	$result=show_addresses($conf,$langs,$db,$object,$_SERVER["PHP_SELF"].'?socid='.$object->id);
+//	        }
+//
+//	        // Projects list
+//	        $result=show_projects($conf,$langs,$db,$object,$_SERVER["PHP_SELF"].'?socid='.$object->id);
+//		}
     }
 
 }

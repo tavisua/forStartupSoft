@@ -16,25 +16,7 @@
                 </tr>
             </table>
         </div>
-        <div class="address_header" style="padding-top: 20px">
-            <div class="blockvmenupair">
-                <div class="menu_titre">
-                    <b><?echo $Control?></b>
-                </div>
-                <div class="menu_top"></div>
-                <div class="menu_contenu">
-                    <form action="/dolibarr/htdocs/societe/addaddress.php" method="post">
-                        <input id="url" name="url" type="hidden" value="<?echo $_SERVER['REQUEST_URI']?>">
-                        <input id="mainmenu" name="mainmenu" type="hidden" value="<?echo $_REQUEST['mainmenu']?>">
-                        <input id="idmenu" name="idmenu" type="hidden" value="<?echo $_REQUEST['idmenu']?>">
-                        <input id="socid" name="socid" type="hidden" value="<?echo $socid?>">
-                        <input id="action" name="action" type="hidden" value="add">
-                        <button type="submit">&nbsp;&nbsp;&nbsp;&nbsp;<?echo $AddAddress?>&nbsp;&nbsp;&nbsp;&nbsp;</button>
-                    </form>
-                </div>
-                <div class="menu_end"></div>
-            </div>
-        </div>
+        <?=$controlbtn?>
 
 
     <table>

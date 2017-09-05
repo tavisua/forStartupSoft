@@ -2133,9 +2133,10 @@ class User extends CommonObject
 
 		$result='';
 
-		$lien = '<a href="'.DOL_URL_ROOT.'/user/card.php?id='.$this->id.'">';
-		$lienfin='</a>';
-
+//		$lien = '<a href="'.DOL_URL_ROOT.'/user/card.php?id='.$this->id.'">';
+//		$lienfin='</a>';
+		$lien='';
+		$lienfin='';
 		if ($withpicto)
 		{
 			$result.=($lien.img_object($langs->trans("ShowUser"),'user').$lienfin);

@@ -150,7 +150,7 @@ class societecontact {
 //        }
         return $out;
     }
-    public function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $sortorder='', $readonly = array(), $showtitle=false){
+    public function fShowTable($title = array(), $sql, $tablename, $theme, $sortfield='', $sortorder='', $readonly = array(), $showtitle=false, $edit = true){
         global $user, $conf, $langs, $db;
 
 //            echo '<pre>';

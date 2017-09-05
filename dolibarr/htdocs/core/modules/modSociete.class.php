@@ -207,7 +207,7 @@ class modSociete extends DolibarrModules
 
 		$r++;
 		$this->rights[$r][0] = 126; // id de la permission
-		$this->rights[$r][1] = 'Exporter les societes'; // libelle de la permission
+		$this->rights[$r][1] = 'Нагадування про дні наролження'; // За два дні до дня народження
 		$this->rights[$r][2] = 'r'; // type de la permission (deprecie a ce jour)
 		$this->rights[$r][3] = 0; // La permission est-elle une permission par defaut
 		$this->rights[$r][4] = 'export';
