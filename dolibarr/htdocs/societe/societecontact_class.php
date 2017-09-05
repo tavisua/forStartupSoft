@@ -154,7 +154,7 @@ class societecontact {
         global $user, $conf, $langs, $db;
 
 //            echo '<pre>';
-//            var_dump( $showtitle, $edit);
+//            var_dump($sql);
 //            echo '</pre>';
 //            die();
         $notShowedFields = array('rowid', 'socid', 'post_id');
@@ -391,7 +391,10 @@ class societecontact {
 
         mysqli_data_seek($result, 0);
         while($row = $result->fetch_assoc()) {
-
+//            echo '<pre>';
+//            var_dump($row);
+//            echo '<pre>';
+//            die();
             $count++;
             $class = fmod($count,2)==1?("impair"):("pair");
             $table .= "<tr id = tr".$row['rowid']." class='".$class."'>\r\n";
@@ -414,10 +417,16 @@ class societecontact {
                         }
                     }
                 }
-//                        echo '<pre>';
-//                        var_dump(count($saidArray), $proposed);
-//                        echo '</pre>';
-//                        die();
+                $birthday = false;
+                if(!empty($row["birthdaydate"])) {
+                    $date = new DateTime($row["birthdaydate"]);
+                    $today = new DateTime();
+                    if($date->format('d') == $today->format('d')) {
+                        $proposed = true;
+                        $birthday = true;
+                    }
+                }
+
                 if(!in_array($fields[$num_col]->name, $notShowedFields)) {
                     if ($fields[$num_col]->type == 10) {//Якщо тип поля - дата - перетворюю на правильний формат
                         if (!empty($value)) {
@@ -499,11 +508,12 @@ class societecontact {
                                                     $number = str_replace(')', '', $number);
                                                     $number = str_replace('-', '', $number);
 //                                                    echo '<pre>';
-//                                                    var_dump($postArray[$row['post_id']]);
+//                                                    var_dump($birthday);
 //                                                    echo '</pre>';
 //                                                    die();
-                                                    if($proposed)
-                                                        $table .= '<td id="proposed'.$row['post_id'].'" style="width: 20px" onclick="showTitleProposed('.$row['post_id'].','.$postArray[$row['post_id']][0][0].','.$row['rowid'].', proposed'.$row['post_id'].');"><img id="proposedIcon' . $row['rowid'] . $fields[$num_col]->name . '" title = "'.$langs->trans('Proposition').'" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/strawberry.png"></td>';
+                                                    if($proposed) {
+                                                        $table .= '<td id="proposed' . $row['post_id'] . '" style="width: 20px" onclick="showTitleProposed(' . $row['post_id'] . ',' . $postArray[$row['post_id']][0][0] . ',' . $row['rowid'] . ', proposed' . $row['post_id'] . ');"><img id="proposedIcon' . $row['rowid'] . $fields[$num_col]->name . '" title = "' . $langs->trans('Proposition') . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/'.($birthday?'birthday.png':'strawberry.png').'"></td>';
+                                                    }
                                                     $table .= '<td style="width: 20px" onclick="showSMSform(' . $number . ');"><img id="sms' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/object_sms.png"></td>';
                                                 }
                                                 

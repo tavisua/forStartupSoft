@@ -204,6 +204,7 @@
 ////                    console.log($("a#mainmenua_hourly_plan").attr('href'));
 //                    return;
 //                }
+                console.log($('tr#'+task_id).attr('actions'));
                 $.ajax({
                     url:'/dolibarr/htdocs/day_plan.php?action=gettaskcode&rowid='+task_id,
                     cache:false,
@@ -224,7 +225,7 @@
                             }
                         }
                         var link = '';
-                        if(code == 'AC_GLOBAL' || code == 'AC_CURRENT'||socid.length == 0)
+                        if($('tr#'+task_id).attr('actions')== undefined && (code == 'AC_GLOBAL' || code == 'AC_CURRENT'||socid.length == 0))
                             link = '/dolibarr/htdocs/comm/action/chain_actions.php?action_id='+task_id+'&mainmenu='+mainmenu;
                         else{
 //                            return;

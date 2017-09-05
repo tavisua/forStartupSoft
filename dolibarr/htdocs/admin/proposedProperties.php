@@ -4,6 +4,15 @@ require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
 require_once DOL_DOCUMENT_ROOT.'/societe/societecontact_class.php';
 global $db,$user;
 if(isset($_POST['action'])&&$_POST['action'] == 'OK'){
+    $sql = "update llx_c_proposition set action = ";
+    if(isset($_POST['birthday']))
+        $sql.='1';
+    else
+        $sql.='0';
+    $sql.=" where rowid = ".$_REQUEST['proposed_id'];
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
     $sql = "select fk_lineactive,fk_post,active from llx_proposition_properties where fk_proposition = ".$_REQUEST['proposed_id'];
     $res = $db->query($sql);
     if(!$res)
@@ -46,6 +55,7 @@ if(isset($_POST['action'])&&$_POST['action'] == 'OK'){
 //            die();
         }
     }
+    $sql = "update llx_c_proposition ";
     unset($_POST);
 
     header("Location: ".DOL_URL_ROOT."/admin/dict.php?id=39#rowid-".$_REQUEST['proposed_id']);
@@ -75,6 +85,14 @@ $formcompany = new FormCompany($db);
 $lineactive = $formcompany->lineactiveCusomter(0, $lineactive_array, 10, 'fk_lineactive');
 $societecontact = new societecontact($db);
 $post = $societecontact->selectPost('fk_post', $post_array, 10);
+$birthday = "";
+$sql = "select action from llx_c_proposition where rowid = ".$_REQUEST['proposed_id'];
+$res = $db->query($sql);
+if(!$res)
+    dol_print_error($db);
+$obj = $db->fetch_object($res);
+if($obj->action == 1)
+    $birthday = "checked";
 llxHeader("", "Налаштування пропозиції", "");
 include DOL_DOCUMENT_ROOT.'/theme/eldy/admin/proposedProperties.html';
 llxPopupMenu();

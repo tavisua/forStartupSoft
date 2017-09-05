@@ -508,7 +508,7 @@ function PreparedEmailList($mess, $states_id = array()){
 
     return array('societelist'=>$societelist, 'emaillist'=>$emaillist);
 }
-function CreateSMTPMailer($email="shop@t-i-t.com.ua", $pass="123qaz"){
+function CreateSMTPMailer($email="shop@t-i-t.com.ua", $pass="1234qwerasd"){
     require_once DOL_DOCUMENT_ROOT.'/core/class/mailing/PHPMailerAutoload.php';
     date_default_timezone_set('Etc/UTC');
 //Create a new PHPMailer instance
@@ -521,7 +521,7 @@ function CreateSMTPMailer($email="shop@t-i-t.com.ua", $pass="123qaz"){
 // 0 = off (for production use)
 // 1 = client messages
 // 2 = client and server messages
-    $mail->SMTPDebug = 0;
+    $mail->SMTPDebug = 2;
 
 //Ask for HTML-friendly debug output
     $mail->Debugoutput = 'html';

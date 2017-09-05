@@ -87,7 +87,7 @@ if($dateQuery>=$begin_period&&$dateQuery<=$end_period)
 $sql = "select  $tablename.type, $tablename.id as rowid, $tablename.datep, $tablename.datep2,
         $tablename.`code`, $tablename.fk_user_author, $tablename.label, `llx_societe`.region_id, `regions`.`name` as region_name, case when $tablename.fk_soc is null then `llx_user`.`lastname` else `llx_societe`.`nom` end lastname,
         $tablename.`note`, $tablename.`percent`, `llx_c_actioncomm`.`libelle` title, $tablename.confirmdoc,
-        $tablename.priority, max(`llx_societe_action`.`callstatus`) as callstatus, $tablename.overdue
+        $tablename.priority, max(`llx_societe_action`.`callstatus`) as callstatus, $tablename.overdue, $tablename.icon
         from $tablename
         left join `llx_societe` on `llx_societe`.rowid = $tablename.fk_soc
         left join `states` on `states`.rowid = `llx_societe`.state_id
@@ -207,10 +207,14 @@ while($row = $db->fetch_object($res)) {
     if(mb_strlen($taks, 'UTF-8')>$length){
         $taks=mb_substr($taks, 0, $length, 'UTF-8').'...<input type="hidden" value="'.trim($row->note).'">';
     }
+    $task_icon = '';
+    if(strlen($row->icon)) {
+        $task_icon = '/dolibarr/htdocs/theme/'.$conf->global->MAIN_THEME.'/img/'.$row->icon;
+    }
     $task_table = '<div class="task_cell" style="float: left; width: ' . ($conf->browser->name == 'firefox' ? '23px' : '24px') . '"><img src="theme/' . $conf->theme . '/img/' . $iconitem . '" title="' . $langs->trans($row->title) . '"></div>
            <div class="task_cell" style="float: left; width: ' . ($conf->browser->name == 'firefox' ? '42px' : '43px') . '">' . $datep->format('H:i') .
-            (!empty($row->type)?'<span style="float: left;margin-left: -5px;z-index: 5"><img title="Час початку дії встановлено вручну" src="/dolibarr/htdocs/theme/eldy/img/object_task.png"></span>':'').'</div>
-           <div class="task_cell" style="float: left; width: 36px; height 16px">' . $DiffTime . '</div>
+            (!empty($row->type)?'<span style="float: left;margin-left: -5px;z-index: 5"><img title="Час початку дії встановлено вручну" src="/dolibarr/htdocs/theme/'.$conf->global->MAIN_THEME.'/img/object_task.png"></span>':'').'</div>
+           <div class="task_cell" style="float: left; width: 36px; height 16px">' . $DiffTime .(!empty($task_icon)?('<img class="action" title="Поздоровити з днем народження" src="'.$task_icon.'">'):('')).' </div>
            <div class="task_cell" style="float: left; width: 35px">' . $datep2->format('H:i') . '</div>
            <div class="task_cell" style="float: left; width: 152px">' . trim($row->region_name) .(!empty($row->region_name)?' район':'').'</div>
            <div class="task_cell" style="float: left; width: 152px">'. (mb_strlen(trim($row->lastname), 'UTF-8')>25?mb_substr(trim($row->lastname), 0,25,'UTF-8').'...':trim($row->lastname)) . '</div>
@@ -219,7 +223,7 @@ while($row = $db->fetch_object($res)) {
            <div class="task_cell" style="float: left; width: 130px;">' . $status . '</div>';
     if($user->id == $row->fk_user_author) {
         $task_table .= '<div id="action'.$row->rowid.'" class="task_cell" style="float: left; width: 40px; border-color: transparent"><img class="action" id="edit'.$row->rowid.'" onclick="EditAction('.$row->rowid.',0,'."'".strtoupper($row->code)."'".');" title="Редагувати дію" src="theme/eldy/img/edit.png">';
-        $task_table .= '&nbsp;&nbsp;<img id="del'.$row->rowid.'" class="action" onclick="DelAction(' . $row->rowid . ');" title="Видалити дію" src="theme/eldy/img/delete.png">';
+        $task_table .= '&nbsp;&nbsp;<img id="del'.$row->rowid.'" class="action" onclick="DelAction(' . $row->rowid . ');" title="Видалити дію" src="/dolibarr/htdocs/theme/'.$conf->global->MAIN_THEME.'/img/delete.png">';
 //        if($row->percent == 100)
 //            $task_table .= '<img onclick="HideAction(' . $row->rowid . ');" title="Скрити дію" src="theme/eldy/img/hide.png">';
         $task_table .= '</div>';
@@ -230,7 +234,7 @@ while($row = $db->fetch_object($res)) {
 
     if(!empty($_GET['region_id']))
         $selected = $_GET['region_id'] == $row->region_id || $_GET['region_id'] == -1 && $row->overdue == 1;
-    $task .= '<tr id="' . $row->rowid . '"><td class="' . $classitem . ' '.($selected?"sel_item":"").'" >' . $task_table . '</td></tr>';
+    $task .= '<tr id="' . $row->rowid . '" '.(strlen($row->icon)?'actions="actions"':'').'><td class="' . $classitem . ' '.($selected?"sel_item":"").'" >' . $task_table . '</td></tr>';
 //    $task.='<tr id="'.$row->rowid.'"><td class="'.$classitem.'" style="height: '.($DiffSec/600*($conf->browser->name == 'firefox' ? ($DiffSec/60<=30?($DiffSec/60<15?22:23.8):23.7) : 22)).'px">'.$task_table.'</td></tr>';
     $prev_time = mktime($datep2->format('H'), $datep2->format('i'), $datep2->format('s'), $datep2->format('m'), $datep2->format('d'), $datep2->format('Y'));
 }

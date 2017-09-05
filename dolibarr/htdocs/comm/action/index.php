@@ -111,7 +111,7 @@ if($_REQUEST['action'] == 'birthday_remainder'){
         $usersID[]=$obj->fk_user;
 
     $sql = "select fx_responsibility, fx_category_counterparty from  `responsibility_param`
-        where fx_category_counterparty  in (5,7,8,9,10)";
+        where fx_category_counterparty  in (5/*,7,8,9,10*/)";
     $res = $db->query($sql);
     while($obj = $db->fetch_object($res)){
         $responsibility[$obj->fx_category_counterparty][] = $obj->fx_responsibility;
@@ -120,8 +120,8 @@ if($_REQUEST['action'] == 'birthday_remainder'){
         inner join `llx_societe` on `llx_societe`.`rowid` = `llx_societe_contact`.`socid`
         where birthdaydate is not null
         and send_birthdaydate = 1
-        and date(concat(date_format(now(), '%Y-'), date_format(date_add(birthdaydate, interval -10 day), '%m-%d'))) = date(now())
-        and `categoryofcustomer_id` in (5,7,8,9,10)";
+        and date(concat(date_format(now(), '%Y-'), date_format(date_add(birthdaydate, interval -7 day), '%m-%d'))) = date(now())
+        and `categoryofcustomer_id` in (5/*,7,8,9,10*/)";
 //    var_dump($sql);
 //    die();
     $res = $db->query($sql);
@@ -129,19 +129,11 @@ if($_REQUEST['action'] == 'birthday_remainder'){
     while($obj = $db->fetch_object($res)){
         switch ($obj->categoryofcustomer_id){
             case 5:{//Клієнти
-                $id_usr = getIDCongratulatorOnRegionID($obj->region_id, $responsibility[$obj->categoryofcustomer_id]);
                 $user_congratulator = new User($db);
-                $user_congratulator->fetch($id_usr);
-                $datebirth = new DateTime($obj->birthdaydate);
                 $i = 0;
                 //Нагадування для маркетингу
                 foreach ($usersID as $item) {
                     $date = new DateTime();
-                    $date = dol_getdate($date->getTimestamp());
-                    $remainder = new ActionComm($db);
-                    $date = new DateTime($remainder->GetFreeTime($nowyear.'-'.$date['mon'].'-'.$date['mday'].' 8:0:0', $item, 10));
-                    $datep = $date->getTimestamp();
-                    $datef = $datep_mk+600;
                     $user_congratulator->fetch($item);
                     require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
                     $action = new ActionComm($db);
@@ -165,15 +157,19 @@ if($_REQUEST['action'] == 'birthday_remainder'){
                     $action->fk_element = "";
                     $action->elementtype = "";
                     $action->add($user_congratulator);
-                    echo $user_congratulator->id.' '.$obj->socid.'</br>';
                 }
+                $id_usr = getIDCongratulatorOnRegionID($obj->region_id, $responsibility[$obj->categoryofcustomer_id]);
+                $user_congratulator->fetch($id_usr);
+                $datebirth = new DateTime($obj->birthdaydate);
                 //Нагадування для торгівельних агентів
-                foreach ([$now, $datebirth->getTimestamp()] as $date) {
+                foreach ([$datebirth->getTimestamp()] as $date) {
                     $date = dol_getdate($date);
                     $remainder = new ActionComm($db);
-                    $date = new DateTime($remainder->GetFreeTime($nowyear.'-'.$date['mon'].'-'.$date['mday'].' 8:0:0', $id_usr, 10));
+                    $exec_minuted = $action->GetExecTime('AC_CURRENT');
+                    $freetime = $action->GetFreeTime(date('Y-m-d'), $id_usr, $exec_minuted, 0);
+                    $date = new DateTime($remainder->GetFreeTime($nowyear.'-'.$date['mon'].'-'.$date['mday'].' 8:0:0', $id_usr, $exec_minuted));
                     $datep = $date->getTimestamp();
-                    $datef = $datep_mk+600;
+                    $datef = $datep+$exec_minuted*60;
 
 //                    echo '<pre>';
 //                    var_dump();
@@ -191,6 +187,7 @@ if($_REQUEST['action'] == 'birthday_remainder'){
                     $remainder->label = "Поздоровлення з днем народження";
                     $remainder->typeSetOfDate = 'w';
                     $remainder->fk_project = 0;
+                    $remainder->userassigned[] = array("id" => $id_usr, "transparency" => 1);
 //                    $datef = dol_mktime('10', '10', 0, $date['mon'], $date['mday'], $nowyear);
 //$datef=dol_mktime($fulldayevent?'23':GETPOST("p2hour"), $fulldayevent?'59':GETPOST("p2min"), $fulldayevent?'59':'0', GETPOST("p2month"), GETPOST("p2day"), GETPOST("p2year"));
 //                    $datep = dol_mktime('10', '00', 0, $date['mon'], $date['mday'], $nowyear);
@@ -198,13 +195,15 @@ if($_REQUEST['action'] == 'birthday_remainder'){
                     $remainder->datef = $datef;
                     $remainder->socid = $obj->socid;
                     $remainder->contactid = $obj->contact_id;
+                    if($i == 1)
+                        $remainder->icon = 'birthday.png';
 //                $remainder->datepreperform = $dateprep;
                     $remainder->note = "Поздоровити ".$datebirth->format('d.m.')." з днем народження";
-//                    if($obj->socid == 8649){
+//                    if($obj->socid == 20264 &&  $i == 1){
 //                        echo '<pre>';
 //                        var_dump($remainder);
 //                        echo '</pre>';
-//                        die();
+////                        die();
 //                    }
 //                    echo  $user_congratulator->id.'</br>';
                     

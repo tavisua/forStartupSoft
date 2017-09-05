@@ -172,9 +172,8 @@ class ActionComm extends CommonObject
     var $fk_element;    // Id of record
     var $elementtype;   // Type of record. This if property ->element of object linked to.
 
-    // Ical
-    var $icalname;
-    var $icalcolor;
+    // Іконка завдання
+    var $icon;
 
     var $actions=array();
 
@@ -1172,7 +1171,8 @@ class ActionComm extends CommonObject
             $sql .= "demotivator,";
             $sql .= "fk_user_valuer,";
             $sql .= "typenotification,";
-            $sql .= "when_show";
+            $sql .= "when_show,";
+            $sql .= "icon";
             $sql .= ") VALUES (";
             $sql .= "'" . $this->db->idate($now) . "',";
             if(!$correctdate) {
@@ -1218,13 +1218,16 @@ class ActionComm extends CommonObject
                 (!empty($this->demotivator)?"'".$this->demotivator."'": "null"). ", ".
                 (!empty($this->user_valuer)?$this->user_valuer: "null"). ", '".
                 $this->typenotification . "',";
-            $sql .= "'$when_show'";
+            $sql .= "'$when_show',";
+            $sql .= empty($this->icon)?"null":"'$this->icon'";
             $sql .= ")";
 
             dol_syslog(get_class($this) . "::add", LOG_DEBUG);
             $resql=$this->db->query($sql);
-//            var_dump($sql);
+            if(!empty($this->icon)) {
+                var_dump($sql);
 //            die();
+            }
             if(!$resql)
                 dol_print_error($this->db);
 //            $resql = 1;

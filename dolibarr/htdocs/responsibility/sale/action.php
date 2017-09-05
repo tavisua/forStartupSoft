@@ -377,7 +377,7 @@ function showProposition($proposed_id,$contactid=0){
 function showTitleProposition($post_id, $lineactive, $contactid=0, $socid){
     global $db;
     if(empty($post_id) && empty($lineactive) && empty($contactid)){
-        $sql = 'select `llx_c_proposition`.rowid, `text`
+        $sql = 'select `llx_c_proposition`.rowid, llx_c_proposition.action, `text`
                 from  `llx_c_proposition` where 1';
         $sql .= ' and ((`llx_c_proposition`.`end` is not null and Now() between `llx_c_proposition`.`begin` and `llx_c_proposition`.`end`) or `llx_c_proposition`.`end` is null)
             and `llx_c_proposition`.active = 1';
@@ -394,10 +394,10 @@ function showTitleProposition($post_id, $lineactive, $contactid=0, $socid){
                 $rowid.=',';
             $rowid.=$value;
         }
-        $sql = 'select `llx_c_proposition`.rowid, `text` from  `llx_c_proposition`';
+        $sql = 'select `llx_c_proposition`.rowid, llx_c_proposition.action, `text` from  `llx_c_proposition`';
         $sql .= 'where rowid in('.$rowid.')';
     }else {
-        $sql = 'select `llx_c_proposition`.rowid, text, llx_c_proposition.prioritet
+        $sql = 'select `llx_c_proposition`.rowid, llx_c_proposition.action, text, llx_c_proposition.prioritet
         from  `llx_c_proposition`
         inner join `llx_post` on `llx_post`.`rowid` = `llx_c_proposition`.`fk_post`
         where 1
@@ -411,7 +411,7 @@ function showTitleProposition($post_id, $lineactive, $contactid=0, $socid){
                 and proposed_id is not null
                 and active = 1)';
         $sql.=" union
-        select `llx_c_proposition`.rowid, text, llx_c_proposition.prioritet
+        select `llx_c_proposition`.rowid, llx_c_proposition.action, text, llx_c_proposition.prioritet
             from `llx_c_proposition`
             inner join llx_proposition_properties on llx_proposition_properties.fk_proposition = `llx_c_proposition`.rowid
             inner join `llx_post` on `llx_post`.`rowid` = `llx_proposition_properties`.`fk_post`
@@ -426,7 +426,7 @@ function showTitleProposition($post_id, $lineactive, $contactid=0, $socid){
                 where contactid=' . $contactid . '
                 and proposed_id is not null
                 and active = 1)';
-        $sql.=' order by prioritet';
+        $sql.=' order by action desc, prioritet';
     }
 //    echo '<pre>';
 //    var_dump($sql);
@@ -456,7 +456,7 @@ function showTitleProposition($post_id, $lineactive, $contactid=0, $socid){
 //        }else
 //            $end = $obj->description;
         $out .='<tr class = "'.(fmod($num,2)==0?'impair':'pair').'" onclick = "showProposed('.$obj->rowid.', '.$contactid.');" style = "cursor: pointer">
-                    <td class="middle_size">'.$num++.'</td >
+                    <td class="middle_size">'.($obj->action == 1?'<img class="action" title="Поздоровити з днем народження" src="/dolibarr/htdocs/theme/eldy/img/birthday.png">':$num++).'</td >
                     <td class="middle_size">'.$obj->text.'</td >
                 </tr >';
     }

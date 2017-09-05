@@ -237,7 +237,7 @@ if((!isset($_REQUEST["onlyresult"])||empty($_REQUEST["onlyresult"]))&&$action_id
 }
 $head=actions_prepare_head($object);
 if($_GET['action'] == 'addonlyresult' || $_GET['action'] == 'useraction')
-    print_fiche_titre($langs->trans("AddResultAction").'1');
+    print_fiche_titre($langs->trans("AddResultAction"));
 elseif($_REQUEST["action"]=='edituseration')
     print_fiche_titre('Редагувати перемовини');
 elseif($_REQUEST["action"]=='SetRemarkOfMentor') {

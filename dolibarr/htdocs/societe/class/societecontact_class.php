@@ -367,7 +367,6 @@ class societecontact {
             }
 //        var_dump($saidArray);
 //        die();
-
         mysqli_data_seek($result, 0);
         while($row = $result->fetch_assoc()) {
 
@@ -478,7 +477,8 @@ class societecontact {
 //                                                    echo '</pre>';
 //                                                    die();
                                                     if($proposed)
-                                                        $table .= '<td id="proposed'.$row['post_id'].'" style="width: 20px" onclick="showTitleProposed('.$row['post_id'].','.$postArray[$row['post_id']][0][0].','.$row['rowid'].', proposed'.$row['post_id'].');"><img id="proposedIcon' . $row['rowid'] . $fields[$num_col]->name . '" title = "'.$langs->trans('Proposition').'" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/strawberry.png"></td>';
+                                                        $table .= '<td id="proposed'.$row['post_id'].'" style="width: 20px" onclick="showTitleProposed('.$row['post_id'].','.$postArray[$row['post_id']][0][0].','.$row['rowid'].', proposed'.$row['post_id'].');"><img id="proposedIcon' .
+                                                            $row['rowid'] . $fields[$num_col]->name . '" title = "'.$langs->trans('Proposition').'" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/strawberry.png"></td>';
                                                     $table .= '<td style="width: 20px" onclick="showSMSform(' . $number . ');"><img id="sms' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/object_sms.png"></td>';
                                                 }
                                                 $ID = "'#img" . $row['rowid'] . $fields[$num_col]->name . "'";
