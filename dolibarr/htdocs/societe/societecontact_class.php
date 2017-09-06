@@ -512,7 +512,7 @@ class societecontact {
 //                                                    echo '</pre>';
 //                                                    die();
                                                     if($proposed) {
-                                                        $table .= '<td id="proposed' . $row['post_id'] . '" style="width: 20px" onclick="showTitleProposed(' . $row['post_id'] . ',' . $postArray[$row['post_id']][0][0] . ',' . $row['rowid'] . ', proposed' . $row['post_id'] . ');"><img id="proposedIcon' . $row['rowid'] . $fields[$num_col]->name . '" title = "' . $langs->trans('Proposition') . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/'.($birthday?'birthday.png':'strawberry.png').'"></td>';
+                                                        $table .= '<td id="proposed' . $row['post_id'] . '" style="width: 20px" onclick="showTitleProposed(' . $row['post_id'] . ',' . $postArray[$row['post_id']][0][0] . ',' . $row['rowid'] . ', proposed' . $row['post_id'] . ', '.$_REQUEST['socid'].', '.($birthday?'1':'0').');"><img id="proposedIcon' . $row['rowid'] . $fields[$num_col]->name . '" title = "' . $langs->trans('Proposition') . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/'.($birthday?'birthday.png':'strawberry.png').'"></td>';
                                                     }
                                                     $table .= '<td style="width: 20px" onclick="showSMSform(' . $number . ');"><img id="sms' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/object_sms.png"></td>';
                                                 }

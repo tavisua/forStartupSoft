@@ -1010,7 +1010,7 @@ if (! function_exists("llxHeader"))
             if(substr($_SERVER['PHP_SELF'], strlen($_SERVER['PHP_SELF'])-strlen('area.php'))=='area.php')
                 print'<script>
                         $(document).ready(function(){
-                            showTitleProposed(0, 0, 0, undefined, getParameterByName("socid"));
+                            showTitleProposed(0, 0, 0, undefined, getParameterByName("socid"),false);
                         })
                     </script>
                     ';

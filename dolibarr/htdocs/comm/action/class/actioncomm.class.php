@@ -521,7 +521,7 @@ class ActionComm extends CommonObject
 //        die();
         $PlanTime = 0;
         while(!$PlanTime) {
-            if($date->format('w')>0 && $date->format('w')<6 || $date->format('d.m.y')=='19.08.17')
+            if($date->format('w')>0 && $date->format('w')<6)
                 $PlanTime = $this->GetFirstFreeTime($date->format('Y-m-d H:i'), $id_usr, $minutes, $prioritet, $starttime, $parent_id);
             $date = new DateTime(date('Y-m-d', mktime(8,0,0,$date->format('m'),$date->format('d'),$date->format('Y'))+ 86400));
         }
@@ -1224,10 +1224,10 @@ class ActionComm extends CommonObject
 
             dol_syslog(get_class($this) . "::add", LOG_DEBUG);
             $resql=$this->db->query($sql);
-            if(!empty($this->icon)) {
-                var_dump($sql);
-//            die();
-            }
+//            if(!empty($this->icon)) {
+//                var_dump($sql);
+////            die();
+//            }
             if(!$resql)
                 dol_print_error($this->db);
 //            $resql = 1;

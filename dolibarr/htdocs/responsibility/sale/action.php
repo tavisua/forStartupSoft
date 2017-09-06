@@ -64,7 +64,7 @@ if(isset($_REQUEST['action'])||isset($_POST['action'])){
 //        echo '<pre>';
 //        var_dump($_REQUEST);
 //        echo '</pre>';
-        echo showTitleProposition($_REQUEST['post_id'], $_REQUEST['lineactive'], $_REQUEST['contactid'], $_REQUEST['socid']);
+        echo showTitleProposition($_REQUEST['post_id'], $_REQUEST['lineactive'], $_REQUEST['contactid'], $_REQUEST['socid'], $_REQUEST['show_icon']);
         exit();
     }elseif($_REQUEST['action'] == 'showProposition'){
         echo showProposition($_REQUEST['id'],$_REQUEST['contactid']);
@@ -374,7 +374,7 @@ function showProposition($proposed_id,$contactid=0){
         </script>';
     return $out;
 }
-function showTitleProposition($post_id, $lineactive, $contactid=0, $socid){
+function showTitleProposition($post_id, $lineactive, $contactid=0, $socid, $show_icon = false){
     global $db;
     if(empty($post_id) && empty($lineactive) && empty($contactid)){
         $sql = 'select `llx_c_proposition`.rowid, llx_c_proposition.action, `text`
@@ -456,7 +456,7 @@ function showTitleProposition($post_id, $lineactive, $contactid=0, $socid){
 //        }else
 //            $end = $obj->description;
         $out .='<tr class = "'.(fmod($num,2)==0?'impair':'pair').'" onclick = "showProposed('.$obj->rowid.', '.$contactid.');" style = "cursor: pointer">
-                    <td class="middle_size">'.($obj->action == 1?'<img class="action" title="Поздоровити з днем народження" src="/dolibarr/htdocs/theme/eldy/img/birthday.png">':$num++).'</td >
+                    <td class="middle_size">'.($obj->action == 1 && $show_icon?'<img class="action" title="Поздоровити з днем народження" src="/dolibarr/htdocs/theme/eldy/img/birthday.png">':$num++).'</td >
                     <td class="middle_size">'.$obj->text.'</td >
                 </tr >';
     }

@@ -778,14 +778,14 @@ function getLineActiveList(id_usr, btn){
         img.src = '/dolibarr/htdocs/theme/eldy/img/1downarrow.png';
     }
 }
-function showTitleProposed(post_id, lineactive, contactid, td, socid){
+function showTitleProposed(post_id, lineactive, contactid, td, socid, show_icon){
     var param = {
         post_id: post_id,
         lineactive: lineactive,
         action:'showTitleProposition',
-        contactid:contactid
+        contactid:contactid,
+        show_icon:show_icon
     }
-
     $.ajax({
         url:'/dolibarr/htdocs/responsibility/sale/action.php',
         data: param,
