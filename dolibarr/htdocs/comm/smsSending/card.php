@@ -12,7 +12,7 @@ require_once DOL_DOCUMENT_ROOT.'/core/lib/company.lib.php';
 $action = $_REQUEST['action'];
 //global $user;
 //echo '<pre>';
-//var_dump($user);
+//var_dump($_REQUEST);
 //echo '</pre>';
 //die();
 
@@ -48,12 +48,54 @@ $userphone = str_replace('(','',$userphone);
 $userphone = str_replace(')','',$userphone);
 $userphone = str_replace('-','',$userphone);
 $userphone = str_replace(' ','',$userphone);
-//$userphone = "'".$userphone."'";
-//echo '<pre>';
-//var_dump($user);
-//echo '<pre>';
-//die();
+
 $form = new Form($db);
+if ($_REQUEST['addParam'] == 'addFindParam'){
+//    echo '<pre>';
+//    var_dump(DOL_DOCUMENT_ROOT.'/theme/'.$conf->theme.substr(str_replace('\\', '/', __DIR__), strlen(DOL_DOCUMENT_ROOT)));
+//    var_dump($user->respon_alias, $user->respon_alias2);
+//    die();
+    for($i=0; $i<2; $i++) {
+        $tmp_file = DOL_DOCUMENT_ROOT.'/theme/'.$conf->theme.substr(str_replace('\\', '/', __DIR__), strlen(DOL_DOCUMENT_ROOT)).'/'.array($user->respon_alias, $user->respon_alias2)[$i].'/param.html';
+        if(file_exists($tmp_file)) {
+
+            //Визначаю які категорії додатково відкриваються у користувача
+            $tmp_sql = "select distinct case when fx_category_counterparty is null then other_category else fx_category_counterparty end cat_id from `responsibility_param`
+                    inner join llx_user_responsibility on llx_user_responsibility.fk_respon = `responsibility_param`.fx_responsibility
+                    where llx_user_responsibility.fk_user = $user->id
+                    and llx_user_responsibility.active = 1
+                    or `responsibility_param`.fx_responsibility in ($user->respon_id,$user->respon_id2)";
+            $tmp_res = $db->query($tmp_sql);
+            $categories = [];
+            while ($obj = $db->fetch_object($tmp_res)) {
+                if (!in_array($obj->cat_id, $categories))
+                    $categories[] = is_numeric($obj->cat_id) ? $obj->cat_id : "'$obj->cat_id'";
+            }
+            $sql .= ' and llx_societe.`categoryofcustomer_id` in (' . (implode(',', $categories)) . ')';
+            $_REQUEST['categories'] = (implode(',', $categories));
+            if (count($categories) > 1) {
+                $tmp_sql = "select rowid, `name` from  `category_counterparty` where rowid in (" . implode(',', $categories) . ") and active = 1";
+                $tmp_res = $db->query($tmp_sql);
+                $FindingParam = '<td>Категорії контрагентів</td><td></td><td><select id="category_id" class="combobox" name="category_id">';
+                $FindingParam .= '<option value="-1" selected="selected">Відобразити всі</option>';
+                while ($obj = $db->fetch_object($tmp_res)) {
+                    $FindingParam .= '<option value="' . $obj->rowid . '">' . $obj->name . '</option>';
+                }
+                $FindingParam .= '</select></td>';
+            }
+            //Напрямки діяльності для постачання
+            $LineActive = $form->selectLineAction([], 'lineaction', 10);
+            include $tmp_file;
+//            var_dump($html);
+//            die();
+            break;
+        }
+    }
+//    echo '</pre>';
+
+//    var_dump( $_REQUEST['categories'] );
+    exit();
+}
 include DOL_DOCUMENT_ROOT.'/theme/eldy/comm/sending.html';
 exit();
 function getStatusSending(){
@@ -187,13 +229,58 @@ function getCustomers($type, $test=false){
 
 //    $sql.=' where 1 and fk_user_creat ='.$user->id;
         $sql .= ' where 1';
-        if (in_array('sale', array($user->respon_alias, $user->respon_alias2)))
+        if (in_array('sale', array($user->respon_alias, $user->respon_alias2))) {
             $sql .= ' and llx_societe.`categoryofcustomer_id` = 5';
-        elseif (!empty($_REQUEST['country_id'])){
+            $FindingParam = '<td>Кількість землі </td>
+            <td></td>
+            <td colspan="3">від&nbsp;&nbsp;<input type="text" id="from" name="from" size="4">&nbsp;&nbsp;до&nbsp;&nbsp;<input type="text" id="to" name="to" size="4">&nbsp;&nbsp;га.</td>';
+        }elseif (count(array_intersect(array('logistika','purchase'), array($user->respon_alias, $user->respon_alias2)))){
+            if(isset($_REQUEST['category_id'])&&!empty($_REQUEST['category_id'])){
+                $categories = explode(',', $_REQUEST['category_id']);
+                if(count($categories)==1)
+                    $sql .= ' and llx_societe.`categoryofcustomer_id` = '.$_REQUEST['category_id'];
+                else{
+                    $filter = '-1';
+                    for($i=0; $i<count($categories);$i++) {
+                        if(is_numeric($categories[$i])) {
+                            $filter.=','.$categories[$i];
+                        }
+                    }
+                    if($filter != '-1'){
+                        $sql .= ' and llx_societe.`categoryofcustomer_id` in ('.$filter.')';
+                    }
+                }
+            }
+        }elseif (!empty($_REQUEST['country_id'])){
             $sql .= ' and llx_societe.`fk_pays` = '.$_REQUEST['country_id'];
+        }
+        //Фільтр по напрямкам діяльності
+        if(isset($_REQUEST['lineaction']) && !empty($_REQUEST['lineaction'])){
+            $lineaction = $_REQUEST['lineaction'];
+            $tmp = $_REQUEST['lineaction'];
+            while(count($tmp)){
+                $tmp_sql = "select category_id from oc_category where parent_id in (".implode(',',$tmp).")";
+                $tmp_res = $db->query($tmp_sql);
+                $tmp = [];
+                while($item = $db->fetch_object($tmp_res)){
+                    $tmp[]=$item->category_id;
+                }
+                if(count($tmp))
+                    $lineaction = array_merge($lineaction, $tmp);
+                $lineaction = array_unique($lineaction);
+            }
+            $tmp_sql = "select distinct fk_soc from `llx_societe_lineactive`
+                where fk_lineactive in (".implode(',',$lineaction).") and active = 1";
+            $tmp_res = $db->query($tmp_sql);
+            $tmp = [0];
+            while($item = $db->fetch_object($tmp_res)){
+                $tmp[]=$item->fk_soc;
+            }
+            $sql .= ' and llx_societe.rowid in ('.implode(',',$tmp).')';
         }
         if (!isset($_REQUEST['addParam']) || empty($_REQUEST['addParam']))
             $sql .= ' and region_id in (select fk_id from llx_user_regions where fk_user = ' . $user->id . ' and active = 1) ';
+
         $sql .= ' and llx_societe.active = 1';
         $sql .= ' and `llx_societe_contact`.active = 1';
         if (!(empty($_REQUEST["areas"]) || count($_REQUEST["areas"]) == 1 && $_REQUEST["areas"][0] == 0))
@@ -266,8 +353,10 @@ function getCustomers($type, $test=false){
     if(!$res)
         dol_print_error($db);
     $num = 1;
+    $contact_ids = [];
     while($obj = $db->fetch_object($res)){
-        if($obj->active) {
+        if($obj->active && !in_array($obj->rowid, $contact_ids)) {
+            $contact_ids[]=$obj->rowid;
             $value = '';
             if($type == 'sms') {
                 if (empty($obj->mobile_phone1))

@@ -26,17 +26,17 @@ $FormOfGoverment = $object->getFormOfGoverment();
 $NewItem = $langs->trans('NewItem');
 $Control = $langs->trans('Control');
 $AddAddress = $langs->trans('AddAddress');
-if(!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit')
-    $action = '&action=edit';
+if(!empty($_REQUEST['action']) && in_array($_REQUEST['action'], array('owner_view', 'edit')))
+    $action = '&action=owner_view';
 else
     $action = '';
 print '
         <div class="tabs" data-role="controlgroup" data-type="horizontal">
             <div class="inline-block tabsElem tabsElemActive">
-                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/soc.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].$action.'&socid='.$object->id.'">'.$langs->trans('BasicInfo').'</a>
+                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/soc.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].(!empty($action)?'&action=edit':'').'&socid='.$object->id.'">'.$langs->trans('BasicInfo').'</a>
             </div>
             <div class="inline-block tabsElem">
-                <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societeaddress.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].$action.'&socid='.$object->id.'">'.$langs->trans('AddressList').'</a>
+                <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societeaddress.php?mainmenu='.$_REQUEST['mainmenu'].$action.'&idmenu='.$_REQUEST['idmenu'].'&socid='.$object->id.'">'.$langs->trans('AddressList').'</a>
             </div>
             <div class="inline-block tabsElem">
                 <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societecontact.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].$action.'&socid='.$object->id.'">'.$langs->trans('ContactList').'</a>
@@ -235,7 +235,7 @@ where fk_soc = '.$socid.' and `llx_societe_address`.active=1';
 
 $table = ShowTable($socid);
 //$table = $dbBuilder->fShowTable($TableParam, $sql, "'" . $tablename . "'", $conf->theme, '', '', $readonly = array(), false);
-if(!empty($_REQUEST['action'])&& $_REQUEST['action'] == 'edit'){
+if(!empty($_REQUEST['action'])&& in_array($_REQUEST['action'] , array('edit', 'owner_view'))){
     $controlbtn = '<div class="address_header" id="addBtn" style="padding-top: 20px">
             <div class="blockvmenupair">
                 <div class="menu_titre">

@@ -39,14 +39,14 @@ llxHeader('',$ContactList,$help_url);
 print_fiche_titre($ContactList);
 $object = new Societe($db);
 $object->fetch($socid);
-if(!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit')
-    $action = '&action=edit';
+if(!empty($_REQUEST['action'])&& in_array($_REQUEST['action'], array('edit', 'owner_view')) )
+    $action = '&action='.$_REQUEST['action'];
 else
     $action = '';
 print '
         <div class="tabs" data-role="controlgroup" data-type="horizontal">
             <div class="inline-block tabsElem">
-                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/soc.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].$action.'&socid='.$object->id.'">'.$langs->trans('BasicInfo').'</a>
+                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/soc.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].(!empty($action)?'&action=edit':'').'&socid='.$object->id.'">'.$langs->trans('BasicInfo').'</a>
             </div>
             <div class="inline-block tabsElem">
                 <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societeaddress.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].$action.'&socid='.$object->id.'">'.$langs->trans('AddressList').'</a>
@@ -91,10 +91,10 @@ $sql = "select case when `responsibility_param`.`fx_category_counterparty` is nu
                             </div>';
             }
 print '<div class="inline-block tabsElem">
-                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/finance.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&socid='.$object->id.'">'.$langs->trans('FinanceAndDetails').'</a>
+                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/finance.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].$action.'&socid='.$object->id.'">'.$langs->trans('FinanceAndDetails').'</a>
             </div>
             <div class="inline-block tabsElem">
-                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/partners.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&socid='.$object->id.'">'.$langs->trans('PartnersOfCustomer').'</a>
+                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/partners.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].$action.'&socid='.$object->id.'">'.$langs->trans('PartnersOfCustomer').'</a>
             </div>
         </div>';
 
@@ -205,7 +205,7 @@ if(!isset($_REQUEST['sortfield']))
     $table = $contacttable->fShowTable($TableParam, $sql, "'".$tablename."'", $conf->theme, null, null, $readonly = array(), false, !empty($_REQUEST['action']));
 else
     $table = $contacttable->fShowTable($TableParam, $sql, "'".$tablename."'", $conf->theme, $_REQUEST['sortfield'], $_REQUEST['sortorder'], false, !empty($_REQUEST['action']));
-if(!empty($_REQUEST['action'])&&$_REQUEST['action'] == 'edit')
+if(!empty($_REQUEST['action'])&&in_array($_REQUEST['action'], array('edit', 'owner_view')))
     $controlbtn = '        <div class="address_header">
             <div class="blockvmenupair" style="width: auto!important; height: 65px">
                 <div class="menu_titre" style="width: 65px">

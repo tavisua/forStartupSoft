@@ -421,7 +421,7 @@ class societecontact {
                 if(!empty($row["birthdaydate"])) {
                     $date = new DateTime($row["birthdaydate"]);
                     $today = new DateTime();
-                    if($date->format('d') == $today->format('d')) {
+                    if($date->format('d.m.') == $today->format('d.m.')) {
                         $proposed = true;
                         $birthday = true;
                     }

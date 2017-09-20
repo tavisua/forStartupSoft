@@ -9,7 +9,8 @@ require '../main.inc.php';
 require DOL_DOCUMENT_ROOT.'/societe/economic_indicator_class.php';
 if(empty($socid))
     $socid = $_REQUEST['socid'];
-$action = $_REQUEST['action'];
+if(in_array($_REQUEST['action'], array('edit', 'owner_view')))
+    $action = '&action='.$_REQUEST['action'];
 //echo '<pre>';
 //var_dump($_SERVER);
 //echo '</pre>';
@@ -143,14 +144,14 @@ llxHeader('',$Title,$help_url);
 print_fiche_titre($Title);
 $object = new Societe($db);
 $object->fetch($socid);
-if(!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit')
-    $action = '&action=edit';
-else
-   $action = '';
+//if(!empty($_REQUEST['action']) && $_REQUEST['action'] == 'edit')
+//    $action = '&action=edit';
+//else
+//   $action = '';
 print '
         <div class="tabs" data-role="controlgroup" data-type="horizontal">
             <div class="inline-block tabsElem">
-                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/soc.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].$action.'&socid='.$_REQUEST['socid'].'">'.$langs->trans('BasicInfo').'</a>
+                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/soc.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].(!empty($action)?'&action=edit':'').'&socid='.$_REQUEST['socid'].'">'.$langs->trans('BasicInfo').'</a>
             </div>
             <div class="inline-block tabsElem">
                 <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societeaddress.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].$action.'&socid='.$_REQUEST['socid'].'">'.$langs->trans('AddressList').'</a>
@@ -195,10 +196,10 @@ $sql = "select case when `responsibility_param`.`fx_category_counterparty` is nu
                             </div>';
             }
 print '<div class="inline-block tabsElem">
-                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/finance.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&socid='.$_REQUEST['socid'].'">'.$langs->trans('FinanceAndDetails').'</a>
+                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/finance.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].$action.'&socid='.$_REQUEST['socid'].'">'.$langs->trans('FinanceAndDetails').'</a>
             </div>
             <div class="inline-block tabsElem">
-                <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/partners.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&socid='.$_REQUEST['socid'].'">'.$langs->trans('PartnersOfCustomer').'</a>
+                <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/partners.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].$action.'&socid='.$_REQUEST['socid'].'">'.$langs->trans('PartnersOfCustomer').'</a>
             </div>
         </div>';
 $table = ShowTable();

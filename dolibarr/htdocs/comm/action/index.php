@@ -122,7 +122,7 @@ if($_REQUEST['action'] == 'birthday_remainder'){
         and send_birthdaydate = 1
         and date(concat(date_format(now(), '%Y-'), date_format(date_add(birthdaydate, interval -7 day), '%m-%d'))) = date(now())
         and `categoryofcustomer_id` in (5/*,7,8,9,10*/)";
-//    var_dump(date('Y-m-d'));
+//    var_dump($sql);
 //    die();
     $res = $db->query($sql);
     $i = 0;
@@ -158,52 +158,57 @@ if($_REQUEST['action'] == 'birthday_remainder'){
                     $action->fk_element = "";
                     $action->elementtype = "";
                     $action->add($user_congratulator);
+                    echo $item.'</br>';
                 }
                 $id_usr = getIDCongratulatorOnRegionID($obj->region_id, $responsibility[$obj->categoryofcustomer_id]);
-                $user_congratulator->fetch($id_usr);
-                $datebirth = new DateTime($obj->birthdaydate);
+                if($id_usr) {
+                    $user_congratulator->fetch($id_usr);
+                    $datebirth = new DateTime($obj->birthdaydate);
 //                echo '<pre>';
 //                var_dump($datebirth);
 //                echo '</pre>';
 //                die('test');
-                //Нагадування для торгівельних агентів
-                foreach ([$datebirth->getTimestamp()] as $date) {
-                    $date = dol_getdate($date+7200);
+                    //Нагадування для торгівельних агентів
+                    foreach ([$datebirth->getTimestamp()] as $date) {
+                        echo $id_usr.'</br>';
+
+                        $date = dol_getdate($date + 7200);
 //                    echo '<pre>';
 //                    var_dump($date, $datebirth);
 //                    echo '</pre>';
-                    $remainder = new ActionComm($db);
-                    $exec_minuted = $remainder->GetExecTime('AC_TEL');
-                    $freetime = $remainder->GetFreeTime($nowyear.'-'.$date['mon'].'-'.$date['mday'], $id_usr, $exec_minuted, 0);
-                    $date = new DateTime($remainder->GetFreeTime($nowyear.'-'.$date['mon'].'-'.$date['mday'].' 8:0:0', $id_usr, $exec_minuted));
-                    $datep = $date->getTimestamp();
-                    $datef = $datep+$exec_minuted*60;
+                        $remainder = new ActionComm($db);
+                        $exec_minuted = $remainder->GetExecTime('AC_TEL');
+                        $freetime = $remainder->GetFreeTime($nowyear . '-' . $date['mon'] . '-' . $date['mday'], $id_usr, $exec_minuted, 0);
+                        $date = new DateTime($remainder->GetFreeTime($nowyear . '-' . $date['mon'] . '-' . $date['mday'] . ' 8:0:0', $id_usr, $exec_minuted));
+                        $datep = $date->getTimestamp();
+                        $datef = $datep + $exec_minuted * 60;
 
 
 //                    die();
 //                    $remainder->get
-                    $remainder->priority = 0;
-                    $remainder->userownerid = $id_usr;
-                    $remainder->fulldayevent = 0;
-                    $remainder->typenotification = 'system';
-                    $remainder->period = 0;
-                    $remainder->groupoftask = 1;
-                    $remainder->authorid = $id_usr;
-                    $remainder->type_code = 'AC_TEL';
-                    $remainder->label = "Поздоровлення з днем народження";
-                    $remainder->typeSetOfDate = 'w';
-                    $remainder->fk_project = 0;
-                    $remainder->userassigned[] = array("id" => $id_usr, "transparency" => 1);
+                        $remainder->priority = 0;
+                        $remainder->userownerid = $id_usr;
+                        $remainder->fulldayevent = 0;
+                        $remainder->typenotification = 'system';
+                        $remainder->period = 0;
+                        $remainder->groupoftask = 1;
+                        $remainder->authorid = $id_usr;
+                        $remainder->type_code = 'AC_TEL';
+                        $remainder->percentage = 0;
+                        $remainder->label = "Поздоровлення з днем народження";
+                        $remainder->typeSetOfDate = 'w';
+                        $remainder->fk_project = 0;
+                        $remainder->userassigned[] = array("id" => $id_usr, "transparency" => 1);
 //                    $datef = dol_mktime('10', '10', 0, $date['mon'], $date['mday'], $nowyear);
 //$datef=dol_mktime($fulldayevent?'23':GETPOST("p2hour"), $fulldayevent?'59':GETPOST("p2min"), $fulldayevent?'59':'0', GETPOST("p2month"), GETPOST("p2day"), GETPOST("p2year"));
 //                    $datep = dol_mktime('10', '00', 0, $date['mon'], $date['mday'], $nowyear);
-                    $remainder->datep = $datep;
-                    $remainder->datef = $datef;
-                    $remainder->socid = $obj->socid;
-                    $remainder->contactid = $obj->contact_id;
-                    $remainder->icon = 'birthday.png';
+                        $remainder->datep = $datep;
+                        $remainder->datef = $datef;
+                        $remainder->socid = $obj->socid;
+                        $remainder->contactid = $obj->contact_id;
+                        $remainder->icon = 'birthday.png';
 //                $remainder->datepreperform = $dateprep;
-                    $remainder->note = "Поздоровити ".$datebirth->format('d.m.')." з днем народження";
+                        $remainder->note = "Поздоровити " . $datebirth->format('d.m.') . " з днем народження";
 //                    if($obj->socid == 20264 &&  $i == 1){
 //                        echo '<pre>';
 //                        var_dump($remainder);
@@ -211,13 +216,15 @@ if($_REQUEST['action'] == 'birthday_remainder'){
 ////                        die();
 //                    }
 //                    echo  $user_congratulator->id.'</br>';
-                    
-                    $remainder->add($user_congratulator, $i==0?'oncreate':'ondatep');
-                    $i++;
+
+                        $remainder->add($user_congratulator, 'ondatep');
+                    }
+                }
+                else{
+                    echo 'not TA ='.$obj->socid.'</br>';
                 }
             }break;
         }
-        $i++;
     }
     die('1');
 }

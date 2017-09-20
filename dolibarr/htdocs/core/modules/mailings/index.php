@@ -358,7 +358,7 @@ if($action == 'update'){
         ", period_begin=".$begin_period.", period_end=".$end_period.", fk_user_creat='".$user->id."', `postlist`='".$postlist."', 
         `responsibility`='".$responsibility."', `inner`=".(empty($_REQUEST['inner'])?0:$_REQUEST['inner'])." where rowid=".$_REQUEST['rowid'];
 //    echo '<pre>';
-//    var_dump($sql);
+//    var_dump($_REQUEST);
 //    echo '</pre>';
 //    die();
     $res = $db->query($sql);
@@ -412,7 +412,7 @@ if($action == 'edit'){
     }
     $select.="</select>";
 //    echo '<pre>';
-//    var_dump($SendActionType);
+//    var_dump($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/mailing/card.html');
 //    echo '</pre>';
 //    die();
     include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/mailing/card.html');

@@ -17,6 +17,24 @@
             var img = $("#loading_img").find("img");
             img[0].style.opacity = "1";
             loading();
+            var param =
+            {
+                addParam:'addFindParam'
+            }
+            $.ajax({
+                url:'/dolibarr/htdocs/comm/smsSending/card.php',
+                type:'GET',
+                data:param,
+                cashe:false,
+                success:function (html) {
+                    $('#FindingParam').html('<td colspan="4"><table id="addFindingParam" width="100%">'+html+'</table></td>');
+                    var trList = $('#addFindingParam').find('tr');
+                    $.each(trList, function (key, tr) {
+                        var tdList = $(tr).find('td');
+                        $(tdList[0]).width($('#areas').width());
+                    })
+                }
+            })
         })
 
     </script>
@@ -45,10 +63,8 @@
                 <td id="ResponsibilityList"><?=$user->getContactResponsibility('responsibility',10,$_GET['addParam']);?></td>
 
             </tr>
-            <tr class="firstpage">
-                <td>Кількість землі </td>
-                <td></td>
-                <td colspan="3">від&nbsp;&nbsp;<input type="text" id="from" name="from" size="4">&nbsp;&nbsp;до&nbsp;&nbsp;<input type="text" id="to" name="to" size="4">&nbsp;&nbsp;га.</td>
+            <tr class="firstpage" id="FindingParam">
+
             </tr>
             <tr class="firstpage">
                 <td colspan="5"><button onclick="nextstep();">Наступний крок</button></td>
@@ -132,6 +148,18 @@
                     'addParam':'<?=$_REQUEST["addParam"]?>',
                     'country_id':$('#selectcountry_id').val()
                     }
+        var select_list = $('select');
+        console.log(Object.keys(param));
+        $.each(select_list, function (key, value) {
+            console.log($(value).attr('id'), $.inArray($(value).attr('id'), Object.keys(param)))
+            if($.inArray($(value).attr('id'), Object.keys(param)<0)){
+                param[$(value).attr('id')]=$(value).val();
+                if($(value).attr('id') == 'category_id' && $(value).val() < 0){
+                    param[$(value).attr('id')] = "<?=$_REQUEST['categories']?>";
+                }
+            }
+        })
+        console.log(param);
         $.ajax({
             url:'/dolibarr/htdocs/comm/smsSending/card.php',
             data:param,

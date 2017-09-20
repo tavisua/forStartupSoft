@@ -436,7 +436,7 @@ if (empty($reshook))
                 	}
                 	else
                 	{
-                        header("Location: /dolibarr/htdocs/societe/societeaddress.php?mainmenu=area&idmenu=10425&socid=".$object->id);
+                        header("Location: /dolibarr/htdocs/societe/societeaddress.php?mainmenu=area&idmenu=10425&socid=".$object->id.(empty($_REQUEST['action'])?'':'&action='.$_REQUEST['action']));
 //               		    header("Location: ".$backtopage);
                         exit;
 //                    	$url=$_SERVER["PHP_SELF"]."?socid=".$object->id;
@@ -1885,13 +1885,13 @@ else
             print '
         <div class="tabs" data-role="controlgroup" data-type="horizontal">
             <div class="inline-block tabsElem tabsElemActive">
-                <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/soc.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('BasicInfo').'</a>
+                <a id="user" class="tabactive tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/soc.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].(empty($_REQUEST['action'])?'':'&action=owner_view').'&socid='.$object->id.'">'.$langs->trans('BasicInfo').'</a>
             </div>
             <div class="inline-block tabsElem">
-                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societeaddress.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&socid='.$object->id.'">'.$langs->trans('AddressList').'</a>
+                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societeaddress.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].(empty($_REQUEST['action'])?'':'&action=owner_view').'&socid='.$object->id.'">'.$langs->trans('AddressList').'</a>
             </div>
             <div class="inline-block tabsElem">
-                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societecontact.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('ContactList').'</a>
+                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/societecontact.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].(empty($_REQUEST['action'])?'':'&action=owner_view').'&socid='.$object->id.'">'.$langs->trans('ContactList').'</a>
             </div>';
         $sql = "select case when `responsibility_param`.`fx_category_counterparty` is null then `responsibility_param`.`other_category` else `responsibility_param`.`fx_category_counterparty` end category_id, `responsibility`.`alias` from `responsibility`
             inner join `responsibility_param` on `responsibility_param`.`fx_responsibility` = `responsibility`.`rowid`
@@ -1925,11 +1925,11 @@ else
 //        die($object->categoryofcustomer_id);
 //        if(in_array($object->categoryofcustomer_id, $sales_category))
             print '<div class="inline-block tabsElem">
-                            <a id="user" class=" tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('EconomicData').'</a>
+                            <a id="user" class=" tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/economin_indicator.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].(empty($_REQUEST['action'])?'':'&action=owner_view').'&socid='.$object->id.'">'.$langs->trans('EconomicData').'</a>
                         </div>';
         if(in_array($object->categoryofcustomer_id, $purchase_category)||in_array($object->categoryofcustomer_id, $marketing_category)) {
             print '<div class="inline-block tabsElem">
-                            <a id="user" class=" tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/lineactive.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&action=edit&socid='.$object->id.'">'.$langs->trans('LineActive').'</a>
+                            <a id="user" class=" tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/lineactive.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].(empty($_REQUEST['action'])?'':'&action=owner_view').'&socid='.$object->id.'">'.$langs->trans('LineActive').'</a>
                         </div>';
         }
 //        if(in_array($object->categoryofcustomer_id, $marketing_category)){
@@ -1938,11 +1938,12 @@ else
 //                        </div>';
 //        }
             print '<div class="inline-block tabsElem">
-                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/finance.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&socid='.$object->id.'">'.$langs->trans('FinanceAndDetails').'</a>
+                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/finance.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].(empty($_REQUEST['action'])?'':'&action=owner_view').'&socid='.$object->id.'">'.$langs->trans('FinanceAndDetails').'</a>
             </div>
             <div class="inline-block tabsElem">
-                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/partners.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].'&socid='.$object->id.'">'.$langs->trans('PartnersOfCustomer').'</a>
+                <a id="user" class="tab inline-block" data-role="button" href="/dolibarr/htdocs/societe/partners.php?mainmenu='.$_REQUEST['mainmenu'].'&idmenu='.$_REQUEST['idmenu'].(empty($_REQUEST['action'])?'':'&action=owner_view').'&socid='.$object->id.'">'.$langs->trans('PartnersOfCustomer').'</a>
             </div>';
+
         print '
         <div class="tabPage">';
             if (! empty($conf->use_javascript_ajax))

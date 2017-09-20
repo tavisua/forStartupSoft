@@ -43,10 +43,7 @@
 
         </tr>
         <tr class="firstpage">
-            <td>Кількість землі </td>
-            <td></td>
-            <td colspan="3">від&nbsp;&nbsp;<input type="text" id="from" name="from" size="4">&nbsp;&nbsp;до&nbsp;&nbsp;<input type="text" id="to" name="to" size="4">&nbsp;&nbsp;га.</td>
-
+            <?=$FindingParam?>
         </tr>
     </table>
     </br>
@@ -62,8 +59,8 @@
     }
     $(document).ready(function(){
         setCheck();
-        if(<?=$sendmail?> == 1)
-            $('#autosendmail').attr('checked', 'checked');
+        <!--if(<?=$sendmail?> == 1)-->
+            <!--$('#autosendmail').attr('checked', 'checked');-->
         var postlist = '<?=$mail->postlist?>'.split(',');
         $('select#postlist').val(postlist);
         var responsibility = '<?=$mail->responsibility?>'.split(',');
