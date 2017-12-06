@@ -23,7 +23,7 @@ if(in_array($_SERVER['SERVER_NAME'], array('uspex2015.com','uspex2015.com1'))) {
 //    $dolibarr_main_document_root='D:/OpenServer/domains/uspex2015.com/dolibarr/htdocs';
 //    $dolibarr_main_data_root='c:/dolibarr/dolibarr_documents';
 }else{
-    $dolibarr_main_document_root=$_SERVER["CONTEXT_DOCUMENT_ROOT"].'/home/vopimwkk/public_html/dolibarr/htdocs';
+    $dolibarr_main_document_root=$_SERVER["DOCUMENT_ROOT"].'/dolibarr/htdocs';
     $dolibarr_main_db_name = 'vopimwkk_uspex2015';
     $dolibarr_main_db_user = 'vopimwkk_admin';
     $dolibarr_main_db_pass = 'C~~KiE3cDThX';

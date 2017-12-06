@@ -419,7 +419,7 @@ function ShowActionTable(){
                 TypeCode.code kindaction, `llx_societe_action`.`said`, `llx_societe_action`.`answer`,`llx_societe_action`.`argument`,
                 `llx_societe_action`.`said_important`, `llx_societe_action`.`result_of_action`,
                 case when `llx_societe_action`.`rowid` is null then `llx_actioncomm`.`note` else `llx_societe_action`.`work_before_the_next_action` end work_before_the_next_action,`work_before_the_next_action_mentor` work_mentor,
-                `llx_societe_action`.`dtMentorChange` date_mentor,`llx_societe_action`.`active`,`llx_societe_action`.id_mentor
+                `llx_societe_action`.`dtMentorChange` date_mentor,`llx_societe_action`.`active`,`llx_societe_action`.id_mentor, `llx_actioncomm`.`icon`
         from `llx_societe_action`
         left join `llx_user` create_user on case when `llx_societe_action`.id_mentor is null then `llx_societe_action`.id_usr else `llx_societe_action`.id_mentor end = create_user.rowid
         inner join `llx_actioncomm` on `llx_actioncomm`.id = `llx_societe_action`.`action_id`

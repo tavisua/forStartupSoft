@@ -15,7 +15,8 @@ foreach($search as $elem) {
 $page = isset($_GET['page'])?$_GET['page']:1;
 $per_page = isset($_GET['per_page'])?$_GET['per_page']:30;
 
-if(empty($_GET['viewname']))     $name = "concat(`llx_societe`.`nom`,' ',case when `formofgavernment`.`name` is null then '' else `formofgavernment`.`name` end)"; elseif ($_GET['viewname'] == "reverse")     $name = "concat(case when `formofgavernment`.`name` is null then '' else `formofgavernment`.`name` end,' ',`llx_societe`.`nom`)";  $sql = "select `llx_societe`.rowid, $name nom,
+if(empty($_GET['viewname']))     $name = "concat(`llx_societe`.`nom`,' ',case when `formofgavernment`.`name` is null then '' else `formofgavernment`.`name` end)"; elseif ($_GET['viewname'] == "reverse")     $name = "concat(case when `formofgavernment`.`name` is null then '' else `formofgavernment`.`name` end,' ',`llx_societe`.`nom`)";
+$sql = "select `llx_societe`.rowid, $name nom,
 `llx_societe`.`town`, round(`llx_societe_classificator`.`value`,0) as width, `llx_societe`.`remark`, ' ' deficit,
 ' ' task,' ' lastdate, ' ' lastdatecomerc, ' ' futuredatecomerc, ' ' exec_time, ' ' lastdateservice,
 ' ' futuredateservice, ' ' lastdateaccounts, ' ' futuredateaccounts, ' ' lastdatementor, ' ' futuredatementor
@@ -30,14 +31,16 @@ left join `llx_societe_lineactive` on `llx_societe_lineactive`.fk_soc = `llx_soc
 where 1  ';
 $responsibility = $user->getResponding($user->id, true);
 //echo '<pre>';
-//var_dump($_REQUEST);
+//var_dump(count(array_intersect($responsibility, array('counter','corp_manager','purchase','paperwork','cadry','wholesale_purchase','logistika','jurist'))));
 //echo '</pre>';
 //die();
 
-if(count(array_intersect($responsibility, array('counter','corp_manager','purchase','paperwork','cadry','wholesale_purchase','logistika','jurist'))) == 0) {
+
+if(count(array_intersect($responsibility, array('counter','corp_manager','purchase','paperwork','cadry', 'marketing', 'wholesale_purchase','logistika','jurist'))) == 0) {
     $tmp = 'and `llx_societe`.`categoryofcustomer_id` in
         (select case when `fx_category_counterparty` is null then `other_category` else `fx_category_counterparty` end fx_category_counterparty from responsibility_param  where fx_responsibility = ' . $respon_id . ')';
 }else{
+
     if(empty($_REQUEST["id_category"])) {
         $sql_categories = 'select distinct case when `responsibility_param`.`fx_category_counterparty` is null then `other_category` else `fx_category_counterparty` end `fk_categories`
         from `responsibility_param`
@@ -54,8 +57,11 @@ if(count(array_intersect($responsibility, array('counter','corp_manager','purcha
             if (!in_array($obj_cat__id->fk_categories, $categories))
                 $categories[] = $obj_cat__id->fk_categories;
         }
-    }else
+    }else {
         $categories[] = $_REQUEST["id_category"];
+//        die('test');
+
+    }
 //    echo '<pre>';
 //    var_dump('select distinct case when `responsibility_param`.`fx_category_counterparty` is null then `other_category` else `fx_category_counterparty` end `fk_categories`
 //        from `responsibility_param`
@@ -76,7 +82,7 @@ if(count(array_intersect($responsibility, array('counter','corp_manager','purcha
     $sql_count.=' and `llx_societe`.active = 1 ';
 
 //echo '<pre>';
-//var_dump($_REQUEST);
+//var_dump($categories);
 //echo '</pre>';
 //die();
 

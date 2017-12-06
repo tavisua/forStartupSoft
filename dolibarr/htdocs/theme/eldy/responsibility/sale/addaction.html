@@ -271,6 +271,7 @@
 
 <script type="text/javascript">
     $(document).ready(function(){
+//        console.log();
         switch ($('#subaction').val()){
             case 'sendmail':{
                 $('#saveandcreatbtn').hide();
@@ -301,7 +302,7 @@
         $(".tabBar").width(800);
         $('#apButtonNow').remove();
         $("#event_desc").addClass('tabactive');
-        if(getParameterByName('action')=='addonlyresult'){
+        if(getParameterByName('action')=='addonlyresult' && getParameterByName('proposed_id') == ''){
             $('#answer').text('');
         }else if(getParameterByName('action') == 'useraction'){
             var contactid = '<input type="hidden" name="contactid" value="'+getParameterByName('id_usr')+'">'
@@ -318,8 +319,24 @@
         $('#setNeed').click(function(){
             var need = $('#result_of_action').val().substr($('#result_of_action')[0].selectionStart, $('#result_of_action')[0].selectionEnd-$('#result_of_action')[0].selectionStart);
             $('#need').val(need)
+//            console.log($('#need').val());
             $('#setNeed').offset({top: 0, left: 0});
             $('#setNeed').hide();
+            var param = {
+                action:'save_societe_need',
+                socid:$('#socid').val(),
+                type: 'get',
+                need:$('#need').val()
+            }
+            console.log(param);
+            $.ajax({
+                url:'/dolibarr/htdocs/comm/action/result_action.php',
+//                cache:false,
+                data:param,
+                success:function (result) {
+                    console.log(result);
+                }
+            })
         })
         var usersID = '<?=$AssignedUsersID?>'.split(',');
         usersID = $.grep(usersID,function (value) {
@@ -431,6 +448,19 @@
 //                    console.log(result);
 
                         $("#addaction").submit();
+                    }
+                })
+                var param = {
+                    action:'autoCreateAction',
+                    actionid: getParameterByName('action_id'),
+                    onlymark: $('#action').val().indexOf('_and_create')>0
+                }
+                $.ajax({//Автоматичне планування наступної дії
+                    url:'/dolibarr/htdocs/comm/action/index.php',
+                    data: param,
+                    cache:false,
+                    success:function(html){
+
                     }
                 })
             }else

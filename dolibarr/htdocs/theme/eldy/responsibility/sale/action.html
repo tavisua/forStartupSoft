@@ -39,6 +39,8 @@
     </form>
     <button id="showhide_contactlist" onclick="ShowHideContactList($('#showhide_contactlist'));">    Скрити контакти    </button>
     <button id="showcontragentcard" onclick="ShowContragentCard($('#showcontragentcard'));" style="position: relative;">    Картка контрагента    </button>
+    <button id="AutoCallBtn" style="float: left" onclick="AutoCall()" title="Розпочати автоматичний набір дзвінків, запланованих на вибраний день"><img src="/dolibarr/htdocs/theme/eldy/img/1rightarrow.png"> Автонабір </button>
+
     <table id="contactlist">
         <thead>
         <tr class="header_table">
@@ -146,6 +148,7 @@
 </style>
 <input type="hidden" id="starttimer" value="">
 <script>
+    var timeout;
     function ResetSendMail() {
         $('#SendMail').hide();
     }
@@ -160,7 +163,7 @@
         })
 
         return;
-        location.href='/dolibarr/htdocs/societe/soc.php?mainmenu=area&idmenu=10425&action=edit&socid=';
+//        location.href='/dolibarr/htdocs/societe/soc.php?mainmenu=area&idmenu=10425&action=edit&socid=';
     }
     function UpdateForm(){
         location.reload();
@@ -207,11 +210,12 @@
         location = location.pathname + searchString;
     }
     $(document).ready(function(){
+        var param = searchToObject(location.search);
+
+        setBtnPosition();
         $("#bookmarkActionPanel").show();
-        var top =
-        $('#showhide_contactlist').offset({top:$('#addcontact').offset().top, left:$('#addcontact').offset().left+$('#addcontact').width()+15});
+
         $('#contactlist').offset({top:$('#contactlist').offset().top-20});
-        $('#showcontragentcard').offset({top:$('#showhide_contactlist').offset().top, left:$('#showhide_contactlist').offset().left+$('#showhide_contactlist').width()+15});
 
         var tr = document.getElementById('actions_table').getElementsByTagName('tr');
         for(var i = 0; i<tr.length; i++) {
@@ -228,10 +232,117 @@
                 }
             }
         }
+
         setcallphonelink();
 //        setActionPanelPosition();
-        LoadProposition();
+        if(param.autocall == 1) {
+            if ($('td[id^="proposed"]').length > 0) {
+                LoadProposition();
+            }else {
+                createNewForm('popupmenu', 'result_action');
+                $('div#result_action').load('/dolibarr/htdocs/theme/eldy/responsibility/sale/addaction.html form#addaction');
+                $('div#result_action').show();
+                console.log($('div#result_action').html());
+            }
+        }
+        if($.inArray("<?=$_REQUEST['autocall']?>", [0,1]) && !(param.contactID === undefined || $.isEmptyObject(param.contactID))) {
+            if("<?=$_REQUEST['autocall']?>" == 1)
+                timeout = 10;
+            else if("<?=$_REQUEST['autocall']?>" == 0)
+                timeout = 6;
+            setCallBtnCaption();//Встановлюю напис на кнопці автодозвону
+        }
     })
+    function setBtnPosition() {
+        $('#showhide_contactlist').offset({top:$('#addcontact').offset().top, left:$('#addcontact').offset().left+$('#addcontact').width()+25});
+        $('#showcontragentcard').offset({top:$('#showhide_contactlist').offset().top, left:$('#showhide_contactlist').offset().left+$('#showhide_contactlist').width()+25});
+        $('#AutoCallBtn').offset({top:$('#showhide_contactlist').offset().top, left:$('#showcontragentcard').offset().left+$('#showcontragentcard').width()+25});
+    }
+    function AutoCall(){
+        var param = searchToObject(location.search);
+        var caption;
+        if(param.autocall == 1)
+            caption = 'Автонабір';
+        else if(param.autocall == 0)
+            caption = 'До початку наступного дзвінка';
+
+        if($('#AutoCallBtn').find('img').attr('src').indexOf('1rightarrow')>0){
+            $('#AutoCallBtn').find('img').attr('src', '/dolibarr/htdocs/theme/eldy/img/pause.png');
+            $('#AutoCallBtn').attr('title', 'Призупинити автоматичні дзвінки');
+            if($.trim($('#AutoCallBtn').text()) != 'Автонабір')
+                setCallBtnCaption();
+            else{
+                var dtNow = new Date();
+                var sDate = convertDate(dtNow);
+                AutoCallForDate(sDate);
+            }
+        }else{
+            $('#AutoCallBtn').find('img').attr('src', '/dolibarr/htdocs/theme/eldy/img/1rightarrow.png');
+            $('#AutoCallBtn').attr('title', 'Розпочати автоматичний набір дзвінків, запланованих на вибраний день');
+        }
+    }
+    function setCallBtnCaption(){
+        $('#AutoCallBtn').attr('title', 'Призупинити автоматичні дзвінки');
+//        var timeout = $.trim($('#AutoCallBtn').text()) == 'Автонабір'?10:$('#AutoCallBtn').text().substr(11);
+        var param = searchToObject(location.search);
+        var caption;
+        if(param.autocall == 1)
+            caption = 'Автонабір';
+        else if(param.autocall == 0) {
+            caption = 'До початку наступного дзвінка';
+            $('#AutoCallBtn').html('<img src="/dolibarr/htdocs/theme/eldy/img/pause.png"> '+caption+' '+ timeout);
+        }
+        timeout--;
+        if(timeout == 10 && $('td#proposed'+param.contactID).length > 0){//Відображаю заголовки пропозицій
+            $('td#proposed'+param.contactID).click();
+        }
+        if(timeout>0) {
+            var img = $('#AutoCallBtn').find('img')[0];
+            if($(img).attr('src') == '/dolibarr/htdocs/theme/eldy/img/pause.png' || $.trim($('#AutoCallBtn').text()) == caption){
+                $('#AutoCallBtn').html('<img src="/dolibarr/htdocs/theme/eldy/img/pause.png"> '+caption+' '+ timeout);
+                setTimeout(setCallBtnCaption, 1000);
+            }
+        }else{
+            $('#AutoCallBtn').html('<img src="/dolibarr/htdocs/theme/eldy/img/pause.png"> '+caption);
+            if(param.autocall == 1) {//Виконання дзвінка
+//                console.log($.isEmptyObject(param.autocall), 'param.contactID');
+                    if (param.contactID !== undefined && !$.isEmptyObject(param.contactID)) {
+                        var phone_cell;
+                        if (($('td#' + param.contactID + 'mobile_phone1').html()).length > 0)
+                            phone_cell = $('td#' + param.contactID + 'mobile_phone1').find('.contactlist_contact').find('tr').find('td')[0];
+                        else if ($('td#' + param.contactID + 'work_phone').html().length > 0) {
+                            phone_cell = $('td#' + param.contactID + 'work_phone').find('.contactlist_contact').find('tr').find('td')[0];
+                        }
+                        console.log(phone_cell, $('td#' + param.contactID + 'work_phone').find('.contactlist_contact').find('tr').find('td')[0]);
+                        var a_link = $(phone_cell).find('a')[0];
+                        var phone_text = $(a_link).html().replace(' ', '');
+                        phone_text = phone_text.replace('(', '');
+                        phone_text = phone_text.replace(')', '');
+                        phone_text = phone_text.replace('+', '');
+                        phone_text = phone_text.replace('-', '');
+                        phone_text = phone_text.replace('.', '');
+//                console.log(phone_text);
+                        if (phone_text.length > 0) {
+//                    var link = '/dolibarr/htdocs/comm/action/result_action.php';
+//                    console.log(getParameterByName('autocall'));
+//                    window.open(link+'?action='+(contacttype=='users'?'&id_usr=':'addonlyresult&actioncode=AC_TEL&socid='+getParameterByName('socid')+'&contactid=')+contactid);
+                            Call(phone_text, 'thirdcontact', param.contactID, $('#AutoCallBtn'));
+                        } else {
+                            console.log('Нема номеру телефона');
+                        }
+                    }
+                    else {
+                        console.log('Контакт не визначено');
+                    }
+            }else if(param.autocall == 0){//Перехід до наступного дзвінка
+                    var dtNow = new Date();
+                    var sDate = convertDate(dtNow);
+                    AutoCallForDate(sDate);
+            }
+        }
+        setBtnPosition();
+    }
+
    $('.result_of_action').click(function(e){
         var param = {
             action:'showCallStatus',

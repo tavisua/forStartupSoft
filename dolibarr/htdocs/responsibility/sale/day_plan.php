@@ -69,7 +69,6 @@ $subdivision = $obj->name;
 //echo '</pre>';
 //die();
 
-
 $table = ShowTable();
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/day_plan.html';
 llxPopupMenu();
@@ -96,11 +95,12 @@ exit();
 
 function ShowTable(){
     global $actions,$user,$CustActions,$userActions,$actioncode,$id_usr,$user_tmp,$db;
-    if($user->subdiv_id == 21) {
-        require_once $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/core/class/raports/dayplan.class.php';
-        $dayplan = new DayPlan($db);
-        return $dayplan->BuildRaport('sale', $user->id);
-    }
+
+//    if($user->subdiv_id == 21) {
+//        require_once $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/core/class/raports/dayplan.class.php';
+//        $dayplan = new DayPlan($db);
+//        return $dayplan->BuildRaport('sale', $user->id);
+//    }
 
     //---------------
     $today = new DateTime();
@@ -145,7 +145,7 @@ function ShowTable(){
                 if($mkToday-$mkDate<=604800)//604800 sec by week
                     $userActions['total_week'][$obj->code]++;
                 if($mkToday-$mkDate<=2678400)//2678400 sec by month
-                    $userActions['total_month'][$obj->code]++;                
+                    $userActions['total_month'][$obj->code]++;
             }
         }
         if($mkDate <= $mkToday && $action['percent'] == 100 && $action['code'] == 'AC_CUST' && $action['callstatus'] == '5'){

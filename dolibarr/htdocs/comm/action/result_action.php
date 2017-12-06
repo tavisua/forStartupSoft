@@ -6,19 +6,23 @@
  * Time: 13:45
  */
 //if('getTypeNotification'!=$_REQUEST['action']) {
-//    echo '<pre>';
-//    var_dump($_REQUEST);
-//    echo '</pre>';
-//    die($_GET['backtopage']);
-//}
+
 define("NOLOGIN",1);		// This means this output page does not require to be logged.
-require '../../main.inc.php';
-require_once 'class/actioncomm.class.php';
 global $db,$user;
+//if($_REQUEST['action'] == 'setNotInterestingProposed'){
+//    exit();
+//}
+
+require_once '../../main.inc.php';
+require_once 'class/actioncomm.class.php';
+
 if(!$user->id){
     $user->fetch('',$_SESSION["dol_login"]);
 }
-
+//echo '<pre>';
+//var_dump($_REQUEST);
+//echo '</pre>';
+//die();
 
 if(isset($_REQUEST["backtopage"]) && !empty($_REQUEST["backtopage"])){
     $_REQUEST["backtopage"] = str_replace('_amp038;', '&', $_REQUEST["backtopage"]);
@@ -60,6 +64,16 @@ if(isset($_REQUEST['action'])) {
     } elseif (in_array($_REQUEST["action"], array('savetaskmentor','savetaskmentor_and_create'))) {
         savetaskmentor($_REQUEST['action'] == 'savetaskmentor_and_create');
         exit();
+    }elseif($_REQUEST['action'] == 'save_societe_need'){//Зберігання потреби
+            global $db, $user;
+            $sql = "insert into llx_societe_need (`socid`,`need`,`id_usr`) values('".$_REQUEST['socid']."','".$_REQUEST['need']."', $user->id)";
+            $res = $db->query($sql);
+            if(!$res)
+                dol_print_error($db);
+            $sql = "update `llx_societe` set `llx_societe`.`need` = trim('".$_REQUEST['need']."') where rowid = ".$_REQUEST['socid'];
+            if(!$res)
+                dol_print_error($db);
+            die(1);
     } elseif ($_REQUEST["action"] == 'get_user_id') {
         global $db,$user;
         $id_usr  = $user->fetch_userID($_REQUEST["login"], $_REQUEST["pass"]);
@@ -192,90 +206,93 @@ if(isset($_REQUEST['action'])) {
         print '{"result": "ok", “error”:””}';
         exit();
     }
+    if($_REQUEST['action'] == 'setNotInterestingProposed')
+        return '{"result": "ok", “error”:””}';
 }
 
-require_once DOL_DOCUMENT_ROOT.'/core/lib/agenda.lib.php';
-require_once DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
-require_once DOL_DOCUMENT_ROOT.'/core/class/html.formactions.class.php';
-global $user;
-if($_GET['action'] == 'addonlyresult' || $_GET['action'] == 'addonlyresult_and_create' || $_GET['action'] == 'useraction') {
-    llxHeader('', $langs->trans("AddResultAction"), $help_url);
-}elseif(isset($_REQUEST["onlyresult"])&&$_REQUEST["onlyresult"]=='1' || $_GET['action'] == 'updateonlyresult'){
-    llxHeader('', $langs->trans("EditResultAction"), $help_url);
-}elseif($_GET['action'] == 'SetRemarkOfMentor'){
-    llxHeader('', $langs->trans("SetRemarkOfMentor"), $help_url);
-}else
-    llxHeader('',$langs->trans("EditAction"),$help_url);
-$action_id = 0;
-$socid = 0;
-
-if (isset($_REQUEST["action_id"])&&$_REQUEST["action"]!='addonlyresult') {
-    $action_id = $_REQUEST["action_id"];
-    $sql = "select * from llx_societe_action where 1 ";
-    if((!isset($_REQUEST["onlyresult"]) || empty($_REQUEST['onlyresult'])) && isset($_REQUEST["answer_id"])&&!empty($_REQUEST["answer_id"]))
-        $sql.="and rowid=" . $_REQUEST["answer_id"];
-    else
-        $sql.="and rowid=" . $_REQUEST["action_id"];
-
-    $res = $db->query($sql);
-    if (!$res) {
-        dol_print_error($db);
+    require_once DOL_DOCUMENT_ROOT . '/core/lib/agenda.lib.php';
+    require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
+    require_once DOL_DOCUMENT_ROOT . '/core/class/html.formactions.class.php';
+    global $user;
+    if(!empty($_GET['action'])) {
+        if ($_GET['action'] == 'addonlyresult' || $_GET['action'] == 'addonlyresult_and_create' || $_GET['action'] == 'useraction') {
+            llxHeader('', $langs->trans("AddResultAction"), $help_url);
+        } elseif (isset($_REQUEST["onlyresult"]) && $_REQUEST["onlyresult"] == '1' || $_GET['action'] == 'updateonlyresult') {
+            llxHeader('', $langs->trans("EditResultAction"), $help_url);
+        } elseif ($_GET['action'] == 'SetRemarkOfMentor') {
+            llxHeader('', $langs->trans("SetRemarkOfMentor"), $help_url);
+        } else
+            llxHeader('', $langs->trans("EditAction"), $help_url);
     }
-}
-if((!isset($_REQUEST["onlyresult"])||empty($_REQUEST["onlyresult"]))&&$action_id) {
-    $object = new ActionComm($db);
-    $object->fetch($action_id);
-    $socid = $object->socid;
+    $action_id = 0;
+    $socid = 0;
+
+    if (isset($_REQUEST["action_id"]) && $_REQUEST["action"] != 'addonlyresult') {
+        $action_id = $_REQUEST["action_id"];
+        $sql = "select * from llx_societe_action where 1 ";
+        if ((!isset($_REQUEST["onlyresult"]) || empty($_REQUEST['onlyresult'])) && isset($_REQUEST["answer_id"]) && !empty($_REQUEST["answer_id"]))
+            $sql .= "and rowid=" . $_REQUEST["answer_id"];
+        else
+            $sql .= "and rowid=" . $_REQUEST["action_id"];
+
+        $res = $db->query($sql);
+        if (!$res) {
+            dol_print_error($db);
+        }
+    }
+    if ((!isset($_REQUEST["onlyresult"]) || empty($_REQUEST["onlyresult"])) && $action_id) {
+        $object = new ActionComm($db);
+        $object->fetch($action_id);
+        $socid = $object->socid;
 //}elseif($_REQUEST["action"]=='SetRemarkOfMentor') {
 
-}elseif($_REQUEST["action"]=='edituseration'){
+    } elseif ($_REQUEST["action"] == 'edituseration') {
 
-}else{
-    if(!empty($res))
-        $object = $db->fetch_object($res);
-    $socid = $object->socid;
-}
-$head=actions_prepare_head($object);
-if($_GET['action'] == 'addonlyresult' || $_GET['action'] == 'useraction')
-    print_fiche_titre($langs->trans("AddResultAction"));
-elseif($_REQUEST["action"]=='edituseration')
-    print_fiche_titre('Редагувати перемовини');
-elseif($_REQUEST["action"]=='SetRemarkOfMentor') {
+    } else {
+        if (!empty($res))
+            $object = $db->fetch_object($res);
+        $socid = $object->socid;
+    }
+    $head = actions_prepare_head($object);
+    if ($_GET['action'] == 'addonlyresult' || $_GET['action'] == 'useraction')
+        print_fiche_titre($langs->trans("AddResultAction"));
+    elseif ($_REQUEST["action"] == 'edituseration')
+        print_fiche_titre('Редагувати перемовини');
+    elseif ($_REQUEST["action"] == 'SetRemarkOfMentor') {
 //    echo '<pre>';
 //    var_dump($object);
 //    echo '</pre>';
 //    die();
-    if(empty($object)&&isset($_REQUEST['rowid'])){
-        $sql = "select ".$_REQUEST['rowid']." as rowid";
-        $res = $db->query($sql);
-        $object = $db->fetch_object($res);
-    }
-    if(isset($_REQUEST['rowid'])){
-        $sql = "select work_before_the_next_action_mentor,dtMentorChange from llx_societe_action where rowid = ".$_REQUEST['rowid'];
-        $res = $db->query($sql);
-        if(!$res)
-            dol_print_error($db);
-        $obj = $db->fetch_object($res);
-        $task_mentor = $obj->work_before_the_next_action_mentor;
-        $date_mentor = $obj->dtMentorChange;
-    }
-    print_fiche_titre('Завдання наставника');
-    $form = new Form($db);
-    include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/dir_depatment/action/addmentoraction.html';
-    print '</div>';
-    llxPopupMenu();
-    //llxFooter();
-    exit();
-}elseif(isset($_REQUEST["onlyresult"])&&$_REQUEST["onlyresult"]=='1' || $_GET['action'] == 'updateonlyresult'){
-    print_fiche_titre($langs->trans("EditResultAction"));
-}else
-    print_fiche_titre($langs->trans("EditAction"));
-print '<script type="text/javascript" src="/dolibarr/htdocs/comm/action/js/action.js'.($ext?'?'.$ext:'').'"></script>'."\n";
-print '<script type="text/javascript"> var id_usr = '.$user->id.'</script>'."\n";
-if (! empty($conf->use_javascript_ajax))
-{
-    print "\n".'<script type="text/javascript">';
-    print '$(document).ready(function () {
+        if (empty($object) && isset($_REQUEST['rowid'])) {
+            $sql = "select " . $_REQUEST['rowid'] . " as rowid";
+            $res = $db->query($sql);
+            $object = $db->fetch_object($res);
+        }
+        if (isset($_REQUEST['rowid'])) {
+            $sql = "select work_before_the_next_action_mentor,dtMentorChange from llx_societe_action where rowid = " . $_REQUEST['rowid'];
+            $res = $db->query($sql);
+            if (!$res)
+                dol_print_error($db);
+            $obj = $db->fetch_object($res);
+            $task_mentor = $obj->work_before_the_next_action_mentor;
+            $date_mentor = $obj->dtMentorChange;
+        }
+        print_fiche_titre('Завдання наставника');
+        $form = new Form($db);
+        include $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/theme/' . $conf->theme . '/responsibility/dir_depatment/action/addmentoraction.html';
+        print '</div>';
+        llxPopupMenu();
+        //llxFooter();
+        exit();
+    } elseif (isset($_REQUEST["onlyresult"]) && $_REQUEST["onlyresult"] == '1' || $_GET['action'] == 'updateonlyresult') {
+        print_fiche_titre($langs->trans("EditResultAction"));
+    } else
+        print_fiche_titre($langs->trans("EditAction"));
+    print '<script type="text/javascript" src="/dolibarr/htdocs/comm/action/js/action.js' . ($ext ? '?' . $ext : '') . '"></script>' . "\n";
+    print '<script type="text/javascript"> var id_usr = ' . $user->id . '</script>' . "\n";
+    if (!empty($conf->use_javascript_ajax)) {
+        print "\n" . '<script type="text/javascript">';
+        print '$(document).ready(function () {
 	            		function setdatefields()
 	            		{
 	            			if ($("#fullday:checked").val() == null) {
@@ -300,8 +317,8 @@ if (! empty($conf->use_javascript_ajax))
                         $(".tabBar").width(600);
                         $("#formaction").width(600);
                    })';
-    print '</script>'."\n";
-}
+        print '</script>' . "\n";
+    }
 //        print '<div class="tabPage">';
 //print '<form id = "formaction" name="formaction" action="'.$_SERVER['PHP_SELF'].'" method="POST">';
 //print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
@@ -314,103 +331,108 @@ if (! empty($conf->use_javascript_ajax))
 //var_dump($object);
 //echo '</pre>';
 //die();
-if(!($_GET['action'] == 'addonlyresult' || (isset($_REQUEST["onlyresult"])&&$_REQUEST["onlyresult"]=='1'))) {
-    if(!($_GET['action'] == 'useraction'||$_GET['action'] == 'edituseration'))
-        dol_fiche_head($head, 'event_desc', $langs->trans("Action"), 0, 'action');
-    $contactlist='';
-}else {
-    if(!in_array($_REQUEST['actioncode'], array('AC_GLOBAL', 'AC_CURRENT'))) {
-        $contactid = empty($object->contactid) ? $_REQUEST['contactid'] : $object->contactid;
-        $lastactiveaction = getLastContact();
-        if (empty($contactid))
-            $contactid = count($lastactiveaction) > 0 ? $lastactiveaction['contactid'] : 1;
-        $form = new Form($db);
-        if(!empty($_GET['socid'])||!empty($object->socid))
-            $contactlist = '<tr><td>Контактне лице</br>' . $form->selectcontacts(empty($_GET['socid']) ? $object->socid : $_GET['socid'], $contactid, 'contactid', 1) . '</td></tr>';
-        $productname = explode(',', $_REQUEST['productsname']);
-        $needlist = explode(',', $_REQUEST['need']);
-        $object->resultaction['answer'] = '';
-        $action_id = count($lastactiveaction) > 0 ? $lastactiveaction['actionid'] : 0;
-        if(count($productname)>0&&!empty($productname[0]))
-            for ($i = 0; $i < count($productname); $i++) {
-                $object->resultaction['answer'] .= $productname[$i] . ' ' . (empty($needlist[$i]) ? 'не потрібно' : $needlist[$i]) . '; ';
-            }
+    if (!($_GET['action'] == 'addonlyresult' || (isset($_REQUEST["onlyresult"]) && $_REQUEST["onlyresult"] == '1'))) {
+        if (!($_GET['action'] == 'useraction' || $_GET['action'] == 'edituseration'))
+            dol_fiche_head($head, 'event_desc', $langs->trans("Action"), 0, 'action');
+        $contactlist = '';
+    } else {
+        if (!in_array($_REQUEST['actioncode'], array('AC_GLOBAL', 'AC_CURRENT'))) {
+            $contactid = empty($object->contactid) ? $_REQUEST['contactid'] : $object->contactid;
+            $lastactiveaction = getLastContact();
+            if (empty($contactid))
+                $contactid = count($lastactiveaction) > 0 ? $lastactiveaction['contactid'] : 1;
+            $form = new Form($db);
+            if (!empty($_GET['socid']) || !empty($object->socid))
+                $contactlist = '<tr><td>Контактне лице</br>' . $form->selectcontacts(empty($_GET['socid']) ? $object->socid : $_GET['socid'], $contactid, 'contactid', 1) . '</td></tr>';
+            $productname = explode(',', $_REQUEST['productsname']);
+            $needlist = explode(',', $_REQUEST['need']);
+            $object->resultaction['answer'] = '';
+            $action_id = count($lastactiveaction) > 0 ? $lastactiveaction['actionid'] : 0;
+            if (count($productname) > 0 && !empty($productname[0]))
+                for ($i = 0; $i < count($productname); $i++) {
+                    $object->resultaction['answer'] .= $productname[$i] . ' ' . (empty($needlist[$i]) ? 'не потрібно' : $needlist[$i]) . '; ';
+                }
+        }
     }
-}
-if($action_id == 0 && !empty($_REQUEST['action_id']))
-    $action_id = $_REQUEST['action_id'];
+    if ($action_id == 0 && !empty($_REQUEST['action_id']))
+        $action_id = $_REQUEST['action_id'];
 //        var_dump($action_id);
 //die('test');
-$societe = new Societe($db);
-$societe->fetch(empty($object->socid)&&$_GET['action'] == 'addonlyresult'?$_GET['socid']:$object->socid);
+    $societe = new Societe($db);
+    $societe->fetch(empty($object->socid) && $_GET['action'] == 'addonlyresult' ? $_GET['socid'] : $object->socid);
 
-$formactions = new FormActions($db);
-if($_GET['action'] == 'edituseration'){//Якщо редагуються результати перемовин зі співробітниками
-    $sql = "select rowid,said,answer,argument,said_important,result_of_action,fact_cost,work_before_the_next_action,date_next_action,work_before_the_next_action_mentor,date_next_action_mentor
+    $formactions = new FormActions($db);
+    if ($_GET['action'] == 'edituseration') {//Якщо редагуються результати перемовин зі співробітниками
+        $sql = "select rowid,said,answer,argument,said_important,result_of_action,fact_cost,work_before_the_next_action,date_next_action,work_before_the_next_action_mentor,date_next_action_mentor
         from llx_users_action
-        where rowid = ".$_REQUEST['rowid'];
-    $res=$db->query($sql);
-    if(!$res)
-        dol_print_error($db);
-    $object = $db->fetch_object($res);
-    $said = empty($object->resultaction['said']) ? $object->said : $object->resultaction['said'];
-}else {
-    $percent = $object->percentage==99?100:$object->percentage;
-    $said = empty($object->resultaction['said']) ? $object->said : $object->resultaction['said'];
-    if (empty($said))
-        $said = $_REQUEST['said'];
+        where rowid = " . $_REQUEST['rowid'];
+        $res = $db->query($sql);
+        if (!$res)
+            dol_print_error($db);
+        $object = $db->fetch_object($res);
+        $said = empty($object->resultaction['said']) ? $object->said : $object->resultaction['said'];
+    } else {
+        $percent = $object->percentage == 99 ? 100 : $object->percentage;
+        $said = empty($object->resultaction['said']) ? $object->said : $object->resultaction['said'];
+        if (empty($said))
+            $said = $_REQUEST['said'];
 ////print '<div class="tabBar">';
-}
-require_once $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/comm/action/class/actioncomm.class.php';
-
-$Actions = new ActionComm($db);
-if(empty($_REQUEST["socid"]))//Якщо не стосується зовнішніх контрагентів
-    $AssignedUsersID = implode(',',$Actions->getAssignedUser($_GET['action_id'], true));
-
-if(isset($_GET['action_id'])&&!empty($_GET['action_id']))
-    $Actions->fetch($_GET['action_id']);
-$style = "";
-if(($_GET['action']=='addonlyresult'||$_GET['action']=='updateonlyresult')&&empty($_REQUEST['socid'])){//Виконується, якщо дія пов'язана з внутрішніми роботами
-    $style = 'style="display:none;"';
-    if(!empty($object)) {
-        if(get_class($Actions) == 'ActionComm'){
-            $object->label = $Actions->note;
-            $object->type = $Actions->type_code;
-        }else
-            $object->label = $object->note;
     }
-}
-if(empty($form)){
-    $form = new Form($db);
-}
+    require_once $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/comm/action/class/actioncomm.class.php';
+
+    $Actions = new ActionComm($db);
+    if (empty($_REQUEST["socid"]))//Якщо не стосується зовнішніх контрагентів
+        $AssignedUsersID = implode(',', $Actions->getAssignedUser($_GET['action_id'], true));
+
+    if (isset($_GET['action_id']) && !empty($_GET['action_id']))
+        $Actions->fetch($_GET['action_id']);
+
+    if (($_GET['action'] == 'addonlyresult' || $_GET['action'] == 'updateonlyresult') && empty($_REQUEST['socid'])) {//Виконується, якщо дія пов'язана з внутрішніми роботами
+        $style = 'style="display:none;"';
+        if (!empty($object)) {
+            if (get_class($Actions) == 'ActionComm') {
+                $object->label = $Actions->note;
+                $object->type = $Actions->type_code;
+            } else
+                $object->label = $object->note;
+        }
+    }
+    if (empty($form)) {
+        $form = new Form($db);
+    }
 //["callstatus"]
 //var_dump($_REQUEST["callstatus"], $object->callstatus, $object);
 //die();
-if(isset($_REQUEST["callstatus"])&&!empty($_REQUEST["callstatus"])&&!empty($object)){
-    $object->callstatus = $_REQUEST["callstatus"];
-}
-if(empty($_REQUEST["action_id"])&&!empty($_REQUEST["id"]))
-    $_REQUEST["action_id"] = $_REQUEST["id"];
+    if (isset($_REQUEST["callstatus"]) && !empty($_REQUEST["callstatus"]) && !empty($object)) {
+        $object->callstatus = $_REQUEST["callstatus"];
+    }
+    if (empty($_REQUEST["action_id"]) && !empty($_REQUEST["id"]))
+        $_REQUEST["action_id"] = $_REQUEST["id"];
 //echo '<pre>';
 //var_dump($AssignedUsersID);
 //echo '</pre>';
 //die();
 //$subactionID = '111';
-if(!empty($_REQUEST["action_id"]))
-    $subactionID = getSubactionID($_REQUEST["action_id"]);
-if(empty($subactionID))
-    $subactionID = -1;
+    if (!empty($_REQUEST["action_id"]))
+        $subactionID = getSubactionID($_REQUEST["action_id"]);
+    if (empty($subactionID))
+        $subactionID = -1;
 //var_dump($subactionID);
 //die();
-global $user;
-include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/addaction.html';
-print '</div>';
+    global $user;
+    $category = $societe->getCategoryOfCustomer();
+    $status = $_REQUEST['actioncode'] == 'AC_TEL' ? $formactions->form_select_callstatus('callstatus', empty($object->callstatus) ? 2 : $object->callstatus) : $formactions->form_select_status_action('formaction', $percent, 1, 'complete');
+    $societe_name = $societe->name;
+    if (!empty($object->resultaction['answer']) && !empty($_REQUEST['proposed_id'])) {
+        $object->callstatus = 5;
+    }
+    include $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/theme/' . $conf->theme . '/responsibility/sale/addaction.html';
+    print '</div>';
 
 
-
-llxPopupMenu();
+    llxPopupMenu();
 //llxFooter();
-exit();
+    exit();
 
 function getSubactionID($actionid){
     global $db;
@@ -678,7 +700,7 @@ function saveuseraction($rowid){
 function saveaction($rowid, $createaction = false, $action_id = null){
     global $user, $db;
 //    print $action_id.'<br>';
-
+//    return 'test';
     if((substr($_REQUEST['action'], 0, strlen('addonlyresult')) == 'addonlyresult' || substr($_REQUEST['action'], 0, strlen('updateonlyresult')) == 'updateonlyresult'))
         $socid = $_REQUEST['socid'];
     else {
@@ -710,7 +732,7 @@ function saveaction($rowid, $createaction = false, $action_id = null){
     }
     if(empty($rowid)){
         $sql='insert into llx_societe_action(`new`,`action_id`,`proposed_id`, `socid`, `contactid`,`callstatus`, `said`,`answer`,
-          `argument`,`said_important`,`result_of_action`,`work_before_the_next_action`,`need`,`fact_cost`,`id_usr`) values(';
+          `argument`,`said_important`,`result_of_action`,`work_before_the_next_action`,`need`,`fact_cost`,`id_usr`'.(empty($_REQUEST['proposed_id'])?'':',`interesting`').') values(';
         $sql .= '1,';
         if(empty($action_id)) {
             if (empty($_REQUEST['actionid'])) $sql .= 'null,';
@@ -746,7 +768,7 @@ function saveaction($rowid, $createaction = false, $action_id = null){
 //            $value = $date->format('Y-m-d');
 //            $sql .= '"' .$value . '",';
 //        }
-        $sql .= $user->id.")";
+        $sql .= $user->id.','.(empty($_REQUEST['proposed_id'])?"null":$_REQUEST['action']=='setNotInterestingProposed'?0:1).")";
     }else {
         $sql = 'update llx_societe_action set ';
         $sql.='`contactid`='.(empty($_REQUEST['contactid'])?'null':$_REQUEST['contactid']).', ';
@@ -760,6 +782,9 @@ function saveaction($rowid, $createaction = false, $action_id = null){
         $sql.='`need`='.(empty($_REQUEST['need'])?'null':"'".$db->escape($_REQUEST['need'])."'").', ';
         $sql.='`fact_cost`='.(empty($_REQUEST['fact_cost'])?'null':$db->escape($_REQUEST['fact_cost'])).', ';
         $sql.='`id_usr`='.$user->id.' ';
+        if(!empty($_REQUEST['proposed_id'])){
+            $sql.=',`interesting`='.$_REQUEST['action']=='setNotInterestingProposed'?0:1;
+        }
 //        $sql.='`new`=1 ';
         $sql.='where rowid='.$rowid;
     }
@@ -776,6 +801,21 @@ function saveaction($rowid, $createaction = false, $action_id = null){
             dol_print_error($db);
         }
     }
+    if($_REQUEST['action']=='setNotInterestingProposed'){
+        if(!empty($rowid))
+            die($rowid);
+        else{
+            $sql = "select max(rowid) rowid from llx_societe_action where id_usr = ".$user->id;
+            $res = $db->query($sql);             
+            $obj = $db->fetch_object($res);
+            die($obj->rowid);
+        }
+    }
+        
+//    echo '<pre>';
+//    var_dump($_REQUEST);
+//    echo '</pre>';
+//    die();
     if(isset($_REQUEST['actionid'])&&!empty($_REQUEST['actionid'])){
         $action_tmp = new ActionComm($db);
         $usersID = $action_tmp->getFromToUserIDs($_REQUEST['actionid']);

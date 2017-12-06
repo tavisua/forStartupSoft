@@ -1,11 +1,7 @@
 <?php
 require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
-require_once DOL_DOCUMENT_ROOT.'/core/modules/societe/modules_societe.class.php';
-require_once DOL_DOCUMENT_ROOT.'/societe/societecontact_class.php';
-//echo '<pre>';
-//var_dump($_REQUEST);
-//echo '</pre>';
-//die();
+require_once $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/core/modules/societe/modules_societe.class.php';
+require_once $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/societe/societecontact_class.php';
 global $user,$db;
 $subdivUserID = array(0);
 if(in_array('dir_depatment',array($user->respon_alias,$user->respon_alias2))){
@@ -36,6 +32,12 @@ if(isset($_REQUEST['action'])||isset($_POST['action'])){
     }elseif($_POST['action'] == 'save'){
         saveaction();
         exit();
+    }elseif($_REQUEST['action'] == 'getCallLink') {//Визначення інформації про наступний контакт, якому треба дзвонити
+        echo getCallLink(explode(';',$_REQUEST['actionlist']));
+        exit();
+    }elseif($_REQUEST['action'] == 'save_not_saved_proposition') {
+        echo save_not_saved_proposition();
+        exit();
     }elseif($_REQUEST['action'] == 'getProposition') {
 //    llxHeader("",'Close',"");
 
@@ -43,6 +45,9 @@ if(isset($_REQUEST['action'])||isset($_POST['action'])){
         exit();
     }elseif($_REQUEST['action'] == 'setCallID'){
         echo setCallID();
+        exit();
+    }elseif($_REQUEST['action'] == 'setCallingStatus'){
+        echo setCallingStatus();
         exit();
     }elseif($_REQUEST['action'] == 'setCallLength'){
         echo setCallLength();
@@ -60,14 +65,13 @@ if(isset($_REQUEST['action'])||isset($_POST['action'])){
         echo showCallStatus();
         exit();
     }elseif($_REQUEST['action'] == 'showTitleProposition'){
-
-//        echo '<pre>';
-//        var_dump($_REQUEST);
-//        echo '</pre>';
         echo showTitleProposition($_REQUEST['post_id'], $_REQUEST['lineactive'], $_REQUEST['contactid'], $_REQUEST['socid'], $_REQUEST['show_icon']);
         exit();
     }elseif($_REQUEST['action'] == 'showProposition'){
         echo showProposition($_REQUEST['id'],$_REQUEST['contactid']);
+        exit();
+    }elseif ($_REQUEST['action'] == 'getSmsProposition'){//вертає масив смс повідомлень, пов'язаних з пропозиціями
+        echo showSmsProposition();
         exit();
     }
 }elseif(isset($_REQUEST['beforeload'])){
@@ -178,7 +182,7 @@ $ColParam['align']='';
 $ColParam['class']='';
 $TableParam[]=$ColParam;
 
-$sql = 'select `llx_societe_contact`.rowid, `llx_societe_contact`.`socid`, `llx_societe_contact`.`post_id`, subdivision,  concat(trim(nametown), " ", trim(regions.name), " р-н. ", trim(states.name), " обл.") as nametown,
+$sql = 'select `llx_societe_contact`.rowid, `llx_societe_contact`.`socid`, case when `llx_societe_contact`.`post_id` is null or `llx_societe_contact`.`post_id`= 0 then 27 else `llx_societe_contact`.`post_id` end post_id , subdivision,  concat(trim(nametown), " ", trim(regions.name), " р-н. ", trim(states.name), " обл.") as nametown,
 `llx_post`.`postname`,`responsibility`.`name` as respon_name,lastname,firstname,work_phone,
 call_work_phone,fax,call_fax,mobile_phone1,call_mobile_phone1,mobile_phone2,
 call_mobile_phone2,email1,send_email1,email2,send_email2,skype,call_skype,
@@ -234,10 +238,74 @@ if($obj->iCount>0){
     if(!$res)
         dol_print_error($db);
 }
+$societe = new Societe($db);
+$societe->fetch($_REQUEST['socid']);
+$societe_name = $societe->name;
+$langs;
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/action.html';
 //llxFooter();
 llxPopupMenu();
 exit();
+function save_not_saved_proposition(){
+//    echo '<pre>';
+//    var_dump($_REQUEST);
+//    echo '</pre>';
+//    die();
+    global $db,$user;
+    $sql = "update llx_actioncomm set percent = 80 where id = ".$_REQUEST["actionid"];
+    $db->query($sql);
+    $sql = "select rowid,`text` from `llx_c_proposition` where rowid in (".$_REQUEST["proposition_id"].")";
+    $res = $db->query($sql);
+    while($obj = $db->fetch_object($res)){
+        $insertSQL="insert into llx_societe_action (`action_id`,`proposed_id`,`interesting`,`socid`,`contactid`,`callstatus`,
+            `said`,`answer`,`argument`,`said_important`,`result_of_action`,`work_before_the_next_action`,`active`,`id_usr`)
+            values(".$_REQUEST["actionid"].", ".$obj->rowid.", 1, ".$_REQUEST["socid"].", ".$_REQUEST["contactID"].", 5,
+            '".$db->escape(trim($obj->text))."', ";
+        $sql = "select ProductName from `llx_proposition_product` where fx_proposition = ".$obj->rowid;
+        $prod_res = $db->query($sql);
+        if($prod_res->num_rows)
+            $insertSQL.="'";
+        while($objProd = $db->fetch_object($prod_res)){
+            $insertSQL.=$db->escape($objProd->ProductName)." потреба не занесена торговим;";
+        }
+        if($prod_res->num_rows)
+            $insertSQL.="'";
+        $insertSQL.=",'-','-','-','-',1,".$user->id.")";
+        echo $insertSQL;
+        $resInsert = $db->query($insertSQL);
+        if(!$resInsert)
+            dol_print_error($db);
+    }
+    //Визначаю
+    return 1;
+}
+function setCallingStatus(){
+    $_SESSION['last_call_id'] = $_SESSION['active_call_id'];
+    $_SESSION['active_call_id'] = $_REQUEST['actionid'];
+    $_SESSION['status']='calling';
+    return 'call_status_setting';
+}
+function showSmsProposition(){
+    global $db;
+    $sql = "select sms_message from llx_c_proposition
+        where now() between `begin` and `end`
+        and sms_message is not null
+        and active = 1";
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    if($res->num_rows) {
+        $out = "";
+        while ($obj = $db->fetch_object($res)) {
+            $out.="^^$obj->sms_message";
+        }
+    }else{
+        $out = "";
+    }
+    if(empty($out))
+        return 0;
+    return $out;
+}
 
 function getContactList(){
     global $db;
@@ -332,7 +400,7 @@ function showProposition($proposed_id,$contactid=0){
     if(!$res)
         dol_print_error($db);
     $obj = $db->fetch_object($res);
-    $LastActionID = getLastNotExecAction($contactid, date('Y-m-d',time()));
+    $LastActionID = empty($_REQUEST['actionid'])?getLastNotExecAction($contactid, date('Y-m-d',time())):$_REQUEST['actionid'];
     $out='<table class="scrolling-table" style="background: #ffffff; width: auto">
             <input type="hidden" id="actionid" name="actionid" value="'.$LastActionID.'">
             <thead><tr class="multiple_header_table"><th class="middle_size" colspan="9" style="width: 100%">Суть пропозиції для посади '.$obj->postname.'</th>
@@ -355,7 +423,7 @@ function showProposition($proposed_id,$contactid=0){
 //                <td colspan="9"><button onclick="SaveResultProporition('.$contactid.');">Зберегти результати перемовин</button></td>
 //            </tr>';
     $out .='</tbody></table>';
-    $out .='<div style="width: 100%; background-color: "><button id="savebutton" onclick="SaveResultProporition('.$contactid.','.$LastActionID.');">Зберегти результати перемовин</button></div>';
+    $out .='<div style="width: 100%; background-color: white"><button id="savebutton" onclick="SaveResultProporition('.$contactid.','.$LastActionID.', '.$proposed_id.');">Зберегти результати перемовин</button></div>';
     $out.='<style>
             div#BasicInformation, div#PriceOffers, div#OtherInformationOffers{
                 font-size: 12px;
@@ -426,10 +494,14 @@ function showTitleProposition($post_id, $lineactive, $contactid=0, $socid, $show
                 where contactid=' . $contactid . '
                 and proposed_id is not null
                 and active = 1)';
-        $sql.=' order by action desc, prioritet';
+        if($_REQUEST['$_REQUEST'])
+            $sql.=' order by case when `action` is null then 0 else `action` end desc, prioritet';
+        else
+            $sql.=' order by prioritet';
+
     }
 //    echo '<pre>';
-//    var_dump($sql);
+//    var_dump($_REQUEST);
 //    echo '</pre>';
 //die();
     $res = $db->query($sql);
@@ -437,12 +509,14 @@ function showTitleProposition($post_id, $lineactive, $contactid=0, $socid, $show
         dol_print_error($db);
     $obj = $db->fetch_object($res);
     $out='<table class="setdate" style="background: #ffffff; width: 250px">
-            <thead><tr class="multiple_header_table"><th class="middle_size" colspan="3" style="width: 100%">Виберіть пропозицію для посади '.$obj->postname.'</th>
+            <thead><tr class="multiple_header_table"><th class="middle_size" colspan="4" style="width: 100%">Виберіть пропозицію для посади '.$obj->postname.'</th>
             <a class="close" style="margin-left: -160px" onclick="ClosePopupMenu();" title="Закрити"></a>
                 </tr>
                 <tr class="multiple_header_table">
                     <th class="middle_size">№п/п</th>
                     <th class="middle_size">Заголовок</th>
+                    <th class="middle_size">Цікаво</th>
+                    <th class="middle_size">Не цікаво</th>
                 </tr>
                 </thead>
             <tbody>';
@@ -455,14 +529,60 @@ function showTitleProposition($post_id, $lineactive, $contactid=0, $socid, $show
 //            $end = $end->format('d.m.Y');
 //        }else
 //            $end = $obj->description;
-        $out .='<tr class = "'.(fmod($num,2)==0?'impair':'pair').'" onclick = "showProposed('.$obj->rowid.', '.$contactid.');" style = "cursor: pointer">
+        $out .='<tr id="prop_'.$obj->rowid.'" class = "'.(fmod($num,2)==0?'impair':'pair').'" style = "cursor: pointer">
                     <td class="middle_size">'.($obj->action == 1 && $show_icon?'<img class="action" title="Поздоровити з днем народження" src="/dolibarr/htdocs/theme/eldy/img/birthday.png">':$num++).'</td >
                     <td class="middle_size">'.$obj->text.'</td >
+                    <td class="middle_size" align = "center"><input id="intr_'.$obj->rowid.'_'.$contactid.'" type="checkbox" onclick = "showProposed('.$obj->rowid.', '.$contactid.');"></td >                    
+                    <td class="middle_size" align = "center"><input id="unintr_'.$obj->rowid.'_'.$contactid.'"type="checkbox" onclick = "NotIterestingProposed('.$obj->rowid.', '.$contactid.');"></td >                    
                 </tr >';
     }
     $out .='</tbody>
         </table>';
     return $out;
+}
+function getCallLink($actionlist){
+    global $db;
+    for($index = 0; $index<count($actionlist);$index++){
+        if(empty($actionlist[$index])){
+            unset($actionlist[$index--]);
+        }
+    }
+    if(count($actionlist)) {
+        $_SESSION['autocall'] = null;
+    }
+    if(empty($_SESSION['autocall'])) {
+        for ($index = 0; $index < count($actionlist); $index++) {
+            $_SESSION['autocall']['action_id'][] = $actionlist[$index];
+        }
+    }
+    $_SESSION['autocall']['status'] = 'waiting';
+
+//    if(!empty($_SESSION['autocall'])){
+//        echo '<pre>';
+//        var_dump($_SESSION['autocall']);
+//        echo '</pre>';
+//        die();
+//    }
+    while(empty($obj) || in_array($obj->percent, [100,-100])&&count($_SESSION['autocall'])) {
+        $index=0;
+        for($index;$index<count($_SESSION['autocall']['action_id']);$index++){
+            if(!empty($_SESSION['autocall']['action_id'][$index]))
+                break;
+        }
+        $sql = "select fk_soc, fk_contact, percent from llx_actioncomm where id = " . $_SESSION['autocall']['action_id'][$index];
+//        var_dump($sql);
+//        return;
+        $res = $db->query($sql);
+//        return $_SESSION['autocall'][0].$sql.'</br>'.var_dump($_SESSION['autocall']);
+        if (!$res)
+            unset($_SESSION['autocall']['action_id'][$index]);
+        else
+            $obj = $db->fetch_object($res);
+
+        $_SESSION['autocall']['active_call_id'] = $_SESSION['autocall']['action_id'][$index];
+    }
+    unset($_SESSION['autocall']['action_id'][$index]);
+    return '/dolibarr/htdocs/responsibility/sale/action.php?socid=' . $obj->fk_soc . '&idmenu=10425&autocall=1&mainmenu=area&contactID=' . $obj->fk_contact.'&actionid='.$_SESSION['autocall']['active_call_id'];
 }
 function getProposition($socid = 0){
     global $db;
@@ -495,7 +615,7 @@ function getProposition($socid = 0){
     if(!$res_prop)
         dol_print_error($db);
     $out = '';
-//    die($sql);
+
     while($obj = $db->fetch_object($res_prop)){
         if(empty($obj->fk_lineactive) || in_array($obj->fk_lineactive,$lineactive) || count($lineactive) == 0)
             $out .= '<tr>
@@ -624,7 +744,7 @@ function ShowActionTable(){
         case when `llx_societe_contact`.firstname is null then '' else `llx_societe_contact`.firstname end) as contactname,
         TypeCode.code kindaction, `llx_societe_action`.`said`, `llx_societe_action`.`answer`,`llx_societe_action`.`argument`,
         `llx_societe_action`.`said_important`, `llx_societe_action`.`result_of_action`, `llx_societe_action`.`work_before_the_next_action`,`llx_actioncomm`.fk_contact,
-        `llx_actioncomm`.fk_user_author author_id, `llx_societe_action`.work_before_the_next_action_mentor work_mentor, `llx_societe_action`.dtMentorChange date_mentor,`llx_societe_action`.id_usr
+        `llx_actioncomm`.fk_user_author author_id, `llx_societe_action`.work_before_the_next_action_mentor work_mentor, `llx_societe_action`.dtMentorChange date_mentor,`llx_societe_action`.id_usr, `llx_actioncomm`.`icon`
         from `llx_actioncomm`
         inner join (select code, libelle label from `llx_c_actioncomm` where active = 1 and (type = 'system' or type = 'user')) TypeCode on TypeCode.code = `llx_actioncomm`.code
         left join `llx_societe_action` on `llx_actioncomm`.id = `llx_societe_action`.`action_id`        
@@ -636,7 +756,7 @@ function ShowActionTable(){
         concat(case when `llx_societe_contact`.lastname is null then '' else `llx_societe_contact`.lastname end, ' ',
         case when `llx_societe_contact`.firstname is null then '' else `llx_societe_contact`.firstname end) as contactname, null, `llx_societe_action`.`said`, `llx_societe_action`.`answer`,`llx_societe_action`.`argument`,
         `llx_societe_action`.`said_important`, `llx_societe_action`.`result_of_action`, `llx_societe_action`.`work_before_the_next_action`,`llx_societe_action`.`contactid`,
-        `llx_societe_action`.id_usr author_id, `llx_societe_action`.work_before_the_next_action_mentor work_mentor, `llx_societe_action`.dtMentorChange date_mentor,`llx_societe_action`.id_usr
+        `llx_societe_action`.id_usr author_id, `llx_societe_action`.work_before_the_next_action_mentor work_mentor, `llx_societe_action`.dtMentorChange date_mentor,`llx_societe_action`.id_usr, ''
         from `llx_societe_action`
         left join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.rowid
         left join `llx_societe_contact` on `llx_societe_contact`.rowid=`llx_societe_action`.`contactid`
@@ -743,7 +863,9 @@ function ShowActionTable(){
                 }
                     break;
             }
-
+            if(!empty($row->icon)){
+                $iconitem = $row->icon;
+            }
             $dateaction = new DateTime($row->datep);
             $out .= '<tr class="' . (fmod($num++, 2) == 0 ? 'impair' : 'pair') . '" name="'.$row->rowid.'">';
             $out .= '<td rowid="' . $row->rowid . '" id = "' . $row->rowid . 'dtAction" style="width: 80px" class="middle_size">' . (empty($row->datep) ? '' : ($dateaction->format('d.m.y') . '</br>' . $dateaction->format('H:i'))) .
@@ -761,8 +883,8 @@ function ShowActionTable(){
                     '<input id="_' . $row->rowid . 'argument" type="hidden" value="' . $row->argument . '">' : $row->argument) . '</td>
             <td rowid="' . $row->rowid . '" id = "' . $row->rowid . 'said_important" style="width: 80px" class="middle_size">' . (strlen($row->said_important) > 20 ? mb_substr($row->said_important, 0, 20, 'UTF-8') . '...' .
                     '<input id="_' . $row->rowid . 'said_important" type="hidden" value="' . $row->said_important . '">' : $row->said_important) . '</td>
-            <td rowid="' . $row->rowid . '" answer_id="' . $row->answer_id . '" id = "' . $row->rowid . 'result_of_action" style="width: 80px" class="middle_size result_of_action">' . (strlen($row->result_of_action) > 20 ? mb_substr($row->result_of_action, 0, 20, 'UTF-8') . '...' .
-                    '<input id="_' . $row->rowid . 'result_of_action" type="hidden" value="' . $row->result_of_action . '">' : $row->result_of_action) . '</td>
+            <td '.(empty($row->result_of_action)?' title="Натисніть, аби вказати результат перемовин"':'').' rowid="' . $row->rowid . '" answer_id="' . $row->answer_id . '" id = "' . $row->rowid . 'result_of_action" style="width: 80px; '.(empty($row->result_of_action)?'text-align:right; background: url(/dolibarr/htdocs/theme/eldy/img/hand.png) no-repeat; opacity:0.1':'').'" class="middle_size result_of_action">' . (strlen($row->result_of_action) > 20 ? mb_substr($row->result_of_action, 0, 20, 'UTF-8') . '...' .
+                    '<input id="_' . $row->rowid . 'result_of_action" type="hidden" value="' . $row->result_of_action . '">' : '') . '</td>
             <td rowid="' . $row->rowid . '" id = "' . $row->rowid . 'work_before_the_next_action" style="width: 80px" class="middle_size">' . (strlen($row->work_before_the_next_action) > 20 ? mb_substr($row->work_before_the_next_action, 0, 20, 'UTF-8') . '...' .
                     '<input id="_' . $row->rowid . 'work_before_the_next_action" type="hidden" value="' . $row->work_before_the_next_action . '">' : $row->work_before_the_next_action) . '</td>
             <td rowid="' . $row->rowid . '" id = "' . $row->rowid . 'date_next_action" style="width: 80px" class="middle_size">' . (empty($row->date_next_action) ? '' : $dtNextAction->format('d.m.y H:i:s')) . '</td>
@@ -789,7 +911,8 @@ function ShowActionTable(){
                     <img onclick="DelMentorRemark(' . (substr($row->rowid, 0, 1) == '_' ? "'" . $row->rowid . "'" : $row->rowid) . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('delete_mentor') . '" src="/dolibarr/htdocs/theme/eldy/img/delete.png">';
 
             }else {
-                $out .= '<img onclick="EditAction(' . (substr($row->rowid, 0, 1) == '_' ? "'" . $row->rowid . "'" : $row->rowid) . ', ' . (empty($row->answer_id) ? '0' : $row->answer_id) . ', ' . "'" . (empty($row->kindaction) ? 'AC_TEL' : $row->kindaction) . "'" . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Edit') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">
+                $out .= '<img id="prev'.$row->rowid.'" onclick="PreviewActionNote('.$row->rowid.');" style="vertical-align: middle; cursor: pointer;" title="Подивитись зміст завдання" src="/dolibarr/htdocs/theme/eldy/img/preview.png">
+                <img onclick="EditAction(' . (substr($row->rowid, 0, 1) == '_' ? "'" . $row->rowid . "'" : $row->rowid) . ', ' . (empty($row->answer_id) ? '0' : $row->answer_id) . ', ' . "'" . (empty($row->kindaction) ? 'AC_TEL' : $row->kindaction) . "'" . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('Edit') . '" src="/dolibarr/htdocs/theme/eldy/img/edit.png">
                 <img onclick="DelAction(' . (substr($row->rowid, 0, 1) == '_' ? "'" . $row->rowid . "'" : $row->rowid) . ');" style="vertical-align: middle; cursor: pointer;" title="' . $langs->trans('delete') . '" src="/dolibarr/htdocs/theme/eldy/img/delete.png">';
             }
             $out .= '</td>

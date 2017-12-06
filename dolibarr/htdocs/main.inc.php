@@ -1118,7 +1118,7 @@ function llxPopupMenu(){
         <table class="setdate" style="background: #ffffff">
             <thead>
                 <tr class="multiple_header_table" style="width: 100px"><th class="middle_size">Вкажіть дату на яку відобразити завдання</th>
-                    <a class="close" onclick="ClosePopupMenu();" title="Закрити"></a>
+                    <a class="close" onclick="ClosePopupMenu($(this));" title="Закрити"></a>
                 </tr></thead>
             <tbody>
                 <tr>

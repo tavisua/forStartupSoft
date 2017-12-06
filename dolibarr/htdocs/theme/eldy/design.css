@@ -864,6 +864,13 @@ a.calluser, a.calluser:hover{
 #lefttable{
     margin-left:2px!important;
 }
+.selected_row, .selected_row a{
+    background: #59996a;
+    color: white;
+}
+.notinteresting_proposition{
+    opacity: 0.5;
+}
 .impair td, .pair td{
     padding-left:0px!important;
 }

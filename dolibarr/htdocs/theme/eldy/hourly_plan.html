@@ -30,6 +30,7 @@
             </form>
             </div>
             <button style="float: left" onclick="ReCalcAction('<?=$dateQuery->format("Y-m-d")?>');" title="Оптимізує завантаження на поточний день"> Перерахувати </button>
+            <button id="AutoCallBtn" style="float: left" onclick="AutoCallForDate('<?=$dateQuery->format("Y-m-d")?>');" title="Розпочати автоматичний набір дзвінків, запланованих на вибраний день"><img src="/dolibarr/htdocs/theme/eldy/img/1rightarrow.png"> Автонабір </button>
             <div></br></div>
         </td>
     </tr>
@@ -46,6 +47,9 @@
     <script>
         $(window).load(function(){
             window.location.hash="#8h0m";
+        })
+        $(window).focus(function () {
+            console.log('focus');
         })
         function ReCalcAction(date){
             var param = {
@@ -64,7 +68,6 @@
                 }
             });
         }
-
         function HideAction(rowid){
             var hide;
             if($('tr#'+rowid).css('opacity') == 1) {
@@ -119,14 +122,28 @@
                 $('#popupmenu').offset({top:tr.offsetTop+$('#taskfield').offset().top,left:tr.offsetLeft+$('#taskfield').offset().left+400});
             }
         })
-
+        var AutoCallImg = $('#AutoCallBtn').find('img')[0];
+        document.onfocus = function (){
+            if(strpos($(AutoCallImg).attr('src'), 'pause.png')) {
+                console.log('test');
+                $.ajax({
+                    url:'/dolibarr/htdocs/hourly_plan.php',
+                    cache:false,
+                    action:'getAutoCallStatus',
+                    success:function (result) {
+                        
+                    }
+                })
+                
+            }
+        }
         $(document).ready(function(){
             var tr = $(document).find('tr');
-            $.each(tr, function (key, value) {
-                if($(value).attr('id')!=undefined) {
-                    console.log(value, $(value).height());
-                }
-            })
+//            $.each(tr, function (key, value) {
+//                if($(value).attr('id')!=undefined) {
+//                    console.log(value, $(value).height());
+//                }
+//            })
             $('#loading_img').hide();
 
 //            console.log($('#tasklist0').height(), 'px');

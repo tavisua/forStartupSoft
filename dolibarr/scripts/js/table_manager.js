@@ -287,18 +287,18 @@ function getParameterByName(name, url) {
     if (!results[2]) return '';
     return decodeURIComponent(results[2].replace(/\+/g, " "));
 }
-function SaveResultProporition(contactid, lastID){
-    //console.log($('#actionid').val());
-    //return;
-    if($('#cansaid').attr('checked') || $('#cansaid').attr('checked') === undefined && confirm('Вдалося озвучити пропозицію?')) {
+function SaveResultProporition(contactid, lastID, proposedid){
+    // console.log();
+    // return;
+    // if($('#cansaid').attr('checked') || $('#cansaid').attr('checked') === undefined && confirm('Вдалося озвучити пропозицію?')) {
         var date = new Date();
         var sDate = date.getDate() + '.' + date.getMonth() + '.' + date.getFullYear();
         var products = $('.need');
         var productsname = [];
         var needList = [];
-        window.onfocus = function(){
-            UpdateForm();
-        }
+        // window.onfocus = function(){
+        //     UpdateForm();
+        // }
         for (var i = 0; i < products.length; i++) {
             productsname.push($('td#productname' + products[i].id.substr(4)).html());
             needList.push($('input#' + products[i].id).val());
@@ -311,28 +311,56 @@ function SaveResultProporition(contactid, lastID){
             socid: getParameterByName('socid'),
             mainmenu: 'area',
             datep: date,
-            actionid: lastID,
+            actioncode:'AC_TEL',
+            action_id: lastID,
             said: $('td#titleProposition').html(),
             productsname: productsname,
-            proposed_id: $('#Proposition').attr('fx_proposition'),
+            proposed_id: proposedid,
             need: needList,
             contactid: contactid
         }
         // $('#redirect').attr('target', '_blank');
-        $('#redirect').find('#action_id').val($('#actionid').val());
-        $('#redirect').find('#actioncode').val('AC_TEL');
-        $('#redirect').find('#onlyresult').remove();
-        $('#redirect').find('#redirect_actioncode').remove();
-        $('#redirect').find('#complete').remove();
-        for (var i = 0; i < Object.keys(param).length; i++) {
-            $('#redirect').append('<input type="hidden" name="' + Object.keys(param)[i] + '" value="' + param[Object.keys(param)[i]] + '">');
-        }
-        $('#redirect').find('input#soc_id').val(getParameterByName('socid'));
-        $('#redirect').submit();
+        // $('#redirect').find('#action_id').val($('#actionid').val());
+        // $('#redirect').find('#actioncode').val('AC_TEL');
+        // $('#redirect').find('#onlyresult').remove();
+        // $('#redirect').find('#redirect_actioncode').remove();
+        // $('#redirect').find('#complete').remove();
+        // for (var i = 0; i < Object.keys(param).length; i++) {
+        //     $('#redirect').append('<input type="hidden" name="' + Object.keys(param)[i] + '" value="' + param[Object.keys(param)[i]] + '">');
+        // }
+        // $('#redirect').find('input#soc_id').val(getParameterByName('socid'));
+        // $('#redirect').submit();
+    var link = '?';
+    $.each(param, function(key, value){
+        if(link.length > 1)
+            link+='&'
+        link+=key+'='+value;
+    })
+        // var win = window.open('/dolibarr/htdocs/comm/action/result_action.php'+link, "_blank", "");
+        window.open('/dolibarr/htdocs/comm/action/result_action.php'+link);
+        // win.blur();
+        // win.opener.focus();
+        // console.log(win, win.opener);
 
-    }
-    $('#Proposition').remove();
+    var form = $('#Proposition'+proposedid);
+    form.remove();
+    return false;
     //console.log(link);
+}
+function searchToObject(search) {
+    var pairs = search.substring(1).split("&"),
+        obj = {},
+        pair,
+        i;
+
+    for ( i in pairs ) {
+        if ( pairs[i] === "" ) continue;
+
+        pair = pairs[i].split("=");
+        obj[ decodeURIComponent( pair[0] ) ] = decodeURIComponent( pair[1] );
+    }
+
+    return obj;
 }
 function LoadProposition(){
     //console.log(getParameterByName('socid'));
@@ -391,30 +419,41 @@ function createNewForm(basicform, newname){
 }
 function showProposed(id,contactid){
     //console.log(id);
+    $('#intr_'+id+'_'+contactid).attr('checked','checked');
+    $('#unintr_'+id+'_'+contactid).removeAttr('checked');
+    var row_proposed = $('#intr_'+id+'_'+contactid).parent().parent();
+    row_proposed.removeClass('notinteresting_proposition');
+    $('#unintr_' + id + '_' + contactid).removeAttr('status');
     var param = {
         id:id,
         action:'showProposition',
-        contactid:contactid
+        contactid:contactid,
+        actionid:getParameterByName('actionid')
     }
     $.ajax({
         url:'/dolibarr/htdocs/responsibility/sale/action.php',
         data: param,
         cache:false,
         success:function(html){
-            console.log(window.innerWidth);
-            createNewForm('popupmenu','Proposition')
-            $('#Proposition').addClass('setdate');
-            $('#Proposition').css('width','auto');
-            $('#Proposition').css('height','auto');
-            $('#Proposition').empty().html(html);
+            // console.log(window.innerWidth);
 
-            $('#Proposition').show();
+            createNewForm('popupmenu','Proposition'+id)
+            $('#Proposition'+id).addClass('setdate');
+            $('#Proposition'+id).css('width','auto');
+            $('#Proposition'+id).css('height','auto');
+            $('#Proposition'+id).empty().html(html);
+
+            $('#Proposition'+id).show();
             if($('#contactlist').length > 0)
-                $('#Proposition').offset({top:$('#contactlist').offset().top-30,left:window.innerWidth-$('#Proposition').width()-50});
+                $('#Proposition'+id).offset({top:$('#contactlist').offset().top-30,left:50});
             else
                 $('#savebutton').remove();
-            $('#Proposition').attr('TitleProposed', 1);
-            $('#Proposition').attr('fx_proposition', id);
+            $('#Proposition'+id).attr('TitleProposed', 1);
+            $('#Proposition'+id).attr('fx_proposition', id);
+            if($('#prop_'+id).attr('rowid')!=null){
+                console.log('#Proposition'+id, $('#prop_'+id).attr('rowid'));
+                $('#Proposition'+id).attr('rowid', $('#prop_'+id).attr('rowid'));
+            }
         }
     })
 }
@@ -778,6 +817,43 @@ function getLineActiveList(id_usr, btn){
         img.src = '/dolibarr/htdocs/theme/eldy/img/1downarrow.png';
     }
 }
+function NotIterestingProposed(prop_id, contactid){
+    var prop_title = $('tr#prop_'+prop_id).find('td')[1];
+    // console.log();
+    // return;
+    $('#unintr_'+prop_id+'_'+contactid).attr('checked', 'checked');
+    if($('#unintr_'+prop_id+'_'+contactid).attr('status') === undefined || $('#unintr_'+prop_id+'_'+contactid).attr('status') == 'executed') {
+        $('#unintr_' + prop_id + '_' + contactid).attr('status', 'executing');
+        $('#Proposition' + prop_id).remove();
+        $('#prop_' + prop_id).attr('class', 'notinteresting_proposition ' + $('#prop_' + prop_id).attr('class'));
+        $('#intr_'+prop_id+'_'+contactid).removeAttr('checked');
+        var param = {
+            proposed_id: prop_id,
+            action: 'setNotInterestingProposed',
+            actionid:getParameterByName('actionid'),
+            contactid: contactid,
+            actioncode:'AC_TEL',
+            said: $(prop_title).html(),
+            answer:'не цікавить',
+            callstatus:5,
+            rowid: $('tr#prop_' + prop_id).attr('rowid') === undefined ? 0 : $('tr#prop_' + prop_id).attr('rowid')
+        }
+        console.log(param);
+        $.ajax({
+            url: '/dolibarr/htdocs/comm/action/index.php',
+            data: param,
+            cache: false,
+            success: function (rowid) {
+                if(rowid != null) {
+                    console.log('Зебережено ' + rowid);
+                    $('tr#prop_' + prop_id).attr('rowid', rowid);
+                    $('#unintr_' + prop_id + '_' + contactid).attr('status', 'executed');
+                }else
+                    console.log('Не зебережено');
+            }
+        })
+    }
+}
 function showTitleProposed(post_id, lineactive, contactid, td, socid, show_icon){
     var param = {
         post_id: post_id,
@@ -799,13 +875,22 @@ function showTitleProposed(post_id, lineactive, contactid, td, socid, show_icon)
                 var tr = $('#PropositionTitle').find('thead').find('tr');
                 tr[0].innerHTML = '<th class="middle_size" style="width: 100%" colspan="3">Актуальні пропозиції</th>';
             }else {
-                $('#popupmenu').css('width', 250);
+                createNewForm('popupmenu','TitleProposition');
+                $('#TitleProposition').css('width', 250);
+                $('#TitleProposition').css('height', 500);
+                $('#TitleProposition').css('z-index', 11);
                 //$('#popupmenu').css('height',250);
-                $('#popupmenu').empty().html(html);
+                $('#TitleProposition').empty().html(html);
 
-                $('#popupmenu').show();
-                $('#popupmenu').offset($(td).offset());
-                $('#popupmenu').attr('TitleProposed', 1);
+                $('#TitleProposition').show();
+                $('#TitleProposition').offset($(td).offset());
+                // $('#TitleProposition').find('a').onclick(ClosePopupMenu($('#TitleProposition')));
+
+                $('#TitleProposition').attr('TitleProposed', 1);
+                var a_link = $('#TitleProposition').find('a')[0];
+                var pos = a_link.outerHTML.indexOf(');');
+                var html = a_link.outerHTML;
+                a_link.outerHTML = a_link.outerHTML.substr(0,pos)+'$(this)'+a_link.outerHTML.substr(pos);
             }
         }
     })
@@ -858,20 +943,6 @@ function ShowUserTasks(id, respon_alias){
                 tr_item.insertAdjacentHTML('afterend', result);
             }
         })
-    }
-}
-function getURLParameters(url, sParam) {
-    var sPageURL = decodeURIComponent(url.search.substring(1)),
-        sURLVariables = sPageURL.split('&'),
-        sParameterName,
-        i;
-
-    for (i = 0; i < sURLVariables.length; i++) {
-        sParameterName = sURLVariables[i].split('=');
-
-        if (sParameterName[0] === sParam) {
-            return sParameterName[1] === undefined ? true : sParameterName[1];
-        }
     }
 }
 function ChangeViewNameOption(){
@@ -1194,20 +1265,53 @@ function Timer(){
                     // window.sessionStorage.setItem('phone_conected', 0);
                     return;
                 }
+                var dtNow = new Date();
+                console.log(Math.round(dtNow.getTime()/1000-window.sessionStorage.getItem('calling_end')/1000));
+
+                if(window.sessionStorage.getItem('AutoCallForDate')!=1&&Math.round(dtNow.getTime()/1000-window.sessionStorage.getItem('calling_end')/1000)==40){
+                    var not_saved_proposition = [];
+                    $('div.setdate').each(function(index, elem){
+                        if($(elem).attr('fx_proposition')!==undefined) {
+                            console.log(index, elem);
+                            not_saved_proposition.push($(elem).attr('fx_proposition'));
+                            $(elem).remove();
+                        }
+                    })
+                    if(not_saved_proposition.length){//якщо є незбережені пропозиції
+                        var param={
+                            type: 'get',
+                            action: 'save_not_saved_proposition',
+                            proposition_id:not_saved_proposition.join(),
+                            actionid:getParameterByName('actionid'),
+                            socid:getParameterByName('socid'),
+                            contactID:getParameterByName('contactID'),
+                        }
+                        $.ajax({
+                            url:'/dolibarr/htdocs/responsibility/sale/action.php',
+                            data:param,
+                            cache:false,
+                            success:function(res){
+                                console.log(res);
+                            }
+                        })
+                    }
+                    var sDate = convertDate(dtNow);
+                    AutoCallForDate(sDate);
+                }
                 var json = JSON.parse(response);
                 if (json.result == "ok" && json.phone !== undefined) {
                     if (json.phone.type == 'incoming' && json.phone.end === undefined && $('#incoming_call_' + json.phone.id).length == 0 && (taken_call == 0 || taken_call.indexOf(JSON.stringify(json.phone.id).replace(/"/g, '')) == -1)) {
                         HTMLIncommingCall(json);
                     }
                     if(json.phone.type == 'outgoing' && json.phone.end !== undefined){
-                        console.log('LastCallID',$('#LastCallID').val());
-
                         if($('#LastCallID').val()=='') {
                             $('#LastCallID').val(json.phone.id);
                         }
-                        console.log($('#LastCallID').val().length, $('#LastCallID').val(),json.phone.id);
+                        // console.log($('#LastCallID').val().length, $('#LastCallID').val(),json.phone.id);
                         if($('#LastCallID').val().length && $('#LastCallID').val()!=json.phone.id){
                             console.log('CalledID', json.phone.id);
+                            var dtDate = new Date();
+                            window.sessionStorage.setItem('calling_end', dtDate.getTime());//Встановлюю час завершення дзвінка
                             param = {
                                 type: 'get',
                                 'action': 'setCallLength',
@@ -1245,6 +1349,16 @@ function Timer(){
 
     }
     setTimeout(Timer, 1000);
+}
+function convertDate(date) {
+    var yyyy = date.getFullYear().toString();
+    var mm = (date.getMonth()+1).toString();
+    var dd  = date.getDate().toString();
+
+    var mmChars = mm.split('');
+    var ddChars = dd.split('');
+
+    return yyyy + '-' + (mmChars[1]?mm:"0"+mmChars[0]) + '-' + (ddChars[1]?dd:"0"+ddChars[0]);
 }
 function validTaken() {
     $.session.get("taken_call");
@@ -1635,8 +1749,8 @@ function sendMail(emails,text, confirmSend){
             type: 'post',
             success:function(result){
                 console.log(result);
-                return;
-                close_registerform();
+                // return;
+                // close_registerform();
             }
         })
     }
@@ -1772,7 +1886,9 @@ function setColWidth(table){
     }
 }
 function Call(number, contacttype, contactid, elem){
-    // console.log($(elem).attr('sendmail'));
+    console.log(number, contacttype, contactid, elem);
+    number=380978059053;
+
     if($(elem).attr('sendmail') !== undefined) {
         $('#SendMail').css('top', $(elem).offset().top);
         $('#SendMail').css('left', $(elem).offset().left);
@@ -1780,13 +1896,31 @@ function Call(number, contacttype, contactid, elem){
         $('#SendMail').attr('contactid',contactid);
         $('#SendMail').show();
     }
-    // number=380978059053;
+    window.sessionStorage.setItem('calling_end', 0);
+    $('#LastCallID').val('');
+    // console.log('setCallingStatus', getParameterByName('actionid')&&getParameterByName('autocall'));
+    if(getParameterByName('actionid')&&getParameterByName('autocall')){
+        param = {
+            type:'get',
+            'action':'setCallingStatus',
+            'actionid':getParameterByName('actionid')
+        }
+        $.ajax({
+            url:'/dolibarr/htdocs/responsibility/sale/action.php',
+            data:param,
+            cache:false,
+            // action:'setCallingStatus',
+            success:function (res) {
+                console.log(res);
+            }
+        })
+    }
     var param = {
         type:'get',
         'action':'call',
         'number':'+'+number
     }
-    $('#LastCallID').val('');
+    console.log(param);
     $.ajax({
         url:'http://localhost:9002/',
         data:param,
@@ -1810,95 +1944,188 @@ function Call(number, contacttype, contactid, elem){
                     data:param,
                     cache:false,
                     success:function (res) {
-                        console.log(res);
+                        // console.log(res);
                     }
                 })
             }
         }
-
     })
+    //Відправка смс, що коротко дублюють зміст полуничок
+    param = {
+        type: 'get',
+        'action':'getSmsProposition',
+        'contactID': contactid
+    }
+    $.ajax({
+        url:'/dolibarr/htdocs/responsibility/sale/action.php',
+        data:param,
+        cache:false,
+        success:function (res) {
+            if(!isEmpty(res)){
+                $.each(res.split('^^'), function (index, sms_message) {
+                    if(index && sms_message.length) {
+                        console.log('Відправлено повідомлення', sms_message, sms_message.length);
+                        sendSMS(number, sms_message, false);
+                    }else
+                        console.log('Повідомлення не відправлено, оскільки пусте');
+                })
+            }
+        }
+    })    
     // var blob = new Blob(['{"call":"'+number+'"}'], {type: "text/plain;charset=utf-8"});
     // saveAs(blob, "call.json");
     //AddResultAction(contacttype,contactid);
 }
+function PreviewActionNote(action_id){
+    var param = {
+        type: 'get',
+        'action':'getActionsNote',
+        'action_id': action_id
+    }
+
+
+    $.ajax({
+        url:'/dolibarr/htdocs/comm/action/index.php',
+        data:param,
+        cache:false,
+        success:function (html) {
+            if(!isEmpty(html)){
+                createNewForm('popupmenu', 'ActionsNote');
+                var caption = $('#ActionsNote').find('th')[0];
+                $(caption).html('Опис завдання');
+                var tbody = $('#ActionsNote').find('tbody')[0];
+                $(tbody).html('<tr><td class="middle_size">'+html+'</td></tr>')
+                console.log($('#prev'+action_id).offset());
+                $('#ActionsNote').offset({top:$('#prev'+action_id).offset().top-150,left:$('#prev'+action_id).offset().left-300});
+                // $('#ActionsNote').offset().left = $('#ActionsNote').offset().left -  $('#ActionsNote').width();
+                $('#ActionsNote').show();
+            }
+        }
+    })
+}
+function AutoCallForDate(date) {//Автоматичний набір дзвінків
+    window.sessionStorage.setItem('AutoCallForDate',1);
+    console.log('автоматичний набір дзвінків');
+    var img = $('#AutoCallBtn').find('img')[0];
+    var actionlist = [];
+    var param = {};
+    var pathname = location.pathname;
+    console.log('AutoCallForDate', $(img).attr('src').indexOf('1rightarrow')>0,pathname.indexOf('sale/action.php')>=0,$(img).attr('src').indexOf('pause'));
+    if($(img).attr('src').indexOf('1rightarrow')>0||pathname.indexOf('sale/action.php')>=0&&$(img).attr('src').indexOf('pause')){
+        $('#AutoCallBtn').find('img').attr('src', '/dolibarr/htdocs/theme/eldy/img/pause.png');
+        $('#AutoCallBtn').attr('title', 'Призупинити автоматичні дзвінки');
+        if(pathname.indexOf('hourly_plan.php')>=0) {//запуск з плану погодинно
+            $.each($('.office_callphone_taskitem'), function (index, item) {
+                var status = $(item).find('div')[8];
+                if($(status).text() == 'Не розпочато')
+                    actionlist.push($(item).parent().attr('id'));
+            })
+            param.actionlist=actionlist.join(';');
+        }
+        //Відкриваю першого контрагента, для якого не виконано дзвінок
+        param.action='getCallLink';
+        param.type= 'get';
+        // console.log(param);
+        // return;
+        $.ajax({
+            url:'/dolibarr/htdocs/responsibility/sale/action.php',
+            data:param,
+            // type: 'post',
+            cashe:false,
+            success:function (link) {
+                if(pathname.indexOf('hourly_plan.php')>=0) {//запуск з плану погодинно
+                    window.open(link);
+                }else if(pathname.indexOf('sale/action.php')>=0) {//Запуск з дії район
+                    location.href = link;
+                }
+            }
+        })
+    }else{
+        $('#AutoCallBtn').find('img').attr('src', '/dolibarr/htdocs/theme/eldy/img/1rightarrow.png');
+        $('#AutoCallBtn').attr('title', 'Розпочати автоматичний набір дзвінків, запланованих на вибраний день');
+    }
+}
+function CallForDate(date){
+
+}
 function GetCallID(){
 
 }
-function GotoRequiredPage(pagename){
-    //if(pagename.length == 0)
-        return;
-    //$.cookie('required_pages');
-    var pages = [];
-    $.ajax({
-        url: '/dolibarr/htdocs/index.php?action=requeredpages',
-        cache:false,
-        success: function(html){
-            pages = html.split(',');
-        }
-    })
-    //alert($.cookie('required_pages'));
-
-
-    if($.cookie('required_pages') == null) {
-        console.log("Добавить");
-        var insert = false;
-        if(pagename == 'home')
-            insert = true;
-        if(insert)
-        pages.push('home');
-        if(pagename == 'calculator')
-            insert = true;
-        if(insert)
-            pages.push('calculator');
-        if(pagename == 'plan_of_days')
-            insert = true;
-        if(insert)
-            pages.push('plan_of_days');
-        if(pagename == 'hourly_plan')
-            insert = true;
-        if(insert)
-            pages.push('hourly_plan');
-        if(pagename == 'global_task')
-            insert = true;
-        if(insert)
-            pages.push('global_task');
-        if(pagename == 'current_task')
-            insert = true;
-        if(insert)
-            pages.push('current_task');
-        $.cookie('required_pages', pages);
-    }
-    var pages = $.cookie('required_pages').split(',');
-    console.log($.cookie('required_pages'));
-    var firstpage = pages[0];
-    pages.splice(0,1);
-    $.cookie('required_pages', pages);
-    if(firstpage != pagename){
-        console.log(firstpage);
-        switch(firstpage){
-            case 'home':{
-                location.href = 'http://'+location.hostname+'/index.php?mainmenu=home&leftmenu=&idmenu=5216&mainmenu=home&leftmenu=&redirect=1';
-            }break;
-            case 'calculator':{
-                location.href = 'http://'+location.hostname+'/dolibarr/htdocs/calculator/index.php?idmenu=10418&mainmenu=calculator&leftmenu=&redirect=1';
-            }break;
-            case 'plan_of_days':{
-                location.href = 'http://'+location.hostname+'/dolibarr/htdocs/day_plan.php?idmenu=10419&mainmenu=plan_of_days&leftmenu=&redirect=1';
-            }break;
-            case 'hourly_plan':{
-                location.href = 'http://'+location.hostname+'/dolibarr/htdocs/hourly_plan.php?idmenu=10420&mainmenu=hourly_plan&leftmenu=&redirect=1'
-            }break;
-            case 'global_task':{
-                location.href = 'http://'+location.hostname+'/dolibarr/htdocs/global_plan.php?idmenu=10421&mainmenu=global_task&leftmenu=&redirect=1';
-            }break;
-            case 'current_task':{
-                location.href = 'http://'+location.hostname+'/dolibarr/htdocs/current_plan.php?idmenu=10423&mainmenu=current_task&leftmenu=&redirect=1';
-            }break;
-        }
-    }
-
-    console.log($.cookie('required_pages'));
-}
+// function GotoRequiredPage(pagename){
+//     //if(pagename.length == 0)
+//         return;
+//     //$.cookie('required_pages');
+//     var pages = [];
+//     $.ajax({
+//         url: '/dolibarr/htdocs/index.php?action=requeredpages',
+//         cache:false,
+//         success: function(html){
+//             pages = html.split(',');
+//         }
+//     })
+//     //alert($.cookie('required_pages'));
+//
+//
+//     if($.cookie('required_pages') == null) {
+//         console.log("Добавить");
+//         var insert = false;
+//         if(pagename == 'home')
+//             insert = true;
+//         if(insert)
+//         pages.push('home');
+//         if(pagename == 'calculator')
+//             insert = true;
+//         if(insert)
+//             pages.push('calculator');
+//         if(pagename == 'plan_of_days')
+//             insert = true;
+//         if(insert)
+//             pages.push('plan_of_days');
+//         if(pagename == 'hourly_plan')
+//             insert = true;
+//         if(insert)
+//             pages.push('hourly_plan');
+//         if(pagename == 'global_task')
+//             insert = true;
+//         if(insert)
+//             pages.push('global_task');
+//         if(pagename == 'current_task')
+//             insert = true;
+//         if(insert)
+//             pages.push('current_task');
+//         $.cookie('required_pages', pages);
+//     }
+//     var pages = $.cookie('required_pages').split(',');
+//     console.log($.cookie('required_pages'));
+//     var firstpage = pages[0];
+//     pages.splice(0,1);
+//     $.cookie('required_pages', pages);
+//     if(firstpage != pagename){
+//         console.log(firstpage);
+//         switch(firstpage){
+//             case 'home':{
+//                 location.href = 'http://'+location.hostname+'/index.php?mainmenu=home&leftmenu=&idmenu=5216&mainmenu=home&leftmenu=&redirect=1';
+//             }break;
+//             case 'calculator':{
+//                 location.href = 'http://'+location.hostname+'/dolibarr/htdocs/calculator/index.php?idmenu=10418&mainmenu=calculator&leftmenu=&redirect=1';
+//             }break;
+//             case 'plan_of_days':{
+//                 location.href = 'http://'+location.hostname+'/dolibarr/htdocs/day_plan.php?idmenu=10419&mainmenu=plan_of_days&leftmenu=&redirect=1';
+//             }break;
+//             case 'hourly_plan':{
+//                 location.href = 'http://'+location.hostname+'/dolibarr/htdocs/hourly_plan.php?idmenu=10420&mainmenu=hourly_plan&leftmenu=&redirect=1'
+//             }break;
+//             case 'global_task':{
+//                 location.href = 'http://'+location.hostname+'/dolibarr/htdocs/global_plan.php?idmenu=10421&mainmenu=global_task&leftmenu=&redirect=1';
+//             }break;
+//             case 'current_task':{
+//                 location.href = 'http://'+location.hostname+'/dolibarr/htdocs/current_plan.php?idmenu=10423&mainmenu=current_task&leftmenu=&redirect=1';
+//             }break;
+//         }
+//     }
+//
+//     console.log($.cookie('required_pages'));
+// }
 function getCookie(name) {
   var matches = document.cookie.match(new RegExp(
     "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
@@ -2001,11 +2228,11 @@ function save_item(tablename, paramfield, sendtable){
         }
         //console.log(values);
         //return;
-        if(sID == 0 && alrady_exist(fields, values)) {
-            alert('Такая запись уже существует');
-            location.href = '#close';
-            return;
-        }
+        // if(sID == 0 && alrady_exist(fields, values)) {
+        //     alert('Такая запись уже существует');
+        //     location.href = '#close';
+        //     return;
+        // }
 
         var link = "tablename="+tablename+"&columns='"+fields+"'&values='"+values+"'&id_usr="+id_usr+"&save=1";
 
@@ -2328,9 +2555,9 @@ function OpenFolder(id_cat, showeditfield){
 
     }
 function ClosePopupMenu(elem){
-    if(elem === undefined)
+    if(elem === undefined) {
         $("#popupmenu").hide();
-    else {
+    }else {
         while(elem.parent().attr('id') === undefined)
             elem = elem.parent();
         $('#' + elem.parent().attr('id')).remove();
@@ -2349,7 +2576,7 @@ function GetGroupOfTask(id_usr){
             //console.log(result);
             createNewForm('popupmenu','groupoftask');
             $('#groupoftask').find('a').remove();
-            $('#groupoftask').find('table').find('thead').find('th').html('Виберіть групу завдань <a class="close" style="margin-left: -160px" onclick="ClosePopupMenu($(this));" title="Закрити"></a>')
+            $('#groupoftask').find('table').find('thead').find('th').html('Виберіть групу завдань <a class="close" style="margin-left: -160px" onclick="ClosePopupMenu($(this));" title="Закрити"></a>');
             //$('#popupmenu').find('table').find('thead').empty().html();
             $('#groupoftask').find('table').find('tbody').empty();
             $('#groupoftask').find('table').find('tbody').html(result);
@@ -2791,59 +3018,59 @@ function escapeHtml(text) {
         .replace(/'/g, "$$$39;")
         .replace(/,/g, "__");
 }
-function alrady_exist(fields, values){//Проверка на идентичные записи
-    return false;
-    var $table = $('#reference');
-    var fieldslist = fields.split(',');
-    var valuelist = values.split(',');
-    //console.log(valuelist);
-
-    var i = 0;
-    var $td = null;
-    //console.log(valuelist.length);
-    var exits = false;
-    for(i; i<valuelist.length; i++) {
-        var value = valuelist[i].trim();
-        var tdlist = $table.find('td:contains("'+value+'")');
-        //console.log(value);
-        //return false;
-        for(var row=0; row<tdlist.length;row++) {
-            //return true;
-            var rowid = tdlist[row].id.substr(0, fieldslist[i].length-1)
-            var tr = document.getElementById('tr'+rowid);
-            var Tdlist = tr.getElementsByTagName('td');
-            //console.log(Tdlist.length);
-            for(var index = 0; index<Tdlist.length; index++){
-                var type = '';
-                var fieldname = Tdlist[index].id.substr(rowid.length);
-
-                if(Tdlist[index].getElementsByTagName('select').length>0){
-                    exits =  $('#'+Tdlist[index].getElementsByTagName('select')[0].id).val()!= $('#edit_'+fieldname.substr(2)).val();
-                    console.log('selector '+($('#'+Tdlist[index].getElementsByTagName('select')[0].id).val()!= $('#edit_'+fieldname.substr(2)).val()));
-                }else if(Tdlist[index].getElementsByTagName('img').length>0){
-
-                }else{
-                    exits =  console.log(Tdlist[index].innerHTML.trim()!=$('#edit_'+fieldname).val().trim());
-                    console.log('text '+(Tdlist[index].innerHTML.trim()!=$('#edit_'+fieldname).val().trim()));
-                }
-                if(exits) {
-                    console.log('Есть различия');
-                    return false;
-                }
-            }
-
-            //for(var f_index=0;f_index<valuelist.length; f_index++)
-            //{
-            //    //console.log($('td#' + rowid + fieldslist[f_index]).html() != value);
-            //    if ($('td#' + rowid + fieldslist[f_index]).html() !=  valuelist[f_index].trim()) {
-            //        console.log('Разбежность td#' + rowid + fieldslist[f_index]+' '+$('td#' + rowid + fieldslist[f_index]).html()+' edit '+valuelist[f_index].trim());
-            //        //return false;
-            //    }
-            //}
-        }
-    }
-    return true;
-}
+// function alrady_exist(fields, values){//Проверка на идентичные записи
+//     return false;
+//     var $table = $('#reference');
+//     var fieldslist = fields.split(',');
+//     var valuelist = values.split(',');
+//     //console.log(valuelist);
+//
+//     var i = 0;
+//     var $td = null;
+//     //console.log(valuelist.length);
+//     var exits = false;
+//     for(i; i<valuelist.length; i++) {
+//         var value = valuelist[i].trim();
+//         var tdlist = $table.find('td:contains("'+value+'")');
+//         //console.log(value);
+//         //return false;
+//         for(var row=0; row<tdlist.length;row++) {
+//             //return true;
+//             var rowid = tdlist[row].id.substr(0, fieldslist[i].length-1)
+//             var tr = document.getElementById('tr'+rowid);
+//             var Tdlist = tr.getElementsByTagName('td');
+//             //console.log(Tdlist.length);
+//             for(var index = 0; index<Tdlist.length; index++){
+//                 var type = '';
+//                 var fieldname = Tdlist[index].id.substr(rowid.length);
+//
+//                 if(Tdlist[index].getElementsByTagName('select').length>0){
+//                     exits =  $('#'+Tdlist[index].getElementsByTagName('select')[0].id).val()!= $('#edit_'+fieldname.substr(2)).val();
+//                     console.log('selector '+($('#'+Tdlist[index].getElementsByTagName('select')[0].id).val()!= $('#edit_'+fieldname.substr(2)).val()));
+//                 }else if(Tdlist[index].getElementsByTagName('img').length>0){
+//
+//                 }else{
+//                     exits =  console.log(Tdlist[index].innerHTML.trim()!=$('#edit_'+fieldname).val().trim());
+//                     console.log('text '+(Tdlist[index].innerHTML.trim()!=$('#edit_'+fieldname).val().trim()));
+//                 }
+//                 if(exits) {
+//                     console.log('Есть различия');
+//                     return false;
+//                 }
+//             }
+//
+//             //for(var f_index=0;f_index<valuelist.length; f_index++)
+//             //{
+//             //    //console.log($('td#' + rowid + fieldslist[f_index]).html() != value);
+//             //    if ($('td#' + rowid + fieldslist[f_index]).html() !=  valuelist[f_index].trim()) {
+//             //        console.log('Разбежность td#' + rowid + fieldslist[f_index]+' '+$('td#' + rowid + fieldslist[f_index]).html()+' edit '+valuelist[f_index].trim());
+//             //        //return false;
+//             //    }
+//             //}
+//         }
+//     }
+//     return true;
+// }
 function add_item(){
 
     var title = document.getElementById('reference_title');
@@ -3156,62 +3383,62 @@ function save_data(link) {
         success: function (html) {
             console.log('***' + html + '***');
             location.reload();
-            return;
-            var rowid = html;
-            var tr = document.getElementById("0");
-            if (tr == null)
-                tr = document.getElementById('tr' + rowid);
-            if (tr != null) {
-                tr.id = 'tr' + rowid;
-                var tdlist = tr.getElementsByTagName('td');
-                for (var i = 0; i < tdlist.length; i++) {
-                    if (tdlist[i].id.substr(0, 1) == '0') {
-                        tdlist[i].id = rowid + tdlist[i].id.substr(1);
-                    }
-                    if (tdlist[i].getElementsByTagName('img').length > 0) {
-                        var imglist = tdlist[i].getElementsByTagName('img');
-                        var img = imglist[0];
-                        if (img.id.substring(0, 4) == 'img0') {
-                            var begin = strpos(link, '=') + 1;
-                            var end = strpos(link, '&');
-                            var tablename = link.substr(begin, end - begin)
-                            var fieldname = img.id.substring(4);
-                            img.id = 'img' + rowid + img.id.substring(4);
-                            img.onclick = function () {
-                                change_switch(rowid, tablename, fieldname);
-                            }
-                        } else {
-                            if (img.id == null) {
-                                img.onclick = function () {
-                                    edit_item(rowid)
-                                };
-                            }
-                        }
-                    }
-                    if (tdlist[i].getElementsByTagName('select').length > 0) {
-                        //console.log($('select#edit_regions_name').val());
-                        var selectList = tdlist[i].getElementsByTagName('select');
-
-                        var select = selectList[0];
-                        //console.log(select);
-                        var detail_field = select.id.substring(6 + rowid.length);
-                        //var select_field = $('select#edit_'+select.id.substring(6+rowid.length));
-                        //console.log(detail_field, 522);
-                        //var detail_id = 'detail_' + select_field[0].id.substr(5);
-                        //
-                        //var detail_field = document.getElementById(detail_id);
-                        //console.log($('select#edit_' + tdlist[i].id.substr(html.length+2)).val());
-                        select.onchange = function () {
-                            change_select(rowid, tablename, detail_field);
-                        }
-                        if (select.id == null)
-                            select.id = 'select' + rowid + detail_field.value;
-                        //console.log("select#" + select.id + "  [value=" + $('select#edit_' + tdlist[i].id.substr(html.length) + '').val() + "]", 531);
-                        $("select#" + select.id + "  [value=" + $('select#edit_' + tdlist[i].id.substr(html.length + 2)).val() + "]").attr("selected", "selected");
-                    }
-
-                }
-            }
+            // return;
+            // var rowid = html;
+            // var tr = document.getElementById("0");
+            // if (tr == null)
+            //     tr = document.getElementById('tr' + rowid);
+            // if (tr != null) {
+            //     tr.id = 'tr' + rowid;
+            //     var tdlist = tr.getElementsByTagName('td');
+            //     for (var i = 0; i < tdlist.length; i++) {
+            //         if (tdlist[i].id.substr(0, 1) == '0') {
+            //             tdlist[i].id = rowid + tdlist[i].id.substr(1);
+            //         }
+            //         if (tdlist[i].getElementsByTagName('img').length > 0) {
+            //             var imglist = tdlist[i].getElementsByTagName('img');
+            //             var img = imglist[0];
+            //             if (img.id.substring(0, 4) == 'img0') {
+            //                 var begin = strpos(link, '=') + 1;
+            //                 var end = strpos(link, '&');
+            //                 var tablename = link.substr(begin, end - begin)
+            //                 var fieldname = img.id.substring(4);
+            //                 img.id = 'img' + rowid + img.id.substring(4);
+            //                 img.onclick = function () {
+            //                     change_switch(rowid, tablename, fieldname);
+            //                 }
+            //             } else {
+            //                 if (img.id == null) {
+            //                     img.onclick = function () {
+            //                         edit_item(rowid)
+            //                     };
+            //                 }
+            //             }
+            //         }
+            //         if (tdlist[i].getElementsByTagName('select').length > 0) {
+            //             //console.log($('select#edit_regions_name').val());
+            //             var selectList = tdlist[i].getElementsByTagName('select');
+            //
+            //             var select = selectList[0];
+            //             //console.log(select);
+            //             var detail_field = select.id.substring(6 + rowid.length);
+            //             //var select_field = $('select#edit_'+select.id.substring(6+rowid.length));
+            //             //console.log(detail_field, 522);
+            //             //var detail_id = 'detail_' + select_field[0].id.substr(5);
+            //             //
+            //             //var detail_field = document.getElementById(detail_id);
+            //             //console.log($('select#edit_' + tdlist[i].id.substr(html.length+2)).val());
+            //             select.onchange = function () {
+            //                 change_select(rowid, tablename, detail_field);
+            //             }
+            //             if (select.id == null)
+            //                 select.id = 'select' + rowid + detail_field.value;
+            //             //console.log("select#" + select.id + "  [value=" + $('select#edit_' + tdlist[i].id.substr(html.length) + '').val() + "]", 531);
+            //             $("select#" + select.id + "  [value=" + $('select#edit_' + tdlist[i].id.substr(html.length + 2)).val() + "]").attr("selected", "selected");
+            //         }
+            //
+            //     }
+            // }
         }
     })
 }

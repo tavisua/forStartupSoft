@@ -336,7 +336,7 @@ class societecontact {
                   where 1
                   and `llx_c_proposition`.active = 1
                   and `llx_c_proposition`.`begin`<=Now() and (`llx_c_proposition`.`end`>= Now() or `llx_c_proposition`.`end` is null )
-                  and llx_proposition_properties.active = 1) proposition on `llx_societe_contact`.post_id = proposition.fk_post
+                  and llx_proposition_properties.active = 1) proposition on case when `llx_societe_contact`.post_id is null or `llx_societe_contact`.post_id = 0 then 27 else `llx_societe_contact`.post_id end = proposition.fk_post
                 where `llx_societe_contact`.`rowid` in (".implode(',',$contact_id).")
                 and `llx_societe_contact`.`active` = 1";
 
@@ -388,7 +388,6 @@ class societecontact {
             dol_print_error($db);
         $obj = $db->fetch_object($res);
         $category_id = $obj->categoryofcustomer_id;
-
         mysqli_data_seek($result, 0);
         while($row = $result->fetch_assoc()) {
 //            echo '<pre>';
@@ -396,7 +395,9 @@ class societecontact {
 //            echo '<pre>';
 //            die();
             $count++;
-            $class = fmod($count,2)==1?("impair"):("pair");
+//            $class = fmod($count,2)==1?("impair"):("pair");
+            $class = (!empty($_REQUEST['contactID'])&&$_REQUEST['contactID']==$row['rowid'])?'selected_row':(fmod($count,2)==1?("impair"):("pair"));
+
             $table .= "<tr id = tr".$row['rowid']." class='".$class."'>\r\n";
 //            $table .= "<tr id = tr".$row['rowid']." class='".$class."'>\r\n";
 //            $table .= "<tr id = $count class=".fmod($count,2)==1?('impair'):('pair').">\r\n";
@@ -499,9 +500,9 @@ class societecontact {
                                             } elseif (substr($fields[$num_col]->name, 0, strlen('skype')) == 'skype' && !empty($value)) {
                                                 $value = '<a href="skype:' . $value . '?call">' . $value . '</a>';
                                             }
-                                            $table .= '<table class="contactlist_contact"><tr><td ' . $style_item . '>' . trim($langs->trans($value)) . '</td>';
                                             if (!empty($value)) {
-                                                if (substr($fields[$num_col]->name, 0, strlen(mobile_phone)) == 'mobile_phone') {
+                                                $table .= '<table class="contactlist_contact"><tr><td ' . $style_item . '>' . trim($langs->trans($value)) . '</td>';
+                                                if (substr($fields[$num_col]->name, 0, strlen('mobile_phone')) == 'mobile_phone'||substr($fields[$num_col]->name, 0, strlen('work_phone')) == 'work_phone') {
                                                     $number = str_replace('+', '', $value);
                                                     $number = str_replace(' ', '', $number);
                                                     $number = str_replace('(', '', $number);
@@ -512,7 +513,7 @@ class societecontact {
 //                                                    echo '</pre>';
 //                                                    die();
                                                     if($proposed) {
-                                                        $table .= '<td id="proposed' . $row['post_id'] . '" style="width: 20px" onclick="showTitleProposed(' . $row['post_id'] . ',' . $postArray[$row['post_id']][0][0] . ',' . $row['rowid'] . ', proposed' . $row['post_id'] . ', '.$_REQUEST['socid'].', '.($birthday?'1':'0').');"><img id="proposedIcon' . $row['rowid'] . $fields[$num_col]->name . '" title = "' . $langs->trans('Proposition') . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/'.($birthday?'birthday.png':'strawberry.png').'"></td>';
+                                                        $table .= '<td id="proposed' . $row['rowid'] . '" style="width: 20px" onclick="showTitleProposed(' . $row['post_id'] . ',' . $postArray[$row['post_id']][0][0] . ',' . $row['rowid'] . ', proposed' . $row['rowid'] . ', '.$_REQUEST['socid'].', '.($birthday?'1':'0').');"><img id="proposedIcon' . $row['rowid'] . $fields[$num_col]->name . '" title = "' . $langs->trans('Proposition') . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/'.($birthday?'birthday.png':'strawberry.png').'"></td>';
                                                     }
                                                     $table .= '<td style="width: 20px" onclick="showSMSform(' . $number . ');"><img id="sms' . $row['rowid'] . $fields[$num_col]->name . '" src="' . DOL_URL_ROOT . '/theme/' . $theme . '/img/object_sms.png"></td>';
                                                 }
@@ -535,10 +536,9 @@ class societecontact {
                                                     //                                            echo '</pre>';
                                                     $table .= '</td>';
                                                 }
-
+                                                $table .= '</tr>';
+                                                $table .= '</table>';
                                             }
-                                            $table .= '</tr>';
-                                            $table .= '</table>';
                                         } else
                                             $table .= (trim($langs->trans($value))) . ' </td>';
                                         //                                }else

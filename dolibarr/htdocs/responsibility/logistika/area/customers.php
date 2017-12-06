@@ -324,6 +324,7 @@ elseif ($_GET['viewname'] == 'reverse')
     $kind_view = '</br><span style="padding-top: 30px"><button onclick="ChangeViewNameOption();">&nbsp;&nbsp;&nbsp;ФП&nbsp;&nbsp;&nbsp; <img src="/dolibarr/htdocs/theme/eldy/img/replace.png"> Назва</button></span>';
 
 //include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/logistika/area/customers.html');
+print '<div style="width: 100%; padding-top: 32"></div>';
 include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/responsibility/sale/area/customers.html');
 $prev_form = "<a href='#x' class='overlay' id='peview_form'></a>
                      <div class='popup' style='width: 300px;height: 150px'>

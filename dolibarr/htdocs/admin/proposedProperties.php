@@ -3,6 +3,10 @@ require '../main.inc.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
 require_once DOL_DOCUMENT_ROOT.'/societe/societecontact_class.php';
 global $db,$user;
+//echo '<pre>';
+//var_dump($_REQUEST);
+//echo '</pre>';
+//die();
 if(isset($_POST['action'])&&$_POST['action'] == 'OK'){
     $sql = "update llx_c_proposition set action = ";
     if(isset($_POST['birthday']))
@@ -93,6 +97,18 @@ if(!$res)
 $obj = $db->fetch_object($res);
 if($obj->action == 1)
     $birthday = "checked";
+$sql = "select rowid, titre from llx_mailing
+    where send_after = 3
+    and statut = 1
+    and now() between period_begin and period_end";
+$res = $db->query($sql);
+if(!$res)
+    dol_print_error($db);
+$emaillist = '<select id="fk_maillist" name="fk_maillist[]" size="10" multiple="" class="combobox">';
+while($obj = $db->fetch_object($res)){
+    $emaillist.='<option value="'.$obj->rowid.'">'.$obj->titre.'</option>';
+}
+$emaillist.='</select>';
 llxHeader("", "Налаштування пропозиції", "");
 include DOL_DOCUMENT_ROOT.'/theme/eldy/admin/proposedProperties.html';
 llxPopupMenu();

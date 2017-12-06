@@ -411,8 +411,9 @@ $langs->load("agenda");
 $action=GETPOST('action','alpha');
 $cancel=GETPOST('cancel','alpha');
 $backtopage=GETPOST('backtopage','alpha');
+$backtopage = str_replace('autocall=1','autocall=0', $backtopage);//Якщо виконується автодзвінок - ставлю прапор переходу до наступного дзвінка
 //$backtopage=$_REQUEST['backtopage'];
-//var_dump($_REQUEST['backtopage']);
+//var_dump($backtopage);
 //die();
 
 if(substr($backtopage, 0, 1) == "'")

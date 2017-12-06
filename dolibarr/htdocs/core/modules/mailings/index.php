@@ -9,8 +9,9 @@
 if(!empty($_REQUEST['action']) && in_array($_REQUEST['action'], array('check', 'sendmail')))
     define("NOLOGIN",1);// This means this output page does not require to be logged.
 require $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/main.inc.php';
+require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
 global $db,$user;
-$SendActionType= ['night','after_phone','before_birsthday5'];
+$SendActionType= ['night','after_phone','before_birsthday5','after_proposed'];
 //echo '<pre>';
 //var_dump($_REQUEST);
 //echo '</pre>';
@@ -102,7 +103,7 @@ if($action == 'sendmail'){
         $msgishtml = $mess->body;
 //    $out['subject'] = $subject;
 //    $out['mesg'] = $msgishtml;
-        $mesg = $mess->body;
+        $mesg = $mess->body.'<div style="opacity:0.1;"><a>Відписатить від рассилки</a></div>';
     }
 //    $msgishtml='';
     $conf->notification->email_from=$conf->mailing->email_from;
@@ -355,10 +356,10 @@ if($action == 'update'){
 
     $sql = "update llx_mailing     
     set titre = '".$_REQUEST['theme']."', body='".$body."', send_after = ".(empty($_REQUEST['sendactiontype'])?0:$_REQUEST['sendactiontype']).
-        ", period_begin=".$begin_period.", period_end=".$end_period.", fk_user_creat='".$user->id."', `postlist`='".$postlist."', 
+        ", period_begin=".$begin_period.", `fk_customer_category` = ".(empty($_REQUEST['categoryofcustomer'])?0:$_REQUEST['categoryofcustomer']).", period_end=".$end_period.", fk_user_creat='".$user->id."', `postlist`='".$postlist."', 
         `responsibility`='".$responsibility."', `inner`=".(empty($_REQUEST['inner'])?0:$_REQUEST['inner'])." where rowid=".$_REQUEST['rowid'];
 //    echo '<pre>';
-//    var_dump($_REQUEST);
+//    var_dump($sql);
 //    echo '</pre>';
 //    die();
     $res = $db->query($sql);
@@ -372,7 +373,7 @@ if($action == 'edit'){
     $title = "Редагувати розсилку";
     llxHeader("",$title,"");
     $action = 'update';
-    $sql = 'select titre,body,`postlist`,`responsibility`, `inner`, `send_after`,`period_begin`,`period_end` from llx_mailing where rowid = '.$_GET["rowid"];
+    $sql = 'select titre,body,`postlist`,`responsibility`, `fk_customer_category`, `inner`, `send_after`,`period_begin`,`period_end` from llx_mailing where rowid = '.$_GET["rowid"];
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
@@ -406,7 +407,7 @@ if($action == 'edit'){
         $begin = null;
         $end = null;
     }
-    $select = "<select id='sendactiontype' name='sendactiontype' class='combobox' onchange='setactiontype()'>";
+    $select = "<select id='sendactiontype' name='sendactiontype' class='combobox' >";
     foreach ($SendActionType as $key=>$value){
         $select.="<option value='$key'".($mail->send_after == $key?"selected":"").">".$langs->trans($value)."</option>";
     }
@@ -415,6 +416,7 @@ if($action == 'edit'){
 //    var_dump($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/mailing/card.html');
 //    echo '</pre>';
 //    die();
+    $form = new Form($db);
     include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/mailing/card.html');
     die();
 }
@@ -423,6 +425,12 @@ if($action == 'create'){
     llxHeader("",$title,"");
     $action = 'insert';
     $backtopage = $_SERVER['REQUEST_URI'];
+    $select = "<select id='sendactiontype' name='sendactiontype' class='combobox'>";
+    foreach ($SendActionType as $key=>$value){
+        $select.="<option value='$key'".($mail->send_after == $key?"selected":"").">".$langs->trans($value)."</option>";
+    }
+    $select.="</select>";
+    $form = new Form($db);
     include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/mailing/card.html');
     die();
 }
@@ -468,7 +476,7 @@ if(empty($conf->theme))
     $conf->theme='eldy';
 //var_dump(, $user->conf->MAIN_THEME);
 //die();
-
+$form = new Form($db);
 include($_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/theme/'.$conf->theme.'/mailing/index.html');
 include $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/static_content/layout/pagination.phtml';
 exit();
@@ -564,7 +572,7 @@ function AutoSendMail($rowid, $type='', $contact_id=0){
     if($rowid == 0)
         return 1;
     global $db,$langs,$user,$conf;
-    $sql = "select titre,body, postlist, responsibility, `inner` from llx_mailing where rowid = ".$rowid;
+    $sql = "select titre,body, postlist, responsibility, `inner`, `fk_customer_category` from llx_mailing where rowid = ".$rowid;
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
@@ -591,6 +599,7 @@ function AutoSendMail($rowid, $type='', $contact_id=0){
         $sql = "select llx_societe.state_id, socid, email1, email2 from `llx_societe_contact`
             left join llx_societe on llx_societe.rowid = `llx_societe_contact`.socid
                     where 1 ";
+        $sql.= " and categoryofcustomer_id = ". $mess->fk_customer_category;
         if (!empty($postlist) && !empty($responsibility))
             $sql .= " and (post_id in (" . $postlist . ") or `respon_id` in (" . $responsibility . "))";
         elseif (!empty($postlist))

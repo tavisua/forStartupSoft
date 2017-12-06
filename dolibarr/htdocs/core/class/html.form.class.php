@@ -4686,11 +4686,11 @@ class Form
         $obj = $this->db->fetch_object($res);
         return $obj->id;
     }
-    function select_categorycustomer($selected = '7'){
+    function select_categorycustomer($selected = '7', $event = true){
         $sql ="select rowid, name from `category_counterparty` where active = 1 order by name";
         $result= $this->db->query($sql);
         if($result){
-            $out = '<select id="categoryofcustomer" class="combobox" size="1" name="categoryofcustomer" onchange="setvisiblbloks();">';
+            $out = '<select id="categoryofcustomer" class="combobox" size="1" name="categoryofcustomer" '.($event?'onchange="setvisiblbloks();"':'').'>';
             $out .= '<option value="0">&nbsp;</option>';
             while($row = $result->fetch_assoc()){
                 if($selected == trim($row['rowid'])){

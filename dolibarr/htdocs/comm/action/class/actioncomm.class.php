@@ -232,6 +232,8 @@ class ActionComm extends CommonObject
         return $out;
     }
     function getAuthorID($action_id){
+        if(empty($action_id))
+            return 0;
         global $db;
         $sql = "select fk_user_author,note from llx_actioncomm where id = ".$action_id;
         $res = $db->query($sql);
@@ -423,7 +425,7 @@ class ActionComm extends CommonObject
 //        echo json_encode($out);
     }
     function getAssignedUser($action_id, $arrayonly = false){
-        global $db;
+        global $db, $user;
         if(empty($action_id))
             $action_id = $this->id;
         $chain_actions = $this->GetChainActions($action_id);
@@ -454,7 +456,8 @@ class ActionComm extends CommonObject
 
         if($arrayonly)
             return $users_id;
-
+        if(count($users_id) == 0 && $action_id == 0)
+            $users_id[]=$user->id;
         $sql = "select  llx_user.rowid, llx_user.lastname, llx_user.firstname from llx_user            
             where rowid in (".implode(',', $users_id).")
             order by lastname, firstname";
@@ -652,27 +655,38 @@ class ActionComm extends CommonObject
     }
     function GetFreeTimePeriod($date, $id_usr, $prioritet, $fullday = false, $parent_id=0){
         global $db;
-        $date = new DateTime($date);
-        $sql = "select `llx_actioncomm`.`id`, `llx_actioncomm`.`datep`, `llx_actioncomm`.`datep2`, `llx_actioncomm`.fk_parent from `llx_actioncomm`
+        $action_count = 100;
+        $max_count = 100;
+        while($action_count>=$max_count) {
+            $date = new DateTime($date);
+            $sql = "select `llx_actioncomm`.`id`, `llx_actioncomm`.`datep`, `llx_actioncomm`.`datep2`, `llx_actioncomm`.fk_parent from `llx_actioncomm`
             left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.id
             where 1
-            and (case when `llx_actioncomm_resources`.fk_element is null then `llx_actioncomm`.fk_user_action else `llx_actioncomm_resources`.fk_element end = ".$id_usr.")
-            and `llx_actioncomm`.`priority` = ".(empty($prioritet)?0:$prioritet)."
+            and (case when `llx_actioncomm_resources`.fk_element is null then `llx_actioncomm`.fk_user_action else `llx_actioncomm_resources`.fk_element end = " . $id_usr . ")
+            and `llx_actioncomm`.`priority` = " . (empty($prioritet) ? 0 : $prioritet) . "
             and `llx_actioncomm`.`active` = 1            
-            and `llx_actioncomm`.`datep` between '".$date->format('Y-m-d')."' and adddate('".$date->format('Y-m-d')."', interval 1 day)
+            and `llx_actioncomm`.`datep` between '" . $date->format('Y-m-d') . "' and adddate('" . $date->format('Y-m-d') . "', interval 1 day)
             and fk_action in
               (select id from `llx_c_actioncomm`
               where `type` in ('system', 'user'))            
-            ".(!empty($parent_id)?" and fk_parent = $parent_id":"")."
+            " . (!empty($parent_id) ? " and fk_parent = $parent_id" : "") . "
             and (`llx_actioncomm`.hide is null or `llx_actioncomm`.hide <> 1)
             order by `llx_actioncomm`.`datep`, `llx_actioncomm`.`datep2`";
+            $res = $db->query($sql);
+            if(!$res)
+                dol_print_error($db); //and (`llx_actioncomm_resources`.`fk_element`= ".$id_usr." or (`llx_actioncomm`.`fk_user_author`= ".$id_usr." and `llx_actioncomm`.id not in (select `llx_actioncomm_resources`.`fk_actioncomm` from `llx_actioncomm_resources` where `llx_actioncomm_resources`.`fk_element`= ".$id_usr.")))
+            $action_count = $res->num_rows;
+            if($action_count>=$max_count){
+                $date->add(new DateInterval('P1D'));
+                $date = $date->format('Y-m-d');
+            }
+        }
 //        echo '<pre>';
-//        var_dump($sql);
+//        var_dump($action_count);
+//        var_dump($max_count);
+//        var_dump($date);
 //        echo '</pre>';
 //        die();
-        $res = $db->query($sql);
-        if(!$res)
-            dol_print_error($db); //and (`llx_actioncomm_resources`.`fk_element`= ".$id_usr." or (`llx_actioncomm`.`fk_user_author`= ".$id_usr." and `llx_actioncomm`.id not in (select `llx_actioncomm_resources`.`fk_actioncomm` from `llx_actioncomm_resources` where `llx_actioncomm_resources`.`fk_element`= ".$id_usr.")))
         $Now = new DateTime();
 //        var_dump($parent_id);
 //        die();

@@ -22,6 +22,12 @@ if($_REQUEST['action'] == 'hideAction'){
         dol_print_error($db);
     echo 1;
     exit();
+}elseif ($_REQUEST['action'] == 'getAutoCallStatus'){//Отримую інформацію про статус автодзвінків
+    if(empty($_SESSION['autocall'])){//Вводжу первинні данні
+        $_SESSION['autocall']['status']='finish';
+    }
+    echo json_encode($_SESSION['autocall']);
+    exit();
 }
 
 $HourlyPlan = $langs->trans('HourlyPlan');

@@ -179,7 +179,7 @@ class MenuManager
 		require_once DOL_DOCUMENT_ROOT.'/core/class/menu.class.php';
         $this->menu=new Menu();
 //        echo '<pre>';
-//        var_dump($mode);
+//        var_dump($this->tabMenu);
 //        echo '</pre>';
 //        die();
         if ($mode == 'top')  print_auguria_menu($this->db,$this->atarget,$this->type_user,$this->tabMenu,$this->menu,0);

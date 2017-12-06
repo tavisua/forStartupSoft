@@ -55,10 +55,12 @@ if ($_REQUEST['addParam'] == 'addFindParam'){
 //    var_dump(DOL_DOCUMENT_ROOT.'/theme/'.$conf->theme.substr(str_replace('\\', '/', __DIR__), strlen(DOL_DOCUMENT_ROOT)));
 //    var_dump($user->respon_alias, $user->respon_alias2);
 //    die();
-    for($i=0; $i<2; $i++) {
-        $tmp_file = DOL_DOCUMENT_ROOT.'/theme/'.$conf->theme.substr(str_replace('\\', '/', __DIR__), strlen(DOL_DOCUMENT_ROOT)).'/'.array($user->respon_alias, $user->respon_alias2)[$i].'/param.html';
-        if(file_exists($tmp_file)) {
 
+    $respon = array($user->respon_alias, $user->respon_alias2);
+    for($i=0; $i<2; $i++) {
+        $tmp_file = DOL_DOCUMENT_ROOT.'/theme/'.$conf->theme.substr(str_replace('\\', '/', __DIR__), strlen(DOL_DOCUMENT_ROOT)).'/';
+        $tmp_file.=($respon[$i]).'/param.html';
+        if(file_exists($tmp_file)) {
             //Визначаю які категорії додатково відкриваються у користувача
             $tmp_sql = "select distinct case when fx_category_counterparty is null then other_category else fx_category_counterparty end cat_id from `responsibility_param`
                     inner join llx_user_responsibility on llx_user_responsibility.fk_respon = `responsibility_param`.fx_responsibility
@@ -76,15 +78,23 @@ if ($_REQUEST['addParam'] == 'addFindParam'){
             if (count($categories) > 1) {
                 $tmp_sql = "select rowid, `name` from  `category_counterparty` where rowid in (" . implode(',', $categories) . ") and active = 1";
                 $tmp_res = $db->query($tmp_sql);
-                $FindingParam = '<td>Категорії контрагентів</td><td></td><td><select id="category_id" class="combobox" name="category_id">';
-                $FindingParam .= '<option value="-1" selected="selected">Відобразити всі</option>';
+                $selected = false;
+                if(count(array_intersect(array('logistika','purchase'), array($user->respon_alias, $user->respon_alias2)))>1)
+                    $selected = true;
+                $FindingParam = '<td>Категорії контрагентів</td><td></td><td><select id="category_id" '.(!$selected?'disabled ':'').'class="combobox" name="category_id">';
+                $FindingParam .= '<option value="-1" '.($selected?'selected="selected"':'').'>Відобразити всі</option>';
                 while ($obj = $db->fetch_object($tmp_res)) {
-                    $FindingParam .= '<option value="' . $obj->rowid . '">' . $obj->name . '</option>';
+                    $selected = false;
+                    if (in_array('purchase', array($user->respon_alias, $user->respon_alias2)) && $obj->rowid == 9 ||
+                        in_array('logistika', array($user->respon_alias, $user->respon_alias2)) && $obj->rowid == 8)
+                        $selected = true;
+                    $FindingParam .= '<option value="' . $obj->rowid . '" '.($selected?'selected="selected"':'').'>' . $obj->name . '</option>';
                 }
                 $FindingParam .= '</select></td>';
             }
             //Напрямки діяльності для постачання
-            $LineActive = $form->selectLineAction([], 'lineaction', 10);
+            if(in_array('purchase',array($user->respon_alias, $user->respon_alias2)))
+                $LineActive = $form->selectLineAction([], 'lineaction', 10);
             include $tmp_file;
 //            var_dump($html);
 //            die();
@@ -159,7 +169,7 @@ function getCustomers($type, $test=false){
 //    die($type);
     global $db, $user;
 //    echo '<pre>';
-//    var_dump(strlen($_REQUEST['areas'])==0&&$_REQUEST['country_id']==226, count($_REQUEST["areas"]), strlen($_REQUEST['areas']));
+//    var_dump($_REQUEST);
 //    echo '</pre>';
 //    die();
     if(count($_REQUEST['areas'])==0&&$_REQUEST['country_id']==226)
@@ -191,15 +201,24 @@ function getCustomers($type, $test=false){
                 }
             }
         }else {
-            $sql_tmp = 'select fk_id from `llx_user_regions` where fk_user = '.$user->id.' and active = 1';
-            $res = $db->query($sql_tmp);
-            if(!$res)
-                dol_print_error($db);
+            if (in_array('sale', array($user->respon_alias, $user->respon_alias2)))
+                $sql_tmp = 'select fk_id from `llx_user_regions` where fk_user = '.$user->id.' and active = 1';
+            elseif (count(array_intersect(array('logistika','purchase'), array($user->respon_alias, $user->respon_alias2)))){
+                if($_REQUEST['areas']==''){
+                    $sql_tmp = '';
+                }
 
-            while($area = $db->fetch_object($res)){
-                $areas[]=$area->fk_id;
             }
-            $_REQUEST['areas'] = $areas;
+            if(!empty($sql_tmp)) {
+                $res = $db->query($sql_tmp);
+                if (!$res)
+                    dol_print_error($db);
+
+                while ($area = $db->fetch_object($res)) {
+                    $areas[] = $area->fk_id;
+                }
+                $_REQUEST['areas'] = $areas;
+            }
             $inarea = true;
         }
     }elseif($_REQUEST['country_id']!=226){
@@ -320,6 +339,7 @@ function getCustomers($type, $test=false){
 //    var_dump($sql);
 //    echo '</pre>';
 //    die();
+    
     if($test){
         if(!empty($sql))
             $sql.=' union ';

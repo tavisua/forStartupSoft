@@ -20,14 +20,18 @@
     </br>
     <table>
         <tr class="firstpage">
+            <td>Категорія контрагента </td><td></td>
+            <td><?=$form->select_categorycustomer(empty($mail->fk_customer_category)?5:$mail->fk_customer_category, false)?></td>
+        </tr>
+        <tr class="firstpage">
             <td id="post">Посада</td>
-            <td id="or" rowspan="2">чи</td>
+            <td id="or" rowspan="4">чи</td>
             <td id="sphereOfResponsibility">Сфера відповідальності</td>
             <td>Відправка розсилки </td>
         </tr>
         <tr class="firstpage">
-            <td id="PostList"><?=$user->getContactPostsList('postlist',10,'all');?></td>
-            <td id="ResponsibilityList"><?=$user->getContactResponsibility('responsibility',10,'all');?></td>
+            <td id="PostList" rowspan="3"><?=$user->getContactPostsList('postlist',10,'all');?></td>
+            <td id="ResponsibilityList" rowspan="3"><?=$user->getContactResponsibility('responsibility',10,'all');?></td>
             <td class="middle_size top"><?=$select?><br>
                 Період з<input id="begin" name="begin" size="9" maxlength="11" value="<?=(!empty($begin)?$begin->format('d.m.Y'):'')?>" onchange="dpChangeDay('begin','dd.MM.yyyy'); " type="text"><button id="beginButton" type="button" class="dpInvisibleButtons" onclick="showDP('/dolibarr/htdocs/core/','begin','dd.MM.yyyy','uk_UA');"><img src="/dolibarr/htdocs/theme/eldy/img/object_calendarday.png" alt="" title="Select a date" class="datecallink" border="0"></button>
                 <input id="beginday" name="beginday" value="<?=!empty($begin)?$begin->format('d'):0?>" type="hidden">
@@ -40,7 +44,6 @@
                 <input id="endyear" name="endyear" value="<?=(!empty($end)?$end->format('Y'):0)?>" type="hidden">
                 <input name="list" value="callstatistic" type="hidden">
             </td>
-
         </tr>
         <tr class="firstpage">
             <?=$FindingParam?>

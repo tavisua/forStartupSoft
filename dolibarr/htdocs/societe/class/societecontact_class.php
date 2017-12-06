@@ -366,12 +366,13 @@ class societecontact {
                 $saidArray[$obj->contactid][]=$obj->proposed_id;
             }
 //        var_dump($saidArray);
-//        die();
         mysqli_data_seek($result, 0);
         while($row = $result->fetch_assoc()) {
 
             $count++;
-            $class = fmod($count,2)==1?("impair"):("pair");
+//            $class = fmod($count,2)==1?("impair"):("pair");
+            $class = (!empty($_REQUEST['contactID'])&&$_REQUEST['contactID']==$row['rowid'])?'selected_row':(fmod($count,2)==1?("impair"):("pair"));
+
             $table .= "<tr id = tr".$row['rowid']." class='".$class."'>\r\n";
 //            $table .= "<tr id = tr".$row['rowid']." class='".$class."'>\r\n";
 //            $table .= "<tr id = $count class=".fmod($count,2)==1?('impair'):('pair').">\r\n";
