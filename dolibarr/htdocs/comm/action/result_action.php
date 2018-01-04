@@ -22,7 +22,7 @@ if(!$user->id){
 //echo '<pre>';
 //var_dump($_REQUEST);
 //echo '</pre>';
-//die();
+//die('test');
 
 if(isset($_REQUEST["backtopage"]) && !empty($_REQUEST["backtopage"])){
     $_REQUEST["backtopage"] = str_replace('_amp038;', '&', $_REQUEST["backtopage"]);
@@ -33,10 +33,9 @@ if(isset($_REQUEST['action'])) {
 //    var_dump((substr($_POST['action'],strlen($_POST['action'])-strlen('_and_create') )== '_and_create'));
 //    die();
 //        if($user->login == 'admin') {
-//            echo '<pre>';
-//            var_dump($_REQUEST);
-//            echo '</pre>';
-//            die('test');
+//        if(!empty($_REQUEST['AutoCreateAction'])){
+//            AutoCreateAction(!empty($_REQUEST['today'])?$_REQUEST['today']:false);
+//        }
 //        }
         $actions = array($_REQUEST['actionid']);
         require_once './class/actioncomm.class.php';
@@ -214,16 +213,14 @@ if(isset($_REQUEST['action'])) {
     require_once DOL_DOCUMENT_ROOT . '/comm/action/class/actioncomm.class.php';
     require_once DOL_DOCUMENT_ROOT . '/core/class/html.formactions.class.php';
     global $user;
-    if(!empty($_GET['action'])) {
-        if ($_GET['action'] == 'addonlyresult' || $_GET['action'] == 'addonlyresult_and_create' || $_GET['action'] == 'useraction') {
-            llxHeader('', $langs->trans("AddResultAction"), $help_url);
-        } elseif (isset($_REQUEST["onlyresult"]) && $_REQUEST["onlyresult"] == '1' || $_GET['action'] == 'updateonlyresult') {
-            llxHeader('', $langs->trans("EditResultAction"), $help_url);
-        } elseif ($_GET['action'] == 'SetRemarkOfMentor') {
-            llxHeader('', $langs->trans("SetRemarkOfMentor"), $help_url);
-        } else
-            llxHeader('', $langs->trans("EditAction"), $help_url);
-    }
+    if ($_GET['action'] == 'addonlyresult' || $_GET['action'] == 'addonlyresult_and_create' || $_GET['action'] == 'useraction') {
+        llxHeader('', $langs->trans("AddResultAction"), $help_url);
+    } elseif (isset($_REQUEST["onlyresult"]) && $_REQUEST["onlyresult"] == '1' || $_GET['action'] == 'updateonlyresult') {
+        llxHeader('', $langs->trans("EditResultAction"), $help_url);
+    } elseif ($_GET['action'] == 'SetRemarkOfMentor') {
+        llxHeader('', $langs->trans("SetRemarkOfMentor"), $help_url);
+    } else
+        llxHeader('', $langs->trans("EditAction"), $help_url);
     $action_id = 0;
     $socid = 0;
 
@@ -550,6 +547,8 @@ function getUserName($id_usr){
     return $obj->lastname;
 }
 function getTypeNotification(){
+    if(empty($_REQUEST['action_id']))
+        return 0;
     global $db;
     $sql = "select typenotification, `office_phone`, `llx_actioncomm`.`fk_user_author` from llx_actioncomm
         left join llx_user on llx_user.rowid = `llx_actioncomm`.`fk_user_author`
@@ -768,7 +767,7 @@ function saveaction($rowid, $createaction = false, $action_id = null){
 //            $value = $date->format('Y-m-d');
 //            $sql .= '"' .$value . '",';
 //        }
-        $sql .= $user->id.','.(empty($_REQUEST['proposed_id'])?"null":$_REQUEST['action']=='setNotInterestingProposed'?0:1).")";
+        $sql .= $user->id.(empty($_REQUEST['proposed_id'])?'':(','.($_REQUEST['action']=='setNotInterestingProposed'?0:1))).")";
     }else {
         $sql = 'update llx_societe_action set ';
         $sql.='`contactid`='.(empty($_REQUEST['contactid'])?'null':$_REQUEST['contactid']).', ';
@@ -783,11 +782,14 @@ function saveaction($rowid, $createaction = false, $action_id = null){
         $sql.='`fact_cost`='.(empty($_REQUEST['fact_cost'])?'null':$db->escape($_REQUEST['fact_cost'])).', ';
         $sql.='`id_usr`='.$user->id.' ';
         if(!empty($_REQUEST['proposed_id'])){
-            $sql.=',`interesting`='.$_REQUEST['action']=='setNotInterestingProposed'?0:1;
+            $sql.=',`interesting`='.($_REQUEST['action']=='setNotInterestingProposed'?0:1);
         }
 //        $sql.='`new`=1 ';
         $sql.='where rowid='.$rowid;
     }
+//    echo '<pre>';
+//    var_dump($_REQUEST);
+//    echo '</pre>';
 //    die($sql);
 
     $res = $db->query($sql);
@@ -801,7 +803,7 @@ function saveaction($rowid, $createaction = false, $action_id = null){
             dol_print_error($db);
         }
     }
-    if($_REQUEST['action']=='setNotInterestingProposed'){
+    if($_REQUEST['action']=='SaveResultAction'){
         if(!empty($rowid))
             die($rowid);
         else{
@@ -1112,7 +1114,7 @@ function saveaction($rowid, $createaction = false, $action_id = null){
         }
         $link.="&backtopage=".str_replace("'","",$backtopage);
 //        die('test '.$link);
-
+//die('test');
         header("Location: ".$link);
     }
 }

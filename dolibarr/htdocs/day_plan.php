@@ -392,14 +392,11 @@ header("Location: http://".$_SERVER["SERVER_NAME"]."/dolibarr/htdocs/responsibil
 exit();
 function setOverdue_Actions_GlobalItem(){
     global $db;
-    $sql = "update llx_actioncomm set overdue = null";
-    $res = $db->query($sql);
-    if (!$res)
-        dol_print_error($db);
+
     require_once $_SERVER['DOCUMENT_ROOT'] . '/dolibarr/htdocs/comm/action/class/actioncomm.class.php';
     $Action = new ActionComm($db);
-    $sql = "select llx_actioncomm.id from llx_actioncomm where date(datep) between adddate(date(now()), interval -1 month) and date(now())
-        and active = 1 and `code` <> 'AC_OTH_AUTO'";
+    $sql = "select statistic_action.id from statistic_action where date(datep) between adddate(date(now()), interval -1 month) and date(now())
+        and active = 1";
     $res = $db->query($sql);
     if (!$res)
         dol_print_error($db);
@@ -434,48 +431,140 @@ function updateStaticDayPlanPage(){
 }
 function createStaticDayPlanPage(){
     global $db;
+    $time = time();
     set_time_limit(0);
-    $sql = "insert into llx_cronjob (`command`,`datestart`,`params`,`label`,`jobtype`)  values('createStatisticPage',now(),'0','_','_')";
+//    $sql = "insert into llx_cronjob (`command`,`datestart`,`params`,`label`,`jobtype`)  values('createStatisticPage',now(),'0','_','_')";
+//    $res = $db->query($sql);
+//    if(!$res)
+//        dol_print_error($db);
+    $sql = "select max(rowid) id from llx_cronjob where `command` = 'createStatisticPage'";
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
+    $obj = $db->fetch_object($res);
+    $dayplan_id = $obj->id;
     $actioncode = array('AC_GLOBAL','AC_CURRENT','AC_EDUCATION','AC_INITIATIV','AC_PROJECT');
-    setOverdue_Actions_GlobalItem();
-    $sql = "show tables like 'statistic_action'";
+    $tmp_table = 'llx_tmp_action';
+    $sql = "show tables like '$tmp_table'";
+//    die($sql);
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
     if($res->num_rows != 0) {
-        $sql = "drop table statistic_action;";
+        $sql = "drop table $tmp_table;";
         $res = $db->query($sql);
         if(!$res)
             dol_print_error($db);
     }
-    $sql = "create table statistic_action like llx_actioncomm";
+
+//    if(!$res)
+//        dol_print_error($db);
+    $sql = "create temporary table $tmp_table like llx_actioncomm";
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
-    $sql = "insert into statistic_action
-    select distinct llx_actioncomm.* from llx_actioncomm
+    $sql = "alter table $tmp_table add `sale` bit";
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $sql = "show columns from llx_actioncomm";
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    $columns = [];
+    while($obj = $db->fetch_object($res)){
+        $columns[]=$obj->Field;
+    }
+
+    $sql = "insert into $tmp_table (".implode(',', $columns).", `sale`)
+    select distinct llx_actioncomm.*, false from llx_actioncomm
     left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
-    where date(datep) between adddate(date(now()), interval -1 month) and adddate(date(now()), interval 1 month) or overdue = 1
+    where date(datep) between adddate(date(now()), interval -1 month) and adddate(date(now()), interval 1 month) 
+--    or overdue = 1
     and active = 1
     and case when `llx_actioncomm_resources`.`fk_element` is null then `fk_user_action` else `llx_actioncomm_resources`.`fk_element` end in (select rowid from llx_user where active = 1)
     and code <> 'AC_OTH_AUTO'";
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
-    $sql = "update llx_cronjob set `dateend` = now() where `command` = 'createStatisticPage' and `dateend` is null";
+
+    //Визначаю користувачів, що пов'язані з торгівлею
+    $sql = "select rowid from llx_user where active = 1 and (respon_id in (1,31) or respon_id2  in (1,31))";
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
-    die('1');
-    $time = time();
-    require_once '/dolibarr/htdocs/core/class/raports/dayplan.class.php';
+    $sale_users = [];
+    while($obj = $db->fetch_object($res)){
+        $sale_users[]=$obj->rowid;
+    }
+    //Ставлю мітку на завдання, що пов'язані з торгівлею
+    $sql = "update $tmp_table
+        left join `llx_actioncomm_resources` on `fk_actioncomm` = `$tmp_table`.`id`
+        set llx_tmp_action.sale = true
+        where case when llx_actioncomm_resources.fk_element is null then llx_tmp_action.fk_user_action else llx_actioncomm_resources.fk_element end in 
+        (".implode(',',$sale_users).")";
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+
+//    $columns[]='sale';
+//    $sql = "select * from $tmp_table";
+//    $res = $db->query($sql);
+//    if(!$res)
+//        dol_print_error($db);
+//    echo '<table>';
+//    while($item = $db->fetch_array($res)){
+//        $out = '<tr>';
+//        foreach ($columns as $column){
+//            $out.='<td>'.$item[$column].'</td>';
+//        }
+//        $out .= '</tr>';
+//        echo $out;
+//    }
+//    echo '</table>';
+//    die('ha');
+    //Формування ітогової інформації по діях
+    $sql = "show tables like 'tmp_action'";
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    if($res->num_rows) {
+        $sql = "drop table tmp_action";
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+    }
+
+    $tmp_time = time();
+    $sql = "CREATE TEMPORARY TABLE tmp_action
+        select case when llx_actioncomm_resources.fk_element is null then $tmp_table.fk_user_action else llx_actioncomm_resources.fk_element end id_usr, 
+        datediff($tmp_table.datep, now()) iDayIndex, count($tmp_table.id) iCount, GROUP_CONCAT(`$tmp_table`.`id` SEPARATOR ',') rowlist, $tmp_table.`code`, $tmp_table.`fk_soc`, $tmp_table.percent from `$tmp_table`
+        left join `llx_actioncomm_resources` on `fk_actioncomm` = `$tmp_table`.`id`
+        where 1 
+        and $tmp_table.active = 1
+        and code <> 'AC_OTH_AUTO'
+        group by case when llx_actioncomm_resources.fk_element is null then $tmp_table.fk_user_action else llx_actioncomm_resources.fk_element end,
+        datediff($tmp_table.datep, now()), $tmp_table.percent, $tmp_table.`code`";
+
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+
+//    $sql = "select * from tmp_action limit 1";
+//    $res = $db->query($sql);
+//    if(!$res)
+//        dol_print_error($db);
+//    $obj = $db->fetch_object($res);
+//    var_dump($obj);
+//    die();
+    require_once DOL_DOCUMENT_ROOT.'/core/class/raports/dayplan.class.php';
     $DayPlan = new DayPlan($db);
     $DayPlan->RefreshRaport();
-    var_dump(time()-$time);
-    die(1);
+    $sql = "update llx_cronjob set `dateend` = now() where rowid = $dayplan_id";
+    $res = $db->query($sql);
+    if(!$res)
+        dol_print_error($db);
+    die('the end');
 }
 function TotalTask($actions_tmp){
     global $actioncode;

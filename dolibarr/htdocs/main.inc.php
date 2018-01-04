@@ -156,6 +156,29 @@ function test_sql_and_script_inject($val, $type)
  * @return		boolean					true if there is an injection
  */
 
+function AutoCreateAction($today = false){
+    global $user,$db;
+    $autoaction = new ActionComm($db);
+    $autoaction->fetch($_REQUEST["actionid"]);
+    $date = new DateTime(date('Y-m-d 8:0:0', $autoaction->datep));
+    $dirID = array(13, 18, 19, 27, 31, 36, 37, 41);//Директори
+    $sql = "select post_id from llx_societe_contact where rowid = " . $autoaction->contactid;
+    $res = $db->query($sql);
+    $obj = $db->fetch_object($res);
+    if (in_array($obj->post_id, $dirID))
+        $date->add(new DateInterval('P10D'));
+    else
+        $date->add(new DateInterval('P7D'));
+    $exec_minuted = ($autoaction->datef - $autoaction->datep) / 60;
+    $freetime = $autoaction->GetFreeTime($date->format("Y-m-d"), $user->id, $exec_minuted, 0);
+    $date = new DateTime($freetime);
+    $autoaction->datep = mktime($date->format('H'), $date->format('i'), $date->format('s'), $date->format('m'), $date->format('d'), $date->format('Y'));
+    $autoaction->datef = $autoaction->datep + $exec_minuted * 60;
+    $autoaction->percentage = -1;
+    $autoaction->add($user);
+    return $autoaction->id;
+}
+
 function analyse_sql_and_script(&$var, $type)
 {
     if (is_array($var))

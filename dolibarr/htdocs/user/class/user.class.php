@@ -1246,7 +1246,7 @@ class User extends CommonObject
 		$out .= '</select>';
 		return $out;
 	}
-	function getContactPostsList($htmlname='postlist', $size=10,$addParam){
+	function getContactPostsList($htmlname='postlist', $size=10,$addParam,$post_id=0){
 		
 //		echo '<pre>';
 //		var_dump($htmlname, $size,$addParam);
@@ -1274,7 +1274,7 @@ class User extends CommonObject
 		if($this->db->num_rows($res)>0) {
 			for ($i = 0; $i < $this->db->num_rows($res); $i++) {
 				$obj = $this->db->fetch_object($res);
-				$out .= '<option  value="'.$obj->rowid.'" >'.trim($obj->postname).'</option>';
+				$out .= '<option  value="'.$obj->rowid.'" '.($obj->rowid == $post_id?'selected = "selected"':'').'>'.trim($obj->postname).'</option>';
 			}
 		}
 		$out .= '</select>';

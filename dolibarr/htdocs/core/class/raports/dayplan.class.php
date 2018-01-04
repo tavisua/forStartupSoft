@@ -10,17 +10,20 @@ class DayPlan
 {
     var $db;
     var $ClassList = array(array('sale'=>'regions', 'purchase'=>'CategoryCounterParty'), 'userlist', 'subdivision', 'company');
-    var $statistictable = 'statistic_action1';
+    var $statistictable = 'llx_raport_dayplan';
+    var $tmp_table = 'tmp_action';
     var $today;
     var $Count = 0;
     var $LastID = 0;
     var $bExit = false;
     var $ExecutedPrecent = [100,-100,99];
-    var $ActionsCode = array('AC_GLOBAL','AC_CURRENT','AC_PROJECT','AC_EDUCATION','AC_INITIATIV','AC_RDV');
+    var $ActionsCode = array('AC_GLOBAL','AC_CURRENT','AC_PROJECT','AC_EDUCATION','AC_INITIATIV','AC_RDV','AC_DEP');
+    var $RenamedCode = array('AC_RDV'=>'AC_CURRENT','AC_DEP'=>'AC_CURRENT');
     var $fields = ['_month','_week','_6','_5','_4','_3','_2','_1','_0'];
     var $prefix_fields = ['per', 'fact', 'future'];
     var $emptyItem;//Пуста строка
     var $users = [];//для яких користувачів будуємо план дні. Якщо пустий масив - для всіх
+
     var $flag = false;
     function __construct($db)
     {
@@ -29,25 +32,325 @@ class DayPlan
         for ($i = 0; $i<count($this->prefix_fields); $i++) {
             $this->emptyItem .= '<td></td>';
         }
-        $sql = "select rowid from llx_user where subdiv_id = 21 and active = 1";
-        $res = $this->db->query($sql);
-        while($obj = $this->db->fetch_object($res)){
-            $this->users[]=$obj->rowid;
-        }
+//        $sql = "select rowid from llx_user where 1 and active = 1";
+//        $res = $this->db->query($sql);
+//        while($obj = $this->db->fetch_object($res)){
+//            $this->users[]=$obj->rowid;
+//        }
     }
+    function LoadDataAtStatTable($resTable, $id, $class_block=null){
+        $blocks_id = [];
 
+        while($obj = $this->db->fetch_object($resTable)){
+            //Заношу ІД блоку
+            $subdiv_id = !empty($obj->subdiv_id)?$obj->subdiv_id:'';
+            $id_tmp = (!empty($obj->id)?($obj->id):$id);
+            if(!in_array($id_tmp,$blocks_id)){
+                $sql = "insert into $this->statistictable (`id`".(empty($class_block)?'':", `class_block`").") values ('$id_tmp'".(empty($class_block)?'':", '$class_block$subdiv_id'").")";
+                $res = $this->db->query($sql);
+                if(!$res)
+                    dol_print_error($this->db);
+                $blocks_id[]=$id_tmp;
+            }
+            $sql = "update $this->statistictable set ";
+            if($obj->iDayIndex > 0){//Майбутні дії
+                $sql.=" future_month = case when future_month is null then 0 else future_month end + ".$obj->iCount;
+                if($obj->iDayIndex<=7) {
+                    $sql .= ", future_week = case when future_week is null then 0 else future_week end + " . $obj->iCount;
+                    if($obj->iDayIndex<7){
+                        $sql.=", future_".$obj->iDayIndex."=case when future_$obj->iDayIndex is null then 0 else future_$obj->iDayIndex end +". $obj->iCount;
+                    }
+                }
+            }elseif ($obj->iDayIndex == 0){//Сьогодні
+                if(in_array($obj->percent, [100,-100])){
+                    $sql.=" fact_".$obj->iDayIndex."=case when fact_$obj->iDayIndex is null then 0 else fact_$obj->iDayIndex end +". $obj->iCount;
+                    $sql.=", fact_month = case when fact_month is null then 0 else fact_month end + ".$obj->iCount;
+                    $sql .= ", fact_week = case when fact_week is null then 0 else fact_week end + " . $obj->iCount;
+                }else{
+                    $sql.=" future_".$obj->iDayIndex."=case when future_$obj->iDayIndex is null then 0 else future_$obj->iDayIndex end +". $obj->iCount;
+                }
+                $sql.=", total_".$obj->iDayIndex."=case when total_$obj->iDayIndex is null then 0 else total_$obj->iDayIndex end +". $obj->iCount;
+            }else{//Минулі дії
+                if(in_array($obj->percent, [100,-100])) {//Фіксація фактично виконаних завдань
+                    $sql.=" fact_month = case when fact_month is null then 0 else fact_month end + ".$obj->iCount;
+                    if($obj->iDayIndex>=-7) {
+                        $sql .= ", fact_week = case when fact_week is null then 0 else fact_week end + " . $obj->iCount;
+                        if($obj->iDayIndex>-7){
+                            $sql.=", fact_".abs($obj->iDayIndex)."=case when fact_".abs($obj->iDayIndex)." is null then 0 else fact_".abs($obj->iDayIndex)." end +". $obj->iCount;
+                        }
+                    }
+                    $sql.=", ";
+                }else{//Фіксація прострочених завдань
+                    $sql.=" outstanding = case when outstanding is null then 0 else outstanding end + ".$obj->iCount;
+                        if(!empty($class_block) && $this->strpos($class_block, array('userlist', 'regions'))){
+                            $sql .= ", rowlist = concat(case when rowlist is null then '' else concat(rowlist,',') end, '" . $obj->rowlist."')";
+//                            if(substr_count($obj->rowlist, ',')>0)
+//                                die($sql);
+                        }
+                    $sql.=", ";
+                }
+                $sql.=" total_month = case when total_month is null then 0 else total_month end +". $obj->iCount;
+                if($obj->iDayIndex>=-7) {
+                    $sql .= ", total_week = case when total_week is null then 0 else total_week end + " . $obj->iCount;
+                    if($obj->iDayIndex>-7){
+                        $sql.=", total_".abs($obj->iDayIndex)."=case when total_".abs($obj->iDayIndex)." is null then 0 else total_".abs($obj->iDayIndex)." end +". $obj->iCount;
+                    }
+                }
+            }
+            $sql.=" where id='$id_tmp' and class_block ".(is_null($class_block)?"is null":" = '$class_block$subdiv_id'");
+//            echo $sql.'</br>';
+            $up_res = $this->db->query($sql);
+            if(!$up_res)
+                dol_print_error($this->db);
+        }        
+    }
+    function strpos($haystack, $needle){
+        foreach ($needle as $value){
+            if(strpos($haystack, $value))
+                return true;
+        }
+        return false;
+    }
     function RefreshRaport(){//Перебудова всього звіту
         set_time_limit(0);
-//        $this->ClearRaport();
+        $this->ClearRaport();
+//        //Всього по компанії
+        $sql = "select iDayIndex, sum(iCount) iCount, percent from $this->tmp_table group by iDayIndex, case when percent in (100, -100) then 100 else percent end";
+        $res = $this->db->query($sql);
+        if(!$res)
+            dol_print_error($this->db);
+        $this->LoadDataAtStatTable($res, 'AllTask');
+        //Всього по компаніі по підрозділах
+        $sql = "select llx_user.subdiv_id id, $this->tmp_table.iDayIndex, $this->tmp_table.percent, sum(iCount)iCount from tmp_action
+            inner join llx_user on llx_user.rowid = $this->tmp_table.id_usr
+            group by llx_user.subdiv_id, $this->tmp_table.iDayIndex, case when $this->tmp_table.percent in (100, -100) then 100 else $this->tmp_table.percent end";
+        $res = $this->db->query($sql);
+        if(!$res)
+            dol_print_error($this->db);
+        $this->LoadDataAtStatTable($res, 'AllTask', 'AllTask impare subdivision');
+        //Всього по компанії глобальних
+        $sql = "select iDayIndex, sum(iCount) iCount, percent from $this->tmp_table where code = 'AC_GLOBAL' group by iDayIndex, case when percent in (100, -100) then 100 else percent end";
+        $res = $this->db->query($sql);
+        if(!$res)
+            dol_print_error($this->db);
+        $this->LoadDataAtStatTable($res, 'AC_GLOBAL');
+        //Всього по підрозілам по глобальних
+        $sql = "select llx_user.subdiv_id id, $this->tmp_table.iDayIndex, $this->tmp_table.percent, sum(iCount)iCount from tmp_action
+            inner join llx_user on llx_user.rowid = $this->tmp_table.id_usr
+            where code = 'AC_GLOBAL'
+            group by llx_user.subdiv_id, $this->tmp_table.iDayIndex, case when $this->tmp_table.percent in (100, -100) then 100 else $this->tmp_table.percent end";
+        $res = $this->db->query($sql);
+        if(!$res)
+            dol_print_error($this->db);
+        $this->LoadDataAtStatTable($res, 'AC_GLOBAL', 'AC_GLOBAL impare subdivision');
+        //Всього по користувачам по глобальних в розрізі користувачів
+        $sql = "select llx_user.rowid id, subdiv_id, $this->tmp_table.iDayIndex, $this->tmp_table.percent, sum(iCount)iCount, GROUP_CONCAT(rowlist SEPARATOR ',')rowlist  from tmp_action
+            inner join llx_user on llx_user.rowid = $this->tmp_table.id_usr
+            where code = 'AC_GLOBAL'
+            group by llx_user.rowid, $this->tmp_table.iDayIndex, case when $this->tmp_table.percent in (100, -100) then 100 else $this->tmp_table.percent end";
+        $res = $this->db->query($sql);
+        if(!$res)
+            dol_print_error($this->db);
+        $this->LoadDataAtStatTable($res, 'AC_GLOBAL', 'AC_GLOBAL userlist AC_GLOBAL_');
+        //Всього по компанії поточних
+        $sql = "select iDayIndex, sum(iCount) iCount, percent from $this->tmp_table where code = 'AC_CURRENT' group by iDayIndex, case when percent in (100, -100) then 100 else percent end";
+        $res = $this->db->query($sql);
+        if(!$res)
+            dol_print_error($this->db);
+        $this->LoadDataAtStatTable($res, 'AC_CURRENT');
+        //Всього по компаніі по поточних в розрізі підрозділів
+        $sql = "select llx_user.subdiv_id id, $this->tmp_table.iDayIndex, $this->tmp_table.percent, sum(iCount)iCount from tmp_action
+            inner join llx_user on llx_user.rowid = $this->tmp_table.id_usr
+            where code = 'AC_CURRENT'
+            group by llx_user.subdiv_id, $this->tmp_table.iDayIndex, case when $this->tmp_table.percent in (100, -100) then 100 else $this->tmp_table.percent end";
+        $res = $this->db->query($sql);
+        if(!$res)
+            dol_print_error($this->db);
+        $this->LoadDataAtStatTable($res, 'AC_CURRENT', 'AC_CURRENT impare subdivision');
+        //Всього по компаніі по поточних в розрізі користувачів
+        $sql = "select llx_user.rowid id, subdiv_id, $this->tmp_table.iDayIndex, $this->tmp_table.percent, sum(iCount)iCount, GROUP_CONCAT(rowlist SEPARATOR ',')rowlist from tmp_action
+            inner join llx_user on llx_user.rowid = $this->tmp_table.id_usr
+            where code = 'AC_CURRENT'
+            group by llx_user.rowid, $this->tmp_table.iDayIndex, case when $this->tmp_table.percent in (100, -100) then 100 else $this->tmp_table.percent end";
+        $res = $this->db->query($sql);
+        if(!$res)
+            dol_print_error($this->db);
+        $this->LoadDataAtStatTable($res, 'AC_CURRENT', 'AC_CURRENT userlist AC_CURRENT_');
+
+       // Всього по компанії по напрямках
+        $sql = "select iDayIndex, sum(iCount) iCount, percent from $this->tmp_table where code in ('AC_RDV','AC_DEP','AC_TEL') group by iDayIndex, case when percent in (100, -100) then 100 else percent end";
+        $res = $this->db->query($sql);
+        if(!$res)
+            dol_print_error($this->db);
+        $this->LoadDataAtStatTable($res, 'AC_CUST');
+
+        //Всього по напрямках в розрізі підрозділів
+        $sql = "select llx_user.subdiv_id id, $this->tmp_table.iDayIndex, $this->tmp_table.percent, sum(iCount)iCount from tmp_action
+            inner join llx_user on llx_user.rowid = $this->tmp_table.id_usr
+            where code in ('AC_RDV','AC_DEP','AC_TEL')
+            group by llx_user.subdiv_id, $this->tmp_table.iDayIndex, case when $this->tmp_table.percent in (100, -100) then 100 else $this->tmp_table.percent end";
+        $res = $this->db->query($sql);
+        if(!$res)
+            dol_print_error($this->db);
+        $this->LoadDataAtStatTable($res, 'AC_CUST', 'AC_CUST impare subdivision');
+
+        //Всього по напрямках в розрізі користувачів
+        $sql = "select llx_user.rowid id, subdiv_id, $this->tmp_table.iDayIndex, $this->tmp_table.percent, sum(iCount)iCount, GROUP_CONCAT(rowlist SEPARATOR ',')rowlist from tmp_action
+            inner join llx_user on llx_user.rowid = $this->tmp_table.id_usr
+            where code in ('AC_RDV','AC_DEP','AC_TEL')
+            group by llx_user.rowid, $this->tmp_table.iDayIndex, case when $this->tmp_table.percent in (100, -100) then 100 else $this->tmp_table.percent end";
+
+        $res = $this->db->query($sql);
+        if(!$res)
+            dol_print_error($this->db);
+        $this->LoadDataAtStatTable($res, 'AC_CUST', 'AC_CUST userlist subdiv_');
+
+        //Всього по напрямках в розрізі районів
+        $sql = "select case when regions.rowid is null then 0 else regions.rowid end id, llx_user.rowid subdiv_id, $this->tmp_table.iDayIndex, $this->tmp_table.percent, sum(iCount)iCount, GROUP_CONCAT(rowlist SEPARATOR ',')rowlist from tmp_action
+            inner join llx_user on llx_user.rowid = $this->tmp_table.id_usr
+            inner join llx_societe on llx_societe.rowid = $this->tmp_table.fk_soc
+            left join regions on regions.rowid = llx_societe.region_id
+            where code in ('AC_RDV','AC_DEP','AC_TEL')
+            group by llx_user.rowid, regions.rowid, $this->tmp_table.iDayIndex, case when $this->tmp_table.percent in (100, -100) then 100 else $this->tmp_table.percent end";
+
+        $res = $this->db->query($sql);
+        if(!$res)
+            dol_print_error($this->db);
+        $this->LoadDataAtStatTable($res, 'region', 'region user_');
+
+        //Підрахунок відсотків
+        foreach ($this->fields as $field){
+            $sql = "update llx_raport_dayplan set `per$field` = round(100*`fact$field`/`total$field`)";
+//            die($sql);
+            $res = $this->db->query($sql);
+            if(!$res)
+                dol_print_error($this->db);
+        }
+        die('Всього по напрямках');
+//        foreach ($responsibility as $key=>$user_respons){
+//            $action_index = 0;
+//            echo $key.'</br>';
+//            echo '<pre>';
+//            for($action_index; $action_index<=4; $action_index++){
+//                $sql = "select datep, iExec, iCount from tmp_group_statistic where fk_user_action = ".$key." and code='".$this->ActionsCode[$action_index]."'";
+//                $action_res = $this->db->query($sql);
+//                if(!$action_res)
+//                    dol_print_error($this->db);
+//                $sql = 'select rowid from '.$this->statistictable.' where id_usr = '.$key.' and action_code = "'.$this->ActionsCode[$action_index].'"';
+//                $res = $this->db->query($sql);
+//                if(!$res->num_rows){
+//                    $sql = "insert into ".$this->statistictable.'(action_code, id_usr)values("'.$this->ActionsCode[$action_index].'", '.$key.')';
+//                    $this->db->query($sql);
+//                }
+//                while($obj = $this->db->fetch_object($action_res)){
+//                    $datep = new DateTime($obj->datep);
+//                    $sql = "update $this->statistictable set id_usr = ".$key;
+//                    if($datep<$this->today){
+//                        $sql.=", total_month = case when total_month is null then 0 else total_month end +".$obj->iCount;
+//                        $sql.=", fact_month = case when fact_month is null then 0 else fact_month end +".$obj->iExec;
+//                        $sql.=", per_month = ".round($obj->iExec*100/$obj->iCount);
 //
-//        $sql = "select id from llx_actioncomm where datep between adddate(date(now()), interval -1 month) and adddate(date(now()), interval 1 month) and active = 1 and code <> 'AC_OTH_AUTO'";
-//        $res = $this->db->query($sql);
-//        if(!$res)
-//            dol_print_error($this->db);
+//                        if($this->today->diff($datep)->d<=7){
+//                            $sql.=", total_week = case when total_week is null then 0 else total_week end +".$obj->iCount;
+//                            $sql.=", fact_week = case when fact_week is null then 0 else fact_week end +".$obj->iExec;
+//                            $sql.=", per_week = ".round($obj->iExec*100/$obj->iCount);
+//                        }
+//                        if($obj->iExec != $obj->iCount){//Якщо кількість запланованих завдань не відповідає виконаним
+//                            $sql_tmp = "select id from tmp_statistic where id_usr = ".$key." and datep = '".$datep->format("Y-m-d")."' and code = '".$this->ActionsCode[$action_index]."' and iExec = 0";
+//                            $res_tmp = $this->db->query($sql_tmp);
+//                            if(!$res_tmp)
+//                                dol_print_error($this->db);
+//                            $outstandings_id = [];
+//                            while($obj_tmp = $this->db->fetch_object($res_tmp)){
+//                                $outstandings_id[]=$obj_tmp->id;
+//                            }
+//                            if(count($outstandings_id)){
+//                                $sql.=", outstanginsID=concat(case when outstanginsID is null then '' else concat(outstanginsID, ',') end, '".implode(",",$outstandings_id)."')";
+//                                $sql.=", outstanding = case when outstanding is null then 0 else outstanding end+".($obj->iCount-$obj->iExec);
+//                            }
+//                        }
+//                    }elseif($datep>$this->today){
+//                        $sql.=", future_month = case when future_month is null then 0 else future_month end +".$obj->iCount;
+//                        if($this->today->diff($datep)->d<=7) {
+//                            $sql.=", future_week = case when future_week is null then 0 else future_week end +".$obj->iCount;
 //
-//        while($obj = $this->db->fetch_object($res)){
-//            $this->SaveAction($obj->id);
+//                        }
+//                    }
+//                    if($this->today->diff($datep)->d < 7){
+//                        if($datep<$this->today || !$this->today->diff($datep)->d){
+//                            $sql.=", total_".$this->today->diff($datep)->d." = case when total_".$this->today->diff($datep)->d." is null then 0 else total_".$this->today->diff($datep)->d." end +".$obj->iCount;
+//                            $sql.=", fact_".$this->today->diff($datep)->d." = case when fact_".$this->today->diff($datep)->d." is null then 0 else fact_".$this->today->diff($datep)->d." end +".$obj->iExec;
+//                            $sql.=", per_".$this->today->diff($datep)->d." = ".round($obj->iExec*100/$obj->iCount);
+//                            if(!$this->today->diff($datep)->d){
+//                                $sql.=", future_".$this->today->diff($datep)->d." = case when future_".$this->today->diff($datep)->d." is null then 0 else future_".$this->today->diff($datep)->d." end +".($obj->iCount-$obj->iExec);
+//                            }
+//                        }elseif ($this->today->diff($datep)->d > 0){
+//                            $sql.=", future_".$this->today->diff($datep)->d." = case when future_".$this->today->diff($datep)->d." is null then 0 else future_".$this->today->diff($datep)->d." end +".$obj->iCount;
+//                        }
+//                    }
+//                    $sql.=" where id_usr = $key and action_code = '".$this->ActionsCode[$action_index]."'";
+//                    $this->db->query($sql);
+//                    echo $sql.'</br>';
+//                }
+//
+//                echo $this->ActionsCode[$action_index].'</br>';
+//            }
+//            //Завантажую дії за напрямками
+//
+//            echo '</pre>';
+//
+//            foreach ($user_respons as $respon) {
+//                switch ($respon){
+//                    case 'sale':{//Продажі
+//
+//                    }break;
+//                    case 'dir_depatment':{//Директор деп.
+//
+//                    }break;
+//                    case 'service':{//Сервіс
+//
+//                    }break;
+//                    case 'purchase':{//Постачання
+//
+//                    }break;
+//                    case 'counter':{//Бухгалтерія
+//
+//                    }break;
+//                    case 'marketing':{//Маркетинг
+//
+//                    }break;
+//                    case 'jurist':{//Юрист
+//
+//                    }break;
+//                    case 'paperwork':{//Діловодство
+//
+//                    }break;
+//                    case 'cadry':{//Відділ кадрів
+//
+//                    }break;
+//                    case 'corp_manager':{//Корп.управління
+//
+//                    }break;
+//                    case 'gen_dir':{//Ген.директор
+//
+//                    }break;
+//                    case 'wholesale_purchase':{//Оптові закупівлі
+//
+//                    }break;
+//                }
+//            }
+//
 //        }
+
+die(1);
+
+        $sql = "select fk_user_action id_usr from tmp_group_statistic group by fk_user_action";
+        $res = $this->db->query($sql);
+        if(!$res)
+            dol_print_error($this->db);
+        while($obj = $this->db->fetch_object($res)){
+            $this->SaveAction($obj->id_usr);
+        }
         $this->CreateHTMLItem();//побудова html відображення статистики
         $this->setLastID();
     }
@@ -61,12 +364,16 @@ class DayPlan
             $obj = $this->db->fetch_object($res);
             $lastID = $obj->id;
         }
-        $sql = "select id from llx_actioncomm where id > $lastID and datep between adddate(date(now()), interval -1 month) and adddate(date(now()), interval 1 month) and active = 1 and code <> 'AC_OTH_AUTO'";
+        $sql = "select date(datep) datep, code, case when llx_actioncomm_resources.fk_element is null then fk_user_action else llx_actioncomm_resources.fk_element end fk_user_action, 
+            sum(case when `llx_actioncomm`.`percent` = 100 then 1 else 0 end) iExec, count(*) iCount from llx_actioncomm 
+            left join `llx_actioncomm_resources` on `llx_actioncomm_resources`.`fk_actioncomm` = `llx_actioncomm`.`id`
+            where 1 and `llx_actioncomm`.`id`> $lastID and datep between adddate(date(now()), interval -1 month) and adddate(date(now()), interval 1 month) and active = 1 and code <> 'AC_OTH_AUTO'
+            group by date(datep), code, case when llx_actioncomm_resources.fk_element is null then fk_user_action else llx_actioncomm_resources.fk_element end";
         $res = $this->db->query($sql);
         if(!$res)
             dol_print_error($this->db);
         while($obj = $this->db->fetch_object($res)){
-            $this->SaveAction($obj->id);
+            $this->SaveAction($obj);
         }
         $this->CreateHTMLItem();//побудова html відображення статистики
         $this->setLastID();
@@ -86,7 +393,6 @@ class DayPlan
         }
     }
     function BuildRaport($responsibility, $id_usr){
-
         require_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
         $useraction = new User($this->db);
         $useraction->fetch($id_usr);
@@ -131,6 +437,7 @@ class DayPlan
             }break;
             case 'sale':{
                 $out.=$this->GetItem('userlist','TOTAL',$useraction,'Всього задач')[0]['html'];
+//                die('Сторінка на ремонті');
                 $out.=$this->GetItem('userlist','AC_GLOBAL',$useraction,'Глобальні задачі(ТОПЗ)')[0]['html'];
                 $out.=$this->GetItem('userlist','AC_CURRENT', $useraction,'Поточні задачі')[0]['html'];
                 $out.=$this->GetItem('regions','TOTAL', $useraction,'Всього по напрямках')[0]['html'];
@@ -189,36 +496,51 @@ class DayPlan
                 }
             }break;
         }
+//        global $user;
+//        if($user->id == 125)
+//            die($sql);
         $res = $this->db->query($sql);
         $out = [];
-        while ($item = $this->db->fetch_object($res)) {
-            $html='';
-            if($addTR)
-                $html='<tr ' . ($bestvalue ? 'class ="bestvalue"' : '') . '>';
-            if($action_code != 'ALL')
-                $html .= '<td class="middle_size" colspan="3"><b>' . $title . '</b></td>' . $item->html;
-            else
-                $html .=  $item->html;
-            if($addTR)
+
+        if($this->db->num_rows($res) == 0){
+            if ($addTR)
+                $html = '<tr ' . ($bestvalue ? 'class ="bestvalue"' : '') . '>';
+            for ($i = 0; $i < 29; $i++) {
+                $html .= '<td '.($i==0?'colspan=3':'').'>'.($i==0?'<b>' . $title . '</b>':'&nbsp;').'</td>';
+            }
+            if ($addTR)
                 $html .= '</tr>';
-            $out[] = array('id'=>$item->id, 'html'=>$html);
-        }
-        if($res->num_rows == 0){//Якщо запит не вернув результат
-            $html='';
-            if($addTR)
-                $html='<tr ' . ($bestvalue ? 'class ="bestvalue"' : '') . '>';
-            $html.=$this->emptyItem;
-            if($addTR)
-                $html .= '</tr>';
-            $out[] = array('id'=>$item->id, 'html'=>$html);
-        }
+            $out[] = array('id' => 0, 'html' => $html);
+        }else {
+            while ($item = $this->db->fetch_object($res)) {
+                $html = '';
+                if ($addTR)
+                    $html = '<tr ' . ($bestvalue ? 'class ="bestvalue"' : '') . '>';
+                if ($action_code != 'ALL')
+                    $html .= '<td class="middle_size" colspan="3"><b>' . $title . '</b></td>' . $item->html;
+                else
+                    $html .= $item->html;
+                if ($addTR)
+                    $html .= '</tr>';
+
+                $out[] = array('id' => $item->id, 'html' => $html);
+            }
+            if ($res->num_rows == 0) {//Якщо запит не вернув результат
+                $html = '';
+                if ($addTR)
+                    $html = '<tr ' . ($bestvalue ? 'class ="bestvalue"' : '') . '>';
+                $html .= $this->emptyItem;
+                if ($addTR)
+                    $html .= '</tr>';
+                $out[] = array('id' => $item->id, 'html' => $html);
+            }
 //        if($action_code == 'AC_EDUCATION'){
 //            echo '<pre>';
 //            var_dump($out);
 //            echo '</pre>';
 //            die();
 //        }
-
+        }
         return $out;
     }
     function CalcStatisticBlock($class_block, $useraction = null, $action_code=null, $id=null){//Розрахунок блоку статистики
@@ -518,30 +840,36 @@ class DayPlan
                 dol_print_error($this->db);
         }
     }
-    function SaveAction($action_id){//Внесення змін до існуючого звіту
-        require_once  DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
-        $action = new ActionComm($this->db);
-        $action->fetch($action_id);
+    function SaveAction($userID){//Внесення змін до існуючого звіту
+//        require_once  DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
+//        $action = new ActionComm($this->db);
+//        $action->fetch($action_id);
+//
         require_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
         $useraction = new User($this->db);
-        $useraction->fetch(array_keys($action->userassigned)[count(array_keys($action->userassigned))-1]);
-
+        $useraction->fetch($userID);
+        $sql = "select * from tmp_group_statistic where fk_user_action = ".$userID;
+        $res = $this->db->query($sql);
+        var_dump($res);
+        $sql = "select * from tmp_statistic where fk_user_action = ".$userID;
+        $res = $this->db->query($sql);
+        var_dump($res);
+        die();
         $this->Count++;
-        echo $this->Count.' '.$action->id;
+        echo $this->Count;
         $start = time();
 
-        $actiondate = new DateTime(date('d.m.Y', $action->datep));
-//        if($action->id == 733445) {
-//            echo '<pre>';
-//            var_dump($this->today, $actiondate, date_diff($this->today, $actiondate));
-//            echo '</pre>';
-//            die();
-//        }
-        if ((empty($this->users) || in_array($useraction->id, $this->users)) && date_diff($this->today, $actiondate)->days <= 31 && $action->active) {
-                echo ' '.$useraction->id;
+        $actiondate = new DateTime(date('d.m.Y', $actions->datep));
+//        echo '<pre>';
+//        var_dump((count($this->users)==0 || in_array($useraction->id, $this->users)) && date_diff($this->today, $actiondate)->days <= 31 && $action->active);
+//        echo '</pre>';
+//        die();
+        if ((count($this->users)==0 || in_array($userID, $this->users))) {
+                echo ' '.$userID;
+
             foreach ($this->ClassList as $key => $value) {
 
-                if (is_array($value) && !in_array($action->type_code, $this->ActionsCode)) {//Якщо дія пов'язана з напрямками і не є глобальною чи поточною
+                if (is_array($value) && !in_array($actions->code, $this->ActionsCode)) {//Якщо дія пов'язана з напрямками і не є глобальною чи поточною
 
                     if(in_array($useraction->respon_alias, array_keys($value)))
                         $key = $value[$useraction->respon_alias];
@@ -549,10 +877,6 @@ class DayPlan
                         $key = $value[$useraction->respon_alias2];
 
                     if (!empty($action->socid)) {
-
-                        require_once DOL_DOCUMENT_ROOT . '/societe/class/societe.class.php';
-                        $societe = new Societe($this->db);
-                        $societe->fetch($action->socid);
                         $this->UserActions($societe->region_id, $key, $action, $useraction);
                     }else
                         $this->UserActions(0, $key, $action, $useraction);
@@ -589,7 +913,8 @@ class DayPlan
         echo ' '.$long.'</br>';
     }
     function UserActions($id, $class_block, $action, $useraction){
-
+        if(!empty($this->RenamedCode[$action->type_code]))
+            $action->type_code = $this->RenamedCode[$action->type_code];
         $actiondate = new DateTime(date('d.m.Y', $action->datep));
         $RequiredBlock = ['id','class_block','id_usr','action_code'];
         if(in_array($class_block, $this->ClassList[0])) {
@@ -846,101 +1171,34 @@ class DayPlan
         else
             return 1;
     }
-    function CreateHTML($rowid, $title = ''){
-//        return '';
-
-
-        $html = '';
-        $sql = "select * from $this->statistictable where rowid = $rowid";
+    function CreateStaticPage(){
+        $sql = "select llx_user.rowid, resp1.alias alias1, resp2.alias alias2 from llx_user
+            left join `responsibility` resp1 on resp1.rowid = llx_user.respon_id
+            left join `responsibility` resp2 on resp2.rowid = llx_user.respon_id2
+            where llx_user.active = 1
+            and llx_user.rowid>2
+            and resp1.active = 1
+            and resp2.active = 1";
         $res = $this->db->query($sql);
-        if(!$res) {
-            dol_print_error($this->db);
-        }
-        $array_item = $this->db->fetch_array($res);
-
-//        $class_block = $array_item['class_block'];
-//
-//
-////        var_dump($class_block);
-//        switch ($class_block){
-//            case 'regions':{
-//                if($array_item['action_code'] != 'TOTAL') {
-//                    $html .= ' id="region' . $array_item['id'] . '" class="regions' . $array_item['id_usr'] . ' region subtype middle_size">';
-//                    //регіон
-//                    $sql = "select regions.rowid, regions.name, states.name state_name from regions
-//                    inner join states on states.rowid = regions.state_id
-//                    where regions.rowid = " . $array_item['id'];
-//
-//                    $reg_res = $this->db->query($sql);
-//
-//                    $reg_obj = $this->db->fetch_object($reg_res);
-//                    $state_name = $reg_obj->state_name;
-//                    $symbols = array('а', 'о', 'у', 'и', 'і', 'ї', 'є', 'е', 'ю', 'я');
-//
-//                    for ($i = 3; $i <= mb_strlen($reg_obj->state_name, 'UTF-8'); $i++) {
-//                        if (in_array(mb_substr($reg_obj->state_name, $i, 1, 'UTF-8'), $symbols)) {
-//                            $state_name = mb_substr($reg_obj->state_name, 0, $i, 'UTF-8') . '.';
-//                            break;
-//                        }
-//                    }
-//                    $html .= '<td colspan="2">'
-//                    . empty((int)$array_item['id']) ? 'Район не вказано' : '<a href="/dolibarr/htdocs/responsibility/sale/area.php?idmenu=10425&amp;mainmenu=area&amp;leftmenu=&amp;id_usr=' . $array_item['id_usr'] . '&amp;state_filter=' . $array_item['id'] . '" target="_blank">
-//                        ' . $reg_obj->name . (!empty($state_name) ? ' (' . $state_name . ')' : '') . (empty($reg_res->num_rows) ? '' : '</a>') . '</td>';
-//                }else{
-//                    $html .= ' id="AC_CUST' . $array_item['id'] . '" class="userlist AC_CUST_' . $users[$array_item['id_usr']]['subdiv_id'] . ' region subtype middle_size">';
-//                    if(empty($title)) {
-//                        //прізвище та ім'я
-//                        $html .= '<td colspan="2"><a href="/dolibarr/htdocs/responsibility/sale/area.php?idmenu=10425&amp;mainmenu=area&amp;leftmenu=&amp;id_usr=' . $array_item['id_usr'] . '" target="_blank">' .
-//                            trim($users[$array_item['id_usr']]['lastname']) . ' ' . substr($users[$array_item['id_usr']]['firstname'], 0, 1) . '.</a></td>';
-//                        //кнопка відображення районів
-//                        $html .= '<td><button id="btnUsr' . $array_item['id_usr'] . '" onclick="getRegionsList(' . $array_item['id_usr'] . ', $(this));"><img id="imgUsr63" src="http://uspex2015.com.ua/dolibarr/htdocs/theme/eldy/img/1uparrow.png"></button></td>';
-//                    }else{
-//                        $html .= "<td colspan='2'>$title</td>";
-//                    }
-//                }
-//            }break;
-//            case 'userlist':{
-//                $html.='id="'.$array_item['action_code'].' '.$array_item['id_usr'].$users[$array_item['id_usr']]['subdiv_id'].'" class="'.$array_item['action_code'].' '.$users[$array_item['id_usr']]['subdiv_id'].' userlist '.$array_item['action_code'].'_'.$users[$array_item['id_usr']]['subdiv_id'].'">';
-//                $html .= '<td colspan="2">';
-//                switch (trim($array_item['action_code'])) {
-//                    case 'AC_CURRENT': {
-//                        $html.='<a href="/dolibarr/htdocs/current_plan.php?idmenu=10423&amp;mainmenu=current_task&amp;leftmenu=&amp;id_usr=8" target="_blank">';
-//                    }break;
-//                    case 'AC_GLOBAL':{
-//                        $html.='<a href="/dolibarr/htdocs/global_plan.php?idmenu=10423&amp;mainmenu=global_task&amp;leftmenu=&amp;id_usr=8" target="_blank">';
-//                    }break;
-//                }
-//                $html.= trim($users[$array_item['id_usr']]['lastname']).' '.substr($users[$array_item['id_usr']]['firstname'], 0,1).'.</a></td>';
-//            }break;
-//            case 'subdivision':{
-//                $html.='tr id="'.$array_item['action_code'].$array_item['id'].'" class="'.$array_item['action_code'].' subdivision">';
-//                $html.='<td colspan="2">'.$subdivisions[$array_item['id']].'</td>';
-//                $html.='<button id="btnSub'.$array_item['action_code'].$array_item['id'].'" onclick="ShowActionsByUsers('.$array_item['id'].', \''.$array_item['action_code'].'\', \'\')"><img id="imgSub'.$array_item['action_code'].$array_item['id'].'" src="/dolibarr/htdocs/theme/eldy/img/1downarrow.png"></button>';
-//            }break;
-//            case 'company':{
-//                $html.='>';
-//            }break;
-//        }
-        foreach ($this->prefix_fields as $prefix) {
-            if ($prefix == 'future') {
-
-                    $html .= '<td id="outstanding' . $array_item['id'] . '" style="text-align: center; cursor: pointer;" onclick="ShowOutStandingRegion(' . $array_item['id'] . ', ' . $array_item['id_usr'] . ');">' . $array_item['outstanding'] . '</td>';
-
-                for ($i = count($this->fields)-1; $i >= 0; $i--) {
-                    $html .= '<td>' . $array_item[$prefix . $this->fields[$i]] . '</td>';
-                }
-            } else {
-                foreach ($this->fields as $field) {
-
-                    $html .= '<td>' . $array_item[$prefix . $field] . '</a></td>';
-                }
+        while($obj = $this->db->fetch_object($res)){
+            if($obj->rowid == 5){
+                $alias = $this->GetPageProfile(array($obj->alias1, $obj->alias2));
+                $html = $this->CreateHTML($obj->rowid, $alias);
             }
         }
-//        $html.='</tr>';
-
-//        $html = str_replace('"','&quot;', $html);
-//        $html = str_replace("'",'&#039;', $html);
-//        die(htmlspecialchars($html));
+    }
+    function GetPageProfile($alias){
+        if(in_array('gen_dir', $alias))
+            return 'gen_dir';
+        elseif (in_array('corp_manager', $alias))
+            return 'gen_dir';
+        elseif (in_array('dir_depatment', $alias))
+            return 'dir_depatment';
+        elseif (array_intersect(array('marketing','sale','jurist','service','purchase','logistika','cadry','counter','paperwork'), $alias))
+            return 'sale';
+    }
+    function CreateHTML($rowid, $alias){
+        $html = '<tbody id="reference_body">';
         return $html;
     }
 }

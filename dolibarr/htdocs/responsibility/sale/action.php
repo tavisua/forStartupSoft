@@ -4,6 +4,7 @@ require_once $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/core/modules/societe/mo
 require_once $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/societe/societecontact_class.php';
 global $user,$db;
 $subdivUserID = array(0);
+
 if(in_array('dir_depatment',array($user->respon_alias,$user->respon_alias2))){
     $sql = "select rowid from llx_user
         inner join (select subdiv_id from llx_user
@@ -349,7 +350,7 @@ function setCallLength(){
         $res = $db->query($sql);
         if (!$res)
             dol_print_error($db);
-        return 1;
+        return $diff;
     }else
         return 0;
 }
@@ -380,14 +381,16 @@ function setStatus(){
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
-    $sql = "update llx_actioncomm set percent = 100 where id = ".$_REQUEST['rowid'];
-    $res = $db->query($sql);
-    if(!$res)
-        dol_print_error($db);
-    $sql = "delete from llx_newactions where id = ".$_REQUEST['rowid'];
-    $res = $db->query($sql);
-    if(!$res)
-        dol_print_error($db);
+    if(!empty($_REQUEST['rowid'])) {
+        $sql = "update llx_actioncomm set percent = 100 where id = " . $_REQUEST['rowid'];
+        $res = $db->query($sql);
+        if (!$res)
+            dol_print_error($db);
+        $sql = "delete from llx_newactions where id = " . $_REQUEST['rowid'];
+        $res = $db->query($sql);
+        if (!$res)
+            dol_print_error($db);
+    }
     return 1;
 }
 
@@ -423,7 +426,7 @@ function showProposition($proposed_id,$contactid=0){
 //                <td colspan="9"><button onclick="SaveResultProporition('.$contactid.');">Зберегти результати перемовин</button></td>
 //            </tr>';
     $out .='</tbody></table>';
-    $out .='<div style="width: 100%; background-color: white"><button id="savebutton" onclick="SaveResultProporition('.$contactid.','.$LastActionID.', '.$proposed_id.');">Зберегти результати перемовин</button></div>';
+    $out .='<div style="width: 100%; background-color: white"><button id="savebutton" onclick="SaveResultProporition('.$contactid.','.$LastActionID.', '.$proposed_id.', true);">Зберегти результати перемовин</button></div>';
     $out.='<style>
             div#BasicInformation, div#PriceOffers, div#OtherInformationOffers{
                 font-size: 12px;
@@ -432,13 +435,22 @@ function showProposition($proposed_id,$contactid=0){
         <script>
             $(document).ready(function(){
                 var top = 0;
-                if($("div#Proposition").length>0)
-                    top = $("div#Proposition").offset().top;
+                if($("div#Proposition").length>0){
+                    top = $("div#Proposition").offset().top;                  
+                }
+                var item = $("div#Proposition'.$proposed_id.'").find(".pair")[0];
+                var header = $("div#Proposition'.$proposed_id.'").find(".multiple_header_table")[0];
+                console.log($(header), $(header).width(), $(item), $(item).width());                  
                 var height = $(window).height() - 200;
                 if(height<300)
                     height = 350;
-                $("tbody#bodyProposition").height(height);
+                $("div#Proposition'.$proposed_id.'").find("tbody#bodyProposition").height(height);
+                                
             })
+//            $(\'.proposition\').click(function(e){
+//                alert(\'test\');
+//                console.log($(e).attr(\'z-index\'));
+//            })            
         </script>';
     return $out;
 }
@@ -760,10 +772,10 @@ function ShowActionTable(){
         from `llx_societe_action`
         left join `llx_user` on `llx_societe_action`.id_usr = `llx_user`.rowid
         left join `llx_societe_contact` on `llx_societe_contact`.rowid=`llx_societe_action`.`contactid`
-        where `llx_societe_action`.socid=".(empty($_REQUEST["socid"])?0:$_REQUEST["socid"])."
+        where `llx_societe_contact`.socid=".(empty($_REQUEST["socid"])?0:$_REQUEST["socid"])."
         and `llx_societe_action`.`action_id` is null
         and `llx_societe_action`.`active` = 1
-        order by `datep` desc";
+        order by `datep` desc, `datec` desc";
 
 
 //    echo '<pre>';

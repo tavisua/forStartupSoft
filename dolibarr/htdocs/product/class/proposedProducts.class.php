@@ -143,7 +143,7 @@ class proposedProducts
             $out.='<td width="10px"></td>';
             $out .= '</tr>';
             $out .= '<tr>';
-            $out .= '<td id="titleProposition" colspan="4">Вдалося озвучити пропозицію клієнту <input id="cansaid" type="checkbox" name="cansaid"></td>';
+//            $out .= '<td id="titleProposition" colspan="4">Вдалося озвучити пропозицію клієнту <input id="cansaid" type="checkbox" name="cansaid"></td>';
             $out .= '</tr>';
             $title = array('Завод-виробник','№ по катагогу (атикул)','№ карточки в 1С',
                 'Наявність','Од.виміру','Місце відвантаження','ОСОБЛИВІСТЬ ПРОПОЗИЦІЇ','ВИГОДИ КЛІЄНТУ',
@@ -246,6 +246,7 @@ class proposedProducts
         }
         if(!$preview)
             $out .='</tbody>';
+        $out.='<form id="postresult"></form>';
         return $out;
     }
     function fetchProductsItem($rowid){

@@ -1,5 +1,6 @@
 
 <script type="text/javascript" src="/dolibarr/htdocs/societe/js/jquery.maskedinput-1.2.2.js"></script>
+<script type="text/javascript" src="/dolibarr/scripts/js/table_manager.js"></script>
 
 <div class="address_header">
     <?if($_GET['action']=='useraction' || $_GET['action'] == 'edituseration'){?>
@@ -115,6 +116,7 @@
         <input id="proposed_id" name="proposed_id" type="hidden" value="<?=$_GET['proposed_id']?>">
         <input id="complete" name="complete" type="hidden" value="">
         <input id="action" name="action" type="hidden" value="">
+        <input id="AutoCreateActionID" name="AutoCreateAction" type="hidden" value="">
         <input id="subaction" name="subaction" type="hidden" value="<?=$_GET['subaction']?>">
         <input id="assignedusers" name="assignedusers" type="hidden" value="">
         <input id="changedContactID" name="changedContactID" type="hidden" value="">
@@ -396,6 +398,8 @@
                 item = item.split('=');
                 param[item[0]] = item[1];
             })
+            param.today = true;
+            param.AutoCreateAction = true;
             $('#socid').val(param.socid);
             $("#addaction").attr('action', '/dolibarr/htdocs/comm/action/result_action.php');
             if (param.action == 'addonlyresult')
@@ -407,9 +411,10 @@
             else
                 $("#action").val('update');
             $('#complete').val($('#valcomplete').val());
+            $('#AutoCreateAction').val('true');
+            $('#today').val('true');
 //            console.log($("addaction").attr('action'));
             submitResultAction(param);
-//        alert('test');
         }
     }
     function submitResultAction(param){
@@ -422,11 +427,14 @@
                 $("#forAllGroup").val($("#forAllGroup").attr('checked') == 'checked');
             }
 
-//            console.log($.inArray(actioncode, validcode) != '-1');
+//        console.log(param);
 //        return;
-            if(actioncode!=null && actioncode.length>0 && $.inArray(actioncode.toUpperCase(), validcode) != '-1') {
+            if(actioncode!=null && actioncode.length>0 && $.inArray(actioncode.toUpperCase(), validcode) == '-1') {
+                param.action = 'getTypeNotification';
+                param.action_id= '<?=$_REQUEST["action_id"]?>';
                 $.ajax({
-                    url: '/dolibarr/htdocs/comm/action/result_action.php?action=getTypeNotification&action_id=<?=$_REQUEST["action_id"]?>',
+                    url: '/dolibarr/htdocs/comm/action/result_action.php',
+                    data:param,
                     cache: false,
                     success: function (result) {
                         console.log(result);
@@ -448,19 +456,6 @@
 //                    console.log(result);
 
                         $("#addaction").submit();
-                    }
-                })
-                var param = {
-                    action:'autoCreateAction',
-                    actionid: getParameterByName('action_id'),
-                    onlymark: $('#action').val().indexOf('_and_create')>0
-                }
-                $.ajax({//Автоматичне планування наступної дії
-                    url:'/dolibarr/htdocs/comm/action/index.php',
-                    data: param,
-                    cache:false,
-                    success:function(html){
-
                     }
                 })
             }else
@@ -518,6 +513,7 @@
             $("#action").val('update_and_create');
 //        console.log($("#addaction").serialize());
 //        alert("stop");
+        setAutoCallStatus(1);
         submitResultAction();
     }
 //    function loadcontactlist(){

@@ -537,7 +537,7 @@ class ActionComm extends CommonObject
         $freetime = $this->GetFreeTimePeriod($date, $id_usr, $prioritet, false, $parent_id);
         $date = new DateTime($date);
 //        echo '<pre>';
-//        var_dump($date);
+//        var_dump($freetime);
 //        echo '</pre>';
 //        die();
         if(empty($starttime))
@@ -1055,7 +1055,7 @@ class ActionComm extends CommonObject
 //        echo '<pre>';
 //        var_dump($this);
 //        echo '</pre>';
-//        die();
+//        die('test');
         global $langs, $conf, $hookmanager;
 
         $error = 0;
@@ -1223,7 +1223,7 @@ class ActionComm extends CommonObject
             $sql .=  (!empty($this->period)?("'".$this->period."'"):"null") . ",";
             $sql .= "'" . $this->groupoftask . "',";
             $sql .= " " . (!empty($this->order_id) ? "'" . $this->order_id . "'" : "null"). ",";
-            $sql .= (isset($this->type_code)&&!in_array($this->type_code, array('AC_PROP','AC_COM','AC_FAC','AC_SHIP','AC_SUP_ORD','AC_SUP_INV','AC_OTH_AUTO','AC_OTH')))?'1,':'0,';
+            $sql .= (isset($this->type_code)&&!in_array($this->type_code, array('AC_PROP','AC_COM','AC_TEL','AC_FAC','AC_SHIP','AC_SUP_ORD','AC_SUP_INV','AC_OTH_AUTO','AC_OTH')))?'1,':'0,';
             $sql .= (!empty($this->subaction) ? "'" . $this->subaction . "'" : "null"). ","
                 .(!empty($this->subaction_id)?$this->subaction_id: "null"). ", ".
                 (!empty($this->planed_cost)?"'".$this->planed_cost."'": "null"). ", ".
@@ -1235,12 +1235,12 @@ class ActionComm extends CommonObject
             $sql .= "'$when_show',";
             $sql .= empty($this->icon)?"null":"'$this->icon'";
             $sql .= ")";
-
+//            var_dump((isset($this->type_code)&&!in_array($this->type_code, array('AC_PROP','AC_COM','AC_TEL','AC_FAC','AC_SHIP','AC_SUP_ORD','AC_SUP_INV','AC_OTH_AUTO','AC_OTH')))?'1,':'0,');
+//            die();
             dol_syslog(get_class($this) . "::add", LOG_DEBUG);
             $resql=$this->db->query($sql);
 //            if(!empty($this->icon)) {
-//                var_dump($sql);
-////            die();
+//            die();
 //            }
             if(!$resql)
                 dol_print_error($this->db);
@@ -1361,7 +1361,7 @@ class ActionComm extends CommonObject
 //            echo '</pre>';
 //            die();
 
-            if(!in_array($this->code, array('AC_COMPANY_CREATE', 'AC_OTH_AUTO'))) {
+            if(!in_array($this->code, array('AC_COMPANY_CREATE', 'AC_OTH_AUTO', 'AC_TEL'))) {
                 $from = !empty($val['id']) ? $val['id'] : $this->authorid;
                 if(!empty($from))
                     $this->ShowAction(!empty($val['id']) ? $val['id'] : $this->authorid, empty($this->authorid) ? $user->id : $this->authorid, $this->id, $when_show);

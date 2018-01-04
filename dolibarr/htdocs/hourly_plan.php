@@ -33,6 +33,8 @@ if($_REQUEST['action'] == 'hideAction'){
 $HourlyPlan = $langs->trans('HourlyPlan');
 llxHeader("",$HourlyPlan,"");
 print_fiche_titre($langs->trans('HourlyPlan'));
+global $cache_dir;
+
 $table = '<table class="WidthScroll" cellspacing="1" id="schedule_table">';
 $table .= '<thead>
                 <tr class="multiple_header_table">

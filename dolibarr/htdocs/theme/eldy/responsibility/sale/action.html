@@ -149,6 +149,7 @@
 <input type="hidden" id="starttimer" value="">
 <script>
     var timeout;
+    var caption;
     function ResetSendMail() {
         $('#SendMail').hide();
     }
@@ -211,7 +212,14 @@
     }
     $(document).ready(function(){
         var param = searchToObject(location.search);
-
+        $('#LastCallID').val('');
+        if(param.autocall == 1) {
+            $('#AutoCallBtn').attr('caption', 'Автонабір');
+            $('#AutoCallBtn').attr('timeout', 11);
+        }else if(param.autocall == 0){
+            $('#AutoCallBtn').attr('caption', 'До наступного дзвінка');
+            $('#AutoCallBtn').attr('timeout', 1);
+        }
         setBtnPosition();
         $("#bookmarkActionPanel").show();
 
@@ -250,49 +258,69 @@
                 timeout = 10;
             else if("<?=$_REQUEST['autocall']?>" == 0)
                 timeout = 6;
+            $('#AutoCallBtn').attr('pause',0);
+            setAutoCallStatus(0);
             setCallBtnCaption();//Встановлюю напис на кнопці автодозвону
         }
     })
     function setBtnPosition() {
         $('#showhide_contactlist').offset({top:$('#addcontact').offset().top, left:$('#addcontact').offset().left+$('#addcontact').width()+25});
+        console.log('showhide_contactlist', $('#addcontact').offset().left, $('#addcontact').width()+25);
         $('#showcontragentcard').offset({top:$('#showhide_contactlist').offset().top, left:$('#showhide_contactlist').offset().left+$('#showhide_contactlist').width()+25});
         $('#AutoCallBtn').offset({top:$('#showhide_contactlist').offset().top, left:$('#showcontragentcard').offset().left+$('#showcontragentcard').width()+25});
     }
     function AutoCall(){
         var param = searchToObject(location.search);
         var caption;
-        if(param.autocall == 1)
-            caption = 'Автонабір';
-        else if(param.autocall == 0)
-            caption = 'До початку наступного дзвінка';
-
-        if($('#AutoCallBtn').find('img').attr('src').indexOf('1rightarrow')>0){
+        console.log("$('#AutoCallBtn').attr('pause')", $('#AutoCallBtn').attr('pause'), $.inArray($('#AutoCallBtn').attr('pause'), ['0',undefined])>=0);
+        if($.inArray($('#AutoCallBtn').attr('pause'), ['0',undefined])>=0){
+            $('#AutoCallBtn').attr('pause', 1);
+            $('#AutoCallBtn').find('img').attr('src', '/dolibarr/htdocs/theme/eldy/img/1rightarrow.png');
+            setAutoCallStatus(1);
+        }else {
+            $('#AutoCallBtn').attr('pause', 0);
+            setAutoCallStatus(0);
             $('#AutoCallBtn').find('img').attr('src', '/dolibarr/htdocs/theme/eldy/img/pause.png');
             $('#AutoCallBtn').attr('title', 'Призупинити автоматичні дзвінки');
-            if($.trim($('#AutoCallBtn').text()) != 'Автонабір')
-                setCallBtnCaption();
-            else{
-                var dtNow = new Date();
-                var sDate = convertDate(dtNow);
-                AutoCallForDate(sDate);
+            if($('#AutoCallBtn').attr('caption')=='До наступного дзвінка'){
+                if(confirm('Перейти до наступного дзвінка')){
+                    $('#AutoCallBtn').attr('timeout',1);
+                }
             }
-        }else{
-            $('#AutoCallBtn').find('img').attr('src', '/dolibarr/htdocs/theme/eldy/img/1rightarrow.png');
-            $('#AutoCallBtn').attr('title', 'Розпочати автоматичний набір дзвінків, запланованих на вибраний день');
+            setCallBtnCaption();
         }
+//        if(param.autocall == 1)
+//            caption = 'Автонабір';
+//        else if(param.autocall == 0)
+//            caption = 'До початку наступного дзвінка';
+//
+//        if($('#AutoCallBtn').find('img').attr('src').indexOf('1rightarrow')>0){
+//            $('#AutoCallBtn').find('img').attr('src', '/dolibarr/htdocs/theme/eldy/img/pause.png');
+//            $('#AutoCallBtn').attr('title', 'Призупинити автоматичні дзвінки');
+//            if($.trim($('#AutoCallBtn').text()) != 'Автонабір')
+//            else{
+//                var dtNow = new Date();
+//                var sDate = convertDate(dtNow);
+//                AutoCallForDate(sDate);
+//            }
+//        }else{
+//            $('#AutoCallBtn').attr('title', 'Розпочати автоматичний набір дзвінків, запланованих на вибраний день');
+//        }
     }
+
     function setCallBtnCaption(){
+        getAutoCallStatus();
+//        console.log("$('#AutoCallBtn').attr('pause')", $('#AutoCallBtn').attr('pause'));
+        if($('#AutoCallBtn').attr('pause') == 1)
+            return;
         $('#AutoCallBtn').attr('title', 'Призупинити автоматичні дзвінки');
-//        var timeout = $.trim($('#AutoCallBtn').text()) == 'Автонабір'?10:$('#AutoCallBtn').text().substr(11);
+        timeout = $('#AutoCallBtn').attr('timeout');
+        caption = $('#AutoCallBtn').attr('caption');
         var param = searchToObject(location.search);
-        var caption;
-        if(param.autocall == 1)
-            caption = 'Автонабір';
-        else if(param.autocall == 0) {
-            caption = 'До початку наступного дзвінка';
-            $('#AutoCallBtn').html('<img src="/dolibarr/htdocs/theme/eldy/img/pause.png"> '+caption+' '+ timeout);
-        }
+
+        $('#AutoCallBtn').html('<img src="/dolibarr/htdocs/theme/eldy/img/pause.png"> '+caption+' '+ timeout);
         timeout--;
+        $('#AutoCallBtn').attr('timeout',timeout);
         if(timeout == 10 && $('td#proposed'+param.contactID).length > 0){//Відображаю заголовки пропозицій
             $('td#proposed'+param.contactID).click();
         }
@@ -306,6 +334,7 @@
             $('#AutoCallBtn').html('<img src="/dolibarr/htdocs/theme/eldy/img/pause.png"> '+caption);
             if(param.autocall == 1) {//Виконання дзвінка
 //                console.log($.isEmptyObject(param.autocall), 'param.contactID');
+                if($('#AutoCallBtn').attr('caption') == 'Автонабір') {
                     if (param.contactID !== undefined && !$.isEmptyObject(param.contactID)) {
                         var phone_cell;
                         if (($('td#' + param.contactID + 'mobile_phone1').html()).length > 0)
@@ -334,6 +363,65 @@
                     else {
                         console.log('Контакт не визначено');
                     }
+                }else if($('#AutoCallBtn').attr('caption') == 'До наступного дзвінка'){
+                    AutoCreateAction();
+                    //Зберігаю пропозиції, які не були збережені
+                    var not_saved_proposition = [];
+                    $('div.setdate').each(function (index, elem) {
+                        if ($(elem).attr('fx_proposition') !== undefined) {
+                            console.log(index, elem);
+                            not_saved_proposition.push($(elem).attr('fx_proposition'));
+                            $(elem).remove();
+                        }
+                    })
+                    var param;
+
+//                    //Автоматичне створення нової дії
+//                    param= {
+//                        type:'get'
+//                        ,action:'autoCreateAction'
+//                        ,actionid:getParameterByName('actionid')
+//                    }
+//                    $.ajax({
+//                        url: '/dolibarr/htdocs/comm/action/index.php',
+//                        data: param,
+//                        cache: false,
+//                        success: function(res){
+//                            console.log('autoCreateAction', res);
+//                        }
+//                    })
+                    if (not_saved_proposition.length) {//якщо є незбережені пропозиції
+                        param = {
+                            type: 'get',
+                            action: 'save_not_saved_proposition',
+                            proposition_id: not_saved_proposition.join(),
+                            actionid: getParameterByName('actionid'),
+                            socid: getParameterByName('socid'),
+                            contactID: getParameterByName('contactID'),
+                        }
+                        $.ajax({
+                            url: '/dolibarr/htdocs/responsibility/sale/action.php',
+                            data: param,
+                            cache: false,
+                            success: function (res) {
+                                console.log(res);
+                            }
+                        })
+                    }
+
+                    //Перехід до наступного дзвінка
+                    param.action = 'getAction';
+                    $.ajax({
+                        url:'/dolibarr/htdocs/comm/action/index.php',
+                        data:param,
+                        cache:false,
+                        success: function(res){
+                            var action = JSON.parse(res);
+                            var date = new Date(action.datep*1000);
+                            AutoCallForDate(convertDate(date));
+                        }
+                    })
+                }
             }else if(param.autocall == 0){//Перехід до наступного дзвінка
                     var dtNow = new Date();
                     var sDate = convertDate(dtNow);
@@ -481,7 +569,6 @@
 //        }
 //    }
     function AddAction(){
-//        alert("test");
         $("#actionbuttons").attr('action', '/dolibarr/htdocs/comm/action/card.php?actioncode=AC_TEL');
         console.log($("#actionbuttons").attr('action'));
     }
@@ -503,7 +590,7 @@
                 $('#popupmenu').css('width',350);
                 $('#popupmenu').css('height',100);
                 var fullText='';
-                console.log(td.getElementsByTagName('input').length);
+//                console.log(td.getElementsByTagName('input').length);
                 if(td.getElementsByTagName('input').length > 0) {
                     var input=td.getElementsByTagName('input');
 //                    console.log(input[0].value);

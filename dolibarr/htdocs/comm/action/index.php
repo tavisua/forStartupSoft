@@ -36,11 +36,15 @@ if($_REQUEST['action']=='get_actiondate'){
     echo $event->getFilterDate();
     exit();
 }
+if($_REQUEST['action']=='find_product'){
+
+    exit();
+}
 if($_REQUEST['action']=='clearFilter'){
-    echo '<pre>';
-    var_dump($_REQUEST);
-    echo '</pre>';
-    die();
+//    echo '<pre>';
+//    var_dump($_REQUEST);
+//    echo '</pre>';
+//    die();
     exit();
 }
 if($_REQUEST['action']=='fixDnepr'){
@@ -295,9 +299,47 @@ if($_REQUEST['action'] == 'getActionsNote'){//Вертає суть завдан
     print $obj->note;
     exit();
 }
-if($_REQUEST['action'] == 'setNotInterestingProposed'){
-    require_once $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/comm/action/result_action.php';
-    saveaction($_REQUEST['rowid']);
+if($_REQUEST['action'] == 'findProduct'){
+    global $db_price;
+    echo '<pre>';
+    var_dump($db_price);
+    echo '</pre>';
+    die();
+}
+if($_REQUEST['action'] == 'getAction'){
+    global $db;
+    $action = new ActionComm($db);
+    $action->fetch($_REQUEST["actionid"]);
+    print json_encode($action);
+    exit();
+}
+if($_REQUEST['action'] == 'getAutoCallStatus') {
+    if(empty($_SESSION['AutoCallStatus']))
+        print '0';
+    else
+        print '1';
+    exit();
+}
+if($_REQUEST['action'] == 'setAutoCallStatus') {
+    $_SESSION['AutoCallStatus']=$_REQUEST['status'];
+    print 'success';
+    exit();
+}
+if($_REQUEST['action'] == 'getNotInterestingForm'){
+    $out='<table class="scrolling-table" style="background: #ffffff; width: auto">
+            <input type="hidden" id="actionid" name="actionid" value="'.$LastActionID.'">
+            <thead><tr class="multiple_header_table"><th class="middle_size" colspan="9" style="width: 100%">Суть пропозиції для посади </th>
+            <a class="close" style="margin-left: -160px" onclick="ClosePopupMenu($(this));" title="Закрити"></a>
+                </tr>
+                </thead>
+            <tbody  id="bodyProposition">';
+    print $out;
+    require_once DOL_DOCUMENT_ROOT.'/theme/eldy/responsibility/sale/not_interesting_form.html';
+    exit();
+}
+if(in_array($_REQUEST['action'],  ['SaveResultAction','setNotInterestingProposed'])){
+//    require_once $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/comm/action/result_action.php';
+    save_resultaction($_REQUEST['rowid']);
     exit();
 }
 if($_REQUEST['action'] == 'autoCreateAction') {
@@ -322,12 +364,12 @@ if($_REQUEST['action'] == 'autoCreateAction') {
             $freetime = $autoaction->GetFreeTime($date->format("Y-m-d"), $user->id, $exec_minuted, 0);
             $date = new DateTime($freetime);
             $autoaction->datep = mktime($date->format('H'), $date->format('i'), $date->format('s'), $date->format('m'), $date->format('d'), $date->format('Y'));
-            $autoaction->datef = $action->datep + $exec_minuted * 60;
+            $autoaction->datef = $autoaction->datep + $exec_minuted * 60;
             $autoaction->percentage = -1;
             $autoaction->add($user);
         }
     }
-    echo 1;
+    echo $autoaction->id;
     exit();
 }
 if (! empty($conf->projet->enabled)) {
@@ -1398,6 +1440,116 @@ function getIDCongratulatorOnRegionID($region, $responsibility){//Визнача
     }else
         return 0;
 }
+function save_resultaction($rowid, $createaction = false, $action_id = null){
+    global $user, $db;
+//    var_dump($_REQUEST);
+//    die();
+    $socid = $_REQUEST['socid'];
+    $newdate='';
+    if(empty($action_id)&&isset($_REQUEST['actionid'])&&!empty($_REQUEST['actionid']))
+        $action_id = $_REQUEST['actionid'];
+    if(isset($_REQUEST['newdate'])&&!empty($_REQUEST['newdate'])&&isset($_REQUEST['actionid'])&&!empty($_REQUEST['actionid'])){
+        $sql = "select datep, datep2 datef from llx_actioncomm where id = ".$action_id;
+        $res = $db->query($sql);
+        $action = $db->fetch_object($res);
+        $minutes = ($action->datef-$action->datep)/60;
+        $newdate = new DateTime($_REQUEST['newdate']);
+        $datep = new DateTime($action->datep);
+        $datef = new DateTime($action->datef);
+        $mkDatep = $datep=dol_mktime($datep->format('H'), $datep->format('i'), $datep->format('s'), $datep->format('m'), $datep->format('d'), $datep->format('Y'));
+        $mkDatef = $datef=dol_mktime($datef->format('H'), $datef->format('i'), $datef->format('s'), $datef->format('m'), $datef->format('d'), $datef->format('Y'));
+        $mkNewDatep = $datep=dol_mktime($newdate->format('H'), $newdate->format('i'), $newdate->format('s'), $newdate->format('m'), $newdate->format('d'), $newdate->format('Y'));
+        $mkNewDatef = $mkNewDatep + ($mkDatef-$mkDatep);
+    }
+    if(empty($user->id)){
+        $user->fetch('',$_SESSION["dol_login"]);
+    }
+    if(empty($rowid)){
+        $sql='insert into llx_societe_action(`new`,`action_id`,`proposed_id`, `socid`, `contactid`,`callstatus`, `said`,`answer`,
+          `argument`,`said_important`,`result_of_action`,`work_before_the_next_action`,`need`,`fact_cost`,`id_usr`'.(empty($_REQUEST['proposed_id'])?'':',`interesting`').') values(';
+        $sql .= '1,';
+        if(empty($action_id)) {
+            if (empty($_REQUEST['actionid'])) $sql .= 'null,';
+            else $sql .= $_REQUEST['actionid'] . ',';
+        }else{
+            $sql .= $action_id. ',';
+        }
+        if(empty($_REQUEST['proposed_id'])) $sql.='null,';
+        else $sql.=$_REQUEST['proposed_id'].',';
+        if(empty($socid)) $sql.='null,';
+        else $sql.=$socid.',';
+        $sql.=(empty($_REQUEST['contactid'])?(empty($_REQUEST['changedContactID'])?"null":$_REQUEST['changedContactID']):$_REQUEST['contactid']).', ';
+        $sql.=(empty($newdate)?(empty($_REQUEST['callstatus'])?"null":$_REQUEST['callstatus']):"null").', ';
+        if(empty($_REQUEST['said'])) $sql.='null,';
+        else $sql.='"'.$db->escape($_REQUEST['said']).'",';
+        if(empty($_REQUEST['answer'])) $sql.='null,';
+        else $sql.='"'.$db->escape($_REQUEST['answer']).'",';
+        if(empty($_REQUEST['argument'])) $sql.='null,';
+        else $sql.='"'.$db->escape($_REQUEST['argument']).'",';
+        if(empty($_REQUEST['said_important'])) $sql.='null,';
+        else $sql.='"'.$db->escape($_REQUEST['said_important']).'",';
+        if(empty($_REQUEST['result_of_action'])) $sql.='null,';
+        else $sql.='"'.$db->escape($_REQUEST['result_of_action']).'",';
+        if(empty($_REQUEST['work_before_the_next_action'])) $sql.='null,';
+        else $sql.='"'.$db->escape($_REQUEST['work_before_the_next_action']).'",';
+        if(empty($_REQUEST['need'])) $sql.='null,';
+        else $sql.='"'.$db->escape($_REQUEST['need']).'",';
+        if(empty($_REQUEST['fact_cost'])) $sql.='null,';
+        else $sql.=$db->escape($_REQUEST['fact_cost']).',';
+//        if(empty($_REQUEST['date_next_action'])) $sql.='null,';
+//        else {
+//            $date = new DateTime($_REQUEST['date_next_action']);
+//            $value = $date->format('Y-m-d');
+//            $sql .= '"' .$value . '",';
+//        }
+        $sql .= $user->id.(empty($_REQUEST['proposed_id'])?'':(','.($_REQUEST['action']=='setNotInterestingProposed'?0:1))).")";
+    }else {
+        $sql = 'update llx_societe_action set ';
+        $sql.='`contactid`='.(empty($_REQUEST['contactid'])?'null':$_REQUEST['contactid']).', ';
+        $sql.='`callstatus`='.(empty($newdate)?(empty($_REQUEST['callstatus'])?'null':$_REQUEST['callstatus']):'null').', ';
+        $sql.='`said`='.(empty($_REQUEST['said'])?'null':"'".$db->escape($_REQUEST['said'])."'").', ';
+        $sql.='`answer`='.(empty($_REQUEST['answer'])?'null':"'".$db->escape($_REQUEST['answer'])."'").', ';
+        $sql.='`argument`='.(empty($_REQUEST['argument'])?'null':"'".$db->escape($_REQUEST['argument'])."'").', ';
+        $sql.='`said_important`='.(empty($_REQUEST['said_important'])?'null':"'".$db->escape($_REQUEST['said_important'])."'").', ';
+        $sql.='`result_of_action`='.(empty($_REQUEST['result_of_action'])?'null':"'".$db->escape($_REQUEST['result_of_action'])."'").', ';
+        $sql.='`work_before_the_next_action`='.(empty($_REQUEST['work_before_the_next_action'])?'null':"'".$db->escape($_REQUEST['work_before_the_next_action'])."'").', ';
+        $need = [];
+        for($i=0; $i<count($_REQUEST['need']); $i++){
+            if(!empty($_REQUEST['need'][$i]))
+                $need[]=$_REQUEST['productsname'][$i].': '.$_REQUEST['need'][$i];
+        }
+        $sql.='`need`="'.($db->escape(implode(';', $need))).'", ';
+        $sql.='`fact_cost`='.(empty($_REQUEST['fact_cost'])?'null':$db->escape($_REQUEST['fact_cost'])).', ';
+        $sql.='`id_usr`='.$user->id.' ';
+//        if(!empty($_REQUEST['proposed_id'])){
+//            $sql.=',`interesting`='.($_REQUEST['action']=='setNotInterestingProposed'?0:1);
+//        }
+//        $sql.='`new`=1 ';
+        $sql.=' where rowid='.$rowid;
+    }
+//    die($sql);
+    $res = $db->query($sql);
+    if(!$res){
+        dol_print_error($db);
+    }
+
+    if(isset($_REQUEST['actioncode'])&&$_REQUEST['actioncode']=='AC_TEL'&&!empty($_REQUEST["actionid"])){//Незважаючи на те, дозвонився АТ чи ні, після збереження результатів виконання дзвінка встановлюю що дзвінок виконано
+        $sql = "update llx_actioncomm set percent = 100 where id=".$_REQUEST["actionid"];
+        $res = $db->query($sql);
+        if(!$res){
+            dol_print_error($db);
+        }
+    }
+    if(!empty($rowid))
+        die($rowid);
+    else{
+        $sql = "select max(rowid) rowid from llx_societe_action where id_usr = ".$user->id;
+        $res = $db->query($sql);
+        $obj = $db->fetch_object($res);
+        die($obj->rowid);
+    }
+}
+
 function show_day_events($db, $day, $month, $year, $monthshown, $style, &$eventarray, $maxprint=0, $maxnbofchar=16, $newparam='', $showinfo=0, $minheight=60)
 {
     global $user, $conf, $langs;

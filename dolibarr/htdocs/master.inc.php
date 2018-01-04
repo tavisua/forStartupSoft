@@ -124,6 +124,9 @@ if (! defined('NOREQUIRETRAN'))
 //echo '</pre>';
 //
 //die();
+if (! defined('NOREQUIREDB'))//папка кеша
+    $cache_dir = DOL_DOCUMENT_ROOT .'/cache';
+
 if (! defined('NOREQUIREDB'))
 {
     $db = getDoliDBInstance($conf->db->type,$conf->db->host,$conf->db->user,$conf->db->pass,$conf->db->name,$conf->db->port);
@@ -133,6 +136,15 @@ if (! defined('NOREQUIREDB'))
 		dol_print_error($db,"host=".$conf->db->host.", port=".$conf->db->port.", user=".$conf->db->user.", databasename=".$conf->db->name.", ".$db->error);
 		exit;
 	}
+	//Створення окремого підключення до бази данних з прайсом
+	$db_price = getDoliDBInstance($conf->db->type,$conf->db->host,$conf->db->user,$conf->db->pass,$conf->db->name,$conf->db->port);
+
+	if ($db_price->error)
+	{
+		dol_print_error($db,"host=".$conf->db->host.", port=".$conf->db->port.", user=".$conf->db->user.", databasename=".$conf->db->name.", ".$db_price->error);
+		exit;
+	}
+
 }
 
 // Now database connexion is known, so we can forget password

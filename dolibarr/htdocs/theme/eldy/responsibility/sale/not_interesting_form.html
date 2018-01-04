@@ -1,0 +1,104 @@
+<div  id="ActionList">
+    <form id="addaction" action="" method="post">
+        <input id="rowid" name="rowid" type="hidden" value="<?=empty($object->resultaction['rowid'])?$object->rowid:$object->resultaction['rowid']?>">
+        <input id="actionid" name="actionid" type="hidden" value="<?=$action_id?>">
+        <input id="newdate" name="newdate" type="hidden" value="">
+        <input id="fact_cost" name="fact_cost" type="hidden" value="<?=empty($object->resultaction['fact_cost'])?0:$object->resultaction['fact_cost']?>">
+        <input id="socid" name="socid" type="hidden" value="<?=isset($_REQUEST['onlyresult'])&&!empty($_REQUEST['onlyresult'])?$object->socid:$_REQUEST['socid']?>">
+        <input id="mainmenu" name="mainmenu" type="hidden" value="<?=$_GET['mainmenu']?>">
+        <input id="actioncode" name="actioncode" type="hidden" value="<?=$_GET['actioncode']?>">
+        <input id="proposed_id" name="proposed_id" type="hidden" value="<?=$_GET['proposed_id']?>">
+        <input id="complete" name="complete" type="hidden" value="">
+        <input id="action" name="action" type="hidden" value="">
+        <input id="subaction" name="subaction" type="hidden" value="<?=$_GET['subaction']?>">
+        <input id="assignedusers" name="assignedusers" type="hidden" value="">
+        <input id="changedContactID" name="changedContactID" type="hidden" value="">
+        <input type="hidden" name="typeSetOfDate" id="type" value="<?=$_REQUEST['typeSetOfDate']?>">
+        <input type="hidden" name="error" id="error" value="<?=$_REQUEST['error']?>">
+        <input id="callstatus" name="callstatus" type="hidden" value="<?=empty($object->callstatus)?2:$object->callstatus?>">
+        <input id="backtopage" type="hidden" relise="2" value="<?=urlencode($_GET['backtopage'])?>" name="backtopage">
+        </br>
+        <table class="border" style="margin-top: 20px" width="100%">
+            <?=$contactlist?>
+            <tr>
+                <td>
+                    &nbsp;&nbsp;&nbsp;<?echo $langs->trans('WhatSaidHim')?></br>
+                    <textarea id="said" class="edit_text" name="said"><?=$said?></textarea>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    &nbsp;&nbsp;&nbsp;<?echo $langs->trans('WhatAnswer')?></br>
+                    <textarea id="answer" class="edit_text" name="answer"><?=empty($object->resultaction['answer'])?$object->answer:$object->resultaction['answer']?></textarea>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    &nbsp;&nbsp;&nbsp;<?echo $langs->trans('HerArgument')?></br>
+                    <textarea id="said_important" class="edit_text" name="said_important"><?=empty($object->resultaction['said_important'])?$object->said_important:$object->resultaction['said_important']?></textarea>
+                </td>
+                <textarea id="argument" class="edit_text" name="argument"><?=empty($object->resultaction['argument'])?$object->argument:$object->resultaction['argument']?></textarea>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    &nbsp;&nbsp;&nbsp;<?echo $langs->trans('SaidImportant')?></br>
+            </tr>
+            <tr>
+                <td>
+                    &nbsp;&nbsp;&nbsp;<?echo $langs->trans('ResultAction')?></br>
+                    <textarea placeholder="Для вводу даних про наявну потребу, необхідно виділити фрагмент тексту в цьому полі, та вибрати назву товару, що відповідає потребі" id="result_of_action" class="edit_text" name="result_of_action"><?=empty($object->resultaction['result_of_action'])?$object->result_of_action:$object->resultaction['result_of_action']?></textarea>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    &nbsp;&nbsp;&nbsp;<?echo $langs->trans('WorkBeforeAction')?></br>
+                    <textarea id="work_before_the_next_action" class="edit_text" name="work_before_the_next_action"><?=empty($object->resultaction['work_before_the_next_action'])?$object->work_before_the_next_action:$object->resultaction['work_before_the_next_action']?></textarea>
+                </td>
+            </tr>
+        </table>
+        <textarea id = "need" name="need" style="display: none"><?=empty($object->resultaction['need'])?$object->need:$object->resultaction['need']?></textarea>
+    </form>
+    <script>
+        var prop_id;
+        $(document).ready(function () {
+             prop_id = $('#savebtn').parent().parent().attr('id').substr('Proposition'.length);
+        })
+        function fast_costchange() {
+            var rep = /[-\.;":'a-zA-Zа-яА-Я]/;
+            var tmp = $('#fact_cost_v').val().replace(rep, '');
+            $('#fact_cost_v').val(tmp)
+            $("#fact_cost").val(tmp);
+            console.log($('#fact_cost').val(), tmp);
+        }
+        $('#result_of_action').keydown(function () {//Пошук товарів із прайслиста
+            if($('#result_of_action').val().length>=2){
+                var param = {
+                    action:'find_product',
+                    name:'%'+trim($('#result_of_action').val())+'%'
+                }
+                $.ajax({
+                    url:'/dolibarr/htdocs/comm/action/index.php',
+                    data:param,
+                    success:function(html){
+
+                    }
+                })
+            }
+            console.log($('#result_of_action').val().length);
+        })
+        $('#addaction').submit(function(e){
+            if($('#error').length>0&&$('#error').val()==1){
+                alert('Дані на формі містять помилки.');
+                return false;
+            }
+        });
+
+    </script>
+    <div align="center">
+
+        <button onclick="SaveResultProporition(getParameterByName('contactID'),getParameterByName('actionid'),prop_id, false);" id="savebtn">Зберегти</button>
+        <!--<button onclick="saveandcreate();" id="saveandcreatbtn">Зберегти та запланувати наступну дію</button>-->
+        <!--<button onclick="back();">Відмінити</button>-->
+    </div>
+</div>

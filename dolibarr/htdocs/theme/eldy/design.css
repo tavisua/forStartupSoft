@@ -38,6 +38,9 @@
     font-size: 12px!important;
 
 }
+.proposition{
+    background-color: white;
+}
 #typicalqueries{
     padding-left: 25px;
 height: 200px; /* высота нашего блока */
@@ -224,7 +227,7 @@ tr.subtype:hover {
 .dictinary:hover{
     background-color: #d9eef7;
     border-color: #ffffff;
-    font-weight: bold;
+    /*font-weight: bold;*/
     color: black;
 }
 .subdivision:hover{

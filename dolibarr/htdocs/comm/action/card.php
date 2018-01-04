@@ -413,8 +413,11 @@ $cancel=GETPOST('cancel','alpha');
 $backtopage=GETPOST('backtopage','alpha');
 $backtopage = str_replace('autocall=1','autocall=0', $backtopage);//Якщо виконується автодзвінок - ставлю прапор переходу до наступного дзвінка
 //$backtopage=$_REQUEST['backtopage'];
-//var_dump($backtopage);
-//die();
+foreach (explode('&',substr($backtopage,strpos($backtopage, '?')+1)) as $item) {
+    if(is_numeric(strpos($item, 'contactID'))) {
+        $_POST['contactid']=substr($item, strpos($item, '=')+1);
+    }
+}
 
 if(substr($backtopage, 0, 1) == "'")
 	$backtopage = substr($backtopage, 1, strlen($backtopage)-1);
@@ -584,6 +587,7 @@ if (GETPOST('addassignedtouser') || GETPOST('updateassignedtouser') || GETPOST('
 	$donotclearsession=1;
 	if ($action == 'add') $action = 'create';
 	if ($action == 'update') $action = 'edit';
+    $_SESSION['AutoCallStatus']=0;//Знімаю паузу з автодзвінків
 }
 
 // Add event
