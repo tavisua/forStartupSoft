@@ -157,7 +157,7 @@ class proposedProducts
             foreach($title as $item){
                 fmod($num,2)==0?$class="pair":$class="impair";
                 if($num == 0){
-                    $out .= '<tr>';
+                    $out .= '<tr id="products_title">';
                     $out .= '<td width="150px" class="multiple_header_table"></td>';
                     mysqli_data_seek($res, 0);
                     while($obj = $this->db->fetch_array($res)){

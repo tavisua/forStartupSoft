@@ -426,7 +426,7 @@ function showProposition($proposed_id,$contactid=0){
 //                <td colspan="9"><button onclick="SaveResultProporition('.$contactid.');">Зберегти результати перемовин</button></td>
 //            </tr>';
     $out .='</tbody></table>';
-    $out .='<div style="width: 100%; background-color: white"><button id="savebutton" onclick="SaveResultProporition('.$contactid.','.$LastActionID.', '.$proposed_id.', true);">Зберегти результати перемовин</button></div>';
+    $out .='<div style="width: 100%; background-color: white"><button id="savebutton" onclick="GetFormSavingResultProposition('.$contactid.','.$LastActionID.', '.$proposed_id.', true);">Зберегти результати перемовин</button></div>';
     $out.='<style>
             div#BasicInformation, div#PriceOffers, div#OtherInformationOffers{
                 font-size: 12px;
@@ -831,8 +831,6 @@ function ShowActionTable(){
 
             if (isset($nextaction[$row->rowid])) {
                 $row->date_next_action = $nextaction[$row->rowid];
-//            var_dump($nextaction[$row->rowid]);
-//            die();
             }
             $dtNextAction = new DateTime($row->date_next_action);
             $dtDateMentor = new DateTime($row->date_mentor);
@@ -879,9 +877,22 @@ function ShowActionTable(){
                 $iconitem = $row->icon;
             }
             $dateaction = new DateTime($row->datep);
+            $type_icon = '';
+            switch ($row->type){
+                case 'w':{
+                    $type_icon = '<div style="float: right; margin-top: -15px" title="Час початку дії встановлено вручну"><img src="/dolibarr/htdocs/theme/eldy/img/object_task.png"></div>';
+                }break;
+                case 'a':{
+                    $type_icon = '<div style="float: right; margin-top: -15px" title="Дія створена автоматично"><img src="/dolibarr/htdocs/theme/eldy/img/object_task.png"></div>';
+                }break;
+            }
+//            if(755273 == $row->answer_id){
+//                var_dump($row->result_of_action);
+//                die();
+//            }
             $out .= '<tr class="' . (fmod($num++, 2) == 0 ? 'impair' : 'pair') . '" name="'.$row->rowid.'">';
             $out .= '<td rowid="' . $row->rowid . '" id = "' . $row->rowid . 'dtAction" style="width: 80px" class="middle_size">' . (empty($row->datep) ? '' : ($dateaction->format('d.m.y') . '</br>' . $dateaction->format('H:i'))) .
-                (!empty($row->type) ? '<div style="float: right; margin-top: -15px" title="Час початку дії встановлено вручну"><img src="/dolibarr/htdocs/theme/eldy/img/object_task.png"></div>' : '') . '</td>';
+                $type_icon . '</td>';
             $out .= '<td rowid="' . $row->rowid . '" id = "' . $row->rowid . 'dtChange" style="width: 80px" class="middle_size">' . (empty($row->datec) ? '' : $dtChange->format('d.m.y ').'</br>'.$dtChange->format('H:i')) . '</td>
             <td rowid="' . $row->rowid . '" id = "' . $row->rowid . 'lastname" style="width: 100px" class="middle_size">' . $row->lastname . '</td>
             <td rowid="' . $row->rowid . '" id = "' . $row->rowid . 'contactname" style="width: 80px" class="middle_size">' . $row->contactname . '</td>
@@ -896,7 +907,7 @@ function ShowActionTable(){
             <td rowid="' . $row->rowid . '" id = "' . $row->rowid . 'said_important" style="width: 80px" class="middle_size">' . (strlen($row->said_important) > 20 ? mb_substr($row->said_important, 0, 20, 'UTF-8') . '...' .
                     '<input id="_' . $row->rowid . 'said_important" type="hidden" value="' . $row->said_important . '">' : $row->said_important) . '</td>
             <td '.(empty($row->result_of_action)?' title="Натисніть, аби вказати результат перемовин"':'').' rowid="' . $row->rowid . '" answer_id="' . $row->answer_id . '" id = "' . $row->rowid . 'result_of_action" style="width: 80px; '.(empty($row->result_of_action)?'text-align:right; background: url(/dolibarr/htdocs/theme/eldy/img/hand.png) no-repeat; opacity:0.1':'').'" class="middle_size result_of_action">' . (strlen($row->result_of_action) > 20 ? mb_substr($row->result_of_action, 0, 20, 'UTF-8') . '...' .
-                    '<input id="_' . $row->rowid . 'result_of_action" type="hidden" value="' . $row->result_of_action . '">' : '') . '</td>
+                    '<input id="_' . $row->rowid . 'result_of_action" type="hidden" value="' . $row->result_of_action . '">' : $row->result_of_action) . '</td>
             <td rowid="' . $row->rowid . '" id = "' . $row->rowid . 'work_before_the_next_action" style="width: 80px" class="middle_size">' . (strlen($row->work_before_the_next_action) > 20 ? mb_substr($row->work_before_the_next_action, 0, 20, 'UTF-8') . '...' .
                     '<input id="_' . $row->rowid . 'work_before_the_next_action" type="hidden" value="' . $row->work_before_the_next_action . '">' : $row->work_before_the_next_action) . '</td>
             <td rowid="' . $row->rowid . '" id = "' . $row->rowid . 'date_next_action" style="width: 80px" class="middle_size">' . (empty($row->date_next_action) ? '' : $dtNextAction->format('d.m.y H:i:s')) . '</td>

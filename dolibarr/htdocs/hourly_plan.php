@@ -184,7 +184,10 @@ while($row = $db->fetch_object($res)) {
         if ($row->percent <=0)
             $status = 'Не розпочато';
         else {
-            $status = $callstatus[(empty($row->callstatus) ? 2 : $row->callstatus)];
+            if($row->percent != 80)
+                $status = $callstatus[(empty($row->callstatus) ? 2 : $row->callstatus)];
+            else
+                $status = "Потрібно доввести дані";
 //            if($row->rowid == 36782)
 //                die($status);
             if($status == 'виконано')
@@ -200,6 +203,7 @@ while($row = $db->fetch_object($res)) {
         else
             $status = 'Виконано';
     }
+
     $datep = new DateTime($row->datep);
     $datep2 = new DateTime($row->datep2);
     $DiffSec = (mktime($datep2->format('H'), $datep2->format('i'), $datep2->format('s'), $datep2->format('m'), $datep2->format('d'), $datep2->format('Y')) -
@@ -228,7 +232,7 @@ while($row = $db->fetch_object($res)) {
            <div class="task_cell" style="float: left; width: 152px">'. (mb_strlen(trim($row->lastname), 'UTF-8')>25?mb_substr(trim($row->lastname), 0,25,'UTF-8').'...':trim($row->lastname)) . '</div>
            <div class="task_cell note" style="float: left; width: 202px;">' . $taks . '</div>
            <div class="task_cell" style="float: left; width: 152px;">' .(mb_strlen(trim($row->confirmdoc), 'UTF-8')>25?mb_substr(trim($row->confirmdoc), 0,25,'UTF-8').'...':trim($row->confirmdoc)). '</div>
-           <div class="task_cell" style="float: left; width: 130px;">' . $status . '</div>';
+           <div class="task_cell" style="float: left; width: 130px;'.(trim($row->code)=='AC_TEL'&&$row->percent==80?"color:red;":"").'">' . $status . '</div>';
     if($user->id == $row->fk_user_author) {
         $task_table .= '<div id="action'.$row->rowid.'" class="task_cell" style="float: left; width: 40px; border-color: transparent"><img class="action" id="edit'.$row->rowid.'" onclick="EditAction('.$row->rowid.',0,'."'".strtoupper($row->code)."'".');" title="Редагувати дію" src="theme/eldy/img/edit.png">';
         $task_table .= '&nbsp;&nbsp;<img id="del'.$row->rowid.'" class="action" onclick="DelAction(' . $row->rowid . ');" title="Видалити дію" src="/dolibarr/htdocs/theme/'.$conf->global->MAIN_THEME.'/img/delete.png">';

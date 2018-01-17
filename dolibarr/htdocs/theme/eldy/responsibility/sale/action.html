@@ -28,19 +28,20 @@
 </br>
 <div style="width: 100%; height: 40px"></div>
 <div>
-    <form method="post" action="/dolibarr/htdocs/societe/addcontact.php">
-        <input id="url" type="hidden" value="<?echo $_SERVER['REQUEST_URI']?>" name="url">
-        <input id="mainmenu" type="hidden" value="companies" name="mainmenu">
-        <input id="idmenu" type="hidden" value="5217" name="idmenu">
-        <input id="user_id" type="hidden" value="1" name="user_id">
-        <input id="socid" type="hidden" value="<?echo $socid?>" name="socid">
-        <input id="action" type="hidden" value="add" name="action">
-        <button id="addcontact" type="submit">    Додати контакт    </button>
-    </form>
-    <button id="showhide_contactlist" onclick="ShowHideContactList($('#showhide_contactlist'));">    Скрити контакти    </button>
-    <button id="showcontragentcard" onclick="ShowContragentCard($('#showcontragentcard'));" style="position: relative;">    Картка контрагента    </button>
-    <button id="AutoCallBtn" style="float: left" onclick="AutoCall()" title="Розпочати автоматичний набір дзвінків, запланованих на вибраний день"><img src="/dolibarr/htdocs/theme/eldy/img/1rightarrow.png"> Автонабір </button>
-
+    <div>
+        <form method="post" action="/dolibarr/htdocs/societe/addcontact.php">
+            <input id="url" type="hidden" value="<?echo $_SERVER['REQUEST_URI']?>" name="url">
+            <input id="mainmenu" type="hidden" value="companies" name="mainmenu">
+            <input id="idmenu" type="hidden" value="5217" name="idmenu">
+            <input id="user_id" type="hidden" value="1" name="user_id">
+            <input id="socid" type="hidden" value="<?echo $socid?>" name="socid">
+            <input id="action" type="hidden" value="add" name="action">
+            <button id="addcontact" type="submit">    Додати контакт    </button>
+        </form>
+        <button id="showhide_contactlist" onclick="ShowHideContactList($('#showhide_contactlist'));">    Скрити контакти    </button>
+        <button id="showcontragentcard" onclick="ShowContragentCard($('#showcontragentcard'));" style="position: relative;">    Картка контрагента    </button>
+        <button id="AutoCallBtn" style="float: left" onclick="AutoCall()" title="Розпочати автоматичний набір дзвінків, запланованих на вибраний день"><img src="/dolibarr/htdocs/theme/eldy/img/1rightarrow.png"> Автонабір </button>
+    </div>
     <table id="contactlist">
         <thead>
         <tr class="header_table">
@@ -364,7 +365,6 @@
                         console.log('Контакт не визначено');
                     }
                 }else if($('#AutoCallBtn').attr('caption') == 'До наступного дзвінка'){
-                    AutoCreateAction();
                     //Зберігаю пропозиції, які не були збережені
                     var not_saved_proposition = [];
                     $('div.setdate').each(function (index, elem) {
@@ -375,21 +375,6 @@
                         }
                     })
                     var param;
-
-//                    //Автоматичне створення нової дії
-//                    param= {
-//                        type:'get'
-//                        ,action:'autoCreateAction'
-//                        ,actionid:getParameterByName('actionid')
-//                    }
-//                    $.ajax({
-//                        url: '/dolibarr/htdocs/comm/action/index.php',
-//                        data: param,
-//                        cache: false,
-//                        success: function(res){
-//                            console.log('autoCreateAction', res);
-//                        }
-//                    })
                     if (not_saved_proposition.length) {//якщо є незбережені пропозиції
                         param = {
                             type: 'get',
@@ -416,9 +401,7 @@
                         data:param,
                         cache:false,
                         success: function(res){
-                            var action = JSON.parse(res);
-                            var date = new Date(action.datep*1000);
-                            AutoCallForDate(convertDate(date));
+                            AutoCreateAction(false, true);
                         }
                     })
                 }
@@ -502,6 +485,7 @@
                     "&action_id="+$('#callStatus').attr('rowid')+"&answer_id="+answer_id+"&actioncode=&socid="+getParameterByName('socid')+"&onlyresult=&complete=&actioncode=AC_TEL&action="+
                     (answer_id == 0?"addonlyresult":"updateonlyresult");
         }
+        AutoCreateAction(false, true);//Автоматичне створення наступної дії
     }
     function CloseCallStatus(){
         $('#callStatus').hide();

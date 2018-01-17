@@ -1,0 +1,422 @@
+<?=$username?>
+<table>
+    <tr>
+        <td>
+            <div style="float: left" xmlns="http://www.w3.org/1999/html">
+                <form id="seldate" action='<?echo $_SERVER["REQUEST_URI"]?>' method="post" >
+                    <table>
+                        <tr>
+                            <td>
+                                На дату
+                            </td>
+                            <td style="vertical-align: middle">
+                                <div style="height: 30px" >
+                                    <div style="float: left;"><input id="date" class="ui-autocomplete-input" type="text" readonly="true" autofocus="autofocus" value="<?echo $date?>" name="date" autocomplete="off" size="10" maxlength="10">
+                                        <button onclick="setdate();" class="dpInvisibleButtons" type="button" id="apButton"><img border="0" class="datecallink" title="Select a date" alt="" src="/dolibarr/htdocs/theme/eldy/img/object_calendarday.png"></button>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </form>
+            </div>
+            <div style="float: left"><form id="addaction" action="/dolibarr/htdocs/comm/action/card.php" method="post">
+                <input type="hidden" name="backtopage" value="'<?echo $backtopage?>'">
+                <input type="hidden" name="action" value="create" id="action">
+                <input type="hidden" name="mainmenu" value="hourly_plan">
+                <input type="hidden" name="id" value="" id="id">
+                <input type="hidden" name="datep" value="20151130100000">
+                <button type="submit" title="Додати запис в таблицю 'Дії'"> Додати дію </button>
+            </form>
+            </div>
+            <button style="float: left" onclick="ReCalcAction('<?=$dateQuery->format("Y-m-d")?>');" title="Оптимізує завантаження на поточний день"> Перерахувати </button>
+            <!--<button id="AutoCallBtn" style="float: left" onclick="AutoCallForDate('<?=$dateQuery->format("Y-m-d")?>');" title="Розпочати автоматичний набір дзвінків, запланованих на вибраний день"><img src="/dolibarr/htdocs/theme/eldy/img/1rightarrow.png"> Автонабір </button>-->
+            <div></br></div>
+        </td>
+    </tr>
+    <tr>
+        <td>
+    <div style="position: relative; z-index: 0;"><?echo $table?></div>
+
+
+        </td>
+    </tr>
+</table>
+
+
+    <script>
+        $(window).load(function(){
+            window.location.hash="#8h0m";
+        })
+        $(window).focus(function () {
+            console.log('focus');
+        })
+        function ReCalcAction(date){
+            var param = {
+                datep: date,
+                id_usr: '<?=$user->id?>'
+            }
+            $.ajax({
+                url:'/dolibarr/htdocs/putch_time.php',
+                data: param,
+                cache: false,
+                success:function(result){
+                    if(result =='success_putchtime')
+                        location.reload();
+                    else
+                        console.log(result);
+                }
+            });
+        }
+        function HideAction(rowid){
+            var hide;
+            if($('tr#'+rowid).css('opacity') == 1) {
+                if(!confirm('Скрити дію з плану погодинно?'))
+                    return;
+                $('tr#' + rowid).css('opacity', 0.5);
+                hide = true;
+            }else {
+                if(!confirm('Відображати дію в плані погодинно?'))
+                    return;
+                $('tr#' + rowid).css('opacity', 1);
+                hide = false;
+            }
+            $.cookie('hideactionclick',1);
+            var param = {
+                hide:hide,
+                action_id:rowid,
+                action: 'hideAction'
+            }
+            $.ajax({
+                data: param,
+                cache:false
+            })
+
+        }
+        $('div').mouseout(function(e){
+            if(e.target.id != 'FullTask')
+                return;
+            $('#popupmenu').hide();
+            $.cookie('showfulltext', null);
+        })
+        $('div').click(function(e){
+            var cls = e.target.className;
+            console.log($(this).find('input').length);
+            if(strpos(cls, 'note')&& e.target.getElementsByTagName('input').length>0){
+                $.cookie('showfulltext', 'showed');
+                var tbody = e.target.parentNode.parentNode.parentNode;
+                var level = tbody.id.substr('tbody'.length);
+
+                var div = e.target;
+                var tr = e.target.parentNode.parentNode;
+                $('#popupmenu').css('width',350);
+                $('#popupmenu').css('height',100);
+                $('#popupmenu').css('top',0);
+                $('#popupmenu').css('z-index',10);
+                var fullText='';
+                var input=div.getElementsByTagName('input');
+                fullText = input[0].value;
+
+                $('#popupmenu').html('<textarea id="FullTask" style="width: 100%;height: 100%">'+fullText+'</textarea>');
+                $('#popupmenu').show();
+                $('#popupmenu').offset({top:tr.offsetTop+$('#taskfield').offset().top,left:tr.offsetLeft+$('#taskfield').offset().left+400});
+            }
+        })
+        var AutoCallImg = $('#AutoCallBtn').find('img')[0];
+        document.onfocus = function (){
+            if(strpos($(AutoCallImg).attr('src'), 'pause.png')) {
+                console.log('test');
+                $.ajax({
+                    url:'/dolibarr/htdocs/hourly_plan.php',
+                    cache:false,
+                    action:'getAutoCallStatus',
+                    success:function (result) {
+                        
+                    }
+                })
+                
+            }
+        }
+        $(document).ready(function(){
+            var tr = $(document).find('tr');
+//            $.each(tr, function (key, value) {
+//                if($(value).attr('id')!=undefined) {
+//                    console.log(value, $(value).height());
+//                }
+//            })
+            $('#loading_img').hide();
+
+//            console.log($('#tasklist0').height(), 'px');
+//            $('#tasklist1').offset({top:-$('#tasklist0').height()});
+            function DelAction(){
+                ClickType='delete';
+            }
+            $('.tasklist').mousedown(function(e){
+                var pos = $(this).offset();
+                var elem_left = pos.left;
+                var elem_top = pos.top;
+                // положение курсора внутри элемента
+                var Xinner = e.pageX - elem_left;
+                var Yinner = e.pageY - elem_top+8;
+
+                if(e.target.id.length>0 && $('#'+e.target.id).hasClass('action')) {
+//                console.log(elem_left, Xinner, e.target.id, e.target.className);
+                    return;
+                }
+//                console.log($('#'+e.target.id), e.target, e.target.parentElement);
+                var td = e.target.parentElement;
+                var div = td.getElementsByTagName('div');
+                var div_tmp = div[6];
+//                console.log(strpos(div[6].innerText, 'input') == false, 'input');
+                if(div[6].innerText.trim().length == 0 || strpos(div[6].innerText, 'input') == false)
+                    $.cookie('showfulltext','');
+                if(e.which != 1)
+                    return;
+//console.log($.cookie('showfulltext') == 'showed', $.cookie('hideactionclick') == 1);
+                if($.cookie('showfulltext') == 'showed' || $.cookie('hideactionclick') == 1) {
+                     $.cookie('hideactionclick',null);
+                    return;
+                }
+//                console.log($.cookie('showfulltext'));
+//                return;
+
+
+//                console.log("X: " + Xinner + " Y: " + Yinner); // вывод результата в консоль
+                var tbody = $('.tasklist').find('tbody');
+                var task_id = 0;
+                var bEdit = false;
+                for(var i = tbody.length-1; i>=0; i--) {
+                    if(task_id != 0)break;
+                    var item = tbody[i];
+                    var tr = $('#'+item.id).find('tr');
+                    var TotalHeight=0;
+                    for(var t = 0; t<tr.length; t++){
+                        TotalHeight += tr[t].clientHeight;
+                        if(TotalHeight >= Yinner){
+//                            console.log(tr[t].id);
+                            if(tr[t].id.substr(0, 'empty'.length)!='empty') {
+                                task_id = tr[t].id;
+                                if($('#'+tr[t].id).width() - 40 < Xinner) {
+                                        bEdit = true;
+                                }
+//                                console.log('width', $('#'+tr[t].id).width());
+                            }
+                            break;
+                        }
+                    }
+                }
+                if(task_id == 0)
+                    return;
+//                console.log($('#'+tr[t].id).offset(), Yinner, task_id);
+//                return;
+//                if(bEdit == true) {
+//                    var backtopage = location.pathname+location.search;
+//                    backtopage = backtopage.replace(/\=/g,'%3D')
+//                    backtopage = backtopage.replace(/\?/g,'%3F')
+//                    backtopage = backtopage.replace(/\//g,'%2F')
+//                    backtopage = backtopage.replace(/\&/g,'%26')
+////                    console.log(location.pathname+location.search);
+////                    return;
+//                    location.href = '/dolibarr/htdocs/comm/action/card.php?action=edit&id='+task_id+'&backtopage='+backtopage;
+////                    console.log($("a#mainmenua_hourly_plan").attr('href'));
+//                    return;
+//                }
+                console.log($('tr#'+task_id).attr('actions'));
+                $.ajax({
+                    url:'/dolibarr/htdocs/day_plan.php?action=gettaskcode&rowid='+task_id,
+                    cache:false,
+                    success: function(code){
+                        var mainmenu = '';
+                        var socid = code.substr(strpos(code, '&')+1);
+                        code = code.substr(0, strpos(code, '&'))
+
+                        switch(code){
+                            case 'AC_GLOBAL':{
+                                mainmenu = 'global_task&idmenu=10421'
+                            }break;
+                            case 'AC_CURRENT':{
+                                mainmenu = 'current_task&idmenu=10423';
+                            }break;
+                            default:{
+                                mainmenu = 'area&idmenu=10425';
+                            }
+                        }
+                        var link = '';
+                        if($('tr#'+task_id).attr('actions')== undefined && (code == 'AC_GLOBAL' || code == 'AC_CURRENT'||socid.length == 0))
+                            link = '/dolibarr/htdocs/comm/action/chain_actions.php?action_id='+task_id+'&mainmenu='+mainmenu;
+                        else{
+//                            return;
+//                            var backtopage = location.pathname+location.search;
+//                            backtopage = backtopage.replace(/\=/g,'%3D')
+//                            backtopage = backtopage.replace(/\?/g,'%3F')
+//                            backtopage = backtopage.replace(/\//g,'%2F')
+//                            backtopage = backtopage.replace(/\&/g,'%26')
+//                            link = '/dolibarr/htdocs/comm/action/result_action.php?mainmenu=area&id='+task_id+'&socid='+socid+'&onlyresult=&complete=&actioncode=AC_TEL&action=updateonlyresult&backtopage='+backtopage;
+//                            console.log(backtopage);
+//                            return;
+//                            '/dolibarr/htdocs/comm/action/result_action.php?mainmenu=area&backtopage='%2Fdolibarr%2Fhtdocs%2Fresponsibility%2Fsale%2Faction.php%3Fsocid%3D9648%26idmenu%3D10425%26mainmenu%3Darea%26idmenu%3D10425'&id=40383&socid=9648&onlyresult=&complete=&actioncode=AC_TEL&action=updateonlyresult'
+                            link = '/dolibarr/htdocs/responsibility/sale/action.php?socid='+socid+'&idmenu=10425&mainmenu='+mainmenu;
+                        }
+
+
+//                        return;
+                        if('<?=($conf->browser->name)?>' == 'chrome') {
+
+                            window.open(link, '_blank', 'toolbar=yes, location=yes, status=yes, menubar=yes, scrollbars=yes');
+                        }else {
+                            window.open(link);
+                        }
+//                        window.open(link, '_blank', 'toolbar=yes, location=yes, status=yes, menubar=yes, scrollbars=yes');
+
+                    }
+                })
+            })
+//            location.hash = '8h0m';
+            $('#schedule_body').attr('height', window.innerHeight - 250);
+//            $('.fiche').attr('height', window.innerHeight - 250);
+            $('#date').change(function(){
+                $('#seldate').submit();
+            });
+            var basic_top =$('#taskfield').offset().top;
+            $('div.split').hide();
+
+            var ua = navigator.userAgent;
+            var bName = function () {
+                if (ua.search(/MSIE/) > -1) return "ie";
+                if (ua.search(/Firefox/) > -1) return "firefox";
+                if (ua.search(/Opera/) > -1) return "opera";
+                if (ua.search(/Chrome/) > -1) return "chrome";
+                if (ua.search(/Safari/) > -1) return "safari";
+                if (ua.search(/Konqueror/) > -1) return "konqueror";
+                if (ua.search(/Iceweasel/) > -1) return "iceweasel";
+                if (ua.search(/SeaMonkey/) > -1) return "seamonkey";}();
+            var dt = new Date();
+            for(var priority = 0; priority<=10000; priority++) {
+                var taskfield = document.getElementById('tasklist'+priority);
+//                console.log(taskfield);
+                if(taskfield == null)
+                    break;
+//                if(priority>0)
+//                    taskfield.remove();
+                var task = taskfield.getElementsByTagName('tr');
+//                var zIndex = -100;
+//                console.log(task);
+//                return;
+                for (var i = 0; i < task.length; i++) {
+                    if(priority != 0)
+                        $('#tasklist'+priority).offset({top: $('#tasklist'+priority).offset().top});
+//                    if(priority != 0)
+//                        console.log(task[i].id);
+                    if (task[i].id.substr(0, 5) != "empty") {
+                        SetTaskParam(i > 0 ? task[i - 1] : null, task[i]);
+                    }
+                    if (i + 1 == task.length) {
+                        var div = task[i].getElementsByTagName('div');
+                        for (var d = 0; d < div.length; d++) {
+                            div[d].style.height = task[i].style.height;
+//                            console.log(div[d].id, div[d].style.height);
+//                            if(priority != 0){
+//                                div[d].style.height = 50;
+//                            }
+                        }
+                    }
+                }
+            }
+////            $('table.tasklist').height(200);
+//            console.log($('div#tasklist').height(), $('#tasklist1').offset().top);
+//            taskfield = document.getElementById('tasklist1');
+//            task = taskfield.getElementsByTagName('tr');
+//            zIndex = 1;
+//            for(var i = 0; i<task.length; i++){
+//                if(task[i].id.substr(0,5)!="empty"){
+//                    SetTaskParam(i>0?task[i-1]:null, task[i]);
+//                }
+//                if(i+1 == task.length ){
+//                    var div = task[i].getElementsByTagName('div');
+//                    for(var d = 0; d<div.length; d++)
+//                        div[d].style.height  = task[i].style.height;
+//                }
+//            }
+
+            if(dt.getHours()>=8 && dt.getHours()<=18) {
+                var time = dt.getHours() + ":" + dt.getMinutes() + ":" + dt.getSeconds();
+                var td = $('td#' + dt.getHours() + 'h' + (Math.floor(dt.getMinutes() / 10) * 10) + 'm');
+
+                var min_height = (dt.getMinutes() - Math.floor(dt.getMinutes() / 10) * 10) / 10 * td.outerHeight();
+                //    console.log();
+//                $('div#currenttime').offset({top: 50});
+                $('div#currenttime').offset({top: td.offset().top + min_height});
+
+//            if(bName == 'chrome'){
+//                div1[0].style.outerWidth='55px';
+//                alert(div1[div1.length-1].style.outerWidth);
+//            }
+            }else{
+                $('div#currenttime').hide();
+
+            }
+        })
+//        function EditAction(rowid){
+//            $('#id').val(rowid);
+//            $('#action').val('edit');
+//            $('#addaction').submit();
+//        }
+//        function RedirectToAction(rowid){
+//            return;
+//            var tr = document.getElementById(rowid);
+//            console.log(tr);
+//        }
+        function SetTaskParam(prev, task){
+//            console.log(task);
+//            if(task.id == '2113'){
+//                console.log(prev, task);
+//            }
+//            if(prev != null)
+//                console.log('SetTaskParam', prev.id.substr(0,5), prev, task);
+//            if(prev == null)return;
+            var div = task.getElementsByTagName('div');
+            if(prev != null && prev.id.substr(0,5)=="empty") {
+                var start_time = div[1].innerHTML;
+
+                td = $('td#' + parseInt(start_time.substr(0, 2)) + 'h' + (Math.floor(parseInt(start_time.substr(3, 2)) / 10) * 10) + 'm');
+                start_time = parseInt(start_time.substr(3, 2));
+                var min_height = (start_time - Math.floor(start_time / 10) * 10) / 10 * td.outerHeight();
+                var top = td.offset().top + min_height;
+//                console.log('task', task);
+
+                $("#" + prev.id).height(top - $("#" + prev.id).offset().top);
+            }
+
+            var end_time = div[3].innerHTML;
+            td = $('td#' + parseInt(end_time.substr(0, 2)) + 'h' + (Math.floor(parseInt(end_time.substr(3, 2)) / 10) * 10) + 'm');
+            end_time = parseInt(end_time.substr(3, 2));
+            min_height = (end_time - Math.floor(end_time / 10) * 10) / 10 * td.outerHeight();
+            var button = td.offset().top + min_height;
+            if('<?=$conf->browser->name?>' == 'chrome'){
+                $("#" + task.id).find('td').height(button - $("#" + task.id).offset().top);
+            }else
+                $("#" + task.id).height(button - $("#" + task.id).offset().top);
+        }
+    </script>
+    <!--<script>-->
+        <!--jQuery(function($) {-->
+<!--//            $.mask.definitions['~']='[+-]';-->
+            <!--$('#date').mask('99.99.9999');-->
+            <!--$('#mobile_phone1').mask('(999) 999-9999');-->
+            <!--$('#mobile_phone2').mask('(999) 999-9999');-->
+            <!--$('#phoneext').mask("(999) 999-9999? x99999");-->
+            <!--$("#tin").mask("99-9999999");-->
+            <!--$("#ssn").mask("999-99-9999");-->
+            <!--$("#product").mask("a*-999-a999");-->
+            <!--$("#eyescript").mask("~9.99 ~9.99 999");-->
+        <!--});-->
+    <!--</script>-->
+    <script>
+        function setdate(){
+            showDP('/dolibarr/htdocs/core/','date','dd/MM/yyyy','uk_UA');
+        }
+
+    </script>
+
+</div>
+

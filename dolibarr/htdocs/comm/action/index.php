@@ -326,6 +326,24 @@ if($_REQUEST['action'] == 'setAutoCallStatus') {
     exit();
 }
 if($_REQUEST['action'] == 'getNotInterestingForm'){
+    $out='<table class="scrolling-table" style="background: #ffffff; width: 100%">
+            <input type="hidden" id="actionid" name="actionid" value="'.$LastActionID.'">
+            <thead><tr class="multiple_header_table"><th class="middle_size" colspan="9" style="width: 100%">Суть пропозиції для посади </th>
+            <a class="close" style="margin-left: -160px" onclick="ClosePopupMenu($(this));" title="Закрити"></a>
+                </tr>
+                </thead>
+            <tbody  id="bodyProposition">';
+    print $out;
+    if(!empty($_REQUEST['title']))
+        $said = $_REQUEST['title'];
+    $object = new ArrayObject();
+    if(!empty($_REQUEST['need'])) {
+        $object->answer = $_REQUEST['need'];
+    }
+    require_once DOL_DOCUMENT_ROOT.'/theme/eldy/responsibility/sale/not_interesting_form.html';
+    exit();
+}
+if($_REQUEST['action'] == 'getInterestingForm'){
     $out='<table class="scrolling-table" style="background: #ffffff; width: auto">
             <input type="hidden" id="actionid" name="actionid" value="'.$LastActionID.'">
             <thead><tr class="multiple_header_table"><th class="middle_size" colspan="9" style="width: 100%">Суть пропозиції для посади </th>
@@ -339,12 +357,17 @@ if($_REQUEST['action'] == 'getNotInterestingForm'){
 }
 if(in_array($_REQUEST['action'],  ['SaveResultAction','setNotInterestingProposed'])){
 //    require_once $_SERVER['DOCUMENT_ROOT'].'/dolibarr/htdocs/comm/action/result_action.php';
+    if(empty($_REQUEST["actionid"])){
+        $autoaction = new ActionComm($db);
+        $_REQUEST["actionid"] = $autoaction->GetNotExecActionsID($_REQUEST['socid'],$_REQUEST['contactid'],null)[0];
+    }
     save_resultaction($_REQUEST['rowid']);
     exit();
 }
 if($_REQUEST['action'] == 'autoCreateAction') {
     if(empty($_SESSION['autocall_id']))
         $_SESSION['autocall_id'] = [];
+    $_SESSION['autocall_id'] = [];
     if(!in_array($_REQUEST["actionid"], $_SESSION['autocall_id'])) {
         $_SESSION['autocall_id'][]=$_REQUEST["actionid"];
         if(!$_REQUEST['onlymark']) {
@@ -360,12 +383,16 @@ if($_REQUEST['action'] == 'autoCreateAction') {
                 $date->add(new DateInterval('P10D'));
             else
                 $date->add(new DateInterval('P7D'));
+            if(in_array($date->format('N'), array(6,7))){//На перший робочий день
+                $date->add(new DateInterval('P'.(8-$date->format('N')).'D'));
+            }
             $exec_minuted = ($autoaction->datef - $autoaction->datep) / 60;
             $freetime = $autoaction->GetFreeTime($date->format("Y-m-d"), $user->id, $exec_minuted, 0);
             $date = new DateTime($freetime);
             $autoaction->datep = mktime($date->format('H'), $date->format('i'), $date->format('s'), $date->format('m'), $date->format('d'), $date->format('Y'));
             $autoaction->datef = $autoaction->datep + $exec_minuted * 60;
             $autoaction->percentage = -1;
+            $autoaction->typeSetOfDate = 'a';
             $autoaction->add($user);
         }
     }
@@ -1496,12 +1523,10 @@ function save_resultaction($rowid, $createaction = false, $action_id = null){
         else $sql.='"'.$db->escape($_REQUEST['need']).'",';
         if(empty($_REQUEST['fact_cost'])) $sql.='null,';
         else $sql.=$db->escape($_REQUEST['fact_cost']).',';
-//        if(empty($_REQUEST['date_next_action'])) $sql.='null,';
-//        else {
-//            $date = new DateTime($_REQUEST['date_next_action']);
-//            $value = $date->format('Y-m-d');
-//            $sql .= '"' .$value . '",';
-//        }
+//        echo '<pre>';
+//        var_dump($_REQUEST);
+//        echo '</pre>';
+//        die();
         $sql .= $user->id.(empty($_REQUEST['proposed_id'])?'':(','.($_REQUEST['action']=='setNotInterestingProposed'?0:1))).")";
     }else {
         $sql = 'update llx_societe_action set ';

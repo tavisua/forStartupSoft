@@ -54,7 +54,7 @@ class ActionComm extends CommonObject
     var $type;			// Label into parent table llx_c_actioncomm (used only if option to use type is set)
     var $type_color;	// Color into parent table llx_c_actioncomm (used only if option to use type is set)
     var $code;			// Free code to identify action. Ie: Agenda trigger add here AC_TRIGGERNAME ('AC_COMPANY_CREATE', 'AC_PROPAL_VALIDATE', ...)
-    var $typeSetOfDate; //Вариант встановлення початку та кінця виконання дії. Якщо null - автоматично. Якщо w - вручну
+    var $typeSetOfDate; //Вариант встановлення початку та кінця виконання дії. Якщо null - автоматично. Якщо w - вручну. a - автоматичне створення дії через період, що встановлено (7,10,21 день)
 
     var $label;
 
@@ -199,6 +199,22 @@ class ActionComm extends CommonObject
      *    @param    int		$notrigger		1 = disable triggers, 0 = enable triggers
      *    @return   int 		        	Id of created event, < 0 if KO
      */
+    function GetNotExecActionsID($socid,$contactid,$datep){
+        global $db;
+        if(empty($datep))
+            $datep = date('Y-m-d');
+        $actionsID = [];
+        $sql = "select id from llx_actioncomm where fk_soc = $socid
+            and date(datep) = '$datep'
+            and fk_contact = $contactid
+            and percent <> 100
+            order by datep desc";
+        $res = $db->query($sql);
+        while($obj = $db->fetch_object($res)){
+            $actionsID[]=$obj->id;
+        }
+        return $actionsID;
+    }
     function GetLastAction($action_id, $name){
         global $db;
         $sql = 'select id, datep from llx_actioncomm
@@ -520,24 +536,27 @@ class ActionComm extends CommonObject
         if(substr_count($inputdate, ':') == 1)
             $starttime = $inputdate.":00";
         $date = new DateTime($inputdate);
-//        var_dump($inputdate, $id_usr, $minutes, $prioritet, $parent_id);
+        if(empty($starttime))
+            $starttime = $date->format('Y-m-d H:i');
+//        var_dump($starttime, $date);
 //        die();
         $PlanTime = 0;
         while(!$PlanTime) {
             if($date->format('w')>0 && $date->format('w')<6)
                 $PlanTime = $this->GetFirstFreeTime($date->format('Y-m-d H:i'), $id_usr, $minutes, $prioritet, $starttime, $parent_id);
-            $date = new DateTime(date('Y-m-d', mktime(8,0,0,$date->format('m'),$date->format('d'),$date->format('Y'))+ 86400));
+            $date->add(new DateInterval('P1D'));
         }
+//        echo '<pre>';
 //        var_dump($PlanTime);
+//        echo '</pre>';
 //        die();
-
         return $PlanTime;
     }
     function GetFirstFreeTime($date, $id_usr, $minutes, $prioritet = 0, $starttime, $parent_id=0){
         $freetime = $this->GetFreeTimePeriod($date, $id_usr, $prioritet, false, $parent_id);
         $date = new DateTime($date);
 //        echo '<pre>';
-//        var_dump($freetime);
+//        var_dump($starttime, $date);
 //        echo '</pre>';
 //        die();
         if(empty($starttime))
@@ -564,9 +583,9 @@ class ActionComm extends CommonObject
 
             $itemDate = dol_mktime(intval(substr($period[0], 0,2)), intval(substr($period[0], 3,2)), intval(substr($period[0], 6,2)), intval(substr($period[2], 5,2)), intval(substr($period[2], 8,2)), intval(substr($period[2], 0,4)));
             $dtDate = new DateTime();
-//            var_dump($period, intval(substr($period[0], 0,2)), intval(substr($period[0], 3,2)), intval(substr($period[0], 6,2)), intval(substr($period[2], 5,2)), intval(substr($period[2], 8,2)), intval(substr($period[2], 0,4)));
-//            die();
             $dtDate->setTimestamp($itemDate);
+//            var_dump($dtDate, $period, $itemDate >= $starttime, $date);
+//            die();
 //            var_dump($minutes<=$period[1] && ($itemDate >= $starttime || $num == count($freetime)) && $dtDate->format('H')>=8 && $dtDate->format('H')<=18 &&
 //                ($dtDate->format('H')>=12&& $dtDate->format('H')<14  && $dtDate->format('Y-m-d') == $date->format('Y-m-d')));
 //            die();
@@ -575,7 +594,7 @@ class ActionComm extends CommonObject
                 $tmp_date = new DateTime($period[2].' '.$period[0]);
                 $mk_tmp_date = dol_mktime($tmp_date->format('H'),$tmp_date->format('i'),$tmp_date->format('s'),$tmp_date->format('m'),$tmp_date->format('d'),$tmp_date->format('Y'));
 //                var_dump($num, $period[2].' '.$period[0]);
-//                die('test');
+//                die('block1');
                 if($mk_tmp_date>=$starttime) {
 //                    die($period[2] . ' ' . $period[0]);
 
@@ -587,7 +606,7 @@ class ActionComm extends CommonObject
                 $tmp_date = new DateTime($period[2].' 14:00:00');
                 $mk_tmp_date = dol_mktime($tmp_date->format('H'),$tmp_date->format('i'),$tmp_date->format('s'),$tmp_date->format('m'),$tmp_date->format('d'),$tmp_date->format('Y'));
 //                var_dump( $itemDate+$period[1]*60-$mk_tmp_date);
-//                die('test');
+//                die('block2');
                 if($mk_tmp_date>=$starttime && $minutes<=$itemDate+$period[1]*60-$mk_tmp_date ) {
 //                    die($period[2] . ' 14:00:00');
                     return $period[2] . ' 14:00:00';
@@ -610,6 +629,7 @@ class ActionComm extends CommonObject
                 $mk_tmp_date = dol_mktime($tmp_date->format('H'),$tmp_date->format('i'),$tmp_date->format('s'),$tmp_date->format('m'),$tmp_date->format('d'),$tmp_date->format('Y'));
 //                var_dump(date('Y-m-d H:i:s', $mk_tmp_date));
 //                die('test');
+//                die('block4');
                 if($mk_tmp_date>=$starttime) {
 //                    die($period[2] . ' ' . $period[0]);
                     return $period[2] . ' ' . $period[0];
@@ -620,6 +640,8 @@ class ActionComm extends CommonObject
             }
 
             if($nexttime == 0 || ($minutes<=$period[1] && $minutes<=($nexttime - $starttime)/60 && $starttime < $nexttime && ($dtDate->format('H')<12&& $dtDate->format('H')>=14))){ //Виконується, коли до наступної дії є час чи дія перша на сьогодні
+//                die('block5');
+
                 $tmp_date = new DateTime($period[2].' '.$period[0]);
                 $mk_endperiod = dol_mktime($tmp_date->format('H'),$tmp_date->format('i'),$tmp_date->format('s'),$tmp_date->format('m'),$tmp_date->format('d'),$tmp_date->format('Y'))+$period[1]*60;
 //                var_dump(($mk_endperiod-$starttime)/60);

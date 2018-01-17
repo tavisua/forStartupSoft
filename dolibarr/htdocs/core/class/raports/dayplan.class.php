@@ -113,6 +113,8 @@ class DayPlan
     }
     function RefreshRaport(){//Перебудова всього звіту
         set_time_limit(0);
+        $this->CreateStaticPage();
+        die('');
         $this->ClearRaport();
 //        //Всього по компанії
         $sql = "select iDayIndex, sum(iCount) iCount, percent from $this->tmp_table group by iDayIndex, case when percent in (100, -100) then 100 else percent end";
@@ -393,525 +395,471 @@ die(1);
         }
     }
     function BuildRaport($responsibility, $id_usr){
-        require_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
-        $useraction = new User($this->db);
-        $useraction->fetch($id_usr);
-        $out='<tbody id="reference_body">';
-        switch ($responsibility){
-            case 'dir_depatment':{
-                //Найкращий співробітник системи
-                $sql = "select  statistic_action1.id from $this->statistictable where class_block = 'userlist' and action_code = 'TOTAL' order by fact_week desc limit 1";
-                $res = $this->db->query($sql);
-                $obj = $this->db->fetch_object($res);
-                $tmp_user = new User($this->db);
-                $tmp_user->fetch($obj->id);
-                $sql = "select name from `subdivision` where rowid = ".$tmp_user->subdiv_id;
-                $res = $this->db->query($sql);
-                $obj = $this->db->fetch_object($res);
-                $out.=$this->GetItem('userlist','TOTAL', $tmp_user,'Найкр.співр.сист. '.$tmp_user->lastname.' ('.$obj->name.')', true)[0]['html'];
-                //Найкращий директор департамента
-                $sql = "select  statistic_action1.id from $this->statistictable
-                inner join llx_user on llx_user.rowid = statistic_action1.id
-                inner join `responsibility` on `responsibility`.`rowid` = `llx_user`.`respon_id`
-                left join `responsibility` resp on `resp`.`rowid` = `llx_user`.`respon_id2`                
-                where 1
-                and 'dir_depatment' in (`responsibility`.`alias`, `resp`.`alias`)
-                and class_block = 'userlist' and action_code = 'TOTAL' order by fact_week desc limit 1";
-                $res = $this->db->query($sql);
-                $obj = $this->db->fetch_object($res);
-                $tmp_user = new User($this->db);
-                $tmp_user->fetch($obj->id);
-                $sql = "select name from `subdivision` where rowid = ".$tmp_user->subdiv_id;
-                $res = $this->db->query($sql);
-                $obj = $this->db->fetch_object($res);
-                $out.=$this->GetItem('userlist','TOTAL', $tmp_user,'Найкр.ДД.сист. '.$tmp_user->lastname.' ('.$obj->name.')', true)[0]['html'];
-                //Найкращий департамент
-                $sql = "select  statistic_action1.id, `subdivision`.`name` from `statistic_action1`
-                    inner join `subdivision` on `subdivision`.`rowid` = statistic_action1.id
-                    where class_block = 'subdivision' and action_code = 'TOTAL'
-                    order by fact_week desc
-                    limit 1";
-                $res = $this->db->query($sql);
-                $obj = $this->db->fetch_object($res);
-                $out.=$this->GetItem('subdivision','TOTAL', $obj,'Найкр.деп.сист. '.$obj->name, true)[0]['html'];
-            }break;
-            case 'sale':{
-                $out.=$this->GetItem('userlist','TOTAL',$useraction,'Всього задач')[0]['html'];
-//                die('Сторінка на ремонті');
-                $out.=$this->GetItem('userlist','AC_GLOBAL',$useraction,'Глобальні задачі(ТОПЗ)')[0]['html'];
-                $out.=$this->GetItem('userlist','AC_CURRENT', $useraction,'Поточні задачі')[0]['html'];
-                $out.=$this->GetItem('regions','TOTAL', $useraction,'Всього по напрямках')[0]['html'];
-                $sql = "select id from $this->statistictable where class_block = 'regions' and action_code = 'TOTAL' and id in ";
-                $sql.=" (select rowid from llx_user where subdiv_id = $useraction->subdiv_id and active = 1) order by total_week desc limit 1";
-                $res = $this->db->query($sql);
-                $obj = $this->db->fetch_object($res);
-                if($id_usr == $obj->id)
-                    $out.=$this->GetItem('regions','TOTAL', $useraction,'Найкращі показники по підрозділу ', true)[0]['html'];
-                else{
-                    $tmp_user = new User($this->db);
-                    $tmp_user->fetch($obj->id);
-                    $out.=$this->GetItem('regions','TOTAL', $tmp_user,'Найкращі показники по підрозділу '.$tmp_user->lastname, true)[0]['html'];
-                }
-                $regions = $this->GetItem('regions','ALL',$useraction, '', false, false);
-                $sql = "select `regions`.rowid, `regions`.`name`, states.`name` states_name from `regions`
-                    inner join states on states.rowid = `regions`.`state_id`
-                    where `regions`.`active` = 1
-                    and states.active = 1
-                    order by `regions`.`name`, states_name";
-                $res = $this->db->query($sql);
-                $regionsList = [];
-                while($obj = $this->db->fetch_object($res)){
-                    $regionsList[$obj->rowid] = array('region'=>$obj->name, 'states_name'=>$obj->states_name);
-                }
-
-                foreach ($regions as $region){
-                    if(!empty($regionsList[$region['id']])){
-                        $region_name = '<td>'.$regionsList[$region['id']]['states_name'].'</td><td>'.$regionsList[$region['id']]['region'].'</td>';
-                    }else{
-                        $region_name = '<td>Район</td><td>не вказано</td>';
-                    }
-                    $out.= '<tr>'.$region_name.'<td></td>'.$region['html'].'</tr>';
-
-                }
-                $out.=$this->GetItem('userlist','AC_PROJECT',$useraction,'Проекти',true)[0]['html'];
-                $out.=$this->GetItem('userlist','AC_EDUCATION',$useraction,'Навчання',true)[0]['html'];
-                $out.=$this->GetItem('userlist','AC_INITIATIV',$useraction,'Ініціативи',true)[0]['html'];
-            }break;
-        }
-        $out.='</tbody>';
-        return $out;
-    }
-    function GetItem($class_block, $action_code, $object, $title='title', $bestvalue = false, $addTR = true){
-        switch ($class_block) {
-            default: {
-                $sql = "select id,html from $this->statistictable where id_usr = $object->id and class_block = '$class_block'";
-                if ($action_code == 'ALL')
-                    $sql .= " and action_code <> 'TOTAL'";
-                else
-                    $sql .= " and action_code='$action_code'";
-            }break;
-            case 'subdivision':{
-                if ($action_code != 'ALL'){
-                    $sql = "select id,html from $this->statistictable where id = $object->id and class_block = '$class_block' and action_code = '$action_code'";
-                }
-            }break;
-        }
-//        global $user;
-//        if($user->id == 125)
-//            die($sql);
-        $res = $this->db->query($sql);
-        $out = [];
-
-        if($this->db->num_rows($res) == 0){
-            if ($addTR)
-                $html = '<tr ' . ($bestvalue ? 'class ="bestvalue"' : '') . '>';
-            for ($i = 0; $i < 29; $i++) {
-                $html .= '<td '.($i==0?'colspan=3':'').'>'.($i==0?'<b>' . $title . '</b>':'&nbsp;').'</td>';
-            }
-            if ($addTR)
-                $html .= '</tr>';
-            $out[] = array('id' => 0, 'html' => $html);
-        }else {
-            while ($item = $this->db->fetch_object($res)) {
-                $html = '';
-                if ($addTR)
-                    $html = '<tr ' . ($bestvalue ? 'class ="bestvalue"' : '') . '>';
-                if ($action_code != 'ALL')
-                    $html .= '<td class="middle_size" colspan="3"><b>' . $title . '</b></td>' . $item->html;
-                else
-                    $html .= $item->html;
-                if ($addTR)
-                    $html .= '</tr>';
-
-                $out[] = array('id' => $item->id, 'html' => $html);
-            }
-            if ($res->num_rows == 0) {//Якщо запит не вернув результат
-                $html = '';
-                if ($addTR)
-                    $html = '<tr ' . ($bestvalue ? 'class ="bestvalue"' : '') . '>';
-                $html .= $this->emptyItem;
-                if ($addTR)
-                    $html .= '</tr>';
-                $out[] = array('id' => $item->id, 'html' => $html);
-            }
-//        if($action_code == 'AC_EDUCATION'){
-//            echo '<pre>';
-//            var_dump($out);
-//            echo '</pre>';
-//            die();
+//        require_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
+//        $useraction = new User($this->db);
+//        $useraction->fetch($id_usr);
+//        $out='<tbody id="reference_body">';
+//        switch ($responsibility){
+//            case 'dir_depatment':{
+//                //Найкращий співробітник системи
+//                $sql = "select  statistic_action1.id from $this->statistictable where class_block = 'userlist' and action_code = 'TOTAL' order by fact_week desc limit 1";
+//                $res = $this->db->query($sql);
+//                $obj = $this->db->fetch_object($res);
+//                $tmp_user = new User($this->db);
+//                $tmp_user->fetch($obj->id);
+//                $sql = "select name from `subdivision` where rowid = ".$tmp_user->subdiv_id;
+//                $res = $this->db->query($sql);
+//                $obj = $this->db->fetch_object($res);
+//                $out.=$this->GetItem('userlist','TOTAL', $tmp_user,'Найкр.співр.сист. '.$tmp_user->lastname.' ('.$obj->name.')', true)[0]['html'];
+//                //Найкращий директор департамента
+//                $sql = "select  statistic_action1.id from $this->statistictable
+//                inner join llx_user on llx_user.rowid = statistic_action1.id
+//                inner join `responsibility` on `responsibility`.`rowid` = `llx_user`.`respon_id`
+//                left join `responsibility` resp on `resp`.`rowid` = `llx_user`.`respon_id2`
+//                where 1
+//                and 'dir_depatment' in (`responsibility`.`alias`, `resp`.`alias`)
+//                and class_block = 'userlist' and action_code = 'TOTAL' order by fact_week desc limit 1";
+//                $res = $this->db->query($sql);
+//                $obj = $this->db->fetch_object($res);
+//                $tmp_user = new User($this->db);
+//                $tmp_user->fetch($obj->id);
+//                $sql = "select name from `subdivision` where rowid = ".$tmp_user->subdiv_id;
+//                $res = $this->db->query($sql);
+//                $obj = $this->db->fetch_object($res);
+//                $out.=$this->GetItem('userlist','TOTAL', $tmp_user,'Найкр.ДД.сист. '.$tmp_user->lastname.' ('.$obj->name.')', true)[0]['html'];
+//                //Найкращий департамент
+//                $sql = "select  statistic_action1.id, `subdivision`.`name` from `statistic_action1`
+//                    inner join `subdivision` on `subdivision`.`rowid` = statistic_action1.id
+//                    where class_block = 'subdivision' and action_code = 'TOTAL'
+//                    order by fact_week desc
+//                    limit 1";
+//                $res = $this->db->query($sql);
+//                $obj = $this->db->fetch_object($res);
+//                $out.=$this->GetItem('subdivision','TOTAL', $obj,'Найкр.деп.сист. '.$obj->name, true)[0]['html'];
+//            }break;
+//            case 'sale':{
+//                $out.=$this->GetItem('userlist','TOTAL',$useraction,'Всього задач')[0]['html'];
+////                die('Сторінка на ремонті');
+//                $out.=$this->GetItem('userlist','AC_GLOBAL',$useraction,'Глобальні задачі(ТОПЗ)')[0]['html'];
+//                $out.=$this->GetItem('userlist','AC_CURRENT', $useraction,'Поточні задачі')[0]['html'];
+//                $out.=$this->GetItem('regions','TOTAL', $useraction,'Всього по напрямках')[0]['html'];
+//                $sql = "select id from $this->statistictable where class_block = 'regions' and action_code = 'TOTAL' and id in ";
+//                $sql.=" (select rowid from llx_user where subdiv_id = $useraction->subdiv_id and active = 1) order by total_week desc limit 1";
+//                $res = $this->db->query($sql);
+//                $obj = $this->db->fetch_object($res);
+//                if($id_usr == $obj->id)
+//                    $out.=$this->GetItem('regions','TOTAL', $useraction,'Найкращі показники по підрозділу ', true)[0]['html'];
+//                else{
+//                    $tmp_user = new User($this->db);
+//                    $tmp_user->fetch($obj->id);
+//                    $out.=$this->GetItem('regions','TOTAL', $tmp_user,'Найкращі показники по підрозділу '.$tmp_user->lastname, true)[0]['html'];
+//                }
+//                $regions = $this->GetItem('regions','ALL',$useraction, '', false, false);
+//                $sql = "select `regions`.rowid, `regions`.`name`, states.`name` states_name from `regions`
+//                    inner join states on states.rowid = `regions`.`state_id`
+//                    where `regions`.`active` = 1
+//                    and states.active = 1
+//                    order by `regions`.`name`, states_name";
+//                $res = $this->db->query($sql);
+//                $regionsList = [];
+//                while($obj = $this->db->fetch_object($res)){
+//                    $regionsList[$obj->rowid] = array('region'=>$obj->name, 'states_name'=>$obj->states_name);
+//                }
+//
+//                foreach ($regions as $region){
+//                    if(!empty($regionsList[$region['id']])){
+//                        $region_name = '<td>'.$regionsList[$region['id']]['states_name'].'</td><td>'.$regionsList[$region['id']]['region'].'</td>';
+//                    }else{
+//                        $region_name = '<td>Район</td><td>не вказано</td>';
+//                    }
+//                    $out.= '<tr>'.$region_name.'<td></td>'.$region['html'].'</tr>';
+//
+//                }
+//                $out.=$this->GetItem('userlist','AC_PROJECT',$useraction,'Проекти',true)[0]['html'];
+//                $out.=$this->GetItem('userlist','AC_EDUCATION',$useraction,'Навчання',true)[0]['html'];
+//                $out.=$this->GetItem('userlist','AC_INITIATIV',$useraction,'Ініціативи',true)[0]['html'];
+//            }break;
 //        }
-        }
-        return $out;
+//        $out.='</tbody>';
+//        return $out;
     }
-    function CalcStatisticBlock($class_block, $useraction = null, $action_code=null, $id=null){//Розрахунок блоку статистики
-        if(is_array($class_block))
-            return 1;
-        //якщо дія відноситься до глобальних чи поточних дій - перепризначаю блок на userlist
-        if(in_array($action_code, $this->ActionsCode)&&!in_array($class_block, array('userlist', 'subdivision','company')))
-            $class_block = 'userlist';
-        
-        if(!empty($useraction)){
-            $RequiredBlock = ['id','class_block','id_usr'];
-            if(in_array($useraction->respon_alias, array_keys($this->ClassList[0])))
-                $key = $this->ClassList[0][$useraction->respon_alias];
-            elseif (in_array($useraction->respon_alias2, array_keys($this->ClassList[0])))
-                $key = $this->ClassList[0][$useraction->respon_alias2];
-            $sql = "select rowid from $this->statistictable where id = ";
-            switch ($class_block){
-                default:{
-                    if($action_code != 'TOTAL')//Якщо визначається наявність підсумкової строки - прописую ід користувача, в іншому випадку - прописую id напрямку
-                        $sql.= empty($id)?'0':$id;
-                    else
-                        $sql.= empty($id)?$useraction->id:$id;
-                }break;
-                case 'userlist':{
-                    $sql.=$useraction->id;
-                }break;
-                case 'subdivision':{
-                    $sql.=$useraction->subdiv_id;
-                }break;
-                case 'company':{
-                    $sql.='0';
-                }break;
-            }
-            $sql.=" and action_code".(empty($action_code)?" is null":"='$action_code'")." and class_block ='$class_block' limit 1";
-
-            $res = $this->db->query($sql);
-            if(!$res) {
-                dol_print_error($this->db);
-
-            }
-            $sql = '';
-            $add = !$res->num_rows;
-            if($add){//Додавання нового запису
-                $sql = "insert into $this->statistictable(" . implode(',', $RequiredBlock);
-                foreach ($this->fields as $field){
-                    $sql.=',total'.$field.',fact'.$field.',future'.$field;
-                }
-
-                $sql.=",`outstanding`, `action_code`";
-                $sql.=')select ';
-                if($action_code != 'TOTAL') {
-                    switch ($class_block) {
-                        case 'userlist': {
-                            $sql .= $useraction->id;
-                        }
-                            break;
-                        case 'subdivision': {
-                            $sql .= $useraction->subdiv_id;
-                        }
-                            break;
-                        case 'company':{
-                            $sql .= '0';
-                        }break;
-                        default: {
-                            $sql .= empty($id)?$useraction->id:$id;
-                        }
-                    }
-                }else{
-                    switch ($class_block) {
-                        default:{
-                            $sql .= empty($id)?$useraction->id:$id;
-                        }break;
-                        case 'userlist': {
-                            $sql .= $useraction->id;
-                        }
-                            break;
-                        case 'subdivision': {
-                            $sql .= $useraction->subdiv_id;
-                        }
-                            break;
-                        case 'company': {
-                            $sql .= '0';
-                        }
-                    }
-                }
-
-                $sql.=",'$class_block'";
-                if( !in_array($action_code, array_merge(array('TOTAL'),$this->ActionsCode))|| in_array($class_block, array('subdivision', 'company'))){
-                    $sql .= ',0';
-                }else{//Якщо визначається рівень статистики окрім по компанії та підрозділу - вставляю ід користувача
-                    $sql .= ','.$useraction->id;
-                }
-
-
-                foreach ($this->fields as $field){
-                    $sql.=",sum(total".$field."),sum(fact$field),sum(future$field)";
-                }
-                $sql.=",sum(`outstanding`), ".(empty($action_code)?" null":"'$action_code'");
-            }
-
-            switch ($class_block) {
-                default:{
-                    if($action_code == 'TOTAL'){
-                        if($add){
-                            $sql .= " from $this->statistictable where 1 and class_block = '$class_block' and (action_code is null or action_code <> 'TOTAL')
-                                and id_usr = $useraction->id";
-                        } else {
-                            $sql = "update $this->statistictable, (select 1";
-                            foreach ($this->fields as $field) {
-                                $sql .= ",sum(total" . $field . ") s_total" . $field . ",sum(fact$field) s_fact$field,sum(future$field) s_future$field";
-                            }
-                            $sql .= ", sum(`outstanding`) s_outstanding";
-                            $sql .= " from $this->statistictable where 1 and class_block='$class_block' and (action_code is null or action_code <> 'TOTAL') and id_usr = $useraction->id) stat";
-                            $sql .= " set ";
-                            foreach ($this->fields as $key => $field) {
-                                if ($key) $sql .= ',';
-                                $sql .= "total$field=s_total$field, fact$field=s_fact$field, future$field=s_future$field";
-                            }
-                            $sql .=", outstanding = s_outstanding";
-                            $sql .= " where 1 and class_block='$class_block' and action_code = 'TOTAL' and id_usr = $useraction->id";
-                        }
-                    }else{
+    function GetItem($class_block,  $object, $title='title', $level = 1, $bestvalue = false, $showbtn = false){
+        $html = '<tr '.($bestvalue?'class="bestvalue"':(!empty($class_block)?'class="'.$class_block.'"':'')).' '.($level>1?'style="display:none"':'').'>';
+        foreach ($object as $key=>$value){//Необхідно прописати відображення кнопки, що відкриває/закриває списки
+            $html.='<td id="$key">'.trim($value).'</td>';
+        }
+        $html.='</tr>';
+        return $html;
+    }
+//    function CalcStatisticBlock($class_block, $useraction = null, $action_code=null, $id=null){//Розрахунок блоку статистики
+//        if(is_array($class_block))
+//            return 1;
+//        //якщо дія відноситься до глобальних чи поточних дій - перепризначаю блок на userlist
+//        if(in_array($action_code, $this->ActionsCode)&&!in_array($class_block, array('userlist', 'subdivision','company')))
+//            $class_block = 'userlist';
+//
+//        if(!empty($useraction)){
+//            $RequiredBlock = ['id','class_block','id_usr'];
+//            if(in_array($useraction->respon_alias, array_keys($this->ClassList[0])))
+//                $key = $this->ClassList[0][$useraction->respon_alias];
+//            elseif (in_array($useraction->respon_alias2, array_keys($this->ClassList[0])))
+//                $key = $this->ClassList[0][$useraction->respon_alias2];
+//            $sql = "select rowid from $this->statistictable where id = ";
+//            switch ($class_block){
+//                default:{
+//                    if($action_code != 'TOTAL')//Якщо визначається наявність підсумкової строки - прописую ід користувача, в іншому випадку - прописую id напрямку
+//                        $sql.= empty($id)?'0':$id;
+//                    else
+//                        $sql.= empty($id)?$useraction->id:$id;
+//                }break;
+//                case 'userlist':{
+//                    $sql.=$useraction->id;
+//                }break;
+//                case 'subdivision':{
+//                    $sql.=$useraction->subdiv_id;
+//                }break;
+//                case 'company':{
+//                    $sql.='0';
+//                }break;
+//            }
+//            $sql.=" and action_code".(empty($action_code)?" is null":"='$action_code'")." and class_block ='$class_block' limit 1";
+//
+//            $res = $this->db->query($sql);
+//            if(!$res) {
+//                dol_print_error($this->db);
+//
+//            }
+//            $sql = '';
+//            $add = !$res->num_rows;
+//            if($add){//Додавання нового запису
+//                $sql = "insert into $this->statistictable(" . implode(',', $RequiredBlock);
+//                foreach ($this->fields as $field){
+//                    $sql.=',total'.$field.',fact'.$field.',future'.$field;
+//                }
+//
+//                $sql.=",`outstanding`, `action_code`";
+//                $sql.=')select ';
+//                if($action_code != 'TOTAL') {
+//                    switch ($class_block) {
+//                        case 'userlist': {
+//                            $sql .= $useraction->id;
+//                        }
+//                            break;
+//                        case 'subdivision': {
+//                            $sql .= $useraction->subdiv_id;
+//                        }
+//                            break;
+//                        case 'company':{
+//                            $sql .= '0';
+//                        }break;
+//                        default: {
+//                            $sql .= empty($id)?$useraction->id:$id;
+//                        }
+//                    }
+//                }else{
+//                    switch ($class_block) {
+//                        default:{
+//                            $sql .= empty($id)?$useraction->id:$id;
+//                        }break;
+//                        case 'userlist': {
+//                            $sql .= $useraction->id;
+//                        }
+//                            break;
+//                        case 'subdivision': {
+//                            $sql .= $useraction->subdiv_id;
+//                        }
+//                            break;
+//                        case 'company': {
+//                            $sql .= '0';
+//                        }
+//                    }
+//                }
+//
+//                $sql.=",'$class_block'";
+//                if( !in_array($action_code, array_merge(array('TOTAL'),$this->ActionsCode))|| in_array($class_block, array('subdivision', 'company'))){
+//                    $sql .= ',0';
+//                }else{//Якщо визначається рівень статистики окрім по компанії та підрозділу - вставляю ід користувача
+//                    $sql .= ','.$useraction->id;
+//                }
+//
+//
+//                foreach ($this->fields as $field){
+//                    $sql.=",sum(total".$field."),sum(fact$field),sum(future$field)";
+//                }
+//                $sql.=",sum(`outstanding`), ".(empty($action_code)?" null":"'$action_code'");
+//            }
+//
+//            switch ($class_block) {
+//                default:{
+//                    if($action_code == 'TOTAL'){
 //                        if($add){
 //                            $sql .= " from $this->statistictable where 1 and class_block = '$class_block' and (action_code is null or action_code <> 'TOTAL')
 //                                and id_usr = $useraction->id";
-//                        }
-                    }
-                }break;
-                case 'userlist': {
-                    if($action_code != 'TOTAL') {
-                        if ($add) {
-                            $sql .= " from $this->statistictable where 1 and id_usr = $useraction->id and class_block='$key'";
-                        } else {
-                            if (empty($action_code)) {
-                                $sql = "update $this->statistictable";
-                                $sql .= ", (select 1";
-                                foreach ($this->fields as $field) {
-                                    $sql .= ",sum(total" . $field . ") s_total" . $field . ",sum(fact$field) s_fact$field,sum(future$field) s_future$field";
-                                }
-                                $sql .= ", sum(`outstanding`) s_outstanding";
-                                $sql .= " from $this->statistictable where 1 and id_usr = $useraction->id and class_block='$key') stat";
-                                $sql .= " set ";
-                                foreach ($this->fields as $key => $field) {
-                                    if ($key) $sql .= ',';
-                                    $sql .= "total$field=s_total$field, fact$field=s_fact$field, future$field=s_future$field";
-                                }
-                                $sql .= ",`outstanding`=`s_outstanding`";
-                                $sql .= " where 1 and id = $useraction->id and class_block='$class_block' and action_code " . (empty($action_code) ? ' is null' : "='$action_code'");
-                            } else {
-                                $sql = "";
-                            }
-                        }
-                    }else{
-                        if($add){
-                            $sql .= " from $this->statistictable where 1 and (class_block in('regions','userlist') and (action_code is null or action_code <> 'TOTAL') and id_usr = $useraction->id)";
-                        } else {
-                            $sql = "update $this->statistictable, (select 1";
-                            foreach ($this->fields as $field) {
-                                $sql .= ",sum(total" . $field . ") s_total" . $field . ",sum(fact$field) s_fact$field,sum(future$field) s_future$field";
-                            }
-                            $sql .= ", sum(`outstanding`) s_outstanding";
-                            $sql .= " from $this->statistictable where 1 and class_block in('regions','userlist') and (action_code is null or action_code <> 'TOTAL') and id_usr = $useraction->id) stat";
-                            $sql .= " set ";
-                            foreach ($this->fields as $key => $field) {
-                                if ($key) $sql .= ',';
-                                $sql .= "total$field=s_total$field, fact$field=s_fact$field, future$field=s_future$field";
-                            }
-                            $sql .= ",`outstanding`=`s_outstanding`";
-                            $sql .= " where 1 and class_block='$class_block' and action_code = 'TOTAL' and id = $useraction->id";
-                        }
-//                        if(!$add)
-//                            die($sql);
-                    }
-                }break;
-                case 'company':{
-                    if($action_code != 'TOTAL') {
-                        if ($add) {
-                            $sql .= " from $this->statistictable where 1 and class_block='subdivision' and action_code" . (empty($action_code) ? " is null" : "='$action_code'");
-                        } else {
-                            $sql = "update $this->statistictable, (select 1";
-                            foreach ($this->fields as $field) {
-                                $sql .= ",sum(total" . $field . ") s_total" . $field . ",sum(fact$field) s_fact$field,sum(future$field) s_future$field";
-                            }
-                            $sql .= " from $this->statistictable where 1 and class_block='subdivision' and action_code " . (empty($action_code) ? ' is null' : "='$action_code'") . ") stat";
-                            $sql .= " set ";
-                            foreach ($this->fields as $key => $field) {
-                                if ($key) $sql .= ',';
-                                $sql .= "total$field=s_total$field, fact$field=s_fact$field, future$field=s_future$field";
-                            }
-                            $sql .= " where 1 and class_block='$class_block' and action_code " . (empty($action_code) ? ' is null' : "='$action_code'");
-                        }
-                    }
-                    else{
-                        if($add){
-                            $sql .= " from $this->statistictable where 1 and class_block = 'company' and (action_code is null or action_code <> 'TOTAL')";
-//                            die($sql);
-                        } else {
-                            $sql = "update $this->statistictable, (select 1";
-                            foreach ($this->fields as $field) {
-                                $sql .= ",sum(total" . $field . ") s_total" . $field . ",sum(fact$field) s_fact$field,sum(future$field) s_future$field";
-                            }
-                            $sql .= " from $this->statistictable where 1 and class_block='company' and (action_code is null or action_code <> 'TOTAL')) stat";
-                            $sql .= " set ";
-                            foreach ($this->fields as $key => $field) {
-                                if ($key) $sql .= ',';
-                                $sql .= "total$field=s_total$field, fact$field=s_fact$field, future$field=s_future$field";
-                            }
-                            $sql .= " where 1 and class_block='$class_block' and action_code = 'TOTAL'";
-                        }
-                    }
-                }break;
-                case 'subdivision':{
-                    $sql_tmp = "select rowid from llx_user where subdiv_id = $useraction->subdiv_id and active = 1";
-                    $res = $this->db;
-                    if(!$res)
-                        dol_print_error($this->db);
-                    $res = $this->db->query($sql_tmp);
-                    $usersID = [];
-                    while($obj = $this->db->fetch_object($res)){
-                        $usersID[]=$obj->rowid;
-                    }
-                    if($add){
-                        if(empty($action_code) || $action_code == 'TOTAL') {
-                            $sql .= " from $this->statistictable where 1 and id in (" . implode(',', $usersID) . ") " .
-                                    " and class_block not in ('userlist','subdivision','company') and action_code = 'TOTAL'";
-                        }else{
-                            $sql .= " from $this->statistictable where 1 and id in (" . implode(',', $usersID) . ") 
-                                and class_block = 'userlist' and action_code = '$action_code'";
-                        }
-//                        else{
-//                            $sql .= " from $this->statistictable where 1 and id = $useraction->subdiv_id
-//                                and class_block = '$class_block' and (action_code <>'$action_code' or action_code is null)";
-//                        }
-                    }else{
-                        $sql = "update $this->statistictable, (select 1";
-                        foreach ($this->fields as $field){
-                            $sql.=",sum(total".$field.") s_total".$field.",sum(fact$field) s_fact$field,sum(future$field) s_future$field";
-                        }
-                        if($action_code =='TOTAL') {
-                            $sql .= " from $this->statistictable where 1 and id = $useraction->subdiv_id and " .
-                                "class_block ='subdivision' and (action_code <> 'TOTAL' or action_code is null)";
-                        }elseif (empty($action_code)){
-                            $sql .= " from $this->statistictable where 1 and id in (" . implode(',', $usersID) . ") " .
-                                " and class_block not in ('userlist','subdivision','company') and action_code = 'TOTAL'";
-                        }elseif (!empty($action_code) && $action_code !='TOTAL'){
-                            $sql .= " from $this->statistictable where 1 and id in (" . implode(',', $usersID) . ") and " .
-                                "class_block = 'userlist' and action_code='$action_code'";
-                        }else{
-                            $sql .= " from $this->statistictable where 1 and id = $useraction->subdiv_id and class_block = '$class_block' and (action_code <>'$action_code' or action_code is null)";
-                        }
-                        $sql.=") stat set ";
-                        foreach ($this->fields as $key=>$field){
-                            if($key)$sql.=',';
-                            $sql.="total$field=s_total$field, fact$field=s_fact$field, future$field=s_future$field";
-                        }
-                        $sql.=" where 1 and id = $useraction->subdiv_id and class_block='$class_block' and action_code ".(empty($action_code)?' is null':"='$action_code'");
-                    }
-                }break;
-            }
-//           if($useraction->id == 150 && $action_code == 'TOTAL'){
-//                echo '<pre>';
-//                var_dump('sql',$sql);
-//                echo '</pre>';
-//            }
-            if(!empty($sql)) {
-                $res = $this->db->query($sql);
-                if (!$res) {
-                    dol_print_error($this->db);
-                    var_dump($add);
-                    die($sql);
-
-                }
-            }
-
-//            die('test');
-
-        }
-        foreach ($this->fields as $field) {
-            $sql = "update $this->statistictable set per$field = round(100*fact$field/total$field) 
-              where 1 ";
-            switch ($class_block) {
-                case 'userlist': {
-                    $sql .= "and id = $useraction->id and class_block='$class_block' and action_code " . (empty($action_code) ? ' is null' : "='$action_code'") . " limit 1";
-                }break;
-                case 'subdivision':{
-                    $sql.="and id = $useraction->subdiv_id and class_block='$class_block' and action_code ".(empty($action_code)?' is null':"='$action_code'")." limit 1";
-                }break;
-                case 'company':{
-                    $sql .= "and class_block='$class_block' and action_code ".(empty($action_code)?' is null':"='$action_code'")." limit 1";
-                }break;
-            }
-            $res = $this->db->query($sql);
-//            if($class_block == 'userlist') {
-//                echo $sql . ' '.$useraction->id.' $action_code='.$action_code.'</br>';
-//            }
-            if(!$res)
-                dol_print_error($this->db);
-        }
-    }
-    function SaveAction($userID){//Внесення змін до існуючого звіту
-//        require_once  DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
-//        $action = new ActionComm($this->db);
-//        $action->fetch($action_id);
-//
-        require_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
-        $useraction = new User($this->db);
-        $useraction->fetch($userID);
-        $sql = "select * from tmp_group_statistic where fk_user_action = ".$userID;
-        $res = $this->db->query($sql);
-        var_dump($res);
-        $sql = "select * from tmp_statistic where fk_user_action = ".$userID;
-        $res = $this->db->query($sql);
-        var_dump($res);
-        die();
-        $this->Count++;
-        echo $this->Count;
-        $start = time();
-
-        $actiondate = new DateTime(date('d.m.Y', $actions->datep));
-//        echo '<pre>';
-//        var_dump((count($this->users)==0 || in_array($useraction->id, $this->users)) && date_diff($this->today, $actiondate)->days <= 31 && $action->active);
-//        echo '</pre>';
-//        die();
-        if ((count($this->users)==0 || in_array($userID, $this->users))) {
-                echo ' '.$userID;
-
-            foreach ($this->ClassList as $key => $value) {
-
-                if (is_array($value) && !in_array($actions->code, $this->ActionsCode)) {//Якщо дія пов'язана з напрямками і не є глобальною чи поточною
-
-                    if(in_array($useraction->respon_alias, array_keys($value)))
-                        $key = $value[$useraction->respon_alias];
-                    elseif (in_array($useraction->respon_alias2, array_keys($value)))
-                        $key = $value[$useraction->respon_alias2];
-
-                    if (!empty($action->socid)) {
-                        $this->UserActions($societe->region_id, $key, $action, $useraction);
-                    }else
-                        $this->UserActions(0, $key, $action, $useraction);
-
-                        $this->CalcStatisticBlock($key, $useraction,'TOTAL');
-
-//                    $this->CalcStatisticBlock($key, $useraction);
-                }else{
-//                    echo $value.'</br>';
-                    switch ($value){
-                        case 'userlist':{
-                            if(in_array($action->type_code, $this->ActionsCode)){
-                                $this->UserActions($useraction->id, $value, $action, $useraction);
-                            }
-
-                        }break;
-                        default:{//subdivision, company, по напрямкам
-//                            if(733445 == $action->id) {
-//                                echo '<pre>';
-//                                var_dump($value);
-//                                echo '</pre>';
-//                                die();
+//                        } else {
+//                            $sql = "update $this->statistictable, (select 1";
+//                            foreach ($this->fields as $field) {
+//                                $sql .= ",sum(total" . $field . ") s_total" . $field . ",sum(fact$field) s_fact$field,sum(future$field) s_future$field";
 //                            }
-                            $this->CalcStatisticBlock($value, $useraction, in_array($action->type_code, $this->ActionsCode)?$action->type_code:'', $action_id);
-                        }break;
-                    }
-                    $this->CalcStatisticBlock($value, $useraction,'TOTAL');
-                }
-            }
-//            $this->CalcStatisticBlock('company', $useraction, 'TOTAL');
-        }
-        $this->LastID = $action_id;
-        $long = time()-$start;
-        echo ' '.$long.'</br>';
-    }
+//                            $sql .= ", sum(`outstanding`) s_outstanding";
+//                            $sql .= " from $this->statistictable where 1 and class_block='$class_block' and (action_code is null or action_code <> 'TOTAL') and id_usr = $useraction->id) stat";
+//                            $sql .= " set ";
+//                            foreach ($this->fields as $key => $field) {
+//                                if ($key) $sql .= ',';
+//                                $sql .= "total$field=s_total$field, fact$field=s_fact$field, future$field=s_future$field";
+//                            }
+//                            $sql .=", outstanding = s_outstanding";
+//                            $sql .= " where 1 and class_block='$class_block' and action_code = 'TOTAL' and id_usr = $useraction->id";
+//                        }
+//                    }else{
+////                        if($add){
+////                            $sql .= " from $this->statistictable where 1 and class_block = '$class_block' and (action_code is null or action_code <> 'TOTAL')
+////                                and id_usr = $useraction->id";
+////                        }
+//                    }
+//                }break;
+//                case 'userlist': {
+//                    if($action_code != 'TOTAL') {
+//                        if ($add) {
+//                            $sql .= " from $this->statistictable where 1 and id_usr = $useraction->id and class_block='$key'";
+//                        } else {
+//                            if (empty($action_code)) {
+//                                $sql = "update $this->statistictable";
+//                                $sql .= ", (select 1";
+//                                foreach ($this->fields as $field) {
+//                                    $sql .= ",sum(total" . $field . ") s_total" . $field . ",sum(fact$field) s_fact$field,sum(future$field) s_future$field";
+//                                }
+//                                $sql .= ", sum(`outstanding`) s_outstanding";
+//                                $sql .= " from $this->statistictable where 1 and id_usr = $useraction->id and class_block='$key') stat";
+//                                $sql .= " set ";
+//                                foreach ($this->fields as $key => $field) {
+//                                    if ($key) $sql .= ',';
+//                                    $sql .= "total$field=s_total$field, fact$field=s_fact$field, future$field=s_future$field";
+//                                }
+//                                $sql .= ",`outstanding`=`s_outstanding`";
+//                                $sql .= " where 1 and id = $useraction->id and class_block='$class_block' and action_code " . (empty($action_code) ? ' is null' : "='$action_code'");
+//                            } else {
+//                                $sql = "";
+//                            }
+//                        }
+//                    }else{
+//                        if($add){
+//                            $sql .= " from $this->statistictable where 1 and (class_block in('regions','userlist') and (action_code is null or action_code <> 'TOTAL') and id_usr = $useraction->id)";
+//                        } else {
+//                            $sql = "update $this->statistictable, (select 1";
+//                            foreach ($this->fields as $field) {
+//                                $sql .= ",sum(total" . $field . ") s_total" . $field . ",sum(fact$field) s_fact$field,sum(future$field) s_future$field";
+//                            }
+//                            $sql .= ", sum(`outstanding`) s_outstanding";
+//                            $sql .= " from $this->statistictable where 1 and class_block in('regions','userlist') and (action_code is null or action_code <> 'TOTAL') and id_usr = $useraction->id) stat";
+//                            $sql .= " set ";
+//                            foreach ($this->fields as $key => $field) {
+//                                if ($key) $sql .= ',';
+//                                $sql .= "total$field=s_total$field, fact$field=s_fact$field, future$field=s_future$field";
+//                            }
+//                            $sql .= ",`outstanding`=`s_outstanding`";
+//                            $sql .= " where 1 and class_block='$class_block' and action_code = 'TOTAL' and id = $useraction->id";
+//                        }
+////                        if(!$add)
+////                            die($sql);
+//                    }
+//                }break;
+//                case 'company':{
+//                    if($action_code != 'TOTAL') {
+//                        if ($add) {
+//                            $sql .= " from $this->statistictable where 1 and class_block='subdivision' and action_code" . (empty($action_code) ? " is null" : "='$action_code'");
+//                        } else {
+//                            $sql = "update $this->statistictable, (select 1";
+//                            foreach ($this->fields as $field) {
+//                                $sql .= ",sum(total" . $field . ") s_total" . $field . ",sum(fact$field) s_fact$field,sum(future$field) s_future$field";
+//                            }
+//                            $sql .= " from $this->statistictable where 1 and class_block='subdivision' and action_code " . (empty($action_code) ? ' is null' : "='$action_code'") . ") stat";
+//                            $sql .= " set ";
+//                            foreach ($this->fields as $key => $field) {
+//                                if ($key) $sql .= ',';
+//                                $sql .= "total$field=s_total$field, fact$field=s_fact$field, future$field=s_future$field";
+//                            }
+//                            $sql .= " where 1 and class_block='$class_block' and action_code " . (empty($action_code) ? ' is null' : "='$action_code'");
+//                        }
+//                    }
+//                    else{
+//                        if($add){
+//                            $sql .= " from $this->statistictable where 1 and class_block = 'company' and (action_code is null or action_code <> 'TOTAL')";
+////                            die($sql);
+//                        } else {
+//                            $sql = "update $this->statistictable, (select 1";
+//                            foreach ($this->fields as $field) {
+//                                $sql .= ",sum(total" . $field . ") s_total" . $field . ",sum(fact$field) s_fact$field,sum(future$field) s_future$field";
+//                            }
+//                            $sql .= " from $this->statistictable where 1 and class_block='company' and (action_code is null or action_code <> 'TOTAL')) stat";
+//                            $sql .= " set ";
+//                            foreach ($this->fields as $key => $field) {
+//                                if ($key) $sql .= ',';
+//                                $sql .= "total$field=s_total$field, fact$field=s_fact$field, future$field=s_future$field";
+//                            }
+//                            $sql .= " where 1 and class_block='$class_block' and action_code = 'TOTAL'";
+//                        }
+//                    }
+//                }break;
+//                case 'subdivision':{
+//                    $sql_tmp = "select rowid from llx_user where subdiv_id = $useraction->subdiv_id and active = 1";
+//                    $res = $this->db;
+//                    if(!$res)
+//                        dol_print_error($this->db);
+//                    $res = $this->db->query($sql_tmp);
+//                    $usersID = [];
+//                    while($obj = $this->db->fetch_object($res)){
+//                        $usersID[]=$obj->rowid;
+//                    }
+//                    if($add){
+//                        if(empty($action_code) || $action_code == 'TOTAL') {
+//                            $sql .= " from $this->statistictable where 1 and id in (" . implode(',', $usersID) . ") " .
+//                                    " and class_block not in ('userlist','subdivision','company') and action_code = 'TOTAL'";
+//                        }else{
+//                            $sql .= " from $this->statistictable where 1 and id in (" . implode(',', $usersID) . ")
+//                                and class_block = 'userlist' and action_code = '$action_code'";
+//                        }
+////                        else{
+////                            $sql .= " from $this->statistictable where 1 and id = $useraction->subdiv_id
+////                                and class_block = '$class_block' and (action_code <>'$action_code' or action_code is null)";
+////                        }
+//                    }else{
+//                        $sql = "update $this->statistictable, (select 1";
+//                        foreach ($this->fields as $field){
+//                            $sql.=",sum(total".$field.") s_total".$field.",sum(fact$field) s_fact$field,sum(future$field) s_future$field";
+//                        }
+//                        if($action_code =='TOTAL') {
+//                            $sql .= " from $this->statistictable where 1 and id = $useraction->subdiv_id and " .
+//                                "class_block ='subdivision' and (action_code <> 'TOTAL' or action_code is null)";
+//                        }elseif (empty($action_code)){
+//                            $sql .= " from $this->statistictable where 1 and id in (" . implode(',', $usersID) . ") " .
+//                                " and class_block not in ('userlist','subdivision','company') and action_code = 'TOTAL'";
+//                        }elseif (!empty($action_code) && $action_code !='TOTAL'){
+//                            $sql .= " from $this->statistictable where 1 and id in (" . implode(',', $usersID) . ") and " .
+//                                "class_block = 'userlist' and action_code='$action_code'";
+//                        }else{
+//                            $sql .= " from $this->statistictable where 1 and id = $useraction->subdiv_id and class_block = '$class_block' and (action_code <>'$action_code' or action_code is null)";
+//                        }
+//                        $sql.=") stat set ";
+//                        foreach ($this->fields as $key=>$field){
+//                            if($key)$sql.=',';
+//                            $sql.="total$field=s_total$field, fact$field=s_fact$field, future$field=s_future$field";
+//                        }
+//                        $sql.=" where 1 and id = $useraction->subdiv_id and class_block='$class_block' and action_code ".(empty($action_code)?' is null':"='$action_code'");
+//                    }
+//                }break;
+//            }
+////           if($useraction->id == 150 && $action_code == 'TOTAL'){
+////                echo '<pre>';
+////                var_dump('sql',$sql);
+////                echo '</pre>';
+////            }
+//            if(!empty($sql)) {
+//                $res = $this->db->query($sql);
+//                if (!$res) {
+//                    dol_print_error($this->db);
+//                    var_dump($add);
+//                    die($sql);
+//
+//                }
+//            }
+//
+////            die('test');
+//
+//        }
+//        foreach ($this->fields as $field) {
+//            $sql = "update $this->statistictable set per$field = round(100*fact$field/total$field)
+//              where 1 ";
+//            switch ($class_block) {
+//                case 'userlist': {
+//                    $sql .= "and id = $useraction->id and class_block='$class_block' and action_code " . (empty($action_code) ? ' is null' : "='$action_code'") . " limit 1";
+//                }break;
+//                case 'subdivision':{
+//                    $sql.="and id = $useraction->subdiv_id and class_block='$class_block' and action_code ".(empty($action_code)?' is null':"='$action_code'")." limit 1";
+//                }break;
+//                case 'company':{
+//                    $sql .= "and class_block='$class_block' and action_code ".(empty($action_code)?' is null':"='$action_code'")." limit 1";
+//                }break;
+//            }
+//            $res = $this->db->query($sql);
+////            if($class_block == 'userlist') {
+////                echo $sql . ' '.$useraction->id.' $action_code='.$action_code.'</br>';
+////            }
+//            if(!$res)
+//                dol_print_error($this->db);
+//        }
+//    }
+//    function SaveAction($userID){//Внесення змін до існуючого звіту
+////        require_once  DOL_DOCUMENT_ROOT.'/comm/action/class/actioncomm.class.php';
+////        $action = new ActionComm($this->db);
+////        $action->fetch($action_id);
+////
+//        require_once DOL_DOCUMENT_ROOT.'/user/class/user.class.php';
+//        $useraction = new User($this->db);
+//        $useraction->fetch($userID);
+//        $sql = "select * from tmp_group_statistic where fk_user_action = ".$userID;
+//        $res = $this->db->query($sql);
+//        var_dump($res);
+//        $sql = "select * from tmp_statistic where fk_user_action = ".$userID;
+//        $res = $this->db->query($sql);
+//        var_dump($res);
+//        die();
+//        $this->Count++;
+//        echo $this->Count;
+//        $start = time();
+//
+//        $actiondate = new DateTime(date('d.m.Y', $actions->datep));
+////        echo '<pre>';
+////        var_dump((count($this->users)==0 || in_array($useraction->id, $this->users)) && date_diff($this->today, $actiondate)->days <= 31 && $action->active);
+////        echo '</pre>';
+////        die();
+//        if ((count($this->users)==0 || in_array($userID, $this->users))) {
+//                echo ' '.$userID;
+//
+//            foreach ($this->ClassList as $key => $value) {
+//
+//                if (is_array($value) && !in_array($actions->code, $this->ActionsCode)) {//Якщо дія пов'язана з напрямками і не є глобальною чи поточною
+//
+//                    if(in_array($useraction->respon_alias, array_keys($value)))
+//                        $key = $value[$useraction->respon_alias];
+//                    elseif (in_array($useraction->respon_alias2, array_keys($value)))
+//                        $key = $value[$useraction->respon_alias2];
+//
+//                    if (!empty($action->socid)) {
+//                        $this->UserActions($societe->region_id, $key, $action, $useraction);
+//                    }else
+//                        $this->UserActions(0, $key, $action, $useraction);
+//
+//                        $this->CalcStatisticBlock($key, $useraction,'TOTAL');
+//
+////                    $this->CalcStatisticBlock($key, $useraction);
+//                }else{
+////                    echo $value.'</br>';
+//                    switch ($value){
+//                        case 'userlist':{
+//                            if(in_array($action->type_code, $this->ActionsCode)){
+//                                $this->UserActions($useraction->id, $value, $action, $useraction);
+//                            }
+//
+//                        }break;
+//                        default:{//subdivision, company, по напрямкам
+////                            if(733445 == $action->id) {
+////                                echo '<pre>';
+////                                var_dump($value);
+////                                echo '</pre>';
+////                                die();
+////                            }
+//                            $this->CalcStatisticBlock($value, $useraction, in_array($action->type_code, $this->ActionsCode)?$action->type_code:'', $action_id);
+//                        }break;
+//                    }
+//                    $this->CalcStatisticBlock($value, $useraction,'TOTAL');
+//                }
+//            }
+////            $this->CalcStatisticBlock('company', $useraction, 'TOTAL');
+//        }
+//        $this->LastID = $action_id;
+//        $long = time()-$start;
+//        echo ' '.$long.'</br>';
+//    }
     function UserActions($id, $class_block, $action, $useraction){
         if(!empty($this->RenamedCode[$action->type_code]))
             $action->type_code = $this->RenamedCode[$action->type_code];
@@ -1183,9 +1131,105 @@ die(1);
         while($obj = $this->db->fetch_object($res)){
             if($obj->rowid == 5){
                 $alias = $this->GetPageProfile(array($obj->alias1, $obj->alias2));
-                $html = $this->CreateHTML($obj->rowid, $alias);
+                switch ($alias){
+                    case 'gen_dir':{
+                        $html = $this->GetGenDirStaticPage($obj->rowid);
+                    }break;
+                    case 'dir_depatment':{
+                        $html = $this->GetGenDirStaticPage($obj->rowid);
+                    }break;
+                    case 'sale':{
+                        $html = $this->GetSaleStaticPage($obj->rowid);
+                    }break;
+                }
             }
         }
+    }
+    function GetSaleStaticPage($id_usr){
+        $html = '<tbody id="reference_body">';
+        return $html;
+    }
+    function GetGenDirStaticPage($id_usr){
+        $html = '<tbody id="reference_body">';
+        //Найкращий співробітник системи
+        $html.=$this->GetBestUsers('Найкр.співр.сист.', false);
+        //Найкращий директор департаменту системи
+        $html.=$this->GetBestUsers('Найкр.ДД.сист.', true);
+        //Найкращий департамент системи
+        $html.=$this->GetBestDepartment('Найкр.деп.сист.');
+
+        $blocks = ['AllTask','AC_GLOBAL','AC_CURRENT','AC_CUST'];
+        foreach ($blocks as $block){
+            switch ($block) {
+                case 'AllTask':{
+                    $sql = "select subdivision.`name`, llx_raport_dayplan.* from llx_raport_dayplan
+                        inner join `subdivision` on `subdivision`.`rowid` = llx_raport_dayplan.id
+                        where class_block like 'Alltask%'
+                        order by `name`";
+                    $res_dep = $this->db->query($sql);
+                    while($obj_dep = $this->fetch_object($res_dep)){
+                        $this->GetItem('AllTask impare subdivision', $obj_dep, '', 2);
+                    }
+                }break;
+            }
+        }
+        $html.='</tbody>';
+        return $html;
+    }
+    function GetBestDepartment($title){
+        $sql = "select subdivision.name, llx_raport_dayplan.* from $this->statistictable
+            inner join `subdivision` on `subdivision`.`rowid` = $this->statistictable.id
+            where ( class_block like 'AllTask%subdivision')
+            order by fact_week desc
+            limit 1";
+        $res = $this->db->query($sql);
+        $obj = $this->db->fetch_object($res);
+        return $this->GetItem('bestvalue', $obj, $title, 1, true);
+    }
+    function GetBestUsers($title, $director = false){
+        $sql = "select id from $this->statistictable
+            where class_block like '%userlist%'";
+        if($director){
+            $sql_tmp = "select llx_user.rowid from llx_user
+                left join `responsibility` resp1 on resp1.rowid = llx_user.respon_id
+                left join `responsibility` resp2 on resp2.rowid = llx_user.respon_id2
+                where llx_user.active = 1
+                and llx_user.rowid>2
+                and resp1.active = 1
+                and resp2.active = 1
+                and ('dir_depatment' in (resp1.alias,resp2.alias))";
+            $res = $this->db->query($sql_tmp);
+            $users = [];
+            while($obj_dir = $this->db->fetch_object($res)){
+                $users [] = $obj_dir->rowid;
+            }
+            $sql.="and id in (".implode(',', $users).")";
+        }
+        "  group by id
+            order by SUM(fact_week) desc
+            limit 1";
+        $res = $this->db->query($sql);
+        $obj = $this->db->fetch_object($res);
+        $sql = "select llx_user.rowid, subdivision.`name` subdiv_name, login, lastname, firstname from llx_user
+            left join subdivision on subdivision.rowid = llx_user.rowid
+            where llx_user.rowid = $obj->id";
+        $res = $this->db->query($sql);
+        $obj = $this->db->fetch_object($res);
+
+        $sql = "select '$title $obj->lastname ".(!empty($obj->subdiv_name)?"($obj->subdiv_name)":"")."' name";
+        foreach ($this->prefix_fields as $prefix_field){
+            foreach ($this->fields as $field){
+                if($prefix_field == 'per')
+                    $sql.=", round(AVG(".$prefix_field.$field.")) ".$prefix_field.$field;
+                else
+                    $sql.=", round(SUM(".$prefix_field.$field.")) ".$prefix_field.$field;
+            }
+        }
+        $sql.=" from $this->statistictable where class_block like '%userlist%' and id = ".$obj->rowid;
+//        die($sql);
+        $res = $this->db->query($sql);
+        $obj = $this->db->fetch_object($res);
+        return $this->GetItem('bestvalue', $obj, 'Найкращий співробітник системи', 1, true);
     }
     function GetPageProfile($alias){
         if(in_array('gen_dir', $alias))
@@ -1197,7 +1241,7 @@ die(1);
         elseif (array_intersect(array('marketing','sale','jurist','service','purchase','logistika','cadry','counter','paperwork'), $alias))
             return 'sale';
     }
-    function CreateHTML($rowid, $alias){
+    function GetDirDepartmentStaticPage($id_usr){
         $html = '<tbody id="reference_body">';
         return $html;
     }

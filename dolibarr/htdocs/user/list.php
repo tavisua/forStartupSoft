@@ -202,7 +202,7 @@ function callStatistic($begin,$end){
         $nowMonth = $now->format('m');
         $sql = "select sub_user.rowid  id_usr, sub_user.alias, `llx_societe`.`region_id`, sub_user.subdiv_id, actioncomm.percent, date(actioncomm.datep) datep,
         case when actioncomm.`code` in ('AC_GLOBAL', 'AC_CURRENT','AC_EDUCATION', 'AC_INITIATIV', 'AC_PROJECT') then actioncomm.`code` else 'AC_CUST' end `code`,
-        `llx_societe_action`.`callstatus`, `llx_societe_action`.rowid as answer_id, actioncomm.`CallLength`
+        `llx_societe_action`.`callstatus`, `llx_societe_action`.rowid as answer_id, `llx_societe_action`.action_id as action_id, actioncomm.`CallLength`
 
         from
         (select id, percent, datep,fk_soc,`code`, fk_user_action fk_user_author, `CallLength` from llx_actioncomm
@@ -256,7 +256,7 @@ function callStatistic($begin,$end){
         while ($obj = $db->fetch_object($res)) {
             $actions[] = array('id_usr' => $obj->id_usr, 'region_id' => $obj->region_id, 'subdiv_id'=>$obj->subdiv_id,
                 'respon_alias' => $obj->alias, 'percent' => $obj->percent, 'datep' => $obj->datep, 'code' => $obj->code,
-                'callstatus'=> $obj->callstatus, 'CallLength'=>$obj->CallLength);
+                'callstatus'=> $obj->callstatus, 'CallLength'=>$obj->CallLength, 'action_id'=>$obj->action_id);
         }
         $_SESSION['callstatistic'] = $actions;
 
@@ -267,15 +267,19 @@ function callStatistic($begin,$end){
     $execcall = array();
     $efectcall = array();
     $longcall = array();
+    $tmp = array();
     foreach($actions as $call){
-        $allcall[$call['id_usr']]++;
-        if($call["percent"] == 100)
-            $execcall[$call['id_usr']]++;
-        if($call["callstatus"] == 5)
-            $efectcall[$call['id_usr']]++;
+        if(empty($call['action_id'])||!in_array($call['action_id'], $tmp)) {
+            $tmp[]=$call['action_id'];
+            $allcall[$call['id_usr']]++;
+            if ($call["percent"] == 100)
+                $execcall[$call['id_usr']]++;
+            if ($call["callstatus"] == 5)
+                $efectcall[$call['id_usr']]++;
 //        if(!empty($call["CallLength"]) && $call["CallLength"]>60 && $call["percent"] == 100){
-        if(!empty($call["CallLength"])&&$call["CallLength"]>=60){
-            $longcall[$call['id_usr']]++;
+            if (!empty($call["CallLength"]) && $call["CallLength"] >= 60) {
+                $longcall[$call['id_usr']]++;
+            }
         }
     }
 //    echo '<pre>';

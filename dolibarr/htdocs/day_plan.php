@@ -506,23 +506,6 @@ function createStaticDayPlanPage(){
     $res = $db->query($sql);
     if(!$res)
         dol_print_error($db);
-
-//    $columns[]='sale';
-//    $sql = "select * from $tmp_table";
-//    $res = $db->query($sql);
-//    if(!$res)
-//        dol_print_error($db);
-//    echo '<table>';
-//    while($item = $db->fetch_array($res)){
-//        $out = '<tr>';
-//        foreach ($columns as $column){
-//            $out.='<td>'.$item[$column].'</td>';
-//        }
-//        $out .= '</tr>';
-//        echo $out;
-//    }
-//    echo '</table>';
-//    die('ha');
     //Формування ітогової інформації по діях
     $sql = "show tables like 'tmp_action'";
     $res = $db->query($sql);
@@ -550,13 +533,6 @@ function createStaticDayPlanPage(){
     if(!$res)
         dol_print_error($db);
 
-//    $sql = "select * from tmp_action limit 1";
-//    $res = $db->query($sql);
-//    if(!$res)
-//        dol_print_error($db);
-//    $obj = $db->fetch_object($res);
-//    var_dump($obj);
-//    die();
     require_once DOL_DOCUMENT_ROOT.'/core/class/raports/dayplan.class.php';
     $DayPlan = new DayPlan($db);
     $DayPlan->RefreshRaport();

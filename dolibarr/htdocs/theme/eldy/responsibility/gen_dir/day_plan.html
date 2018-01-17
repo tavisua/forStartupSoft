@@ -112,35 +112,35 @@
                 </tr>
                 <tr class="multiple_header_table">
                     <!--% виконання запланованого по факту-->
-                    <th class="small_size"></th>
-                    <th class="small_size"></th>
-                    <th class="small_size"><?=date('d.m', (time()+3600*24*-6))?></th>
-                    <th class="small_size"><?=date('d.m', (time()+3600*24*-5))?></th>
-                    <th class="small_size"><?=date('d.m', (time()+3600*24*-4))?></th>
-                    <th class="small_size"><?=date('d.m', (time()+3600*24*-3))?></th>
-                    <th class="small_size"><?=date('d.m', (time()+3600*24*-2))?></th>
-                    <th class="small_size"><?=date('d.m', (time()+3600*24*-1))?></th>
-                    <th class="small_size"><?=date('d.m')?></th>
+                    <th class="small_size" id="per_month"></th>
+                    <th class="small_size" id="per_week"></th>
+                    <th class="small_size" id="per_6"><?=date('d.m', (time()+3600*24*-6))?></th>
+                    <th class="small_size" id="per_5"><?=date('d.m', (time()+3600*24*-5))?></th>
+                    <th class="small_size" id="per_4"><?=date('d.m', (time()+3600*24*-4))?></th>
+                    <th class="small_size" id="per_3"><?=date('d.m', (time()+3600*24*-3))?></th>
+                    <th class="small_size" id="per_2"><?=date('d.m', (time()+3600*24*-2))?></th>
+                    <th class="small_size" id="per_1"><?=date('d.m', (time()+3600*24*-1))?></th>
+                    <th class="small_size" id="per_0"><?=date('d.m')?></th>
                     <!--минуле (факт)-->
-                    <th class="small_size"></th>
-                    <th class="small_size"></th>
-                    <th class="small_size"><?=date('d.m', (time()+3600*24*-6))?></th>
-                    <th class="small_size"><?=date('d.m', (time()+3600*24*-5))?></th>
-                    <th class="small_size"><?=date('d.m', (time()+3600*24*-4))?></th>
-                    <th class="small_size"><?=date('d.m', (time()+3600*24*-3))?></th>
-                    <th class="small_size"><?=date('d.m', (time()+3600*24*-2))?></th>
-                    <th class="small_size"><?=date('d.m', (time()+3600*24*-1))?></th>
-                    <th class="small_size"><?=date('d.m')?></th>
+                    <th class="small_size" id="fact_month"></th>
+                    <th class="small_size" id="fact_week"></th>
+                    <th class="small_size" id="fact_6"><?=date('d.m', (time()+3600*24*-6))?></th>
+                    <th class="small_size" id="fact_5"><?=date('d.m', (time()+3600*24*-5))?></th>
+                    <th class="small_size" id="fact_4"><?=date('d.m', (time()+3600*24*-4))?></th>
+                    <th class="small_size" id="fact_3"><?=date('d.m', (time()+3600*24*-3))?></th>
+                    <th class="small_size" id="fact_2"><?=date('d.m', (time()+3600*24*-2))?></th>
+                    <th class="small_size" id="fact_1"><?=date('d.m', (time()+3600*24*-1))?></th>
+                    <th class="small_size" id="fact_0"><?=date('d.m')?></th>
                     <!--майбутнє (план)-->
-                    <th class="small_size"><?=date('d.m')?></th>
-                    <th class="small_size"><?=date('d.m', (time()+3600*24*1))?></th>
-                    <th class="small_size"><?=date('d.m', (time()+3600*24*2))?></th>
-                    <th class="small_size"><?=date('d.m', (time()+3600*24*3))?></th>
-                    <th class="small_size"><?=date('d.m', (time()+3600*24*4))?></th>
-                    <th class="small_size"><?=date('d.m', (time()+3600*24*5))?></th>
-                    <th class="small_size"><?=date('d.m', (time()+3600*24*6))?></th>
-                    <th class="small_size"></th>
-                    <th class="small_size"></th>
+                    <th class="small_size" id="future_0"><?=date('d.m')?></th>
+                    <th class="small_size" id="future_1"><?=date('d.m', (time()+3600*24*1))?></th>
+                    <th class="small_size" id="future_2"><?=date('d.m', (time()+3600*24*2))?></th>
+                    <th class="small_size" id="future_3"><?=date('d.m', (time()+3600*24*3))?></th>
+                    <th class="small_size" id="future_4"><?=date('d.m', (time()+3600*24*4))?></th>
+                    <th class="small_size" id="future_5"><?=date('d.m', (time()+3600*24*5))?></th>
+                    <th class="small_size" id="future_6"><?=date('d.m', (time()+3600*24*6))?></th>
+                    <th class="small_size" id="future_week"></th>
+                    <th class="small_size" id="future_month"></th>
                 </tr>
             </thead>
 

@@ -4,7 +4,7 @@
         <input id="actionid" name="actionid" type="hidden" value="<?=$action_id?>">
         <input id="newdate" name="newdate" type="hidden" value="">
         <input id="fact_cost" name="fact_cost" type="hidden" value="<?=empty($object->resultaction['fact_cost'])?0:$object->resultaction['fact_cost']?>">
-        <input id="socid" name="socid" type="hidden" value="<?=isset($_REQUEST['onlyresult'])&&!empty($_REQUEST['onlyresult'])?$object->socid:$_REQUEST['socid']?>">
+        <input id="socid" name="socid" type="hidden" value="<?=$_REQUEST['socid']?>">
         <input id="mainmenu" name="mainmenu" type="hidden" value="<?=$_GET['mainmenu']?>">
         <input id="actioncode" name="actioncode" type="hidden" value="<?=$_GET['actioncode']?>">
         <input id="proposed_id" name="proposed_id" type="hidden" value="<?=$_GET['proposed_id']?>">
@@ -35,14 +35,15 @@
             <tr>
                 <td>
                     &nbsp;&nbsp;&nbsp;<?echo $langs->trans('HerArgument')?></br>
-                    <textarea id="said_important" class="edit_text" name="said_important"><?=empty($object->resultaction['said_important'])?$object->said_important:$object->resultaction['said_important']?></textarea>
+                    <textarea id="argument" class="edit_text" name="argument"><?=empty($object->resultaction['argument'])?$object->argument:$object->resultaction['argument']?></textarea>
                 </td>
-                <textarea id="argument" class="edit_text" name="argument"><?=empty($object->resultaction['argument'])?$object->argument:$object->resultaction['argument']?></textarea>
-                </td>
+
             </tr>
             <tr>
                 <td>
                     &nbsp;&nbsp;&nbsp;<?echo $langs->trans('SaidImportant')?></br>
+                    <textarea id="said_important" class="edit_text" name="said_important"><?=empty($object->resultaction['said_important'])?$object->said_important:$object->resultaction['said_important']?></textarea>
+                </td>
             </tr>
             <tr>
                 <td>
@@ -63,6 +64,12 @@
         var prop_id;
         $(document).ready(function () {
              prop_id = $('#savebtn').parent().parent().attr('id').substr('Proposition'.length);
+             $('#argument').focus();
+        })
+        $('textarea').keydown(function(e){
+            if(e.keyCode == 9 &&e.target.value.length == 0){
+                e.target.value='-';
+            }
         })
         function fast_costchange() {
             var rep = /[-\.;":'a-zA-Zа-яА-Я]/;
@@ -96,8 +103,8 @@
 
     </script>
     <div align="center">
-
-        <button onclick="SaveResultProporition(getParameterByName('contactID'),getParameterByName('actionid'),prop_id, false);" id="savebtn">Зберегти</button>
+        <button onclick="SaveResultProporition(getParameterByName('contactID'),getParameterByName('actionid'),$($(this).parents()[1]).attr('prop_id') === undefined?
+            $($(this).parents()[1]).attr('fx_proposition'):$($(this).parents()[1]).attr('prop_id'), false);" id="savebtn">Зберегти</button>
         <!--<button onclick="saveandcreate();" id="saveandcreatbtn">Зберегти та запланувати наступну дію</button>-->
         <!--<button onclick="back();">Відмінити</button>-->
     </div>
