@@ -330,13 +330,12 @@
                 type: 'get',
                 need:$('#need').val()
             }
-            console.log(param);
             $.ajax({
                 url:'/dolibarr/htdocs/comm/action/result_action.php',
-//                cache:false,
+                cache:false,
                 data:param,
                 success:function (result) {
-                    console.log(result);
+                    console.log('save_societe_need '+result);
                 }
             })
         })

@@ -411,6 +411,19 @@ class Societe extends CommonObject
 //        }
 
     }
+    function save_societe_need($need){
+        if(empty(trim($need)))
+            return;
+        global $db, $user;
+        $sql = "insert into llx_societe_need (`socid`,`need`,`id_usr`) values('".$this->id."','".trim($need)."', $user->id)";
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+        $sql = "update `llx_societe` set `llx_societe`.`need` = trim('".$need."') where rowid = ".$this->id;
+        $res = $db->query($sql);
+        if(!$res)
+            dol_print_error($db);
+    }
     function getStateRegion(){
         if(empty($this->id))
             return '';

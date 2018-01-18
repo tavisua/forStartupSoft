@@ -340,6 +340,13 @@ if($_REQUEST['action'] == 'getNotInterestingForm'){
     if(!empty($_REQUEST['need'])) {
         $object->answer = $_REQUEST['need'];
     }
+    $object->result_of_action = '';
+    foreach ($_REQUEST["needs_array"] as $value) {
+        if(!empty($object->result_of_action))
+            $object->result_of_action.='; ';
+        $object->result_of_action.=$value;
+    }
+    $object->need = $object->result_of_action;
     require_once DOL_DOCUMENT_ROOT.'/theme/eldy/responsibility/sale/not_interesting_form.html';
     exit();
 }
@@ -1523,12 +1530,23 @@ function save_resultaction($rowid, $createaction = false, $action_id = null){
         else $sql.='"'.$db->escape($_REQUEST['need']).'",';
         if(empty($_REQUEST['fact_cost'])) $sql.='null,';
         else $sql.=$db->escape($_REQUEST['fact_cost']).',';
+
 //        echo '<pre>';
-//        var_dump($_REQUEST);
+//        var_dump($_REQUEST['action'], $socid);
 //        echo '</pre>';
 //        die();
         $sql .= $user->id.(empty($_REQUEST['proposed_id'])?'':(','.($_REQUEST['action']=='setNotInterestingProposed'?0:1))).")";
+
     }else {
+        $sql = "select socid from `llx_societe_action` where rowid = ".$rowid;
+        $res = $db->query($sql);
+        $obj = $db->fetch_object($res);
+        $socid = $obj->socid;
+        require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
+        $societe = new Societe($db);
+        $societe->fetch($socid);
+        $societe->save_societe_need($_REQUEST['result_of_action']);
+
         $sql = 'update llx_societe_action set ';
         $sql.='`contactid`='.(empty($_REQUEST['contactid'])?'null':$_REQUEST['contactid']).', ';
         $sql.='`callstatus`='.(empty($newdate)?(empty($_REQUEST['callstatus'])?'null':$_REQUEST['callstatus']):'null').', ';

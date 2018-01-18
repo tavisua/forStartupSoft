@@ -292,10 +292,12 @@ function GetFormSavingResultProposition(contactid, lastID, proposedid, interesti
     var param = {
         action: 'getNotInterestingForm',
         title: $('td#titleProposition').html(),
-        need: ''
+        need: '',
+        needs_array: {}
     }
     var tdList = $('tr#products_title').find('td');
     var needs = '';
+    var needs_array = [];
     $.each(needFields, function(key, field){
         var result = $(tdList[key+1]).html();
         console.log($(field), $(field).val())
@@ -303,23 +305,26 @@ function GetFormSavingResultProposition(contactid, lastID, proposedid, interesti
             result +=': не потрібно';
         }else{
             result +=': '+$(field).val();
+            needs_array.push(result);
         }
         if(needs.length)
             needs +=' ';
         needs +=result;
         console.log('needs', needs);
     })
+    // console.log(needs_array);
     param.need += needs;
+    param.needs_array = needs_array;
     $.ajax({
         url:'/dolibarr/htdocs/comm/action/index.php',
         data:param,
         cache:false,
         success:function(html){
             $('#Proposition'+proposedid).html(html);
-            console.log(html);
+            // console.log(html);
         }
     })
-    console.log(needFields);
+    // console.log(needFields);
 }
 function SaveResultProporition(contactid, lastID, proposedid, interesting){
 
@@ -369,6 +374,7 @@ function SaveResultProporition(contactid, lastID, proposedid, interesting){
         }
 
 // console.log('param', param);
+//         return;
     $.ajax({
         url:'/dolibarr/htdocs/comm/action/index.php',
         data:param,
@@ -946,13 +952,14 @@ function InsertDefaultAnswer(prop_id, contactid, actionid, socid){
         cache: false,
         success: function (rowid) {
             if(rowid != null) {
-                console.log('Зебережено ' + rowid);
+                console.log('Зебережено InsertDefaultAnswer ' + rowid);
                 $('#Proposition'+prop_id).attr('answer_id', rowid);
                 $('#intr_'+prop_id+'_'+contactid).attr('answer_id', rowid);
                 $('#unintr_'+prop_id+'_'+contactid).attr('answer_id', rowid);
                 $('tr#prop_' + prop_id).attr('rowid', rowid);
                 $('#unintr_' + prop_id + '_' + contactid).attr('status', 'executed');
                 var SaveBtn = $('#Proposition'+prop_id).find('button');
+                console.log(SaveBtn);
                 if($('#Proposition'+prop_id).attr('hidden')!==undefined){//Зберігаю результат форми
                     SaveBtn.click();
                 }

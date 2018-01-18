@@ -64,15 +64,12 @@ if(isset($_REQUEST['action'])) {
         savetaskmentor($_REQUEST['action'] == 'savetaskmentor_and_create');
         exit();
     }elseif($_REQUEST['action'] == 'save_societe_need'){//Зберігання потреби
-            global $db, $user;
-            $sql = "insert into llx_societe_need (`socid`,`need`,`id_usr`) values('".$_REQUEST['socid']."','".$_REQUEST['need']."', $user->id)";
-            $res = $db->query($sql);
-            if(!$res)
-                dol_print_error($db);
-            $sql = "update `llx_societe` set `llx_societe`.`need` = trim('".$_REQUEST['need']."') where rowid = ".$_REQUEST['socid'];
-            if(!$res)
-                dol_print_error($db);
-            die(1);
+        global $db,$user;
+        require_once DOL_DOCUMENT_ROOT.'/societe/class/societe.class.php';
+        $societe = new Societe($db);
+        $societe->fetch($_REQUEST['socid']);
+        $societe->save_societe_need($_REQUEST['need']);
+        die(1);
     } elseif ($_REQUEST["action"] == 'get_user_id') {
         global $db,$user;
         $id_usr  = $user->fetch_userID($_REQUEST["login"], $_REQUEST["pass"]);
@@ -418,7 +415,7 @@ if(isset($_REQUEST['action'])) {
 //die();
     global $user;
     $category = $societe->getCategoryOfCustomer();
-    $status = $_REQUEST['actioncode'] == 'AC_TEL' ? $formactions->form_select_callstatus('callstatus', empty($object->callstatus) ? 2 : $object->callstatus) : $formactions->form_select_status_action('formaction', $percent, 1, 'complete');
+//    $status = $_REQUEST['actioncode'] == 'AC_TEL' ? $formactions->form_select_callstatus('callstatus', empty($object->callstatus) ? 2 : $object->callstatus) : $formactions->form_select_status_action('formaction', $percent, 1, 'complete');
     $societe_name = $societe->name;
     if (!empty($object->resultaction['answer']) && !empty($_REQUEST['proposed_id'])) {
         $object->callstatus = 5;

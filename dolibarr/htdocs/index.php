@@ -118,14 +118,15 @@ if(count(array_intersect(array(6,8),array($user->respon_id,$user->respon_id2))) 
     print '<div class="tabs" data-role="controlgroup" data-type="horizontal">
         <div class="inline-block tabsElem tabsElemActive"><a id="user" class="'.(empty($_GET["page"])||$_GET["page"]=="activitycompany"?"tabactive":"").' tab inline-block" data-role="button" href="?page=">Активність компанії</a></div>
         <div class="inline-block tabsElem" title="Пропозиції товарів і послуг (клубнічки)"><a id="user" class="'.($_GET["page"]=="proposition"?"tabactive":"").' tab inline-block" data-role="button" href="?page=proposition">Пропозиції</a></div>
+//        <div class="inline-block tabsElem" title="Показники компанії"><a id="user" class="'.($_GET["page"]=="indexes"?"tabactive":"").' tab inline-block" data-role="button" href="?page=indexes">Показники</a></div>
         </div>';
 
     switch(trim($_GET["page"])) {
+//        case 'indexes':{//Показники компанії
+//
+//        }break;
         case 'proposition':{
-//            die(DOL_DOCUMENT_ROOT . '/comm/raports/performance.php');
-
             include DOL_DOCUMENT_ROOT .'/comm/raports/performance.php';
-//            include DOL_DOCUMENT_ROOT . '/comm/raports/performance.php';
         }break;
         default:{
             include DOL_DOCUMENT_ROOT .'/comm/raports/activitycompany.php';

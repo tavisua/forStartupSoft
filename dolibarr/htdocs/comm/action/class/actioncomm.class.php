@@ -204,11 +204,18 @@ class ActionComm extends CommonObject
         if(empty($datep))
             $datep = date('Y-m-d');
         $actionsID = [];
+        if(empty($socid)&&!empty($contactid)){
+            $sql = "select socid from `llx_societe_contact` where rowid = ".$contactid;
+            $res = $db->query($sql);
+            $obj = $db->fetch_object($res);
+            $socid = $obj->socid;
+        }
         $sql = "select id from llx_actioncomm where fk_soc = $socid
             and date(datep) = '$datep'
             and fk_contact = $contactid
             and percent <> 100
             order by datep desc";
+
         $res = $db->query($sql);
         while($obj = $db->fetch_object($res)){
             $actionsID[]=$obj->id;

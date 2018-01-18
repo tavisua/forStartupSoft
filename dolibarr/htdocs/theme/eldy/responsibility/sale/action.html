@@ -254,6 +254,7 @@
                 console.log($('div#result_action').html());
             }
         }
+        console.log('param.contactID', param.contactID === undefined);
         if($.inArray("<?=$_REQUEST['autocall']?>", [0,1]) && !(param.contactID === undefined || $.isEmptyObject(param.contactID))) {
             if("<?=$_REQUEST['autocall']?>" == 1)
                 timeout = 10;
@@ -262,6 +263,8 @@
             $('#AutoCallBtn').attr('pause',0);
             setAutoCallStatus(0);
             setCallBtnCaption();//Встановлюю напис на кнопці автодозвону
+        }else if($.inArray("<?=$_GET['autocall']?>", [0,1])>0 && (param.contactID === undefined || $.isEmptyObject(param.contactID))){
+            alert('Увага! Не вказано контакт, до якого відбувається автоматичний дзвінок. Треба відредагувати дію, та вказати контактне лице.');
         }
     })
     function setBtnPosition() {
